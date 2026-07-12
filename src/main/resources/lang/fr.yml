@@ -1,0 +1,21 @@
+# src/main/resources/lang/fr.yml
+prefix: "<gold>[PixelRPG]</gold> "
+reception:
+  register-success: "<green>Vous êtes maintenant membre de la guilde !"
+  already-registered: "<yellow>Vous êtes déjà inscrit."
+bank:
+  deposit-success: "<green>%amount% or déposé."
+  withdraw-success: "<green>%amount% or retiré."
+  insufficient: "<red>Fonds insuffisants."
+quest:
+  accepted: "<green>Quête acceptée : <yellow>%title%"
+  completed: "<green>Quête terminée : <yellow>%title%"
+skill:
+  cooldown: "<red>Recharge : %seconds%s"
+  rank-locked: "<red>Les compétences se débloquent au Rang C."
+compass:
+  waypoint: "<light_purple>Le plus proche : %name% - %distance%m %direction%"
+  none: "<gray>Aucun point de passage découvert."
+death:
+  title: "VOUS ÊTES MORT"
+  subtitle: "Tué par %killer%"

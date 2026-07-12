@@ -1,0 +1,17 @@
+# Gradle
+.gradle/
+build/
+
+# VS Code
+.vscode/
+
+# IntelliJ (falls du später mal wechselst)
+.idea/
+*.iml
+
+# Java
+*.class
+
+# Betriebssystem
+.DS_Store
+Thumbs.db

@@ -1,0 +1,92 @@
+# src/main/resources/config.yml (VOLLSTÄNDIG, ersetzt alte Datei)
+storage:
+  type: "YAML"
+  mysql:
+    host: "localhost"
+    port: 3306
+    database: "pixelrpg"
+    username: "root"
+    password: ""
+    pool-size: 10
+    connection-timeout-ms: 8000
+
+language:
+  default: "en"
+
+elytra:
+  permit-cost: 750.0
+
+items:
+  identification-cost:
+    common: 20.0
+    rare: 45.0
+    epic: 90.0
+    legendary: 180.0
+  soulbound:
+    cost: 200.0
+    min-rank: "C"
+  fusion:
+    cost: 120.0
+  loot:
+    unidentified-drop-chance: 0.09
+    identified-drop-chance: 0.14
+    rune-drop-chance: 0.05
+    blessing-chance: 0.12
+    curse-chance: 0.10
+
+effects:
+  aura-interval-ticks: 60
+
+mob-scaling:
+  nameplate-duration-ticks: 120
+  vanilla-player-damage-cap: 4.0
+  xp-per-max-health: 0.9
+  base-stats:
+    F: { hp: 20.0, damage: 3.0 }
+    E: { hp: 32.0, damage: 4.5 }
+    D: { hp: 50.0, damage: 6.5 }
+    C: { hp: 75.0, damage: 9.0 }
+    B: { hp: 110.0, damage: 13.0 }
+    A: { hp: 160.0, damage: 18.0 }
+    S: { hp: 230.0, damage: 25.0 }
+  dimension:
+    overworld: { hp-multiplier: 1.0, damage-multiplier: 1.0, rank-offset: 0 }
+    nether: { hp-multiplier: 1.30, damage-multiplier: 1.20, rank-offset: 1 }
+    the-end: { hp-multiplier: 1.60, damage-multiplier: 1.40, rank-offset: 2 }
+  player-parity-multiplier: 1.15
+
+npc:
+  look-radius: 8.0
+  look-interval-ticks: 5
+
+quests:
+  party-share-range: 24.0
+
+dungeons:
+  instance-world: "pixelrpg_instances"
+  slot-spacing: 512
+  default-cooldown-minutes: 30
+  cleanup-delay-minutes: 20
+
+bosses:
+  bar-radius: 60.0
+  bar-update-interval-ticks: 20
+  phase-check-interval-ticks: 10
+
+statistics:
+  autosave-interval-ticks: 6000
+
+scoreboard:
+  update-interval-ticks: 20
+
+leaderboard:
+  default-limit: 10
+
+classes:
+  respec-cost: 300.0
+  respec-min-rank: "B"
+
+regions:
+  title-fade-in-ms: 400
+  title-stay-ms: 2400
+  title-fade-out-ms: 600

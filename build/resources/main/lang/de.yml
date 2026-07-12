@@ -1,0 +1,35 @@
+# src/main/resources/lang/de.yml (VOLLSTÄNDIG, ersetzt alte Datei)
+prefix: "<gold>[PixelRPG]</gold> "
+reception:
+  register-success: "<green>Du bist jetzt Gildenmitglied!"
+  already-registered: "<yellow>Du bist bereits registriert."
+  leave-confirm: "<red>Bist du sicher? Aller Fortschritt geht verloren."
+bank:
+  deposit-success: "<green>%amount% Gold eingezahlt."
+  withdraw-success: "<green>%amount% Gold abgehoben."
+  insufficient: "<red>Nicht genügend Gold."
+  no-currency: "<red>Du trägst kein Gilden-Gold bei dir."
+class:
+  unlock-requirement: "<red>Berufswahl wird ab Rang C freigeschaltet."
+  chosen: "<green>Du bist jetzt %class%!"
+  respec-success: "<green>Du hast zu %class% gewechselt!"
+  respec-insufficient: "<red>Du brauchst %cost% Gold für den Wechsel."
+quest:
+  accepted: "<green>Quest angenommen: <yellow>%title%"
+  completed: "<green>Quest abgeschlossen: <yellow>%title%"
+  expired: "<red>Dein Quest-Vertrag ist abgelaufen!"
+skill:
+  cooldown: "<red>Abklingzeit: %seconds%s"
+  rank-locked: "<red>Skills werden ab Rang C freigeschaltet."
+compass:
+  waypoint: "<light_purple>Nächstes Ziel: %name% - %distance%m %direction%"
+  none: "<gray>Noch keine Wegpunkte entdeckt."
+travel:
+  unlocked: "<light_purple>Neuer Wegpunkt freigeschaltet: %name%"
+  not-discovered: "<red>Diesen Ort hast du noch nicht entdeckt."
+death:
+  title: "DU BIST GESTORBEN"
+  subtitle: "Getötet von %killer%"
+hud:
+  on: "<green>AN"
+  off: "<red>AUS"

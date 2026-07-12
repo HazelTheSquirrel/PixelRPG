@@ -1,0 +1,10 @@
+name: PixelRPG
+version: 1.0.0
+main: de.pixel.rpg.PixelRPGPlugin
+# Exakt angepasst an deine paper-26.1.2-70.jar:
+api-version: "1.21.4"
+commands:
+  rpgnpc:
+    description: Verwalte die Isekai-Gilden-NPCs
+    permission: rpg.admin
+    usage: /rpgnpc [erstellen|loeschen|bearbeiten]

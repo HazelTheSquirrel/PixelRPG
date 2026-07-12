@@ -1,0 +1,24 @@
+# src/main/resources/paper-plugin.yml (VOLLSTÄNDIG, ersetzt alte Datei)
+name: PixelRPG
+version: 1.0.0
+main: de.pixelrpg.rpg.PixelRPGPlugin
+description: Core MMORPG framework plugin
+author: PixelRPGTeam
+api-version: '26.1.2'
+
+commands:
+  rpgadmin:
+    description: Admin command for PixelRPG
+    permission: rpg.admin
+  rpgparty:
+    description: Party command for PixelRPG
+  questlog:
+    description: Shows your active quests
+  dialogue:
+    description: Dialogue system
+
+permissions:
+  rpg.admin:
+    default: op
+  rpg.member:
+    default: true

@@ -1,0 +1,273 @@
+// src/main/java/de/pixelrpg/rpg/core/RPGKeys.java
+// VOLLSTÄNDIG, ersetzt alte Datei — Modifikator-Keys jetzt instanzgebunden + Gem-Keys
+package de.pixelrpg.rpg.core;
+
+import org.bukkit.NamespacedKey;
+import org.bukkit.plugin.Plugin;
+
+public final class RPGKeys {
+
+    private static Plugin plugin;
+
+    private RPGKeys() {
+    }
+
+    public static void init(Plugin owningPlugin) {
+        plugin = owningPlugin;
+    }
+
+    private static NamespacedKey of(String value) {
+        if (plugin == null) {
+            throw new IllegalStateException("RPGKeys.init() was not called before first use.");
+        }
+        return new NamespacedKey(plugin, value);
+    }
+
+    public static final class Item {
+        private Item() {
+        }
+
+        public static NamespacedKey identified() {
+            return of("item_identified");
+        }
+
+        public static NamespacedKey rarity() {
+            return of("item_rarity");
+        }
+
+        public static NamespacedKey category() {
+            return of("item_category");
+        }
+        
+        public static NamespacedKey itemRank() {
+            return of("item_rank");
+        }
+        
+        public static NamespacedKey maxSockets() {
+            return of("item_max_sockets");
+        }
+
+        public static NamespacedKey usedSockets() {
+            return of("item_used_sockets");
+        }
+
+        public static NamespacedKey socket(int index) {
+            return of("item_socket_" + index);
+        }
+
+        public static NamespacedKey bonusDamage() {
+            return of("item_bonus_damage");
+        }
+
+        public static NamespacedKey critChance() {
+            return of("item_crit_chance");
+        }
+
+        public static NamespacedKey armorValue() {
+            return of("item_armor_value");
+        }
+
+        public static NamespacedKey healthBonus() {
+            return of("item_health_bonus");
+        }
+
+        public static NamespacedKey toolBonus() {
+            return of("item_tool_bonus");
+        }
+
+        public static NamespacedKey lifestealPercent() {
+            return of("item_lifesteal_percent");
+        }
+
+        public static NamespacedKey blessingType() {
+            return of("item_blessing_type");
+        }
+
+        public static NamespacedKey curseType() {
+            return of("item_curse_type");
+        }
+
+        public static NamespacedKey soulbound() {
+            return of("item_soulbound");
+        }
+
+        public static NamespacedKey runeType() {
+            return of("item_rune_type");
+        }
+
+        public static NamespacedKey runeValue() {
+            return of("item_rune_value");
+        }
+
+        public static NamespacedKey guildItem() {
+            return of("item_guild_marker");
+        }
+
+        public static NamespacedKey shopPriceTag() {
+            return of("item_shop_price_tag");
+        }
+
+        public static NamespacedKey classSetClass() {
+            return of("item_class_set_class");
+        }
+
+        public static NamespacedKey classSetSlot() {
+            return of("item_class_set_slot");
+        }
+
+        // Instanz-ID: eindeutig pro physischem Item, verhindert dass zwei
+        // gleichzeitig getragene Items sich gegenseitig überschreibende
+        // Attribute-Modifier-Keys erzeugen (Ursache des HP/Armor-Reset-Bugs).
+        public static NamespacedKey instanceId() {
+            return of("item_instance_id");
+        }
+
+        public static NamespacedKey attackDamageModifier(String instanceId) {
+            return of("item_mod_attack_damage_" + instanceId);
+        }
+
+        public static NamespacedKey armorModifier(String instanceId) {
+            return of("item_mod_armor_" + instanceId);
+        }
+
+        public static NamespacedKey healthModifier(String instanceId) {
+            return of("item_mod_health_" + instanceId);
+        }
+
+        // =========================
+        // Gems
+        // =========================
+
+        public static NamespacedKey gemType() {
+            return of("item_gem_type");
+        }
+
+        public static NamespacedKey gemOwnerClass() {
+            return of("item_gem_owner_class");
+        }
+
+        public static NamespacedKey gemMaxSockets() {
+            return of("item_gem_max_sockets");
+        }
+
+        public static NamespacedKey gemUsedSockets() {
+            return of("item_gem_used_sockets");
+        }
+
+        public static NamespacedKey gemSocket(int index) {
+            return of("item_gem_socket_" + index);
+        }
+    }
+
+    public static final class Combat {
+        private Combat() {
+        }
+
+        public static NamespacedKey mobRank() {
+            return of("combat_mob_rank");
+        }
+
+        public static NamespacedKey mobBarExpiry() {
+            return of("combat_mob_bar_expiry");
+        }
+    }
+
+    public static final class Stats {
+        private Stats() {
+        }
+
+        public static NamespacedKey maxHealth() {
+            return of("stat_max_health");
+        }
+
+        public static NamespacedKey armor() {
+            return of("stat_armor");
+        }
+
+        public static NamespacedKey movementSpeed() {
+            return of("stat_movement_speed");
+        }
+
+        public static NamespacedKey blockRange() {
+            return of("stat_block_range");
+        }
+
+        public static NamespacedKey entityRange() {
+            return of("stat_entity_range");
+        }
+    }
+
+    public static final class Npc {
+        private Npc() {
+        }
+
+        public static NamespacedKey npcType() {
+            return of("npc_type");
+        }
+
+        public static NamespacedKey npcId() {
+            return of("npc_id");
+        }
+    }
+
+    public static final class Economy {
+        private Economy() {
+        }
+
+        public static NamespacedKey guildGold() {
+            return of("economy_guild_gold");
+        }
+    }
+
+    public static final class Region {
+        private Region() {
+        }
+
+        public static NamespacedKey regionId() {
+            return of("region_id");
+        }
+
+        public static NamespacedKey wandMarker() {
+            return of("region_wand_marker");
+        }
+    }
+
+    public static final class Dungeon {
+        private Dungeon() {
+        }
+
+        public static NamespacedKey dungeonId() {
+            return of("dungeon_id");
+        }
+
+        public static NamespacedKey instanceId() {
+            return of("dungeon_instance_id");
+        }
+    }
+
+    public static final class Boss {
+        private Boss() {
+        }
+
+        public static NamespacedKey bossId() {
+            return of("boss_id");
+        }
+
+        public static NamespacedKey worldBossMarker() {
+            return of("boss_world_marker");
+        }
+    }
+
+    public static final class Special {
+        private Special() {
+        }
+
+        public static NamespacedKey skillFocusMarker() {
+            return of("special_skill_focus");
+        }
+
+        public static NamespacedKey guildCompassMarker() {
+            return of("special_guild_compass");
+        }
+    }
+}

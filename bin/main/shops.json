@@ -1,0 +1,20 @@
+[
+  {
+    "material": "BREAD",
+    "displayName": "§fFrisches Tavernenbrot",
+    "buyPrice": 10.0,
+    "sellPrice": 3.0
+  },
+  {
+    "material": "IRON_SWORD",
+    "displayName": "§7Gilden-Eisenschwert",
+    "buyPrice": 150.0,
+    "sellPrice": 45.0
+  },
+  {
+    "material": "POTION",
+    "displayName": "§dKleiner Heiltrank",
+    "buyPrice": 50.0,
+    "sellPrice": 12.0
+  }
+]

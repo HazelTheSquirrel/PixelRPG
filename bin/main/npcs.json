@@ -1,0 +1,20 @@
+[
+  {
+    "id": "guild_receptionist",
+    "name": "Luna",
+    "type": "RECEPTIONIST",
+    "skinName": "Luna"
+  },
+  {
+    "id": "tavern_merchant",
+    "name": "Bob",
+    "type": "TAVERNE",
+    "skinName": "Bob"
+  },
+  {
+    "id": "quest_board_npc",
+    "name": "Quest-Aushang",
+    "type": "QUEST",
+    "skinName": "MHF_OakLog"
+  }
+]

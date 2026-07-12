@@ -1,0 +1,21 @@
+# src/main/resources/lang/es.yml
+prefix: "<gold>[PixelRPG]</gold> "
+reception:
+  register-success: "<green>¡Ahora eres miembro del gremio!"
+  already-registered: "<yellow>Ya estás registrado."
+bank:
+  deposit-success: "<green>Depositaste %amount% de oro."
+  withdraw-success: "<green>Retiraste %amount% de oro."
+  insufficient: "<red>Fondos insuficientes."
+quest:
+  accepted: "<green>Misión aceptada: <yellow>%title%"
+  completed: "<green>Misión completada: <yellow>%title%"
+skill:
+  cooldown: "<red>En reutilización: %seconds%s"
+  rank-locked: "<red>Las habilidades se desbloquean en Rango C."
+compass:
+  waypoint: "<light_purple>Más cercano: %name% - %distance%m %direction%"
+  none: "<gray>Aún no se han descubierto puntos de viaje."
+death:
+  title: "HAS MUERTO"
+  subtitle: "Asesinado por %killer%"
