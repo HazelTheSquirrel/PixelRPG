@@ -1,17 +1,18 @@
 # Gradle
-.gradle/
 build/
+.gradle/
 
-# VS Code
+# JARs
+*.jar
+
+# IDE
 .vscode/
-
-# IntelliJ (falls du später mal wechselst)
 .idea/
 *.iml
 
 # Java
 *.class
 
-# Betriebssystem
-.DS_Store
+# OS
 Thumbs.db
+.DS_Store
