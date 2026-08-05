@@ -1,7 +1,7 @@
-// src/main/java/de/pixelrpg/rpg/gui/TravelGUI.java (VOLLSTÄNDIG, ersetzt alte Datei — Dungeon-Button reicht currentNpcId weiter)
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
@@ -24,13 +24,15 @@ public final class TravelGUI extends AbstractGUI {
     private final NpcManager npcManager;
     private final PlayerProfileManager profileManager;
     private final String currentNpcId;
+    private final LanguageManager lang;
 
     public TravelGUI(Player viewer, NpcManager npcManager, PlayerProfileManager profileManager, String currentNpcId) {
-        super(54, Component.text("Fast Travel", NamedTextColor.LIGHT_PURPLE));
+        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("travel.gui-title"));
         this.viewer = viewer;
         this.npcManager = npcManager;
         this.profileManager = profileManager;
         this.currentNpcId = currentNpcId;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -42,7 +44,7 @@ public final class TravelGUI extends AbstractGUI {
 
         ItemStack dungeonButton = new ItemStack(Material.NETHERITE_HOE);
         ItemMeta dungeonMeta = dungeonButton.getItemMeta();
-        dungeonMeta.displayName(Component.text("Dungeons", NamedTextColor.DARK_RED).decoration(TextDecoration.ITALIC, false));
+        dungeonMeta.displayName(lang.get("travel.dungeons-button").color(NamedTextColor.DARK_RED).decoration(TextDecoration.ITALIC, false));
         dungeonButton.setItemMeta(dungeonMeta);
         setItem(49, dungeonButton, event -> new DungeonBoardGUI(
                 viewer,
@@ -71,13 +73,13 @@ public final class TravelGUI extends AbstractGUI {
             meta.displayName(Component.text(npc.name(), unlocked ? NamedTextColor.LIGHT_PURPLE : NamedTextColor.GRAY)
                     .decoration(TextDecoration.ITALIC, false));
             meta.lore(List.of(unlocked
-                    ? Component.text("Click to travel here.", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
-                    : Component.text("Not yet discovered.", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)));
+                    ? lang.get("travel.click-to-travel").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
+                    : lang.get("travel.not-yet-discovered").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)));
             item.setItemMeta(meta);
 
             setItem(slot, item, event -> {
                 if (!unlocked) {
-                    viewer.sendMessage(Component.text("You have not discovered this location yet.", NamedTextColor.RED));
+                    lang.send(viewer, "travel.not-discovered");
                     return;
                 }
                 viewer.teleportAsync(npc.location().clone().add(0, 1, 0));

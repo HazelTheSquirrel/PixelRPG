@@ -1,10 +1,9 @@
-// src/main/java/de/pixelrpg/rpg/combat/MobExperienceListener.java
 package de.pixelrpg.rpg.combat;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
@@ -18,12 +17,16 @@ public final class MobExperienceListener implements Listener {
 
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
+    private final LanguageManager lang;
 
     public MobExperienceListener(GuildAPI guildAPI, MobScalingConfig scalingConfig) {
         this.guildAPI = guildAPI;
         this.scalingConfig = scalingConfig;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
+    // Zuständig für die Vergabe von Gilden-Erfahrungspunkten an registrierte
+    // Spieler beim Töten von Monstern, proportional zur maximalen HP des Mobs.
     @EventHandler(priority = EventPriority.HIGH)
     public void onMonsterDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
@@ -45,6 +48,6 @@ public final class MobExperienceListener implements Listener {
         }
 
         guildAPI.addExperience(killer.getUniqueId(), xpReward);
-        killer.sendActionBar(Component.text("+" + xpReward + " XP", NamedTextColor.YELLOW));
+        killer.sendActionBar(lang.get("xp.gained", "amount", String.valueOf(xpReward)));
     }
 }

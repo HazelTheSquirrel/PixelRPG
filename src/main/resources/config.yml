@@ -1,13 +1,13 @@
 # src/main/resources/config.yml (VOLLSTÄNDIG, ersetzt alte Datei)
 storage:
-  type: "YAML"
+  type: "MYSQL"
   mysql:
     host: "localhost"
     port: 3306
     database: "pixelrpg"
     username: "root"
-    password: ""
-    pool-size: 10
+    password: "CHANGE_ME"
+    pool-size: 20
     connection-timeout-ms: 8000
 
 language:
@@ -25,14 +25,122 @@ items:
   soulbound:
     cost: 200.0
     min-rank: "C"
-  fusion:
-    cost: 120.0
   loot:
     unidentified-drop-chance: 0.09
     identified-drop-chance: 0.14
     rune-drop-chance: 0.05
+    gem-drop-chance: 0.05
+    gem-active-chance: 0.35
     blessing-chance: 0.12
     curse-chance: 0.10
+
+runes:
+  damage: { min: 1.0, max: 4.0 }
+  crit: { min: 0.5, max: 2.5 }
+  lifesteal: { min: 1.0, max: 5.0 }
+  armor: { min: 1.0, max: 3.5 }
+  vitality: { min: 1.0, max: 4.0 }
+  regeneration: { min: 1.0, max: 3.0 }
+  haste: { min: 1.0, max: 3.0 }
+  agility-attunement: { min: 0.5, max: 2.0 }
+  precision-attunement: { min: 0.5, max: 2.0 }
+  range-attunement: { min: 0.5, max: 2.0 }
+  toughness-attunement: { min: 0.5, max: 2.0 }
+  class-sigil: { min: 1.0, max: 3.0 }
+
+economy:
+  bank:
+    quick-amount: 10.0
+  currency:
+    max-stack-size: 64
+
+combat:
+  boss-max-hit-percent-of-max-hp: 0.12
+
+attributes:
+  base-cost: 30.0
+  cost-multiplier: 1.40
+  class-discount: 0.75
+  soulview-cost: 500.0
+  per-point:
+    vitality-hp: 4.0
+    agility-speed: 0.008
+    agility-crit: 1.5
+    precision-damage: 1.2
+    range-block: 0.15
+    range-entity: 0.20
+    toughness-armor: 2.0
+
+class-balance:
+  warrior:
+    armor-base: 10.0
+    armor-per-toughness: 1.8
+    health-base: 8.0
+    health-per-vitality: 1.2
+    speed-base: 0.0
+    melee-mult-base: 1.15
+    melee-mult-per-toughness: 0.015
+    ranged-mult: 1.0
+    spell-mult: 1.0
+    heal-mult: 1.0
+    crit-chance-bonus: 0.0
+    crit-damage-mult: 1.0
+  ranger:
+    armor-base: 0.0
+    health-base: 2.0
+    health-per-vitality: 0.5
+    speed-base: 0.03
+    speed-per-agility: 0.002
+    melee-mult: 1.0
+    ranged-mult-base: 1.20
+    ranged-mult-per-point: 0.015
+    spell-mult: 1.0
+    heal-mult: 1.0
+    crit-chance-base: 5.0
+    crit-chance-per-range: 0.8
+    crit-damage-mult: 1.0
+  rogue:
+    armor-base: 0.0
+    health-base: 0.0
+    speed-base: 0.02
+    speed-per-agility: 0.002
+    melee-mult: 1.0
+    ranged-mult: 1.0
+    spell-mult: 1.0
+    heal-mult: 1.0
+    crit-chance-base: 15.0
+    crit-chance-per-point: 1.0
+    crit-damage-mult-base: 1.6
+    crit-damage-mult-per-precision: 0.03
+  healer:
+    armor-base: 3.0
+    armor-per-toughness: 0.5
+    health-base: 10.0
+    health-per-vitality: 1.5
+    speed-base: 0.0
+    melee-mult: 1.0
+    ranged-mult: 1.0
+    spell-mult: 1.0
+    heal-mult-base: 1.35
+    heal-mult-per-vitality: 0.025
+    crit-chance-bonus: 0.0
+    crit-damage-mult: 1.0
+  mage:
+    armor-base: -2.0
+    health-base: -2.0
+    health-per-vitality: 0.5
+    speed-base: 0.0
+    melee-mult: 1.0
+    ranged-mult: 1.0
+    spell-mult-base: 1.25
+    spell-mult-per-precision: 0.025
+    heal-mult: 1.0
+    crit-chance-bonus: 0.0
+    crit-damage-mult: 1.0
+
+story:
+  chars-per-line: 18
+  lines-per-page: 13
 
 effects:
   aura-interval-ticks: 60
@@ -67,11 +175,13 @@ dungeons:
   slot-spacing: 512
   default-cooldown-minutes: 30
   cleanup-delay-minutes: 20
+  blocks-per-tick: 5000
 
 bosses:
   bar-radius: 60.0
   bar-update-interval-ticks: 20
   phase-check-interval-ticks: 10
+  class-set-drop-chance: 0.08
 
 statistics:
   autosave-interval-ticks: 6000

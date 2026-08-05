@@ -1,7 +1,8 @@
-// src/main/java/de/pixelrpg/rpg/quest/QuestLogCommand.java
 package de.pixelrpg.rpg.command.impl;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.gui.QuestLogGUI;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.QuestManager;
 import net.kyori.adventure.text.Component;
@@ -15,10 +16,12 @@ public final class QuestLogCommand implements CommandExecutor {
 
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
+    private final LanguageManager lang;
 
     public QuestLogCommand(QuestManager questManager, PlayerProfileManager profileManager) {
         this.questManager = questManager;
         this.profileManager = profileManager;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -28,7 +31,7 @@ public final class QuestLogCommand implements CommandExecutor {
             return true;
         }
         if (!profileManager.isRegistered(player.getUniqueId())) {
-            player.sendMessage(Component.text("You must be a registered guild member.", NamedTextColor.RED));
+            lang.send(player, "common.not-registered");
             return true;
         }
         new QuestLogGUI(player, questManager, profileManager).open(player);

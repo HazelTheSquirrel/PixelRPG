@@ -1,5 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/core/RPGKeys.java
-// VOLLSTÄNDIG, ersetzt alte Datei — Modifikator-Keys jetzt instanzgebunden + Gem-Keys
 package de.pixelrpg.rpg.core;
 
 import org.bukkit.NamespacedKey;
@@ -142,10 +140,6 @@ public final class RPGKeys {
             return of("item_gem_type");
         }
 
-        public static NamespacedKey gemOwnerClass() {
-            return of("item_gem_owner_class");
-        }
-
         public static NamespacedKey gemMaxSockets() {
             return of("item_gem_max_sockets");
         }
@@ -260,10 +254,6 @@ public final class RPGKeys {
 
     public static final class Special {
         private Special() {
-        }
-
-        public static NamespacedKey skillFocusMarker() {
-            return of("special_skill_focus");
         }
 
         public static NamespacedKey guildCompassMarker() {

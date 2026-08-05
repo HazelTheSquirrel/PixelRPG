@@ -1,9 +1,10 @@
-// src/main/java/de/pixelrpg/rpg/achievement/AchievementManager.java
 package de.pixelrpg.rpg.achievement;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.AchievementAPI;
 import de.pixelrpg.rpg.core.Rank;
 import de.pixelrpg.rpg.core.StatisticType;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import net.kyori.adventure.text.Component;
@@ -20,10 +21,12 @@ public final class AchievementManager implements AchievementAPI {
 
     private final AchievementRepository repository;
     private final PlayerProfileManager profileManager;
+    private final LanguageManager lang;
 
     public AchievementManager(AchievementRepository repository, PlayerProfileManager profileManager) {
         this.repository = repository;
         this.profileManager = profileManager;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     public void checkStatisticAchievements(Player player, StatisticType type) {
@@ -110,11 +113,12 @@ public final class AchievementManager implements AchievementAPI {
         }
         profileManager.saveProfileAsync(player.getUniqueId());
 
-        player.sendMessage(Component.text("Achievement Unlocked: ", NamedTextColor.GOLD)
-                .append(Component.text(definition.displayName(), NamedTextColor.YELLOW)));
+        // Achievement-Name/-Beschreibung kommen aus achievements.yml (Admin-Konfiguration),
+        // bleiben daher Klartext; nur das umgebende UI-Format ist übersetzt.
+        lang.send(player, "achievement.unlocked", "name", definition.displayName());
         player.showTitle(Title.title(
-                Component.text("Achievement Unlocked!", NamedTextColor.GOLD),
                 Component.text(definition.displayName(), NamedTextColor.YELLOW),
+                Component.text(" "),
                 Title.Times.times(Duration.ofMillis(300), Duration.ofMillis(2000), Duration.ofMillis(300))
         ));
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);

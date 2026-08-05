@@ -1,6 +1,7 @@
-// src/main/java/de/pixelrpg/rpg/gui/QuestLogGUI.java (VOLLSTÄNDIG, ersetzt alte Datei — 54 Slots, Back-Button slot 49)
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
@@ -21,12 +22,14 @@ public final class QuestLogGUI extends AbstractGUI {
     private final Player viewer;
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
+    private final LanguageManager lang;
 
     public QuestLogGUI(Player viewer, QuestManager questManager, PlayerProfileManager profileManager) {
-        super(54, Component.text("Quest Log", NamedTextColor.DARK_AQUA));
+        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("quest.log-title"));
         this.viewer = viewer;
         this.questManager = questManager;
         this.profileManager = profileManager;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -39,7 +42,7 @@ public final class QuestLogGUI extends AbstractGUI {
         if (profile.getActiveQuests().isEmpty()) {
             ItemStack empty = new ItemStack(Material.BARRIER);
             ItemMeta meta = empty.getItemMeta();
-            meta.displayName(Component.text("No active quests", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+            meta.displayName(lang.get("quest.no-active").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
             empty.setItemMeta(meta);
             setItem(22, empty);
         } else {
@@ -58,11 +61,13 @@ public final class QuestLogGUI extends AbstractGUI {
                 meta.displayName(Component.text(quest.title(), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
                 meta.lore(List.of(
                         Component.text(quest.description(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
-                        Component.text("Progress: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.GREEN)
+                        lang.get("quest.progress", "current", String.valueOf(progress.getCurrentAmount()),
+                                        "required", String.valueOf(quest.requiredAmount()))
+                                .color(NamedTextColor.GREEN)
                                 .decoration(TextDecoration.ITALIC, false),
                         progress.hasExpiry()
-                                ? Component.text("Time-limited quest.", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)
-                                : Component.text("No time limit.", NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false)
+                                ? lang.get("quest.time-limited").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)
+                                : lang.get("quest.no-time-limit").color(NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false)
                 ));
                 item.setItemMeta(meta);
 
@@ -78,7 +83,7 @@ public final class QuestLogGUI extends AbstractGUI {
     private ItemStack backButton() {
         ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Back", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get("common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }

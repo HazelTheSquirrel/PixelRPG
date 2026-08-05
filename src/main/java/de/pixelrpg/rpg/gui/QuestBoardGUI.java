@@ -1,7 +1,8 @@
-// src/main/java/de/pixelrpg/rpg/gui/QuestBoardGUI.java (VOLLSTÄNDIG, ersetzt alte Datei — nach Rang-Kategorie gefiltert, Zurück zur Kategorie-Auswahl)
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.Rank;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
@@ -23,13 +24,15 @@ public final class QuestBoardGUI extends AbstractGUI {
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
     private final Rank category;
+    private final LanguageManager lang;
 
     public QuestBoardGUI(Player viewer, QuestManager questManager, PlayerProfileManager profileManager, Rank category) {
-        super(54, Component.text("Quest Board - Rank " + category.name(), NamedTextColor.DARK_AQUA));
+        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("quest.board-rank-title", "rank", category.name()));
         this.viewer = viewer;
         this.questManager = questManager;
         this.profileManager = profileManager;
         this.category = category;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -72,18 +75,21 @@ public final class QuestBoardGUI extends AbstractGUI {
         List<Component> lore = new ArrayList<>();
         lore.add(Component.text(quest.description(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text(" "));
-        lore.add(Component.text("Required Rank: " + quest.requiredRank().name(), NamedTextColor.AQUA)
+        lore.add(lang.get("quest.required-rank", "rank", quest.requiredRank().name())
+                .color(NamedTextColor.AQUA)
                 .decoration(TextDecoration.ITALIC, false));
 
         boolean hasActive = profile.hasActiveQuest(quest.id());
         if (hasActive) {
             var progress = profile.getActiveQuests().get(quest.id());
-            lore.add(Component.text("Progress: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.GREEN)
+            lore.add(lang.get("quest.progress", "current", String.valueOf(progress.getCurrentAmount()),
+                            "required", String.valueOf(quest.requiredAmount()))
+                    .color(NamedTextColor.GREEN)
                     .decoration(TextDecoration.ITALIC, false));
         } else if (!questManager.canAccept(profile, quest)) {
-            lore.add(Component.text("Rank too low to accept.", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+            lore.add(lang.get("quest.rank-too-low").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         } else {
-            lore.add(Component.text("Click for details.", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+            lore.add(lang.get("quest.click-for-details").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
         }
 
         meta.lore(lore);
@@ -94,7 +100,7 @@ public final class QuestBoardGUI extends AbstractGUI {
     private ItemStack backButton() {
         ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Back", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get("common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }

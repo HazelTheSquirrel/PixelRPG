@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/boss/BossDeathListener.java
 package de.pixelrpg.rpg.boss;
 
 import de.pixelrpg.rpg.core.RPGKeys;
@@ -17,6 +16,8 @@ public final class BossDeathListener implements Listener {
         this.bossManager = bossManager;
     }
 
+    // Zuständig für das Auslösen von Bossbar-Cleanup und Belohnungsverteilung
+    // (Welt-Bosse), sobald ein registrierter Boss (World-Boss-Marker oder bossId) stirbt.
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
@@ -31,6 +32,6 @@ public final class BossDeathListener implements Listener {
             return;
         }
 
-        bossManager.onBossDeath(entity.getUniqueId());
+        bossManager.onBossDeath(entity);
     }
 }

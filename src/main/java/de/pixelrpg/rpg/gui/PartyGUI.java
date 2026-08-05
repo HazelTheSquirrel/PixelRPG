@@ -1,6 +1,7 @@
-// src/main/java/de/pixelrpg/rpg/gui/PartyGUI.java (VOLLSTÄNDIG, ersetzt alte Datei — 54 Slots, Back-Button slot 49)
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.party.PartyManager;
 import net.kyori.adventure.text.Component;
@@ -24,12 +25,14 @@ public final class PartyGUI extends AbstractGUI {
     private final Player viewer;
     private final PartyManager partyManager;
     private final de.pixelrpg.rpg.player.PlayerProfileManager profileManager;
+    private final LanguageManager lang;
 
     public PartyGUI(Player viewer, PartyManager partyManager, de.pixelrpg.rpg.player.PlayerProfileManager profileManager) {
-        super(54, Component.text("Party", NamedTextColor.LIGHT_PURPLE));
+        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("party.gui-title"));
         this.viewer = viewer;
         this.partyManager = partyManager;
         this.profileManager = profileManager;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -37,9 +40,9 @@ public final class PartyGUI extends AbstractGUI {
         Optional<Party> partyOpt = partyManager.getParty(viewer.getUniqueId());
 
         if (partyOpt.isEmpty()) {
-            setItem(22, buildActionItem(Material.LIME_DYE, "Create Party", NamedTextColor.GREEN), event -> {
+            setItem(22, buildActionItem(Material.LIME_DYE, "party.create-button", NamedTextColor.GREEN), event -> {
                 partyManager.createParty(viewer.getUniqueId());
-                viewer.sendMessage(Component.text("Party created. Invite players with /rpgparty invite <name>.", NamedTextColor.GREEN));
+                lang.send(viewer, "party.created");
                 open(viewer);
             });
             setItem(49, backButton(), event -> new ReceptionGUI(viewer, profileManager).open(viewer));
@@ -59,12 +62,12 @@ public final class PartyGUI extends AbstractGUI {
         boolean isLeader = party.isLeader(viewer.getUniqueId());
 
         if (isLeader) {
-            setItem(40, buildActionItem(Material.BARRIER, "Disband Party", NamedTextColor.RED), event -> {
+            setItem(40, buildActionItem(Material.BARRIER, "party.disband-button", NamedTextColor.RED), event -> {
                 partyManager.disbandParty(party);
                 viewer.closeInventory();
             });
         } else {
-            setItem(40, buildActionItem(Material.RED_DYE, "Leave Party", NamedTextColor.RED), event -> {
+            setItem(40, buildActionItem(Material.RED_DYE, "party.leave-button", NamedTextColor.RED), event -> {
                 partyManager.leaveParty(viewer);
                 viewer.closeInventory();
             });
@@ -86,10 +89,11 @@ public final class PartyGUI extends AbstractGUI {
                 .decoration(TextDecoration.ITALIC, false));
 
         List<Component> lore = new ArrayList<>();
-        lore.add(Component.text(isLeader ? "Party Leader" : "Member", NamedTextColor.GRAY)
+        lore.add(lang.get(isLeader ? "party.leader-label" : "party.member-label")
+                .color(NamedTextColor.GRAY)
                 .decoration(TextDecoration.ITALIC, false));
-        lore.add(Component.text(offlinePlayer.isOnline() ? "Online" : "Offline",
-                offlinePlayer.isOnline() ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY)
+        lore.add(lang.get(offlinePlayer.isOnline() ? "party.online-label" : "party.offline-label")
+                .color(offlinePlayer.isOnline() ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY)
                 .decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
 
@@ -97,10 +101,10 @@ public final class PartyGUI extends AbstractGUI {
         return item;
     }
 
-    private ItemStack buildActionItem(Material material, String name, NamedTextColor color) {
+    private ItemStack buildActionItem(Material material, String nameKey, NamedTextColor color) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text(name, color).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get(nameKey).color(color).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }
@@ -108,7 +112,7 @@ public final class PartyGUI extends AbstractGUI {
     private ItemStack backButton() {
         ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Back", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get("common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }

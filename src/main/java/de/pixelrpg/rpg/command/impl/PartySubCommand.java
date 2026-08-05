@@ -1,8 +1,9 @@
-// src/main/java/de/pixelrpg/rpg/command/impl/PartySubCommand.java
 package de.pixelrpg.rpg.command.impl;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.command.SubCommand;
 import de.pixelrpg.rpg.gui.PartyGUI;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -24,10 +25,12 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
 
     private final PartyManager partyManager;
     private final PlayerProfileManager profileManager;
+    private final LanguageManager lang;
 
     public PartySubCommand(PartyManager partyManager, PlayerProfileManager profileManager) {
         this.partyManager = partyManager;
         this.profileManager = profileManager;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -53,7 +56,7 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
         }
 
         if (!profileManager.isRegistered(player.getUniqueId())) {
-            player.sendMessage(Component.text("You must be a registered guild member.", NamedTextColor.RED));
+            lang.send(player, "common.not-registered");
             return true;
         }
 
@@ -71,7 +74,7 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
             case "disband" -> handleDisband(player);
             case "info" -> handleInfo(player);
             default -> {
-                player.sendMessage(Component.text("Usage: /rpgparty <invite|accept|leave|disband|info>", NamedTextColor.RED));
+                lang.send(player, "party.usage-root");
                 yield true;
             }
         };
@@ -79,21 +82,21 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
 
     private boolean handleInvite(Player player, String[] args) {
         if (args.length < 2) {
-            player.sendMessage(Component.text("Usage: /rpgparty invite <player>", NamedTextColor.RED));
+            lang.send(player, "party.usage-invite");
             return true;
         }
 
         Player target = Bukkit.getPlayer(args[1]);
         if (target == null) {
-            player.sendMessage(Component.text("Player is not online.", NamedTextColor.RED));
+            lang.send(player, "party.player-not-online");
             return true;
         }
         if (target.getUniqueId().equals(player.getUniqueId())) {
-            player.sendMessage(Component.text("You cannot invite yourself.", NamedTextColor.RED));
+            lang.send(player, "party.cannot-invite-self");
             return true;
         }
         if (!profileManager.isRegistered(target.getUniqueId())) {
-            player.sendMessage(Component.text(target.getName() + " is not a registered guild member.", NamedTextColor.RED));
+            lang.send(player, "party.target-not-registered", "player", target.getName());
             return true;
         }
 
@@ -105,28 +108,28 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
         } else {
             party = existingParty.get();
             if (!party.isLeader(player.getUniqueId())) {
-                player.sendMessage(Component.text("Only the party leader can invite.", NamedTextColor.RED));
+                lang.send(player, "party.only-leader-invite");
                 return true;
             }
         }
 
         if (party.isFull()) {
-            player.sendMessage(Component.text("Your party is full.", NamedTextColor.RED));
+            lang.send(player, "party.party-full");
             return true;
         }
 
         partyManager.addInvite(target.getUniqueId(), player.getUniqueId());
-        player.sendMessage(Component.text("Invite sent to " + target.getName() + ".", NamedTextColor.GREEN));
-        target.sendMessage(Component.text(player.getName() + " invited you to a party! Use /rpgparty accept", NamedTextColor.LIGHT_PURPLE));
+        lang.send(player, "party.invite-sent", "player", target.getName());
+        lang.send(target, "party.invited-you", "player", player.getName());
         return true;
     }
 
     private boolean handleAccept(Player player) {
         boolean success = partyManager.acceptInvite(player);
         if (success) {
-            player.sendMessage(Component.text("You joined the party!", NamedTextColor.GREEN));
+            lang.send(player, "party.joined");
         } else {
-            player.sendMessage(Component.text("No pending invite or party is full.", NamedTextColor.RED));
+            lang.send(player, "party.no-pending-invite");
         }
         return true;
     }
@@ -134,22 +137,22 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
     private boolean handleLeave(Player player) {
         Optional<Party> party = partyManager.getParty(player.getUniqueId());
         if (party.isEmpty()) {
-            player.sendMessage(Component.text("You are not in a party.", NamedTextColor.RED));
+            lang.send(player, "party.not-in-party");
             return true;
         }
         partyManager.leaveParty(player);
-        player.sendMessage(Component.text("You left the party.", NamedTextColor.GOLD));
+        lang.send(player, "party.left");
         return true;
     }
 
     private boolean handleDisband(Player player) {
         Optional<Party> party = partyManager.getParty(player.getUniqueId());
         if (party.isEmpty()) {
-            player.sendMessage(Component.text("You are not in a party.", NamedTextColor.RED));
+            lang.send(player, "party.not-in-party");
             return true;
         }
         if (!party.get().isLeader(player.getUniqueId())) {
-            player.sendMessage(Component.text("Only the leader can disband the party.", NamedTextColor.RED));
+            lang.send(player, "party.only-leader-disband");
             return true;
         }
         partyManager.disbandParty(party.get());

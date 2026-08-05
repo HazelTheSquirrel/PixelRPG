@@ -1,6 +1,6 @@
-// src/main/java/de/pixelrpg/rpg/gui/BlacksmithGUI.java
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.ItemRarity;
@@ -8,6 +8,7 @@ import de.pixelrpg.rpg.item.RPGItemBuilder;
 import de.pixelrpg.rpg.item.RuneType;
 import de.pixelrpg.rpg.item.SocketService;
 import de.pixelrpg.rpg.item.SoulboundService;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import net.kyori.adventure.text.Component;
@@ -37,6 +38,7 @@ public final class BlacksmithGUI implements Listener {
 
     private final PlayerProfileManager profileManager;
     private final ItemEconomyConfig economyConfig;
+    private final LanguageManager lang;
 
     public static final class BlacksmithHolder implements InventoryHolder {
 
@@ -51,6 +53,7 @@ public final class BlacksmithGUI implements Listener {
     public BlacksmithGUI(PlayerProfileManager profileManager, ItemEconomyConfig economyConfig) {
         this.profileManager = profileManager;
         this.economyConfig = economyConfig;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     public void open(Player player) {
@@ -60,7 +63,7 @@ public final class BlacksmithGUI implements Listener {
         Inventory inv = Bukkit.createInventory(
                 holder,
                 27,
-                Component.text("Blacksmith Forge", NamedTextColor.DARK_GRAY)
+                lang.get("blacksmith.gui-title").color(NamedTextColor.DARK_GRAY)
         );
 
         holder.inventory = inv;
@@ -81,9 +84,9 @@ public final class BlacksmithGUI implements Listener {
                 IDENTIFY_BUTTON,
                 buildButton(
                         Material.ANVIL,
-                        "Identify",
+                        "blacksmith.identify-button",
                         NamedTextColor.YELLOW,
-                        "Identifies the item in the center slot."
+                        "blacksmith.identify-desc"
                 )
         );
 
@@ -91,9 +94,9 @@ public final class BlacksmithGUI implements Listener {
                 SOULBOUND_BUTTON,
                 buildButton(
                         Material.SOUL_SAND,
-                        "Soulbind",
+                        "blacksmith.soulbind-button",
                         NamedTextColor.LIGHT_PURPLE,
-                        "Soulbinds the item in the center slot."
+                        "blacksmith.soulbind-desc"
                 )
         );
 
@@ -101,22 +104,22 @@ public final class BlacksmithGUI implements Listener {
     }
 
 
-    private ItemStack buildButton(Material material, String name,
+    private ItemStack buildButton(Material material, String nameKey,
                                   NamedTextColor color,
-                                  String description) {
+                                  String descriptionKey) {
 
         ItemStack item = new ItemStack(material);
 
         ItemMeta meta = item.getItemMeta();
 
         meta.displayName(
-                Component.text(name, color)
+                lang.get(nameKey).color(color)
                         .decoration(TextDecoration.ITALIC, false)
         );
 
         meta.lore(
                 List.of(
-                        Component.text(description, NamedTextColor.GRAY)
+                        lang.get(descriptionKey).color(NamedTextColor.GRAY)
                                 .decoration(TextDecoration.ITALIC, false)
                 )
         );
@@ -258,7 +261,9 @@ public final class BlacksmithGUI implements Listener {
                 }
             }
         }
-    }    private void handlePotentialGemSocket(org.bukkit.event.inventory.InventoryClickEvent event, Player player,
+    }
+
+    private void handlePotentialGemSocket(org.bukkit.event.inventory.InventoryClickEvent event, Player player,
                                            org.bukkit.inventory.ItemStack cursor, org.bukkit.inventory.ItemStack clicked) {
         String gemId = de.pixelrpg.rpg.combat.gem.GemItemFactory.readGemId(cursor);
         if (gemId == null || clicked == null || !clicked.hasItemMeta()) {
@@ -281,15 +286,15 @@ public final class BlacksmithGUI implements Listener {
                 newCursor.setAmount(cursor.getAmount() - 1);
                 event.getView().setCursor(newCursor.getAmount() > 0 ? newCursor : null);
                 player.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.4f);
-                player.sendMessage(Component.text("Gem socketed!", NamedTextColor.LIGHT_PURPLE));
+                lang.send(player, "blacksmith.gem-socketed");
             }
-            case NO_FREE_SLOTS -> player.sendMessage(Component.text("No free gem sockets on this item.", NamedTextColor.RED));
-            case ALREADY_SOCKETED -> player.sendMessage(Component.text("This gem is already socketed here.", NamedTextColor.RED));
-            case NOT_A_WEAPON -> player.sendMessage(Component.text("Only weapons can hold gem sockets.", NamedTextColor.RED));
+            case NO_FREE_SLOTS -> lang.send(player, "blacksmith.gem-no-slots");
+            case ALREADY_SOCKETED -> lang.send(player, "blacksmith.gem-already-socketed");
+            case NOT_A_WEAPON -> lang.send(player, "blacksmith.gem-not-a-weapon");
         }
     }
 
-private void applySocket(InventoryClickEvent event,
+    private void applySocket(InventoryClickEvent event,
                              Player player,
                              ItemStack cursor,
                              ItemStack clicked) {
@@ -360,37 +365,17 @@ private void applySocket(InventoryClickEvent event,
                 );
 
 
-                player.sendMessage(
-                        Component.text(
-                                "Rune successfully socketed!",
-                                NamedTextColor.GREEN
-                        )
-                );
+                lang.send(player, "blacksmith.rune-socketed");
             }
 
 
-            case NO_FREE_SLOTS -> player.sendMessage(
-                    Component.text(
-                            "This item has no free sockets.",
-                            NamedTextColor.RED
-                    )
-            );
+            case NO_FREE_SLOTS -> lang.send(player, "blacksmith.rune-no-slots");
 
 
-            case INCOMPATIBLE_RUNE -> player.sendMessage(
-                    Component.text(
-                            "This rune does not fit this item type.",
-                            NamedTextColor.RED
-                    )
-            );
+            case INCOMPATIBLE_RUNE -> lang.send(player, "blacksmith.rune-incompatible");
 
 
-            case NOT_IDENTIFIED -> player.sendMessage(
-                    Component.text(
-                            "Identify the item first.",
-                            NamedTextColor.RED
-                    )
-            );
+            case NOT_IDENTIFIED -> lang.send(player, "blacksmith.rune-not-identified");
         }
     }
 
@@ -406,12 +391,7 @@ private void applySocket(InventoryClickEvent event,
 
         if (!isUnidentified(target)) {
 
-            player.sendMessage(
-                    Component.text(
-                            "Place an unidentified item in the center slot first.",
-                            NamedTextColor.RED
-                    )
-            );
+            lang.send(player, "blacksmith.place-unidentified");
 
             return;
         }
@@ -444,12 +424,7 @@ private void applySocket(InventoryClickEvent event,
 
         if (profile == null || !profile.removeMoney(cost)) {
 
-            player.sendMessage(
-                    Component.text(
-                            "You need " + cost + " gold to identify this.",
-                            NamedTextColor.RED
-                    )
-            );
+            lang.send(player, "blacksmith.need-gold-identify", "cost", String.valueOf(cost));
 
             return;
         }
@@ -473,12 +448,7 @@ private void applySocket(InventoryClickEvent event,
         );
 
 
-        player.sendMessage(
-                Component.text(
-                        "Item identified!",
-                        NamedTextColor.GREEN
-                )
-        );
+        lang.send(player, "blacksmith.identified");
     }
 
 
@@ -495,9 +465,7 @@ private void applySocket(InventoryClickEvent event,
                 || !target.hasItemMeta()) {
 
 
-            player.sendMessage(
-                    Component.text(
-                            "Place an identified item in the center slot first.",NamedTextColor.RED));
+            lang.send(player, "blacksmith.place-identified");
             return;
         }
 
@@ -515,10 +483,8 @@ private void applySocket(InventoryClickEvent event,
         if (!profile.getRank()
                 .isAtLeast(economyConfig.getSoulboundMinRank())) {
 
-            player.sendMessage(
-                    Component.text(
-                            "Requires Rank "
-                                    + economyConfig.getSoulboundMinRank().name() + " or higher.",NamedTextColor.RED));
+            lang.send(player, "blacksmith.soulbound-requires-rank",
+                    "rank", economyConfig.getSoulboundMinRank().name());
             return;
         }
 
@@ -527,7 +493,7 @@ private void applySocket(InventoryClickEvent event,
 
 
         if (!profile.removeMoney(cost)) {
-            player.sendMessage(Component.text("You need " + cost + " gold for soulbinding.",NamedTextColor.RED));
+            lang.send(player, "blacksmith.need-gold-soulbind", "cost", String.valueOf(cost));
             return;
         }
 
@@ -550,18 +516,19 @@ private void applySocket(InventoryClickEvent event,
                         1.0f
                 );
 
-                player.sendMessage(
-                        Component.text("Item is now soulbound!",NamedTextColor.LIGHT_PURPLE));
+                lang.send(player, "blacksmith.now-soulbound");
             }
 
             case ALREADY_SOULBOUND -> {
 
                 profile.addMoney(cost);
-                player.sendMessage(Component.text("This item is already soulbound.",NamedTextColor.RED));
+                lang.send(player, "blacksmith.already-soulbound");
             }
 
 
-            case NOT_IDENTIFIED -> {profile.addMoney(cost);player.sendMessage(Component.text("Only identified items can be soulbound.",NamedTextColor.RED));
+            case NOT_IDENTIFIED -> {
+                profile.addMoney(cost);
+                lang.send(player, "blacksmith.only-identified-soulbind");
             }
         }
     }

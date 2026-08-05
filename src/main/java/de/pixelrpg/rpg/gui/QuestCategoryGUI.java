@@ -1,7 +1,8 @@
-// src/main/java/de/pixelrpg/rpg/gui/QuestCategoryGUI.java
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.Rank;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.QuestManager;
 import net.kyori.adventure.text.Component;
@@ -19,12 +20,14 @@ public final class QuestCategoryGUI extends AbstractGUI {
     private final Player viewer;
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
+    private final LanguageManager lang;
 
     public QuestCategoryGUI(Player viewer, QuestManager questManager, PlayerProfileManager profileManager) {
-        super(54, Component.text("Quest Board", NamedTextColor.DARK_AQUA));
+        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("quest.board-title"));
         this.viewer = viewer;
         this.questManager = questManager;
         this.profileManager = profileManager;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -41,9 +44,10 @@ public final class QuestCategoryGUI extends AbstractGUI {
             meta.displayName(Component.text("Rank " + rank.name(), rank.getColor())
                     .decoration(TextDecoration.ITALIC, false));
             meta.lore(List.of(
-                    Component.text(questCount + " quest(s) available.", NamedTextColor.GRAY)
+                    lang.get("quest.quest-count", "count", String.valueOf(questCount))
+                            .color(NamedTextColor.GRAY)
                             .decoration(TextDecoration.ITALIC, false),
-                    Component.text("Click to browse.", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
+                    lang.get("quest.click-to-browse").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
             ));
             item.setItemMeta(meta);
 

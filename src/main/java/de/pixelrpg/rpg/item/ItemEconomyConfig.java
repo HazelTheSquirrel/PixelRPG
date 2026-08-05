@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/item/ItemEconomyConfig.java (VOLLSTÄNDIG, ersetzt alte Datei — identified-drop-chance ergänzt)
 package de.pixelrpg.rpg.item;
 
 import de.pixelrpg.rpg.core.Rank;
@@ -12,10 +11,11 @@ public final class ItemEconomyConfig {
     private double legendaryIdentifyCost = 180.0;
     private double soulboundCost = 200.0;
     private Rank soulboundMinRank = Rank.C;
-    private double fusionCost = 120.0;
     private double unidentifiedDropChance = 0.09;
     private double identifiedDropChance = 0.14;
     private double runeDropChance = 0.05;
+    private double gemDropChance = 0.05;
+    private double gemActiveChance = 0.35;
 
     public void load(FileConfiguration config) {
         commonIdentifyCost = config.getDouble("items.identification-cost.common", commonIdentifyCost);
@@ -24,10 +24,11 @@ public final class ItemEconomyConfig {
         legendaryIdentifyCost = config.getDouble("items.identification-cost.legendary", legendaryIdentifyCost);
         soulboundCost = config.getDouble("items.soulbound.cost", soulboundCost);
         soulboundMinRank = parseRank(config.getString("items.soulbound.min-rank", "C"));
-        fusionCost = config.getDouble("items.fusion.cost", fusionCost);
         unidentifiedDropChance = config.getDouble("items.loot.unidentified-drop-chance", unidentifiedDropChance);
         identifiedDropChance = config.getDouble("items.loot.identified-drop-chance", identifiedDropChance);
         runeDropChance = config.getDouble("items.loot.rune-drop-chance", runeDropChance);
+        gemDropChance = config.getDouble("items.loot.gem-drop-chance", gemDropChance);
+        gemActiveChance = config.getDouble("items.loot.gem-active-chance", gemActiveChance);
     }
 
     private Rank parseRank(String raw) {
@@ -55,10 +56,6 @@ public final class ItemEconomyConfig {
         return soulboundMinRank;
     }
 
-    public double getFusionCost() {
-        return fusionCost;
-    }
-
     public double getUnidentifiedDropChance() {
         return unidentifiedDropChance;
     }
@@ -69,5 +66,13 @@ public final class ItemEconomyConfig {
 
     public double getRuneDropChance() {
         return runeDropChance;
+    }
+
+    public double getGemDropChance() {
+        return gemDropChance;
+    }
+
+    public double getGemActiveChance() {
+        return gemActiveChance;
     }
 }

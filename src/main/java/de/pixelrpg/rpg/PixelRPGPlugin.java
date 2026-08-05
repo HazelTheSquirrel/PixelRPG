@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/PixelRPGPlugin.java (VOLLSTÄNDIG, ersetzt alte Datei — konsolidiert)
 package de.pixelrpg.rpg;
 
 import de.pixelrpg.rpg.achievement.AchievementManager;
@@ -38,7 +37,6 @@ import de.pixelrpg.rpg.command.impl.AchievementAdminSubCommand;
 import de.pixelrpg.rpg.command.impl.BlacksmithSubCommand;
 import de.pixelrpg.rpg.command.impl.BossSubCommand;
 import de.pixelrpg.rpg.command.impl.DungeonSubCommand;
-import de.pixelrpg.rpg.command.impl.FusionSubCommand;
 import de.pixelrpg.rpg.command.impl.NpcSubCommand;
 import de.pixelrpg.rpg.command.impl.PartySubCommand;
 import de.pixelrpg.rpg.command.impl.QuestAdminSubCommand;
@@ -51,14 +49,15 @@ import de.pixelrpg.rpg.dungeon.DungeonInstanceManager;
 import de.pixelrpg.rpg.dungeon.DungeonRepository;
 import de.pixelrpg.rpg.dungeon.DungeonSelectionManager;
 import de.pixelrpg.rpg.dungeon.DungeonWandListener;
+import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.economy.GuildCurrencyPickupListener;
 import de.pixelrpg.rpg.gui.BlacksmithGUI;
 import de.pixelrpg.rpg.gui.GUIListener;
-import de.pixelrpg.rpg.gui.ItemFusionGUI;
 import de.pixelrpg.rpg.gui.ShopEditorGUI;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
+import de.pixelrpg.rpg.item.RuneType;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcBehaviorRegistry;
 import de.pixelrpg.rpg.npc.NpcChunkListener;
@@ -74,6 +73,7 @@ import de.pixelrpg.rpg.npc.behavior.TravelBehavior;
 import de.pixelrpg.rpg.party.PartyDisconnectListener;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.AttributeConfig;
+import de.pixelrpg.rpg.player.ClassBalance;
 import de.pixelrpg.rpg.player.GuildJoinLeaveListener;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.player.TitleDisplayJoinListener;
@@ -95,6 +95,7 @@ import de.pixelrpg.rpg.scoreboard.ScoreboardService;
 import de.pixelrpg.rpg.shop.ShopManager;
 import de.pixelrpg.rpg.stats.RPGStatsListener;
 import de.pixelrpg.rpg.stats.StatEngine;
+import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryManager;
 import de.pixelrpg.rpg.travel.GuildCompassListener;
 import org.bukkit.Bukkit;
@@ -110,7 +111,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ItemEconomyConfig itemEconomyConfig;
     private ItemService itemService;
     private BlacksmithGUI blacksmithGUI;
-    private ItemFusionGUI itemFusionGUI;
     private MobScalingConfig mobScalingConfig;
     private MobNameplateService mobNameplateService;
     private RegionManager regionManager;
@@ -152,6 +152,13 @@ public final class PixelRPGPlugin extends JavaPlugin {
         this.languageManager = new LanguageManager(this);
         languageManager.load(getConfig().getString("language.default", "en"));
 
+        // Konfigurierbare Werte laden, bevor irgendeine Klasse sie nutzt.
+        AttributeConfig.load(getConfig());
+        ClassBalance.load(getConfig());
+        RuneType.load(getConfig());
+        StoryBookFactory.load(getConfig());
+        GuildCurrencyItemFactory.configureMaxStackSize(getConfig().getInt("economy.currency.max-stack-size", 64));
+
         this.playerProfileManager = new PlayerProfileManager(this);
         this.playerProfileManager.initialize(getConfig());
 
@@ -167,15 +174,14 @@ public final class PixelRPGPlugin extends JavaPlugin {
         this.itemEconomyConfig = new ItemEconomyConfig();
         itemEconomyConfig.load(getConfig());
         RPGItemBuilder.configureChances(
-                getConfig().getDouble("items.blessing-chance", 0.12),
-                getConfig().getDouble("items.curse-chance", 0.10));
+                getConfig().getDouble("items.loot.blessing-chance", 0.12),
+                getConfig().getDouble("items.loot.curse-chance", 0.10));
 
         this.itemService = new ItemService();
         Bukkit.getServicesManager().register(
                 de.pixelrpg.rpg.api.ItemAPI.class, itemService, this, ServicePriority.Normal);
 
         this.blacksmithGUI = new BlacksmithGUI(playerProfileManager, itemEconomyConfig);
-        this.itemFusionGUI = new ItemFusionGUI(playerProfileManager, itemEconomyConfig);
 
         this.mobScalingConfig = new MobScalingConfig();
         mobScalingConfig.load(getConfig());
@@ -239,10 +245,11 @@ public final class PixelRPGPlugin extends JavaPlugin {
         String instanceWorldName = getConfig().getString("dungeons.instance-world", "pixelrpg_instances");
         int slotSpacing = getConfig().getInt("dungeons.slot-spacing", 512);
         int cleanupDelayMinutes = getConfig().getInt("dungeons.cleanup-delay-minutes", 20);
+        int blocksPerTick = getConfig().getInt("dungeons.blocks-per-tick", 5000);
 
         this.dungeonInstanceManager = new DungeonInstanceManager(this, dungeonRepository, playerProfileManager,
                 playerProfileManager, partyManager, mobScalingConfig, bossRepository, bossManager,
-                instanceWorldName, slotSpacing, cleanupDelayMinutes);
+                instanceWorldName, slotSpacing, cleanupDelayMinutes, blocksPerTick);
 
         this.achievementRepository = new AchievementRepository(this);
         achievementRepository.load();
@@ -290,10 +297,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RPGStatsListener(statEngine), this);
         getServer().getPluginManager().registerEvents(new SkillInputListener(skillGemCastEngine), this);
         getServer().getPluginManager().registerEvents(blacksmithGUI, this);
-        getServer().getPluginManager().registerEvents(itemFusionGUI, this);
         getServer().getPluginManager().registerEvents(shopEditorGUI, this);
         getServer().getPluginManager().registerEvents(
-                new LootDropListener(playerProfileManager, itemEconomyConfig), this);
+                new LootDropListener(playerProfileManager, itemEconomyConfig, gemRepository), this);
         getServer().getPluginManager().registerEvents(
                 new MobRankScalingListener(playerProfileManager, mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(
@@ -346,7 +352,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
         RootCommand rootCommand = new RootCommand();
         rootCommand.register(new BlacksmithSubCommand(blacksmithGUI));
-        rootCommand.register(new FusionSubCommand(itemFusionGUI));
         rootCommand.register(new RegionSubCommand(regionManager, regionSelectionManager));
         rootCommand.register(new NpcSubCommand(npcManager));
         rootCommand.register(new ShopSubCommand(shopManager, shopEditorGUI));

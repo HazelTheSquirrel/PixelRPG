@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/npc/NpcLookTask.java
 package de.pixelrpg.rpg.npc;
 
 import org.bukkit.Bukkit;
@@ -33,9 +32,16 @@ public final class NpcLookTask {
                 continue;
             }
 
+            // Nutzt räumliche Nachbarschaftssuche statt alle Weltspieler zu iterieren.
+            // Bei vielen NPCs und hoher Spielerzahl deutlich günstiger, da nur
+            // Spieler im tatsächlich relevanten Radius betrachtet werden.
             Player nearest = null;
             double nearestDistanceSquared = radius * radius;
-            for (Player player : livingEntity.getWorld().getPlayers()) {
+
+            for (var nearby : livingEntity.getNearbyEntities(radius, radius, radius)) {
+                if (!(nearby instanceof Player player)) {
+                    continue;
+                }
                 double distanceSquared = player.getLocation().distanceSquared(livingEntity.getLocation());
                 if (distanceSquared <= nearestDistanceSquared) {
                     nearestDistanceSquared = distanceSquared;
@@ -45,7 +51,7 @@ public final class NpcLookTask {
 
             if (nearest != null) {
                 livingEntity.lookAt(nearest.getEyeLocation(), LookAnchor.EYES);
-}
+            }
         }
     }
 }

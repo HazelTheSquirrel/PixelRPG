@@ -1,13 +1,12 @@
-// src/main/java/de/pixelrpg/rpg/travel/GuildCompassListener.java (VOLLSTÄNDIG, ersetzt alte Datei)
 package de.pixelrpg.rpg.travel;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,12 +18,16 @@ public final class GuildCompassListener implements Listener {
 
     private final NpcManager npcManager;
     private final PlayerProfileManager profileManager;
+    private final LanguageManager lang;
 
     public GuildCompassListener(NpcManager npcManager, PlayerProfileManager profileManager) {
         this.npcManager = npcManager;
         this.profileManager = profileManager;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
+    // Zuständig für die Anzeige des nächstgelegenen freigeschalteten Reise-NPCs
+    // in der Actionbar, wenn der Spieler mit dem Gildenkompass interagiert.
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) {
@@ -58,15 +61,16 @@ public final class GuildCompassListener implements Listener {
         }
 
         if (nearest == null) {
-            player.sendActionBar(Component.text("No waypoints discovered in this world.", NamedTextColor.GRAY));
+            lang.sendActionBar(player, "compass.none");
             return;
         }
 
         String direction = computeDirection(player.getLocation(), nearest.location());
         double distance = Math.sqrt(nearestDistanceSquared);
-        player.sendActionBar(Component.text(
-                "Nearest: " + nearest.name() + " - " + Math.round(distance) + "m " + direction,
-                NamedTextColor.LIGHT_PURPLE));
+        player.sendActionBar(lang.get("compass.waypoint",
+                "name", nearest.name(),
+                "distance", String.valueOf(Math.round(distance)),
+                "direction", direction));
     }
 
     private String computeDirection(Location from, Location to) {

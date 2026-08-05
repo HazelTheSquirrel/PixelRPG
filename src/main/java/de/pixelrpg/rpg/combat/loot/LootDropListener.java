@@ -1,10 +1,15 @@
 package de.pixelrpg.rpg.combat.loot;
 
 import de.pixelrpg.rpg.api.GuildAPI;
+import de.pixelrpg.rpg.combat.gem.ActiveSkillGemDefinition;
+import de.pixelrpg.rpg.combat.gem.GemItemFactory;
+import de.pixelrpg.rpg.combat.gem.GemRepository;
+import de.pixelrpg.rpg.combat.gem.PassiveGemDefinition;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
+import de.pixelrpg.rpg.item.RuneItemFactory;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
@@ -13,6 +18,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
@@ -50,12 +56,16 @@ public final class LootDropListener implements Listener {
 
     private final GuildAPI guildAPI;
     private final ItemEconomyConfig economyConfig;
+    private final GemRepository gemRepository;
 
-    public LootDropListener(GuildAPI guildAPI, ItemEconomyConfig economyConfig) {
+    public LootDropListener(GuildAPI guildAPI, ItemEconomyConfig economyConfig, GemRepository gemRepository) {
         this.guildAPI = guildAPI;
         this.economyConfig = economyConfig;
+        this.gemRepository = gemRepository;
     }
 
+    // Zuständig für sämtliche Loot-Drops beim Töten registrierter Gilden-Mitglieder:
+    // unidentifizierte/identifizierte Ausrüstung, Runen und Skill-Gems.
     @EventHandler(priority = EventPriority.HIGH)
     public void onMonsterDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
@@ -93,5 +103,32 @@ public final class LootDropListener implements Listener {
                     .map(RPGItemBuilder::identify)
                     .ifPresent(item -> event.getDrops().add(item));
         }
+
+        if (random.nextDouble() < economyConfig.getRuneDropChance()) {
+            event.getDrops().add(RuneItemFactory.createRandom());
+        }
+
+        if (random.nextDouble() < economyConfig.getGemDropChance()) {
+            rollGemDrop(random).ifPresent(item -> event.getDrops().add(item));
+        }
+    }
+
+    private java.util.Optional<ItemStack> rollGemDrop(ThreadLocalRandom random) {
+        boolean dropActive = random.nextDouble() < economyConfig.getGemActiveChance();
+
+        if (dropActive) {
+            List<ActiveSkillGemDefinition> activeGems = gemRepository.getAllActive();
+            if (!activeGems.isEmpty()) {
+                ActiveSkillGemDefinition definition = activeGems.get(random.nextInt(activeGems.size()));
+                return java.util.Optional.of(GemItemFactory.createActive(definition));
+            }
+        }
+
+        List<PassiveGemDefinition> passiveGems = gemRepository.getAllPassive();
+        if (passiveGems.isEmpty()) {
+            return java.util.Optional.empty();
+        }
+        PassiveGemDefinition definition = passiveGems.get(random.nextInt(passiveGems.size()));
+        return java.util.Optional.of(GemItemFactory.createPassive(definition));
     }
 }

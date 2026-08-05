@@ -1,12 +1,11 @@
-// src/main/java/de/pixelrpg/rpg/combat/gem/SkillGemCastEngine.java (VOLLSTÄNDIG, ersetzt alte Datei — ein Skill, generisches Ausführungssystem)
 package de.pixelrpg.rpg.combat.gem;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.Rank;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
@@ -25,12 +24,14 @@ public final class SkillGemCastEngine {
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
     private final GemRepository gemRepository;
+    private final LanguageManager lang;
     private final Map<UUID, Long> cooldownExpiry = new ConcurrentHashMap<>();
 
     public SkillGemCastEngine(PlayerProfileManager profileManager, StatEngine statEngine, GemRepository gemRepository) {
         this.profileManager = profileManager;
         this.statEngine = statEngine;
         this.gemRepository = gemRepository;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     public void cast(Player player) {
@@ -40,7 +41,7 @@ public final class SkillGemCastEngine {
             return;
         }
         if (!profile.getRank().isAtLeast(Rank.C)) {
-            player.sendActionBar(Component.text("Skills unlock at Rank C.", NamedTextColor.RED));
+            lang.sendActionBar(player, "skill.rank-locked");
             return;
         }
 
@@ -53,7 +54,7 @@ public final class SkillGemCastEngine {
                 .orElse(null);
 
         if (activeGemId == null) {
-            player.sendActionBar(Component.text("Socket an Active Skill Gem into your weapon.", NamedTextColor.GRAY));
+            lang.sendActionBar(player, "skill.socket-gem-first");
             return;
         }
 
@@ -63,8 +64,8 @@ public final class SkillGemCastEngine {
         }
 
         if (definition.ownerClass() != profile.getPlayerClass()) {
-            player.sendActionBar(Component.text(
-                    definition.displayName() + " requires the " + definition.ownerClass().name() + " class.", NamedTextColor.RED));
+            player.sendActionBar(lang.get("skill.wrong-class",
+                    "skill", definition.displayName(), "class", definition.ownerClass().name()));
             return;
         }
 
@@ -81,7 +82,7 @@ public final class SkillGemCastEngine {
         long now = System.currentTimeMillis();
         if (expiry != null && now < expiry) {
             long remainingSeconds = (expiry - now) / 1000L + 1L;
-            player.sendActionBar(Component.text("On cooldown: " + remainingSeconds + "s", NamedTextColor.RED));
+            player.sendActionBar(lang.get("skill.cooldown", "seconds", String.valueOf(remainingSeconds)));
             return;
         }
 

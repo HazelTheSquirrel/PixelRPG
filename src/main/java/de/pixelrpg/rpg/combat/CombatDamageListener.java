@@ -1,15 +1,15 @@
 package de.pixelrpg.rpg.combat;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.ClassBalance;
 import de.pixelrpg.rpg.player.PlayerClass;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
@@ -24,12 +24,12 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class CombatDamageListener implements Listener {
 
-    private static final double BOSS_MAX_HIT_PERCENT_OF_MAX_HP = 0.12;
-
     private final GuildAPI guildAPI;
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
     private final MobScalingConfig scalingConfig;
+    private final LanguageManager lang;
+    private final double bossMaxHitPercentOfMaxHp;
 
     public CombatDamageListener(GuildAPI guildAPI, PlayerProfileManager profileManager,
                                  StatEngine statEngine, MobScalingConfig scalingConfig) {
@@ -37,8 +37,13 @@ public final class CombatDamageListener implements Listener {
         this.profileManager = profileManager;
         this.statEngine = statEngine;
         this.scalingConfig = scalingConfig;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
+        this.bossMaxHitPercentOfMaxHp = PixelRPGPlugin.getInstance().getConfig()
+                .getDouble("combat.boss-max-hit-percent-of-max-hp", 0.12);
     }
 
+    // Zuständig für die vollständige Schadensberechnung bei Spieler-vs-Monster-Kämpfen:
+    // Crit-Berechnung, Klassen-Multiplikatoren, Set-Boni, Boss-Schadenscap und Lifesteal.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onCombatDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity target)) return;
@@ -78,7 +83,7 @@ public final class CombatDamageListener implements Listener {
         boolean isCrit = ThreadLocalRandom.current().nextDouble(100.0) < totalCritChance;
         if (isCrit) {
             damage *= stats.critDamageMultiplier();
-            attacker.sendActionBar(Component.text("Critical Hit!", NamedTextColor.LIGHT_PURPLE));
+            attacker.sendActionBar(lang.get("combat.critical-hit"));
             target.getWorld().spawnParticle(Particle.CRIT, target.getLocation().add(0,1,0),12,0.3,0.3,0.3);
             attacker.playSound(attacker.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT,0.6f,1.4f);
         }
@@ -94,7 +99,7 @@ public final class CombatDamageListener implements Listener {
         if (targetIsBoss) {
             var maxHealthAttribute = target.getAttribute(Attribute.MAX_HEALTH);
             double bossMaxHp = maxHealthAttribute != null ? maxHealthAttribute.getValue() : target.getHealth();
-            double cap = bossMaxHp * BOSS_MAX_HIT_PERCENT_OF_MAX_HP;
+            double cap = bossMaxHp * bossMaxHitPercentOfMaxHp;
             if (damage > cap) damage = cap;
         }
 
@@ -103,7 +108,7 @@ public final class CombatDamageListener implements Listener {
             target.damage(procBurst, attacker);
             target.getWorld().spawnParticle(Particle.FLASH, target.getLocation().add(0,1,0),1);
             attacker.playSound(attacker.getLocation(), Sound.ITEM_TOTEM_USE,0.7f,1.6f);
-            attacker.sendActionBar(Component.text("Set Bonus Proc!", NamedTextColor.GOLD));
+            attacker.sendActionBar(lang.get("combat.set-bonus-proc"));
         }
 
         event.setDamage(damage);
@@ -116,6 +121,8 @@ public final class CombatDamageListener implements Listener {
         }
     }
 
+    // Zuständig für den Schutz nicht-registrierter Spieler vor gilden-skalierten
+    // Monstern: begrenzt eingehenden Schaden und entfernt das Ziel.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMonsterAttackVanillaPlayer(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Monster monster)) return;
@@ -126,6 +133,9 @@ public final class CombatDamageListener implements Listener {
         monster.setTarget(null);
     }
 
+    // Zuständig dafür, dass gilden-skalierte Monster nicht-registrierte Spieler
+    // gar nicht erst als Ziel wählen, sondern stattdessen registrierte Spieler
+    // in der Nähe angreifen.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMonsterTargetVanillaPlayer(EntityTargetLivingEntityEvent event) {
         if (!(event.getEntity() instanceof Monster monster)) return;

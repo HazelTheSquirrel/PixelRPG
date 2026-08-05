@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/storage/DatabaseManager.java (VOLLSTÄNDIG, ersetzt alte Datei — attr_elytra Spalte)
 package de.pixelrpg.rpg.storage;
 
 import com.zaxxer.hikari.HikariConfig;
@@ -32,6 +31,16 @@ public final class DatabaseManager {
         hikariConfig.setConnectionTimeout(connectionTimeoutMs);
         hikariConfig.setPoolName("PixelRPG-Hikari");
         hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
+
+        // Zusätzliches Tuning für den Dauerbetrieb mit vielen kurzlebigen Verbindungen
+        // (100-Spieler-Ziel): verhindert, dass tote/veraltete Connections im Pool
+        // hängen bleiben und erst beim nächsten fehlgeschlagenen Query auffallen.
+        hikariConfig.setMinimumIdle(Math.max(2, poolSize / 4));
+        hikariConfig.setIdleTimeout(300_000L);
+        hikariConfig.setMaxLifetime(1_800_000L);
+        hikariConfig.setKeepaliveTime(120_000L);
+        hikariConfig.setValidationTimeout(5_000L);
+        hikariConfig.setLeakDetectionThreshold(15_000L);
 
         this.dataSource = new HikariDataSource(hikariConfig);
     }

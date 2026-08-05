@@ -1,10 +1,10 @@
-// src/main/java/de/pixelrpg/rpg/lang/LanguageManager.java
 package de.pixelrpg.rpg.lang;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
@@ -68,17 +68,51 @@ public final class LanguageManager {
         }
     }
 
+    /**
+     * Liefert die gerenderte Komponente für einen Sprachkey, mit optionalen
+     * Platzhalter-Paaren (%key% -> value). Fällt auf Englisch zurück, falls der
+     * Key in der aktiven Sprache fehlt, und auf den rohen Key, falls er auch
+     * dort fehlt (verhindert stumme Leerausgaben bei fehlenden Übersetzungen).
+     */
     public Component get(String key, String... placeholders) {
-        String raw = messages.getOrDefault(key, fallback.getOrDefault(key, key));
+        String raw = resolveRaw(key);
         for (int i = 0; i + 1 < placeholders.length; i += 2) {
             raw = raw.replace("%" + placeholders[i] + "%", placeholders[i + 1]);
         }
         return miniMessage.deserialize(raw);
     }
 
+    private String resolveRaw(String key) {
+        String raw = messages.get(key);
+        if (raw != null) {
+            return raw;
+        }
+        raw = fallback.get(key);
+        if (raw != null) {
+            return raw;
+        }
+        return key;
+    }
+
     public Component prefixed(String key, String... placeholders) {
         String prefixRaw = messages.getOrDefault("prefix", fallback.getOrDefault("prefix", ""));
         return miniMessage.deserialize(prefixRaw).append(get(key, placeholders));
+    }
+
+    /**
+     * Sendet die übersetzte Nachricht direkt an den Spieler. Bevorzugter
+     * Einstiegspunkt für sämtliche Spieler-Feedback-Nachrichten im Plugin.
+     */
+    public void send(Player player, String key, String... placeholders) {
+        player.sendMessage(get(key, placeholders));
+    }
+
+    public void sendPrefixed(Player player, String key, String... placeholders) {
+        player.sendMessage(prefixed(key, placeholders));
+    }
+
+    public void sendActionBar(Player player, String key, String... placeholders) {
+        player.sendActionBar(get(key, placeholders));
     }
 
     public String getCurrentLanguage() {

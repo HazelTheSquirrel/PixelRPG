@@ -1,6 +1,7 @@
-// src/main/java/de/pixelrpg/rpg/gui/QuestDetailGUI.java (VOLLSTÄNDIG, ersetzt alte Datei — Back geht zur Rang-Kategorie zurück)
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
@@ -21,6 +22,7 @@ public final class QuestDetailGUI extends AbstractGUI {
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
     private final Quest quest;
+    private final LanguageManager lang;
 
     public QuestDetailGUI(Player viewer, QuestManager questManager, PlayerProfileManager profileManager, Quest quest) {
         super(54, Component.text(quest.title(), NamedTextColor.GOLD));
@@ -28,6 +30,7 @@ public final class QuestDetailGUI extends AbstractGUI {
         this.questManager = questManager;
         this.profileManager = profileManager;
         this.quest = quest;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -43,7 +46,8 @@ public final class QuestDetailGUI extends AbstractGUI {
         infoMeta.lore(List.of(
                 Component.text(quest.description(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
                 Component.text(" "),
-                Component.text("Reward: " + quest.rewardMoney() + " Gold, " + quest.rewardExp() + " XP", NamedTextColor.GOLD)
+                lang.get("quest.reward-label", "money", String.valueOf(quest.rewardMoney()), "exp", String.valueOf(quest.rewardExp()))
+                        .color(NamedTextColor.GOLD)
                         .decoration(TextDecoration.ITALIC, false)
         ));
         info.setItemMeta(infoMeta);
@@ -53,30 +57,30 @@ public final class QuestDetailGUI extends AbstractGUI {
         boolean canComplete = hasActive && profile.getActiveQuests().get(quest.id()).getCurrentAmount() >= quest.requiredAmount();
 
         if (canComplete) {
-            setItem(20, buildButton(Material.LIME_DYE, "Hand In Quest", NamedTextColor.GREEN), event -> {
+            setItem(20, buildButton(Material.LIME_DYE, "quest.hand-in", NamedTextColor.GREEN), event -> {
                 questManager.completeQuest(viewer, quest.id());
                 viewer.closeInventory();
             });
         } else if (hasActive) {
-            setItem(20, buildButton(Material.ORANGE_DYE, "Abandon Quest", NamedTextColor.GOLD), event -> {
+            setItem(20, buildButton(Material.ORANGE_DYE, "quest.abandon", NamedTextColor.GOLD), event -> {
                 questManager.abandonQuest(viewer, quest.id());
                 viewer.closeInventory();
             });
         } else {
-            setItem(20, buildButton(Material.LIME_DYE, "Accept Quest", NamedTextColor.GREEN), event -> {
+            setItem(20, buildButton(Material.LIME_DYE, "quest.accept", NamedTextColor.GREEN), event -> {
                 questManager.acceptQuest(viewer, quest);
                 viewer.closeInventory();
             });
         }
 
-        setItem(49, buildButton(Material.ARROW, "Back", NamedTextColor.RED), event ->
+        setItem(49, buildButton(Material.ARROW, "common.back", NamedTextColor.RED), event ->
                 new QuestBoardGUI(viewer, questManager, profileManager, quest.category()).open(viewer));
     }
 
-    private ItemStack buildButton(Material material, String name, NamedTextColor color) {
+    private ItemStack buildButton(Material material, String labelKey, NamedTextColor color) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text(name, color).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get(labelKey).color(color).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }

@@ -1,7 +1,8 @@
-// src/main/java/de/pixelrpg/rpg/economy/GuildCurrencyItemFactory.java (VOLLSTÄNDIG, ersetzt alte Datei — 1 Gold = 1 Coin, Stack-Splitting)
 package de.pixelrpg.rpg.economy;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -15,15 +16,21 @@ import java.util.List;
 
 public final class GuildCurrencyItemFactory {
 
-    private static final int MAX_STACK_SIZE = 64;
+    private static int maxStackSize = 64;
 
     private GuildCurrencyItemFactory() {
     }
 
+    public static void configureMaxStackSize(int value) {
+        maxStackSize = Math.max(1, value);
+    }
+
     public static ItemStack createSingleStack(long amount) {
-        int clamped = (int) Math.max(1, Math.min(MAX_STACK_SIZE, amount));
+        int clamped = (int) Math.max(1, Math.min(maxStackSize, amount));
         ItemStack item = new ItemStack(Material.SUNFLOWER, clamped);
         ItemMeta meta = item.getItemMeta();
+
+        LanguageManager lang = PixelRPGPlugin.getInstance().getLanguageManager();
         meta.displayName(Component.text("Guild Coin", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(
                 Component.text("1 Coin = 1 Gold", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false),
@@ -38,7 +45,7 @@ public final class GuildCurrencyItemFactory {
         List<ItemStack> stacks = new ArrayList<>();
         long remaining = totalAmount;
         while (remaining > 0) {
-            long take = Math.min(MAX_STACK_SIZE, remaining);
+            long take = Math.min(maxStackSize, remaining);
             stacks.add(createSingleStack(take));
             remaining -= take;
         }

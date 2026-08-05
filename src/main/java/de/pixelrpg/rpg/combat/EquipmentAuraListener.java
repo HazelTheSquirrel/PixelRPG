@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/combat/EquipmentAuraListener.java
 package de.pixelrpg.rpg.combat;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
@@ -68,7 +67,6 @@ public final class EquipmentAuraListener {
                 }
             }
 
-// src/main/java/de/pixelrpg/rpg/combat/EquipmentAuraListener.java (Ausschnitt: scanAndApply() erweitern — neue Attribut-/Klassen-Runen auswerten)
             for (String rawSocket : SocketService.readRawSockets(item)) {
                 if (rawSocket.startsWith("REGENERATION:")) {
                     double value = parseValue(rawSocket);
@@ -93,7 +91,6 @@ public final class EquipmentAuraListener {
         }
     }
 
-    // src/main/java/de/pixelrpg/rpg/combat/EquipmentAuraListener.java (Ausschnitt: Hilfsmethode ergänzen)
     private double parseValue(String rawSocket) {
         String[] parts = rawSocket.split(":");
         return parts.length > 1 ? parseDoubleSafe(parts[1]) : 1.0;

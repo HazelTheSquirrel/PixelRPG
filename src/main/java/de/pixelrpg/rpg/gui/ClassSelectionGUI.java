@@ -1,7 +1,8 @@
-// src/main/java/de/pixelrpg/rpg/gui/ClassSelectionGUI.java (VOLLSTÄNDIG, ersetzt alte Datei — 54 Slots + Back-Button)
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.Rank;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerClass;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -20,11 +21,13 @@ public final class ClassSelectionGUI extends AbstractGUI {
 
     private final Player viewer;
     private final PlayerProfileManager profileManager;
+    private final LanguageManager lang;
 
     public ClassSelectionGUI(Player viewer, PlayerProfileManager profileManager) {
-        super(54, Component.text("Choose your Class", NamedTextColor.DARK_PURPLE));
+        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("class.gui-title"));
         this.viewer = viewer;
         this.profileManager = profileManager;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -34,21 +37,16 @@ public final class ClassSelectionGUI extends AbstractGUI {
             return;
         }
 
-        setClassItem(19, Material.IRON_SWORD, PlayerClass.WARRIOR, profile,
-                "Tank: high armor and health, protects the party.");
-        setClassItem(21, Material.BOW, PlayerClass.RANGER, profile,
-                "DPS: strong ranged damage and mobility.");
-        setClassItem(23, Material.GOLDEN_APPLE, PlayerClass.HEALER, profile,
-                "Support: powerful healing for the group.");
-        setClassItem(25, Material.BLAZE_ROD, PlayerClass.MAGE, profile,
-                "Glass Cannon: devastating spell damage, fragile.");
-        setClassItem(31, Material.ENDER_PEARL, PlayerClass.ROGUE, profile,
-                "Assassin: high crit chance and burst damage.");
+        setClassItem(19, Material.IRON_SWORD, PlayerClass.WARRIOR, profile, "class.tank-desc");
+        setClassItem(21, Material.BOW, PlayerClass.RANGER, profile, "class.dps-ranged-desc");
+        setClassItem(23, Material.GOLDEN_APPLE, PlayerClass.HEALER, profile, "class.support-desc");
+        setClassItem(25, Material.BLAZE_ROD, PlayerClass.MAGE, profile, "class.glass-cannon-desc");
+        setClassItem(31, Material.ENDER_PEARL, PlayerClass.ROGUE, profile, "class.assassin-desc");
 
         setItem(49, backButton(), event -> new ReceptionGUI(viewer, profileManager).open(viewer));
     }
 
-    private void setClassItem(int slot, Material material, PlayerClass targetClass, PlayerProfile profile, String description) {
+    private void setClassItem(int slot, Material material, PlayerClass targetClass, PlayerProfile profile, String descriptionKey) {
         boolean rankMet = profile.getRank().isAtLeast(Rank.C);
         boolean hasClass = profile.getPlayerClass() != PlayerClass.NONE;
         boolean isThisClass = profile.getPlayerClass() == targetClass;
@@ -58,23 +56,20 @@ public final class ClassSelectionGUI extends AbstractGUI {
         ItemMeta meta = item.getItemMeta();
         meta.displayName(targetClass.displayName().decoration(TextDecoration.ITALIC, false));
 
-        Component lore1 = Component.text(description, NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false);
+        Component lore1 = lang.get(descriptionKey).color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false);
         Component lore2;
         if (isThisClass) {
-            lore2 = Component.text("Currently practicing this class.", NamedTextColor.GREEN)
-                    .decoration(TextDecoration.ITALIC, false);
+            lore2 = lang.get("class.currently-practicing").color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false);
         } else if (!rankMet) {
-            lore2 = Component.text("Requires Rank C or higher.", NamedTextColor.RED)
-                    .decoration(TextDecoration.ITALIC, false);
+            lore2 = lang.get("class.requires-rank-c").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false);
         } else if (hasClass) {
             lore2 = respecRankMet
-                    ? Component.text("Respec cost: " + profileManager.getRespecCost() + " Gold", NamedTextColor.GOLD)
-                            .decoration(TextDecoration.ITALIC, false)
-                    : Component.text("Respec requires Rank " + profileManager.getRespecMinRank().name() + ".", NamedTextColor.RED)
-                            .decoration(TextDecoration.ITALIC, false);
+                    ? lang.get("class.respec-cost-label", "cost", String.valueOf(profileManager.getRespecCost()))
+                            .color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false)
+                    : lang.get("class.respec-rank-low", "rank", profileManager.getRespecMinRank().name())
+                            .color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false);
         } else {
-            lore2 = Component.text("Click to permanently choose this class.", NamedTextColor.YELLOW)
-                    .decoration(TextDecoration.ITALIC, false);
+            lore2 = lang.get("class.click-to-choose").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false);
         }
 
         meta.lore(List.of(lore1, lore2));
@@ -82,50 +77,54 @@ public final class ClassSelectionGUI extends AbstractGUI {
 
         setItem(slot, item, event -> {
             if (!rankMet) {
-                viewer.sendMessage(Component.text("Profession selection unlocks at Rank C.", NamedTextColor.RED));
+                lang.send(viewer, "class.unlock-requirement");
                 return;
             }
 
             if (!hasClass) {
                 boolean success = profileManager.selectClass(viewer, targetClass);
                 if (success) {
-                    viewer.sendMessage(Component.text("You are now a ", NamedTextColor.GREEN)
-                            .append(targetClass.displayName()).append(Component.text("!", NamedTextColor.GREEN)));
+                    viewer.sendMessage(lang.get("class.chosen", "class",
+                            plainClassName(targetClass)));
                     viewer.playSound(viewer.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
                     viewer.closeInventory();
                 } else {
-                    viewer.sendMessage(Component.text("Could not select this class.", NamedTextColor.RED));
+                    lang.send(viewer, "class.could-not-select");
                 }
                 return;
             }
 
             if (isThisClass) {
-                viewer.sendMessage(Component.text("You are already this class.", NamedTextColor.YELLOW));
+                lang.send(viewer, "class.same-class");
                 return;
             }
 
             PlayerProfileManager.RespecResult result = profileManager.respecClass(viewer, targetClass);
             switch (result) {
                 case SUCCESS -> {
-                    viewer.sendMessage(Component.text("You respecced into ", NamedTextColor.GREEN)
-                            .append(targetClass.displayName()).append(Component.text("!", NamedTextColor.GREEN)));
+                    viewer.sendMessage(lang.get("class.respec-success", "class", plainClassName(targetClass)));
                     viewer.playSound(viewer.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
                     viewer.closeInventory();
                 }
-                case RANK_TOO_LOW -> viewer.sendMessage(Component.text(
-                        "Respec requires Rank " + profileManager.getRespecMinRank().name() + ".", NamedTextColor.RED));
-                case INSUFFICIENT_FUNDS -> viewer.sendMessage(Component.text(
-                        "You need " + profileManager.getRespecCost() + " gold to respec.", NamedTextColor.RED));
-                case SAME_CLASS -> viewer.sendMessage(Component.text("You are already this class.", NamedTextColor.YELLOW));
-                case NOT_REGISTERED -> viewer.sendMessage(Component.text("You must be a guild member.", NamedTextColor.RED));
+                case RANK_TOO_LOW -> lang.send(viewer, "class.respec-rank-low",
+                        "rank", profileManager.getRespecMinRank().name());
+                case INSUFFICIENT_FUNDS -> lang.send(viewer, "class.respec-insufficient",
+                        "cost", String.valueOf(profileManager.getRespecCost()));
+                case SAME_CLASS -> lang.send(viewer, "class.same-class");
+                case NOT_REGISTERED -> lang.send(viewer, "common.not-registered");
             }
         });
+    }
+
+    private String plainClassName(PlayerClass playerClass) {
+        return net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
+                .serialize(playerClass.displayName());
     }
 
     private ItemStack backButton() {
         ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Back", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get("common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }

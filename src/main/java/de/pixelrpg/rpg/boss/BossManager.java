@@ -1,11 +1,15 @@
-// src/main/java/de/pixelrpg/rpg/boss/BossManager.java
 package de.pixelrpg.rpg.boss;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.EconomyAPI;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.api.events.BossDefeatedEvent;
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.item.ClassSetItemFactory;
+import de.pixelrpg.rpg.item.ClassSetSlot;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
+import de.pixelrpg.rpg.lang.LanguageManager;
+import de.pixelrpg.rpg.player.PlayerClass;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -17,6 +21,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
@@ -37,6 +42,8 @@ public final class BossManager {
     private final EconomyAPI economyAPI;
     private final double barRadius;
     private final int phaseCheckIntervalTicks;
+    private final LanguageManager lang;
+    private final double classSetDropChance;
 
     private final Map<UUID, ActiveBoss> activeBosses = new ConcurrentHashMap<>();
 
@@ -48,6 +55,8 @@ public final class BossManager {
         this.economyAPI = economyAPI;
         this.barRadius = barRadius;
         this.phaseCheckIntervalTicks = phaseCheckIntervalTicks;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
+        this.classSetDropChance = PixelRPGPlugin.getInstance().getConfig().getDouble("bosses.class-set-drop-chance", 0.08);
     }
 
     public LivingEntity spawnWorldBoss(BossDefinition definition, Location location) {
@@ -97,14 +106,13 @@ public final class BossManager {
     }
 
     private void announceSpawn(BossDefinition definition, Location location) {
-        Component announcement = Component.text("A world boss has appeared: ", NamedTextColor.DARK_RED)
-                .append(Component.text(definition.getDisplayName(), NamedTextColor.GOLD));
+        Component announcement = lang.get("boss.world-boss-appeared", "name", definition.getDisplayName());
 
         for (Player player : location.getWorld().getPlayers()) {
             player.sendMessage(announcement);
             player.showTitle(Title.title(
                     Component.text(definition.getDisplayName(), NamedTextColor.DARK_RED),
-                    Component.text("A world boss has awakened!", NamedTextColor.GRAY),
+                    lang.get("boss.world-boss-awakened"),
                     Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(2500), Duration.ofMillis(500))
             ));
         }
@@ -200,14 +208,19 @@ public final class BossManager {
         patternRegistry.get(patternId).ifPresent(pattern -> pattern.execute(plugin, entity));
     }
 
-    public void onBossDeath(UUID entityUuid) {
-        ActiveBoss activeBoss = activeBosses.get(entityUuid);
+    public void onBossDeath(LivingEntity entity) {
+        ActiveBoss activeBoss = activeBosses.get(entity.getUniqueId());
         if (activeBoss == null) {
             return;
         }
 
         cleanup(activeBoss);
-        distributeRewards(activeBoss);
+
+        boolean isDungeonBoss = entity.getPersistentDataContainer()
+                .has(RPGKeys.Dungeon.instanceId(), PersistentDataType.STRING);
+        if (!isDungeonBoss) {
+            distributeRewards(activeBoss);
+        }
     }
 
     private void distributeRewards(ActiveBoss activeBoss) {
@@ -222,17 +235,18 @@ public final class BossManager {
             }
             participants.add(viewerUuid);
 
+            rollClassSetDrop(player, viewerUuid, activeBoss.getDefinition().getRank(), random);
+
             if (lootConfig == null) {
                 continue;
             }
 
             economyAPI.deposit(viewerUuid, lootConfig.moneyReward());
             guildAPI.addExperience(viewerUuid, lootConfig.expReward());
-            player.sendMessage(Component.text(
-                    "Boss defeated! +" + lootConfig.moneyReward() + " Gold, +" + lootConfig.expReward() + " XP",
-                    NamedTextColor.GOLD));
+            player.sendMessage(lang.get("boss.defeated-reward",
+                    "money", String.valueOf(lootConfig.moneyReward()),
+                    "exp", String.valueOf(lootConfig.expReward())));
 
-// src/main/java/de/pixelrpg/rpg/boss/BossManager.java (Ausschnitt: distributeRewards() — Rank statt Level)
             if (!lootConfig.materialPool().isEmpty()) {
                 String materialName = lootConfig.materialPool().get(random.nextInt(lootConfig.materialPool().size()));
                 try {
@@ -243,8 +257,40 @@ public final class BossManager {
                 } catch (IllegalArgumentException ignored) {
                 }
             }
+        }
 
-        Bukkit.getPluginManager().callEvent(new BossDefeatedEvent(activeBoss.getDefinition().getId(), participants));}
+        Bukkit.getPluginManager().callEvent(new BossDefeatedEvent(activeBoss.getDefinition().getId(), participants));
+    }
+
+    /**
+     * Rollt für einen Boss-Teilnehmer die Chance auf ein zufälliges Klassen-Set-Teil
+     * passend zu seiner gewählten Klasse. Spieler ohne gewählte Klasse (NONE) erhalten
+     * nichts, da Set-Items klassenexklusiv sind (siehe ClassSetBonusService).
+     */
+    private void rollClassSetDrop(Player player, UUID uuid, de.pixelrpg.rpg.core.Rank bossRank, Random random) {
+        if (classSetDropChance <= 0.0 || random.nextDouble() >= classSetDropChance) {
+            return;
+        }
+
+        PlayerClass playerClass = guildAPI.getPlayerClass(uuid);
+        if (playerClass == PlayerClass.NONE) {
+            return;
+        }
+
+        ClassSetSlot[] slots = ClassSetSlot.values();
+        ClassSetSlot slot = slots[random.nextInt(slots.length)];
+
+        ItemStack setItem = ClassSetItemFactory.create(playerClass, slot, bossRank);
+        player.getInventory().addItem(setItem).values()
+                .forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
+
+        lang.send(player, "boss.class-set-drop",
+                "class", plainClassName(playerClass), "slot", slot.name());
+    }
+
+    private String plainClassName(PlayerClass playerClass) {
+        return net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
+                .serialize(playerClass.displayName());
     }
 
     private void cleanup(ActiveBoss activeBoss) {

@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/npc/behavior/ReceptionBehavior.java
 package de.pixelrpg.rpg.npc.behavior;
 
 import de.pixelrpg.rpg.gui.ReceptionGUI;

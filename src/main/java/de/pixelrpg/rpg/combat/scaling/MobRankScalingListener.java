@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/combat/scaling/MobRankScalingListener.java
 package de.pixelrpg.rpg.combat.scaling;
 
 import de.pixelrpg.rpg.api.GuildAPI;
@@ -21,18 +20,32 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class MobRankScalingListener implements Listener {
 
+    // TTL für den pro-Chunk zwischengespeicherten durchschnittlichen Spieler-Rang.
+    // Verhindert wiederholte teure getNearbyPlayers()-Scans bei Massen-Spawns
+    // im selben Gebiet (z. B. Nacht-Spawns, Spawner-Cluster).
+    private static final long RANK_CACHE_TTL_MILLIS = 3000L;
+
+    private record CachedRank(Rank rank, long expiresAtMillis) {
+    }
+
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
+    private final Map<Long, CachedRank> nearbyRankCache = new ConcurrentHashMap<>();
 
     public MobRankScalingListener(GuildAPI guildAPI, MobScalingConfig scalingConfig) {
         this.guildAPI = guildAPI;
         this.scalingConfig = scalingConfig;
     }
 
+    // Zuständig für die dynamische Skalierung von Monster-Stats (HP/Schaden) und
+    // Rang-Zuweisung beim natürlichen Spawn, basierend auf umliegenden Spielern
+    // und Regionsgrenzen.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMonsterSpawn(CreatureSpawnEvent event) {
         if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CUSTOM) {
@@ -45,7 +58,7 @@ public final class MobRankScalingListener implements Listener {
             return;
         }
 
-        Rank averageNearbyRank = computeAverageNearbyRank(monster);
+        Rank averageNearbyRank = computeAverageNearbyRankCached(monster);
 
         RegionDangerProvider regionProvider = resolveRegionProvider();
         Rank regionMin = regionProvider.getMinRank(monster.getLocation());
@@ -88,6 +101,26 @@ public final class MobRankScalingListener implements Listener {
         if (monster instanceof Zombie || monster instanceof Skeleton) {
             applyVisualGear(monster, finalRank);
         }
+    }
+
+    private Rank computeAverageNearbyRankCached(Monster monster) {
+        long chunkKey = packChunkKey(monster.getWorld().getName(),
+                monster.getLocation().getBlockX() >> 4, monster.getLocation().getBlockZ() >> 4);
+
+        long now = System.currentTimeMillis();
+        CachedRank cached = nearbyRankCache.get(chunkKey);
+        if (cached != null && cached.expiresAtMillis() > now) {
+            return cached.rank();
+        }
+
+        Rank computed = computeAverageNearbyRank(monster);
+        nearbyRankCache.put(chunkKey, new CachedRank(computed, now + RANK_CACHE_TTL_MILLIS));
+        return computed;
+    }
+
+    private long packChunkKey(String worldName, int chunkX, int chunkZ) {
+        long worldHash = worldName.hashCode() & 0xFFFFL;
+        return (worldHash << 48) | (((long) chunkX & 0xFFFFFFL) << 24) | ((long) chunkZ & 0xFFFFFFL);
     }
 
     private Rank computeAverageNearbyRank(Monster monster) {

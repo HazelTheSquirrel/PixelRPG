@@ -1,7 +1,8 @@
-// src/main/java/de/pixelrpg/rpg/gui/BankGUI.java (VOLLSTÄNDIG, ersetzt alte Datei — 54 Slots, Back-Button, Vollauszahlung als saubere Stacks)
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import net.kyori.adventure.text.Component;
@@ -18,15 +19,17 @@ import java.util.List;
 
 public final class BankGUI extends AbstractGUI {
 
-    private static final double QUICK_AMOUNT = 10.0;
-
     private final Player viewer;
     private final PlayerProfileManager profileManager;
+    private final LanguageManager lang;
+    private final double quickAmount;
 
     public BankGUI(Player viewer, PlayerProfileManager profileManager) {
-        super(54, Component.text("Guild Bank", NamedTextColor.GOLD));
+        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("bank.gui-title"));
         this.viewer = viewer;
         this.profileManager = profileManager;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
+        this.quickAmount = PixelRPGPlugin.getInstance().getConfig().getDouble("economy.bank.quick-amount", 10.0);
     }
 
     @Override
@@ -38,25 +41,25 @@ public final class BankGUI extends AbstractGUI {
 
         setItem(13, buildBalanceItem(profile));
 
-        setItem(20, buildActionItem(Material.LIME_DYE, "Deposit Gold", NamedTextColor.GREEN,
-                        "Left-click: deposit " + (long) QUICK_AMOUNT + " Gold",
-                        "Right-click: deposit all carried Gold"),
+        setItem(20, buildActionItem(Material.LIME_DYE, "bank.deposit-button", NamedTextColor.GREEN,
+                        lang.get("bank.deposit-left", "amount", String.valueOf((long) quickAmount)),
+                        lang.get("bank.deposit-right")),
                 event -> {
                     if (event.getClick().isRightClick()) {
                         depositAll(profile);
                     } else {
-                        depositAmount(profile, QUICK_AMOUNT);
+                        depositAmount(profile, quickAmount);
                     }
                 });
 
-        setItem(24, buildActionItem(Material.RED_DYE, "Withdraw Gold", NamedTextColor.RED,
-                        "Left-click: withdraw " + (long) QUICK_AMOUNT + " Gold",
-                        "Right-click: withdraw entire balance"),
+        setItem(24, buildActionItem(Material.RED_DYE, "bank.withdraw-button", NamedTextColor.RED,
+                        lang.get("bank.withdraw-left", "amount", String.valueOf((long) quickAmount)),
+                        lang.get("bank.withdraw-right")),
                 event -> {
                     if (event.getClick().isRightClick()) {
                         withdrawAll(profile);
                     } else {
-                        withdrawAmount(profile, QUICK_AMOUNT);
+                        withdrawAmount(profile, quickAmount);
                     }
                 });
 
@@ -66,11 +69,11 @@ public final class BankGUI extends AbstractGUI {
     private void depositAmount(PlayerProfile profile, double amount) {
         double removed = removeCurrencyFromInventory(amount);
         if (removed <= 0.0) {
-            viewer.sendMessage(Component.text("You are not carrying any Guild Gold.", NamedTextColor.RED));
+            lang.send(viewer, "bank.no-currency");
             return;
         }
         profile.addMoney(removed);
-        viewer.sendMessage(Component.text("Deposited " + String.format("%.2f", removed) + " gold.", NamedTextColor.GREEN));
+        lang.send(viewer, "bank.deposit-success", "amount", String.format("%.2f", removed));
         viewer.playSound(viewer.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.2f);
         open(viewer);
     }
@@ -83,12 +86,12 @@ public final class BankGUI extends AbstractGUI {
             }
         }
         if (total <= 0.0) {
-            viewer.sendMessage(Component.text("You are not carrying any Guild Gold.", NamedTextColor.RED));
+            lang.send(viewer, "bank.no-currency");
             return;
         }
         removeCurrencyFromInventory(total);
         profile.addMoney(total);
-        viewer.sendMessage(Component.text("Deposited " + String.format("%.2f", total) + " gold.", NamedTextColor.GREEN));
+        lang.send(viewer, "bank.deposit-success", "amount", String.format("%.2f", total));
         viewer.playSound(viewer.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.2f);
         open(viewer);
     }
@@ -119,7 +122,7 @@ public final class BankGUI extends AbstractGUI {
 
     private void withdrawAmount(PlayerProfile profile, double amount) {
         if (!profile.removeMoney(amount)) {
-            viewer.sendMessage(Component.text("Insufficient funds.", NamedTextColor.RED));
+            lang.send(viewer, "bank.insufficient");
             return;
         }
         giveCurrency((long) amount);
@@ -129,7 +132,7 @@ public final class BankGUI extends AbstractGUI {
     private void withdrawAll(PlayerProfile profile) {
         long wholeAmount = (long) Math.floor(profile.getMoney());
         if (wholeAmount <= 0L) {
-            viewer.sendMessage(Component.text("Your balance is empty.", NamedTextColor.RED));
+            lang.send(viewer, "bank.balance-empty");
             return;
         }
         profile.removeMoney(wholeAmount);
@@ -144,28 +147,29 @@ public final class BankGUI extends AbstractGUI {
                     .forEach(remainder -> viewer.getWorld().dropItemNaturally(viewer.getLocation(), remainder));
         }
         viewer.playSound(viewer.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.0f);
-        viewer.sendMessage(Component.text("Withdrew " + amount + " gold as " + stacks.size() + " stack(s).", NamedTextColor.GREEN));
+        lang.send(viewer, "bank.withdrew-stacks", "amount", String.valueOf(amount), "stacks", String.valueOf(stacks.size()));
     }
 
     private ItemStack buildBalanceItem(PlayerProfile profile) {
         ItemStack item = new ItemStack(Material.GOLD_INGOT);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Guild Account Balance", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get("bank.balance-title").color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(
-                Component.text(String.format("%.2f Gold", profile.getMoney()), NamedTextColor.YELLOW)
+                lang.get("bank.balance-value", "amount", String.format("%.2f", profile.getMoney()))
+                        .color(NamedTextColor.YELLOW)
                         .decoration(TextDecoration.ITALIC, false)
         ));
         item.setItemMeta(meta);
         return item;
     }
 
-    private ItemStack buildActionItem(Material material, String name, NamedTextColor color, String... loreLines) {
+    private ItemStack buildActionItem(Material material, String nameKey, NamedTextColor color, Component... loreLines) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text(name, color).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get(nameKey).color(color).decoration(TextDecoration.ITALIC, false));
         List<Component> lore = new ArrayList<>();
-        for (String line : loreLines) {
-            lore.add(Component.text(line, NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        for (Component line : loreLines) {
+            lore.add(line.color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
         }
         meta.lore(lore);
         item.setItemMeta(meta);
@@ -175,7 +179,7 @@ public final class BankGUI extends AbstractGUI {
     private ItemStack backButton() {
         ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Back", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get("common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }

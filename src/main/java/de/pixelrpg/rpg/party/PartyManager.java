@@ -1,9 +1,8 @@
-// src/main/java/de/pixelrpg/rpg/party/PartyManager.java
 package de.pixelrpg.rpg.party;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.PartyAPI;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -19,6 +18,7 @@ public final class PartyManager implements PartyAPI {
     private final Map<UUID, Party> partiesById = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> partyIdByMember = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> pendingInvites = new ConcurrentHashMap<>();
+    private final LanguageManager lang = PixelRPGPlugin.getInstance().getLanguageManager();
 
     public Optional<Party> getParty(UUID member) {
         UUID partyId = partyIdByMember.get(member);
@@ -67,8 +67,7 @@ public final class PartyManager implements PartyAPI {
         party.addMember(player.getUniqueId());
         partyIdByMember.put(player.getUniqueId(), party.getId());
 
-        Component joinMessage = Component.text(player.getName() + " joined the party!", NamedTextColor.GREEN);
-        broadcastToParty(party, joinMessage, player.getUniqueId());
+        broadcastToParty(party, lang.get("party.member-joined", "player", player.getName()), player.getUniqueId());
         return true;
     }
 
@@ -94,12 +93,12 @@ public final class PartyManager implements PartyAPI {
             if (newLeader != null) {
                 Player newLeaderPlayer = Bukkit.getPlayer(newLeader);
                 if (newLeaderPlayer != null) {
-                    newLeaderPlayer.sendMessage(Component.text("You are now the party leader.", NamedTextColor.GOLD));
+                    lang.send(newLeaderPlayer, "party.now-leader");
                 }
             }
         }
 
-        broadcastToParty(party, Component.text(player.getName() + " left the party.", NamedTextColor.RED), null);
+        broadcastToParty(party, lang.get("party.member-left", "player", player.getName()), null);
     }
 
     public void disbandParty(Party party) {
@@ -107,7 +106,7 @@ public final class PartyManager implements PartyAPI {
             partyIdByMember.remove(member);
             Player memberPlayer = Bukkit.getPlayer(member);
             if (memberPlayer != null) {
-                memberPlayer.sendMessage(Component.text("The party has been disbanded.", NamedTextColor.RED));
+                lang.send(memberPlayer, "party.disbanded");
             }
         }
         partiesById.remove(party.getId());
@@ -133,13 +132,13 @@ public final class PartyManager implements PartyAPI {
             if (newLeader != null) {
                 Player newLeaderPlayer = Bukkit.getPlayer(newLeader);
                 if (newLeaderPlayer != null) {
-                    newLeaderPlayer.sendMessage(Component.text("You are now the party leader.", NamedTextColor.GOLD));
+                    lang.send(newLeaderPlayer, "party.now-leader");
                 }
             }
         }
     }
 
-    public void broadcastToParty(Party party, Component message, UUID exclude) {
+    public void broadcastToParty(Party party, net.kyori.adventure.text.Component message, UUID exclude) {
         for (UUID member : party.getMembers()) {
             if (exclude != null && exclude.equals(member)) {
                 continue;

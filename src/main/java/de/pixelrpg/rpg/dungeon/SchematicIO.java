@@ -1,11 +1,13 @@
-// src/main/java/de/pixelrpg/rpg/dungeon/SchematicIO.java
 package de.pixelrpg.rpg.dungeon;
 
 import de.pixelrpg.rpg.region.CuboidBounds;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -76,35 +78,94 @@ public final class SchematicIO {
         }
     }
 
-    public static void paste(SchematicData schematic, Location origin) {
+    /**
+     * Setzt die Blöcke des Schematics gestreckt über mehrere Ticks (statt in einem
+     * synchronen Durchlauf), um TPS-Einbrüche bei großen Dungeons zu vermeiden.
+     * onComplete wird auf dem Main-Thread aufgerufen, sobald alle Blöcke gesetzt sind.
+     */
+    public static void pasteIncremental(Plugin plugin, SchematicData schematic, Location origin,
+                                         int blocksPerTick, Runnable onComplete) {
         World world = origin.getWorld();
         int baseX = origin.getBlockX();
         int baseY = origin.getBlockY();
         int baseZ = origin.getBlockZ();
+        int width = schematic.getWidth();
+        int height = schematic.getHeight();
+        int length = schematic.getLength();
+        int totalBlocks = width * length * height;
+        int safeBlocksPerTick = Math.max(1, blocksPerTick);
 
-        for (int y = 0; y < schematic.getHeight(); y++) {
-            for (int z = 0; z < schematic.getLength(); z++) {
-                for (int x = 0; x < schematic.getWidth(); x++) {
+        new BukkitRunnable() {
+            int index = 0;
+
+            @Override
+            public void run() {
+                int placedThisTick = 0;
+                while (placedThisTick < safeBlocksPerTick && index < totalBlocks) {
+                    int y = index / (width * length);
+                    int remainder = index % (width * length);
+                    int z = remainder / width;
+                    int x = remainder % width;
+
                     String rawBlockData = schematic.getBlockDataAt(x, y, z);
                     BlockData blockData = Bukkit.createBlockData(rawBlockData);
                     world.getBlockAt(baseX + x, baseY + y, baseZ + z).setBlockData(blockData, false);
+
+                    index++;
+                    placedThisTick++;
+                }
+
+                if (index >= totalBlocks) {
+                    cancel();
+                    if (onComplete != null) {
+                        onComplete.run();
+                    }
                 }
             }
-        }
+        }.runTaskTimer(plugin, 0L, 1L);
     }
 
-    public static void clear(SchematicData schematic, Location origin) {
+    /**
+     * Entfernt die Blöcke des Schematics gestreckt über mehrere Ticks, analog zu
+     * pasteIncremental. Wird beim Instanz-Cleanup nach Ablauf der Lebenszeit genutzt.
+     */
+    public static void clearIncremental(Plugin plugin, SchematicData schematic, Location origin,
+                                         int blocksPerTick, Runnable onComplete) {
         World world = origin.getWorld();
         int baseX = origin.getBlockX();
         int baseY = origin.getBlockY();
         int baseZ = origin.getBlockZ();
+        int width = schematic.getWidth();
+        int height = schematic.getHeight();
+        int length = schematic.getLength();
+        int totalBlocks = width * length * height;
+        int safeBlocksPerTick = Math.max(1, blocksPerTick);
 
-        for (int y = 0; y < schematic.getHeight(); y++) {
-            for (int z = 0; z < schematic.getLength(); z++) {
-                for (int x = 0; x < schematic.getWidth(); x++) {
-                    world.getBlockAt(baseX + x, baseY + y, baseZ + z).setType(org.bukkit.Material.AIR, false);
+        new BukkitRunnable() {
+            int index = 0;
+
+            @Override
+            public void run() {
+                int clearedThisTick = 0;
+                while (clearedThisTick < safeBlocksPerTick && index < totalBlocks) {
+                    int y = index / (width * length);
+                    int remainder = index % (width * length);
+                    int z = remainder / width;
+                    int x = remainder % width;
+
+                    world.getBlockAt(baseX + x, baseY + y, baseZ + z).setType(Material.AIR, false);
+
+                    index++;
+                    clearedThisTick++;
+                }
+
+                if (index >= totalBlocks) {
+                    cancel();
+                    if (onComplete != null) {
+                        onComplete.run();
+                    }
                 }
             }
-        }
+        }.runTaskTimer(plugin, 0L, 1L);
     }
 }

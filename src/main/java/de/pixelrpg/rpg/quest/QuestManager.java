@@ -1,7 +1,8 @@
-// src/main/java/de/pixelrpg/rpg/quest/QuestManager.java
 package de.pixelrpg.rpg.quest;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import net.kyori.adventure.text.Component;
@@ -29,6 +30,7 @@ public final class QuestManager {
     private final de.pixelrpg.rpg.api.GuildAPI guildAPI;
     private final GlobalEventState globalEventState;
     private final double partyShareRange;
+    private final LanguageManager lang;
 
     private final Map<UUID, Map<String, Long>> questTimers = new ConcurrentHashMap<>();
 
@@ -40,6 +42,7 @@ public final class QuestManager {
         this.guildAPI = guildAPI;
         this.globalEventState = globalEventState;
         this.partyShareRange = partyShareRange;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     public void startTimerCheckTask() {
@@ -58,7 +61,7 @@ public final class QuestManager {
                         profileManager.getProfile(uuid).ifPresent(profile -> profile.removeActiveQuest(questId));
                         Player player = Bukkit.getPlayer(uuid);
                         if (player != null && player.isOnline()) {
-                            player.sendMessage(Component.text("Your quest contract has expired!", NamedTextColor.RED));
+                            lang.send(player, "quest.expired");
                         }
                     });
                 }
@@ -91,11 +94,10 @@ public final class QuestManager {
         if (quest.hasTimeLimit()) {
             questTimers.computeIfAbsent(player.getUniqueId(), k -> new ConcurrentHashMap<>())
                     .put(quest.id(), expiry);
-            player.sendMessage(Component.text("Time limit: " + quest.durationMinutes() + " minutes!", NamedTextColor.YELLOW));
+            lang.send(player, "quest.time-limit", "minutes", String.valueOf(quest.durationMinutes()));
         }
 
-        player.sendMessage(Component.text("Quest accepted: ", NamedTextColor.GREEN)
-                .append(Component.text(quest.title(), NamedTextColor.YELLOW)));
+        lang.send(player, "quest.accepted", "title", quest.title());
         return true;
     }
 
@@ -109,7 +111,7 @@ public final class QuestManager {
         if (timers != null) {
             timers.remove(questId);
         }
-        player.sendMessage(Component.text("Quest abandoned.", NamedTextColor.GOLD));
+        lang.send(player, "quest.abandoned");
         return true;
     }
 
@@ -122,7 +124,7 @@ public final class QuestManager {
 
         QuestProgress progress = profile.getActiveQuests().get(questId);
         if (progress.getCurrentAmount() < quest.requiredAmount()) {
-            player.sendMessage(Component.text("Requirements not met yet.", NamedTextColor.RED));
+            lang.send(player, "quest.requirements-not-met");
             return false;
         }
 
@@ -148,12 +150,11 @@ public final class QuestManager {
             }
         }
 
-        player.sendMessage(Component.text("Quest completed: ", NamedTextColor.GREEN)
-                .append(Component.text(quest.title(), NamedTextColor.YELLOW)));
+        lang.send(player, "quest.completed", "title", quest.title());
 
         Title title = Title.title(
-                Component.text("Quest Complete!", NamedTextColor.GOLD),
                 Component.text(quest.title(), NamedTextColor.YELLOW),
+                Component.text(" "),
                 Title.Times.times(Duration.ofMillis(300), Duration.ofMillis(1800), Duration.ofMillis(300))
         );
         player.showTitle(title);
@@ -181,7 +182,7 @@ public final class QuestManager {
 
     public void checkInventoryQuests(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null) {
+        if (profile == null || profile.getActiveQuests().isEmpty()) {
             return;
         }
         for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
@@ -203,10 +204,9 @@ public final class QuestManager {
         }
     }
 
-// src/main/java/de/pixelrpg/rpg/quest/QuestManager.java (Ausschnitt: checkReachLocationQuests ersetzen für exakte Koordinaten)
     public void checkReachLocationQuests(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null) {
+        if (profile == null || profile.getActiveQuests().isEmpty()) {
             return;
         }
         for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
@@ -222,8 +222,7 @@ public final class QuestManager {
                     : isWithinRadius(player.getLocation(), quest.reachLocation(), quest.reachRadius());
             if (reached) {
                 entry.getValue().setCurrentAmount(quest.requiredAmount());
-                player.sendMessage(Component.text("Location reached: ", NamedTextColor.GREEN)
-                        .append(Component.text(quest.title(), NamedTextColor.YELLOW)));
+                lang.send(player, "quest.location-reached", "title", quest.title());
             }
         }
     }
@@ -251,7 +250,7 @@ public final class QuestManager {
             if (quest.escortDestination() != null
                     && isWithinRadius(player.getLocation(), quest.escortDestination(), 3.0)) {
                 entry.getValue().setCurrentAmount(quest.requiredAmount());
-                player.sendMessage(Component.text("Escort target delivered!", NamedTextColor.GREEN));
+                lang.send(player, "quest.escort-delivered");
             }
         }
     }
@@ -273,14 +272,14 @@ public final class QuestManager {
     }
 
     private void completeGlobalEvent(Quest quest) {
-        Component announcement = Component.text("[CALAMITY CONQUERED] ", NamedTextColor.DARK_RED)
-                .append(Component.text(quest.title() + " has been defeated by the server!", NamedTextColor.GOLD));
-
+        // Global-Event-Ankündigung nutzt weiterhin den konkreten Quest-Titel
+        // (Klartext aus quest/*.yml), das umgebende Format bleibt aber im
+        // Sprachsystem, damit "besiegt" etc. übersetzt wird.
         for (Player online : Bukkit.getOnlinePlayers()) {
-            online.sendMessage(announcement);
+            lang.send(online, "quest.completed", "title", quest.title());
             online.showTitle(Title.title(
-                    Component.text("CALAMITY CONQUERED", NamedTextColor.DARK_RED),
                     Component.text(quest.title(), NamedTextColor.GOLD),
+                    Component.text(" "),
                     Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(3000), Duration.ofMillis(500))
             ));
             if (guildAPI.isRegistered(online.getUniqueId())) {
@@ -302,7 +301,8 @@ public final class QuestManager {
 
         Player player = Bukkit.getPlayer(profile.getUuid());
         if (player != null && player.isOnline()) {
-            player.sendActionBar(Component.text(quest.title() + ": " + next + "/" + quest.requiredAmount(), NamedTextColor.YELLOW));
+            player.sendActionBar(lang.get("quest.progress",
+                    "current", String.valueOf(next), "required", String.valueOf(quest.requiredAmount())));
         }
     }
 

@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/item/RPGItemBuilder.java (VOLLSTÄNDIG, ersetzt alte Datei — Rank statt itemLevel)
 package de.pixelrpg.rpg.item;
 
 import de.pixelrpg.rpg.core.RPGKeys;
@@ -30,6 +29,12 @@ public final class RPGItemBuilder {
     public static void configureChances(double blessing, double curse) {
         blessingChance = blessing;
         curseChance = curse;
+    }
+
+    // Kompatibilitäts-Overload für ItemAPI (int-Rank aus externen Aufrufen),
+    // delegiert an die eigentliche Implementierung mit Rank-Enum.
+    public static Optional<ItemStack> createUnidentified(Material material, ItemRarity rarity, int itemRankOrdinal) {
+        return createUnidentified(material, rarity, Rank.fromOrdinalClamped(itemRankOrdinal));
     }
 
     public static Optional<ItemStack> createUnidentified(Material material, ItemRarity rarity, Rank itemRank) {
@@ -205,10 +210,5 @@ public final class RPGItemBuilder {
 
     private static double round(double value) {
         return Math.round(value * 10.0) / 10.0;
-    }
-
-    public static Optional<ItemStack> createUnidentified(Material material, ItemRarity rarity, int itemRank) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createUnidentified'");
     }
 }

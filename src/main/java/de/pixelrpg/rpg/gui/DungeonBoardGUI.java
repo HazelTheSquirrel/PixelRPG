@@ -1,10 +1,10 @@
-// src/main/java/de/pixelrpg/rpg/gui/DungeonBoardGUI.java (VOLLSTÄNDIG, ersetzt alte Datei — currentNpcId wird durchgereicht, Zurück-Bug behoben)
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dungeon.DungeonDefinition;
 import de.pixelrpg.rpg.dungeon.DungeonInstanceManager;
 import de.pixelrpg.rpg.dungeon.DungeonRepository;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -23,15 +23,17 @@ public final class DungeonBoardGUI extends AbstractGUI {
     private final DungeonInstanceManager instanceManager;
     private final PlayerProfileManager profileManager;
     private final String originNpcId;
+    private final LanguageManager lang;
 
     public DungeonBoardGUI(Player viewer, DungeonRepository repository, DungeonInstanceManager instanceManager,
                             PlayerProfileManager profileManager, String originNpcId) {
-        super(54, Component.text("Dungeons", NamedTextColor.DARK_RED));
+        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("dungeon.gui-title"));
         this.viewer = viewer;
         this.repository = repository;
         this.instanceManager = instanceManager;
         this.profileManager = profileManager;
         this.originNpcId = originNpcId;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -49,11 +51,13 @@ public final class DungeonBoardGUI extends AbstractGUI {
             meta.displayName(Component.text(definition.getDisplayName(), NamedTextColor.DARK_RED)
                     .decoration(TextDecoration.ITALIC, false));
             meta.lore(List.of(
-                    Component.text("Rank: " + definition.getMinRank().name() + " - " + definition.getMaxRank().name(), NamedTextColor.GRAY)
+                    lang.get("dungeon.rank-range", "min", definition.getMinRank().name(), "max", definition.getMaxRank().name())
+                            .color(NamedTextColor.GRAY)
                             .decoration(TextDecoration.ITALIC, false),
-                    Component.text("Cooldown: " + definition.getCooldownMinutes() + " minutes", NamedTextColor.GRAY)
+                    lang.get("dungeon.cooldown-minutes", "minutes", String.valueOf(definition.getCooldownMinutes()))
+                            .color(NamedTextColor.GRAY)
                             .decoration(TextDecoration.ITALIC, false),
-                    Component.text("Click to enter.", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
+                    lang.get("dungeon.click-to-enter").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
             ));
             item.setItemMeta(meta);
 
@@ -61,10 +65,10 @@ public final class DungeonBoardGUI extends AbstractGUI {
                 DungeonInstanceManager.EnterResult result = instanceManager.enterDungeon(viewer, definition.getId());
                 switch (result) {
                     case SUCCESS -> viewer.closeInventory();
-                    case RANK_TOO_LOW -> viewer.sendMessage(Component.text("Your rank is too low for this dungeon.", NamedTextColor.RED));
-                    case ON_COOLDOWN -> viewer.sendMessage(Component.text("This dungeon is on cooldown for you.", NamedTextColor.RED));
-                    case NO_SCHEMATIC -> viewer.sendMessage(Component.text("This dungeon has no built structure yet.", NamedTextColor.RED));
-                    case DUNGEON_NOT_FOUND -> viewer.sendMessage(Component.text("Dungeon not found.", NamedTextColor.RED));
+                    case RANK_TOO_LOW -> lang.send(viewer, "dungeon.rank-too-low");
+                    case ON_COOLDOWN -> lang.send(viewer, "dungeon.on-cooldown");
+                    case NO_SCHEMATIC -> lang.send(viewer, "dungeon.no-structure");
+                    case DUNGEON_NOT_FOUND -> lang.send(viewer, "dungeon.not-found");
                 }
             });
 
@@ -79,7 +83,7 @@ public final class DungeonBoardGUI extends AbstractGUI {
     private ItemStack backButton() {
         ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Back", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get("common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }

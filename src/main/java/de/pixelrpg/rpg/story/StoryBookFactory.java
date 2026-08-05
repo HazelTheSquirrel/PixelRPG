@@ -1,10 +1,10 @@
-// src/main/java/de/pixelrpg/rpg/story/StoryBookFactory.java (VOLLSTÄNDIG, ersetzt alte Datei — Crash-Fix + automatischer Zeilenumbruch für bessere Lesbarkeit)
 package de.pixelrpg.rpg.story;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 
@@ -13,10 +13,15 @@ import java.util.List;
 
 public final class StoryBookFactory {
 
-    private static final int CHARS_PER_LINE = 18;
-    private static final int LINES_PER_PAGE = 13;
+    private static int charsPerLine = 18;
+    private static int linesPerPage = 13;
 
     private StoryBookFactory() {
+    }
+
+    public static void load(FileConfiguration config) {
+        charsPerLine = config.getInt("story.chars-per-line", charsPerLine);
+        linesPerPage = config.getInt("story.lines-per-page", linesPerPage);
     }
 
     public static ItemStack build(StoryChapter chapter) {
@@ -55,7 +60,7 @@ public final class StoryBookFactory {
         StringBuilder current = new StringBuilder();
 
         for (String word : text.split(" ")) {
-            if (current.length() + word.length() + 1 > CHARS_PER_LINE) {
+            if (current.length() + word.length() + 1 > charsPerLine) {
                 result.add(current.toString());
                 current = new StringBuilder();
             }
@@ -85,7 +90,7 @@ public final class StoryBookFactory {
                     .append(Component.newline());
             lineCount++;
 
-            if (lineCount >= LINES_PER_PAGE) {
+            if (lineCount >= linesPerPage) {
                 pages.add(currentPage);
                 currentPage = Component.empty();
                 lineCount = 0;

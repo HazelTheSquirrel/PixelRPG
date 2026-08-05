@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/combat/gem/GemItemFactory.java (VOLLSTÄNDIG, ersetzt alte Datei — arbeitet jetzt gegen GemRepository/SupportGemRegistry statt Enum)
 package de.pixelrpg.rpg.combat.gem;
 
 import de.pixelrpg.rpg.core.RPGKeys;
@@ -33,7 +32,6 @@ public final class GemItemFactory {
 
         var pdc = meta.getPersistentDataContainer();
         pdc.set(RPGKeys.Item.gemType(), PersistentDataType.STRING, def.id());
-        pdc.set(RPGKeys.Item.gemOwnerClass(), PersistentDataType.STRING, def.ownerClass().name());
         pdc.set(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN, true);
 
         item.setItemMeta(meta);

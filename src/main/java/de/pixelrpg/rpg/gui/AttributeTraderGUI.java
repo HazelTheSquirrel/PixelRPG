@@ -1,7 +1,8 @@
-// src/main/java/de/pixelrpg/rpg/gui/AttributeTraderGUI.java (VOLLSTÄNDIG, ersetzt alte Datei — Elytra-Permit-Slot ergänzt)
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.Rank;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.AttributeConfig;
 import de.pixelrpg.rpg.player.PlayerAttribute;
 import de.pixelrpg.rpg.player.PlayerProfile;
@@ -24,12 +25,14 @@ public final class AttributeTraderGUI extends AbstractGUI {
     private final Player viewer;
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
+    private final LanguageManager lang;
 
     public AttributeTraderGUI(Player viewer, PlayerProfileManager profileManager, StatEngine statEngine) {
-        super(54, Component.text("Attribute Distribution", NamedTextColor.DARK_AQUA));
+        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("attribute.gui-title"));
         this.viewer = viewer;
         this.profileManager = profileManager;
         this.statEngine = statEngine;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -75,20 +78,21 @@ public final class AttributeTraderGUI extends AbstractGUI {
         List<Component> lore = new ArrayList<>();
         lore.add(Component.text(description, NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
         if (discounted) {
-            lore.add(Component.text("Class Affinity: -25% Cost", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+            lore.add(lang.get("attribute.class-affinity").color(NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
         }
         lore.add(Component.text(" "));
 
         if (maxed) {
-            lore.add(Component.text("Maximum reached.", NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
+            lore.add(lang.get("attribute.maximum-reached").color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
         } else if (!rankMet) {
-            lore.add(Component.text("Requires Rank " + required.name() + ".", NamedTextColor.RED)
+            lore.add(lang.get("attribute.requires-rank", "rank", required.name())
+                    .color(NamedTextColor.RED)
                     .decoration(TextDecoration.ITALIC, false));
         } else {
-            lore.add(Component.text("Cost: " + cost + " Gold", NamedTextColor.GOLD)
+            lore.add(lang.get("attribute.cost-label", "cost", String.valueOf(cost))
+                    .color(NamedTextColor.GOLD)
                     .decoration(TextDecoration.ITALIC, false));
-            lore.add(Component.text("Click to increase by 1.", NamedTextColor.YELLOW)
-                    .decoration(TextDecoration.ITALIC, false));
+            lore.add(lang.get("attribute.click-to-increase").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
         }
         meta.lore(lore);
         item.setItemMeta(meta);
@@ -101,10 +105,10 @@ public final class AttributeTraderGUI extends AbstractGUI {
                     viewer.playSound(viewer.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.2f);
                     open(viewer);
                 }
-                case MAX_REACHED -> viewer.sendMessage(Component.text("This attribute is already maxed out.", NamedTextColor.RED));
-                case RANK_TOO_LOW -> viewer.sendMessage(Component.text("Your rank is too low for this upgrade.", NamedTextColor.RED));
-                case INSUFFICIENT_FUNDS -> viewer.sendMessage(Component.text("You do not have enough gold.", NamedTextColor.RED));
-                case NOT_REGISTERED -> viewer.sendMessage(Component.text("You must be a guild member.", NamedTextColor.RED));
+                case MAX_REACHED -> lang.send(viewer, "attribute.max-reached");
+                case RANK_TOO_LOW -> lang.send(viewer, "attribute.rank-too-low");
+                case INSUFFICIENT_FUNDS -> lang.send(viewer, "attribute.insufficient-funds");
+                case NOT_REGISTERED -> lang.send(viewer, "attribute.not-registered");
             }
         });
     }
@@ -112,7 +116,7 @@ public final class AttributeTraderGUI extends AbstractGUI {
     private ItemStack backButton() {
         ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Back", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get("common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }

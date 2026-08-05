@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/scoreboard/ScoreboardService.java (VOLLSTÄNDIG, ersetzt alte Datei — Party-Anzeige inkl. sich selbst)
 package de.pixelrpg.rpg.scoreboard;
 
 import de.pixelrpg.rpg.api.PartyAPI;
@@ -12,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -22,13 +22,35 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class ScoreboardService implements Listener {
+
+    // Vanilla-Sidebar zeigt maximal 15 Zeilen gleichzeitig an.
+    private static final int MAX_LINES = 15;
 
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
     private final int updateIntervalTicks;
+
+    // Hält pro Spieler das persistente Scoreboard inkl. vorab registrierter
+    // Teams, damit apply() nur noch Diffs schreibt statt alles neu aufzubauen.
+    private final Map<UUID, PlayerScoreboardState> stateByPlayer = new ConcurrentHashMap<>();
+
+    private static final class PlayerScoreboardState {
+        final Scoreboard board;
+        final Objective objective;
+        final Team[] teams = new Team[MAX_LINES];
+        final Component[] lastPrefixes = new Component[MAX_LINES];
+        final boolean[] activeLine = new boolean[MAX_LINES];
+
+        PlayerScoreboardState(Scoreboard board, Objective objective) {
+            this.board = board;
+            this.objective = objective;
+        }
+    }
 
     public ScoreboardService(Plugin plugin, PlayerProfileManager profileManager, int updateIntervalTicks) {
         this.plugin = plugin;
@@ -50,6 +72,8 @@ public final class ScoreboardService implements Listener {
         }, updateIntervalTicks, updateIntervalTicks);
     }
 
+    // Zuständig für den initialen Scoreboard-Aufbau beim Login, falls der
+    // Spieler bereits registriert ist und das HUD aktiviert hat.
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         profileManager.getProfile(event.getPlayer().getUniqueId()).ifPresent(profile -> {
@@ -57,6 +81,13 @@ public final class ScoreboardService implements Listener {
                 apply(event.getPlayer(), profile);
             }
         });
+    }
+
+    // Zuständig für das Entfernen des zwischengespeicherten Scoreboard-Zustands
+    // beim Logout, damit die Map nicht dauerhaft wächst (Memory-Leak-Schutz).
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        stateByPlayer.remove(event.getPlayer().getUniqueId());
     }
 
     public void toggle(Player player) {
@@ -81,32 +112,67 @@ public final class ScoreboardService implements Listener {
         if (manager != null) {
             player.setScoreboard(manager.getMainScoreboard());
         }
+        stateByPlayer.remove(player.getUniqueId());
     }
 
     private void apply(Player player, PlayerProfile profile) {
-        ScoreboardManager manager = Bukkit.getScoreboardManager();
-        if (manager == null) {
-            return;
+        List<Component> lines = buildLines(player, profile);
+        int size = Math.min(lines.size(), MAX_LINES);
+
+        PlayerScoreboardState state = stateByPlayer.computeIfAbsent(player.getUniqueId(),
+                uuid -> createState(player));
+
+        for (int i = 0; i < size; i++) {
+            Component line = lines.get(i);
+            Team team = state.teams[i];
+
+            if (team == null) {
+                team = registerLineTeam(state, i);
+            }
+
+            if (!line.equals(state.lastPrefixes[i])) {
+                team.prefix(line);
+                state.lastPrefixes[i] = line;
+            }
+
+            if (!state.activeLine[i]) {
+                state.objective.getScore(entryFor(i)).setScore(MAX_LINES - i);
+                state.activeLine[i] = true;
+            }
         }
 
+        // Zeilen, die vorher aktiv waren, jetzt aber nicht mehr gebraucht werden
+        // (z. B. Party verkleinert), werden ausgeblendet statt das Team zu löschen.
+        for (int i = size; i < MAX_LINES; i++) {
+            if (state.activeLine[i]) {
+                state.board.resetScores(entryFor(i));
+                state.activeLine[i] = false;
+                state.lastPrefixes[i] = null;
+            }
+        }
+    }
+
+    private PlayerScoreboardState createState(Player player) {
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
         Scoreboard board = manager.getNewScoreboard();
         Objective objective = board.registerNewObjective("pixelrpg", Criteria.DUMMY,
                 Component.text("PixelRPG", NamedTextColor.GOLD));
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 
-        List<Component> lines = buildLines(player, profile);
-        int score = lines.size();
-
-        for (Component line : lines) {
-            String entry = "\u00A7" + Integer.toHexString(score) + "\u00A7r";
-            Team team = board.registerNewTeam("line" + score);
-            team.addEntry(entry);
-            team.prefix(line);
-            objective.getScore(entry).setScore(score);
-            score--;
-        }
-
+        PlayerScoreboardState state = new PlayerScoreboardState(board, objective);
         player.setScoreboard(board);
+        return state;
+    }
+
+    private Team registerLineTeam(PlayerScoreboardState state, int index) {
+        Team team = state.board.registerNewTeam("line" + index);
+        team.addEntry(entryFor(index));
+        state.teams[index] = team;
+        return team;
+    }
+
+    private String entryFor(int index) {
+        return "\u00A7" + Integer.toHexString(index) + "\u00A7r";
     }
 
     private List<Component> buildLines(Player player, PlayerProfile profile) {
@@ -127,6 +193,9 @@ public final class ScoreboardService implements Listener {
                 lines.add(Component.text("-- Party --", NamedTextColor.LIGHT_PURPLE));
 
                 for (UUID memberUuid : partyAPI.getPartyMembers(player.getUniqueId())) {
+                    if (lines.size() >= MAX_LINES) {
+                        break;
+                    }
                     Player member = Bukkit.getPlayer(memberUuid);
                     if (member == null || !member.isOnline()) {
                         continue;

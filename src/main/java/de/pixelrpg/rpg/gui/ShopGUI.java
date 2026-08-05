@@ -1,6 +1,7 @@
-// src/main/java/de/pixelrpg/rpg/gui/ShopGUI.java
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.shop.ShopEntry;
@@ -22,13 +23,15 @@ public final class ShopGUI extends AbstractGUI {
     private final String npcId;
     private final ShopManager shopManager;
     private final PlayerProfileManager profileManager;
+    private final LanguageManager lang;
 
     public ShopGUI(Player viewer, String npcId, ShopManager shopManager, PlayerProfileManager profileManager) {
-        super(54, Component.text("Shop", NamedTextColor.DARK_GREEN));
+        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("shop.gui-title"));
         this.viewer = viewer;
         this.npcId = npcId;
         this.shopManager = shopManager;
         this.profileManager = profileManager;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -45,9 +48,10 @@ public final class ShopGUI extends AbstractGUI {
             ItemMeta meta = display.getItemMeta();
             List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
             lore.add(Component.text(" "));
-            lore.add(Component.text("Price: " + entry.price() + " Gold", NamedTextColor.GOLD)
+            lore.add(lang.get("shop.price-label", "price", String.valueOf(entry.price()))
+                    .color(NamedTextColor.GOLD)
                     .decoration(TextDecoration.ITALIC, false));
-            lore.add(Component.text("Click to buy", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+            lore.add(lang.get("shop.click-to-buy").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
             meta.lore(lore);
             display.setItemMeta(meta);
 
@@ -57,14 +61,14 @@ public final class ShopGUI extends AbstractGUI {
                     return;
                 }
                 if (!profile.removeMoney(entry.price())) {
-                    viewer.sendMessage(Component.text("You do not have enough gold.", NamedTextColor.RED));
+                    lang.send(viewer, "shop.insufficient-gold");
                     return;
                 }
 
                 viewer.getInventory().addItem(entry.item().clone()).values()
                         .forEach(remainder -> viewer.getWorld().dropItemNaturally(viewer.getLocation(), remainder));
                 viewer.playSound(viewer.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 1.0f);
-                viewer.sendMessage(Component.text("Purchased!", NamedTextColor.GREEN));
+                lang.send(viewer, "shop.purchased");
             });
 
             slot++;

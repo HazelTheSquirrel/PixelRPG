@@ -25,12 +25,12 @@ items:
   soulbound:
     cost: 200.0
     min-rank: "C"
-  fusion:
-    cost: 120.0
   loot:
     unidentified-drop-chance: 0.09
     identified-drop-chance: 0.14
     rune-drop-chance: 0.05
+    gem-drop-chance: 0.05
+    gem-active-chance: 0.35
     blessing-chance: 0.12
     curse-chance: 0.10
 
@@ -67,6 +67,7 @@ dungeons:
   slot-spacing: 512
   default-cooldown-minutes: 30
   cleanup-delay-minutes: 20
+  blocks-per-tick: 5000
 
 bosses:
   bar-radius: 60.0
