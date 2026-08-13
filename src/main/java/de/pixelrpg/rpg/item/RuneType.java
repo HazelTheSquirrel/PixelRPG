@@ -1,3 +1,4 @@
+// src/main/java/de/pixelrpg/rpg/item/RuneType.java (VOLLSTÄNDIG, ersetzt alte Datei — nur Enum-Definition, unverändert, zur Vollständigkeit der Übersicht)
 package de.pixelrpg.rpg.item;
 
 import net.kyori.adventure.text.Component;
@@ -53,10 +54,6 @@ public enum RuneType {
         CONFIG_KEYS.put(CLASS_SIGIL, "class-sigil");
     }
 
-    /**
-     * Lädt die Min/Max-Wertebereiche jeder Rune aus der Config-Sektion "runes".
-     * Fehlt ein Eintrag, bleibt der im Enum-Konstruktor gesetzte Default erhalten.
-     */
     public static void load(FileConfiguration config) {
         for (RuneType type : values()) {
             String key = CONFIG_KEYS.get(type);

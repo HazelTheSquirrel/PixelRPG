@@ -27,11 +27,14 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class MobRankScalingListener implements Listener {
 
     // TTL für den pro-Chunk zwischengespeicherten durchschnittlichen Spieler-Rang.
-    // Verhindert wiederholte teure getNearbyPlayers()-Scans bei Massen-Spawns
-    // im selben Gebiet (z. B. Nacht-Spawns, Spawner-Cluster).
     private static final long RANK_CACHE_TTL_MILLIS = 3000L;
+    private static final double SCAN_RADIUS = 48.0;
 
-    private record CachedRank(Rank rank, long expiresAtMillis) {
+    // noScaling=true bedeutet: kein registrierter Spieler im Scan-Radius. Der Mob
+    // bleibt dann komplett vanilla (keine Stats-Änderung, keine Ausrüstung, kein
+    // PDC-Tag) – so bekommen Nicht-Mitglieder ohne Gildenmitglied in der Nähe
+    // niemals irgendein skaliertes Monster zu Gesicht.
+    private record CachedRank(Rank rank, boolean noScaling, long expiresAtMillis) {
     }
 
     private final GuildAPI guildAPI;
@@ -44,8 +47,10 @@ public final class MobRankScalingListener implements Listener {
     }
 
     // Zuständig für die dynamische Skalierung von Monster-Stats (HP/Schaden) und
-    // Rang-Zuweisung beim natürlichen Spawn, basierend auf umliegenden Spielern
-    // und Regionsgrenzen.
+    // Rang-Zuweisung beim natürlichen Spawn – ausschließlich wenn ein registriertes
+    // Gildenmitglied tatsächlich in der Nähe ist. Ohne registrierten Spieler im
+    // Radius bleibt der Mob 100% vanilla, damit Nicht-Mitglieder nie mit
+    // Plugin-Verhalten in Berührung kommen.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMonsterSpawn(CreatureSpawnEvent event) {
         if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CUSTOM) {
@@ -58,7 +63,11 @@ public final class MobRankScalingListener implements Listener {
             return;
         }
 
-        Rank averageNearbyRank = computeAverageNearbyRankCached(monster);
+        CachedRank cached = computeAverageNearbyRankCached(monster);
+        if (cached.noScaling()) {
+            return;
+        }
+        Rank averageNearbyRank = cached.rank();
 
         RegionDangerProvider regionProvider = resolveRegionProvider();
         Rank regionMin = regionProvider.getMinRank(monster.getLocation());
@@ -103,18 +112,18 @@ public final class MobRankScalingListener implements Listener {
         }
     }
 
-    private Rank computeAverageNearbyRankCached(Monster monster) {
+    private CachedRank computeAverageNearbyRankCached(Monster monster) {
         long chunkKey = packChunkKey(monster.getWorld().getName(),
                 monster.getLocation().getBlockX() >> 4, monster.getLocation().getBlockZ() >> 4);
 
         long now = System.currentTimeMillis();
         CachedRank cached = nearbyRankCache.get(chunkKey);
         if (cached != null && cached.expiresAtMillis() > now) {
-            return cached.rank();
+            return cached;
         }
 
-        Rank computed = computeAverageNearbyRank(monster);
-        nearbyRankCache.put(chunkKey, new CachedRank(computed, now + RANK_CACHE_TTL_MILLIS));
+        CachedRank computed = computeAverageNearbyRank(monster, now);
+        nearbyRankCache.put(chunkKey, computed);
         return computed;
     }
 
@@ -123,36 +132,31 @@ public final class MobRankScalingListener implements Listener {
         return (worldHash << 48) | (((long) chunkX & 0xFFFFFFL) << 24) | ((long) chunkZ & 0xFFFFFFL);
     }
 
-    private Rank computeAverageNearbyRank(Monster monster) {
-        double scanRadius = 48.0;
+    /**
+     * Ermittelt den Durchschnittsrang registrierter Spieler im Scan-Radius.
+     * Bewusst KEIN Fallback mehr auf "nächster registrierter Spieler irgendwo
+     * in der Welt" (wie zuvor) – das hätte dazu geführt, dass Mobs überall auf
+     * dem Server skaliert wurden, sobald irgendein Gildenmitglied online war,
+     * unabhängig von dessen tatsächlicher Nähe. Ist niemand Registriertes im
+     * Radius, bleibt der Mob vollständig vanilla.
+     */
+    private CachedRank computeAverageNearbyRank(Monster monster, long now) {
         int totalOrdinal = 0;
         int count = 0;
 
-        for (Player player : monster.getLocation().getNearbyPlayers(scanRadius)) {
+        for (Player player : monster.getLocation().getNearbyPlayers(SCAN_RADIUS)) {
             if (guildAPI.isRegistered(player.getUniqueId())) {
                 totalOrdinal += guildAPI.getRank(player.getUniqueId()).ordinal();
                 count++;
             }
         }
 
-        if (count > 0) {
-            return Rank.fromOrdinalClamped(Math.round((float) totalOrdinal / count));
+        if (count == 0) {
+            return new CachedRank(Rank.F, true, now + RANK_CACHE_TTL_MILLIS);
         }
 
-        Player nearest = null;
-        double nearestDistanceSquared = Double.MAX_VALUE;
-        for (Player player : monster.getWorld().getPlayers()) {
-            if (!guildAPI.isRegistered(player.getUniqueId())) {
-                continue;
-            }
-            double distanceSquared = player.getLocation().distanceSquared(monster.getLocation());
-            if (distanceSquared < nearestDistanceSquared) {
-                nearestDistanceSquared = distanceSquared;
-                nearest = player;
-            }
-        }
-
-        return nearest != null ? guildAPI.getRank(nearest.getUniqueId()) : Rank.F;
+        Rank average = Rank.fromOrdinalClamped(Math.round((float) totalOrdinal / count));
+        return new CachedRank(average, false, now + RANK_CACHE_TTL_MILLIS);
     }
 
     private RegionDangerProvider resolveRegionProvider() {

@@ -1,6 +1,7 @@
-// src/main/java/de/pixelrpg/rpg/shop/ShopManager.java
+// src/main/java/de/pixelrpg/rpg/shop/ShopManager.java (VOLLSTÄNDIG, ersetzt alte Datei — Fallback auf alten "item"-Schlüssel für Bestandsschutz bereits existierender Shops)
 package de.pixelrpg.rpg.shop;
 
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -9,6 +10,7 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +27,11 @@ public final class ShopManager {
         this.file = new File(plugin.getDataFolder(), "shops.yml");
     }
 
+    // Lädt Shop-Items primär aus dem neuen Base64-NBT-Format ("item-data").
+    // Fallback auf den alten YAML-nativen Schlüssel ("item") für bereits vor dem
+    // Shop-Fix angelegte Bestände, damit diese nicht durch das Format-Update
+    // verloren gehen — Ursache des zuvor gemeldeten "Shop-Items werden nicht
+    // angezeigt"-Problems bei bestehenden shops.yml-Dateien.
     public void load() {
         shopsByNpcId.clear();
         if (!file.exists()) {
@@ -37,6 +44,8 @@ public final class ShopManager {
             return;
         }
 
+        boolean migratedAny = false;
+
         for (String npcId : root.getKeys(false)) {
             ConfigurationSection section = root.getConfigurationSection(npcId);
             if (section == null) {
@@ -47,14 +56,43 @@ public final class ShopManager {
             ConfigurationSection entriesSection = section.getConfigurationSection("entries");
             if (entriesSection != null) {
                 for (String key : entriesSection.getKeys(false)) {
-                    ItemStack item = entriesSection.getItemStack(key + ".item");
                     double price = entriesSection.getDouble(key + ".price", 0.0);
-                    if (item != null) {
+                    ItemStack item = readItem(entriesSection, key);
+                    if (item != null && item.getType() != Material.AIR) {
                         entries.add(new ShopEntry(item, price));
+                        if (!entriesSection.contains(key + ".item-data")) {
+                            migratedAny = true;
+                        }
                     }
                 }
             }
             shopsByNpcId.put(npcId, entries);
+        }
+
+        // Legacy-Einträge sofort im neuen Format re-persistieren, damit die
+        // Migration nur einmalig beim ersten Laden nach dem Update passiert.
+        if (migratedAny) {
+            save();
+        }
+    }
+
+    private ItemStack readItem(ConfigurationSection entriesSection, String key) {
+        String itemBase64 = entriesSection.getString(key + ".item-data");
+        if (itemBase64 != null && !itemBase64.isBlank()) {
+            try {
+                return ItemStack.deserializeBytes(Base64.getDecoder().decode(itemBase64));
+            } catch (Exception e) {
+                plugin.getLogger().log(Level.WARNING, "Failed to deserialize shop item-data at " + key, e);
+                return null;
+            }
+        }
+
+        // Legacy-Pfad: alte YAML-native Serialisierung (vor dem Shop-Fix).
+        try {
+            return entriesSection.getItemStack(key + ".item");
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "Failed to deserialize legacy shop item at " + key, e);
+            return null;
         }
     }
 
@@ -64,7 +102,8 @@ public final class ShopManager {
             String basePath = "shops." + mapEntry.getKey() + ".entries";
             int index = 0;
             for (ShopEntry entry : mapEntry.getValue()) {
-                yaml.set(basePath + "." + index + ".item", entry.item());
+                String itemBase64 = Base64.getEncoder().encodeToString(entry.item().serializeAsBytes());
+                yaml.set(basePath + "." + index + ".item-data", itemBase64);
                 yaml.set(basePath + "." + index + ".price", entry.price());
                 index++;
             }

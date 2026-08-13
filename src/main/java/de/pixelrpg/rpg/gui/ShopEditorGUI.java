@@ -7,6 +7,7 @@ import de.pixelrpg.rpg.shop.ShopManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -69,8 +70,7 @@ public final class ShopEditorGUI implements Listener {
         meta.getPersistentDataContainer().set(RPGKeys.Item.shopPriceTag(), PersistentDataType.DOUBLE, price);
 
         List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
-        lore.removeIf(line -> net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
-                .serialize(line).startsWith("Price: "));
+        stripPriceLore(lore);
         lore.add(Component.text("Price: " + String.format("%.2f", price) + " Gold", NamedTextColor.GOLD)
                 .decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("Left-click: +1 | Shift-left: +10", NamedTextColor.DARK_GRAY)
@@ -82,6 +82,16 @@ public final class ShopEditorGUI implements Listener {
         return item;
     }
 
+    private void stripPriceLore(List<Component> lore) {
+        lore.removeIf(line -> {
+            String plain = PlainTextComponentSerializer.plainText().serialize(line);
+            return plain.startsWith("Price: ") || plain.startsWith("Left-click:") || plain.startsWith("Right-click:");
+        });
+    }
+
+    // Zuständig dafür, Preisanpassungen (Links-/Rechtsklick, Shift-Varianten) auf im Editor
+    // liegenden Items zu verarbeiten und den entsprechenden Klick zu unterbinden; neue Items
+    // aus dem Spielerinventar werden weiterhin normal per Drag&Drop abgelegt.
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof EditorHolder holder)) {
@@ -119,6 +129,9 @@ public final class ShopEditorGUI implements Listener {
         event.getInventory().setItem(event.getSlot(), applyPriceTag(clicked, updated));
     }
 
+    // Zuständig für das Speichern des Shop-Bestands beim Schließen des Editors: liest alle
+    // im Editor liegenden Items samt Preis-Tag aus und ersetzt den kompletten Shop-Bestand
+    // des NPCs damit (Editor-Inhalt entspricht 1:1 dem gespeicherten Shop).
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
         if (!(event.getInventory().getHolder() instanceof EditorHolder holder)) {
@@ -137,10 +150,7 @@ public final class ShopEditorGUI implements Listener {
             meta.getPersistentDataContainer().remove(RPGKeys.Item.shopPriceTag());
 
             List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
-            lore.removeIf(line -> {
-                String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line);
-                return plain.startsWith("Price: ") || plain.startsWith("Left-click:") || plain.startsWith("Right-click:");
-            });
+            stripPriceLore(lore);
             meta.lore(lore);
             clean.setItemMeta(meta);
 

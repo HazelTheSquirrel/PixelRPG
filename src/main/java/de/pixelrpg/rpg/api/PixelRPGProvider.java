@@ -1,4 +1,4 @@
-// src/main/java/de/pixelrpg/rpg/api/PixelRPGProvider.java
+// src/main/java/de/pixelrpg/rpg/api/PixelRPGProvider.java (VOLLSTÄNDIG, ersetzt alte Datei — getTitleAPI/getAchievementAPI entfernt)
 package de.pixelrpg.rpg.api;
 
 import org.bukkit.Bukkit;
@@ -30,14 +30,6 @@ public final class PixelRPGProvider {
 
     public static StatisticsAPI getStatisticsAPI() {
         return require(StatisticsAPI.class);
-    }
-
-    public static AchievementAPI getAchievementAPI() {
-        return require(AchievementAPI.class);
-    }
-
-    public static TitleAPI getTitleAPI() {
-        return require(TitleAPI.class);
     }
 
     private static <T> T require(Class<T> type) {

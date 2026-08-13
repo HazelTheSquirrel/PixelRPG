@@ -1,3 +1,4 @@
+// src/main/java/de/pixelrpg/rpg/core/RPGKeys.java (VOLLSTÄNDIG, ersetzt alte Datei — Dungeon-Keys entfernt, Region-Keys entfernt)
 package de.pixelrpg.rpg.core;
 
 import org.bukkit.NamespacedKey;
@@ -36,11 +37,11 @@ public final class RPGKeys {
         public static NamespacedKey category() {
             return of("item_category");
         }
-        
+
         public static NamespacedKey itemRank() {
             return of("item_rank");
         }
-        
+
         public static NamespacedKey maxSockets() {
             return of("item_max_sockets");
         }
@@ -113,9 +114,6 @@ public final class RPGKeys {
             return of("item_class_set_slot");
         }
 
-        // Instanz-ID: eindeutig pro physischem Item, verhindert dass zwei
-        // gleichzeitig getragene Items sich gegenseitig überschreibende
-        // Attribute-Modifier-Keys erzeugen (Ursache des HP/Armor-Reset-Bugs).
         public static NamespacedKey instanceId() {
             return of("item_instance_id");
         }
@@ -131,10 +129,6 @@ public final class RPGKeys {
         public static NamespacedKey healthModifier(String instanceId) {
             return of("item_mod_health_" + instanceId);
         }
-
-        // =========================
-        // Gems
-        // =========================
 
         public static NamespacedKey gemType() {
             return of("item_gem_type");
@@ -210,32 +204,6 @@ public final class RPGKeys {
 
         public static NamespacedKey guildGold() {
             return of("economy_guild_gold");
-        }
-    }
-
-    public static final class Region {
-        private Region() {
-        }
-
-        public static NamespacedKey regionId() {
-            return of("region_id");
-        }
-
-        public static NamespacedKey wandMarker() {
-            return of("region_wand_marker");
-        }
-    }
-
-    public static final class Dungeon {
-        private Dungeon() {
-        }
-
-        public static NamespacedKey dungeonId() {
-            return of("dungeon_id");
-        }
-
-        public static NamespacedKey instanceId() {
-            return of("dungeon_instance_id");
         }
     }
 

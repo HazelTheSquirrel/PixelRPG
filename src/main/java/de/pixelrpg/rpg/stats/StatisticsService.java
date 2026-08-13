@@ -1,22 +1,18 @@
-// src/main/java/de/pixelrpg/rpg/achievement/StatisticsService.java
-package de.pixelrpg.rpg.achievement;
+// src/main/java/de/pixelrpg/rpg/stats/StatisticsService.java
+package de.pixelrpg.rpg.stats;
 
 import de.pixelrpg.rpg.api.StatisticsAPI;
 import de.pixelrpg.rpg.core.StatisticType;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
 public final class StatisticsService implements StatisticsAPI {
 
     private final PlayerProfileManager profileManager;
-    private final AchievementManager achievementManager;
 
-    public StatisticsService(PlayerProfileManager profileManager, AchievementManager achievementManager) {
+    public StatisticsService(PlayerProfileManager profileManager) {
         this.profileManager = profileManager;
-        this.achievementManager = achievementManager;
     }
 
     @Override
@@ -27,10 +23,6 @@ public final class StatisticsService implements StatisticsAPI {
     @Override
     public void recordStatistic(UUID uuid, StatisticType type, long amount) {
         recordCustomStatistic(uuid, type.name(), amount);
-        Player player = Bukkit.getPlayer(uuid);
-        if (player != null) {
-            achievementManager.checkStatisticAchievements(player, type);
-        }
     }
 
     @Override

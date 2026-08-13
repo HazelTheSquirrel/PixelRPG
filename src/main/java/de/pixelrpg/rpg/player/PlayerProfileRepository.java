@@ -1,9 +1,6 @@
-// src/main/java/de/pixelrpg/rpg/player/PlayerProfileRepository.java
+// src/main/java/de/pixelrpg/rpg/player/PlayerProfileRepository.java (VOLLSTÄNDIG, ersetzt alte Datei — Leaderboard-Methoden entfernt)
 package de.pixelrpg.rpg.player;
 
-import de.pixelrpg.rpg.leaderboard.LeaderboardEntry;
-
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,10 +13,4 @@ public interface PlayerProfileRepository {
     void save(PlayerProfile profile) throws Exception;
 
     void shutdown();
-
-    List<LeaderboardEntry> getTopByExperience(int limit) throws Exception;
-
-    List<LeaderboardEntry> getTopByMoney(int limit) throws Exception;
-
-    List<LeaderboardEntry> getTopByStatistic(String statisticKey, int limit) throws Exception;
 }

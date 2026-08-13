@@ -1,4 +1,4 @@
-// src/main/java/de/pixelrpg/rpg/item/RuneItemFactory.java
+// src/main/java/de/pixelrpg/rpg/item/RuneItemFactory.java (VOLLSTÄNDIG, ersetzt alte Datei — fehlende Materialzuordnungen ergänzt, behebt IllegalArgumentException "Unexpected value: CLASS_SIGIL" beim Mob-Loot-Drop)
 package de.pixelrpg.rpg.item;
 
 import de.pixelrpg.rpg.core.RPGKeys;
@@ -26,8 +26,12 @@ public final class RuneItemFactory {
             case VITALITY -> Material.GLISTERING_MELON_SLICE;
             case REGENERATION -> Material.GLOW_BERRIES;
             case HASTE -> Material.SUGAR;
-            default -> throw new IllegalArgumentException("Unexpected value: " + runeType);
-};
+            case AGILITY_ATTUNEMENT -> Material.FEATHER;
+            case PRECISION_ATTUNEMENT -> Material.SPECTRAL_ARROW;
+            case RANGE_ATTUNEMENT -> Material.SPYGLASS;
+            case TOUGHNESS_ATTUNEMENT -> Material.IRON_INGOT;
+            case CLASS_SIGIL -> Material.NETHER_STAR;
+        };
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();

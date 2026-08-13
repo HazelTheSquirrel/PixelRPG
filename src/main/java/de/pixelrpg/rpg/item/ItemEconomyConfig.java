@@ -1,3 +1,4 @@
+// src/main/java/de/pixelrpg/rpg/item/ItemEconomyConfig.java (VOLLSTÄNDIG, ersetzt alte Datei — Gildengold-Drop-Chance ergänzt)
 package de.pixelrpg.rpg.item;
 
 import de.pixelrpg.rpg.core.Rank;
@@ -16,6 +17,9 @@ public final class ItemEconomyConfig {
     private double runeDropChance = 0.05;
     private double gemDropChance = 0.05;
     private double gemActiveChance = 0.35;
+    private double currencyDropChance = 0.20;
+    private long currencyDropMinAmount = 1;
+    private long currencyDropMaxAmount = 8;
 
     public void load(FileConfiguration config) {
         commonIdentifyCost = config.getDouble("items.identification-cost.common", commonIdentifyCost);
@@ -29,6 +33,9 @@ public final class ItemEconomyConfig {
         runeDropChance = config.getDouble("items.loot.rune-drop-chance", runeDropChance);
         gemDropChance = config.getDouble("items.loot.gem-drop-chance", gemDropChance);
         gemActiveChance = config.getDouble("items.loot.gem-active-chance", gemActiveChance);
+        currencyDropChance = config.getDouble("items.loot.currency-drop-chance", currencyDropChance);
+        currencyDropMinAmount = config.getLong("items.loot.currency-drop-min-amount", currencyDropMinAmount);
+        currencyDropMaxAmount = config.getLong("items.loot.currency-drop-max-amount", currencyDropMaxAmount);
     }
 
     private Rank parseRank(String raw) {
@@ -74,5 +81,17 @@ public final class ItemEconomyConfig {
 
     public double getGemActiveChance() {
         return gemActiveChance;
+    }
+
+    public double getCurrencyDropChance() {
+        return currencyDropChance;
+    }
+
+    public long getCurrencyDropMinAmount() {
+        return currencyDropMinAmount;
+    }
+
+    public long getCurrencyDropMaxAmount() {
+        return currencyDropMaxAmount;
     }
 }

@@ -1,3 +1,4 @@
+// src/main/java/de/pixelrpg/rpg/combat/loot/LootDropListener.java (VOLLSTÄNDIG, ersetzt alte Datei — Gildengold-Drop ergänzt)
 package de.pixelrpg.rpg.combat.loot;
 
 import de.pixelrpg.rpg.api.GuildAPI;
@@ -6,6 +7,7 @@ import de.pixelrpg.rpg.combat.gem.GemItemFactory;
 import de.pixelrpg.rpg.combat.gem.GemRepository;
 import de.pixelrpg.rpg.combat.gem.PassiveGemDefinition;
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
@@ -27,28 +29,18 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class LootDropListener implements Listener {
 
     private static final List<Material> DROP_POOL = List.of(
-            // Nahkampfwaffen
             Material.WOODEN_SWORD, Material.STONE_SWORD, Material.GOLDEN_SWORD, Material.COPPER_AXE, Material.COPPER_SWORD,
             Material.IRON_SWORD, Material.DIAMOND_SWORD, Material.NETHERITE_SWORD, Material.MACE,
             Material.STONE_AXE, Material.IRON_AXE, Material.DIAMOND_AXE, Material.NETHERITE_AXE,
-            // Fernkampfwaffen
             Material.BOW, Material.CROSSBOW, Material.TRIDENT,
-            // Rüstung: Leder
             Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS,
-            // Rüstung: Kettenhemd
             Material.CHAINMAIL_HELMET, Material.CHAINMAIL_CHESTPLATE, Material.CHAINMAIL_LEGGINGS, Material.CHAINMAIL_BOOTS,
-            // Rüstung: Kupfer
             Material.COPPER_HELMET, Material.COPPER_CHESTPLATE, Material.COPPER_LEGGINGS, Material.COPPER_BOOTS,
-            // Rüstung: Eisen
             Material.IRON_HELMET, Material.IRON_CHESTPLATE, Material.IRON_LEGGINGS, Material.IRON_BOOTS,
-            // Rüstung: Gold
             Material.GOLDEN_HELMET, Material.GOLDEN_CHESTPLATE, Material.GOLDEN_LEGGINGS, Material.GOLDEN_BOOTS,
-            // Rüstung: Diamant
             Material.DIAMOND_HELMET, Material.DIAMOND_CHESTPLATE, Material.DIAMOND_LEGGINGS, Material.DIAMOND_BOOTS,
-            // Rüstung: Netherit
             Material.NETHERITE_HELMET, Material.NETHERITE_CHESTPLATE, Material.NETHERITE_LEGGINGS, Material.NETHERITE_BOOTS,
             Material.TURTLE_HELMET,
-            // Schild & Werkzeuge
             Material.SHIELD, Material.IRON_PICKAXE, Material.DIAMOND_PICKAXE,
             Material.IRON_SHOVEL, Material.DIAMOND_SHOVEL, Material.IRON_HOE, Material.DIAMOND_HOE,
             Material.SHEARS, Material.FISHING_ROD
@@ -64,8 +56,8 @@ public final class LootDropListener implements Listener {
         this.gemRepository = gemRepository;
     }
 
-    // Zuständig für sämtliche Loot-Drops beim Töten registrierter Gilden-Mitglieder:
-    // unidentifizierte/identifizierte Ausrüstung, Runen und Skill-Gems.
+    // Zuständig für sämtliche Loot-Drops beim Töten registrierter Rathaus-Mitglieder:
+    // unidentifizierte/identifizierte Ausrüstung, Runen, Skill-Gems und Gildengold.
     @EventHandler(priority = EventPriority.HIGH)
     public void onMonsterDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
@@ -110,6 +102,13 @@ public final class LootDropListener implements Listener {
 
         if (random.nextDouble() < economyConfig.getGemDropChance()) {
             rollGemDrop(random).ifPresent(item -> event.getDrops().add(item));
+        }
+
+        if (random.nextDouble() < economyConfig.getCurrencyDropChance()) {
+            long min = economyConfig.getCurrencyDropMinAmount();
+            long max = Math.max(min, economyConfig.getCurrencyDropMaxAmount());
+            long amount = min == max ? min : random.nextLong(min, max + 1);
+            event.getDrops().addAll(GuildCurrencyItemFactory.createStacks(amount));
         }
     }
 

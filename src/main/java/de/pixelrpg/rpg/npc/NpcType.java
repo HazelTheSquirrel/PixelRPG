@@ -1,4 +1,4 @@
-// src/main/java/de/pixelrpg/rpg/npc/NpcType.java (VOLLSTÄNDIG, ersetzt alte Datei — kein Villager.Profession mehr)
+// src/main/java/de/pixelrpg/rpg/npc/NpcType.java (VOLLSTÄNDIG, ersetzt alte Datei — BANKER ergänzt)
 package de.pixelrpg.rpg.npc;
 
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -10,7 +10,8 @@ public enum NpcType {
     QUEST(NamedTextColor.YELLOW),
     SHOP(NamedTextColor.GREEN),
     TRAVEL(NamedTextColor.LIGHT_PURPLE),
-    STORY(NamedTextColor.GOLD);
+    STORY(NamedTextColor.GOLD),
+    BANKER(NamedTextColor.DARK_GREEN);
 
     private final NamedTextColor color;
 

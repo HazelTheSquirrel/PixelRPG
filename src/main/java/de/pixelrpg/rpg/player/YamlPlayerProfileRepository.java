@@ -1,7 +1,6 @@
-// src/main/java/de/pixelrpg/rpg/player/YamlPlayerProfileRepository.java
+// src/main/java/de/pixelrpg/rpg/player/YamlPlayerProfileRepository.java (VOLLSTÄNDIG, ersetzt alte Datei — Titel/Erfolge/Leaderboard entfernt)
 package de.pixelrpg.rpg.player;
 
-import de.pixelrpg.rpg.leaderboard.LeaderboardEntry;
 import de.pixelrpg.rpg.quest.QuestProgress;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -9,9 +8,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -70,10 +67,9 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
             }
         }
 
-        profile.setUnlockedAchievements(new HashSet<>(yaml.getStringList("unlocked-achievements")));
-        profile.setUnlockedTitles(new HashSet<>(yaml.getStringList("unlocked-titles")));
-        profile.setSelectedTitle(yaml.getString("selected-title", null));
         profile.setScoreboardEnabled(yaml.getBoolean("scoreboard-enabled", true));
+        profile.setPartyHudEnabled(yaml.getBoolean("party-hud-enabled", true));
+        profile.setQuestTrackerEnabled(yaml.getBoolean("quest-tracker-enabled", true));
         profile.setPlaytimeMillis(yaml.getLong("playtime-millis", 0L));
 
         profile.markClean();
@@ -108,10 +104,9 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
             yaml.set("statistics." + entry.getKey(), entry.getValue());
         }
 
-        yaml.set("unlocked-achievements", new ArrayList<>(profile.getUnlockedAchievements()));
-        yaml.set("unlocked-titles", new ArrayList<>(profile.getUnlockedTitles()));
-        yaml.set("selected-title", profile.getSelectedTitle());
         yaml.set("scoreboard-enabled", profile.isScoreboardEnabled());
+        yaml.set("party-hud-enabled", profile.isPartyHudEnabled());
+        yaml.set("quest-tracker-enabled", profile.isQuestTrackerEnabled());
         yaml.set("playtime-millis", profile.getPlaytimeMillis());
 
         yaml.save(file);
@@ -119,47 +114,6 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
 
     @Override
     public void shutdown() {
-    }
-
-    @Override
-    public List<LeaderboardEntry> getTopByExperience(int limit) {
-        List<LeaderboardEntry> entries = new ArrayList<>();
-        forEachPlayerFile((uuid, yaml) -> entries.add(new LeaderboardEntry(uuid, yaml.getLong("experience", 0L))));
-        return topN(entries, limit);
-    }
-
-    @Override
-    public List<LeaderboardEntry> getTopByMoney(int limit) {
-        List<LeaderboardEntry> entries = new ArrayList<>();
-        forEachPlayerFile((uuid, yaml) -> entries.add(new LeaderboardEntry(uuid, yaml.getDouble("money", 0.0))));
-        return topN(entries, limit);
-    }
-
-    @Override
-    public List<LeaderboardEntry> getTopByStatistic(String statisticKey, int limit) {
-        List<LeaderboardEntry> entries = new ArrayList<>();
-        forEachPlayerFile((uuid, yaml) -> entries.add(new LeaderboardEntry(uuid, yaml.getLong("statistics." + statisticKey, 0L))));
-        return topN(entries, limit);
-    }
-
-    private void forEachPlayerFile(java.util.function.BiConsumer<UUID, YamlConfiguration> consumer) {
-        File[] files = playersFolder.listFiles((dir, name) -> name.endsWith(".yml"));
-        if (files == null) {
-            return;
-        }
-        for (File file : files) {
-            try {
-                UUID uuid = UUID.fromString(file.getName().replace(".yml", ""));
-                YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-                consumer.accept(uuid, yaml);
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
-    }
-
-    private List<LeaderboardEntry> topN(List<LeaderboardEntry> entries, int limit) {
-        entries.sort(Comparator.comparingDouble(LeaderboardEntry::value).reversed());
-        return entries.size() > limit ? entries.subList(0, limit) : entries;
     }
 
     private PlayerClass parseClass(String raw) {

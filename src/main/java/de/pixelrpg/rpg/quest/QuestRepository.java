@@ -1,4 +1,4 @@
-// src/main/java/de/pixelrpg/rpg/quest/QuestRepository.java (VOLLSTÄNDIG, ersetzt alte Datei — category = Dateiname-Rang)
+// src/main/java/de/pixelrpg/rpg/quest/QuestRepository.java (VOLLSTÄNDIG, ersetzt alte Datei — Standard-Quests jetzt auf Deutsch)
 package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.core.Rank;
@@ -90,50 +90,49 @@ public final class QuestRepository {
 
     private void createDefaultQuests() {
         saveDefault(Rank.F, Map.of(
-                "hunt_zombies_example", questMap("Zombie Cleanup", "Thin out the zombie horde threatening the outskirts.",
+                "hunt_zombies_example", questMap("Zombie-Jagd", "Dünne die Zombiehorde aus, die die Außenbezirke bedroht.",
                         "HUNT", "ZOMBIE", 10, 50.0, 150L, 0, List.of("ARROW")),
-                "collect_cobblestone_example", questMap("Guild Stone Order", "Collect cobblestone for fortifications.",
+                "collect_cobblestone_example", questMap("Steinlieferung", "Sammle Bruchstein für die Befestigungsanlagen.",
                         "COLLECT", "COBBLESTONE", 32, 30.0, 100L, 0, List.of()),
-                "reach_ruins_example", questMapReach("Scout the Ruins", "Travel to the old ruins and report back.", 1, 20.0, 80L, 8.0)
+                "reach_ruins_example", questMapReach("Erkunde die Ruinen", "Reise zu den alten Ruinen und melde dich zurück.", 1, 20.0, 80L, 8.0)
         ));
 
         saveDefault(Rank.E, Map.of(
-                "hunt_skeletons_example", questMap("Skeleton Purge", "The bone-rattlers grow bold. Thin their ranks.",
+                "hunt_skeletons_example", questMap("Skelett-Säuberung", "Die Knochenklapperer werden dreister. Dünne ihre Reihen aus.",
                         "HUNT", "SKELETON", 15, 65.0, 180L, 0, List.of()),
-                "escort_merchant_example", questMap("Escort the Merchant", "Escort the merchant safely to the checkpoint.",
+                "escort_merchant_example", questMap("Eskortiere den Händler", "Begleite den Händler sicher zum Kontrollpunkt.",
                         "ESCORT", "merchant_npc", 1, 80.0, 200L, 15, List.of())
         ));
 
         saveDefault(Rank.C, Map.of(
-                "collect_blaze_rods_example", questMap("Blaze Rod Supply", "The Blacksmith needs blaze rods for enchanting fuel.",
+                "collect_blaze_rods_example", questMap("Lohenrutenlieferung", "Der Schmied benötigt Lohenruten als Brennstoff für die Verzauberung.",
                         "COLLECT", "BLAZE_ROD", 8, 90.0, 220L, 0, List.of())
         ));
 
         saveDefault(Rank.D, Map.of(
-                "event_wither_example", questMap("Calamity: Wither Outbreak", "The server must slay the Wither before it destroys the city.",
+                "event_wither_example", questMap("Kalamität: Wither-Ausbruch", "Der Server muss den Wither besiegen, bevor er die Stadt zerstört.",
                         "GLOBAL_EVENT", "WITHER", 1, 300.0, 800L, 0, List.of())
         ));
 
         saveDefault(Rank.S, Map.of(
-                "event_dragon_example", questMap("Calamity: The Ancient Wyrm", "A legendary threat stirs. The whole server must answer.",
+                "event_dragon_example", questMap("Kalamität: Der uralte Wyrm", "Eine legendäre Bedrohung erwacht. Der gesamte Server muss sich ihr stellen.",
                         "GLOBAL_EVENT", "ENDER_DRAGON", 1, 1000.0, 3000L, 0, List.of())
         ));
 
         saveDefault(Rank.B, Map.of(
-                "hunt_witches_example", questMap("Coven of the Blighted Grove", "Witches have corrupted the grove. Drive them out.",
+                "hunt_witches_example", questMap("Hexenzirkel des verseuchten Hains", "Hexen haben den Hain verdorben. Vertreibe sie.",
                         "HUNT", "WITCH", 12, 140.0, 420L, 0, List.of()),
-                "collect_ender_pearls_example", questMap("Enderwalker's Request", "Gather ender pearls for a ritual of return.",
+                "collect_ender_pearls_example", questMap("Bitte des Enderwanderers", "Sammle Enderperlen für ein Ritual der Rückkehr.",
                         "COLLECT", "ENDER_PEARL", 16, 160.0, 450L, 0, List.of())
         ));
 
         saveDefault(Rank.A, Map.of(
-                "escort_envoy_example", questMap("The Silent Envoy", "Escort the envoy through hostile territory undetected.",
+                "escort_envoy_example", questMap("Der stille Gesandte", "Eskortiere den Gesandten unbemerkt durch feindliches Gebiet.",
                         "ESCORT", "envoy_npc", 1, 260.0, 900L, 20, List.of()),
-                "reach_summit_example", questMapReach("The Frozen Summit", "Climb to the summit marker and plant the guild banner.",
+                "reach_summit_example", questMapReach("Der eisige Gipfel", "Erklimme den Gipfelmarker und hisse das Banner.",
                         1, 200.0, 700L, 6.0)
         ));
-                }       
-    
+    }
 
     private Map<String, Object> questMap(String title, String description, String type, String targetKey,
                                           int requiredAmount, double rewardMoney, long rewardExp,

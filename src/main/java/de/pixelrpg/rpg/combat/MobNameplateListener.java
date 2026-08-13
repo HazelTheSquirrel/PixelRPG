@@ -1,6 +1,6 @@
-// src/main/java/de/pixelrpg/rpg/combat/MobNameplateListener.java
 package de.pixelrpg.rpg.combat;
 
+import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.core.RPGKeys;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -15,11 +15,16 @@ import org.bukkit.projectiles.ProjectileSource;
 public final class MobNameplateListener implements Listener {
 
     private final MobNameplateService nameplateService;
+    private final GuildAPI guildAPI;
 
-    public MobNameplateListener(MobNameplateService nameplateService) {
+    public MobNameplateListener(MobNameplateService nameplateService, GuildAPI guildAPI) {
         this.nameplateService = nameplateService;
+        this.guildAPI = guildAPI;
     }
 
+    // Zuständig für die Anzeige von HP/Rang-Infos an registrierte Gildenmitglieder,
+    // die einen gilden-skalierten Mob treffen. Nicht registrierte Spieler lösen
+    // dies bewusst nicht aus, damit sie keinerlei Hinweis auf das Plugin erhalten.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDamageMob(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity target)) {
@@ -29,15 +34,20 @@ public final class MobNameplateListener implements Listener {
             return;
         }
 
-        boolean damagedByPlayer = event.getDamager() instanceof Player;
-
-        if (!damagedByPlayer && event.getDamager() instanceof Projectile projectile) {
+        Player damager = null;
+        if (event.getDamager() instanceof Player player) {
+            damager = player;
+        } else if (event.getDamager() instanceof Projectile projectile) {
             ProjectileSource shooter = projectile.getShooter();
-            damagedByPlayer = shooter instanceof Player;
+            if (shooter instanceof Player player) {
+                damager = player;
+            }
         }
 
-        if (damagedByPlayer) {
-            nameplateService.onPlayerHit(target);
+        if (damager == null || !guildAPI.isRegistered(damager.getUniqueId())) {
+            return;
         }
+
+        nameplateService.onPlayerHit(target, damager.getUniqueId());
     }
 }

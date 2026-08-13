@@ -1,8 +1,13 @@
+// src/main/java/de/pixelrpg/rpg/scoreboard/ScoreboardService.java (VOLLSTÄNDIG, ersetzt alte Datei — Quest-Tracker-Sektion ergänzt)
 package de.pixelrpg.rpg.scoreboard;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.PartyAPI;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.quest.Quest;
+import de.pixelrpg.rpg.quest.QuestManager;
+import de.pixelrpg.rpg.quest.QuestProgress;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -28,15 +33,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class ScoreboardService implements Listener {
 
-    // Vanilla-Sidebar zeigt maximal 15 Zeilen gleichzeitig an.
     private static final int MAX_LINES = 15;
+    private static final int MAX_TRACKED_QUESTS = 3;
 
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
     private final int updateIntervalTicks;
 
-    // Hält pro Spieler das persistente Scoreboard inkl. vorab registrierter
-    // Teams, damit apply() nur noch Diffs schreibt statt alles neu aufzubauen.
     private final Map<UUID, PlayerScoreboardState> stateByPlayer = new ConcurrentHashMap<>();
 
     private static final class PlayerScoreboardState {
@@ -141,8 +144,6 @@ public final class ScoreboardService implements Listener {
             }
         }
 
-        // Zeilen, die vorher aktiv waren, jetzt aber nicht mehr gebraucht werden
-        // (z. B. Party verkleinert), werden ausgeblendet statt das Team zu löschen.
         for (int i = size; i < MAX_LINES; i++) {
             if (state.activeLine[i]) {
                 state.board.resetScores(entryFor(i));
@@ -186,11 +187,19 @@ public final class ScoreboardService implements Listener {
         lines.add(Component.text("Deaths: ", NamedTextColor.GRAY)
                 .append(Component.text(profile.getStatistic("DEATHS"), NamedTextColor.DARK_RED)));
 
+        if (profile.isQuestTrackerEnabled() && !profile.getActiveQuests().isEmpty() && lines.size() < MAX_LINES) {
+            appendQuestTrackerLines(lines, profile);
+        }
+
         if (profile.isPartyHudEnabled()) {
             PartyAPI partyAPI = Bukkit.getServicesManager().load(PartyAPI.class);
             if (partyAPI != null && partyAPI.isInParty(player.getUniqueId())) {
-                lines.add(Component.text(" "));
-                lines.add(Component.text("-- Party --", NamedTextColor.LIGHT_PURPLE));
+                if (lines.size() < MAX_LINES) {
+                    lines.add(Component.text(" "));
+                }
+                if (lines.size() < MAX_LINES) {
+                    lines.add(Component.text("-- Party --", NamedTextColor.LIGHT_PURPLE));
+                }
 
                 for (UUID memberUuid : partyAPI.getPartyMembers(player.getUniqueId())) {
                     if (lines.size() >= MAX_LINES) {
@@ -211,5 +220,34 @@ public final class ScoreboardService implements Listener {
         }
 
         return lines;
+    }
+
+    // Fügt bis zu MAX_TRACKED_QUESTS aktive Quests mit Fortschritt zur Sidebar hinzu.
+    // Quelle der Quest-Titel ist der bereits übersetzte quest/*.yml-Bestand.
+    private void appendQuestTrackerLines(List<Component> lines, PlayerProfile profile) {
+        QuestManager questManager = PixelRPGPlugin.getInstance().getQuestManager();
+        if (questManager == null) {
+            return;
+        }
+
+        lines.add(Component.text(" "));
+        if (lines.size() >= MAX_LINES) {
+            return;
+        }
+        lines.add(Component.text("-- Quests --", NamedTextColor.YELLOW));
+
+        int shown = 0;
+        for (QuestProgress progress : profile.getActiveQuests().values()) {
+            if (shown >= MAX_TRACKED_QUESTS || lines.size() >= MAX_LINES) {
+                break;
+            }
+            Quest quest = questManager.getRepository().getQuest(progress.getQuestId());
+            if (quest == null) {
+                continue;
+            }
+            lines.add(Component.text(quest.title() + ": ", NamedTextColor.GRAY)
+                    .append(Component.text(progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.GREEN)));
+            shown++;
+        }
     }
 }

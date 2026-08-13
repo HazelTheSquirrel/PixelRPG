@@ -1,9 +1,9 @@
+// src/main/java/de/pixelrpg/rpg/gui/ReceptionGUI.java (VOLLSTÄNDIG, ersetzt alte Datei — Gruppen-Button neben Attributverteilung platziert, slot 24 statt 31)
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.Rank;
 import de.pixelrpg.rpg.lang.LanguageManager;
-import de.pixelrpg.rpg.leaderboard.LeaderboardType;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import net.kyori.adventure.text.Component;
@@ -12,6 +12,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -63,6 +64,7 @@ public final class ReceptionGUI extends AbstractGUI {
             new ClassSelectionGUI(viewer, profileManager).open(viewer);
         });
 
+        // Attributverteilung (22) und Gruppe (24) liegen jetzt nebeneinander in derselben Reihe.
         setItem(22, buildAttributeButton(), event -> {
             if (!registered) {
                 lang.send(viewer, "common.not-registered");
@@ -71,15 +73,7 @@ public final class ReceptionGUI extends AbstractGUI {
             new AttributeTraderGUI(viewer, profileManager, PixelRPGPlugin.getInstance().getStatEngine()).open(viewer);
         });
 
-        setItem(24, buildBankButton(), event -> {
-            if (!registered) {
-                lang.send(viewer, "common.not-registered");
-                return;
-            }
-            new BankGUI(viewer, profileManager).open(viewer);
-        });
-
-        setItem(28, buildPartyButton(), event -> {
+        setItem(24, buildPartyButton(), event -> {
             if (!registered) {
                 lang.send(viewer, "common.not-registered");
                 return;
@@ -87,30 +81,17 @@ public final class ReceptionGUI extends AbstractGUI {
             new PartyGUI(viewer, PixelRPGPlugin.getInstance().getPartyManager(), profileManager).open(viewer);
         });
 
-        setItem(30, buildAchievementsButton(), event ->
-                new AchievementsGUI(viewer, PixelRPGPlugin.getInstance().getAchievementManager().getRepository(), profileManager).open(viewer));
-
-        setItem(32, buildLeaderboardButton(), event ->
-                LeaderboardGUI.openAsync(viewer, profileManager, LeaderboardType.EXPERIENCE,
-                        PixelRPGPlugin.getInstance().getConfig().getInt("leaderboard.default-limit", 10)));
-
-        setItem(34, buildTitlesButton(), event -> {
-            if (!registered) {
-                lang.send(viewer, "common.not-registered");
-                return;
-            }
-            new TitleSelectionGUI(viewer, profileManager).open(viewer);
-        });
-
         setItem(40, buildHudToggleButton(profile), event -> {
-            if (!registered) {
+            if (!registered || profile == null) {
                 return;
             }
-            if (event.getClick().isRightClick()) {
-                if (profile != null) {
-                    profile.setPartyHudEnabled(!profile.isPartyHudEnabled());
-                    profileManager.saveProfileAsync(viewer.getUniqueId());
-                }
+            ClickType click = event.getClick();
+            if (click == ClickType.SHIFT_LEFT) {
+                profile.setQuestTrackerEnabled(!profile.isQuestTrackerEnabled());
+                profileManager.saveProfileAsync(viewer.getUniqueId());
+            } else if (click == ClickType.RIGHT || click == ClickType.SHIFT_RIGHT) {
+                profile.setPartyHudEnabled(!profile.isPartyHudEnabled());
+                profileManager.saveProfileAsync(viewer.getUniqueId());
             } else {
                 PixelRPGPlugin.getInstance().getScoreboardService().toggle(viewer);
             }
@@ -148,11 +129,6 @@ public final class ReceptionGUI extends AbstractGUI {
             lore.add(lang.get("reception.money-label", "amount", String.format("%.2f", profile.getMoney()))
                     .color(NamedTextColor.GOLD)
                     .decoration(TextDecoration.ITALIC, false));
-            if (profile.getSelectedTitle() != null) {
-                lore.add(lang.get("reception.title-label", "title", profile.getSelectedTitle())
-                        .color(NamedTextColor.LIGHT_PURPLE)
-                        .decoration(TextDecoration.ITALIC, false));
-            }
         } else {
             lore.add(lang.get("reception.status")
                     .append(lang.get("reception.status-not-registered").color(NamedTextColor.RED))
@@ -202,29 +178,14 @@ public final class ReceptionGUI extends AbstractGUI {
         return simpleButton(Material.EXPERIENCE_BOTTLE, "reception.attribute-distribution", NamedTextColor.AQUA);
     }
 
-    private ItemStack buildBankButton() {
-        return simpleButton(Material.GOLD_INGOT, "reception.guild-bank", NamedTextColor.GOLD);
-    }
-
     private ItemStack buildPartyButton() {
         return simpleButton(Material.TOTEM_OF_UNDYING, "reception.party-button", NamedTextColor.LIGHT_PURPLE);
-    }
-
-    private ItemStack buildAchievementsButton() {
-        return simpleButton(Material.EMERALD, "reception.achievements-button", NamedTextColor.GREEN);
-    }
-
-    private ItemStack buildLeaderboardButton() {
-        return simpleButton(Material.GOLDEN_HELMET, "reception.leaderboard-button", NamedTextColor.GOLD);
-    }
-
-    private ItemStack buildTitlesButton() {
-        return simpleButton(Material.NAME_TAG, "reception.titles-button", NamedTextColor.LIGHT_PURPLE);
     }
 
     private ItemStack buildHudToggleButton(PlayerProfile profile) {
         boolean mainEnabled = profile != null && profile.isScoreboardEnabled();
         boolean partyEnabled = profile != null && profile.isPartyHudEnabled();
+        boolean questTrackerEnabled = profile != null && profile.isQuestTrackerEnabled();
         ItemStack item = new ItemStack(mainEnabled ? Material.LIME_DYE : Material.RED_DYE);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(lang.get("reception.hud-display")
@@ -237,8 +198,12 @@ public final class ReceptionGUI extends AbstractGUI {
                 lang.get("reception.party-hud", "state", plainOnOff(partyEnabled))
                         .color(partyEnabled ? NamedTextColor.GREEN : NamedTextColor.RED)
                         .decoration(TextDecoration.ITALIC, false),
+                lang.get("reception.quest-tracker", "state", plainOnOff(questTrackerEnabled))
+                        .color(questTrackerEnabled ? NamedTextColor.GREEN : NamedTextColor.RED)
+                        .decoration(TextDecoration.ITALIC, false),
                 lang.get("reception.hud-left-click").color(NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false),
-                lang.get("reception.hud-right-click").color(NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false)
+                lang.get("reception.hud-right-click").color(NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false),
+                lang.get("reception.hud-shift-left-click").color(NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false)
         ));
         item.setItemMeta(meta);
         return item;

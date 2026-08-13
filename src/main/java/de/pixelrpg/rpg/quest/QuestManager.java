@@ -1,3 +1,4 @@
+// src/main/java/de/pixelrpg/rpg/quest/QuestManager.java (VOLLSTÄNDIG, ersetzt alte Datei — max. 3 aktive Quests)
 package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
@@ -23,6 +24,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class QuestManager {
+
+    private static final int MAX_ACTIVE_QUESTS = 3;
 
     private final Plugin plugin;
     private final QuestRepository questRepository;
@@ -82,6 +85,10 @@ public final class QuestManager {
     public boolean acceptQuest(Player player, Quest quest) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !canAccept(profile, quest) || profile.hasActiveQuest(quest.id())) {
+            return false;
+        }
+        if (profile.getActiveQuests().size() >= MAX_ACTIVE_QUESTS) {
+            lang.send(player, "quest.max-active");
             return false;
         }
 
@@ -272,9 +279,6 @@ public final class QuestManager {
     }
 
     private void completeGlobalEvent(Quest quest) {
-        // Global-Event-Ankündigung nutzt weiterhin den konkreten Quest-Titel
-        // (Klartext aus quest/*.yml), das umgebende Format bleibt aber im
-        // Sprachsystem, damit "besiegt" etc. übersetzt wird.
         for (Player online : Bukkit.getOnlinePlayers()) {
             lang.send(online, "quest.completed", "title", quest.title());
             online.showTitle(Title.title(

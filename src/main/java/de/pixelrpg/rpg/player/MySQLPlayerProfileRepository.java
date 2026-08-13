@@ -1,7 +1,6 @@
-// src/main/java/de/pixelrpg/rpg/player/MySQLPlayerProfileRepository.java (VOLLSTÄNDIG, ersetzt alte Datei — attr_elytra + party_hud_enabled)
+// src/main/java/de/pixelrpg/rpg/player/MySQLPlayerProfileRepository.java (VOLLSTÄNDIG, ersetzt alte Datei — Titel/Erfolge/Leaderboard entfernt)
 package de.pixelrpg.rpg.player;
 
-import de.pixelrpg.rpg.leaderboard.LeaderboardEntry;
 import de.pixelrpg.rpg.quest.QuestProgress;
 import de.pixelrpg.rpg.storage.DatabaseManager;
 
@@ -9,10 +8,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -59,11 +56,9 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 profile.setUnlockedWaypoints(splitCsv(resultSet.getString("waypoints")));
                 profile.setStoryChapterIndex(resultSet.getInt("story_chapter"));
                 profile.setCompletedQuests(splitCsv(resultSet.getString("completed_quests")));
-                profile.setUnlockedAchievements(splitCsv(resultSet.getString("unlocked_achievements")));
-                profile.setUnlockedTitles(splitCsv(resultSet.getString("unlocked_titles")));
-                profile.setSelectedTitle(resultSet.getString("selected_title"));
                 profile.setScoreboardEnabled(resultSet.getBoolean("scoreboard_enabled"));
                 profile.setPartyHudEnabled(resultSet.getBoolean("party_hud_enabled"));
+                profile.setQuestTrackerEnabled(resultSet.getBoolean("quest_tracker_enabled"));
                 profile.setPlaytimeMillis(resultSet.getLong("playtime_millis"));
 
                 loadActiveQuests(uuid, profile);
@@ -119,9 +114,9 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 INSERT INTO pixelrpg_players
                     (uuid, registered, experience, player_class, money, start_bonus,
                      attr_vitality, attr_agility, attr_precision, attr_range, attr_toughness, attr_soulview, attr_elytra,
-                     waypoints, story_chapter, completed_quests, unlocked_achievements, unlocked_titles,
-                     selected_title, scoreboard_enabled, party_hud_enabled, playtime_millis)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     waypoints, story_chapter, completed_quests,
+                     scoreboard_enabled, party_hud_enabled, quest_tracker_enabled, playtime_millis)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     registered = VALUES(registered),
                     experience = VALUES(experience),
@@ -138,11 +133,9 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                     waypoints = VALUES(waypoints),
                     story_chapter = VALUES(story_chapter),
                     completed_quests = VALUES(completed_quests),
-                    unlocked_achievements = VALUES(unlocked_achievements),
-                    unlocked_titles = VALUES(unlocked_titles),
-                    selected_title = VALUES(selected_title),
                     scoreboard_enabled = VALUES(scoreboard_enabled),
                     party_hud_enabled = VALUES(party_hud_enabled),
+                    quest_tracker_enabled = VALUES(quest_tracker_enabled),
                     playtime_millis = VALUES(playtime_millis)
                 """;
         try (Connection connection = databaseManager.getDataSource().getConnection();
@@ -163,12 +156,10 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
             statement.setString(14, String.join(",", profile.getUnlockedWaypoints()));
             statement.setInt(15, profile.getStoryChapterIndex());
             statement.setString(16, String.join(",", profile.getCompletedQuests()));
-            statement.setString(17, String.join(",", profile.getUnlockedAchievements()));
-            statement.setString(18, String.join(",", profile.getUnlockedTitles()));
-            statement.setString(19, profile.getSelectedTitle());
-            statement.setBoolean(20, profile.isScoreboardEnabled());
-            statement.setBoolean(21, profile.isPartyHudEnabled());
-            statement.setLong(22, profile.getPlaytimeMillis());
+            statement.setBoolean(17, profile.isScoreboardEnabled());
+            statement.setBoolean(18, profile.isPartyHudEnabled());
+            statement.setBoolean(19, profile.isQuestTrackerEnabled());
+            statement.setLong(20, profile.getPlaytimeMillis());
             statement.executeUpdate();
         }
 
@@ -220,49 +211,6 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
     @Override
     public void shutdown() {
         databaseManager.shutdown();
-    }
-
-    @Override
-    public List<LeaderboardEntry> getTopByExperience(int limit) throws SQLException {
-        String sql = "SELECT uuid, experience FROM pixelrpg_players ORDER BY experience DESC LIMIT ?";
-        return queryLeaderboard(sql, "experience", limit);
-    }
-
-    @Override
-    public List<LeaderboardEntry> getTopByMoney(int limit) throws SQLException {
-        String sql = "SELECT uuid, money FROM pixelrpg_players ORDER BY money DESC LIMIT ?";
-        return queryLeaderboard(sql, "money", limit);
-    }
-
-    @Override
-    public List<LeaderboardEntry> getTopByStatistic(String statisticKey, int limit) throws SQLException {
-        List<LeaderboardEntry> results = new ArrayList<>();
-        String sql = "SELECT uuid, value FROM pixelrpg_player_stats WHERE stat_key = ? ORDER BY value DESC LIMIT ?";
-        try (Connection connection = databaseManager.getDataSource().getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, statisticKey);
-            statement.setInt(2, limit);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    results.add(new LeaderboardEntry(UUID.fromString(resultSet.getString("uuid")), resultSet.getLong("value")));
-                }
-            }
-        }
-        return results;
-    }
-
-    private List<LeaderboardEntry> queryLeaderboard(String sql, String column, int limit) throws SQLException {
-        List<LeaderboardEntry> results = new ArrayList<>();
-        try (Connection connection = databaseManager.getDataSource().getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, limit);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    results.add(new LeaderboardEntry(UUID.fromString(resultSet.getString("uuid")), resultSet.getDouble(column)));
-                }
-            }
-        }
-        return results;
     }
 
     private PlayerClass parseClass(String raw) {

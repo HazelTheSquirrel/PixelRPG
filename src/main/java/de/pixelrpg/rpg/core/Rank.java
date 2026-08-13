@@ -1,4 +1,4 @@
-// src/main/java/de/pixelrpg/rpg/core/Rank.java
+// src/main/java/de/pixelrpg/rpg/core/Rank.java (VOLLSTÄNDIG, ersetzt alte Datei — EXP-Kurve deutlich gestreckt, damit Rang S nicht mehr nach ~100 Kills erreichbar ist)
 package de.pixelrpg.rpg.core;
 
 import net.kyori.adventure.text.Component;
@@ -7,12 +7,12 @@ import net.kyori.adventure.text.format.NamedTextColor;
 public enum Rank {
 
     F(0L, NamedTextColor.GRAY),
-    E(500L, NamedTextColor.WHITE),
-    D(1_500L, NamedTextColor.GREEN),
-    C(3_500L, NamedTextColor.AQUA),
-    B(7_000L, NamedTextColor.BLUE),
-    A(13_000L, NamedTextColor.LIGHT_PURPLE),
-    S(24_000L, NamedTextColor.GOLD);
+    E(2_000L, NamedTextColor.WHITE),
+    D(6_000L, NamedTextColor.GREEN),
+    C(15_000L, NamedTextColor.AQUA),
+    B(35_000L, NamedTextColor.BLUE),
+    A(70_000L, NamedTextColor.LIGHT_PURPLE),
+    S(150_000L, NamedTextColor.GOLD);
 
     private final long requiredExp;
     private final NamedTextColor color;

@@ -1,4 +1,4 @@
-# src/main/resources/config.yml (VOLLSTÄNDIG, ersetzt alte Datei)
+# src/main/resources/config.yml (VOLLSTÄNDIG, ersetzt alte Datei — dungeons/regions Sektionen entfernt)
 storage:
   type: "MYSQL"
   mysql:
@@ -31,6 +31,9 @@ items:
     rune-drop-chance: 0.05
     gem-drop-chance: 0.05
     gem-active-chance: 0.35
+    currency-drop-chance: 0.20
+    currency-drop-min-amount: 1
+    currency-drop-max-amount: 8
     blessing-chance: 0.12
     curse-chance: 0.10
 
@@ -148,7 +151,7 @@ effects:
 mob-scaling:
   nameplate-duration-ticks: 120
   vanilla-player-damage-cap: 4.0
-  xp-per-max-health: 0.9
+  xp-per-max-health: 0.6
   base-stats:
     F: { hp: 20.0, damage: 3.0 }
     E: { hp: 32.0, damage: 4.5 }
@@ -170,18 +173,16 @@ npc:
 quests:
   party-share-range: 24.0
 
-dungeons:
-  instance-world: "pixelrpg_instances"
-  slot-spacing: 512
-  default-cooldown-minutes: 30
-  cleanup-delay-minutes: 20
-  blocks-per-tick: 5000
-
 bosses:
   bar-radius: 60.0
   bar-update-interval-ticks: 20
   phase-check-interval-ticks: 10
   class-set-drop-chance: 0.08
+  auto-spawn:
+    enabled: true
+    interval-minutes: 45
+    spawn-radius: 80.0
+    max-concurrent: 2
 
 statistics:
   autosave-interval-ticks: 6000
@@ -195,8 +196,3 @@ leaderboard:
 classes:
   respec-cost: 300.0
   respec-min-rank: "B"
-
-regions:
-  title-fade-in-ms: 400
-  title-stay-ms: 2400
-  title-fade-out-ms: 600

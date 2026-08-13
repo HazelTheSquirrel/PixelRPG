@@ -1,16 +1,13 @@
-// src/main/java/de/pixelrpg/rpg/player/PlayerProfileManager.java
+// src/main/java/de/pixelrpg/rpg/player/PlayerProfileManager.java (VOLLSTÄNDIG, ersetzt alte Datei — TitleAPI/Leaderboard entfernt)
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.api.EconomyAPI;
 import de.pixelrpg.rpg.api.GuildAPI;
-import de.pixelrpg.rpg.api.TitleAPI;
 import de.pixelrpg.rpg.api.events.PlayerClassChangeEvent;
 import de.pixelrpg.rpg.api.events.PlayerJoinGuildEvent;
 import de.pixelrpg.rpg.api.events.PlayerLeaveGuildEvent;
 import de.pixelrpg.rpg.api.events.PlayerRankUpEvent;
 import de.pixelrpg.rpg.core.Rank;
-import de.pixelrpg.rpg.leaderboard.LeaderboardEntry;
-import de.pixelrpg.rpg.leaderboard.LeaderboardType;
 import de.pixelrpg.rpg.storage.DatabaseManager;
 import de.pixelrpg.rpg.storage.StorageType;
 import org.bukkit.Bukkit;
@@ -19,15 +16,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
-public final class PlayerProfileManager implements GuildAPI, EconomyAPI, TitleAPI {
+public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
 
     private final Plugin plugin;
     private final Map<UUID, PlayerProfile> activeProfiles = new ConcurrentHashMap<>();
@@ -68,7 +63,6 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, TitleAP
 
         Bukkit.getServicesManager().register(GuildAPI.class, this, plugin, ServicePriority.Normal);
         Bukkit.getServicesManager().register(EconomyAPI.class, this, plugin, ServicePriority.Normal);
-        Bukkit.getServicesManager().register(TitleAPI.class, this, plugin, ServicePriority.Normal);
     }
 
     private Rank parseRank(String raw) {
@@ -242,14 +236,6 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, TitleAP
         }
     }
 
-    public List<LeaderboardEntry> getLeaderboard(LeaderboardType type, int limit) throws Exception {
-        return switch (type) {
-            case EXPERIENCE -> repository.getTopByExperience(limit);
-            case MONEY -> repository.getTopByMoney(limit);
-            default -> repository.getTopByStatistic(type.getStatisticType().name(), limit);
-        };
-    }
-
     private void persistAsync(PlayerProfile profile) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> persistSync(profile));
     }
@@ -342,47 +328,6 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, TitleAP
             return false;
         }
         boolean success = profile.removeMoney(amount);
-        if (success) {
-            persistAsync(profile);
-        }
-        return success;
-    }
-
-    @Override
-    public String getSelectedTitle(UUID uuid) {
-        PlayerProfile profile = activeProfiles.get(uuid);
-        return profile != null ? profile.getSelectedTitle() : null;
-    }
-
-    @Override
-    public Set<String> getUnlockedTitles(UUID uuid) {
-        PlayerProfile profile = activeProfiles.get(uuid);
-        return profile != null ? profile.getUnlockedTitles() : Set.of();
-    }
-
-    @Override
-    public boolean hasTitle(UUID uuid, String title) {
-        PlayerProfile profile = activeProfiles.get(uuid);
-        return profile != null && profile.hasTitle(title);
-    }
-
-    @Override
-    public void unlockTitle(UUID uuid, String title) {
-        PlayerProfile profile = activeProfiles.get(uuid);
-        if (profile == null) {
-            return;
-        }
-        profile.unlockTitle(title);
-        persistAsync(profile);
-    }
-
-    @Override
-    public boolean selectTitle(UUID uuid, String title) {
-        PlayerProfile profile = activeProfiles.get(uuid);
-        if (profile == null) {
-            return false;
-        }
-        boolean success = profile.setSelectedTitle(title);
         if (success) {
             persistAsync(profile);
         }

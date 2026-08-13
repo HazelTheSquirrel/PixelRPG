@@ -1,3 +1,4 @@
+// src/main/java/de/pixelrpg/rpg/gui/QuestDetailGUI.java (VOLLSTÄNDIG, ersetzt alte Datei — GUI bleibt bei fehlgeschlagener Annahme offen und zeigt Rückmeldung)
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
@@ -68,8 +69,12 @@ public final class QuestDetailGUI extends AbstractGUI {
             });
         } else {
             setItem(20, buildButton(Material.LIME_DYE, "quest.accept", NamedTextColor.GREEN), event -> {
-                questManager.acceptQuest(viewer, quest);
-                viewer.closeInventory();
+                boolean accepted = questManager.acceptQuest(viewer, quest);
+                if (accepted) {
+                    viewer.closeInventory();
+                } else {
+                    open(viewer);
+                }
             });
         }
 

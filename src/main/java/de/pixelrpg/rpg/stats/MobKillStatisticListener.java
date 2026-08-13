@@ -1,5 +1,5 @@
-// src/main/java/de/pixelrpg/rpg/achievement/MobKillStatisticListener.java
-package de.pixelrpg.rpg.achievement;
+// src/main/java/de/pixelrpg/rpg/stats/MobKillStatisticListener.java
+package de.pixelrpg.rpg.stats;
 
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.api.StatisticsAPI;
@@ -22,6 +22,7 @@ public final class MobKillStatisticListener implements Listener {
         this.statisticsAPI = statisticsAPI;
     }
 
+    // Zuständig für das Hochzählen der MOBS_KILLED-Statistik bei registrierten Spielern.
     @EventHandler(priority = EventPriority.MONITOR)
     public void onMonsterDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();

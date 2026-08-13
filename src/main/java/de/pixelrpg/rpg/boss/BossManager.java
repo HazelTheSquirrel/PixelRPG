@@ -1,12 +1,18 @@
+// src/main/java/de/pixelrpg/rpg/boss/BossManager.java (VOLLSTÄNDIG, ersetzt alte Datei — Dungeon-Boss-Unterscheidung entfernt, Belohnung wird bei jedem Boss-Tod verteilt)
 package de.pixelrpg.rpg.boss;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.EconomyAPI;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.api.events.BossDefeatedEvent;
+import de.pixelrpg.rpg.combat.gem.ActiveSkillGemDefinition;
+import de.pixelrpg.rpg.combat.gem.GemItemFactory;
+import de.pixelrpg.rpg.combat.gem.GemRepository;
+import de.pixelrpg.rpg.combat.gem.PassiveGemDefinition;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.ClassSetItemFactory;
 import de.pixelrpg.rpg.item.ClassSetSlot;
+import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerClass;
@@ -27,6 +33,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.time.Duration;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -40,6 +47,8 @@ public final class BossManager {
     private final BossAttackPatternRegistry patternRegistry;
     private final GuildAPI guildAPI;
     private final EconomyAPI economyAPI;
+    private final GemRepository gemRepository;
+    private final ItemEconomyConfig itemEconomyConfig;
     private final double barRadius;
     private final int phaseCheckIntervalTicks;
     private final LanguageManager lang;
@@ -48,11 +57,14 @@ public final class BossManager {
     private final Map<UUID, ActiveBoss> activeBosses = new ConcurrentHashMap<>();
 
     public BossManager(Plugin plugin, BossAttackPatternRegistry patternRegistry, GuildAPI guildAPI,
-                        EconomyAPI economyAPI, double barRadius, int barUpdateIntervalTicks, int phaseCheckIntervalTicks) {
+                        EconomyAPI economyAPI, GemRepository gemRepository, ItemEconomyConfig itemEconomyConfig,
+                        double barRadius, int barUpdateIntervalTicks, int phaseCheckIntervalTicks) {
         this.plugin = plugin;
         this.patternRegistry = patternRegistry;
         this.guildAPI = guildAPI;
         this.economyAPI = economyAPI;
+        this.gemRepository = gemRepository;
+        this.itemEconomyConfig = itemEconomyConfig;
         this.barRadius = barRadius;
         this.phaseCheckIntervalTicks = phaseCheckIntervalTicks;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
@@ -215,12 +227,7 @@ public final class BossManager {
         }
 
         cleanup(activeBoss);
-
-        boolean isDungeonBoss = entity.getPersistentDataContainer()
-                .has(RPGKeys.Dungeon.instanceId(), PersistentDataType.STRING);
-        if (!isDungeonBoss) {
-            distributeRewards(activeBoss);
-        }
+        distributeRewards(activeBoss);
     }
 
     private void distributeRewards(ActiveBoss activeBoss) {
@@ -236,6 +243,7 @@ public final class BossManager {
             participants.add(viewerUuid);
 
             rollClassSetDrop(player, viewerUuid, activeBoss.getDefinition().getRank(), random);
+            rollGemDrop(player, random);
 
             if (lootConfig == null) {
                 continue;
@@ -262,11 +270,34 @@ public final class BossManager {
         Bukkit.getPluginManager().callEvent(new BossDefeatedEvent(activeBoss.getDefinition().getId(), participants));
     }
 
-    /**
-     * Rollt für einen Boss-Teilnehmer die Chance auf ein zufälliges Klassen-Set-Teil
-     * passend zu seiner gewählten Klasse. Spieler ohne gewählte Klasse (NONE) erhalten
-     * nichts, da Set-Items klassenexklusiv sind (siehe ClassSetBonusService).
-     */
+    private void rollGemDrop(Player player, Random random) {
+        if (itemEconomyConfig.getGemDropChance() <= 0.0 || random.nextDouble() >= itemEconomyConfig.getGemDropChance()) {
+            return;
+        }
+
+        boolean dropActive = random.nextDouble() < itemEconomyConfig.getGemActiveChance();
+        ItemStack gemItem = null;
+
+        if (dropActive) {
+            List<ActiveSkillGemDefinition> activeGems = gemRepository.getAllActive();
+            if (!activeGems.isEmpty()) {
+                gemItem = GemItemFactory.createActive(activeGems.get(random.nextInt(activeGems.size())));
+            }
+        }
+        if (gemItem == null) {
+            List<PassiveGemDefinition> passiveGems = gemRepository.getAllPassive();
+            if (!passiveGems.isEmpty()) {
+                gemItem = GemItemFactory.createPassive(passiveGems.get(random.nextInt(passiveGems.size())));
+            }
+        }
+
+        if (gemItem != null) {
+            ItemStack drop = gemItem;
+            player.getInventory().addItem(drop).values()
+                    .forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
+        }
+    }
+
     private void rollClassSetDrop(Player player, UUID uuid, de.pixelrpg.rpg.core.Rank bossRank, Random random) {
         if (classSetDropChance <= 0.0 || random.nextDouble() >= classSetDropChance) {
             return;
@@ -304,6 +335,15 @@ public final class BossManager {
             }
         }
         activeBosses.remove(activeBoss.getEntityUuid());
+    }
+
+    public boolean hasActiveBossOfType(String bossId) {
+        return activeBosses.values().stream()
+                .anyMatch(active -> active.getDefinition().getId().equals(bossId));
+    }
+
+    public int getActiveBossCount() {
+        return activeBosses.size();
     }
 
     public void shutdownAll() {

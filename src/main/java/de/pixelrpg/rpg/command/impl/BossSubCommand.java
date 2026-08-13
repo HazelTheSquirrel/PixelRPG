@@ -1,4 +1,4 @@
-// src/main/java/de/pixelrpg/rpg/command/impl/BossSubCommand.java
+// src/main/java/de/pixelrpg/rpg/command/impl/BossSubCommand.java (VOLLSTÄNDIG, ersetzt alte Datei — spawn-Befehl bleibt für manuelles Testen erhalten)
 package de.pixelrpg.rpg.command.impl;
 
 import de.pixelrpg.rpg.boss.BossDefinition;

@@ -1,4 +1,4 @@
-// src/main/java/de/pixelrpg/rpg/player/PlayerProfile.java (VOLLSTÄNDIG, ersetzt alte Datei)
+// src/main/java/de/pixelrpg/rpg/player/PlayerProfile.java (VOLLSTÄNDIG, ersetzt alte Datei — Titel/Erfolge entfernt)
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.core.Rank;
@@ -25,11 +25,9 @@ public final class PlayerProfile {
     private final Map<String, de.pixelrpg.rpg.quest.QuestProgress> activeQuests = new HashMap<>();
     private final Set<String> completedQuests = new HashSet<>();
     private final Map<String, Long> statistics = new HashMap<>();
-    private final Set<String> unlockedAchievements = new HashSet<>();
-    private final Set<String> unlockedTitles = new HashSet<>();
-    private String selectedTitle;
     private boolean scoreboardEnabled;
     private boolean partyHudEnabled;
+    private boolean questTrackerEnabled;
     private long playtimeMillis;
     private boolean dirty;
 
@@ -41,9 +39,9 @@ public final class PlayerProfile {
         this.money = 0.0;
         this.receivedStartBonus = false;
         this.storyChapterIndex = -1;
-        this.selectedTitle = null;
         this.scoreboardEnabled = true;
         this.partyHudEnabled = true;
+        this.questTrackerEnabled = true;
         this.playtimeMillis = 0L;
         this.dirty = false;
         for (PlayerAttribute attribute : PlayerAttribute.values()) {
@@ -229,59 +227,6 @@ public final class PlayerProfile {
         return Collections.unmodifiableMap(statistics);
     }
 
-    public Set<String> getUnlockedAchievements() {
-        return Collections.unmodifiableSet(unlockedAchievements);
-    }
-
-    public boolean hasAchievement(String achievementId) {
-        return unlockedAchievements.contains(achievementId);
-    }
-
-    public void unlockAchievement(String achievementId) {
-        if (unlockedAchievements.add(achievementId)) {
-            this.dirty = true;
-        }
-    }
-
-    public void setUnlockedAchievements(Set<String> achievementIds) {
-        unlockedAchievements.clear();
-        unlockedAchievements.addAll(achievementIds);
-        this.dirty = true;
-    }
-
-    public Set<String> getUnlockedTitles() {
-        return Collections.unmodifiableSet(unlockedTitles);
-    }
-
-    public boolean hasTitle(String title) {
-        return unlockedTitles.contains(title);
-    }
-
-    public void unlockTitle(String title) {
-        if (unlockedTitles.add(title)) {
-            this.dirty = true;
-        }
-    }
-
-    public void setUnlockedTitles(Set<String> titles) {
-        unlockedTitles.clear();
-        unlockedTitles.addAll(titles);
-        this.dirty = true;
-    }
-
-    public String getSelectedTitle() {
-        return selectedTitle;
-    }
-
-    public boolean setSelectedTitle(String title) {
-        if (title != null && !unlockedTitles.contains(title)) {
-            return false;
-        }
-        this.selectedTitle = title;
-        this.dirty = true;
-        return true;
-    }
-
     public boolean isScoreboardEnabled() {
         return scoreboardEnabled;
     }
@@ -297,6 +242,15 @@ public final class PlayerProfile {
 
     public void setPartyHudEnabled(boolean partyHudEnabled) {
         this.partyHudEnabled = partyHudEnabled;
+        this.dirty = true;
+    }
+
+    public boolean isQuestTrackerEnabled() {
+        return questTrackerEnabled;
+    }
+
+    public void setQuestTrackerEnabled(boolean questTrackerEnabled) {
+        this.questTrackerEnabled = questTrackerEnabled;
         this.dirty = true;
     }
 

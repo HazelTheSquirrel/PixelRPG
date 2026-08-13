@@ -1,3 +1,4 @@
+// src/main/java/de/pixelrpg/rpg/gui/TravelGUI.java (VOLLSTÄNDIG, ersetzt alte Datei — Dungeon-Button entfernt)
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
@@ -41,18 +42,6 @@ public final class TravelGUI extends AbstractGUI {
         if (profile == null) {
             return;
         }
-
-        ItemStack dungeonButton = new ItemStack(Material.NETHERITE_HOE);
-        ItemMeta dungeonMeta = dungeonButton.getItemMeta();
-        dungeonMeta.displayName(lang.get("travel.dungeons-button").color(NamedTextColor.DARK_RED).decoration(TextDecoration.ITALIC, false));
-        dungeonButton.setItemMeta(dungeonMeta);
-        setItem(49, dungeonButton, event -> new DungeonBoardGUI(
-                viewer,
-                PixelRPGPlugin.getInstance().getDungeonRepository(),
-                PixelRPGPlugin.getInstance().getDungeonInstanceManager(),
-                profileManager,
-                currentNpcId
-        ).open(viewer));
 
         int slot = 0;
         for (RPGNpc npc : npcManager.getAll()) {

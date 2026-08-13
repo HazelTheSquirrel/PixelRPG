@@ -1,17 +1,12 @@
+// src/main/java/de/pixelrpg/rpg/PixelRPGPlugin.java (VOLLSTÄNDIG, ersetzt alte Datei — Achievements/Titel/Leaderboard/Custom-Deathscreen entfernt)
 package de.pixelrpg.rpg;
 
-import de.pixelrpg.rpg.achievement.AchievementManager;
-import de.pixelrpg.rpg.achievement.AchievementRepository;
-import de.pixelrpg.rpg.achievement.AchievementTriggerListener;
-import de.pixelrpg.rpg.achievement.MobKillStatisticListener;
-import de.pixelrpg.rpg.achievement.PlayerDeathStatisticListener;
-import de.pixelrpg.rpg.achievement.StatisticsService;
-import de.pixelrpg.rpg.api.AchievementAPI;
 import de.pixelrpg.rpg.api.StatisticsAPI;
 import de.pixelrpg.rpg.boss.BossAttackPatternRegistry;
 import de.pixelrpg.rpg.boss.BossDeathListener;
 import de.pixelrpg.rpg.boss.BossManager;
 import de.pixelrpg.rpg.boss.BossRepository;
+import de.pixelrpg.rpg.boss.WorldBossSpawnTask;
 import de.pixelrpg.rpg.boss.patterns.EnrageBuffPattern;
 import de.pixelrpg.rpg.boss.patterns.ProjectileVolleyPattern;
 import de.pixelrpg.rpg.boss.patterns.SlamAttackPattern;
@@ -23,32 +18,22 @@ import de.pixelrpg.rpg.combat.MobExperienceListener;
 import de.pixelrpg.rpg.combat.MobNameplateListener;
 import de.pixelrpg.rpg.combat.MobNameplateService;
 import de.pixelrpg.rpg.combat.SoulboundDeathListener;
-import de.pixelrpg.rpg.combat.SoulslikeDeathScreenListener;
 import de.pixelrpg.rpg.combat.gem.GemRepository;
 import de.pixelrpg.rpg.combat.gem.SkillGemCastEngine;
 import de.pixelrpg.rpg.combat.loot.LootDropListener;
 import de.pixelrpg.rpg.combat.scaling.MobRankScalingListener;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
-import de.pixelrpg.rpg.combat.scaling.RegionDangerProvider;
 import de.pixelrpg.rpg.combat.skill.PassiveGemRecalcTask;
 import de.pixelrpg.rpg.combat.skill.SkillInputListener;
 import de.pixelrpg.rpg.command.RootCommand;
-import de.pixelrpg.rpg.command.impl.AchievementAdminSubCommand;
 import de.pixelrpg.rpg.command.impl.BlacksmithSubCommand;
 import de.pixelrpg.rpg.command.impl.BossSubCommand;
-import de.pixelrpg.rpg.command.impl.DungeonSubCommand;
 import de.pixelrpg.rpg.command.impl.NpcSubCommand;
 import de.pixelrpg.rpg.command.impl.PartySubCommand;
 import de.pixelrpg.rpg.command.impl.QuestAdminSubCommand;
 import de.pixelrpg.rpg.command.impl.QuestLogCommand;
-import de.pixelrpg.rpg.command.impl.RegionSubCommand;
 import de.pixelrpg.rpg.command.impl.ShopSubCommand;
 import de.pixelrpg.rpg.core.RPGKeys;
-import de.pixelrpg.rpg.dungeon.DungeonBossDeathListener;
-import de.pixelrpg.rpg.dungeon.DungeonInstanceManager;
-import de.pixelrpg.rpg.dungeon.DungeonRepository;
-import de.pixelrpg.rpg.dungeon.DungeonSelectionManager;
-import de.pixelrpg.rpg.dungeon.DungeonWandListener;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.economy.GuildCurrencyPickupListener;
 import de.pixelrpg.rpg.gui.BlacksmithGUI;
@@ -76,25 +61,20 @@ import de.pixelrpg.rpg.player.AttributeConfig;
 import de.pixelrpg.rpg.player.ClassBalance;
 import de.pixelrpg.rpg.player.GuildJoinLeaveListener;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import de.pixelrpg.rpg.player.TitleDisplayJoinListener;
-import de.pixelrpg.rpg.player.TitleDisplayService;
 import de.pixelrpg.rpg.quest.GlobalEventState;
 import de.pixelrpg.rpg.quest.QuestManager;
 import de.pixelrpg.rpg.quest.QuestMobKillListener;
 import de.pixelrpg.rpg.quest.QuestPassiveCheckTask;
 import de.pixelrpg.rpg.quest.QuestRepository;
-import de.pixelrpg.rpg.region.PlayerRegionTracker;
-import de.pixelrpg.rpg.region.RegionManager;
-import de.pixelrpg.rpg.region.RegionSelectionManager;
-import de.pixelrpg.rpg.region.RegionWandListener;
-import de.pixelrpg.rpg.region.YamlRegionRepository;
-import de.pixelrpg.rpg.region.biome.BiomeClusterManager;
-import de.pixelrpg.rpg.region.biome.BiomeNameRepository;
 import de.pixelrpg.rpg.scoreboard.PlaytimeTracker;
 import de.pixelrpg.rpg.scoreboard.ScoreboardService;
 import de.pixelrpg.rpg.shop.ShopManager;
+import de.pixelrpg.rpg.stats.MobKillStatisticListener;
+import de.pixelrpg.rpg.stats.PlayerDeathStatisticListener;
+import de.pixelrpg.rpg.stats.QuestBossStatisticListener;
 import de.pixelrpg.rpg.stats.RPGStatsListener;
 import de.pixelrpg.rpg.stats.StatEngine;
+import de.pixelrpg.rpg.stats.StatisticsService;
 import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryManager;
 import de.pixelrpg.rpg.travel.GuildCompassListener;
@@ -113,8 +93,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private BlacksmithGUI blacksmithGUI;
     private MobScalingConfig mobScalingConfig;
     private MobNameplateService mobNameplateService;
-    private RegionManager regionManager;
-    private RegionSelectionManager regionSelectionManager;
     private NpcManager npcManager;
     private NpcBehaviorRegistry npcBehaviorRegistry;
     private ShopManager shopManager;
@@ -124,23 +102,15 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private QuestRepository questRepository;
     private QuestManager questManager;
     private GlobalEventState globalEventState;
-    private DungeonRepository dungeonRepository;
-    private DungeonSelectionManager dungeonSelectionManager;
-    private DungeonInstanceManager dungeonInstanceManager;
     private BossRepository bossRepository;
     private BossManager bossManager;
-    private AchievementRepository achievementRepository;
-    private AchievementManager achievementManager;
     private StatisticsService statisticsService;
     private ScoreboardService scoreboardService;
     private PlaytimeTracker playtimeTracker;
     private LanguageManager languageManager;
-    private TitleDisplayService titleDisplayService;
     private EquipmentAuraListener equipmentAuraListener;
     private GemRepository gemRepository;
     private SkillGemCastEngine skillGemCastEngine;
-    private BiomeNameRepository biomeNameRepository;
-    private BiomeClusterManager biomeClusterManager;
 
     @Override
     public void onEnable() {
@@ -152,7 +122,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         this.languageManager = new LanguageManager(this);
         languageManager.load(getConfig().getString("language.default", "en"));
 
-        // Konfigurierbare Werte laden, bevor irgendeine Klasse sie nutzt.
         AttributeConfig.load(getConfig());
         ClassBalance.load(getConfig());
         RuneType.load(getConfig());
@@ -161,8 +130,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
         this.playerProfileManager = new PlayerProfileManager(this);
         this.playerProfileManager.initialize(getConfig());
-
-        this.titleDisplayService = new TitleDisplayService(playerProfileManager);
 
         this.statEngine = new StatEngine(playerProfileManager);
 
@@ -185,18 +152,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
         this.mobScalingConfig = new MobScalingConfig();
         mobScalingConfig.load(getConfig());
-
-        this.regionManager = new RegionManager(this, new YamlRegionRepository(getDataFolder()));
-        regionManager.load();
-        Bukkit.getServicesManager().register(
-                RegionDangerProvider.class, regionManager, this, ServicePriority.Normal);
-        this.regionSelectionManager = new RegionSelectionManager();
-
-        this.biomeNameRepository = new BiomeNameRepository(this);
-        biomeNameRepository.load();
-        this.biomeClusterManager = new BiomeClusterManager(this, biomeNameRepository);
-        biomeClusterManager.load();
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> biomeClusterManager.saveIfDirty(), 200L, 200L);
 
         this.mobNameplateService = new MobNameplateService(this, mobScalingConfig);
 
@@ -236,28 +191,17 @@ public final class PixelRPGPlugin extends JavaPlugin {
         int phaseCheckInterval = getConfig().getInt("bosses.phase-check-interval-ticks", 10);
 
         this.bossManager = new BossManager(this, patternRegistry, playerProfileManager, playerProfileManager,
-                barRadius, barUpdateInterval, phaseCheckInterval);
+                gemRepository, itemEconomyConfig, barRadius, barUpdateInterval, phaseCheckInterval);
 
-        this.dungeonRepository = new DungeonRepository(this);
-        dungeonRepository.load();
-        this.dungeonSelectionManager = new DungeonSelectionManager();
+        boolean autoSpawnEnabled = getConfig().getBoolean("bosses.auto-spawn.enabled", true);
+        int autoSpawnIntervalMinutes = getConfig().getInt("bosses.auto-spawn.interval-minutes", 45);
+        double autoSpawnRadius = getConfig().getDouble("bosses.auto-spawn.spawn-radius", 80.0);
+        int autoSpawnMaxConcurrent = getConfig().getInt("bosses.auto-spawn.max-concurrent", 2);
 
-        String instanceWorldName = getConfig().getString("dungeons.instance-world", "pixelrpg_instances");
-        int slotSpacing = getConfig().getInt("dungeons.slot-spacing", 512);
-        int cleanupDelayMinutes = getConfig().getInt("dungeons.cleanup-delay-minutes", 20);
-        int blocksPerTick = getConfig().getInt("dungeons.blocks-per-tick", 5000);
+        new WorldBossSpawnTask(this, bossRepository, bossManager, playerProfileManager,
+                autoSpawnEnabled, autoSpawnIntervalMinutes, autoSpawnRadius, autoSpawnMaxConcurrent).start();
 
-        this.dungeonInstanceManager = new DungeonInstanceManager(this, dungeonRepository, playerProfileManager,
-                playerProfileManager, partyManager, mobScalingConfig, bossRepository, bossManager,
-                instanceWorldName, slotSpacing, cleanupDelayMinutes, blocksPerTick);
-
-        this.achievementRepository = new AchievementRepository(this);
-        achievementRepository.load();
-
-        this.achievementManager = new AchievementManager(achievementRepository, playerProfileManager);
-        Bukkit.getServicesManager().register(AchievementAPI.class, achievementManager, this, ServicePriority.Normal);
-
-        this.statisticsService = new StatisticsService(playerProfileManager, achievementManager);
+        this.statisticsService = new StatisticsService(playerProfileManager);
         Bukkit.getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
 
         int scoreboardInterval = getConfig().getInt("scoreboard.update-interval-ticks", 20);
@@ -291,6 +235,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new ShopBehavior(shopManager, playerProfileManager));
         npcBehaviorRegistry.register(new TravelBehavior(npcManager, playerProfileManager));
         npcBehaviorRegistry.register(new StoryBehavior(storyManager, playerProfileManager));
+        npcBehaviorRegistry.register(new de.pixelrpg.rpg.npc.behavior.BankerBehavior(playerProfileManager));
 
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(new GuildJoinLeaveListener(playerProfileManager), this);
@@ -303,18 +248,11 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(
                 new MobRankScalingListener(playerProfileManager, mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(
-                new MobNameplateListener(mobNameplateService), this);
+                new MobNameplateListener(mobNameplateService, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(
                 new CombatDamageListener(playerProfileManager, playerProfileManager, statEngine, mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(
                 new MobExperienceListener(playerProfileManager, mobScalingConfig), this);
-        getServer().getPluginManager().registerEvents(
-                new RegionWandListener(regionSelectionManager), this);
-        getServer().getPluginManager().registerEvents(
-                new PlayerRegionTracker(regionManager, biomeClusterManager, playerProfileManager,
-                        getConfig().getLong("regions.title-fade-in-ms", 400),
-                        getConfig().getLong("regions.title-stay-ms", 2400),
-                        getConfig().getLong("regions.title-fade-out-ms", 600)), this);
         getServer().getPluginManager().registerEvents(
                 new NpcInteractListener(npcManager, npcBehaviorRegistry), this);
         getServer().getPluginManager().registerEvents(
@@ -322,27 +260,19 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(
                 new PartyDisconnectListener(partyManager), this);
         getServer().getPluginManager().registerEvents(
-                new DungeonWandListener(this, dungeonSelectionManager), this);
-        getServer().getPluginManager().registerEvents(
-                new DungeonBossDeathListener(dungeonInstanceManager), this);
-        getServer().getPluginManager().registerEvents(
                 new BossDeathListener(bossManager), this);
         getServer().getPluginManager().registerEvents(
                 new MobKillStatisticListener(playerProfileManager, statisticsService), this);
         getServer().getPluginManager().registerEvents(
                 new PlayerDeathStatisticListener(playerProfileManager, statisticsService), this);
         getServer().getPluginManager().registerEvents(
-                new AchievementTriggerListener(achievementManager, statisticsService), this);
+                new QuestBossStatisticListener(statisticsService), this);
         getServer().getPluginManager().registerEvents(
                 new GuildCurrencyPickupListener(playerProfileManager, playerProfileManager), this);
-        getServer().getPluginManager().registerEvents(
-                new TitleDisplayJoinListener(titleDisplayService), this);
         getServer().getPluginManager().registerEvents(
                 new GuildCompassListener(npcManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(
                 new SoulboundDeathListener(), this);
-        getServer().getPluginManager().registerEvents(
-                new SoulslikeDeathScreenListener(), this);
         getServer().getPluginManager().registerEvents(
                 new ElytraPermissionListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(scoreboardService, this);
@@ -352,13 +282,11 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
         RootCommand rootCommand = new RootCommand();
         rootCommand.register(new BlacksmithSubCommand(blacksmithGUI));
-        rootCommand.register(new RegionSubCommand(regionManager, regionSelectionManager));
         rootCommand.register(new NpcSubCommand(npcManager));
-        rootCommand.register(new ShopSubCommand(shopManager, shopEditorGUI));
+        rootCommand.register(new ShopSubCommand(shopManager, shopEditorGUI, npcManager));
         rootCommand.register(new QuestAdminSubCommand(questManager));
-        rootCommand.register(new DungeonSubCommand(this, dungeonRepository, dungeonSelectionManager));
         rootCommand.register(new BossSubCommand(bossRepository, bossManager));
-        rootCommand.register(new AchievementAdminSubCommand(achievementManager));
+
 
         if (getCommand("rpgadmin") != null) {
             getCommand("rpgadmin").setExecutor(rootCommand);
@@ -395,17 +323,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (shopManager != null) {
             shopManager.save();
         }
-        if (regionManager != null) {
-            regionManager.save();
-        }
         if (globalEventState != null) {
             globalEventState.save();
-        }
-        if (dungeonRepository != null) {
-            dungeonRepository.save();
-        }
-        if (biomeClusterManager != null) {
-            biomeClusterManager.saveIfDirty();
         }
         if (playerProfileManager != null) {
             playerProfileManager.shutdown();
@@ -433,10 +352,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         return mobScalingConfig;
     }
 
-    public RegionManager getRegionManager() {
-        return regionManager;
-    }
-
     public NpcManager getNpcManager() {
         return npcManager;
     }
@@ -461,24 +376,12 @@ public final class PixelRPGPlugin extends JavaPlugin {
         return questManager;
     }
 
-    public DungeonRepository getDungeonRepository() {
-        return dungeonRepository;
-    }
-
-    public DungeonInstanceManager getDungeonInstanceManager() {
-        return dungeonInstanceManager;
-    }
-
     public BossRepository getBossRepository() {
         return bossRepository;
     }
 
     public BossManager getBossManager() {
         return bossManager;
-    }
-
-    public AchievementManager getAchievementManager() {
-        return achievementManager;
     }
 
     public StatisticsService getStatisticsService() {
@@ -493,19 +396,11 @@ public final class PixelRPGPlugin extends JavaPlugin {
         return languageManager;
     }
 
-    public TitleDisplayService getTitleDisplayService() {
-        return titleDisplayService;
-    }
-
     public GemRepository getGemRepository() {
         return gemRepository;
     }
 
     public SkillGemCastEngine getSkillGemCastEngine() {
         return skillGemCastEngine;
-    }
-
-    public BiomeClusterManager getBiomeClusterManager() {
-        return biomeClusterManager;
     }
 }

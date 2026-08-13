@@ -1,5 +1,5 @@
-// src/main/java/de/pixelrpg/rpg/achievement/PlayerDeathStatisticListener.java
-package de.pixelrpg.rpg.achievement;
+// src/main/java/de/pixelrpg/rpg/stats/PlayerDeathStatisticListener.java
+package de.pixelrpg.rpg.stats;
 
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.api.StatisticsAPI;
@@ -19,6 +19,7 @@ public final class PlayerDeathStatisticListener implements Listener {
         this.statisticsAPI = statisticsAPI;
     }
 
+    // Zuständig für das Hochzählen der DEATHS-Statistik bei registrierten Spielern.
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
         var uuid = event.getEntity().getUniqueId();

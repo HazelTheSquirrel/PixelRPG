@@ -1,3 +1,4 @@
+// src/main/java/de/pixelrpg/rpg/storage/DatabaseManager.java (VOLLSTÄNDIG, ersetzt alte Datei — Titel/Erfolge-Spalten entfernt)
 package de.pixelrpg.rpg.storage;
 
 import com.zaxxer.hikari.HikariConfig;
@@ -32,9 +33,6 @@ public final class DatabaseManager {
         hikariConfig.setPoolName("PixelRPG-Hikari");
         hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
 
-        // Zusätzliches Tuning für den Dauerbetrieb mit vielen kurzlebigen Verbindungen
-        // (100-Spieler-Ziel): verhindert, dass tote/veraltete Connections im Pool
-        // hängen bleiben und erst beim nächsten fehlgeschlagenen Query auffallen.
         hikariConfig.setMinimumIdle(Math.max(2, poolSize / 4));
         hikariConfig.setIdleTimeout(300_000L);
         hikariConfig.setMaxLifetime(1_800_000L);
@@ -64,11 +62,9 @@ public final class DatabaseManager {
                     waypoints TEXT,
                     story_chapter INT NOT NULL DEFAULT -1,
                     completed_quests TEXT,
-                    unlocked_achievements TEXT,
-                    unlocked_titles TEXT,
-                    selected_title VARCHAR(64),
                     scoreboard_enabled BOOLEAN NOT NULL DEFAULT TRUE,
                     party_hud_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+                    quest_tracker_enabled BOOLEAN NOT NULL DEFAULT TRUE,
                     playtime_millis BIGINT NOT NULL DEFAULT 0
                 )
                 """;
