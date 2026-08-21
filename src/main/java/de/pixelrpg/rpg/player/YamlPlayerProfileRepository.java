@@ -1,4 +1,4 @@
-// src/main/java/de/pixelrpg/rpg/player/YamlPlayerProfileRepository.java (VOLLSTÄNDIG, ersetzt alte Datei — Titel/Erfolge/Leaderboard entfernt)
+// src/main/java/de/pixelrpg/rpg/player/YamlPlayerProfileRepository.java (VOLLSTÄNDIG, ersetzt alte Datei — atomarer Schreibvorgang über Temp-Datei + Rename gegen korrupte Dateien bei Absturz mitten im Speichern)
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.quest.QuestProgress;
@@ -7,6 +7,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Optional;
@@ -78,7 +81,6 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
 
     @Override
     public void save(PlayerProfile profile) throws IOException {
-        File file = new File(playersFolder, profile.getUuid() + ".yml");
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("registered", profile.isRegisteredInGuild());
         yaml.set("experience", profile.getExperience());
@@ -109,7 +111,21 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         yaml.set("quest-tracker-enabled", profile.isQuestTrackerEnabled());
         yaml.set("playtime-millis", profile.getPlaytimeMillis());
 
-        yaml.save(file);
+        // Atomarer Schreibvorgang: erst in eine Temp-Datei speichern, dann per
+        // Rename ersetzen. Verhindert eine halb geschriebene/korrupte Profildatei,
+        // falls der Prozess genau während des Schreibens beendet wird.
+        if (!playersFolder.exists()) {
+            playersFolder.mkdirs();
+        }
+        File target = new File(playersFolder, profile.getUuid() + ".yml");
+        File tempFile = new File(playersFolder, profile.getUuid() + ".yml.tmp");
+        yaml.save(tempFile);
+        try {
+            Files.move(tempFile.toPath(), target.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(tempFile.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
     @Override

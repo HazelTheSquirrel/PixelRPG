@@ -1,10 +1,11 @@
-# src/main/resources/paper-plugin.yml (VOLLSTÄNDIG, ersetzt alte Datei)
+# src/main/resources/paper-plugin.yml
+
 name: PixelRPG
 version: 1.0.0
 main: de.pixelrpg.rpg.PixelRPGPlugin
 description: Core MMORPG framework plugin
 author: PixelRPGTeam
-api-version: '26.1.2'
+api-version: '26.2'
 
 commands:
   rpgadmin:

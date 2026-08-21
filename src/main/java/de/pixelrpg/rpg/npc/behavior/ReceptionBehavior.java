@@ -1,6 +1,6 @@
 package de.pixelrpg.rpg.npc.behavior;
 
-import de.pixelrpg.rpg.gui.ReceptionGUI;
+import de.pixelrpg.rpg.dialogue.ReceptionDialog;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
@@ -22,6 +22,6 @@ public final class ReceptionBehavior implements NpcBehavior {
 
     @Override
     public void onInteract(Player player, RPGNpc npc) {
-        new ReceptionGUI(player, profileManager).open(player);
+        new ReceptionDialog(player, profileManager).open();
     }
 }

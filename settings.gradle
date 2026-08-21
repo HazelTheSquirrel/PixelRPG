@@ -1,9 +1,12 @@
+// settings.gradle
+
 pluginManagement {
     repositories {
-        maven {
-            url = "https://papermc.io"
-        }
         gradlePluginPortal()
+        maven {
+            name = "papermc"
+            url = "https://repo.papermc.io/repository/maven-public/"
+        }
     }
 }
 

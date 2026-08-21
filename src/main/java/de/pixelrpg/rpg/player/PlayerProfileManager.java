@@ -1,4 +1,4 @@
-// src/main/java/de/pixelrpg/rpg/player/PlayerProfileManager.java (VOLLSTÄNDIG, ersetzt alte Datei — TitleAPI/Leaderboard entfernt)
+// src/main/java/de/pixelrpg/rpg/player/PlayerProfileManager.java (VOLLSTÄNDIG, ersetzt alte Datei — pro Spieler sequenzielle Speicher-/Lade-Queue, Ladefehler verweigert Login statt leeres Profil, Notfall-YAML-Backup bei MySQL-Ausfall)
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.api.EconomyAPI;
@@ -16,10 +16,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
 
+import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
@@ -28,9 +35,17 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     private final Map<UUID, PlayerProfile> activeProfiles = new ConcurrentHashMap<>();
     private final Map<UUID, PlayerProfile> loadingCache = new ConcurrentHashMap<>();
 
+    // Pro-Spieler-Warteschlange: verkettet alle Lade-/Speichervorgänge einer UUID
+    // strikt sequenziell, unabhängig vom Backend (YAML/MySQL). Verhindert Race
+    // Conditions bei schnell aufeinanderfolgenden Änderungen sowie beim Schnell-
+    // Rejoin (ein Login-Ladevorgang wartet auf einen noch laufenden Save derselben UUID).
+    private final Map<UUID, CompletableFuture<Void>> saveChain = new ConcurrentHashMap<>();
+
     private PlayerProfileRepository repository;
     private DatabaseManager databaseManager;
     private StorageType storageType;
+    private ExecutorService saveExecutor;
+    private int loadTimeoutSeconds = 8;
     private double respecCost = 300.0;
     private Rank respecMinRank = Rank.B;
 
@@ -42,7 +57,18 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         this.storageType = StorageType.fromString(config.getString("storage.type", "YAML"));
         this.respecCost = config.getDouble("classes.respec-cost", 300.0);
         this.respecMinRank = parseRank(config.getString("classes.respec-min-rank", "B"));
+        this.loadTimeoutSeconds = Math.max(1, config.getInt("storage.load-timeout-seconds", 8));
 
+        int threads = Math.max(1, config.getInt("storage.save-executor-threads", 4));
+        this.saveExecutor = Executors.newFixedThreadPool(threads, runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-ProfileIO");
+            thread.setDaemon(true);
+            return thread;
+        });
+
+        // MySQL wird ausschließlich instanziiert und verbunden, wenn storage.type
+        // explizit auf MYSQL steht. Ohne diese Einstellung passiert hier gar nichts -
+        // YAML ist und bleibt der Standard, die Datenbank ist rein optional/sekundär.
         try {
             if (storageType == StorageType.MYSQL) {
                 databaseManager = new DatabaseManager();
@@ -53,7 +79,8 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
             }
             repository.init();
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to initialize player storage, falling back to YAML.", e);
+            plugin.getLogger().log(Level.SEVERE, "Failed to initialize MySQL storage, falling back to YAML.", e);
+            storageType = StorageType.YAML;
             repository = new YamlPlayerProfileRepository(plugin.getDataFolder());
             try {
                 repository.init();
@@ -74,23 +101,57 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     }
 
     public void shutdown() {
-        for (PlayerProfile profile : activeProfiles.values()) {
-            persistSync(profile);
+        List<CompletableFuture<Void>> pendingFlushes = activeProfiles.values().stream()
+                .map(profile -> enqueueVoid(profile.getUuid(), () -> persistSync(profile)))
+                .toList();
+
+        try {
+            CompletableFuture.allOf(pendingFlushes.toArray(new CompletableFuture[0]))
+                    .get(30, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "Not all player profiles could be flushed cleanly on shutdown.", e);
         }
+
+        if (saveExecutor != null) {
+            saveExecutor.shutdown();
+            try {
+                if (!saveExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                    saveExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                saveExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+
         if (repository != null) {
             repository.shutdown();
         }
     }
 
-    public void loadForPreLogin(UUID uuid) {
-        PlayerProfile profile;
+    // Ergebnis eines Ladeversuchs vor dem Login.
+    public enum LoadOutcome {
+        SUCCESS,
+        FAILED
+    }
+
+    public LoadOutcome loadForPreLogin(UUID uuid) {
         try {
-            profile = repository.load(uuid).orElseGet(() -> new PlayerProfile(uuid));
+            return enqueue(uuid, () -> {
+                try {
+                    PlayerProfile profile = repository.load(uuid).orElseGet(() -> new PlayerProfile(uuid));
+                    loadingCache.put(uuid, profile);
+                    return LoadOutcome.SUCCESS;
+                } catch (Exception e) {
+                    plugin.getLogger().log(Level.SEVERE, "Failed to load profile for " + uuid
+                            + " - denying login to avoid overwriting existing progress with a blank profile.", e);
+                    return LoadOutcome.FAILED;
+                }
+            }).get(loadTimeoutSeconds, TimeUnit.SECONDS);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to load profile for " + uuid, e);
-            profile = new PlayerProfile(uuid);
+            plugin.getLogger().log(Level.SEVERE, "Profile load timed out or failed for " + uuid, e);
+            return LoadOutcome.FAILED;
         }
-        loadingCache.put(uuid, profile);
     }
 
     public void activateOnJoin(Player player) {
@@ -237,7 +298,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     }
 
     private void persistAsync(PlayerProfile profile) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> persistSync(profile));
+        enqueueVoid(profile.getUuid(), () -> persistSync(profile));
     }
 
     private void persistSync(PlayerProfile profile) {
@@ -248,8 +309,53 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
             repository.save(profile);
             profile.markClean();
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save profile for " + profile.getUuid(), e);
+            plugin.getLogger().log(Level.SEVERE, "Failed to save profile for " + profile.getUuid()
+                    + " - profile stays marked dirty and will be retried on the next save trigger.", e);
+            if (storageType == StorageType.MYSQL) {
+                writeEmergencyBackup(profile);
+            }
         }
+    }
+
+    // Schreibt bei einem fehlgeschlagenen MySQL-Save zusätzlich einen YAML-Snapshot
+    // in einen separaten "emergency"-Ordner, damit bei dauerhaftem DB-Ausfall
+    // nichts verloren geht und der Stand manuell wiederhergestellt werden kann.
+    private void writeEmergencyBackup(PlayerProfile profile) {
+        try {
+            File emergencyFolder = new File(plugin.getDataFolder(), "emergency");
+            YamlPlayerProfileRepository emergencyRepository = new YamlPlayerProfileRepository(emergencyFolder);
+            emergencyRepository.init();
+            emergencyRepository.save(profile);
+            plugin.getLogger().log(Level.WARNING, "Emergency YAML backup written for " + profile.getUuid()
+                    + " under plugins/PixelRPG/emergency/players/. Restore manually if the database stays unavailable.");
+        } catch (Exception backupFailure) {
+            plugin.getLogger().log(Level.SEVERE, "Emergency backup also failed for " + profile.getUuid(), backupFailure);
+        }
+    }
+
+    // Reiht eine Aufgabe strikt hinter alle bisherigen Lade-/Speichervorgänge
+    // derselben UUID ein und liefert deren Ergebnis. Garantiert z. B., dass ein
+    // Login-Ladevorgang niemals vor einem noch laufenden Save derselben UUID startet.
+    private <T> CompletableFuture<T> enqueue(UUID uuid, Supplier<T> task) {
+        CompletableFuture<T> result = new CompletableFuture<>();
+        saveChain.compute(uuid, (id, previous) -> {
+            CompletableFuture<Void> base = previous != null ? previous : CompletableFuture.completedFuture(null);
+            return base.exceptionally(ignored -> null).thenRunAsync(() -> {
+                try {
+                    result.complete(task.get());
+                } catch (Throwable t) {
+                    result.completeExceptionally(t);
+                }
+            }, saveExecutor);
+        });
+        return result;
+    }
+
+    private CompletableFuture<Void> enqueueVoid(UUID uuid, Runnable task) {
+        return enqueue(uuid, () -> {
+            task.run();
+            return null;
+        });
     }
 
     @Override

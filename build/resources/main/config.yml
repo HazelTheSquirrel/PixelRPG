@@ -1,6 +1,8 @@
-# src/main/resources/config.yml (VOLLSTÄNDIG, ersetzt alte Datei — dungeons/regions Sektionen entfernt)
+# src/main/resources/config.yml (VOLLSTÄNDIG, ersetzt alte Datei — storage.type Standard auf YAML, neue Storage-Robustheit-Einstellungen ergänzt)
 storage:
-  type: "MYSQL"
+  type: "YAML"
+  save-executor-threads: 4
+  load-timeout-seconds: 8
   mysql:
     host: "localhost"
     port: 3306

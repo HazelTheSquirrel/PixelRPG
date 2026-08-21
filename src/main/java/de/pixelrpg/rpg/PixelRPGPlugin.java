@@ -1,4 +1,4 @@
-// src/main/java/de/pixelrpg/rpg/PixelRPGPlugin.java (VOLLSTÄNDIG, ersetzt alte Datei — Achievements/Titel/Leaderboard/Custom-Deathscreen entfernt)
+// src/main/java/de/pixelrpg/rpg/PixelRPGPlugin.java (VOLLSTÄNDIG, ersetzt alte Datei — StoryNpcDialogueTest verdrahtet, an StoryBehavior übergeben)
 package de.pixelrpg.rpg;
 
 import de.pixelrpg.rpg.api.StatisticsAPI;
@@ -34,6 +34,7 @@ import de.pixelrpg.rpg.command.impl.QuestAdminSubCommand;
 import de.pixelrpg.rpg.command.impl.QuestLogCommand;
 import de.pixelrpg.rpg.command.impl.ShopSubCommand;
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.dialogue.StoryNpcDialogueTest;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.economy.GuildCurrencyPickupListener;
 import de.pixelrpg.rpg.gui.BlacksmithGUI;
@@ -228,13 +229,16 @@ public final class PixelRPGPlugin extends JavaPlugin {
                 getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
 
+        StoryNpcDialogueTest storyNpcDialogueTest = new StoryNpcDialogueTest(questManager, shopManager, playerProfileManager, npcManager);
+        getServer().getPluginManager().registerEvents(storyNpcDialogueTest, this);
+
         this.npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager));
         npcBehaviorRegistry.register(new BlacksmithBehavior(blacksmithGUI, playerProfileManager));
         npcBehaviorRegistry.register(new QuestBehavior(questManager, playerProfileManager));
         npcBehaviorRegistry.register(new ShopBehavior(shopManager, playerProfileManager));
         npcBehaviorRegistry.register(new TravelBehavior(npcManager, playerProfileManager));
-        npcBehaviorRegistry.register(new StoryBehavior(storyManager, playerProfileManager));
+        npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogueTest, playerProfileManager));
         npcBehaviorRegistry.register(new de.pixelrpg.rpg.npc.behavior.BankerBehavior(playerProfileManager));
 
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
