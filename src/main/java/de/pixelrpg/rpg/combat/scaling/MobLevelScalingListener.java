@@ -17,8 +17,6 @@ import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.projectiles.ProjectileSource;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 public final class MobLevelScalingListener implements Listener {
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
@@ -77,7 +75,7 @@ public final class MobLevelScalingListener implements Listener {
 
         MobScalingConfig.DimensionModifier dimension = scalingConfig.getDimensionModifier(monster.getWorld().getEnvironment());
         int baselineLevel = Math.max(playerLevel, dimension.baseLevel());
-        int targetLevel = baselineLevel + ThreadLocalRandom.current().nextInt(-1, 2) + dimension.levelOffset();
+        int targetLevel = baselineLevel + dimension.levelOffset();
         targetLevel = Math.max(regionMin, Math.min(targetLevel, regionMax));
         targetLevel = Math.max(Level.MIN_LEVEL, Math.min(targetLevel, Level.MAX_NORMAL_LEVEL));
 
