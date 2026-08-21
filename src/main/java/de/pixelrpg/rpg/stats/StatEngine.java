@@ -12,6 +12,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,14 +23,20 @@ public final class StatEngine {
                               double critDamageMultiplier, double lifestealBonus) {
         public static final CachedStats EMPTY = new CachedStats(20.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 2.0, 0.0);
     }
+
     private final PlayerProfileManager profileManager;
     private final Map<UUID, CachedStats> cache = new ConcurrentHashMap<>();
+
     public StatEngine(PlayerProfileManager profileManager) { this.profileManager = profileManager; }
     public CachedStats getCachedStats(UUID uuid) { return cache.getOrDefault(uuid, CachedStats.EMPTY); }
 
     public void recalculate(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegisteredInGuild()) { cache.remove(player.getUniqueId()); clearModifiers(player); return; }
+        if (profile == null || !profile.isRegisteredInGuild()) {
+            clear(player);
+            return;
+        }
+
         ClassBalance classBalance = ClassBalance.of(profile);
         double maxHealth = 20.0 + classBalance.healthBonus();
         double armor = classBalance.armorBonus();
@@ -40,6 +47,7 @@ public final class StatEngine {
         double critChance = 5.0 + classBalance.critChanceBonus();
         double critDamageMultiplier = 2.0 * classBalance.critDamageMultiplier();
         double lifestealBonus = 0.0;
+
         maxHealth += profile.getAttributePoints(PlayerAttribute.VITALITY) * AttributeConfig.VITALITY_HP_PER_POINT;
         int agility = profile.getAttributePoints(PlayerAttribute.AGILITY);
         movementSpeedBonus += agility * AttributeConfig.AGILITY_SPEED_PER_POINT;
@@ -49,21 +57,34 @@ public final class StatEngine {
         blockReach += range * AttributeConfig.RANGE_BLOCK_PER_POINT;
         entityReach += range * AttributeConfig.RANGE_ENTITY_PER_POINT;
         armor += profile.getAttributePoints(PlayerAttribute.TOUGHNESS) * AttributeConfig.TOUGHNESS_ARMOR_PER_POINT;
-        CachedStats stats = new CachedStats(maxHealth, armor, movementSpeedBonus, blockReach, entityReach, bonusDamage, critChance, critDamageMultiplier, lifestealBonus);
+
+        CachedStats stats = new CachedStats(maxHealth, armor, movementSpeedBonus, blockReach, entityReach,
+                bonusDamage, critChance, critDamageMultiplier, lifestealBonus);
         cache.put(player.getUniqueId(), stats);
         applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), maxHealth - 20.0);
         applyModifier(player, Attribute.ARMOR, RPGKeys.Stats.armor(), armor);
         applyModifier(player, Attribute.MOVEMENT_SPEED, RPGKeys.Stats.movementSpeed(), movementSpeedBonus);
         applyModifier(player, Attribute.BLOCK_INTERACTION_RANGE, RPGKeys.Stats.blockRange(), blockReach);
         applyModifier(player, Attribute.ENTITY_INTERACTION_RANGE, RPGKeys.Stats.entityRange(), entityReach);
+
         AttributeInstance healthInstance = player.getAttribute(Attribute.MAX_HEALTH);
-        if (healthInstance != null) { double max = healthInstance.getValue(); player.setHealthScaled(true); player.setHealthScale(Math.min(40.0, max)); if (player.getHealth() > max) player.setHealth(max); }
+        if (healthInstance != null) {
+            double max = healthInstance.getValue();
+            player.setHealthScaled(true);
+            player.setHealthScale(Math.min(40.0, max));
+            if (player.getHealth() > max) player.setHealth(max);
+        }
+
         boolean hasSoulview = profile.getAttributePoints(PlayerAttribute.SOULVIEW) > 0;
-        if (hasSoulview) player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, PotionEffect.INFINITE_DURATION, 0, false, false));
-        else player.removePotionEffect(PotionEffectType.NIGHT_VISION);
+        if (hasSoulview) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, PotionEffect.INFINITE_DURATION, 0, false, false));
+        } else {
+            player.removePotionEffect(PotionEffectType.NIGHT_VISION);
+        }
     }
 
-    private void clearModifiers(Player player) {
+    public void clear(Player player) {
+        cache.remove(player.getUniqueId());
         removeModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth());
         removeModifier(player, Attribute.ARMOR, RPGKeys.Stats.armor());
         removeModifier(player, Attribute.MOVEMENT_SPEED, RPGKeys.Stats.movementSpeed());
@@ -72,12 +93,14 @@ public final class StatEngine {
         player.setHealthScaled(false);
         player.removePotionEffect(PotionEffectType.NIGHT_VISION);
     }
+
     private void applyModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key, double value) {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance == null) return;
         removeModifier(player, attribute, key);
         if (value != 0.0) instance.addModifier(new AttributeModifier(key, value, AttributeModifier.Operation.ADD_NUMBER));
     }
+
     private void removeModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key) {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance == null) return;
