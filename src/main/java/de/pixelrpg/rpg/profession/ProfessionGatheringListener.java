@@ -16,7 +16,7 @@ public final class ProfessionGatheringListener implements Listener {
         this.professionService = professionService;
     }
 
-    // Vergibt Mining- oder Woodcutting-XP für erfolgreich abgebaute Ressourcen.
+    // Vergibt Mining-, Woodcutting- oder Herbalism-XP für erfolgreich abgebaute Ressourcen.
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
@@ -30,10 +30,19 @@ public final class ProfessionGatheringListener implements Listener {
                  NETHER_GOLD_ORE, NETHER_QUARTZ_ORE, ANCIENT_DEBRIS -> Profession.MINING;
             case OAK_LOG, SPRUCE_LOG, BIRCH_LOG, JUNGLE_LOG, ACACIA_LOG, DARK_OAK_LOG,
                  MANGROVE_LOG, CHERRY_LOG, PALE_OAK_LOG, CRIMSON_STEM, WARPED_STEM -> Profession.WOODCUTTING;
+            case WHEAT, CARROTS, POTATOES, BEETROOTS, NETHER_WART, COCOA, SWEET_BERRY_BUSH,
+                 GLOW_BERRIES, KELP, SEAGRASS, TALL_SEAGRASS, SUGAR_CANE, CACTUS, BAMBOO,
+                 VINE, GLOW_LICHEN, MOSS_BLOCK -> Profession.HERBALISM;
             default -> null;
         };
         if (profession == null) return;
-        professionService.addExperience(player, profession, profession == Profession.MINING ? 10L : 8L);
+        long amount = switch (profession) {
+            case MINING -> 10L;
+            case WOODCUTTING -> 8L;
+            case HERBALISM -> 6L;
+            default -> 0L;
+        };
+        professionService.addExperience(player, profession, amount);
     }
 
     // Vergibt Fishing-XP, wenn tatsächlich ein Fang abgeschlossen wurde.
