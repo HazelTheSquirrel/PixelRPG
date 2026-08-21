@@ -18,6 +18,9 @@ commands:
   rpgcraft:
     description: Lists and crafts PixelRPG profession recipes
     permission: rpg.member
+  dialogue:
+    description: Opens the central PixelRPG native dialogue
+    permission: rpg.member
 
 permissions:
   rpg.admin:
