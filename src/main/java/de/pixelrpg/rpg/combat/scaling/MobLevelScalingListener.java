@@ -29,7 +29,7 @@ public final class MobLevelScalingListener implements Listener {
     private final Plugin plugin;
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
-    private final Map<UUID, Long> lastRpgInteraction = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<UUID, Long>> activeParticipants = new ConcurrentHashMap<>();
     private BukkitTask cleanupTask;
 
     public MobLevelScalingListener(Plugin plugin, GuildAPI guildAPI, MobScalingConfig scalingConfig) {
@@ -48,7 +48,7 @@ public final class MobLevelScalingListener implements Listener {
             cleanupTask.cancel();
             cleanupTask = null;
         }
-        lastRpgInteraction.clear();
+        activeParticipants.clear();
     }
 
     // Zuständig dafür, dass die Skalierung beim tatsächlichen Zielwechsel auf einen registrierten Spieler aktiviert wird.
@@ -58,11 +58,11 @@ public final class MobLevelScalingListener implements Listener {
         if (monster.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING)) return;
 
         if (event.getTarget() instanceof Player player && guildAPI.isRegistered(player.getUniqueId())) {
-            applyScaling(monster, guildAPI.getLevel(player.getUniqueId()));
+            markParticipant(monster, player);
         }
     }
 
-    // Zuständig dafür, dass ein registrierter Angreifer die Skalierung auch dann bestimmt, wenn der Mob keinen Zielwechsel ausführt.
+    // Zuständig dafür, dass jeder registrierte RPG-Angreifer als aktiver Teilnehmer der Mob-Skalierung erfasst wird.
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onRpgDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Monster monster)) return;
@@ -77,12 +77,24 @@ public final class MobLevelScalingListener implements Listener {
         }
         if (attacker == null || !guildAPI.isRegistered(attacker.getUniqueId())) return;
 
-        applyScaling(monster, guildAPI.getLevel(attacker.getUniqueId()));
+        markParticipant(monster, attacker);
     }
 
-    private void applyScaling(Monster monster, int playerLevel) {
+    private void markParticipant(Monster monster, Player player) {
+        UUID mobUuid = monster.getUniqueId();
+        activeParticipants.computeIfAbsent(mobUuid, ignored -> new ConcurrentHashMap<>())
+                .put(player.getUniqueId(), System.currentTimeMillis());
+        applyScaling(monster);
+    }
+
+    private void applyScaling(Monster monster) {
         rememberOriginalAttributes(monster);
-        lastRpgInteraction.put(monster.getUniqueId(), System.currentTimeMillis());
+
+        int participantLevel = activeParticipants.getOrDefault(monster.getUniqueId(), Map.of()).keySet().stream()
+                .mapToInt(guildAPI::getLevel)
+                .filter(level -> level >= Level.MIN_LEVEL)
+                .max()
+                .orElse(Level.MIN_LEVEL);
 
         int regionMin = Math.max(Level.MIN_LEVEL, resolveRegionProvider().getMinLevel(monster.getLocation()));
         int regionMax = Math.min(Level.MAX_NORMAL_LEVEL, resolveRegionProvider().getMaxLevel(monster.getLocation()));
@@ -93,9 +105,7 @@ public final class MobLevelScalingListener implements Listener {
         }
 
         MobScalingConfig.DimensionModifier dimension = scalingConfig.getDimensionModifier(monster.getWorld().getEnvironment());
-        int baselineLevel = Math.max(playerLevel, dimension.baseLevel());
-        int existingLevel = monster.getPersistentDataContainer().getOrDefault(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, Level.MIN_LEVEL);
-        int targetLevel = Math.max(existingLevel, baselineLevel) + dimension.levelOffset();
+        int targetLevel = Math.max(participantLevel, dimension.baseLevel()) + dimension.levelOffset();
         targetLevel = Math.max(regionMin, Math.min(targetLevel, regionMax));
         targetLevel = Math.max(Level.MIN_LEVEL, Math.min(targetLevel, Level.MAX_NORMAL_LEVEL));
 
@@ -132,13 +142,26 @@ public final class MobLevelScalingListener implements Listener {
 
     private void restoreExpiredScaling() {
         long now = System.currentTimeMillis();
-        for (UUID uuid : lastRpgInteraction.keySet()) {
-            Long lastInteraction = lastRpgInteraction.get(uuid);
-            if (lastInteraction == null || now - lastInteraction < COMBAT_TIMEOUT_MILLIS) continue;
 
-            var entity = Bukkit.getEntity(uuid);
-            if (entity instanceof Monster monster) restoreVanillaScaling(monster);
-            lastRpgInteraction.remove(uuid);
+        for (UUID mobUuid : activeParticipants.keySet()) {
+            Map<UUID, Long> participants = activeParticipants.get(mobUuid);
+            if (participants == null) continue;
+
+            participants.entrySet().removeIf(entry -> now - entry.getValue() >= COMBAT_TIMEOUT_MILLIS || !guildAPI.isRegistered(entry.getKey()));
+            var entity = Bukkit.getEntity(mobUuid);
+
+            if (!(entity instanceof Monster monster)) {
+                activeParticipants.remove(mobUuid);
+                continue;
+            }
+
+            if (participants.isEmpty()) {
+                restoreVanillaScaling(monster);
+                activeParticipants.remove(mobUuid);
+                continue;
+            }
+
+            applyScaling(monster);
         }
     }
 
