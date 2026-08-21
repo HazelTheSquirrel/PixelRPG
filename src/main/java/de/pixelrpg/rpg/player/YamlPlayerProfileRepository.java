@@ -34,6 +34,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         profile.setPlayerClass(parseClass(yaml.getString("player-class", "NONE")));
         profile.setMoney(yaml.getDouble("money", 0.0));
         profile.setReceivedStartBonus(yaml.getBoolean("start-bonus", false));
+        if (yaml.contains("mana.current")) profile.setCurrentMana(yaml.getDouble("mana.current", 0.0), Double.MAX_VALUE);
 
         for (PlayerAttribute attribute : PlayerAttribute.values()) profile.setAttributePoints(attribute, yaml.getInt("attributes." + attribute.name().toLowerCase(), 0));
 
@@ -70,6 +71,8 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         yaml.set("player-class", profile.getPlayerClass().name());
         yaml.set("money", profile.getMoney());
         yaml.set("start-bonus", profile.hasReceivedStartBonus());
+        yaml.set("mana.current", profile.getCurrentMana());
+        yaml.set("mana.initialized", profile.isManaInitialized());
         for (PlayerAttribute attribute : PlayerAttribute.values()) yaml.set("attributes." + attribute.name().toLowerCase(), profile.getAttributePoints(attribute));
         for (Profession profession : Profession.values()) {
             String key = profession.name().toLowerCase();

@@ -45,7 +45,7 @@ public final class MobLevelScalingListener implements Listener {
     public void onMonsterSpawn(CreatureSpawnEvent event) {
         if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CUSTOM) return;
         if (!(event.getEntity() instanceof Monster monster)) return;
-        if (monster.getPersistentDataContainer().has(RPGKeys.Combat.bossId(), PersistentDataType.STRING)) return;
+        if (monster.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING)) return;
         if (monster.getPersistentDataContainer().has(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER)) return;
 
         CachedLevel cached = computeAverageNearbyLevelCached(monster);
@@ -60,7 +60,7 @@ public final class MobLevelScalingListener implements Listener {
         if (!(event.getEntity() instanceof Monster monster)) return;
         if (!(event.getTarget() instanceof Player player)) return;
         if (!guildAPI.isRegistered(player.getUniqueId())) return;
-        if (monster.getPersistentDataContainer().has(RPGKeys.Combat.bossId(), PersistentDataType.STRING)) return;
+        if (monster.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING)) return;
 
         applyScaling(monster, guildAPI.getLevel(player.getUniqueId()));
     }

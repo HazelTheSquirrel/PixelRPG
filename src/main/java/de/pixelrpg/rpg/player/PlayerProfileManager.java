@@ -6,11 +6,7 @@ import de.pixelrpg.rpg.api.events.PlayerClassChangeEvent;
 import de.pixelrpg.rpg.api.events.PlayerJoinGuildEvent;
 import de.pixelrpg.rpg.api.events.PlayerLeaveGuildEvent;
 import de.pixelrpg.rpg.api.events.PlayerLevelUpEvent;
-import de.pixelrpg.rpg.command.impl.CraftingCommand;
 import de.pixelrpg.rpg.core.Level;
-import de.pixelrpg.rpg.profession.CraftingService;
-import de.pixelrpg.rpg.profession.ProfessionGatheringListener;
-import de.pixelrpg.rpg.profession.ProfessionService;
 import de.pixelrpg.rpg.storage.DatabaseManager;
 import de.pixelrpg.rpg.storage.StorageType;
 import org.bukkit.Bukkit;
@@ -74,14 +70,6 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         }
         Bukkit.getServicesManager().register(GuildAPI.class, this, plugin, ServicePriority.Normal);
         Bukkit.getServicesManager().register(EconomyAPI.class, this, plugin, ServicePriority.Normal);
-        ProfessionService professionService = new ProfessionService(this);
-        Bukkit.getPluginManager().registerEvents(new ProfessionGatheringListener(professionService), plugin);
-        CraftingService craftingService = new CraftingService(professionService);
-        if (Bukkit.getPluginCommand("rpgcraft") != null) {
-            CraftingCommand craftingCommand = new CraftingCommand(craftingService);
-            Bukkit.getPluginCommand("rpgcraft").setExecutor(craftingCommand);
-            Bukkit.getPluginCommand("rpgcraft").setTabCompleter(craftingCommand);
-        }
     }
 
     public void shutdown() {

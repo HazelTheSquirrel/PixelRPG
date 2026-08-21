@@ -21,8 +21,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class StatEngine {
     public record CachedStats(double maxHealth, double armor, double movementSpeedBonus, double blockReach,
                               double entityReach, double bonusDamage, double critChance,
-                              double critDamageMultiplier, double lifestealBonus) {
-        public static final CachedStats EMPTY = new CachedStats(20.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 2.0, 0.0);
+                              double critDamageMultiplier, double lifestealBonus,
+                              double strength, double agility, double stamina, double intellect,
+                              double attackPower, double spellPower, double maxMana) {
+        public static final CachedStats EMPTY = new CachedStats(
+                20.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 2.0, 0.0,
+                10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 100.0);
     }
 
     private final PlayerProfileManager profileManager;
@@ -50,19 +54,45 @@ public final class StatEngine {
         double critDamageMultiplier = 2.0 * classBalance.critDamageMultiplier();
         double lifestealBonus = 0.0;
 
-        maxHealth += profile.getAttributePoints(PlayerAttribute.VITALITY) * AttributeConfig.VITALITY_HP_PER_POINT;
+        int vitality = profile.getAttributePoints(PlayerAttribute.VITALITY);
         int agility = profile.getAttributePoints(PlayerAttribute.AGILITY);
+        int precision = profile.getAttributePoints(PlayerAttribute.PRECISION);
+        int range = profile.getAttributePoints(PlayerAttribute.RANGE);
+        int toughness = profile.getAttributePoints(PlayerAttribute.TOUGHNESS);
+
+        maxHealth += vitality * AttributeConfig.VITALITY_HP_PER_POINT;
         movementSpeedBonus += agility * AttributeConfig.AGILITY_SPEED_PER_POINT;
         critChance += agility * AttributeConfig.AGILITY_CRIT_PER_POINT;
-        bonusDamage += profile.getAttributePoints(PlayerAttribute.PRECISION) * AttributeConfig.PRECISION_DAMAGE_PER_POINT;
-        int range = profile.getAttributePoints(PlayerAttribute.RANGE);
+        bonusDamage += precision * AttributeConfig.PRECISION_DAMAGE_PER_POINT;
         blockReach += range * AttributeConfig.RANGE_BLOCK_PER_POINT;
         entityReach += range * AttributeConfig.RANGE_ENTITY_PER_POINT;
-        armor += profile.getAttributePoints(PlayerAttribute.TOUGHNESS) * AttributeConfig.TOUGHNESS_ARMOR_PER_POINT;
+        armor += toughness * AttributeConfig.TOUGHNESS_ARMOR_PER_POINT;
+
+        double strength = 10.0 + toughness;
+        double agilityStat = 10.0 + agility;
+        double stamina = 10.0 + vitality;
+        double intellect = 10.0 + precision;
+        double attackPower = strength + bonusDamage;
+        double spellPower = intellect * classBalance.spellDamageMultiplier();
+        double classManaBase = switch (profile.getPlayerClass()) {
+            case MAGE -> 150.0;
+            case HEALER -> 130.0;
+            case RANGER -> 110.0;
+            case ROGUE -> 100.0;
+            case WARRIOR -> 80.0;
+            case NONE -> 100.0;
+        };
+        double maxMana = classManaBase + intellect * 5.0;
 
         CachedStats stats = new CachedStats(maxHealth, armor, movementSpeedBonus, blockReach, entityReach,
-                bonusDamage, critChance, critDamageMultiplier, lifestealBonus);
+                bonusDamage, critChance, critDamageMultiplier, lifestealBonus,
+                strength, agilityStat, stamina, intellect, attackPower, spellPower, maxMana);
         cache.put(player.getUniqueId(), stats);
+
+        if (!profile.isManaInitialized()) profile.initializeMana(maxMana);
+        else if (profile.getCurrentMana() > maxMana) profile.setCurrentMana(profile.getCurrentMana(), maxMana);
+        profileManager.saveProfileAsync(player.getUniqueId());
+
         applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), maxHealth - 20.0);
         applyModifier(player, Attribute.ARMOR, RPGKeys.Stats.armor(), armor);
         applyModifier(player, Attribute.MOVEMENT_SPEED, RPGKeys.Stats.movementSpeed(), movementSpeedBonus);
@@ -95,6 +125,27 @@ public final class StatEngine {
         removeModifier(player, Attribute.ENTITY_INTERACTION_RANGE, RPGKeys.Stats.entityRange());
         player.setHealthScaled(false);
         if (managedSoulview.remove(player.getUniqueId())) player.removePotionEffect(PotionEffectType.NIGHT_VISION);
+    }
+
+    public void restoreMana(Player player, double amount) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegisteredInGuild()) return;
+        profile.restoreMana(amount, getCachedStats(player.getUniqueId()).maxMana());
+    }
+
+    public boolean consumeMana(Player player, double amount) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegisteredInGuild()) return false;
+        return profile.consumeMana(amount, getCachedStats(player.getUniqueId()).maxMana());
+    }
+
+    public double getMana(Player player) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        return profile != null && profile.isRegisteredInGuild() ? profile.getCurrentMana() : 0.0;
+    }
+
+    public double getMaxMana(Player player) {
+        return getCachedStats(player.getUniqueId()).maxMana();
     }
 
     private void applyModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key, double value) {

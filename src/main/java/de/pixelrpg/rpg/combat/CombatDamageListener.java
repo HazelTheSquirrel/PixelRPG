@@ -13,7 +13,10 @@ import de.pixelrpg.rpg.stats.StatEngine;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.*;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Monster;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -89,7 +92,7 @@ public final class CombatDamageListener implements Listener {
         }
         if (!isRanged && ClassSetBonusService.rollProc(setBonus)) {
             double procBurst = damage * 0.35;
-            target.damage(procBurst, attacker);
+            damage += procBurst;
             target.getWorld().spawnParticle(Particle.FLASH, target.getLocation().add(0, 1, 0), 1);
             attacker.playSound(attacker.getLocation(), Sound.ITEM_TOTEM_USE, 0.7f, 1.6f);
             attacker.sendActionBar(lang.get("combat.set-bonus-proc"));

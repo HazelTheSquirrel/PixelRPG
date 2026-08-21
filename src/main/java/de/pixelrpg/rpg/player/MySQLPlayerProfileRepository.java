@@ -48,6 +48,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 profile.setPlayerClass(parseClass(resultSet.getString("player_class")));
                 profile.setMoney(resultSet.getDouble("money"));
                 profile.setReceivedStartBonus(resultSet.getBoolean("start_bonus"));
+                if (resultSet.getBoolean("mana_initialized")) profile.setCurrentMana(resultSet.getDouble("mana_current"), Double.MAX_VALUE);
                 profile.setAttributePoints(PlayerAttribute.VITALITY, resultSet.getInt("attr_vitality"));
                 profile.setAttributePoints(PlayerAttribute.AGILITY, resultSet.getInt("attr_agility"));
                 profile.setAttributePoints(PlayerAttribute.PRECISION, resultSet.getInt("attr_precision"));
@@ -109,14 +110,15 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
     public void save(PlayerProfile profile) throws SQLException {
         String upsertPlayerSql = """
                 INSERT INTO pixelrpg_players
-                    (uuid, registered, experience, player_class, money, start_bonus,
+                    (uuid, registered, experience, player_class, money, start_bonus, mana_current, mana_initialized,
                      attr_vitality, attr_agility, attr_precision, attr_range, attr_toughness, attr_soulview, attr_elytra,
                      waypoints, story_chapter, completed_quests,
                      scoreboard_enabled, party_hud_enabled, quest_tracker_enabled, playtime_millis)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     registered = VALUES(registered), experience = VALUES(experience), player_class = VALUES(player_class),
-                    money = VALUES(money), start_bonus = VALUES(start_bonus), attr_vitality = VALUES(attr_vitality),
+                    money = VALUES(money), start_bonus = VALUES(start_bonus), mana_current = VALUES(mana_current),
+                    mana_initialized = VALUES(mana_initialized), attr_vitality = VALUES(attr_vitality),
                     attr_agility = VALUES(attr_agility), attr_precision = VALUES(attr_precision), attr_range = VALUES(attr_range),
                     attr_toughness = VALUES(attr_toughness), attr_soulview = VALUES(attr_soulview), attr_elytra = VALUES(attr_elytra),
                     waypoints = VALUES(waypoints), story_chapter = VALUES(story_chapter), completed_quests = VALUES(completed_quests),
@@ -140,20 +142,22 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                     statement.setString(4, profile.getPlayerClass().name());
                     statement.setDouble(5, profile.getMoney());
                     statement.setBoolean(6, profile.hasReceivedStartBonus());
-                    statement.setInt(7, profile.getAttributePoints(PlayerAttribute.VITALITY));
-                    statement.setInt(8, profile.getAttributePoints(PlayerAttribute.AGILITY));
-                    statement.setInt(9, profile.getAttributePoints(PlayerAttribute.PRECISION));
-                    statement.setInt(10, profile.getAttributePoints(PlayerAttribute.RANGE));
-                    statement.setInt(11, profile.getAttributePoints(PlayerAttribute.TOUGHNESS));
-                    statement.setInt(12, profile.getAttributePoints(PlayerAttribute.SOULVIEW));
-                    statement.setInt(13, profile.getAttributePoints(PlayerAttribute.ELYTRA_PERMIT));
-                    statement.setString(14, String.join(",", profile.getUnlockedWaypoints()));
-                    statement.setInt(15, profile.getStoryChapterIndex());
-                    statement.setString(16, String.join(",", profile.getCompletedQuests()));
-                    statement.setBoolean(17, profile.isScoreboardEnabled());
-                    statement.setBoolean(18, profile.isPartyHudEnabled());
-                    statement.setBoolean(19, profile.isQuestTrackerEnabled());
-                    statement.setLong(20, profile.getPlaytimeMillis());
+                    statement.setDouble(7, profile.getCurrentMana());
+                    statement.setBoolean(8, profile.isManaInitialized());
+                    statement.setInt(9, profile.getAttributePoints(PlayerAttribute.VITALITY));
+                    statement.setInt(10, profile.getAttributePoints(PlayerAttribute.AGILITY));
+                    statement.setInt(11, profile.getAttributePoints(PlayerAttribute.PRECISION));
+                    statement.setInt(12, profile.getAttributePoints(PlayerAttribute.RANGE));
+                    statement.setInt(13, profile.getAttributePoints(PlayerAttribute.TOUGHNESS));
+                    statement.setInt(14, profile.getAttributePoints(PlayerAttribute.SOULVIEW));
+                    statement.setInt(15, profile.getAttributePoints(PlayerAttribute.ELYTRA_PERMIT));
+                    statement.setString(16, String.join(",", profile.getUnlockedWaypoints()));
+                    statement.setInt(17, profile.getStoryChapterIndex());
+                    statement.setString(18, String.join(",", profile.getCompletedQuests()));
+                    statement.setBoolean(19, profile.isScoreboardEnabled());
+                    statement.setBoolean(20, profile.isPartyHudEnabled());
+                    statement.setBoolean(21, profile.isQuestTrackerEnabled());
+                    statement.setLong(22, profile.getPlaytimeMillis());
                     statement.executeUpdate();
                 }
                 try (PreparedStatement deleteStatement = connection.prepareStatement(deleteQuestsSql)) {

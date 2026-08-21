@@ -44,6 +44,7 @@ public final class BossManager {
     private final EconomyAPI economyAPI;
     private final ItemEconomyConfig itemEconomyConfig;
     private final double barRadius;
+    private final int barUpdateIntervalTicks;
     private final int phaseCheckIntervalTicks;
     private final LanguageManager lang;
     private final double classSetDropChance;
@@ -58,7 +59,8 @@ public final class BossManager {
         this.economyAPI = economyAPI;
         this.itemEconomyConfig = itemEconomyConfig;
         this.barRadius = barRadius;
-        this.phaseCheckIntervalTicks = phaseCheckIntervalTicks;
+        this.barUpdateIntervalTicks = Math.max(1, barUpdateIntervalTicks);
+        this.phaseCheckIntervalTicks = Math.max(1, phaseCheckIntervalTicks);
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
         this.classSetDropChance = PixelRPGPlugin.getInstance().getConfig().getDouble("bosses.class-set-drop-chance", 0.08);
     }
@@ -112,7 +114,11 @@ public final class BossManager {
             cleanup(activeBoss);
             return;
         }
-        updateBossBar(activeBoss, entity);
+        activeBoss.incrementBarUpdateTimer(phaseCheckIntervalTicks);
+        if (activeBoss.getTicksSinceLastBarUpdate() >= barUpdateIntervalTicks) {
+            activeBoss.resetBarUpdateTimer();
+            updateBossBar(activeBoss, entity);
+        }
         checkPhaseTransition(activeBoss, entity);
         runAttackPatternIfDue(activeBoss, entity);
     }
@@ -188,6 +194,12 @@ public final class BossManager {
         patternRegistry.get(patternId).ifPresent(pattern -> pattern.execute(plugin, entity, targets));
     }
 
+    public void recordDamage(UUID bossEntityUuid, UUID playerUuid, double damage) {
+        if (!guildAPI.isRegistered(playerUuid) || damage <= 0.0) return;
+        ActiveBoss activeBoss = activeBosses.get(bossEntityUuid);
+        if (activeBoss != null) activeBoss.recordDamage(playerUuid, damage);
+    }
+
     public void onBossDeath(LivingEntity entity) {
         ActiveBoss activeBoss = activeBosses.get(entity.getUniqueId());
         if (activeBoss == null) return;
@@ -199,14 +211,14 @@ public final class BossManager {
         BossLootConfig lootConfig = activeBoss.getDefinition().getLootConfig();
         Random random = ThreadLocalRandom.current();
         Set<UUID> participants = new HashSet<>();
-        for (UUID viewerUuid : activeBoss.getViewers()) {
-            Player player = Bukkit.getPlayer(viewerUuid);
-            if (player == null || !player.isOnline() || !guildAPI.isRegistered(viewerUuid)) continue;
-            participants.add(viewerUuid);
-            rollClassSetDrop(player, viewerUuid, activeBoss.getDefinition().getLevel(), random);
+        for (UUID participantUuid : activeBoss.getDamageContribution().keySet()) {
+            Player player = Bukkit.getPlayer(participantUuid);
+            if (player == null || !player.isOnline() || !guildAPI.isRegistered(participantUuid)) continue;
+            participants.add(participantUuid);
+            rollClassSetDrop(player, participantUuid, activeBoss.getDefinition().getLevel(), random);
             if (lootConfig == null) continue;
-            economyAPI.deposit(viewerUuid, lootConfig.moneyReward());
-            guildAPI.addExperience(viewerUuid, lootConfig.expReward());
+            economyAPI.deposit(participantUuid, lootConfig.moneyReward());
+            guildAPI.addExperience(participantUuid, lootConfig.expReward());
             player.sendMessage(lang.get("boss.defeated-reward", "money", String.valueOf(lootConfig.moneyReward()), "exp", String.valueOf(lootConfig.expReward())));
             if (!lootConfig.materialPool().isEmpty()) {
                 String materialName = lootConfig.materialPool().get(random.nextInt(lootConfig.materialPool().size()));
@@ -248,15 +260,7 @@ public final class BossManager {
         return activeBosses.values().stream().anyMatch(active -> active.getDefinition().getId().equals(bossId));
     }
 
-    public int getActiveBossCount() {
-        return activeBosses.size();
-    }
-
-    public void shutdownAll() {
-        for (ActiveBoss activeBoss : activeBosses.values()) cleanup(activeBoss);
-    }
-
-    public void shutdown() {
-        shutdownAll();
-    }
+    public int getActiveBossCount() { return activeBosses.size(); }
+    public void shutdownAll() { for (ActiveBoss activeBoss : activeBosses.values()) cleanup(activeBoss); }
+    public void shutdown() { shutdownAll(); }
 }

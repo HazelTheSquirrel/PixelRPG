@@ -2,6 +2,7 @@ package de.pixelrpg.rpg;
 
 import de.pixelrpg.rpg.api.StatisticsAPI;
 import de.pixelrpg.rpg.boss.BossAttackPatternRegistry;
+import de.pixelrpg.rpg.boss.BossDamageContributionListener;
 import de.pixelrpg.rpg.boss.BossDeathListener;
 import de.pixelrpg.rpg.boss.BossManager;
 import de.pixelrpg.rpg.boss.BossRepository;
@@ -10,6 +11,15 @@ import de.pixelrpg.rpg.boss.patterns.EnrageBuffPattern;
 import de.pixelrpg.rpg.boss.patterns.ProjectileVolleyPattern;
 import de.pixelrpg.rpg.boss.patterns.SlamAttackPattern;
 import de.pixelrpg.rpg.boss.patterns.SummonAddsPattern;
+import de.pixelrpg.rpg.command.PaperBasicCommandAdapter;
+import de.pixelrpg.rpg.command.RootCommand;
+import de.pixelrpg.rpg.command.impl.BlacksmithSubCommand;
+import de.pixelrpg.rpg.command.impl.BossSubCommand;
+import de.pixelrpg.rpg.command.impl.NpcSubCommand;
+import de.pixelrpg.rpg.command.impl.PartySubCommand;
+import de.pixelrpg.rpg.command.impl.QuestAdminSubCommand;
+import de.pixelrpg.rpg.command.impl.QuestLogCommand;
+import de.pixelrpg.rpg.command.impl.ShopSubCommand;
 import de.pixelrpg.rpg.combat.CombatDamageListener;
 import de.pixelrpg.rpg.combat.ElytraPermissionListener;
 import de.pixelrpg.rpg.combat.EquipmentAuraListener;
@@ -22,15 +32,6 @@ import de.pixelrpg.rpg.combat.scaling.MobLevelScalingListener;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.combat.skill.SkillInputListener;
 import de.pixelrpg.rpg.combat.skill.WeaponAbilityEngine;
-import de.pixelrpg.rpg.command.RootCommand;
-import de.pixelrpg.rpg.command.impl.BlacksmithSubCommand;
-import de.pixelrpg.rpg.command.impl.BossSubCommand;
-import de.pixelrpg.rpg.command.impl.NpcSubCommand;
-import de.pixelrpg.rpg.command.impl.PartySubCommand;
-import de.pixelrpg.rpg.command.impl.QuestAdminSubCommand;
-import de.pixelrpg.rpg.command.impl.QuestLogCommand;
-import de.pixelrpg.rpg.command.impl.ShopSubCommand;
-import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.dialogue.DialogueCommand;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
@@ -71,6 +72,7 @@ import de.pixelrpg.rpg.quest.QuestRepository;
 import de.pixelrpg.rpg.scoreboard.PlaytimeTracker;
 import de.pixelrpg.rpg.scoreboard.ScoreboardService;
 import de.pixelrpg.rpg.shop.ShopManager;
+import de.pixelrpg.rpg.stats.ManaRegenerationTask;
 import de.pixelrpg.rpg.stats.MobKillStatisticListener;
 import de.pixelrpg.rpg.stats.PlayerDeathStatisticListener;
 import de.pixelrpg.rpg.stats.QuestBossStatisticListener;
@@ -88,6 +90,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private static PixelRPGPlugin instance;
     private PlayerProfileManager playerProfileManager;
     private StatEngine statEngine;
+    private ManaRegenerationTask manaRegenerationTask;
     private ItemEconomyConfig itemEconomyConfig;
     private ItemService itemService;
     private BlacksmithGUI blacksmithGUI;
@@ -169,6 +172,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
         equipmentAuraListener = new EquipmentAuraListener(playerProfileManager, getConfig().getInt("effects.aura-interval-ticks", 60));
         equipmentAuraListener.start();
+        manaRegenerationTask = new ManaRegenerationTask(this, statEngine, playerProfileManager);
+        manaRegenerationTask.start();
         AttributeConfig.configureElytraCost(getConfig().getDouble("elytra.permit-cost", 750.0));
         npcManager = new NpcManager(this);
         npcManager.loadAll();
@@ -176,7 +181,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 8.0), getConfig().getInt("npc.look-interval-ticks", 5)).start();
         DialogueEngine dialogueEngine = new DialogueEngine();
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
-        QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager);
+        QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine);
         npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new BlacksmithBehavior(blacksmithGUI, playerProfileManager));
@@ -195,6 +200,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MobLevelScalingListener(playerProfileManager, mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(new MobNameplateListener(mobNameplateService, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new CombatDamageListener(playerProfileManager, playerProfileManager, statEngine, mobScalingConfig), this);
+        getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new MobExperienceListener(playerProfileManager, mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry), this);
         getServer().getPluginManager().registerEvents(new QuestMobKillListener(questManager), this);
@@ -211,26 +217,26 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(playtimeTracker, this);
         getServer().getPluginManager().registerEvents(new QuickActionsDialogListener(quickActions), this);
         new QuestPassiveCheckTask(this, questManager).start();
+
         RootCommand rootCommand = new RootCommand();
         rootCommand.register(new BlacksmithSubCommand(blacksmithGUI));
         rootCommand.register(new NpcSubCommand(npcManager));
         rootCommand.register(new ShopSubCommand(shopManager, shopEditorGUI, npcManager));
         rootCommand.register(new QuestAdminSubCommand(questManager));
         rootCommand.register(new BossSubCommand(bossRepository, bossManager));
-        if (getCommand("rpgadmin") != null) { getCommand("rpgadmin").setExecutor(rootCommand); getCommand("rpgadmin").setTabCompleter(rootCommand); }
+        registerCommand("rpgadmin", new PaperBasicCommandAdapter("rpgadmin", rootCommand, rootCommand, "rpg.admin"));
+
         PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
-        if (getCommand("rpgparty") != null) { getCommand("rpgparty").setExecutor(partyCommand); getCommand("rpgparty").setTabCompleter(partyCommand); }
-        if (getCommand("questlog") != null) getCommand("questlog").setExecutor(new QuestLogCommand(questManager, playerProfileManager));
-        if (getCommand("dialogue") != null) {
-            DialogueCommand dialogueCommand = new DialogueCommand(playerProfileManager, dialogueEngine);
-            getCommand("dialogue").setExecutor(dialogueCommand);
-            getCommand("dialogue").setTabCompleter(dialogueCommand);
-        }
+        registerCommand("rpgparty", new PaperBasicCommandAdapter("rpgparty", partyCommand, partyCommand, "rpg.member"));
+        registerCommand("questlog", new PaperBasicCommandAdapter("questlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member"));
+        DialogueCommand dialogueCommand = new DialogueCommand(playerProfileManager, dialogueEngine);
+        registerCommand("dialogue", new PaperBasicCommandAdapter("dialogue", dialogueCommand, dialogueCommand, "rpg.member"));
         getLogger().info("PixelRPG core enabled.");
     }
 
     @Override
     public void onDisable() {
+        if (manaRegenerationTask != null) manaRegenerationTask.stop();
         if (equipmentAuraListener != null) equipmentAuraListener.stop();
         if (questManager != null) questManager.shutdown();
         if (scoreboardService != null) scoreboardService.shutdown();
