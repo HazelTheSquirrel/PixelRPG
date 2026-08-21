@@ -62,6 +62,7 @@ public final class MobNameplateService {
     private TextDisplay createDisplay(LivingEntity mob) {
         Location location = displayLocation(mob);
         return mob.getWorld().spawn(location, TextDisplay.class, display -> {
+            display.setPersistent(false);
             display.setVisibleByDefault(false);
             display.setBillboard(Display.Billboard.CENTER);
             display.setAlignment(TextDisplay.TextAlignment.CENTER);
