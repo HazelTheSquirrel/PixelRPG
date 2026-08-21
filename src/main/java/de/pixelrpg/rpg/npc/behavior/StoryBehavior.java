@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.npc.behavior;
 
+import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
@@ -10,19 +11,25 @@ import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryChapter;
 import de.pixelrpg.rpg.story.StoryManager;
+import io.papermc.paper.registry.data.dialog.body.DialogBody;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
+import java.util.List;
 import java.util.Optional;
 
 public final class StoryBehavior implements NpcBehavior {
     private final StoryManager storyManager;
     private final StoryNpcDialogue dialogue;
+    private final DialogueEngine dialogueEngine;
     private final PlayerProfileManager profileManager;
     private final LanguageManager lang;
 
-    public StoryBehavior(StoryManager storyManager, StoryNpcDialogue dialogue, PlayerProfileManager profileManager) {
+    public StoryBehavior(StoryManager storyManager, StoryNpcDialogue dialogue, DialogueEngine dialogueEngine, PlayerProfileManager profileManager) {
         this.storyManager = storyManager;
         this.dialogue = dialogue;
+        this.dialogueEngine = dialogueEngine;
         this.profileManager = profileManager;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
@@ -40,14 +47,26 @@ public final class StoryBehavior implements NpcBehavior {
         }
 
         Optional<StoryChapter> next = storyManager.getNextChapterFor(player.getUniqueId());
-        if (next.isPresent()) {
-            StoryChapter chapter = next.get();
-            player.openBook(StoryBookFactory.build(chapter));
-            storyManager.completeChapter(player, chapter);
-            lang.send(player, "story.chapter-unlocked", "title", chapter.title());
+        if (next.isEmpty()) {
+            dialogue.begin(player, npc);
             return;
         }
 
-        dialogue.begin(player, npc);
+        StoryChapter chapter = next.get();
+        dialogueEngine.openMultiAction(
+                player,
+                Component.text("Geschichte", NamedTextColor.GOLD),
+                List.of(DialogBody.plainMessage(Component.text(chapter.title(), NamedTextColor.YELLOW))),
+                List.of(dialogueEngine.actionButton(
+                        Component.text("Kapitel lesen"),
+                        NamedTextColor.GREEN,
+                        target -> {
+                            target.openBook(StoryBookFactory.build(chapter));
+                            storyManager.completeChapter(target, chapter);
+                            lang.send(target, "story.chapter-unlocked", "title", chapter.title());
+                        }
+                )),
+                1
+        );
     }
 }
