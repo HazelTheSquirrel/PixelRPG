@@ -15,15 +15,40 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.projectiles.ProjectileSource;
+import org.bukkit.scheduler.BukkitTask;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class MobLevelScalingListener implements Listener {
+    private static final long COMBAT_TIMEOUT_MILLIS = 5_000L;
+
+    private final Plugin plugin;
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
+    private final Map<UUID, Long> lastRpgInteraction = new ConcurrentHashMap<>();
+    private BukkitTask cleanupTask;
 
-    public MobLevelScalingListener(GuildAPI guildAPI, MobScalingConfig scalingConfig) {
+    public MobLevelScalingListener(Plugin plugin, GuildAPI guildAPI, MobScalingConfig scalingConfig) {
+        this.plugin = plugin;
         this.guildAPI = guildAPI;
         this.scalingConfig = scalingConfig;
+    }
+
+    public void start() {
+        if (cleanupTask != null) return;
+        cleanupTask = Bukkit.getScheduler().runTaskTimer(plugin, this::restoreExpiredScaling, 20L, 20L);
+    }
+
+    public void shutdown() {
+        if (cleanupTask != null) {
+            cleanupTask.cancel();
+            cleanupTask = null;
+        }
+        lastRpgInteraction.clear();
     }
 
     // Zuständig dafür, dass die Skalierung beim tatsächlichen Zielwechsel auf einen registrierten Spieler aktiviert wird.
@@ -57,6 +82,7 @@ public final class MobLevelScalingListener implements Listener {
 
     private void applyScaling(Monster monster, int playerLevel) {
         rememberOriginalAttributes(monster);
+        lastRpgInteraction.put(monster.getUniqueId(), System.currentTimeMillis());
 
         int regionMin = Math.max(Level.MIN_LEVEL, resolveRegionProvider().getMinLevel(monster.getLocation()));
         int regionMax = Math.min(Level.MAX_NORMAL_LEVEL, resolveRegionProvider().getMaxLevel(monster.getLocation()));
@@ -102,6 +128,40 @@ public final class MobLevelScalingListener implements Listener {
         if (attackDamage != null && !pdc.has(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE)) {
             pdc.set(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE, attackDamage.getBaseValue());
         }
+    }
+
+    private void restoreExpiredScaling() {
+        long now = System.currentTimeMillis();
+        for (UUID uuid : lastRpgInteraction.keySet()) {
+            Long lastInteraction = lastRpgInteraction.get(uuid);
+            if (lastInteraction == null || now - lastInteraction < COMBAT_TIMEOUT_MILLIS) continue;
+
+            var entity = Bukkit.getEntity(uuid);
+            if (entity instanceof Monster monster) restoreVanillaScaling(monster);
+            lastRpgInteraction.remove(uuid);
+        }
+    }
+
+    private void restoreVanillaScaling(Monster monster) {
+        var pdc = monster.getPersistentDataContainer();
+        if (!pdc.has(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER)) return;
+
+        AttributeInstance hp = monster.getAttribute(Attribute.MAX_HEALTH);
+        Double originalMaxHp = pdc.get(RPGKeys.Combat.originalMaxHealth(), PersistentDataType.DOUBLE);
+        if (hp != null && originalMaxHp != null) {
+            double oldMaxHp = Math.max(1.0, hp.getValue());
+            double healthRatio = Math.max(0.0, Math.min(1.0, monster.getHealth() / oldMaxHp));
+            hp.setBaseValue(originalMaxHp);
+            monster.setHealth(Math.max(0.0, Math.min(originalMaxHp, originalMaxHp * healthRatio)));
+        }
+
+        AttributeInstance attackDamage = monster.getAttribute(Attribute.ATTACK_DAMAGE);
+        Double originalAttackDamage = pdc.get(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE);
+        if (attackDamage != null && originalAttackDamage != null) attackDamage.setBaseValue(originalAttackDamage);
+
+        pdc.remove(RPGKeys.Combat.mobLevel());
+        pdc.remove(RPGKeys.Combat.originalMaxHealth());
+        pdc.remove(RPGKeys.Combat.originalAttackDamage());
     }
 
     private RegionDangerProvider resolveRegionProvider() {
