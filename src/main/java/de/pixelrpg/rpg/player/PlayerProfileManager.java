@@ -8,7 +8,6 @@ import de.pixelrpg.rpg.api.events.PlayerLeaveGuildEvent;
 import de.pixelrpg.rpg.api.events.PlayerLevelUpEvent;
 import de.pixelrpg.rpg.command.impl.CraftingCommand;
 import de.pixelrpg.rpg.core.Level;
-import de.pixelrpg.rpg.profession.CraftingRecipeRegistry;
 import de.pixelrpg.rpg.profession.CraftingService;
 import de.pixelrpg.rpg.profession.ProfessionGatheringListener;
 import de.pixelrpg.rpg.profession.ProfessionService;
@@ -77,7 +76,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         Bukkit.getServicesManager().register(EconomyAPI.class, this, plugin, ServicePriority.Normal);
         ProfessionService professionService = new ProfessionService(this);
         Bukkit.getPluginManager().registerEvents(new ProfessionGatheringListener(professionService), plugin);
-        CraftingService craftingService = new CraftingService(new CraftingRecipeRegistry(), professionService);
+        CraftingService craftingService = new CraftingService(professionService);
         if (Bukkit.getPluginCommand("rpgcraft") != null) {
             CraftingCommand craftingCommand = new CraftingCommand(craftingService);
             Bukkit.getPluginCommand("rpgcraft").setExecutor(craftingCommand);
@@ -93,10 +92,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
             saveExecutor.shutdown();
             try {
                 if (!saveExecutor.awaitTermination(10, TimeUnit.SECONDS)) saveExecutor.shutdownNow();
-            } catch (InterruptedException e) {
-                saveExecutor.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
+            } catch (InterruptedException e) { saveExecutor.shutdownNow(); Thread.currentThread().interrupt(); }
         }
         if (repository != null) repository.shutdown();
     }
