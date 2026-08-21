@@ -18,6 +18,8 @@ public final class PlayerProfile {
     private PlayerClass playerClass;
     private double money;
     private boolean receivedStartBonus;
+    private double currentMana;
+    private boolean manaInitialized;
     private final Map<PlayerAttribute, Integer> attributePoints = new EnumMap<>(PlayerAttribute.class);
     private final Map<Profession, Integer> professionLevels = new EnumMap<>(Profession.class);
     private final Map<Profession, Long> professionExperience = new EnumMap<>(Profession.class);
@@ -39,6 +41,8 @@ public final class PlayerProfile {
         this.playerClass = PlayerClass.NONE;
         this.money = 0.0;
         this.receivedStartBonus = false;
+        this.currentMana = 0.0;
+        this.manaInitialized = false;
         this.storyChapterIndex = -1;
         this.scoreboardEnabled = true;
         this.partyHudEnabled = true;
@@ -68,6 +72,34 @@ public final class PlayerProfile {
     public boolean removeMoney(double amount) { if (amount <= 0.0 || money < amount) return false; money -= amount; dirty = true; return true; }
     public boolean hasReceivedStartBonus() { return receivedStartBonus; }
     public void setReceivedStartBonus(boolean value) { receivedStartBonus = value; dirty = true; }
+
+    public double getCurrentMana() { return currentMana; }
+    public boolean isManaInitialized() { return manaInitialized; }
+    public void initializeMana(double maxMana) {
+        currentMana = Math.max(0.0, maxMana);
+        manaInitialized = true;
+        dirty = true;
+    }
+    public void setCurrentMana(double value, double maxMana) {
+        currentMana = Math.max(0.0, Math.min(maxMana, value));
+        manaInitialized = true;
+        dirty = true;
+    }
+    public boolean consumeMana(double amount, double maxMana) {
+        if (amount <= 0.0) return true;
+        if (currentMana + 1.0E-9 < amount) return false;
+        currentMana = Math.max(0.0, Math.min(maxMana, currentMana - amount));
+        manaInitialized = true;
+        dirty = true;
+        return true;
+    }
+    public void restoreMana(double amount, double maxMana) {
+        if (amount <= 0.0) return;
+        currentMana = Math.min(maxMana, currentMana + amount);
+        manaInitialized = true;
+        dirty = true;
+    }
+
     public int getAttributePoints(PlayerAttribute attribute) { return attributePoints.getOrDefault(attribute, 0); }
     public void setAttributePoints(PlayerAttribute attribute, int value) { attributePoints.put(attribute, Math.max(0, value)); dirty = true; }
     public void addAttributePoint(PlayerAttribute attribute) { attributePoints.merge(attribute, 1, Integer::sum); dirty = true; }
@@ -90,24 +122,24 @@ public final class PlayerProfile {
     }
     public Map<Profession, Long> getProfessionExperiences() { return Collections.unmodifiableMap(professionExperience); }
 
-    public Set<String> getUnlockedWaypoints() { return Collections.unmodifiableSet(unlockedWaypoints); }
+    public Set<String> getUnlockedWaypoints() { return Collections.unmodifiableSet(new HashSet<>(unlockedWaypoints)); }
     public boolean hasUnlockedWaypoint(String id) { return unlockedWaypoints.contains(id); }
     public void unlockWaypoint(String id) { if (unlockedWaypoints.add(id)) dirty = true; }
     public void setUnlockedWaypoints(Set<String> ids) { unlockedWaypoints.clear(); unlockedWaypoints.addAll(ids); dirty = true; }
     public int getStoryChapterIndex() { return storyChapterIndex; }
     public void setStoryChapterIndex(int value) { storyChapterIndex = value; dirty = true; }
-    public Map<String, de.pixelrpg.rpg.quest.QuestProgress> getActiveQuests() { return activeQuests; }
+    public Map<String, de.pixelrpg.rpg.quest.QuestProgress> getActiveQuests() { return Collections.unmodifiableMap(new HashMap<>(activeQuests)); }
     public boolean hasActiveQuest(String id) { return activeQuests.containsKey(id); }
     public void startQuest(de.pixelrpg.rpg.quest.QuestProgress progress) { activeQuests.put(progress.getQuestId(), progress); dirty = true; }
     public void removeActiveQuest(String id) { if (activeQuests.remove(id) != null) dirty = true; }
-    public Set<String> getCompletedQuests() { return Collections.unmodifiableSet(completedQuests); }
+    public Set<String> getCompletedQuests() { return Collections.unmodifiableSet(new HashSet<>(completedQuests)); }
     public boolean hasCompletedQuest(String id) { return completedQuests.contains(id); }
     public void markQuestCompleted(String id) { if (completedQuests.add(id)) dirty = true; }
     public void setCompletedQuests(Set<String> ids) { completedQuests.clear(); completedQuests.addAll(ids); dirty = true; }
     public long getStatistic(String key) { return statistics.getOrDefault(key, 0L); }
     public void setStatistic(String key, long value) { statistics.put(key, value); dirty = true; }
     public void incrementStatistic(String key, long amount) { statistics.merge(key, amount, Long::sum); dirty = true; }
-    public Map<String, Long> getAllStatistics() { return Collections.unmodifiableMap(statistics); }
+    public Map<String, Long> getAllStatistics() { return Collections.unmodifiableMap(new HashMap<>(statistics)); }
     public boolean isScoreboardEnabled() { return scoreboardEnabled; }
     public void setScoreboardEnabled(boolean value) { scoreboardEnabled = value; dirty = true; }
     public boolean isPartyHudEnabled() { return partyHudEnabled; }
@@ -125,6 +157,8 @@ public final class PlayerProfile {
         experience = 0L;
         playerClass = PlayerClass.NONE;
         money = 0.0;
+        currentMana = 0.0;
+        manaInitialized = false;
         storyChapterIndex = -1;
         unlockedWaypoints.clear();
         activeQuests.clear();
