@@ -56,7 +56,8 @@ public final class QuestManager {
                     String questId = questEntry.getKey();
                     playerEntry.getValue().remove(questId);
                     Bukkit.getScheduler().runTask(plugin, () -> {
-                        profileManager.getProfile(uuid).ifPresent(profile -> profile.removeActiveQuest(questId));
+                        profileManager.getProfile(uuid).filter(PlayerProfile::isRegisteredInGuild)
+                                .ifPresent(profile -> profile.removeActiveQuest(questId));
                         Player player = Bukkit.getPlayer(uuid);
                         if (player != null && player.isOnline()) lang.send(player, "quest.expired");
                     });
@@ -73,7 +74,7 @@ public final class QuestManager {
 
     public boolean acceptQuest(Player player, Quest quest) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !canAccept(profile, quest) || profile.hasActiveQuest(quest.id())) return false;
+        if (profile == null || !profile.isRegisteredInGuild() || !canAccept(profile, quest) || profile.hasActiveQuest(quest.id())) return false;
         if (profile.getActiveQuests().size() >= MAX_ACTIVE_QUESTS) {
             lang.send(player, "quest.max-active");
             return false;
@@ -91,7 +92,7 @@ public final class QuestManager {
 
     public boolean abandonQuest(Player player, String questId) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.hasActiveQuest(questId)) return false;
+        if (profile == null || !profile.isRegisteredInGuild() || !profile.hasActiveQuest(questId)) return false;
         profile.removeActiveQuest(questId);
         Map<String, Long> timers = questTimers.get(player.getUniqueId());
         if (timers != null) timers.remove(questId);
@@ -102,7 +103,7 @@ public final class QuestManager {
     public boolean completeQuest(Player player, String questId) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         Quest quest = questRepository.getQuest(questId);
-        if (profile == null || quest == null || !profile.hasActiveQuest(questId)) return false;
+        if (profile == null || !profile.isRegisteredInGuild() || quest == null || !profile.hasActiveQuest(questId)) return false;
 
         QuestProgress progress = profile.getActiveQuests().get(questId);
         if (progress.getCurrentAmount() < quest.requiredAmount()) {
@@ -136,10 +137,12 @@ public final class QuestManager {
     }
 
     public void progressHuntQuests(Player killer, String mobTypeKey) {
+        if (!isRegistered(killer.getUniqueId())) return;
         propagateToParty(killer, profile -> applyHuntProgress(profile, mobTypeKey), killer.getLocation());
     }
 
     private void applyHuntProgress(PlayerProfile profile, String mobTypeKey) {
+        if (!profile.isRegisteredInGuild()) return;
         for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.HUNT || !quest.targetKey().equalsIgnoreCase(mobTypeKey)) continue;
@@ -149,7 +152,7 @@ public final class QuestManager {
 
     public void checkInventoryQuests(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || profile.getActiveQuests().isEmpty()) return;
+        if (profile == null || !profile.isRegisteredInGuild() || profile.getActiveQuests().isEmpty()) return;
         for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.COLLECT) continue;
@@ -167,7 +170,7 @@ public final class QuestManager {
 
     public void checkReachLocationQuests(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || profile.getActiveQuests().isEmpty()) return;
+        if (profile == null || !profile.isRegisteredInGuild() || profile.getActiveQuests().isEmpty()) return;
         for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.REACH_LOCATION || quest.reachLocation() == null) continue;
@@ -189,7 +192,7 @@ public final class QuestManager {
 
     public void progressEscortQuest(Player player, String escortKey) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null) return;
+        if (profile == null || !profile.isRegisteredInGuild()) return;
         for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.ESCORT || !quest.targetKey().equalsIgnoreCase(escortKey)) continue;
@@ -225,7 +228,7 @@ public final class QuestManager {
     public int getGlobalEventProgress(String questId) { return globalEventState.getProgress(questId); }
 
     private void incrementProgress(PlayerProfile profile, QuestProgress progress, Quest quest) {
-        if (progress.getCurrentAmount() >= quest.requiredAmount()) return;
+        if (!profile.isRegisteredInGuild() || progress.getCurrentAmount() >= quest.requiredAmount()) return;
         int next = Math.min(quest.requiredAmount(), progress.getCurrentAmount() + 1);
         progress.setCurrentAmount(next);
         Player player = Bukkit.getPlayer(profile.getUuid());
@@ -235,9 +238,10 @@ public final class QuestManager {
     }
 
     private void propagateToParty(Player source, java.util.function.Consumer<PlayerProfile> action, Location referenceLocation) {
+        if (!isRegistered(source.getUniqueId())) return;
         de.pixelrpg.rpg.api.PartyAPI partyAPI = Bukkit.getServicesManager().load(de.pixelrpg.rpg.api.PartyAPI.class);
         if (partyAPI == null || !partyAPI.isInParty(source.getUniqueId())) {
-            profileManager.getProfile(source.getUniqueId()).ifPresent(action);
+            profileManager.getProfile(source.getUniqueId()).filter(PlayerProfile::isRegisteredInGuild).ifPresent(action);
             return;
         }
         Set<UUID> members = partyAPI.getPartyMembers(source.getUniqueId());
@@ -246,8 +250,12 @@ public final class QuestManager {
             if (member == null || !member.isOnline()) continue;
             if (!member.getWorld().equals(referenceLocation.getWorld())) continue;
             if (member.getLocation().distance(referenceLocation) > partyShareRange) continue;
-            profileManager.getProfile(memberUuid).ifPresent(action);
+            profileManager.getProfile(memberUuid).filter(PlayerProfile::isRegisteredInGuild).ifPresent(action);
         }
+    }
+
+    private boolean isRegistered(UUID uuid) {
+        return profileManager.getProfile(uuid).map(PlayerProfile::isRegisteredInGuild).orElse(false);
     }
 
     private boolean isWithinRadius(Location a, Location b, double radius) {
