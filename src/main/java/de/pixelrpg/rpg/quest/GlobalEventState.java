@@ -52,13 +52,9 @@ public final class GlobalEventState {
         }
     }
 
-    public void shutdown() {
-        save();
-    }
+    public void shutdown() { save(); }
 
-    public int getProgress(String questId) {
-        return progressByQuestId.getOrDefault(questId, 0);
-    }
+    public int getProgress(String questId) { return progressByQuestId.getOrDefault(questId, 0); }
 
     public int addProgress(String questId, int amount) {
         int updated = progressByQuestId.merge(questId, amount, Integer::sum);
@@ -75,9 +71,9 @@ public final class GlobalEventState {
         if (pendingSave != null && !pendingSave.isCancelled()) return;
         pendingSave = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
             synchronized (saveLock) {
+                pendingSave = null;
                 writeSave();
             }
-            pendingSave = null;
         }, 20L);
     }
 
