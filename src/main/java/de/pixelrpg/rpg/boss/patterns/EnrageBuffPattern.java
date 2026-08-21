@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/boss/patterns/EnrageBuffPattern.java
 package de.pixelrpg.rpg.boss.patterns;
 
 import de.pixelrpg.rpg.boss.BossAttackPattern;
@@ -12,25 +11,22 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-public final class EnrageBuffPattern implements BossAttackPattern {
+import java.util.Collection;
 
+public final class EnrageBuffPattern implements BossAttackPattern {
     @Override
     public String id() {
         return "ENRAGE_BUFF";
     }
 
     @Override
-    public void execute(Plugin plugin, LivingEntity boss) {
+    public void execute(Plugin plugin, LivingEntity boss, Collection<Player> targets) {
         boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 200, 1, true, true));
         boss.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 200, 1, true, true));
-
         boss.getWorld().spawnParticle(Particle.FLAME, boss.getLocation().add(0, 1, 0), 40, 0.8, 1.0, 0.8);
         boss.getWorld().playSound(boss.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.5f, 0.7f);
 
-        for (org.bukkit.entity.Entity entity : boss.getNearbyEntities(40, 40, 40)) {
-            if (entity instanceof Player player) {
-                player.sendMessage(Component.text("The boss enters a rage!", NamedTextColor.DARK_RED));
-            }
-        }
+        Component message = Component.text("The boss enters a rage!", NamedTextColor.DARK_RED);
+        targets.stream().filter(Player::isOnline).forEach(player -> player.sendMessage(message));
     }
 }
