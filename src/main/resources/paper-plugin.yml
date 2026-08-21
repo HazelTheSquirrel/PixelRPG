@@ -1,6 +1,7 @@
 name: PixelRPG
 version: 1.0.0
 main: de.pixelrpg.rpg.PixelRPGPlugin
+bootstrapper: de.pixelrpg.rpg.PixelRPGBootstrap
 description: Core MMORPG framework plugin
 author: PixelRPGTeam
 api-version: '26.2'
