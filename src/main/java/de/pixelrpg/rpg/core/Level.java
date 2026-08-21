@@ -32,16 +32,24 @@ public final class Level {
         return REQUIRED_EXPERIENCE[level - 1];
     }
 
-    /** Returns cumulative XP required to enter the next level. */
+    /** Returns cumulative XP required to enter the next normal level. */
     public static long getExperienceForNextLevel(int level) {
         validateNormalLevel(level);
-        return level == MAX_NORMAL_LEVEL ? Long.MAX_VALUE : REQUIRED_EXPERIENCE[level];
+        return level == MAX_NORMAL_LEVEL ? getExperienceForTranscendence() : REQUIRED_EXPERIENCE[level];
     }
 
     public static long getExperienceToNextLevel(long totalExperience) {
         int level = fromExperience(totalExperience);
         if (level == MAX_NORMAL_LEVEL) return 0L;
         return Math.max(0L, REQUIRED_EXPERIENCE[level] - Math.max(0L, totalExperience));
+    }
+
+    /** Returns the deliberately absurd XP threshold for the reserved level 100. */
+    public static long getExperienceForTranscendence() {
+        long level98 = REQUIRED_EXPERIENCE[MAX_NORMAL_LEVEL - 2];
+        long level99 = REQUIRED_EXPERIENCE[MAX_NORMAL_LEVEL - 1];
+        long increment98To99 = level99 - level98;
+        return Math.addExact(level99, Math.multiplyExact(increment98To99, 10_000L));
     }
 
     public static long getExperienceIntoLevel(long totalExperience) {
@@ -54,7 +62,6 @@ public final class Level {
     public static boolean isMaxNormalLevel(int level) { return level == MAX_NORMAL_LEVEL; }
     public static boolean isReservedLevel(int level) { return level == RESERVED_LEVEL; }
     public static boolean isValidNormalLevel(int level) { return level >= MIN_LEVEL && level <= MAX_NORMAL_LEVEL; }
-    public static long getTotalExperienceForReservedLevel() { return Long.MAX_VALUE; }
 
     private static void validateNormalLevel(int level) {
         if (!isValidNormalLevel(level)) throw new IllegalArgumentException("Level must be between 1 and 99: " + level);
@@ -62,9 +69,6 @@ public final class Level {
 
     private static long[] createExperienceTable() {
         long[] experience = new long[MAX_NORMAL_LEVEL];
-
-        // WotLK reference: XP increments required to advance from the current level.
-        // The 60-69 reduction and 70-79 Northrend progression are retained.
         long[] wotlkXpPerLevel = {
             400L, 900L, 1400L, 2100L, 2800L, 3600L, 4500L, 5400L, 6500L, 7600L,
             8700L, 9800L, 11000L, 12300L, 13600L, 15000L, 16400L, 17800L, 19300L, 20800L,
@@ -83,10 +87,6 @@ public final class Level {
             experience[level] = cumulative;
         }
 
-        // 80 -> 99 continues the WotLK 70-80 progression mathematically.
-        // The multiplier is chosen so that the 98 -> 99 increment is exactly
-        // 100x the 80 -> 81 increment.  99 -> 100 is intentionally outside
-        // the normal table and will require 10,000x the 98 -> 99 increment.
         double continuationRatio = Math.pow(100.0D, 1.0D / 18.0D);
         double increment = wotlkXpPerLevel[78];
         for (int level = 81; level <= 99; level++) {
@@ -94,7 +94,6 @@ public final class Level {
             cumulative = Math.addExact(cumulative, Math.round(increment));
             experience[level - 1] = cumulative;
         }
-
         return experience;
     }
 }
