@@ -15,6 +15,9 @@ commands:
   questlog:
     description: Opens the PixelRPG quest log
     permission: rpg.member
+  rpgcraft:
+    description: Lists and crafts PixelRPG profession recipes
+    permission: rpg.member
 
 permissions:
   rpg.admin:
