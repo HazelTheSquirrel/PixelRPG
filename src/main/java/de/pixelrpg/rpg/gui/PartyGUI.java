@@ -1,6 +1,8 @@
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.ReceptionDialog;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.party.PartyManager;
@@ -21,7 +23,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public final class PartyGUI extends AbstractGUI {
-
     private final Player viewer;
     private final PartyManager partyManager;
     private final de.pixelrpg.rpg.player.PlayerProfileManager profileManager;
@@ -35,68 +36,45 @@ public final class PartyGUI extends AbstractGUI {
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
-    @Override
-    protected void populate() {
+    @Override protected void populate() {
         Optional<Party> partyOpt = partyManager.getParty(viewer.getUniqueId());
-
         if (partyOpt.isEmpty()) {
             setItem(22, buildActionItem(Material.LIME_DYE, "party.create-button", NamedTextColor.GREEN), event -> {
                 partyManager.createParty(viewer.getUniqueId());
                 lang.send(viewer, "party.created");
                 open(viewer);
             });
-            setItem(49, backButton(), event -> new ReceptionGUI(viewer, profileManager).open(viewer));
+            setItem(49, backButton(), event -> new ReceptionDialog(viewer, profileManager, new DialogueEngine()).open());
             return;
         }
-
         Party party = partyOpt.get();
         int slot = 0;
         for (UUID member : party.getMembers()) {
-            if (slot >= 36) {
-                break;
-            }
+            if (slot >= 36) break;
             setItem(slot, buildMemberItem(party, member));
             slot++;
         }
-
         boolean isLeader = party.isLeader(viewer.getUniqueId());
-
         if (isLeader) {
-            setItem(40, buildActionItem(Material.BARRIER, "party.disband-button", NamedTextColor.RED), event -> {
-                partyManager.disbandParty(party);
-                viewer.closeInventory();
-            });
+            setItem(40, buildActionItem(Material.BARRIER, "party.disband-button", NamedTextColor.RED), event -> { partyManager.disbandParty(party); viewer.closeInventory(); });
         } else {
-            setItem(40, buildActionItem(Material.RED_DYE, "party.leave-button", NamedTextColor.RED), event -> {
-                partyManager.leaveParty(viewer);
-                viewer.closeInventory();
-            });
+            setItem(40, buildActionItem(Material.RED_DYE, "party.leave-button", NamedTextColor.RED), event -> { partyManager.leaveParty(viewer); viewer.closeInventory(); });
         }
-
-        setItem(49, backButton(), event -> new ReceptionGUI(viewer, profileManager).open(viewer));
+        setItem(49, backButton(), event -> new ReceptionDialog(viewer, profileManager, new DialogueEngine()).open());
     }
 
     private ItemStack buildMemberItem(Party party, UUID member) {
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(member);
         String name = offlinePlayer.getName() != null ? offlinePlayer.getName() : "Unknown";
-
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         meta.setOwningPlayer(offlinePlayer);
-
         boolean isLeader = party.isLeader(member);
-        meta.displayName(Component.text(name, isLeader ? NamedTextColor.GOLD : NamedTextColor.WHITE)
-                .decoration(TextDecoration.ITALIC, false));
-
+        meta.displayName(Component.text(name, isLeader ? NamedTextColor.GOLD : NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
         List<Component> lore = new ArrayList<>();
-        lore.add(lang.get(isLeader ? "party.leader-label" : "party.member-label")
-                .color(NamedTextColor.GRAY)
-                .decoration(TextDecoration.ITALIC, false));
-        lore.add(lang.get(offlinePlayer.isOnline() ? "party.online-label" : "party.offline-label")
-                .color(offlinePlayer.isOnline() ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY)
-                .decoration(TextDecoration.ITALIC, false));
+        lore.add(lang.get(isLeader ? "party.leader-label" : "party.member-label").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        lore.add(lang.get(offlinePlayer.isOnline() ? "party.online-label" : "party.offline-label").color(offlinePlayer.isOnline() ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
-
         item.setItemMeta(meta);
         return item;
     }
