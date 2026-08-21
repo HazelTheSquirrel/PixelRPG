@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native guild reception dialog; it no longer opens legacy inventory GUIs. */
+/** Native guild reception dialog; it never opens legacy inventory GUIs. */
 public final class ReceptionDialog {
     private final Player player;
     private final PlayerProfileManager profileManager;
@@ -50,10 +50,7 @@ public final class ReceptionDialog {
                 new ReceptionDialog(target, profileManager, dialogueEngine).open();
             }));
         } else {
-            actions.add(dialogueEngine.actionButton(Component.text("Charakter öffnen"), NamedTextColor.AQUA,
-                    target -> new QuickActionsDialogListenerBridge().openCharacter(target)));
-            actions.add(dialogueEngine.actionButton(lang.get("reception.resign-button"), NamedTextColor.RED,
-                    this::openLeaveConfirmation));
+            actions.add(dialogueEngine.actionButton(lang.get("reception.resign-button"), NamedTextColor.RED, this::openLeaveConfirmation));
         }
         actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
 
@@ -81,18 +78,5 @@ public final class ReceptionDialog {
                 List.of(DialogBody.plainMessage(lang.get("reception.resign-warning").color(NamedTextColor.RED))),
                 yes,
                 no);
-    }
-
-    private static final class QuickActionsDialogListenerBridge {
-        private void openCharacter(Player player) {
-            PlayerProfileManager manager = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getPlayerProfileManager();
-            de.pixelrpg.rpg.stats.StatEngine stats = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getStatEngine();
-            QuickActionsDialogService service = new QuickActionsDialogService(manager, stats);
-            new DialogueEngine().openMultiAction(player,
-                    Component.text("PixelRPG – Charakter", NamedTextColor.GOLD),
-                    List.of(DialogBody.plainMessage(service.characterCard(player))),
-                    List.of(new DialogueEngine().actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog)),
-                    1);
-        }
     }
 }
