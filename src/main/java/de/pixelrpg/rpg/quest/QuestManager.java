@@ -224,13 +224,14 @@ public final class QuestManager {
 
     private void completeGlobalEvent(Quest quest) {
         for (Player online : Bukkit.getOnlinePlayers()) {
+            if (!guildAPI.isRegistered(online.getUniqueId())) continue;
             lang.send(online, "quest.completed", "title", quest.title());
             online.showTitle(Title.title(
                     Component.text(quest.title(), NamedTextColor.GOLD),
                     Component.text(" "),
                     Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(3000), Duration.ofMillis(500))
             ));
-            if (guildAPI.isRegistered(online.getUniqueId())) profileManager.addExperience(online.getUniqueId(), quest.rewardExp());
+            profileManager.addExperience(online.getUniqueId(), quest.rewardExp());
         }
     }
 
