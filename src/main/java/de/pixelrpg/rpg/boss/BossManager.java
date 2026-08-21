@@ -224,7 +224,7 @@ public final class BossManager {
                 String materialName = lootConfig.materialPool().get(random.nextInt(lootConfig.materialPool().size()));
                 try {
                     Material material = Material.valueOf(materialName.toUpperCase());
-                    RPGItemBuilder.createUnidentified(material, lootConfig.guaranteedRarity(), activeBoss.getDefinition().getLevel())
+                    RPGItemBuilder.createItem(material, lootConfig.guaranteedRarity(), activeBoss.getDefinition().getLevel())
                             .ifPresent(item -> player.getInventory().addItem(item).values()
                                     .forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder)));
                 } catch (IllegalArgumentException ignored) { }
