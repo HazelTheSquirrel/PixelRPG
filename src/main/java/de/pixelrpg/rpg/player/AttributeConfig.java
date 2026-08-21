@@ -1,16 +1,10 @@
 package de.pixelrpg.rpg.player;
 
-import de.pixelrpg.rpg.core.Rank;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public final class AttributeConfig {
 
-    private AttributeConfig() {
-    }
-
-    private static final Rank[] RANK_REQUIREMENTS = {
-            Rank.F, Rank.E, Rank.D, Rank.C, Rank.B, Rank.A, Rank.S
-    };
+    private static final int[] LEVEL_REQUIREMENTS = {1, 10, 20, 30, 40, 50, 60};
 
     private static double baseCost = 30.0;
     private static double costMultiplier = 1.40;
@@ -26,11 +20,10 @@ public final class AttributeConfig {
     public static double RANGE_ENTITY_PER_POINT = 0.20;
     public static double TOUGHNESS_ARMOR_PER_POINT = 2.0;
 
-    /**
-     * Lädt alle Attribut-Kosten- und Skalierungswerte aus der Config, statt
-     * fest im Code zu stehen. Wird beim Plugin-Start aufgerufen, analog zu
-     * ItemEconomyConfig/MobScalingConfig.
-     */
+    private AttributeConfig() {
+    }
+
+    /** Loads attribute costs and scaling values from the plugin config. */
     public static void load(FileConfiguration config) {
         baseCost = config.getDouble("attributes.base-cost", baseCost);
         costMultiplier = config.getDouble("attributes.cost-multiplier", costMultiplier);
@@ -50,12 +43,11 @@ public final class AttributeConfig {
         elytraPermitCost = cost;
     }
 
-    public static Rank rankRequirementForPoint(PlayerAttribute attribute, int currentPoints) {
+    public static int levelRequirementForPoint(PlayerAttribute attribute, int currentPoints) {
         if (attribute == PlayerAttribute.SOULVIEW || attribute == PlayerAttribute.ELYTRA_PERMIT) {
-            return Rank.S;
+            return 60;
         }
-        int index = Math.min(currentPoints, RANK_REQUIREMENTS.length - 1);
-        return RANK_REQUIREMENTS[index];
+        return LEVEL_REQUIREMENTS[Math.min(currentPoints, LEVEL_REQUIREMENTS.length - 1)];
     }
 
     public static boolean isPrimaryFor(PlayerClass playerClass, PlayerAttribute attribute) {
