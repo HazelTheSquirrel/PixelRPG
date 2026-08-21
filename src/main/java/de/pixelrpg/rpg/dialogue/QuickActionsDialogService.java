@@ -23,6 +23,10 @@ public final class QuickActionsDialogService {
         return profiles;
     }
 
+    public StatEngine statEngine() {
+        return statEngine;
+    }
+
     public boolean isAvailable(Player player) {
         return profiles.isRegistered(player.getUniqueId());
     }
