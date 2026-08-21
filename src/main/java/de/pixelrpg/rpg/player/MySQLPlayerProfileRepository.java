@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/player/MySQLPlayerProfileRepository.java
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.profession.Profession;
@@ -16,7 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public final class MySQLPlayerProfileRepository implements PlayerProfileRepository {
-
+    private static final String PROFESSION_STAT_PREFIX = "profession.";
     private final DatabaseManager databaseManager;
 
     public MySQLPlayerProfileRepository(DatabaseManager databaseManager) {
@@ -33,7 +32,6 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
         try (Connection connection = databaseManager.getDataSource().getConnection()) {
             PlayerProfile profile = loadPlayerRow(connection, uuid);
             if (profile == null) return Optional.empty();
-            loadProfessions(connection, uuid, profile);
             loadActiveQuests(connection, uuid, profile);
             loadStatistics(connection, uuid, profile);
             profile.markClean();
@@ -47,7 +45,6 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
             statement.setString(1, uuid.toString());
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) return null;
-
                 PlayerProfile profile = new PlayerProfile(uuid);
                 profile.setRegisteredInGuild(resultSet.getBoolean("registered"));
                 profile.setExperience(resultSet.getLong("experience"));
@@ -73,21 +70,6 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
         }
     }
 
-    private void loadProfessions(Connection connection, UUID uuid, PlayerProfile profile) throws SQLException {
-        String sql = "SELECT profession, level FROM pixelrpg_professions WHERE uuid = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, uuid.toString());
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    try {
-                        profile.setProfessionLevel(Profession.valueOf(resultSet.getString("profession")), resultSet.getInt("level"));
-                    } catch (IllegalArgumentException ignored) {
-                    }
-                }
-            }
-        }
-    }
-
     private Set<String> splitCsv(String raw) {
         Set<String> result = new HashSet<>();
         if (raw != null && !raw.isBlank()) result.addAll(Arrays.asList(raw.split(",")));
@@ -99,9 +81,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, uuid.toString());
             try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    profile.startQuest(new QuestProgress(resultSet.getString("quest_id"), resultSet.getInt("amount"), resultSet.getLong("expiry")));
-                }
+                while (resultSet.next()) profile.startQuest(new QuestProgress(resultSet.getString("quest_id"), resultSet.getInt("amount"), resultSet.getLong("expiry")));
             }
         }
     }
@@ -111,7 +91,18 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, uuid.toString());
             try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) profile.setStatistic(resultSet.getString("stat_key"), resultSet.getLong("value"));
+                while (resultSet.next()) {
+                    String key = resultSet.getString("stat_key");
+                    long value = resultSet.getLong("value");
+                    if (key.startsWith(PROFESSION_STAT_PREFIX)) {
+                        try {
+                            profile.setProfessionLevel(Profession.valueOf(key.substring(PROFESSION_STAT_PREFIX.length()).toUpperCase()), (int) value);
+                        } catch (IllegalArgumentException ignored) {
+                        }
+                    } else {
+                        profile.setStatistic(key, value);
+                    }
+                }
             }
         }
     }
@@ -134,8 +125,6 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                     scoreboard_enabled = VALUES(scoreboard_enabled), party_hud_enabled = VALUES(party_hud_enabled),
                     quest_tracker_enabled = VALUES(quest_tracker_enabled), playtime_millis = VALUES(playtime_millis)
                 """;
-        String deleteProfessionsSql = "DELETE FROM pixelrpg_professions WHERE uuid = ?";
-        String insertProfessionSql = "INSERT INTO pixelrpg_professions (uuid, profession, level) VALUES (?, ?, ?)";
         String deleteQuestsSql = "DELETE FROM pixelrpg_active_quests WHERE uuid = ?";
         String insertQuestSql = "INSERT INTO pixelrpg_active_quests (uuid, quest_id, amount, expiry) VALUES (?, ?, ?, ?)";
         String upsertStatSql = """
@@ -170,20 +159,6 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                     statement.executeUpdate();
                 }
 
-                try (PreparedStatement deleteStatement = connection.prepareStatement(deleteProfessionsSql)) {
-                    deleteStatement.setString(1, profile.getUuid().toString());
-                    deleteStatement.executeUpdate();
-                }
-                try (PreparedStatement insertStatement = connection.prepareStatement(insertProfessionSql)) {
-                    for (Profession profession : Profession.values()) {
-                        insertStatement.setString(1, profile.getUuid().toString());
-                        insertStatement.setString(2, profession.name());
-                        insertStatement.setInt(3, profile.getProfessionLevel(profession));
-                        insertStatement.addBatch();
-                    }
-                    insertStatement.executeBatch();
-                }
-
                 try (PreparedStatement deleteStatement = connection.prepareStatement(deleteQuestsSql)) {
                     deleteStatement.setString(1, profile.getUuid().toString());
                     deleteStatement.executeUpdate();
@@ -201,16 +176,20 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                     }
                 }
 
-                if (!profile.getAllStatistics().isEmpty()) {
-                    try (PreparedStatement statStatement = connection.prepareStatement(upsertStatSql)) {
-                        for (var entry : profile.getAllStatistics().entrySet()) {
-                            statStatement.setString(1, profile.getUuid().toString());
-                            statStatement.setString(2, entry.getKey());
-                            statStatement.setLong(3, entry.getValue());
-                            statStatement.addBatch();
-                        }
-                        statStatement.executeBatch();
+                try (PreparedStatement statStatement = connection.prepareStatement(upsertStatSql)) {
+                    for (var entry : profile.getAllStatistics().entrySet()) {
+                        statStatement.setString(1, profile.getUuid().toString());
+                        statStatement.setString(2, entry.getKey());
+                        statStatement.setLong(3, entry.getValue());
+                        statStatement.addBatch();
                     }
+                    for (Profession profession : Profession.values()) {
+                        statStatement.setString(1, profile.getUuid().toString());
+                        statStatement.setString(2, PROFESSION_STAT_PREFIX + profession.name().toLowerCase());
+                        statStatement.setLong(3, profile.getProfessionLevel(profession));
+                        statStatement.addBatch();
+                    }
+                    statStatement.executeBatch();
                 }
                 connection.commit();
             } catch (SQLException e) {
