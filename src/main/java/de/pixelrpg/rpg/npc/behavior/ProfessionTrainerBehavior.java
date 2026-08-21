@@ -1,9 +1,11 @@
 package de.pixelrpg.rpg.npc.behavior;
 
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.ProfessionDialog;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
+import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.CraftRecipe;
 import de.pixelrpg.rpg.profession.CraftingRecipeRegistry;
@@ -19,7 +21,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native-dialog profession trainer; crafting is performed directly from the dialog. */
+/** Native-dialog profession trainer for learning professions and buying recipes. */
 public final class ProfessionTrainerBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final ProfessionService professionService;
@@ -42,57 +44,58 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
     @Override
     public void onInteract(Player player, RPGNpc npc) {
         if (!profileManager.isRegistered(player.getUniqueId())) {
-            dialogueEngine.openUnavailable(player, "Handwerkslehrer", "Du musst zuerst Rathausmitglied sein.");
+            dialogueEngine.openUnavailable(player, "Berufslehrer", "Du musst zuerst Mitglied der Gilde sein.");
             return;
         }
         if (!npc.isProfessionTrainer()) {
-            dialogueEngine.openUnavailable(player, "Handwerkslehrer", "Dieser NPC wurde noch keiner Profession zugewiesen.");
+            dialogueEngine.openUnavailable(player, "Berufslehrer", "Dieser NPC hat noch keinen Beruf zugewiesen.");
             return;
         }
 
         Profession profession = npc.profession();
-        int level = professionService.getLevel(player.getUniqueId(), profession);
-        long experience = professionService.getExperience(player.getUniqueId(), profession);
-        long nextLevel = level >= Profession.MAX_LEVEL ? experience : ProfessionService.experienceForLevel(level + 1);
-        String progress = level >= Profession.MAX_LEVEL
-                ? "Level 99 – Meister"
-                : "Level " + level + "/" + Profession.MAX_LEVEL + " • " + experience + "/" + nextLevel + " EP";
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null) return;
 
+        boolean learned = profile.hasLearnedProfession(profession);
+        int level = professionService.getLevel(player.getUniqueId(), profession);
         List<DialogBody> body = new ArrayList<>();
         body.add(DialogBody.plainMessage(Component.text(profession.description(), NamedTextColor.GRAY)));
-        body.add(DialogBody.plainMessage(Component.text(progress, level >= Profession.MAX_LEVEL ? NamedTextColor.GREEN : NamedTextColor.YELLOW)));
-
-        List<CraftRecipe> recipes = CraftingRecipeRegistry.getRecipes(profession);
-        for (CraftRecipe recipe : recipes) {
-            String costs = recipe.costs().entrySet().stream()
-                    .map(entry -> entry.getValue() + "x " + pretty(entry.getKey().name()))
-                    .reduce((a, b) -> a + ", " + b)
-                    .orElse("keine");
-            body.add(DialogBody.plainMessage(Component.text()
-                    .append(Component.text(recipe.displayName(), NamedTextColor.WHITE))
-                    .append(Component.text(" • ab Level " + recipe.requiredProfessionLevel(), NamedTextColor.GRAY))
-                    .append(Component.newline())
-                    .append(Component.text("Material: " + costs, NamedTextColor.DARK_GRAY))
-                    .build()));
-        }
+        body.add(DialogBody.plainMessage(Component.text(learned
+                ? "Beruf Level " + level + "/" + Profession.MAX_LEVEL
+                : "Dieser Beruf ist noch nicht erlernt.", learned ? NamedTextColor.YELLOW : NamedTextColor.RED)));
 
         List<ActionButton> actions = new ArrayList<>();
-        for (CraftRecipe recipe : recipes) {
-            actions.add(dialogueEngine.actionButton(
-                    Component.text("Herstellen: " + recipe.displayName()),
-                    level >= recipe.requiredProfessionLevel() ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
-                    target -> {
+        if (!learned) {
+            actions.add(dialogueEngine.actionButton(Component.text("Beruf erlernen"), NamedTextColor.GREEN,
+                    target -> professionService.learn(target, profession)));
+        } else {
+            for (CraftRecipe recipe : CraftingRecipeRegistry.getRecipes(profession)) {
+                if (profile.hasUnlockedRecipe(recipe.id())) {
+                    actions.add(dialogueEngine.actionButton(ProfessionDialog.recipeLine(recipe), NamedTextColor.WHITE, target -> {
                         var result = craftingService.craft(target, recipe.id());
                         target.sendMessage(Component.text(result.message(), result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
                         if (result.success()) target.sendMessage(Component.text("+" + result.experience() + " Berufs-XP", NamedTextColor.AQUA));
                     }));
-        }
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
-        dialogueEngine.openMultiAction(player, Component.text(profession.displayName() + "-Lehrer", NamedTextColor.GOLD), body, actions, 1);
-    }
+                    continue;
+                }
 
-    private String pretty(String raw) {
-        String value = raw.toLowerCase().replace('_', ' ');
-        return Character.toUpperCase(value.charAt(0)) + value.substring(1);
+                long price = professionService.recipePrice(recipe);
+                boolean levelAvailable = level >= recipe.requiredProfessionLevel();
+                String label = ProfessionDialog.recipeLine(recipe) + " • " + price + " Gold";
+                actions.add(dialogueEngine.actionButton(Component.text(label),
+                        levelAvailable ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
+                        target -> {
+                            var result = professionService.buyRecipe(target, recipe);
+                            target.sendMessage(Component.text(result.message(), result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
+                        }));
+            }
+        }
+
+        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
+        dialogueEngine.openMultiAction(player,
+                Component.text(profession.displayName() + "-Lehrer", NamedTextColor.GOLD),
+                body,
+                actions,
+                1);
     }
 }
