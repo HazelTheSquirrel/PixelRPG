@@ -1,5 +1,7 @@
 package de.pixelrpg.rpg.profession;
 
+import de.pixelrpg.rpg.player.PlayerProfile;
+import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -8,12 +10,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/** Executes validated profession crafting recipes. */
+/** Executes validated profession crafting recipes for registered PixelRPG players. */
 public final class CraftingService {
     private final ProfessionService professionService;
+    private final PlayerProfileManager profileManager;
 
-    public CraftingService(ProfessionService professionService) {
+    public CraftingService(ProfessionService professionService, PlayerProfileManager profileManager) {
         this.professionService = Objects.requireNonNull(professionService);
+        this.profileManager = Objects.requireNonNull(profileManager);
     }
 
     public Optional<CraftRecipe> find(String recipeId) {
@@ -22,6 +26,11 @@ public final class CraftingService {
 
     public CraftResult craft(Player player, String recipeId) {
         Objects.requireNonNull(player, "player");
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegisteredInGuild()) {
+            return CraftResult.failure("PixelRPG registration required");
+        }
+
         var recipe = find(recipeId).orElse(null);
         if (recipe == null) return CraftResult.failure("Unknown recipe");
 
@@ -29,8 +38,11 @@ public final class CraftingService {
         if (level < recipe.requiredProfessionLevel()) return CraftResult.failure("Profession level too low");
 
         for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) {
-            if (!player.getInventory().contains(cost.getKey(), cost.getValue())) return CraftResult.failure("Missing materials");
+            if (!player.getInventory().contains(cost.getKey(), cost.getValue())) {
+                return CraftResult.failure("Missing materials");
+            }
         }
+
         for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) {
             player.getInventory().removeItem(new ItemStack(cost.getKey(), cost.getValue()));
         }
