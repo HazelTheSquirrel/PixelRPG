@@ -71,6 +71,7 @@ import de.pixelrpg.rpg.quest.QuestRepository;
 import de.pixelrpg.rpg.scoreboard.PlaytimeTracker;
 import de.pixelrpg.rpg.scoreboard.ScoreboardService;
 import de.pixelrpg.rpg.shop.ShopManager;
+import de.pixelrpg.rpg.stats.ManaRegenerationTask;
 import de.pixelrpg.rpg.stats.MobKillStatisticListener;
 import de.pixelrpg.rpg.stats.PlayerDeathStatisticListener;
 import de.pixelrpg.rpg.stats.QuestBossStatisticListener;
@@ -88,6 +89,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private static PixelRPGPlugin instance;
     private PlayerProfileManager playerProfileManager;
     private StatEngine statEngine;
+    private ManaRegenerationTask manaRegenerationTask;
     private ItemEconomyConfig itemEconomyConfig;
     private ItemService itemService;
     private BlacksmithGUI blacksmithGUI;
@@ -169,6 +171,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
         equipmentAuraListener = new EquipmentAuraListener(playerProfileManager, getConfig().getInt("effects.aura-interval-ticks", 60));
         equipmentAuraListener.start();
+        manaRegenerationTask = new ManaRegenerationTask(this, statEngine, playerProfileManager);
+        manaRegenerationTask.start();
         AttributeConfig.configureElytraCost(getConfig().getDouble("elytra.permit-cost", 750.0));
         npcManager = new NpcManager(this);
         npcManager.loadAll();
@@ -176,7 +180,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 8.0), getConfig().getInt("npc.look-interval-ticks", 5)).start();
         DialogueEngine dialogueEngine = new DialogueEngine();
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
-        QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager);
+        QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine);
         npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new BlacksmithBehavior(blacksmithGUI, playerProfileManager));
@@ -231,6 +235,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (manaRegenerationTask != null) manaRegenerationTask.stop();
         if (equipmentAuraListener != null) equipmentAuraListener.stop();
         if (questManager != null) questManager.shutdown();
         if (scoreboardService != null) scoreboardService.shutdown();
