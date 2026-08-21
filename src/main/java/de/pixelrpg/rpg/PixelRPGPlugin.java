@@ -62,6 +62,7 @@ import de.pixelrpg.rpg.player.AttributeConfig;
 import de.pixelrpg.rpg.player.ClassBalance;
 import de.pixelrpg.rpg.player.GuildJoinLeaveListener;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.profession.ProfessionSystem;
 import de.pixelrpg.rpg.quest.GlobalEventState;
 import de.pixelrpg.rpg.quest.QuestManager;
 import de.pixelrpg.rpg.quest.QuestMobKillListener;
@@ -127,6 +128,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         playerProfileManager = new PlayerProfileManager(this);
         playerProfileManager.initialize(getConfig());
         statEngine = new StatEngine(playerProfileManager);
+        new ProfessionSystem(this, playerProfileManager).register();
 
         gemRepository = new GemRepository(this);
         gemRepository.load();
@@ -258,21 +260,4 @@ public final class PixelRPGPlugin extends JavaPlugin {
     }
 
     public static PixelRPGPlugin getInstance() { return instance; }
-    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
-    public StatEngine getStatEngine() { return statEngine; }
-    public ItemEconomyConfig getItemEconomyConfig() { return itemEconomyConfig; }
-    public MobScalingConfig getMobScalingConfig() { return mobScalingConfig; }
-    public NpcManager getNpcManager() { return npcManager; }
-    public NpcBehaviorRegistry getNpcBehaviorRegistry() { return npcBehaviorRegistry; }
-    public ShopManager getShopManager() { return shopManager; }
-    public StoryManager getStoryManager() { return storyManager; }
-    public PartyManager getPartyManager() { return partyManager; }
-    public QuestManager getQuestManager() { return questManager; }
-    public BossRepository getBossRepository() { return bossRepository; }
-    public BossManager getBossManager() { return bossManager; }
-    public StatisticsService getStatisticsService() { return statisticsService; }
-    public ScoreboardService getScoreboardService() { return scoreboardService; }
-    public LanguageManager getLanguageManager() { return languageManager; }
-    public GemRepository getGemRepository() { return gemRepository; }
-    public SkillGemCastEngine getSkillGemCastEngine() { return skillGemCastEngine; }
 }
