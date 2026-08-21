@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.profession;
 
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 
 import java.util.Optional;
@@ -34,7 +35,7 @@ public final class ProfessionService {
         int after = professionLevelForExperience(profile.getProfessionExperience(profession));
         if (after != before) {
             profile.setProfessionLevel(profession, after);
-            player.sendMessage("§a" + profession.name() + " reached level " + after + "!");
+            player.sendMessage(Component.text(profession.name() + " reached level " + after + "!"));
         }
         profileManager.saveProfileAsync(player.getUniqueId());
     }
