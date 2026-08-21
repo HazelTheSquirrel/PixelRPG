@@ -64,6 +64,7 @@ import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.AttributeConfig;
 import de.pixelrpg.rpg.player.ClassBalance;
 import de.pixelrpg.rpg.player.GuildJoinLeaveListener;
+import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.ProfessionSystem;
 import de.pixelrpg.rpg.quest.GlobalEventState;
@@ -130,6 +131,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         GuildCurrencyItemFactory.configureMaxStackSize(getConfig().getInt("economy.currency.max-stack-size", 64));
         playerProfileManager = new PlayerProfileManager(this);
         playerProfileManager.initialize(getConfig());
+        getServer().getPluginManager().registerEvents(new PlayerProfileLifecycleListener(playerProfileManager), this);
         statEngine = new StatEngine(playerProfileManager);
         professionSystem = new ProfessionSystem(this, playerProfileManager);
         professionSystem.register();
