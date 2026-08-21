@@ -55,7 +55,7 @@ public final class ProfessionGatheringListener implements Listener {
     private boolean isSkinnable(EntityType type) {
         return switch (type) {
             case COW, MOOSHROOM, SHEEP, PIG, CHICKEN, RABBIT, HORSE, DONKEY, MULE,
-                 LLAMA, TRADER_LLAMA, GOAT, CAMEL, HOG, HOGLIN -> true;
+                 LLAMA, TRADER_LLAMA, GOAT, CAMEL, HOGLIN -> true;
             default -> false;
         };
     }
