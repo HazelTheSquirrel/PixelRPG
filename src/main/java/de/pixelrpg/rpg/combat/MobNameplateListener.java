@@ -21,7 +21,7 @@ public final class MobNameplateListener implements Listener {
         this.guildAPI = guildAPI;
     }
 
-    // Zuständig für die Anzeige von Level-, HP- und Rüstungsinformationen registrierter Spieler.
+    // Zuständig für die Anzeige von Level-, HP- und Rüstungsinformationen eines RPG-Mobs nach einem Treffer.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDamageMob(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity target)) return;
