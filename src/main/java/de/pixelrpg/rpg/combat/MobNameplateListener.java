@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.combat;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.core.RPGKeys;
 import org.bukkit.Bukkit;
@@ -14,10 +15,12 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.projectiles.ProjectileSource;
 
 public final class MobNameplateListener implements Listener {
+    private final PixelRPGPlugin plugin;
     private final MobNameplateService nameplateService;
     private final GuildAPI guildAPI;
 
-    public MobNameplateListener(MobNameplateService nameplateService, GuildAPI guildAPI) {
+    public MobNameplateListener(PixelRPGPlugin plugin, MobNameplateService nameplateService, GuildAPI guildAPI) {
+        this.plugin = plugin;
         this.nameplateService = nameplateService;
         this.guildAPI = guildAPI;
     }
@@ -39,14 +42,10 @@ public final class MobNameplateListener implements Listener {
         if (damager == null || !guildAPI.isRegistered(damager.getUniqueId())) return;
 
         Player finalDamager = damager;
-        Bukkit.getScheduler().runTask(nameplateServicePlugin(), () -> {
+        Bukkit.getScheduler().runTask(plugin, () -> {
             if (target.isValid() && !target.isDead()) {
                 nameplateService.onPlayerHit(target, finalDamager.getUniqueId());
             }
         });
-    }
-
-    private org.bukkit.plugin.Plugin nameplateServicePlugin() {
-        return org.bukkit.Bukkit.getPluginManager().getPlugin("PixelRPG");
     }
 }
