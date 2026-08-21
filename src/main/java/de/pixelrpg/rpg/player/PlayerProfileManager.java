@@ -32,6 +32,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     private final Map<UUID, PlayerProfile> activeProfiles = new ConcurrentHashMap<>();
     private final Map<UUID, PlayerProfile> loadingCache = new ConcurrentHashMap<>();
     private final Map<UUID, CompletableFuture<Void>> saveChain = new ConcurrentHashMap<>();
+    private final java.util.Set<UUID> saveRequested = ConcurrentHashMap.newKeySet();
     private PlayerProfileRepository repository;
     private DatabaseManager databaseManager;
     private StorageType storageType;
@@ -91,6 +92,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
             }
         }
         saveChain.clear();
+        saveRequested.clear();
         loadingCache.clear();
         if (repository != null) repository.shutdown();
     }
@@ -200,14 +202,23 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         if (profile != null) persistAsync(profile);
     }
 
-    private void persistAsync(PlayerProfile profile) { enqueueVoid(profile.getUuid(), () -> persistSync(profile)); }
+    private void persistAsync(PlayerProfile profile) {
+        UUID uuid = profile.getUuid();
+        if (!saveRequested.add(uuid)) return;
+
+        CompletableFuture<Void> future = enqueueVoid(uuid, () -> persistSync(profile));
+        future.whenComplete((ignored, throwable) -> {
+            saveRequested.remove(uuid);
+            if (profile.isDirty() && saveExecutor != null && !saveExecutor.isShutdown()) persistAsync(profile);
+        });
+    }
 
     private void persistSync(PlayerProfile profile) {
-        if (!profile.isDirty()) return;
+        if (!profile.beginSave()) return;
         try {
             repository.save(profile);
-            profile.markClean();
         } catch (Exception e) {
+            profile.markDirty();
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to save profile for " + profile.getUuid(), e);
             if (storageType == StorageType.MYSQL) writeEmergencyBackup(profile);
         }
