@@ -5,7 +5,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public final class MobScalingConfig {
     public record LevelBaseStats(double hp, double damage) { }
-    public record DimensionModifier(double hpMultiplier, double damageMultiplier, int levelOffset) { }
+    public record DimensionModifier(double hpMultiplier, double damageMultiplier, int levelOffset, int baseLevel) { }
 
     private DimensionModifier overworld;
     private DimensionModifier nether;
@@ -21,19 +21,21 @@ public final class MobScalingConfig {
         playerParityMultiplier = config.getDouble("mob-scaling.player-parity-multiplier", 1.15);
         hpPerLevel = config.getDouble("mob-scaling.hp-per-level", 8.0);
         damagePerLevel = config.getDouble("mob-scaling.damage-per-level", 1.1);
-        overworld = loadDimension(config, "mob-scaling.dimension.overworld", 1.0, 1.0, 0);
-        nether = loadDimension(config, "mob-scaling.dimension.nether", 1.30, 1.20, 2);
-        theEnd = loadDimension(config, "mob-scaling.dimension.the-end", 1.60, 1.40, 4);
+        overworld = loadDimension(config, "mob-scaling.dimension.overworld", 1.0, 1.0, 0, 1);
+        nether = loadDimension(config, "mob-scaling.dimension.nether", 1.30, 1.20, 0, 50);
+        theEnd = loadDimension(config, "mob-scaling.dimension.the-end", 1.60, 1.40, 0, 75);
         nameplateDurationTicks = config.getInt("mob-scaling.nameplate-duration-ticks", 120);
         vanillaPlayerDamageCap = config.getDouble("mob-scaling.vanilla-player-damage-cap", 4.0);
         xpPerMaxHealth = config.getDouble("mob-scaling.xp-per-max-health", 0.9);
     }
 
-    private DimensionModifier loadDimension(FileConfiguration config, String path, double defaultHp, double defaultDmg, int defaultOffset) {
+    private DimensionModifier loadDimension(FileConfiguration config, String path, double defaultHp, double defaultDmg,
+                                            int defaultOffset, int defaultBaseLevel) {
         return new DimensionModifier(
                 config.getDouble(path + ".hp-multiplier", defaultHp),
                 config.getDouble(path + ".damage-multiplier", defaultDmg),
-                config.getInt(path + ".level-offset", defaultOffset)
+                config.getInt(path + ".level-offset", defaultOffset),
+                config.getInt(path + ".base-level", defaultBaseLevel)
         );
     }
 
