@@ -140,9 +140,9 @@ mob-scaling:
   damage-per-level: 1.1
   player-parity-multiplier: 1.15
   dimension:
-    overworld: { hp-multiplier: 1.0, damage-multiplier: 1.0, level-offset: 0 }
-    nether: { hp-multiplier: 1.30, damage-multiplier: 1.20, level-offset: 2 }
-    the-end: { hp-multiplier: 1.60, damage-multiplier: 1.40, level-offset: 4 }
+    overworld: { hp-multiplier: 1.0, damage-multiplier: 1.0, level-offset: 0, base-level: 1 }
+    nether: { hp-multiplier: 1.30, damage-multiplier: 1.20, level-offset: 0, base-level: 50 }
+    the-end: { hp-multiplier: 1.60, damage-multiplier: 1.40, level-offset: 0, base-level: 75 }
 
 npc:
   look-radius: 8.0
