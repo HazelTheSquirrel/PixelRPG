@@ -21,31 +21,21 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class RPGItemBuilder {
     private static double blessingChance = 0.12;
     private static double curseChance = 0.10;
-
     private RPGItemBuilder() { }
-
-    public static void configureChances(double blessing, double curse) {
-        blessingChance = blessing;
-        curseChance = curse;
-    }
+    public static void configureChances(double blessing, double curse) { blessingChance = blessing; curseChance = curse; }
 
     public static Optional<ItemStack> createUnidentified(Material material, ItemRarity rarity, int itemLevel) {
         if (!Level.isValidNormalLevel(itemLevel)) return Optional.empty();
         Optional<ItemCategory> categoryOpt = GearCategoryRegistry.resolve(material);
         if (categoryOpt.isEmpty()) return Optional.empty();
         ItemCategory category = categoryOpt.get();
-
-        ItemStack item = new ItemStack(material);
+        ItemStack item = ItemStack.of(material);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Unidentified ", NamedTextColor.GRAY)
-                .append(rarity.displayName())
-                .append(Component.text(" Item", NamedTextColor.GRAY))
-                .decoration(TextDecoration.ITALIC, false));
+        meta.displayName(Component.text("Unidentified ", NamedTextColor.GRAY).append(rarity.displayName()).append(Component.text(" Item", NamedTextColor.GRAY)).decoration(TextDecoration.ITALIC, false));
         List<Component> lore = new ArrayList<>();
         lore.add(Component.text("Bring this to the Blacksmith", NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("to reveal its true power.", NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("Item Level: " + itemLevel, NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
-
         var pdc = meta.getPersistentDataContainer();
         pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, false);
         pdc.set(RPGKeys.Item.rarity(), PersistentDataType.STRING, rarity.name());
@@ -61,27 +51,23 @@ public final class RPGItemBuilder {
         ItemMeta meta = item.getItemMeta();
         var pdc = meta.getPersistentDataContainer();
         if (Boolean.TRUE.equals(pdc.get(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN))) return item;
-
         String rarityRaw = pdc.get(RPGKeys.Item.rarity(), PersistentDataType.STRING);
         String categoryRaw = pdc.get(RPGKeys.Item.category(), PersistentDataType.STRING);
         Integer itemLevelRaw = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
         ItemRarity rarity = rarityRaw != null ? ItemRarity.valueOf(rarityRaw) : ItemRarity.COMMON;
         ItemCategory category = categoryRaw != null ? ItemCategory.valueOf(categoryRaw) : ItemCategory.TOOL;
         int itemLevel = itemLevelRaw != null ? Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, itemLevelRaw)) : Level.MIN_LEVEL;
-
         ThreadLocalRandom random = ThreadLocalRandom.current();
         double roll = 0.85 + random.nextDouble(0.3);
         double multiplier = rarity.getStatMultiplier();
         double levelFactor = 1.0 + itemLevel * 0.075;
         String instanceId = UUID.randomUUID().toString();
         pdc.set(RPGKeys.Item.instanceId(), PersistentDataType.STRING, instanceId);
-
         List<Component> lore = new ArrayList<>();
         lore.add(Component.text("Rarity: ", NamedTextColor.GRAY).append(rarity.displayName()).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("Item Level: " + itemLevel, NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("Category: ", NamedTextColor.GRAY).append(category.displayName()).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text(" "));
-
         switch (category.getProfile()) {
             case WEAPON -> {
                 double bonusDamage = round((2.0 + levelFactor * 1.8) * multiplier * roll);
@@ -110,7 +96,6 @@ public final class RPGItemBuilder {
                 lore.add(Component.text("Efficiency: +" + toolBonus, NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
             }
         }
-
         if (random.nextDouble() < blessingChance) {
             BlessingType blessing = BlessingType.rollRandom();
             pdc.set(RPGKeys.Item.blessingType(), PersistentDataType.STRING, blessing.name());
@@ -121,7 +106,6 @@ public final class RPGItemBuilder {
             pdc.set(RPGKeys.Item.curseType(), PersistentDataType.STRING, curse.name());
             lore.add(Component.text("☠ ", NamedTextColor.DARK_RED).append(curse.displayName()).decoration(TextDecoration.ITALIC, false));
         }
-
         String materialLabel = item.getType().name().replace('_', ' ').toLowerCase();
         String prettyMaterial = Character.toUpperCase(materialLabel.charAt(0)) + materialLabel.substring(1);
         meta.displayName(rarity.displayName().append(Component.text(" " + prettyMaterial, NamedTextColor.WHITE)).decoration(TextDecoration.ITALIC, false));
@@ -129,6 +113,23 @@ public final class RPGItemBuilder {
         pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
+    }
+
+    /** Assigns a named ability directly to a weapon item. */
+    public static ItemStack withWeaponAbility(ItemStack item, String abilityId, long cooldownMillis) {
+        if (abilityId == null || abilityId.isBlank()) throw new IllegalArgumentException("abilityId must not be blank");
+        ItemStack result = item.clone();
+        ItemMeta meta = result.getItemMeta();
+        var pdc = meta.getPersistentDataContainer();
+        pdc.set(RPGKeys.Item.weaponAbility(), PersistentDataType.STRING, abilityId);
+        pdc.set(RPGKeys.Item.weaponAbilityCooldownMillis(), PersistentDataType.LONG, Math.max(0L, cooldownMillis));
+        List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
+        lore.add(Component.text(" "));
+        lore.add(Component.text("Ability: ", NamedTextColor.AQUA).append(Component.text(abilityId, NamedTextColor.WHITE)).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("Shift + Right Click", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        meta.lore(lore);
+        result.setItemMeta(meta);
+        return result;
     }
 
     private static double round(double value) { return Math.round(value * 10.0) / 10.0; }
