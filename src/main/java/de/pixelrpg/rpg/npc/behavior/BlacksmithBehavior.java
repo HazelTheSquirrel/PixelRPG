@@ -1,6 +1,9 @@
 package de.pixelrpg.rpg.npc.behavior;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.gui.BlacksmithGUI;
+import de.pixelrpg.rpg.gui.CraftingGUI;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
@@ -13,7 +16,7 @@ import de.pixelrpg.rpg.profession.ProfessionService;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.NamedTextColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -34,6 +37,15 @@ public final class BlacksmithBehavior implements NpcBehavior {
         this.professionService = professionService;
         this.craftingService = craftingService;
         this.dialogueEngine = dialogueEngine;
+    }
+
+    /** Compatibility constructor for the existing plugin bootstrap; the legacy GUIs are intentionally not used. */
+    public BlacksmithBehavior(BlacksmithGUI ignoredBlacksmithGUI, CraftingGUI ignoredCraftingGUI,
+                              PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
+        this(profileManager,
+                PixelRPGPlugin.getInstance().getProfessionSystem().professionService(),
+                PixelRPGPlugin.getInstance().getProfessionSystem().craftingService(),
+                dialogueEngine);
     }
 
     @Override
@@ -74,11 +86,6 @@ public final class BlacksmithBehavior implements NpcBehavior {
         }
         actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
 
-        dialogueEngine.openMultiAction(
-                player,
-                Component.text("Schmied", NamedTextColor.GOLD),
-                body,
-                actions,
-                1);
+        dialogueEngine.openMultiAction(player, Component.text("Schmied", NamedTextColor.GOLD), body, actions, 1);
     }
 }
