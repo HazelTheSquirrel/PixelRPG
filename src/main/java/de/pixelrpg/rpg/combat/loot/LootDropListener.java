@@ -1,17 +1,12 @@
-// src/main/java/de/pixelrpg/rpg/combat/loot/LootDropListener.java (VOLLSTÄNDIG, ersetzt alte Datei — Gildengold-Drop ergänzt)
 package de.pixelrpg.rpg.combat.loot;
 
 import de.pixelrpg.rpg.api.GuildAPI;
-import de.pixelrpg.rpg.combat.gem.ActiveSkillGemDefinition;
-import de.pixelrpg.rpg.combat.gem.GemItemFactory;
-import de.pixelrpg.rpg.combat.gem.GemRepository;
-import de.pixelrpg.rpg.combat.gem.PassiveGemDefinition;
+import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
-import de.pixelrpg.rpg.item.RuneItemFactory;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
@@ -20,14 +15,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class LootDropListener implements Listener {
-
     private static final List<Material> DROP_POOL = List.of(
             Material.WOODEN_SWORD, Material.STONE_SWORD, Material.GOLDEN_SWORD, Material.COPPER_AXE, Material.COPPER_SWORD,
             Material.IRON_SWORD, Material.DIAMOND_SWORD, Material.NETHERITE_SWORD, Material.MACE,
@@ -40,94 +33,51 @@ public final class LootDropListener implements Listener {
             Material.GOLDEN_HELMET, Material.GOLDEN_CHESTPLATE, Material.GOLDEN_LEGGINGS, Material.GOLDEN_BOOTS,
             Material.DIAMOND_HELMET, Material.DIAMOND_CHESTPLATE, Material.DIAMOND_LEGGINGS, Material.DIAMOND_BOOTS,
             Material.NETHERITE_HELMET, Material.NETHERITE_CHESTPLATE, Material.NETHERITE_LEGGINGS, Material.NETHERITE_BOOTS,
-            Material.TURTLE_HELMET,
-            Material.SHIELD, Material.IRON_PICKAXE, Material.DIAMOND_PICKAXE,
+            Material.TURTLE_HELMET, Material.SHIELD, Material.IRON_PICKAXE, Material.DIAMOND_PICKAXE,
             Material.IRON_SHOVEL, Material.DIAMOND_SHOVEL, Material.IRON_HOE, Material.DIAMOND_HOE,
             Material.SHEARS, Material.FISHING_ROD
     );
 
     private final GuildAPI guildAPI;
     private final ItemEconomyConfig economyConfig;
-    private final GemRepository gemRepository;
 
-    public LootDropListener(GuildAPI guildAPI, ItemEconomyConfig economyConfig, GemRepository gemRepository) {
+    public LootDropListener(GuildAPI guildAPI, ItemEconomyConfig economyConfig) {
         this.guildAPI = guildAPI;
         this.economyConfig = economyConfig;
-        this.gemRepository = gemRepository;
     }
 
-    // Zuständig für sämtliche Loot-Drops beim Töten registrierter Rathaus-Mitglieder:
-    // unidentifizierte/identifizierte Ausrüstung, Runen, Skill-Gems und Gildengold.
+    /** Temporary compatibility constructor while the plugin bootstrap is migrated. */
+    public LootDropListener(GuildAPI guildAPI, ItemEconomyConfig economyConfig, Object ignoredLegacyGemRepository) {
+        this(guildAPI, economyConfig);
+    }
+
+    // Zuständig für Ausrüstungs- und Gildengold-Loot beim Töten eines Monsters.
     @EventHandler(priority = EventPriority.HIGH)
     public void onMonsterDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
-        if (!(entity instanceof Monster)) {
-            return;
-        }
-
+        if (!(entity instanceof Monster)) return;
         Player killer = entity.getKiller();
-        if (killer == null || !guildAPI.isRegistered(killer.getUniqueId())) {
-            return;
-        }
+        if (killer == null || !guildAPI.isRegistered(killer.getUniqueId())) return;
 
         ThreadLocalRandom random = ThreadLocalRandom.current();
-
-        Integer mobRankOrdinal = entity.getPersistentDataContainer()
-                .get(RPGKeys.Combat.mobRank(), PersistentDataType.INTEGER);
-
-        de.pixelrpg.rpg.core.Rank itemRank = mobRankOrdinal != null
-                ? de.pixelrpg.rpg.core.Rank.fromOrdinalClamped(mobRankOrdinal)
-                : de.pixelrpg.rpg.core.Rank.F;
+        Integer mobLevel = entity.getPersistentDataContainer().get(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER);
+        int itemLevel = mobLevel != null ? mobLevel : guildAPI.getLevel(killer.getUniqueId());
+        itemLevel = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, itemLevel));
 
         if (random.nextDouble() < economyConfig.getUnidentifiedDropChance()) {
             Material material = DROP_POOL.get(random.nextInt(DROP_POOL.size()));
-            ItemRarity rarity = ItemRarity.rollRandom();
-
-            RPGItemBuilder.createUnidentified(material, rarity, itemRank)
-                    .ifPresent(item -> event.getDrops().add(item));
+            RPGItemBuilder.createUnidentified(material, ItemRarity.rollRandom(), itemLevel).ifPresent(event.getDrops()::add);
         }
-
         if (random.nextDouble() < economyConfig.getIdentifiedDropChance()) {
             Material material = DROP_POOL.get(random.nextInt(DROP_POOL.size()));
-            ItemRarity rarity = ItemRarity.rollRandomUpTo(ItemRarity.RARE);
-
-            RPGItemBuilder.createUnidentified(material, rarity, itemRank)
-                    .map(RPGItemBuilder::identify)
-                    .ifPresent(item -> event.getDrops().add(item));
+            RPGItemBuilder.createUnidentified(material, ItemRarity.rollRandomUpTo(ItemRarity.RARE), itemLevel)
+                    .map(RPGItemBuilder::identify).ifPresent(event.getDrops()::add);
         }
-
-        if (random.nextDouble() < economyConfig.getRuneDropChance()) {
-            event.getDrops().add(RuneItemFactory.createRandom());
-        }
-
-        if (random.nextDouble() < economyConfig.getGemDropChance()) {
-            rollGemDrop(random).ifPresent(item -> event.getDrops().add(item));
-        }
-
         if (random.nextDouble() < economyConfig.getCurrencyDropChance()) {
             long min = economyConfig.getCurrencyDropMinAmount();
             long max = Math.max(min, economyConfig.getCurrencyDropMaxAmount());
             long amount = min == max ? min : random.nextLong(min, max + 1);
             event.getDrops().addAll(GuildCurrencyItemFactory.createStacks(amount));
         }
-    }
-
-    private java.util.Optional<ItemStack> rollGemDrop(ThreadLocalRandom random) {
-        boolean dropActive = random.nextDouble() < economyConfig.getGemActiveChance();
-
-        if (dropActive) {
-            List<ActiveSkillGemDefinition> activeGems = gemRepository.getAllActive();
-            if (!activeGems.isEmpty()) {
-                ActiveSkillGemDefinition definition = activeGems.get(random.nextInt(activeGems.size()));
-                return java.util.Optional.of(GemItemFactory.createActive(definition));
-            }
-        }
-
-        List<PassiveGemDefinition> passiveGems = gemRepository.getAllPassive();
-        if (passiveGems.isEmpty()) {
-            return java.util.Optional.empty();
-        }
-        PassiveGemDefinition definition = passiveGems.get(random.nextInt(passiveGems.size()));
-        return java.util.Optional.of(GemItemFactory.createPassive(definition));
     }
 }
