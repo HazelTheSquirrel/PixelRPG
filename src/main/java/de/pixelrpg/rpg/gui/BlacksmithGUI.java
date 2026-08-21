@@ -1,8 +1,6 @@
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.combat.gem.GemItemFactory;
-import de.pixelrpg.rpg.combat.gem.GemSocketService;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.ItemRarity;
@@ -43,11 +41,7 @@ public final class BlacksmithGUI implements Listener {
 
     public static final class BlacksmithHolder implements InventoryHolder {
         private Inventory inventory;
-
-        @Override
-        public Inventory getInventory() {
-            return inventory;
-        }
+        @Override public Inventory getInventory() { return inventory; }
     }
 
     public BlacksmithGUI(PlayerProfileManager profileManager, ItemEconomyConfig economyConfig) {
@@ -58,23 +52,18 @@ public final class BlacksmithGUI implements Listener {
 
     public void open(Player player) {
         BlacksmithHolder holder = new BlacksmithHolder();
-        Inventory inventory = Bukkit.createInventory(holder, 27,
-                lang.get("blacksmith.gui-title").color(NamedTextColor.DARK_GRAY));
+        Inventory inventory = Bukkit.createInventory(holder, 27, lang.get("blacksmith.gui-title").color(NamedTextColor.DARK_GRAY));
         holder.inventory = inventory;
 
         ItemStack filler = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta fillerMeta = filler.getItemMeta();
         fillerMeta.displayName(Component.text(" "));
         filler.setItemMeta(fillerMeta);
-
         for (int slot = 0; slot < inventory.getSize(); slot++) {
-            if (slot != ITEM_SLOT && slot != IDENTIFY_BUTTON && slot != SOULBOUND_BUTTON) {
-                inventory.setItem(slot, filler);
-            }
+            if (slot != ITEM_SLOT && slot != IDENTIFY_BUTTON && slot != SOULBOUND_BUTTON) inventory.setItem(slot, filler);
         }
 
-        inventory.setItem(IDENTIFY_BUTTON,
-                buildButton(Material.ANVIL, "blacksmith.identify-button", NamedTextColor.YELLOW, "blacksmith.identify-desc"));
+        inventory.setItem(IDENTIFY_BUTTON, buildButton(Material.ANVIL, "blacksmith.identify-button", NamedTextColor.YELLOW, "blacksmith.identify-desc"));
         inventory.setItem(SOULBOUND_BUTTON, buildSoulbindButton());
         player.openInventory(inventory);
     }
@@ -91,12 +80,10 @@ public final class BlacksmithGUI implements Listener {
     private ItemStack buildSoulbindButton() {
         ItemStack item = new ItemStack(Material.SOUL_SAND);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(lang.get("blacksmith.soulbind-button").color(NamedTextColor.LIGHT_PURPLE)
-                .decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get("blacksmith.soulbind-button").color(NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(
                 lang.get("blacksmith.soulbind-desc").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
-                Component.text("Benötigtes Level: " + economyConfig.getSoulboundMinLevel(), NamedTextColor.GOLD)
-                        .decoration(TextDecoration.ITALIC, false)
+                Component.text("Benötigtes Level: " + economyConfig.getSoulboundMinLevel(), NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false)
         ));
         item.setItemMeta(meta);
         return item;
@@ -114,17 +101,13 @@ public final class BlacksmithGUI implements Listener {
         }
     }
 
-    // Verarbeitet Identifizieren, Seelenbindung und das Einsetzen von Skill-Gems im Schmiedemenü.
+    // Verarbeitet Identifizieren und Seelenbindung im Schmiedemenü.
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof BlacksmithHolder holder)) return;
         if (!(event.getWhoClicked() instanceof Player player)) return;
-
         Inventory top = holder.getInventory();
-        if (event.getClick().isShiftClick()) {
-            event.setCancelled(true);
-            return;
-        }
+        if (event.getClick().isShiftClick()) { event.setCancelled(true); return; }
         if (event.getClickedInventory() != top) return;
 
         int slot = event.getSlot();
@@ -138,41 +121,7 @@ public final class BlacksmithGUI implements Listener {
             processSoulbound(player, top);
             return;
         }
-        if (slot != ITEM_SLOT) {
-            event.setCancelled(true);
-            return;
-        }
-
-        ItemStack cursor = event.getCursor();
-        ItemStack current = event.getCurrentItem();
-        if (cursor == null || cursor.getType() == Material.AIR || current == null || current.getType() == Material.AIR) return;
-        if (event.getAction() == org.bukkit.event.inventory.InventoryAction.SWAP_WITH_CURSOR) {
-            handleGemSocket(event, player, cursor, current);
-        }
-    }
-
-    private void handleGemSocket(InventoryClickEvent event, Player player, ItemStack gem, ItemStack item) {
-        String gemId = GemItemFactory.readGemId(gem);
-        if (gemId == null || !item.hasItemMeta()) return;
-
-        Boolean identified = item.getItemMeta().getPersistentDataContainer()
-                .get(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN);
-        if (!Boolean.TRUE.equals(identified)) return;
-
-        event.setCancelled(true);
-        GemSocketService.Result result = GemSocketService.socket(item, gemId);
-        switch (result) {
-            case SUCCESS -> {
-                ItemStack remaining = gem.clone();
-                remaining.setAmount(gem.getAmount() - 1);
-                event.getView().setCursor(remaining.getAmount() > 0 ? remaining : null);
-                player.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.4f);
-                lang.send(player, "blacksmith.gem-socketed");
-            }
-            case NO_FREE_SLOTS -> lang.send(player, "blacksmith.gem-no-slots");
-            case ALREADY_SOCKETED -> lang.send(player, "blacksmith.gem-already-socketed");
-            case NOT_A_WEAPON -> lang.send(player, "blacksmith.gem-not-a-weapon");
-        }
+        if (slot != ITEM_SLOT) event.setCancelled(true);
     }
 
     private void processIdentify(Player player, Inventory inventory) {
@@ -182,14 +131,10 @@ public final class BlacksmithGUI implements Listener {
             return;
         }
 
-        String rarityRaw = target.getItemMeta().getPersistentDataContainer()
-                .get(RPGKeys.Item.rarity(), PersistentDataType.STRING);
+        String rarityRaw = target.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.rarity(), PersistentDataType.STRING);
         ItemRarity rarity;
-        try {
-            rarity = rarityRaw == null ? ItemRarity.COMMON : ItemRarity.valueOf(rarityRaw);
-        } catch (IllegalArgumentException ignored) {
-            rarity = ItemRarity.COMMON;
-        }
+        try { rarity = rarityRaw == null ? ItemRarity.COMMON : ItemRarity.valueOf(rarityRaw); }
+        catch (IllegalArgumentException ignored) { rarity = ItemRarity.COMMON; }
 
         double cost = economyConfig.identificationCost(rarity);
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
@@ -244,8 +189,7 @@ public final class BlacksmithGUI implements Listener {
 
     private boolean isUnidentified(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
-        Boolean identified = item.getItemMeta().getPersistentDataContainer()
-                .get(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN);
+        Boolean identified = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN);
         return Boolean.FALSE.equals(identified);
     }
 
@@ -254,12 +198,9 @@ public final class BlacksmithGUI implements Listener {
     public void onClose(InventoryCloseEvent event) {
         if (!(event.getInventory().getHolder() instanceof BlacksmithHolder)) return;
         if (!(event.getPlayer() instanceof Player player)) return;
-
         ItemStack leftover = event.getInventory().getItem(ITEM_SLOT);
         if (leftover == null || leftover.getType() == Material.AIR) return;
-
         event.getInventory().setItem(ITEM_SLOT, null);
-        player.getInventory().addItem(leftover).values()
-                .forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
+        player.getInventory().addItem(leftover).values().forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
     }
 }
