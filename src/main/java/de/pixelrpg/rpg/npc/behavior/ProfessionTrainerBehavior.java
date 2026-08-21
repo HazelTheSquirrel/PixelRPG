@@ -51,15 +51,14 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
         int level = professionService.getLevel(player.getUniqueId(), profession);
         long experience = professionService.getExperience(player.getUniqueId(), profession);
         long nextLevel = ProfessionService.experienceForLevel(Math.min(Profession.MAX_LEVEL, level + 1));
-
         String displayName = displayName(profession);
-        Component progress = level >= Profession.MAX_LEVEL
-                ? Component.text("Level 100 – Meister", NamedTextColor.GREEN)
-                : Component.text("Level " + level + " • " + experience + "/" + nextLevel + " EP", NamedTextColor.GRAY);
+        String progressText = level >= Profession.MAX_LEVEL
+                ? "Level 100 – Meister"
+                : "Level " + level + " • " + experience + "/" + nextLevel + " EP";
 
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text("Ich bilde dich in " + displayName + " aus.", NamedTextColor.WHITE)),
-                DialogBody.plainMessage(progress)
+                DialogBody.plainMessage(Component.text(progressText, level >= Profession.MAX_LEVEL ? NamedTextColor.GREEN : NamedTextColor.GRAY))
         );
 
         if (isCraftingProfession(profession)) {
@@ -80,7 +79,7 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
         dialogueEngine.openNotice(
                 player,
                 Component.text(displayName + "-Lehrer", NamedTextColor.BLUE),
-                Component.text("Deine Profession steigt durch das Ausüben des entsprechenden Handwerks.\n\n" + progress.content()),
+                Component.text("Deine Profession steigt durch das Ausüben des entsprechenden Handwerks.\n\n" + progressText),
                 Component.text("Schließen", NamedTextColor.GREEN)
         );
     }
