@@ -18,6 +18,8 @@ public interface ItemAPI {
 
     boolean isGuildItem(ItemStack item);
 
+    Optional<String> getItemId(ItemStack item);
+
     Optional<ItemRarity> getRarity(ItemStack item);
 
     Optional<ItemCategory> getCategory(ItemStack item);
