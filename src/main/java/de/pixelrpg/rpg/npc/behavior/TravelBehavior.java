@@ -1,6 +1,6 @@
 package de.pixelrpg.rpg.npc.behavior;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.gui.TravelGUI;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcBehavior;
@@ -8,18 +8,24 @@ import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import io.papermc.paper.registry.data.dialog.body.DialogBody;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
-public final class TravelBehavior implements NpcBehavior {
+import java.util.List;
 
+public final class TravelBehavior implements NpcBehavior {
     private final NpcManager npcManager;
     private final PlayerProfileManager profileManager;
+    private final DialogueEngine dialogueEngine;
     private final LanguageManager lang;
 
-    public TravelBehavior(NpcManager npcManager, PlayerProfileManager profileManager) {
+    public TravelBehavior(NpcManager npcManager, PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
         this.npcManager = npcManager;
         this.profileManager = profileManager;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
+        this.dialogueEngine = dialogueEngine;
+        this.lang = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -38,10 +44,25 @@ public final class TravelBehavior implements NpcBehavior {
         boolean firstTime = profile != null && !profile.hasUnlockedWaypoint(npc.id());
         if (firstTime) {
             profileManager.unlockWaypoint(player.getUniqueId(), npc.id());
-            lang.send(player, "travel.unlocked", "name", npc.name());
+            dialogueEngine.openNotice(
+                    player,
+                    Component.text("Reisepunkt freigeschaltet", NamedTextColor.GREEN),
+                    Component.text(npc.name() + " wurde als Reisepunkt freigeschaltet."),
+                    Component.text("Schließen", NamedTextColor.GREEN)
+            );
             return;
         }
 
-        new TravelGUI(player, npcManager, profileManager, npc.id()).open(player);
+        dialogueEngine.openMultiAction(
+                player,
+                Component.text("Reisen", NamedTextColor.GOLD),
+                List.of(DialogBody.plainMessage(Component.text("Wähle einen freigeschalteten Reisepunkt."))),
+                List.of(dialogueEngine.actionButton(
+                        Component.text("Reisekarte öffnen"),
+                        NamedTextColor.GREEN,
+                        target -> new TravelGUI(target, npcManager, profileManager, npc.id()).open(target)
+                )),
+                1
+        );
     }
 }
