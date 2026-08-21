@@ -32,6 +32,7 @@ public final class QuickActionsDialogListener implements Listener {
         if (!service.isAvailable(player)) return;
 
         player.showDialog(Dialog.create(builder -> builder
+                .empty()
                 .base(DialogBase.builder(Component.text("PixelRPG – Charakterkarte"))
                         .body(List.of(DialogBody.plainMessage(service.characterCard(player))))
                         .build())
