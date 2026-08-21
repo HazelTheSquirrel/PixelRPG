@@ -4,10 +4,12 @@ import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 
-/** Builds the player-specific PixelRPG character card opened from native quick actions. */
+/** Builds the player-specific PixelRPG character card opened from the G action. */
 public final class QuickActionsDialogService {
     private final PlayerProfileManager profiles;
     private final StatEngine statEngine;
@@ -38,20 +40,39 @@ public final class QuickActionsDialogService {
                 ? player.getAttribute(Attribute.ARMOR).getValue()
                 : stats.armor();
 
+        Component section = Component.text("────────────────────────", NamedTextColor.DARK_GRAY);
+        Component header = Component.text("CHARAKTER", NamedTextColor.GOLD).decorate(TextDecoration.BOLD);
+        Component identity = Component.text()
+                .append(Component.text("Name: ", NamedTextColor.GRAY)).append(player.displayName()).append(Component.newline())
+                .append(Component.text("Level: ", NamedTextColor.GRAY)).append(Component.text(profile.getLevel(), NamedTextColor.YELLOW)).append(Component.newline())
+                .append(Component.text("Klasse: ", NamedTextColor.GRAY)).append(profile.getPlayerClass().displayName())
+                .build();
+        Component resources = Component.text()
+                .append(Component.text("Leben: ", NamedTextColor.GRAY)).append(Component.text(format(player.getHealth()) + "/" + format(maxHealth), NamedTextColor.RED)).append(Component.newline())
+                .append(Component.text("Mana: ", NamedTextColor.GRAY)).append(Component.text(format(profile.getCurrentMana()) + "/" + format(stats.maxMana()), NamedTextColor.BLUE)).append(Component.newline())
+                .append(Component.text("Rüstung: ", NamedTextColor.GRAY)).append(Component.text(format(armor), NamedTextColor.AQUA))
+                .build();
+        Component attributes = Component.text()
+                .append(Component.text("Stärke: ", NamedTextColor.GRAY)).append(Component.text(format(stats.strength()), NamedTextColor.WHITE)).append(Component.newline())
+                .append(Component.text("Beweglichkeit: ", NamedTextColor.GRAY)).append(Component.text(format(stats.agility()), NamedTextColor.WHITE)).append(Component.newline())
+                .append(Component.text("Ausdauer: ", NamedTextColor.GRAY)).append(Component.text(format(stats.stamina()), NamedTextColor.WHITE)).append(Component.newline())
+                .append(Component.text("Intelligenz: ", NamedTextColor.GRAY)).append(Component.text(format(stats.intellect()), NamedTextColor.WHITE))
+                .build();
+        Component combat = Component.text()
+                .append(Component.text("Angriffskraft: ", NamedTextColor.GRAY)).append(Component.text(format(stats.attackPower()), NamedTextColor.WHITE)).append(Component.newline())
+                .append(Component.text("Zauberkraft: ", NamedTextColor.GRAY)).append(Component.text(format(stats.spellPower()), NamedTextColor.WHITE)).append(Component.newline())
+                .append(Component.text("Kritische Trefferchance: ", NamedTextColor.GRAY)).append(Component.text(format(stats.critChance()) + "%", NamedTextColor.WHITE))
+                .build();
+
         return Component.text()
-                .append(Component.text("Name: ")).append(player.displayName()).append(Component.newline())
-                .append(Component.text("Level: ")).append(Component.text(profile.getLevel())).append(Component.newline())
-                .append(Component.text("Klasse: ")).append(Component.text(profile.getPlayerClass().name())).append(Component.newline())
-                .append(Component.text("Health: ")).append(Component.text(format(player.getHealth()) + "/" + format(maxHealth))).append(Component.newline())
-                .append(Component.text("Mana: ")).append(Component.text(format(profile.getCurrentMana()) + "/" + format(stats.maxMana()))).append(Component.newline())
-                .append(Component.text("Armor: ")).append(Component.text(format(armor))).append(Component.newline())
-                .append(Component.text("Strength: ")).append(Component.text(format(stats.strength()))).append(Component.newline())
-                .append(Component.text("Agility: ")).append(Component.text(format(stats.agility()))).append(Component.newline())
-                .append(Component.text("Stamina: ")).append(Component.text(format(stats.stamina()))).append(Component.newline())
-                .append(Component.text("Intellect: ")).append(Component.text(format(stats.intellect()))).append(Component.newline())
-                .append(Component.text("Attack Power: ")).append(Component.text(format(stats.attackPower()))).append(Component.newline())
-                .append(Component.text("Spell Power: ")).append(Component.text(format(stats.spellPower()))).append(Component.newline())
-                .append(Component.text("Critical Chance: ")).append(Component.text(format(stats.critChance()) + "%"))
+                .append(header).append(Component.newline()).append(section).append(Component.newline())
+                .append(identity).append(Component.newline()).append(Component.newline())
+                .append(Component.text("RESSOURCEN", NamedTextColor.AQUA).decorate(TextDecoration.BOLD)).append(Component.newline())
+                .append(resources).append(Component.newline()).append(Component.newline())
+                .append(Component.text("ATTRIBUTE", NamedTextColor.LIGHT_PURPLE).decorate(TextDecoration.BOLD)).append(Component.newline())
+                .append(attributes).append(Component.newline()).append(Component.newline())
+                .append(Component.text("KAMPF", NamedTextColor.YELLOW).decorate(TextDecoration.BOLD)).append(Component.newline())
+                .append(combat)
                 .build();
     }
 
