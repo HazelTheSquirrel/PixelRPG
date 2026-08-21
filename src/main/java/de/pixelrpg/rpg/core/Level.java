@@ -88,13 +88,14 @@ public final class Level {
             experience[level] = cumulative;
         }
 
-        // Extend the WotLK 80-cap progression so 98 -> 99 requires exactly
-        // 100 times the XP of 80 -> 81. Level 100 is then a separate
-        // transcendence threshold at 10,000 times the 98 -> 99 increment.
+        // Continue the WotLK 80-cap curve through level 99. The first
+        // extension increment (80 -> 81) equals the WotLK 79 -> 80 increment.
+        // From there the increment grows geometrically so that 98 -> 99 is
+        // exactly 100 times the XP required for 80 -> 81.
         double continuationRatio = Math.pow(100.0D, 1.0D / 18.0D);
-        double increment = wotlkXpPerLevel[78];
+        double increment = wotlkXpPerLevel[79];
         for (int level = 81; level <= 99; level++) {
-            increment *= continuationRatio;
+            if (level > 81) increment *= continuationRatio;
             cumulative = Math.addExact(cumulative, Math.round(increment));
             experience[level - 1] = cumulative;
         }
