@@ -17,6 +17,14 @@ public final class CraftingRecipeRegistry {
         return RECIPES.getOrDefault(profession, List.of());
     }
 
+    public static java.util.Optional<CraftRecipe> find(String id) {
+        if (id == null || id.isBlank()) return java.util.Optional.empty();
+        return RECIPES.values().stream()
+                .flatMap(List::stream)
+                .filter(recipe -> recipe.id().equalsIgnoreCase(id))
+                .findFirst();
+    }
+
     private static Map<Profession, List<CraftRecipe>> createRecipes() {
         Map<Profession, List<CraftRecipe>> recipes = new EnumMap<>(Profession.class);
 
@@ -24,22 +32,18 @@ public final class CraftingRecipeRegistry {
                 Profession.BLACKSMITHING, "filler_blacksmith_iron_sword", "Wachenklinge",
                 Material.IRON_SWORD, ItemRarity.RARE,
                 Map.of(Material.IRON_INGOT, 2, Material.STICK, 1), 1, 3)));
-
         recipes.put(Profession.LEATHERWORKING, List.of(new CraftRecipe(
                 Profession.LEATHERWORKING, "filler_leatherworking_leather_boots", "Lederstiefel",
                 Material.LEATHER_BOOTS, ItemRarity.COMMON,
                 Map.of(Material.LEATHER, 4), 1, 2)));
-
         recipes.put(Profession.TAILORING, List.of(new CraftRecipe(
                 Profession.TAILORING, "filler_tailoring_wool_tunic", "Wolltunika",
                 Material.WHITE_WOOL, ItemRarity.COMMON,
                 Map.of(Material.WHITE_WOOL, 4), 1, 2)));
-
         recipes.put(Profession.ALCHEMY, List.of(new CraftRecipe(
                 Profession.ALCHEMY, "filler_alchemy_awkward_potion", "Übungstrank",
                 Material.POTION, ItemRarity.COMMON,
                 Map.of(Material.NETHER_WART, 1, Material.GLASS_BOTTLE, 1), 1, 3)));
-
         recipes.put(Profession.COOKING, List.of(new CraftRecipe(
                 Profession.COOKING, "filler_cooking_baked_potato", "Gebackene Kartoffel",
                 Material.BAKED_POTATO, ItemRarity.COMMON,
