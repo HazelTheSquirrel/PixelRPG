@@ -120,7 +120,16 @@ public final class PlayerProfile {
     public synchronized long getPlaytimeMillis() { return playtimeMillis; }
     public synchronized void addPlaytimeMillis(long amount) { if (amount > 0L) { playtimeMillis += amount; dirty = true; } }
     public synchronized void setPlaytimeMillis(long value) { playtimeMillis = value; dirty = true; }
+
     public synchronized boolean isDirty() { return dirty; }
+
+    public synchronized boolean beginSave() {
+        if (!dirty) return false;
+        dirty = false;
+        return true;
+    }
+
+    public synchronized void markDirty() { dirty = true; }
     public synchronized void markClean() { dirty = false; }
 
     public synchronized void resetProgress() {
