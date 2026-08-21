@@ -1,8 +1,7 @@
-// src/main/java/de/pixelrpg/rpg/item/ClassSetItemFactory.java (VOLLSTÄNDIG, ersetzt alte Datei — instanzgebundene Modifikator-Keys)
 package de.pixelrpg.rpg.item;
 
+import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.core.RPGKeys;
-import de.pixelrpg.rpg.core.Rank;
 import de.pixelrpg.rpg.player.PlayerClass;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -18,9 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 public final class ClassSetItemFactory {
-
-    private ClassSetItemFactory() {
-    }
+    private ClassSetItemFactory() { }
 
     private static Material materialFor(PlayerClass playerClass, ClassSetSlot slot) {
         return switch (playerClass) {
@@ -74,11 +71,11 @@ public final class ClassSetItemFactory {
         };
     }
 
-    public static ItemStack create(PlayerClass playerClass, ClassSetSlot slot, Rank minRank) {
+    public static ItemStack create(PlayerClass playerClass, ClassSetSlot slot, int itemLevel) {
+        int safeLevel = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, itemLevel));
         Material material = materialFor(playerClass, slot);
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-
         String slotLabel = switch (slot) {
             case WEAPON -> "Weapon";
             case HELMET -> "Helm";
@@ -86,42 +83,29 @@ public final class ClassSetItemFactory {
             case LEGGINGS -> "Legguards";
             case BOOTS -> "Boots";
         };
-
-        meta.displayName(Component.text(setName(playerClass) + " " + slotLabel, NamedTextColor.GOLD)
-                .decoration(TextDecoration.ITALIC, false));
-
-        double bonus = 2.0 + minRank.ordinal() * 1.5;
+        meta.displayName(Component.text(setName(playerClass) + " " + slotLabel, NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
+        double bonus = 2.0 + safeLevel * 0.12;
         List<Component> lore = List.of(
-                Component.text("Class Set: ", NamedTextColor.GRAY)
-                        .append(playerClass.displayName())
-                        .decoration(TextDecoration.ITALIC, false),
-                Component.text("2pc: +Damage/Healing  4pc: +" + bonus + "% Class Power", NamedTextColor.LIGHT_PURPLE)
-                        .decoration(TextDecoration.ITALIC, false)
+                Component.text("Class Set: ", NamedTextColor.GRAY).append(playerClass.displayName()).decoration(TextDecoration.ITALIC, false),
+                Component.text("Item Level: " + safeLevel, NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false),
+                Component.text("2pc: +Damage/Healing  4pc: +" + round(bonus) + "% Class Power", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false)
         );
         meta.lore(lore);
-
-        // Eindeutige Instanz-ID pro Set-Teil: verhindert, dass mehrere gleichzeitig
-        // getragene Set-Teile (z. B. Helm + Brust + Beine + Stiefel) sich gegenseitig
-        // überschreibende Armor-Modifikatoren erzeugen.
         String instanceId = UUID.randomUUID().toString();
-
         var pdc = meta.getPersistentDataContainer();
         pdc.set(RPGKeys.Item.classSetClass(), PersistentDataType.STRING, playerClass.name());
         pdc.set(RPGKeys.Item.classSetSlot(), PersistentDataType.STRING, slot.name());
+        pdc.set(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER, safeLevel);
         pdc.set(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN, true);
         pdc.set(RPGKeys.Item.instanceId(), PersistentDataType.STRING, instanceId);
-
         if (slot == ClassSetSlot.WEAPON) {
-            meta.addAttributeModifier(Attribute.ATTACK_DAMAGE, new AttributeModifier(
-                    RPGKeys.Item.attackDamageModifier(instanceId), 4.0 + minRank.ordinal() * 2.0,
-                    AttributeModifier.Operation.ADD_NUMBER));
+            meta.addAttributeModifier(Attribute.ATTACK_DAMAGE, new AttributeModifier(RPGKeys.Item.attackDamageModifier(instanceId), 4.0 + safeLevel * 0.12, AttributeModifier.Operation.ADD_NUMBER));
         } else {
-            meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(
-                    RPGKeys.Item.armorModifier(instanceId), 1.0 + minRank.ordinal() * 0.5,
-                    AttributeModifier.Operation.ADD_NUMBER));
+            meta.addAttributeModifier(Attribute.ARMOR, new AttributeModifier(RPGKeys.Item.armorModifier(instanceId), 1.0 + safeLevel * 0.035, AttributeModifier.Operation.ADD_NUMBER));
         }
-
         item.setItemMeta(meta);
         return item;
     }
+
+    private static double round(double value) { return Math.round(value * 10.0) / 10.0; }
 }
