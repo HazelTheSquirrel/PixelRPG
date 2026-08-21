@@ -32,7 +32,8 @@ public final class ProfessionService {
 
         int before = profile.getProfessionLevel(profession);
         profile.addProfessionExperience(profession, amount);
-        int after = professionLevelForExperience(profile.getProfessionExperience(profession));
+        int calculatedLevel = professionLevelForExperience(profile.getProfessionExperience(profession));
+        int after = Math.max(before, calculatedLevel);
         if (after != before) {
             profile.setProfessionLevel(profession, after);
             player.sendMessage(Component.text(profession.name() + " reached level " + after + "!"));
