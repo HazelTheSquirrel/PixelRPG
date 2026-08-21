@@ -1,25 +1,25 @@
-// src/main/java/de/pixelrpg/rpg/item/ItemRarity.java (VOLLSTÄNDIG, ersetzt alte Datei — Sockelanzahl neu gestuft: 0/1/2/3)
 package de.pixelrpg.rpg.item;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
+/** PixelRPG item rarity tiers. Unique is reserved for one-of-a-kind items and is never rolled randomly. */
 public enum ItemRarity {
 
-    COMMON(Component.text("Common", NamedTextColor.GRAY), 1.0, 0, 70),
-    RARE(Component.text("Rare", NamedTextColor.GREEN), 1.4, 1, 22),
-    EPIC(Component.text("Epic", NamedTextColor.LIGHT_PURPLE), 2.0, 2, 7),
-    LEGENDARY(Component.text("Legendary", NamedTextColor.GOLD), 3.0, 3, 1);
+    COMMON(Component.text("Common", NamedTextColor.GRAY), 1.0, 70),
+    UNCOMMON(Component.text("Uncommon", NamedTextColor.GREEN), 1.15, 20),
+    RARE(Component.text("Rare", NamedTextColor.BLUE), 1.4, 8),
+    EPIC(Component.text("Epic", NamedTextColor.LIGHT_PURPLE), 2.0, 2),
+    LEGENDARY(Component.text("Legendary", NamedTextColor.GOLD), 3.0, 0),
+    UNIQUE(Component.text("Unique", NamedTextColor.RED), 4.0, 0);
 
     private final Component displayName;
     private final double statMultiplier;
-    private final int socketCount;
     private final int dropWeight;
 
-    ItemRarity(Component displayName, double statMultiplier, int socketCount, int dropWeight) {
+    ItemRarity(Component displayName, double statMultiplier, int dropWeight) {
         this.displayName = displayName;
         this.statMultiplier = statMultiplier;
-        this.socketCount = socketCount;
         this.dropWeight = dropWeight;
     }
 
@@ -29,10 +29,6 @@ public enum ItemRarity {
 
     public double getStatMultiplier() {
         return statMultiplier;
-    }
-
-    public int getSocketCount() {
-        return socketCount;
     }
 
     public int getDropWeight() {
@@ -46,7 +42,11 @@ public enum ItemRarity {
     }
 
     public boolean isMax() {
-        return this == LEGENDARY;
+        return this == UNIQUE;
+    }
+
+    public boolean isUnique() {
+        return this == UNIQUE;
     }
 
     public static ItemRarity rollRandom() {
@@ -60,10 +60,15 @@ public enum ItemRarity {
                 totalWeight += rarity.dropWeight;
             }
         }
+
+        if (totalWeight <= 0) {
+            return COMMON;
+        }
+
         int roll = (int) (Math.random() * totalWeight);
         int cumulative = 0;
         for (ItemRarity rarity : values()) {
-            if (rarity.ordinal() > maxRarity.ordinal()) {
+            if (rarity.ordinal() > maxRarity.ordinal() || rarity.dropWeight <= 0) {
                 continue;
             }
             cumulative += rarity.dropWeight;
