@@ -16,7 +16,7 @@ import de.pixelrpg.rpg.profession.ProfessionService;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.NamedTextColor;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
