@@ -1,6 +1,8 @@
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.ReceptionDialog;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -18,7 +20,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.List;
 
 public final class QuestLogGUI extends AbstractGUI {
-
     private final Player viewer;
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
@@ -32,13 +33,9 @@ public final class QuestLogGUI extends AbstractGUI {
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
-    @Override
-    protected void populate() {
+    @Override protected void populate() {
         PlayerProfile profile = profileManager.getProfile(viewer.getUniqueId()).orElse(null);
-        if (profile == null) {
-            return;
-        }
-
+        if (profile == null) return;
         if (profile.getActiveQuests().isEmpty()) {
             ItemStack empty = new ItemStack(Material.BARRIER);
             ItemMeta meta = empty.getItemMeta();
@@ -48,36 +45,23 @@ public final class QuestLogGUI extends AbstractGUI {
         } else {
             int slot = 0;
             for (QuestProgress progress : profile.getActiveQuests().values()) {
-                if (slot >= 45) {
-                    break;
-                }
+                if (slot >= 45) break;
                 Quest quest = questManager.getRepository().getQuest(progress.getQuestId());
-                if (quest == null) {
-                    continue;
-                }
-
+                if (quest == null) continue;
                 ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
                 ItemMeta meta = item.getItemMeta();
                 meta.displayName(Component.text(quest.title(), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
                 meta.lore(List.of(
                         Component.text(quest.description(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
-                        lang.get("quest.progress", "current", String.valueOf(progress.getCurrentAmount()),
-                                        "required", String.valueOf(quest.requiredAmount()))
-                                .color(NamedTextColor.GREEN)
-                                .decoration(TextDecoration.ITALIC, false),
-                        progress.hasExpiry()
-                                ? lang.get("quest.time-limited").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)
-                                : lang.get("quest.no-time-limit").color(NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false)
+                        lang.get("quest.progress", "current", String.valueOf(progress.getCurrentAmount()), "required", String.valueOf(quest.requiredAmount())).color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false),
+                        progress.hasExpiry() ? lang.get("quest.time-limited").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false) : lang.get("quest.no-time-limit").color(NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false)
                 ));
                 item.setItemMeta(meta);
-
-                setItem(slot, item, event ->
-                        new QuestDetailGUI(viewer, questManager, profileManager, quest).open(viewer));
+                setItem(slot, item, event -> new QuestDetailGUI(viewer, questManager, profileManager, quest).open(viewer));
                 slot++;
             }
         }
-
-        setItem(49, backButton(), event -> new ReceptionGUI(viewer, profileManager).open(viewer));
+        setItem(49, backButton(), event -> new ReceptionDialog(viewer, profileManager, new DialogueEngine()).open());
     }
 
     private ItemStack backButton() {
