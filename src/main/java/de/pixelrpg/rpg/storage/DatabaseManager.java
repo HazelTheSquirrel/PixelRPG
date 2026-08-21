@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public final class DatabaseManager {
-
     private HikariDataSource dataSource;
 
     public void connect(FileConfiguration config) {
@@ -39,7 +38,6 @@ public final class DatabaseManager {
         hikariConfig.setKeepaliveTime(120_000L);
         hikariConfig.setValidationTimeout(5_000L);
         hikariConfig.setLeakDetectionThreshold(15_000L);
-
         this.dataSource = new HikariDataSource(hikariConfig);
     }
 
@@ -64,9 +62,9 @@ public final class DatabaseManager {
                     waypoints TEXT,
                     story_chapter INT NOT NULL DEFAULT -1,
                     completed_quests TEXT,
-                    scoreboard_enabled BOOLEAN NOT NULL DEFAULT TRUE,
-                    party_hud_enabled BOOLEAN NOT NULL DEFAULT TRUE,
-                    quest_tracker_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+                    scoreboard_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+                    party_hud_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+                    quest_tracker_enabled BOOLEAN NOT NULL DEFAULT FALSE,
                     playtime_millis BIGINT NOT NULL DEFAULT 0
                 )
                 """;
@@ -117,8 +115,6 @@ public final class DatabaseManager {
     }
 
     public void shutdown() {
-        if (dataSource != null && !dataSource.isClosed()) {
-            dataSource.close();
-        }
+        if (dataSource != null && !dataSource.isClosed()) dataSource.close();
     }
 }
