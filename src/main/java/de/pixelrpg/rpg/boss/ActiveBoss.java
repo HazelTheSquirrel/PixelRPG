@@ -19,6 +19,7 @@ public final class ActiveBoss {
     private final Map<UUID, Double> damageContribution = new HashMap<>();
     private int currentPhaseIndex = -1;
     private int ticksSinceLastAttack = 0;
+    private int ticksSinceLastBarUpdate = Integer.MAX_VALUE;
     private BukkitTask task;
 
     public ActiveBoss(UUID entityUuid, BossDefinition definition, BossBar bossBar) {
@@ -37,15 +38,15 @@ public final class ActiveBoss {
         damageContribution.merge(playerUuid, damage, Double::sum);
     }
 
-    public Map<UUID, Double> getDamageContribution() {
-        return Map.copyOf(damageContribution);
-    }
-
+    public Map<UUID, Double> getDamageContribution() { return Map.copyOf(damageContribution); }
     public int getCurrentPhaseIndex() { return currentPhaseIndex; }
     public void setCurrentPhaseIndex(int currentPhaseIndex) { this.currentPhaseIndex = currentPhaseIndex; }
     public int getTicksSinceLastAttack() { return ticksSinceLastAttack; }
     public void resetAttackTimer() { this.ticksSinceLastAttack = 0; }
     public void incrementAttackTimer(int amount) { this.ticksSinceLastAttack += amount; }
+    public int getTicksSinceLastBarUpdate() { return ticksSinceLastBarUpdate; }
+    public void incrementBarUpdateTimer(int amount) { this.ticksSinceLastBarUpdate += amount; }
+    public void resetBarUpdateTimer() { this.ticksSinceLastBarUpdate = 0; }
     public BukkitTask getTask() { return task; }
     public void setTask(BukkitTask task) { this.task = task; }
 }
