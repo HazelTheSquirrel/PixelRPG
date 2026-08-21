@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/PixelRPGPlugin.java
 package de.pixelrpg.rpg;
 
 import de.pixelrpg.rpg.api.StatisticsAPI;
@@ -239,7 +238,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
             getCommand("rpgparty").setTabCompleter(partyCommand);
         }
         if (getCommand("questlog") != null) getCommand("questlog").setExecutor(new QuestLogCommand(questManager, playerProfileManager));
-        if (getCommand("rpgcraft") != null) getCommand("rpgcraft").setExecutor(new de.pixelrpg.rpg.command.impl.CraftingCommand(new de.pixelrpg.rpg.profession.CraftingService(new de.pixelrpg.rpg.profession.CraftingRecipeRegistry(), playerProfileManager), playerProfileManager));
         if (getCommand("dialogue") != null) {
             DialogueCommand dialogueCommand = new DialogueCommand(playerProfileManager, dialogueEngine);
             getCommand("dialogue").setExecutor(dialogueCommand);
