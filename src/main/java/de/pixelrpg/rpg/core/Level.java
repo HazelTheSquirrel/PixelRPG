@@ -32,16 +32,17 @@ public final class Level {
         return REQUIRED_EXPERIENCE[level - 1];
     }
 
-    /** Returns cumulative XP required to enter the next normal level. */
+    /** Returns cumulative XP required to enter the next normal level or transcendence at level 99. */
     public static long getExperienceForNextLevel(int level) {
         validateNormalLevel(level);
         return level == MAX_NORMAL_LEVEL ? getExperienceForTranscendence() : REQUIRED_EXPERIENCE[level];
     }
 
+    /** Returns XP still required for the next level, including the level-99 transcendence grind. */
     public static long getExperienceToNextLevel(long totalExperience) {
-        int level = fromExperience(totalExperience);
-        if (level == MAX_NORMAL_LEVEL) return 0L;
-        return Math.max(0L, REQUIRED_EXPERIENCE[level] - Math.max(0L, totalExperience));
+        long experience = Math.max(0L, totalExperience);
+        int level = fromExperience(experience);
+        return Math.max(0L, getExperienceForNextLevel(level) - experience);
     }
 
     /** Returns the deliberately absurd XP threshold for the reserved level 100. */
@@ -87,6 +88,9 @@ public final class Level {
             experience[level] = cumulative;
         }
 
+        // Extend the WotLK 80-cap progression so 98 -> 99 requires exactly
+        // 100 times the XP of 80 -> 81. Level 100 is then a separate
+        // transcendence threshold at 10,000 times the 98 -> 99 increment.
         double continuationRatio = Math.pow(100.0D, 1.0D / 18.0D);
         double increment = wotlkXpPerLevel[78];
         for (int level = 81; level <= 99; level++) {
