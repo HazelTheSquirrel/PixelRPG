@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/player/YamlPlayerProfileRepository.java
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.profession.Profession;
@@ -17,25 +16,17 @@ import java.util.Optional;
 import java.util.UUID;
 
 public final class YamlPlayerProfileRepository implements PlayerProfileRepository {
-
     private final File playersFolder;
 
-    public YamlPlayerProfileRepository(File dataFolder) {
-        this.playersFolder = new File(dataFolder, "players");
-    }
+    public YamlPlayerProfileRepository(File dataFolder) { this.playersFolder = new File(dataFolder, "players"); }
 
     @Override
-    public void init() {
-        if (!playersFolder.exists()) {
-            playersFolder.mkdirs();
-        }
-    }
+    public void init() { if (!playersFolder.exists()) playersFolder.mkdirs(); }
 
     @Override
     public Optional<PlayerProfile> load(UUID uuid) {
         File file = new File(playersFolder, uuid + ".yml");
         if (!file.exists()) return Optional.empty();
-
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         PlayerProfile profile = new PlayerProfile(uuid);
         profile.setRegisteredInGuild(yaml.getBoolean("registered", false));
@@ -44,39 +35,25 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         profile.setMoney(yaml.getDouble("money", 0.0));
         profile.setReceivedStartBonus(yaml.getBoolean("start-bonus", false));
 
-        for (PlayerAttribute attribute : PlayerAttribute.values()) {
-            profile.setAttributePoints(attribute, yaml.getInt("attributes." + attribute.name().toLowerCase(), 0));
-        }
+        for (PlayerAttribute attribute : PlayerAttribute.values()) profile.setAttributePoints(attribute, yaml.getInt("attributes." + attribute.name().toLowerCase(), 0));
 
         ConfigurationSection professionSection = yaml.getConfigurationSection("professions");
         if (professionSection != null) {
             for (Profession profession : Profession.values()) {
-                if (professionSection.contains(profession.name().toLowerCase())) {
-                    profile.setProfessionLevel(profession, professionSection.getInt(profession.name().toLowerCase(), Profession.MIN_LEVEL));
-                }
+                String key = profession.name().toLowerCase();
+                if (professionSection.contains(key + ".level")) profile.setProfessionLevel(profession, professionSection.getInt(key + ".level", Profession.MIN_LEVEL));
+                else if (professionSection.contains(key)) profile.setProfessionLevel(profession, professionSection.getInt(key, Profession.MIN_LEVEL));
+                profile.setProfessionExperience(profession, professionSection.getLong(key + ".experience", 0L));
             }
         }
 
         profile.setUnlockedWaypoints(new HashSet<>(yaml.getStringList("unlocked-waypoints")));
         profile.setStoryChapterIndex(yaml.getInt("story-chapter-index", -1));
         profile.setCompletedQuests(new HashSet<>(yaml.getStringList("completed-quests")));
-
         ConfigurationSection activeSection = yaml.getConfigurationSection("active-quests");
-        if (activeSection != null) {
-            for (String questId : activeSection.getKeys(false)) {
-                int amount = activeSection.getInt(questId + ".amount", 0);
-                long expiry = activeSection.getLong(questId + ".expiry", 0L);
-                profile.startQuest(new QuestProgress(questId, amount, expiry));
-            }
-        }
-
+        if (activeSection != null) for (String questId : activeSection.getKeys(false)) profile.startQuest(new QuestProgress(questId, activeSection.getInt(questId + ".amount", 0), activeSection.getLong(questId + ".expiry", 0L)));
         ConfigurationSection statsSection = yaml.getConfigurationSection("statistics");
-        if (statsSection != null) {
-            for (String key : statsSection.getKeys(false)) {
-                profile.setStatistic(key, statsSection.getLong(key));
-            }
-        }
-
+        if (statsSection != null) for (String key : statsSection.getKeys(false)) profile.setStatistic(key, statsSection.getLong(key));
         profile.setScoreboardEnabled(yaml.getBoolean("scoreboard-enabled", true));
         profile.setPartyHudEnabled(yaml.getBoolean("party-hud-enabled", true));
         profile.setQuestTrackerEnabled(yaml.getBoolean("quest-tracker-enabled", true));
@@ -93,52 +70,37 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         yaml.set("player-class", profile.getPlayerClass().name());
         yaml.set("money", profile.getMoney());
         yaml.set("start-bonus", profile.hasReceivedStartBonus());
-
-        for (PlayerAttribute attribute : PlayerAttribute.values()) {
-            yaml.set("attributes." + attribute.name().toLowerCase(), profile.getAttributePoints(attribute));
-        }
+        for (PlayerAttribute attribute : PlayerAttribute.values()) yaml.set("attributes." + attribute.name().toLowerCase(), profile.getAttributePoints(attribute));
         for (Profession profession : Profession.values()) {
-            yaml.set("professions." + profession.name().toLowerCase(), profile.getProfessionLevel(profession));
+            String key = profession.name().toLowerCase();
+            yaml.set("professions." + key + ".level", profile.getProfessionLevel(profession));
+            yaml.set("professions." + key + ".experience", profile.getProfessionExperience(profession));
         }
-
         yaml.set("unlocked-waypoints", new ArrayList<>(profile.getUnlockedWaypoints()));
         yaml.set("story-chapter-index", profile.getStoryChapterIndex());
         yaml.set("completed-quests", new ArrayList<>(profile.getCompletedQuests()));
-
         for (QuestProgress progress : profile.getActiveQuests().values()) {
             String path = "active-quests." + progress.getQuestId();
             yaml.set(path + ".amount", progress.getCurrentAmount());
             yaml.set(path + ".expiry", progress.getExpiryTimestampMillis());
         }
-        for (var entry : profile.getAllStatistics().entrySet()) {
-            yaml.set("statistics." + entry.getKey(), entry.getValue());
-        }
-
+        for (var entry : profile.getAllStatistics().entrySet()) yaml.set("statistics." + entry.getKey(), entry.getValue());
         yaml.set("scoreboard-enabled", profile.isScoreboardEnabled());
         yaml.set("party-hud-enabled", profile.isPartyHudEnabled());
         yaml.set("quest-tracker-enabled", profile.isQuestTrackerEnabled());
         yaml.set("playtime-millis", profile.getPlaytimeMillis());
-
         if (!playersFolder.exists()) playersFolder.mkdirs();
         File target = new File(playersFolder, profile.getUuid() + ".yml");
         File tempFile = new File(playersFolder, profile.getUuid() + ".yml.tmp");
         yaml.save(tempFile);
-        try {
-            Files.move(tempFile.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-        } catch (AtomicMoveNotSupportedException e) {
-            Files.move(tempFile.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        }
+        try { Files.move(tempFile.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE); }
+        catch (AtomicMoveNotSupportedException e) { Files.move(tempFile.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING); }
     }
 
-    @Override
-    public void shutdown() {
-    }
+    @Override public void shutdown() { }
 
     private PlayerClass parseClass(String raw) {
-        try {
-            return PlayerClass.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return PlayerClass.NONE;
-        }
+        try { return PlayerClass.valueOf(raw.trim().toUpperCase()); }
+        catch (IllegalArgumentException | NullPointerException e) { return PlayerClass.NONE; }
     }
 }
