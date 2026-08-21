@@ -102,18 +102,18 @@ public final class CombatDamageListener implements Listener {
         }
     }
 
-    // Zuständig für den Schutz nicht-registrierter Spieler vor gilden-skalierten Monstern.
+    // Zuständig für den vollständigen Schutz nicht-registrierter Spieler vor RPG-Monstern.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMonsterAttackVanillaPlayer(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Monster monster)) return;
         if (!(event.getEntity() instanceof Player player)) return;
         if (!monster.getPersistentDataContainer().has(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER)) return;
         if (guildAPI.isRegistered(player.getUniqueId())) return;
-        event.setDamage(scalingConfig.getVanillaPlayerDamageCap());
+        event.setCancelled(true);
         monster.setTarget(null);
     }
 
-    // Zuständig dafür, dass gilden-skalierte Monster nicht-registrierte Spieler nicht als Ziel wählen.
+    // Zuständig dafür, dass RPG-Monster nicht-registrierte Spieler nicht als Ziel wählen.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMonsterTargetVanillaPlayer(EntityTargetLivingEntityEvent event) {
         if (!(event.getEntity() instanceof Monster monster)) return;
