@@ -14,6 +14,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,11 +22,12 @@ public final class StatEngine {
     public record CachedStats(double maxHealth, double armor, double movementSpeedBonus, double blockReach,
                               double entityReach, double bonusDamage, double critChance,
                               double critDamageMultiplier, double lifestealBonus) {
-        public static final CachedStats EMPTY = new CachedStats(20.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 2.0, 0.0);
+        public static final CachedStats EMPTY = new CachedStats(20.0, 0.0, 0.0, 0.0, 0.0, 5.0, 2.0, 0.0, 0.0);
     }
 
     private final PlayerProfileManager profileManager;
     private final Map<UUID, CachedStats> cache = new ConcurrentHashMap<>();
+    private final Set<UUID> managedSoulview = ConcurrentHashMap.newKeySet();
 
     public StatEngine(PlayerProfileManager profileManager) { this.profileManager = profileManager; }
     public CachedStats getCachedStats(UUID uuid) { return cache.getOrDefault(uuid, CachedStats.EMPTY); }
@@ -78,7 +80,8 @@ public final class StatEngine {
         boolean hasSoulview = profile.getAttributePoints(PlayerAttribute.SOULVIEW) > 0;
         if (hasSoulview) {
             player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, PotionEffect.INFINITE_DURATION, 0, false, false));
-        } else {
+            managedSoulview.add(player.getUniqueId());
+        } else if (managedSoulview.remove(player.getUniqueId())) {
             player.removePotionEffect(PotionEffectType.NIGHT_VISION);
         }
     }
@@ -91,7 +94,7 @@ public final class StatEngine {
         removeModifier(player, Attribute.BLOCK_INTERACTION_RANGE, RPGKeys.Stats.blockRange());
         removeModifier(player, Attribute.ENTITY_INTERACTION_RANGE, RPGKeys.Stats.entityRange());
         player.setHealthScaled(false);
-        player.removePotionEffect(PotionEffectType.NIGHT_VISION);
+        if (managedSoulview.remove(player.getUniqueId())) player.removePotionEffect(PotionEffectType.NIGHT_VISION);
     }
 
     private void applyModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key, double value) {
