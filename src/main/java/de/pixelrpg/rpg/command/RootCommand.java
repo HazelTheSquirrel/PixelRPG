@@ -10,16 +10,16 @@ import org.bukkit.command.TabCompleter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.LinkedHashMap;
 
 public final class RootCommand implements CommandExecutor, TabCompleter {
-
     private final Map<String, SubCommand> subCommands = new LinkedHashMap<>();
 
     public void register(SubCommand subCommand) {
-        subCommands.put(subCommand.name().toLowerCase(), subCommand);
+        subCommands.put(subCommand.name().toLowerCase(Locale.ROOT), subCommand);
     }
 
     @Override
@@ -29,22 +29,23 @@ public final class RootCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        SubCommand subCommand = subCommands.get(args[0].toLowerCase());
+        String name = args[0].toLowerCase(Locale.ROOT);
+        SubCommand subCommand = subCommands.get(name);
         if (subCommand == null) {
+            sender.sendMessage(Component.text("Unknown subcommand: " + args[0], NamedTextColor.RED));
             sendHelp(sender);
             return true;
         }
 
         String permission = subCommand.permission();
         if (permission != null && !sender.hasPermission(permission)) {
-            sender.sendMessage(Component.text("You do not have permission to use this command.", NamedTextColor.RED));
+            sender.sendMessage(Component.text("You do not have permission to use /" + command.getName() + " " + name + ".", NamedTextColor.RED));
             return true;
         }
 
         String[] remaining = Arrays.copyOfRange(args, 1, args.length);
-        boolean handled = subCommand.execute(sender, remaining);
-        if (!handled) {
-            sender.sendMessage(Component.text("Invalid usage.", NamedTextColor.RED));
+        if (!subCommand.execute(sender, remaining)) {
+            sender.sendMessage(Component.text("Invalid usage for /" + command.getName() + " " + name + ".", NamedTextColor.RED));
         }
         return true;
     }
@@ -52,29 +53,47 @@ public final class RootCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
+            String prefix = args[0].toLowerCase(Locale.ROOT);
             List<String> matches = new ArrayList<>();
-            for (String name : subCommands.keySet()) {
-                if (name.startsWith(args[0].toLowerCase())) {
-                    matches.add(name);
+            for (Map.Entry<String, SubCommand> entry : subCommands.entrySet()) {
+                SubCommand subCommand = entry.getValue();
+                String permission = subCommand.permission();
+                if ((permission == null || sender.hasPermission(permission)) && entry.getKey().startsWith(prefix)) {
+                    matches.add(entry.getKey());
                 }
             }
             return matches;
         }
 
         if (args.length > 1) {
-            SubCommand subCommand = subCommands.get(args[0].toLowerCase());
+            SubCommand subCommand = subCommands.get(args[0].toLowerCase(Locale.ROOT));
             if (subCommand != null) {
-                return subCommand.tabComplete(sender, Arrays.copyOfRange(args, 1, args.length));
+                String permission = subCommand.permission();
+                if (permission != null && !sender.hasPermission(permission)) return List.of();
+                return filterSuggestions(subCommand.tabComplete(sender, Arrays.copyOfRange(args, 1, args.length)), args[args.length - 1]);
             }
         }
 
         return List.of();
     }
 
+    private List<String> filterSuggestions(List<String> suggestions, String prefix) {
+        if (suggestions == null || suggestions.isEmpty()) return List.of();
+        String normalizedPrefix = prefix.toLowerCase(Locale.ROOT);
+        return suggestions.stream()
+                .filter(value -> value != null && value.toLowerCase(Locale.ROOT).startsWith(normalizedPrefix))
+                .distinct()
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+    }
+
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(Component.text("Available subcommands:", NamedTextColor.GOLD));
-        for (String name : subCommands.keySet()) {
-            sender.sendMessage(Component.text(" - " + name, NamedTextColor.YELLOW));
-        }
+        sender.sendMessage(Component.text("PixelRPG Admin Commands", NamedTextColor.GOLD));
+        subCommands.forEach((name, subCommand) -> {
+            String permission = subCommand.permission();
+            if (permission == null || sender.hasPermission(permission)) {
+                sender.sendMessage(Component.text("/rpgadmin " + name, NamedTextColor.YELLOW));
+            }
+        });
     }
 }

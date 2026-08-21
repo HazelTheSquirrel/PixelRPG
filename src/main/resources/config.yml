@@ -18,19 +18,11 @@ elytra:
   permit-cost: 750.0
 
 items:
-  identification-cost:
-    common: 20.0
-    uncommon: 30.0
-    rare: 45.0
-    epic: 90.0
-    legendary: 180.0
-    unique: 360.0
   soulbound:
     cost: 200.0
     min-level: 30
   loot:
-    unidentified-drop-chance: 0.09
-    identified-drop-chance: 0.14
+    item-drop-chance: 0.23
     currency-drop-chance: 0.20
     currency-drop-min-amount: 1
     currency-drop-max-amount: 8
