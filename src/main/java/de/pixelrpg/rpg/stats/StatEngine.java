@@ -94,9 +94,15 @@ public final class StatEngine {
                 strength, agilityStat, stamina, intellect, attackPower, spellPower, maxMana);
         cache.put(player.getUniqueId(), stats);
 
-        if (!profile.isManaInitialized()) profile.initializeMana(maxMana);
-        else if (profile.getCurrentMana() > maxMana) profile.setCurrentMana(profile.getCurrentMana(), maxMana);
-        profileManager.saveProfileAsync(player.getUniqueId());
+        boolean manaChanged = false;
+        if (!profile.isManaInitialized()) {
+            profile.initializeMana(maxMana);
+            manaChanged = true;
+        } else if (profile.getCurrentMana() > maxMana) {
+            profile.setCurrentMana(profile.getCurrentMana(), maxMana);
+            manaChanged = true;
+        }
+        if (manaChanged) profileManager.saveProfileAsync(player.getUniqueId());
 
         applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), maxHealth - 20.0);
         applyModifier(player, Attribute.ARMOR, RPGKeys.Stats.armor(), armor);
@@ -149,16 +155,13 @@ public final class StatEngine {
         return profile != null && profile.isRegisteredInGuild() ? profile.getCurrentMana() : 0.0;
     }
 
-    public double getMaxMana(Player player) {
-        return getCachedStats(player.getUniqueId()).maxMana();
-    }
+    public double getMaxMana(Player player) { return getCachedStats(player.getUniqueId()).maxMana(); }
 
     private double getEquippedItemArmor(Player player, int playerLevel) {
         double total = 0.0;
         for (ItemStack item : equippedItems(player)) {
             if (item == null || !item.hasItemMeta() || !meetsLevelRequirement(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer()
-                    .getOrDefault(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, 0.0);
+            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, 0.0);
         }
         return total;
     }
@@ -167,15 +170,13 @@ public final class StatEngine {
         double total = 0.0;
         for (ItemStack item : equippedItems(player)) {
             if (item == null || !item.hasItemMeta() || !meetsLevelRequirement(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer()
-                    .getOrDefault(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, 0.0);
+            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, 0.0);
         }
         return total;
     }
 
     private boolean meetsLevelRequirement(ItemStack item, int playerLevel) {
-        Integer itemLevel = item.getItemMeta().getPersistentDataContainer()
-                .get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
+        Integer itemLevel = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
         return itemLevel == null || playerLevel >= itemLevel;
     }
 
