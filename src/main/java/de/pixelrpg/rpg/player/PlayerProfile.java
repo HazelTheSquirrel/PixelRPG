@@ -45,9 +45,9 @@ public final class PlayerProfile {
         this.currentMana = 0.0;
         this.manaInitialized = false;
         this.storyChapterIndex = -1;
-        this.scoreboardEnabled = true;
-        this.partyHudEnabled = true;
-        this.questTrackerEnabled = true;
+        this.scoreboardEnabled = false;
+        this.partyHudEnabled = false;
+        this.questTrackerEnabled = false;
         this.playtimeMillis = 0L;
         this.dirty = false;
         for (PlayerAttribute attribute : PlayerAttribute.values()) attributePoints.put(attribute, 0);
@@ -76,51 +76,21 @@ public final class PlayerProfile {
 
     public synchronized double getCurrentMana() { return currentMana; }
     public synchronized boolean isManaInitialized() { return manaInitialized; }
-    public synchronized void initializeMana(double maxMana) {
-        currentMana = Math.max(0.0, maxMana);
-        manaInitialized = true;
-        dirty = true;
-    }
-    public synchronized void setCurrentMana(double value, double maxMana) {
-        currentMana = Math.max(0.0, Math.min(maxMana, value));
-        manaInitialized = true;
-        dirty = true;
-    }
-    public synchronized boolean consumeMana(double amount, double maxMana) {
-        if (amount <= 0.0) return true;
-        if (currentMana + 1.0E-9 < amount) return false;
-        currentMana = Math.max(0.0, Math.min(maxMana, currentMana - amount));
-        manaInitialized = true;
-        dirty = true;
-        return true;
-    }
-    public synchronized void restoreMana(double amount, double maxMana) {
-        if (amount <= 0.0) return;
-        currentMana = Math.min(maxMana, currentMana + amount);
-        manaInitialized = true;
-        dirty = true;
-    }
+    public synchronized void initializeMana(double maxMana) { currentMana = Math.max(0.0, maxMana); manaInitialized = true; dirty = true; }
+    public synchronized void setCurrentMana(double value, double maxMana) { currentMana = Math.max(0.0, Math.min(maxMana, value)); manaInitialized = true; dirty = true; }
+    public synchronized boolean consumeMana(double amount, double maxMana) { if (amount <= 0.0) return true; if (currentMana + 1.0E-9 < amount) return false; currentMana = Math.max(0.0, Math.min(maxMana, currentMana - amount)); manaInitialized = true; dirty = true; return true; }
+    public synchronized void restoreMana(double amount, double maxMana) { if (amount <= 0.0) return; currentMana = Math.min(maxMana, currentMana + amount); manaInitialized = true; dirty = true; }
 
     public synchronized int getAttributePoints(PlayerAttribute attribute) { return attributePoints.getOrDefault(attribute, 0); }
     public synchronized void setAttributePoints(PlayerAttribute attribute, int value) { attributePoints.put(attribute, Math.max(0, value)); dirty = true; }
     public synchronized void addAttributePoint(PlayerAttribute attribute) { attributePoints.merge(attribute, 1, Integer::sum); dirty = true; }
 
     public synchronized int getProfessionLevel(Profession profession) { return professionLevels.getOrDefault(profession, Profession.MIN_LEVEL); }
-    public synchronized void setProfessionLevel(Profession profession, int level) {
-        int clamped = Math.max(Profession.MIN_LEVEL, Math.min(Profession.MAX_LEVEL, level));
-        professionLevels.put(profession, clamped);
-        dirty = true;
-    }
+    public synchronized void setProfessionLevel(Profession profession, int level) { int clamped = Math.max(Profession.MIN_LEVEL, Math.min(Profession.MAX_LEVEL, level)); professionLevels.put(profession, clamped); dirty = true; }
     public synchronized Map<Profession, Integer> getProfessionLevels() { return Collections.unmodifiableMap(new EnumMap<>(professionLevels)); }
     public synchronized long getProfessionExperience(Profession profession) { return professionExperience.getOrDefault(profession, 0L); }
-    public synchronized void setProfessionExperience(Profession profession, long value) {
-        professionExperience.put(profession, Math.max(0L, value));
-        dirty = true;
-    }
-    public synchronized void addProfessionExperience(Profession profession, long amount) {
-        if (amount > 0L) professionExperience.merge(profession, amount, Long::sum);
-        if (amount > 0L) dirty = true;
-    }
+    public synchronized void setProfessionExperience(Profession profession, long value) { professionExperience.put(profession, Math.max(0L, value)); dirty = true; }
+    public synchronized void addProfessionExperience(Profession profession, long amount) { if (amount > 0L) professionExperience.merge(profession, amount, Long::sum); if (amount > 0L) dirty = true; }
     public synchronized Map<Profession, Long> getProfessionExperiences() { return Collections.unmodifiableMap(new EnumMap<>(professionExperience)); }
 
     public synchronized Set<String> getUnlockedWaypoints() { return Collections.unmodifiableSet(new HashSet<>(unlockedWaypoints)); }
@@ -129,12 +99,7 @@ public final class PlayerProfile {
     public synchronized void setUnlockedWaypoints(Set<String> ids) { unlockedWaypoints.clear(); unlockedWaypoints.addAll(ids); dirty = true; }
     public synchronized int getStoryChapterIndex() { return storyChapterIndex; }
     public synchronized void setStoryChapterIndex(int value) { storyChapterIndex = value; dirty = true; }
-    public synchronized Map<String, QuestProgress> getActiveQuests() {
-        Map<String, QuestProgress> snapshot = new HashMap<>();
-        activeQuests.forEach((id, progress) -> snapshot.put(id,
-                new QuestProgress(progress.getQuestId(), progress.getCurrentAmount(), progress.getExpiryTimestampMillis())));
-        return Collections.unmodifiableMap(snapshot);
-    }
+    public synchronized Map<String, QuestProgress> getActiveQuests() { Map<String, QuestProgress> snapshot = new HashMap<>(); activeQuests.forEach((id, progress) -> snapshot.put(id, new QuestProgress(progress.getQuestId(), progress.getCurrentAmount(), progress.getExpiryTimestampMillis()))); return Collections.unmodifiableMap(snapshot); }
     public synchronized boolean hasActiveQuest(String id) { return activeQuests.containsKey(id); }
     public synchronized void startQuest(QuestProgress progress) { activeQuests.put(progress.getQuestId(), progress); dirty = true; }
     public synchronized void removeActiveQuest(String id) { if (activeQuests.remove(id) != null) dirty = true; }
@@ -170,10 +135,7 @@ public final class PlayerProfile {
         activeQuests.clear();
         completedQuests.clear();
         for (PlayerAttribute attribute : PlayerAttribute.values()) attributePoints.put(attribute, 0);
-        for (Profession profession : Profession.values()) {
-            professionLevels.put(profession, Profession.MIN_LEVEL);
-            professionExperience.put(profession, 0L);
-        }
+        for (Profession profession : Profession.values()) { professionLevels.put(profession, Profession.MIN_LEVEL); professionExperience.put(profession, 0L); }
         dirty = true;
     }
 }
