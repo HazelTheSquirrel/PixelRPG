@@ -12,7 +12,6 @@ import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.DialogBase;
 import io.papermc.paper.registry.data.dialog.DialogRegistryEntry;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
-import io.papermc.paper.registry.data.dialog.DialogRegistryEntry;
 import io.papermc.paper.registry.data.dialog.type.DialogType;
 import io.papermc.paper.registry.data.dialog.action.DialogAction;
 import net.kyori.adventure.text.Component;
@@ -35,22 +34,19 @@ public final class ReceptionDialog {
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
-    public void open() {
-        player.showDialog(createDialog());
-    }
+    public void open() { player.showDialog(createDialog()); }
 
     private Dialog createDialog() {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         boolean registered = profile != null && profile.isRegisteredInGuild();
         List<DialogBody> body = new ArrayList<>();
-
         body.add(DialogBody.plainMessage(lang.get("reception.card-title", "player", player.getName())
                 .color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false)));
 
         if (registered && profile != null) {
             body.add(DialogBody.plainMessage(lang.get("reception.status").append(
                     lang.get("reception.status-member").color(NamedTextColor.GREEN))));
-            body.add(DialogBody.plainMessage(lang.get("reception.level-label")
+            body.add(DialogBody.plainMessage(Component.text("Level: ", NamedTextColor.GRAY)
                     .append(Component.text(String.valueOf(profile.getLevel()), NamedTextColor.YELLOW))));
             body.add(DialogBody.plainMessage(lang.get("reception.class-label")
                     .append(profile.getPlayerClass().displayName())));
@@ -64,10 +60,7 @@ public final class ReceptionDialog {
         List<ActionButton> actions = new ArrayList<>();
         actions.add(actionButton(registered ? lang.get("reception.membership-active") : lang.get("reception.register-button"),
                 registered ? NamedTextColor.GRAY : NamedTextColor.GREEN, target -> {
-                    if (registered) {
-                        lang.send(target, "reception.already-registered");
-                        return;
-                    }
+                    if (registered) { lang.send(target, "reception.already-registered"); return; }
                     profileManager.registerToGuild(target);
                     new ReceptionDialog(target, profileManager).open();
                 }));
