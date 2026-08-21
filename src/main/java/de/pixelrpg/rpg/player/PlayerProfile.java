@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.core.Level;
+import de.pixelrpg.rpg.profession.Profession;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -18,6 +19,7 @@ public final class PlayerProfile {
     private double money;
     private boolean receivedStartBonus;
     private final Map<PlayerAttribute, Integer> attributePoints = new EnumMap<>(PlayerAttribute.class);
+    private final Map<Profession, Integer> professionLevels = new EnumMap<>(Profession.class);
     private final Set<String> unlockedWaypoints = new HashSet<>();
     private int storyChapterIndex;
     private final Map<String, de.pixelrpg.rpg.quest.QuestProgress> activeQuests = new HashMap<>();
@@ -43,6 +45,7 @@ public final class PlayerProfile {
         this.playtimeMillis = 0L;
         this.dirty = false;
         for (PlayerAttribute attribute : PlayerAttribute.values()) attributePoints.put(attribute, 0);
+        for (Profession profession : Profession.values()) professionLevels.put(profession, Profession.MIN_LEVEL);
     }
 
     public UUID getUuid() { return uuid; }
@@ -64,6 +67,21 @@ public final class PlayerProfile {
     public int getAttributePoints(PlayerAttribute attribute) { return attributePoints.getOrDefault(attribute, 0); }
     public void setAttributePoints(PlayerAttribute attribute, int value) { attributePoints.put(attribute, Math.max(0, value)); dirty = true; }
     public void addAttributePoint(PlayerAttribute attribute) { attributePoints.merge(attribute, 1, Integer::sum); dirty = true; }
+
+    public int getProfessionLevel(Profession profession) {
+        return professionLevels.getOrDefault(profession, Profession.MIN_LEVEL);
+    }
+
+    public void setProfessionLevel(Profession profession, int level) {
+        int clamped = Math.max(Profession.MIN_LEVEL, Math.min(Profession.MAX_LEVEL, level));
+        professionLevels.put(profession, clamped);
+        dirty = true;
+    }
+
+    public Map<Profession, Integer> getProfessionLevels() {
+        return Collections.unmodifiableMap(professionLevels);
+    }
+
     public Set<String> getUnlockedWaypoints() { return Collections.unmodifiableSet(unlockedWaypoints); }
     public boolean hasUnlockedWaypoint(String id) { return unlockedWaypoints.contains(id); }
     public void unlockWaypoint(String id) { if (unlockedWaypoints.add(id)) dirty = true; }
@@ -104,6 +122,7 @@ public final class PlayerProfile {
         activeQuests.clear();
         completedQuests.clear();
         for (PlayerAttribute attribute : PlayerAttribute.values()) attributePoints.put(attribute, 0);
+        for (Profession profession : Profession.values()) professionLevels.put(profession, Profession.MIN_LEVEL);
         dirty = true;
     }
 }
