@@ -11,7 +11,6 @@ public final class MobScalingConfig {
     private DimensionModifier nether;
     private DimensionModifier theEnd;
     private int nameplateDurationTicks = 120;
-    private double vanillaPlayerDamageCap = 4.0;
     private double xpPerMaxHealth = 0.9;
     private double playerParityMultiplier = 1.15;
     private double hpPerLevel = 8.0;
@@ -25,7 +24,6 @@ public final class MobScalingConfig {
         nether = loadDimension(config, "mob-scaling.dimension.nether", 1.30, 1.20, 0, 50);
         theEnd = loadDimension(config, "mob-scaling.dimension.the-end", 1.60, 1.40, 0, 75);
         nameplateDurationTicks = config.getInt("mob-scaling.nameplate-duration-ticks", 120);
-        vanillaPlayerDamageCap = config.getDouble("mob-scaling.vanilla-player-damage-cap", 4.0);
         xpPerMaxHealth = config.getDouble("mob-scaling.xp-per-max-health", 0.9);
     }
 
@@ -53,7 +51,6 @@ public final class MobScalingConfig {
     }
 
     public int getNameplateDurationTicks() { return nameplateDurationTicks; }
-    public double getVanillaPlayerDamageCap() { return vanillaPlayerDamageCap; }
     public double getXpPerMaxHealth() { return xpPerMaxHealth; }
     public double getPlayerParityMultiplier() { return playerParityMultiplier; }
 }
