@@ -45,6 +45,12 @@ public final class WeaponAbilityEngine {
         String abilityId = pdc.get(RPGKeys.Item.weaponAbility(), PersistentDataType.STRING);
         if (abilityId == null || abilityId.isBlank()) return;
 
+        Integer itemLevel = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
+        if (itemLevel != null && profile.getLevel() < itemLevel) {
+            player.sendActionBar(Component.text("Benötigt Level " + itemLevel, NamedTextColor.RED));
+            return;
+        }
+
         long cooldown = pdc.getOrDefault(RPGKeys.Item.weaponAbilityCooldownMillis(), PersistentDataType.LONG, 0L);
         long now = System.currentTimeMillis();
         Long expiry = cooldownExpiry.get(player.getUniqueId());
