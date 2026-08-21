@@ -8,11 +8,14 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -25,7 +28,7 @@ public final class MobLevelScalingListener implements Listener {
         this.scalingConfig = scalingConfig;
     }
 
-    // Zuständig dafür, dass die Skalierung erst beim tatsächlichen Kampf mit einem registrierten Spieler aktiviert wird.
+    // Zuständig dafür, dass die Skalierung beim tatsächlichen Zielwechsel auf einen registrierten Spieler aktiviert wird.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMonsterTarget(EntityTargetLivingEntityEvent event) {
         if (!(event.getEntity() instanceof Monster monster)) return;
@@ -37,6 +40,28 @@ public final class MobLevelScalingListener implements Listener {
         }
 
         restoreVanillaScaling(monster);
+    }
+
+    // Zuständig dafür, dass ein registrierter Angreifer die Skalierung auch dann bestimmt, wenn der Mob keinen Zielwechsel ausführt.
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onRpgDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Monster monster)) return;
+        if (monster.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING)) return;
+
+        Player attacker = null;
+        if (event.getDamager() instanceof Player player) {
+            attacker = player;
+        } else if (event.getDamager() instanceof Projectile projectile) {
+            ProjectileSource shooter = projectile.getShooter();
+            if (shooter instanceof Player player) attacker = player;
+        }
+        if (attacker == null) return;
+
+        if (guildAPI.isRegistered(attacker.getUniqueId())) {
+            applyScaling(monster, guildAPI.getLevel(attacker.getUniqueId()));
+        } else {
+            restoreVanillaScaling(monster);
+        }
     }
 
     private void applyScaling(Monster monster, int playerLevel) {
