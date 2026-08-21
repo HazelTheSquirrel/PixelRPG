@@ -29,7 +29,7 @@ public record CraftRecipe(
             throw new IllegalArgumentException("Result material must not be null");
         }
         if (rarity == null) {
-            throw new IllegalArgumentException("Rarity must not be null");
+            throw new IllegalArgumentException("Recipe rarity must not be null");
         }
         if (costs == null || costs.isEmpty()
                 || costs.entrySet().stream().anyMatch(entry -> entry.getKey() == null
@@ -43,5 +43,9 @@ public record CraftRecipe(
             throw new IllegalArgumentException("Craft duration must be positive");
         }
         costs = Map.copyOf(costs);
+    }
+
+    public String displayName() {
+        return label;
     }
 }
