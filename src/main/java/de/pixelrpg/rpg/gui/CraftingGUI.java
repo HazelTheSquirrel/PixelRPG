@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.gui;
 
-import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.CraftRecipe;
 import de.pixelrpg.rpg.profession.CraftingRecipeRegistry;
@@ -9,6 +8,7 @@ import de.pixelrpg.rpg.profession.Profession;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,17 +27,15 @@ public final class CraftingGUI implements Listener {
 
     private final CraftingService craftingService;
     private final PlayerProfileManager profileManager;
-    private final LanguageManager lang;
 
-    public CraftingGUI(CraftingService craftingService, PlayerProfileManager profileManager, LanguageManager lang) {
+    public CraftingGUI(CraftingService craftingService, PlayerProfileManager profileManager) {
         this.craftingService = craftingService;
         this.profileManager = profileManager;
-        this.lang = lang;
     }
 
     public void open(Player player, Profession profession) {
         CraftingHolder holder = new CraftingHolder(profession);
-        Inventory inventory = org.bukkit.Bukkit.createInventory(holder, SIZE,
+        Inventory inventory = Bukkit.createInventory(holder, SIZE,
                 Component.text("PixelRPG Crafting – " + profession.name(), NamedTextColor.GOLD));
         holder.inventory = inventory;
 
@@ -93,10 +91,10 @@ public final class CraftingGUI implements Listener {
 
         CraftingService.CraftResult result = craftingService.craft(player, recipes.get(event.getSlot()).id());
         if (!result.success()) {
-            lang.send(player, "common.error", "message", result.message());
+            player.sendMessage(Component.text(result.message(), NamedTextColor.RED));
             return;
         }
-        lang.send(player, "profession.crafted", "item", result.result().getItemMeta().displayName().toString());
+        player.sendMessage(Component.text("Hergestellt: " + recipes.get(event.getSlot()).displayName(), NamedTextColor.GREEN));
         open(player, holder.profession);
     }
 
