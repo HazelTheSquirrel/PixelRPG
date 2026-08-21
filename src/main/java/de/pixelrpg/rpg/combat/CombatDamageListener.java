@@ -42,7 +42,7 @@ public final class CombatDamageListener implements Listener {
         this.bossMaxHitPercentOfMaxHp = PixelRPGPlugin.getInstance().getConfig().getDouble("combat.boss-max-hit-percent-of-max-hp", 0.12);
     }
 
-    // Zuständig für die vollständige Schadensberechnung bei Spieler-vs-Monster-Kämpfen.
+    // Zuständig für die vollständige RPG-Schadensberechnung gegen Nicht-Spieler-Ziele.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onCombatDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity target)) return;
@@ -54,6 +54,8 @@ public final class CombatDamageListener implements Listener {
             if (shooter instanceof Player player) { attacker = player; isRanged = true; }
         }
         if (attacker == null || !guildAPI.isRegistered(attacker.getUniqueId())) return;
+        if (target instanceof Player targetPlayer && !guildAPI.isRegistered(targetPlayer.getUniqueId())) return;
+        if (target instanceof Player) return;
         PlayerProfile profile = profileManager.getProfile(attacker.getUniqueId()).orElse(null);
         if (profile == null) return;
         StatEngine.CachedStats stats = statEngine.getCachedStats(attacker.getUniqueId());
