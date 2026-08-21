@@ -244,4 +244,14 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     public static PixelRPGPlugin getInstance() { return instance; }
     public LanguageManager getLanguageManager() { return languageManager; }
+    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
+    public StatEngine getStatEngine() { return statEngine; }
+    public ItemService getItemService() { return itemService; }
+    public NpcManager getNpcManager() { return npcManager; }
+    public ShopManager getShopManager() { return shopManager; }
+    public StoryManager getStoryManager() { return storyManager; }
+    public PartyManager getPartyManager() { return partyManager; }
+    public QuestManager getQuestManager() { return questManager; }
+    public BossManager getBossManager() { return bossManager; }
+    public ScoreboardService getScoreboardService() { return scoreboardService; }
 }
