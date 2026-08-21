@@ -50,7 +50,7 @@ public final class QuestBehavior implements NpcBehavior {
                 "Hier findest du Quests passend zu deinem Spielerlevel. Aktive Quests können hier auch abgegeben werden.",
                 NamedTextColor.GRAY)));
 
-        List<de.papermc.paper.registry.data.dialog.ActionButton> actions = new ArrayList<>();
+        List<io.papermc.paper.registry.data.dialog.ActionButton> actions = new ArrayList<>();
 
         for (Quest quest : questManager.getRepository().getQuestsByCategory(profile.getLevel()).stream().limit(6).toList()) {
             boolean active = profile.hasActiveQuest(quest.id());
@@ -108,7 +108,7 @@ public final class QuestBehavior implements NpcBehavior {
                 DialogBody.plainMessage(Component.text(rewards, NamedTextColor.GOLD))
         );
 
-        List<de.papermc.paper.registry.data.dialog.ActionButton> actions = new ArrayList<>();
+        List<io.papermc.paper.registry.data.dialog.ActionButton> actions = new ArrayList<>();
         if (!active && !completed && questManager.canAccept(profile, quest)) {
             actions.add(dialogueEngine.actionButton(
                     Component.text("Quest annehmen"),
