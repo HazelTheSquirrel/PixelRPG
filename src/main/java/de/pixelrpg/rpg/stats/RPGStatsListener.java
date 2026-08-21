@@ -5,6 +5,8 @@ import de.pixelrpg.rpg.api.events.PlayerJoinGuildEvent;
 import de.pixelrpg.rpg.api.events.PlayerLeaveGuildEvent;
 import de.pixelrpg.rpg.api.events.PlayerLevelUpEvent;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -48,5 +50,13 @@ public final class RPGStatsListener implements Listener {
     @EventHandler
     public void onClassChange(PlayerClassChangeEvent event) {
         statEngine.recalculate(event.getPlayer());
+    }
+
+    // Aktualisiert die berechneten Werte, sobald sich die Ausrüstung eines registrierten Spielers ändert.
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onEquipmentChanged(EntityEquipmentChangedEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (!profileManager.isRegistered(player.getUniqueId())) return;
+        statEngine.recalculate(player);
     }
 }
