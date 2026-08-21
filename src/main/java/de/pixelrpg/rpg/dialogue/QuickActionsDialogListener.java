@@ -1,6 +1,6 @@
 package de.pixelrpg.rpg.dialogue;
 
-import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.companion.CompanionService;
 import io.papermc.paper.connection.PlayerGameConnection;
 import io.papermc.paper.event.player.PlayerCustomClickEvent;
 import io.papermc.paper.registry.data.dialog.ActionButton;
@@ -22,14 +22,11 @@ public final class QuickActionsDialogListener implements Listener {
     private final ProfessionDialog professionDialog;
     private final DialogueEngine dialogueEngine;
 
-    public QuickActionsDialogListener(QuickActionsDialogService service,
-                                      CompanionDialog companionDialog,
-                                      PlayerProfileManager profileManager,
-                                      DialogueEngine dialogueEngine) {
+    public QuickActionsDialogListener(QuickActionsDialogService service) {
         this.service = service;
-        this.companionDialog = companionDialog;
-        this.professionDialog = new ProfessionDialog(profileManager, dialogueEngine);
-        this.dialogueEngine = dialogueEngine;
+        this.dialogueEngine = new DialogueEngine();
+        this.companionDialog = new CompanionDialog(new CompanionService(), dialogueEngine);
+        this.professionDialog = new ProfessionDialog(service.profileManager(), dialogueEngine);
     }
 
     /** Handles the G-triggered native action and opens the complete player character card. */
