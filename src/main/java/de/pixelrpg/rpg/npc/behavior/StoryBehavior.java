@@ -1,9 +1,8 @@
-// src/main/java/de/pixelrpg/rpg/npc/behavior/StoryBehavior.java (VOLLSTÄNDIG, ersetzt alte Datei — bestehender Buch-Ablauf unangetastet, neuer Zweig nur wenn kein Kapitel fällig ist)
 package de.pixelrpg.rpg.npc.behavior;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.dialogue.StoryNpcDialogueTest;
 import de.pixelrpg.rpg.lang.LanguageManager;
+import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
@@ -16,15 +15,14 @@ import org.bukkit.entity.Player;
 import java.util.Optional;
 
 public final class StoryBehavior implements NpcBehavior {
-
     private final StoryManager storyManager;
-    private final StoryNpcDialogueTest dialogueTest;
+    private final StoryNpcDialogue dialogue;
     private final PlayerProfileManager profileManager;
     private final LanguageManager lang;
 
-    public StoryBehavior(StoryManager storyManager, StoryNpcDialogueTest dialogueTest, PlayerProfileManager profileManager) {
+    public StoryBehavior(StoryManager storyManager, StoryNpcDialogue dialogue, PlayerProfileManager profileManager) {
         this.storyManager = storyManager;
-        this.dialogueTest = dialogueTest;
+        this.dialogue = dialogue;
         this.profileManager = profileManager;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
@@ -50,8 +48,6 @@ public final class StoryBehavior implements NpcBehavior {
             return;
         }
 
-        // Kein neues Buch-Kapitel fällig: ab hier übernimmt testweise das native
-        // Paper Dialog-System (ersetzt die bisherige "story.caught-up"-Zeile).
-        dialogueTest.begin(player, npc);
+        dialogue.begin(player, npc);
     }
 }
