@@ -2,6 +2,9 @@
 build/
 .gradle/
 
+# Generated build output
+bin/
+
 # JARs
 *.jar
 
