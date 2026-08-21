@@ -32,6 +32,7 @@ import de.pixelrpg.rpg.combat.scaling.MobLevelScalingListener;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.combat.skill.SkillInputListener;
 import de.pixelrpg.rpg.combat.skill.WeaponAbilityEngine;
+import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.dialogue.DialogueCommand;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
