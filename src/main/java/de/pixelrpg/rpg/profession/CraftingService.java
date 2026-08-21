@@ -25,23 +25,23 @@ public final class CraftingService {
         return CraftingRecipeRegistry.find(recipeId);
     }
 
+    public List<CraftRecipe> recipes(Profession profession) {
+        return CraftingRecipeRegistry.getRecipes(profession);
+    }
+
     public CraftResult craft(Player player, String recipeId) {
         Objects.requireNonNull(player, "player");
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegisteredInGuild()) {
-            return CraftResult.failure("PixelRPG registration required");
-        }
+        if (profile == null || !profile.isRegisteredInGuild()) return CraftResult.failure("PixelRPG registration required");
 
-        var recipe = find(recipeId).orElse(null);
+        CraftRecipe recipe = find(recipeId).orElse(null);
         if (recipe == null) return CraftResult.failure("Unknown recipe");
 
         int level = professionService.getLevel(player.getUniqueId(), recipe.profession());
         if (level < recipe.requiredProfessionLevel()) return CraftResult.failure("Profession level too low");
 
         for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) {
-            if (!player.getInventory().contains(cost.getKey(), cost.getValue())) {
-                return CraftResult.failure("Missing materials");
-            }
+            if (!player.getInventory().contains(cost.getKey(), cost.getValue())) return CraftResult.failure("Missing materials");
         }
 
         for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) {
@@ -49,27 +49,21 @@ public final class CraftingService {
         }
 
         ItemStack result = CraftedItemFactory.create(
-                recipe.id(),
-                recipe.displayName(),
-                recipe.resultMaterial(),
-                recipe.rarity(),
-                profile.getLevel()
-        );
+                recipe.id(), recipe.displayName(), recipe.resultMaterial(), recipe.rarity(), profile.getLevel());
         player.getInventory().addItem(result).values()
                 .forEach(stack -> player.getWorld().dropItemNaturally(player.getLocation(), stack));
 
-        long experience = Math.max(25L, recipe.craftSeconds() * 25L);
+        long experience = craftExperience(recipe);
         professionService.addExperience(player, recipe.profession(), experience);
         return CraftResult.success(result, experience);
     }
 
-    public record CraftResult(boolean success, String message, ItemStack result, long experience) {
-        public static CraftResult success(ItemStack result, long experience) {
-            return new CraftResult(true, "Crafting successful", result.clone(), experience);
-        }
+    private long craftExperience(CraftRecipe recipe) {
+        return Math.max(20L, recipe.requiredProfessionLevel() * 6L + recipe.craftSeconds() * 20L);
+    }
 
-        public static CraftResult failure(String message) {
-            return new CraftResult(false, message, null, 0L);
-        }
+    public record CraftResult(boolean success, String message, ItemStack result, long experience) {
+        public static CraftResult success(ItemStack result, long experience) { return new CraftResult(true, "Crafting successful", result.clone(), experience); }
+        public static CraftResult failure(String message) { return new CraftResult(false, message, null, 0L); }
     }
 }
