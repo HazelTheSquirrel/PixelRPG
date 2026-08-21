@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.combat.skill;
 
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.item.ItemCategory;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
@@ -36,6 +37,11 @@ public final class WeaponAbilityEngine {
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (!weapon.hasItemMeta()) return;
         var pdc = weapon.getItemMeta().getPersistentDataContainer();
+        if (!Boolean.TRUE.equals(pdc.get(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN))) return;
+
+        String category = pdc.get(RPGKeys.Item.category(), PersistentDataType.STRING);
+        if (!ItemCategory.WEAPON.name().equals(category)) return;
+
         String abilityId = pdc.get(RPGKeys.Item.weaponAbility(), PersistentDataType.STRING);
         if (abilityId == null || abilityId.isBlank()) return;
 
@@ -48,28 +54,29 @@ public final class WeaponAbilityEngine {
             return;
         }
 
+        double weaponDamage = pdc.getOrDefault(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, 0.0D);
         boolean executed = switch (abilityId) {
-            case "HEAVY_STRIKE" -> heavyStrike(player);
-            case "WHIRLWIND" -> whirlwind(player);
-            case "ARCANE_BURST" -> arcaneBurst(player);
+            case "HEAVY_STRIKE" -> heavyStrike(player, weaponDamage);
+            case "WHIRLWIND" -> whirlwind(player, weaponDamage);
+            case "ARCANE_BURST" -> arcaneBurst(player, weaponDamage);
             default -> false;
         };
 
         if (executed && cooldown > 0L) cooldownExpiry.put(player.getUniqueId(), now + cooldown);
     }
 
-    private boolean heavyStrike(Player player) {
+    private boolean heavyStrike(Player player, double weaponDamage) {
         Entity target = player.getTargetEntity(8, false);
         if (!(target instanceof LivingEntity living) || target instanceof Player) return false;
-        double damage = 8.0 + statEngine.getCachedStats(player.getUniqueId()).bonusDamage() * 1.5;
+        double damage = 8.0 + weaponDamage + statEngine.getCachedStats(player.getUniqueId()).bonusDamage() * 1.5;
         living.damage(damage, player);
         living.getWorld().spawnParticle(Particle.CRIT, living.getLocation().add(0, 1, 0), 12, 0.3, 0.3, 0.3);
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.8f, 0.8f);
         return true;
     }
 
-    private boolean whirlwind(Player player) {
-        double damage = 5.0 + statEngine.getCachedStats(player.getUniqueId()).bonusDamage();
+    private boolean whirlwind(Player player, double weaponDamage) {
+        double damage = 5.0 + weaponDamage + statEngine.getCachedStats(player.getUniqueId()).bonusDamage();
         int hits = 0;
         for (Entity entity : player.getNearbyEntities(3.5, 2.0, 3.5)) {
             if (entity instanceof Monster monster) {
@@ -82,8 +89,8 @@ public final class WeaponAbilityEngine {
         return true;
     }
 
-    private boolean arcaneBurst(Player player) {
-        double damage = 10.0 + statEngine.getCachedStats(player.getUniqueId()).bonusDamage() * 1.75;
+    private boolean arcaneBurst(Player player, double weaponDamage) {
+        double damage = 10.0 + weaponDamage + statEngine.getCachedStats(player.getUniqueId()).bonusDamage() * 1.75;
         int hits = 0;
         for (Entity entity : player.getNearbyEntities(5.0, 3.0, 5.0)) {
             if (entity instanceof Monster monster) {
