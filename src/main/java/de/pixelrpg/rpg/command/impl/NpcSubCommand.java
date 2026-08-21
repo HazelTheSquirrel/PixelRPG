@@ -38,7 +38,7 @@ public final class NpcSubCommand implements SubCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(Component.text("Usage: /rpgadmin npc <create|remove|rename|skin|list>", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /rpgadmin npc <create|profession|remove|rename|skin|list>", NamedTextColor.RED));
             return true;
         }
 
@@ -46,6 +46,7 @@ public final class NpcSubCommand implements SubCommand {
         String[] rest = Arrays.copyOfRange(args, 1, args.length);
         return switch (action) {
             case "create" -> handleCreate(sender, rest);
+            case "profession", "profession-trainer", "trainer" -> handleProfessionTrainer(sender, rest);
             case "remove" -> handleRemove(sender);
             case "rename" -> handleRename(sender, rest);
             case "skin" -> handleSkin(sender, rest);
@@ -63,8 +64,7 @@ public final class NpcSubCommand implements SubCommand {
             return true;
         }
         if (args.length < 2) {
-            player.sendMessage(Component.text(
-                    "Usage: /rpgadmin npc create <type> <name> [skin] [profession]", NamedTextColor.RED));
+            player.sendMessage(Component.text("Usage: /rpgadmin npc create <type> <name> [skin] [profession]", NamedTextColor.RED));
             return true;
         }
 
@@ -79,27 +79,47 @@ public final class NpcSubCommand implements SubCommand {
         String name = args[1];
         String skinSource = args.length >= 3 ? args[2] : null;
         Profession profession = null;
-
         if (type == NpcType.PROFESSION_TRAINER) {
             if (args.length < 4) {
-                player.sendMessage(Component.text(
-                        "Profession trainer requires a profession: " + Arrays.toString(Profession.values()), NamedTextColor.RED));
+                player.sendMessage(Component.text("Use /rpgadmin npc profession <profession> <name> [skin]", NamedTextColor.RED));
                 return true;
             }
-            try {
-                profession = Profession.valueOf(args[3].toUpperCase());
-            } catch (IllegalArgumentException e) {
-                player.sendMessage(Component.text(
-                        "Unknown profession. Valid: " + Arrays.toString(Profession.values()), NamedTextColor.RED));
-                return true;
-            }
+            profession = parseProfession(player, args[3]);
+            if (profession == null) return true;
         }
 
         RPGNpc npc = npcManager.create(type, name, player.getLocation(), skinSource, profession);
-        player.sendMessage(Component.text(
-                "Created " + type + " NPC (internal id: " + npc.id() + ")" +
-                        (profession != null ? " for " + profession + "." : "."), NamedTextColor.GREEN));
+        player.sendMessage(Component.text("NPC erstellt: " + type + " / " + npc.name()
+                + (profession == null ? "" : " / " + profession.displayName()), NamedTextColor.GREEN));
         return true;
+    }
+
+    private boolean handleProfessionTrainer(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("Only players can use this command.", NamedTextColor.RED));
+            return true;
+        }
+        if (args.length < 2 || args.length > 3) {
+            player.sendMessage(Component.text("Usage: /rpgadmin npc profession <profession> <name> [skin]", NamedTextColor.RED));
+            return true;
+        }
+        Profession profession = parseProfession(player, args[0]);
+        if (profession == null) return true;
+
+        String name = args[1];
+        String skinSource = args.length == 3 ? args[2] : null;
+        RPGNpc npc = npcManager.create(NpcType.PROFESSION_TRAINER, name, player.getLocation(), skinSource, profession);
+        player.sendMessage(Component.text("Berufslehrer erstellt: " + profession.displayName() + " / " + npc.name(), NamedTextColor.GREEN));
+        return true;
+    }
+
+    private Profession parseProfession(Player player, String raw) {
+        try {
+            return Profession.valueOf(raw.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            player.sendMessage(Component.text("Unbekannter Beruf. Gültig: " + Arrays.toString(Profession.values()), NamedTextColor.RED));
+            return null;
+        }
     }
 
     private boolean handleRemove(CommandSender sender) {
@@ -162,9 +182,8 @@ public final class NpcSubCommand implements SubCommand {
     private boolean handleList(CommandSender sender) {
         sender.sendMessage(Component.text("NPCs:", NamedTextColor.GOLD));
         for (RPGNpc npc : npcManager.getAll()) {
-            String specialization = npc.profession() == null ? "" : " / " + npc.profession();
-            sender.sendMessage(Component.text(
-                    " - (" + npc.id() + ") " + npc.type() + specialization + " " + npc.name(), NamedTextColor.YELLOW));
+            String specialization = npc.profession() == null ? "" : " / " + npc.profession().displayName();
+            sender.sendMessage(Component.text(" - (" + npc.id() + ") " + npc.type() + specialization + " " + npc.name(), NamedTextColor.YELLOW));
         }
         return true;
     }
@@ -181,11 +200,16 @@ public final class NpcSubCommand implements SubCommand {
 
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
-        if (args.length == 1) return Arrays.asList("create", "remove", "rename", "skin", "list");
+        if (args.length == 1) return Arrays.asList("create", "profession", "profession-trainer", "remove", "rename", "skin", "list");
         if (args.length == 2 && args[0].equalsIgnoreCase("create")) {
             List<String> typeNames = new ArrayList<>();
             for (NpcType type : NpcType.values()) typeNames.add(type.name());
             return typeNames;
+        }
+        if (args.length == 2 && (args[0].equalsIgnoreCase("profession") || args[0].equalsIgnoreCase("profession-trainer") || args[0].equalsIgnoreCase("trainer"))) {
+            List<String> professions = new ArrayList<>();
+            for (Profession profession : Profession.values()) professions.add(profession.name());
+            return professions;
         }
         if (args.length == 4 && args[0].equalsIgnoreCase("create") && args[1].equalsIgnoreCase("PROFESSION_TRAINER")) {
             List<String> professions = new ArrayList<>();
