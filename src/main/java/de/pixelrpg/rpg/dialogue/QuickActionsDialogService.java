@@ -1,10 +1,8 @@
 package de.pixelrpg.rpg.dialogue;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 
@@ -14,7 +12,6 @@ public final class QuickActionsDialogService {
 
     public QuickActionsDialogService(PlayerProfileManager profiles) {
         this.profiles = profiles;
-        Bukkit.getPluginManager().registerEvents(new QuickActionsDialogListener(this), PixelRPGPlugin.getInstance());
     }
 
     public boolean isAvailable(Player player) {
@@ -23,7 +20,8 @@ public final class QuickActionsDialogService {
 
     public Component characterCard(Player player) {
         PlayerProfile profile = profiles.getProfile(player.getUniqueId())
-                .orElseThrow(() -> new IllegalStateException("No PixelRPG profile for registered player"));
+                .filter(PlayerProfile::isRegisteredInGuild)
+                .orElseThrow(() -> new IllegalStateException("No registered PixelRPG profile for player"));
 
         double maxHealth = player.getAttribute(Attribute.MAX_HEALTH) != null
                 ? player.getAttribute(Attribute.MAX_HEALTH).getValue()
