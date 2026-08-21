@@ -35,18 +35,10 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         profile.setMoney(yaml.getDouble("money", 0.0));
         profile.setReceivedStartBonus(yaml.getBoolean("start-bonus", false));
         if (yaml.contains("mana.current")) profile.setCurrentMana(yaml.getDouble("mana.current", 0.0), Double.MAX_VALUE);
-
         for (PlayerAttribute attribute : PlayerAttribute.values()) profile.setAttributePoints(attribute, yaml.getInt("attributes." + attribute.name().toLowerCase(), 0));
 
         ConfigurationSection professionSection = yaml.getConfigurationSection("professions");
-        if (professionSection != null) {
-            for (Profession profession : Profession.values()) {
-                String key = profession.name().toLowerCase();
-                if (professionSection.contains(key + ".level")) profile.setProfessionLevel(profession, professionSection.getInt(key + ".level", Profession.MIN_LEVEL));
-                else if (professionSection.contains(key)) profile.setProfessionLevel(profession, professionSection.getInt(key, Profession.MIN_LEVEL));
-                profile.setProfessionExperience(profession, professionSection.getLong(key + ".experience", 0L));
-            }
-        }
+        if (professionSection != null) loadProfessions(profile, professionSection);
 
         profile.setUnlockedWaypoints(new HashSet<>(yaml.getStringList("unlocked-waypoints")));
         profile.setStoryChapterIndex(yaml.getInt("story-chapter-index", -1));
@@ -61,6 +53,37 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         profile.setPlaytimeMillis(yaml.getLong("playtime-millis", 0L));
         profile.markClean();
         return Optional.of(profile);
+    }
+
+    private void loadProfessions(PlayerProfile profile, ConfigurationSection section) {
+        for (Profession profession : Profession.values()) {
+            String key = profession.name().toLowerCase();
+            if (section.contains(key + ".level")) {
+                profile.setProfessionLevel(profession, section.getInt(key + ".level", Profession.MIN_LEVEL));
+                profile.setProfessionExperience(profession, section.getLong(key + ".experience", 0L));
+                continue;
+            }
+            String[] legacyKeys = switch (profession) {
+                case BLACKSMITH -> new String[]{"blacksmithing"};
+                case PROVISIONER -> new String[]{"cooking", "fishing", "skinning", "herbalism"};
+                case ALCHEMIST -> new String[]{"alchemy", "herbalism"};
+                case SCHOLAR -> new String[0];
+            };
+            profile.setProfessionLevel(profession, maxLegacyLevel(section, legacyKeys));
+            profile.setProfessionExperience(profession, maxLegacyExperience(section, legacyKeys));
+        }
+    }
+
+    private int maxLegacyLevel(ConfigurationSection section, String[] keys) {
+        int max = Profession.MIN_LEVEL;
+        for (String key : keys) max = Math.max(max, section.getInt(key + ".level", section.getInt(key, Profession.MIN_LEVEL)));
+        return max;
+    }
+
+    private long maxLegacyExperience(ConfigurationSection section, String[] keys) {
+        long max = 0L;
+        for (String key : keys) max = Math.max(max, section.getLong(key + ".experience", 0L));
+        return max;
     }
 
     @Override
