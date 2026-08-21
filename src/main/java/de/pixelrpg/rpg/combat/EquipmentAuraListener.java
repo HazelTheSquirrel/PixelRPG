@@ -11,14 +11,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class EquipmentAuraListener {
-
     private final PlayerProfileManager profileManager;
     private final int intervalTicks;
+    private BukkitTask task;
 
     public EquipmentAuraListener(PlayerProfileManager profileManager, int intervalTicks) {
         this.profileManager = profileManager;
@@ -26,12 +27,19 @@ public final class EquipmentAuraListener {
     }
 
     public void start() {
-        Bukkit.getScheduler().runTaskTimer(PixelRPGPlugin.getInstance(), () -> {
+        if (task != null) return;
+        task = Bukkit.getScheduler().runTaskTimer(PixelRPGPlugin.getInstance(), () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 if (!profileManager.isRegistered(player.getUniqueId())) continue;
                 scanAndApply(player);
             }
         }, intervalTicks, intervalTicks);
+    }
+
+    public void stop() {
+        if (task == null) return;
+        task.cancel();
+        task = null;
     }
 
     private void scanAndApply(Player player) {
@@ -49,7 +57,6 @@ public final class EquipmentAuraListener {
             if (item == null || !item.hasItemMeta()) continue;
 
             var pdc = item.getItemMeta().getPersistentDataContainer();
-
             String blessingRaw = pdc.get(RPGKeys.Item.blessingType(), PersistentDataType.STRING);
             if (blessingRaw != null) {
                 try {
