@@ -64,7 +64,6 @@ import de.pixelrpg.rpg.party.PartyDisconnectListener;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.AttributeConfig;
 import de.pixelrpg.rpg.player.ClassBalance;
-import de.pixelrpg.rpg.player.GuildJoinLeaveListener;
 import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.ProfessionSystem;
@@ -201,7 +200,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new BankerBehavior(playerProfileManager, dialogueEngine));
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(craftingGUI, this);
-        getServer().getPluginManager().registerEvents(new GuildJoinLeaveListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new RPGStatsListener(statEngine, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new SkillInputListener(weaponAbilityEngine), this);
         getServer().getPluginManager().registerEvents(blacksmithGUI, this);
