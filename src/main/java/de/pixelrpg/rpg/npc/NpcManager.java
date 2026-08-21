@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/npc/NpcManager.java (VOLLSTÄNDIG, ersetzt alte Datei — Mannequin statt Villager)
 package de.pixelrpg.rpg.npc;
 
 import de.pixelrpg.rpg.core.RPGKeys;
@@ -42,53 +41,32 @@ public final class NpcManager {
         despawnAllTracked();
         npcsById.clear();
 
-        if (!file.exists()) {
-            return;
-        }
+        if (!file.exists()) return;
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         nextId.set(yaml.getInt("next-id", 1));
-
         ConfigurationSection root = yaml.getConfigurationSection("npcs");
-        if (root == null) {
-            return;
-        }
+        if (root == null) return;
 
         for (String id : root.getKeys(false)) {
             ConfigurationSection section = root.getConfigurationSection(id);
-            if (section == null) {
-                continue;
-            }
+            if (section == null) continue;
 
             NpcType type = parseType(section.getString("type"));
-            if (type == null) {
-                continue;
-            }
+            if (type == null) continue;
 
             String name = section.getString("name", "NPC");
             String worldName = section.getString("world");
             World world = worldName != null ? Bukkit.getWorld(worldName) : null;
-            if (world == null) {
-                continue;
-            }
+            if (world == null) continue;
 
-            Location location = new Location(
-                    world,
-                    section.getDouble("x"),
-                    section.getDouble("y"),
-                    section.getDouble("z"),
-                    (float) section.getDouble("yaw"),
-                    (float) section.getDouble("pitch")
-            );
-
+            Location location = new Location(world, section.getDouble("x"), section.getDouble("y"), section.getDouble("z"),
+                    (float) section.getDouble("yaw"), (float) section.getDouble("pitch"));
             String skinSource = section.getString("skin-source", null);
-
             RPGNpc npc = new RPGNpc(id, type, name, location, skinSource);
             npcsById.put(id, npc);
 
-            if (world.isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) {
-                spawnEntityFor(npc);
-            }
+            if (world.isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) spawnEntityFor(npc);
         }
     }
 
@@ -102,13 +80,9 @@ public final class NpcManager {
     }
 
     public void spawnEntityFor(RPGNpc npc) {
-        if (spawnedEntityByNpcId.containsKey(npc.id())) {
-            return;
-        }
+        if (spawnedEntityByNpcId.containsKey(npc.id())) return;
 
-        Location location = npc.location();
-
-        Mannequin mannequin = location.getWorld().spawn(location, Mannequin.class, entity -> {
+        Mannequin mannequin = npc.location().getWorld().spawn(npc.location(), Mannequin.class, entity -> {
             entity.setAI(false);
             entity.setInvulnerable(true);
             entity.setPersistent(false);
@@ -118,10 +92,7 @@ public final class NpcManager {
             entity.setCustomNameVisible(true);
             entity.getPersistentDataContainer().set(RPGKeys.Npc.npcType(), PersistentDataType.STRING, npc.type().name());
             entity.getPersistentDataContainer().set(RPGKeys.Npc.npcId(), PersistentDataType.STRING, npc.id());
-
-            if (npc.hasCustomSkin()) {
-                MannequinSkinResolver.apply(entity, npc.skinSource(), plugin.getLogger());
-            }
+            if (npc.hasCustomSkin()) MannequinSkinResolver.apply(entity, npc.skinSource(), plugin.getLogger());
         });
 
         spawnedEntityByNpcId.put(npc.id(), mannequin.getUniqueId());
@@ -130,10 +101,7 @@ public final class NpcManager {
 
     public boolean updateSkin(String npcId, String newSkinSource) {
         RPGNpc existing = npcsById.get(npcId);
-        if (existing == null) {
-            return false;
-        }
-
+        if (existing == null) return false;
         RPGNpc updated = new RPGNpc(existing.id(), existing.type(), existing.name(), existing.location(), newSkinSource);
         npcsById.put(npcId, updated);
         saveAll();
@@ -141,9 +109,7 @@ public final class NpcManager {
         UUID entityUuid = spawnedEntityByNpcId.get(npcId);
         if (entityUuid != null) {
             Entity entity = Bukkit.getEntity(entityUuid);
-            if (entity instanceof Mannequin mannequin) {
-                MannequinSkinResolver.apply(mannequin, newSkinSource, plugin.getLogger());
-            }
+            if (entity instanceof Mannequin mannequin) MannequinSkinResolver.apply(mannequin, newSkinSource, plugin.getLogger());
         }
         return true;
     }
@@ -151,9 +117,7 @@ public final class NpcManager {
     public void handleChunkUnload(Chunk chunk) {
         for (Entity entity : chunk.getEntities()) {
             String id = entityToId.remove(entity.getUniqueId());
-            if (id != null) {
-                spawnedEntityByNpcId.remove(id);
-            }
+            if (id != null) spawnedEntityByNpcId.remove(id);
         }
     }
 
@@ -161,43 +125,25 @@ public final class NpcManager {
         int chunkX = chunk.getX();
         int chunkZ = chunk.getZ();
         String worldName = chunk.getWorld().getName();
-
         for (RPGNpc npc : npcsById.values()) {
-            if (!npc.location().getWorld().getName().equals(worldName)) {
-                continue;
-            }
+            if (!npc.location().getWorld().getName().equals(worldName)) continue;
             int npcChunkX = npc.location().getBlockX() >> 4;
             int npcChunkZ = npc.location().getBlockZ() >> 4;
-            if (npcChunkX == chunkX && npcChunkZ == chunkZ) {
-                spawnEntityFor(npc);
-            }
+            if (npcChunkX == chunkX && npcChunkZ == chunkZ) spawnEntityFor(npc);
         }
     }
 
     public boolean removeById(String id) {
         RPGNpc npc = npcsById.remove(id);
-        if (npc == null) {
-            return false;
-        }
-
-        UUID entityUuid = spawnedEntityByNpcId.remove(id);
-        if (entityUuid != null) {
-            entityToId.remove(entityUuid);
-            Entity entity = Bukkit.getEntity(entityUuid);
-            if (entity != null) {
-                entity.remove();
-            }
-        }
-
+        if (npc == null) return false;
+        removeSpawnedEntity(id);
         saveAll();
         return true;
     }
 
     public boolean rename(String id, String newName) {
         RPGNpc existing = npcsById.get(id);
-        if (existing == null) {
-            return false;
-        }
+        if (existing == null) return false;
         RPGNpc updated = new RPGNpc(existing.id(), existing.type(), newName, existing.location(), existing.skinSource());
         npcsById.put(id, updated);
         saveAll();
@@ -205,9 +151,7 @@ public final class NpcManager {
         UUID entityUuid = spawnedEntityByNpcId.get(id);
         if (entityUuid != null) {
             Entity entity = Bukkit.getEntity(entityUuid);
-            if (entity != null) {
-                entity.customName(Component.text(newName, existing.type().getColor()));
-            }
+            if (entity != null) entity.customName(Component.text(newName, existing.type().getColor()));
         }
         return true;
     }
@@ -217,16 +161,13 @@ public final class NpcManager {
         return id != null ? Optional.ofNullable(npcsById.get(id)) : Optional.empty();
     }
 
-    public Optional<RPGNpc> getById(String id) {
-        return Optional.ofNullable(npcsById.get(id));
-    }
+    public Optional<RPGNpc> getById(String id) { return Optional.ofNullable(npcsById.get(id)); }
+    public Collection<RPGNpc> getAll() { return npcsById.values(); }
+    public Collection<UUID> getSpawnedEntityUuids() { return spawnedEntityByNpcId.values(); }
 
-    public Collection<RPGNpc> getAll() {
-        return npcsById.values();
-    }
-
-    public Collection<UUID> getSpawnedEntityUuids() {
-        return spawnedEntityByNpcId.values();
+    public void shutdown() {
+        despawnAllTracked();
+        npcsById.clear();
     }
 
     public void saveAll() {
@@ -242,9 +183,7 @@ public final class NpcManager {
             yaml.set(path + ".z", npc.location().getZ());
             yaml.set(path + ".yaw", (double) npc.location().getYaw());
             yaml.set(path + ".pitch", (double) npc.location().getPitch());
-            if (npc.hasCustomSkin()) {
-                yaml.set(path + ".skin-source", npc.skinSource());
-            }
+            if (npc.hasCustomSkin()) yaml.set(path + ".skin-source", npc.skinSource());
         }
         try {
             yaml.save(file);
@@ -253,21 +192,25 @@ public final class NpcManager {
         }
     }
 
+    private void removeSpawnedEntity(String id) {
+        UUID entityUuid = spawnedEntityByNpcId.remove(id);
+        if (entityUuid == null) return;
+        entityToId.remove(entityUuid);
+        Entity entity = Bukkit.getEntity(entityUuid);
+        if (entity != null) entity.remove();
+    }
+
     private void despawnAllTracked() {
         for (UUID entityUuid : entityToId.keySet()) {
             Entity entity = Bukkit.getEntity(entityUuid);
-            if (entity != null) {
-                entity.remove();
-            }
+            if (entity != null) entity.remove();
         }
         spawnedEntityByNpcId.clear();
         entityToId.clear();
     }
 
     private NpcType parseType(String raw) {
-        if (raw == null) {
-            return null;
-        }
+        if (raw == null) return null;
         try {
             return NpcType.valueOf(raw.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
