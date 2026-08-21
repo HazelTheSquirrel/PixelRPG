@@ -15,17 +15,14 @@ import java.util.Set;
 import java.util.UUID;
 
 public final class MySQLPlayerProfileRepository implements PlayerProfileRepository {
-    private static final String PROFESSION_STAT_PREFIX = "profession.";
+    private static final String PROFESSION_LEVEL_PREFIX = "profession.";
+    private static final String PROFESSION_XP_PREFIX = "profession.xp.";
     private final DatabaseManager databaseManager;
 
-    public MySQLPlayerProfileRepository(DatabaseManager databaseManager) {
-        this.databaseManager = databaseManager;
-    }
+    public MySQLPlayerProfileRepository(DatabaseManager databaseManager) { this.databaseManager = databaseManager; }
 
     @Override
-    public void init() throws SQLException {
-        databaseManager.createTables();
-    }
+    public void init() throws SQLException { databaseManager.createTables(); }
 
     @Override
     public Optional<PlayerProfile> load(UUID uuid) throws SQLException {
@@ -94,11 +91,12 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 while (resultSet.next()) {
                     String key = resultSet.getString("stat_key");
                     long value = resultSet.getLong("value");
-                    if (key.startsWith(PROFESSION_STAT_PREFIX)) {
-                        try {
-                            profile.setProfessionLevel(Profession.valueOf(key.substring(PROFESSION_STAT_PREFIX.length()).toUpperCase()), (int) value);
-                        } catch (IllegalArgumentException ignored) {
-                        }
+                    if (key.startsWith(PROFESSION_XP_PREFIX)) {
+                        try { profile.setProfessionExperience(Profession.valueOf(key.substring(PROFESSION_XP_PREFIX.length()).toUpperCase()), value); }
+                        catch (IllegalArgumentException ignored) { }
+                    } else if (key.startsWith(PROFESSION_LEVEL_PREFIX)) {
+                        try { profile.setProfessionLevel(Profession.valueOf(key.substring(PROFESSION_LEVEL_PREFIX.length()).toUpperCase()), (int) value); }
+                        catch (IllegalArgumentException ignored) { }
                     } else {
                         profile.setStatistic(key, value);
                     }
@@ -158,7 +156,6 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                     statement.setLong(20, profile.getPlaytimeMillis());
                     statement.executeUpdate();
                 }
-
                 try (PreparedStatement deleteStatement = connection.prepareStatement(deleteQuestsSql)) {
                     deleteStatement.setString(1, profile.getUuid().toString());
                     deleteStatement.executeUpdate();
@@ -175,7 +172,6 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                         insertStatement.executeBatch();
                     }
                 }
-
                 try (PreparedStatement statStatement = connection.prepareStatement(upsertStatSql)) {
                     for (var entry : profile.getAllStatistics().entrySet()) {
                         statStatement.setString(1, profile.getUuid().toString());
@@ -185,8 +181,11 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                     }
                     for (Profession profession : Profession.values()) {
                         statStatement.setString(1, profile.getUuid().toString());
-                        statStatement.setString(2, PROFESSION_STAT_PREFIX + profession.name().toLowerCase());
+                        statStatement.setString(2, PROFESSION_LEVEL_PREFIX + profession.name().toLowerCase());
                         statStatement.setLong(3, profile.getProfessionLevel(profession));
+                        statStatement.addBatch();
+                        statStatement.setString(2, PROFESSION_XP_PREFIX + profession.name().toLowerCase());
+                        statStatement.setLong(3, profile.getProfessionExperience(profession));
                         statStatement.addBatch();
                     }
                     statStatement.executeBatch();
@@ -201,16 +200,10 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
         }
     }
 
-    @Override
-    public void shutdown() {
-        databaseManager.shutdown();
-    }
+    @Override public void shutdown() { databaseManager.shutdown(); }
 
     private PlayerClass parseClass(String raw) {
-        try {
-            return PlayerClass.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return PlayerClass.NONE;
-        }
+        try { return PlayerClass.valueOf(raw.trim().toUpperCase()); }
+        catch (IllegalArgumentException | NullPointerException e) { return PlayerClass.NONE; }
     }
 }
