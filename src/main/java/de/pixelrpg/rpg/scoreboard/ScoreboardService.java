@@ -98,9 +98,12 @@ public final class ScoreboardService implements Listener {
     }
 
     private void clear(Player player) {
-        ScoreboardManager manager = Bukkit.getScoreboardManager();
-        if (manager != null) player.setScoreboard(manager.getMainScoreboard());
-        stateByPlayer.remove(player.getUniqueId());
+        PlayerScoreboardState state = stateByPlayer.remove(player.getUniqueId());
+        if (state == null) return;
+        if (player.getScoreboard() == state.board) {
+            ScoreboardManager manager = Bukkit.getScoreboardManager();
+            if (manager != null) player.setScoreboard(manager.getMainScoreboard());
+        }
     }
 
     private void apply(Player player, PlayerProfile profile) {
