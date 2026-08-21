@@ -74,8 +74,13 @@ public final class CombatDamageListener implements Listener {
         double weaponLifesteal = stats.lifestealBonus();
         if (weapon.hasItemMeta()) {
             var pdc = weapon.getItemMeta().getPersistentDataContainer();
-            weaponCritBonus = pdc.getOrDefault(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, 0.0);
-            weaponLifesteal += pdc.getOrDefault(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, 0.0);
+            Integer itemLevel = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
+            boolean levelRequirementMet = itemLevel == null || profile.getLevel() >= itemLevel;
+            if (levelRequirementMet) {
+                weaponCritBonus = pdc.getOrDefault(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, 0.0);
+                weaponLifesteal += pdc.getOrDefault(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, 0.0);
+                damage += pdc.getOrDefault(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, 0.0);
+            }
         }
         double totalCritChance = Math.min(100.0, stats.critChance() + weaponCritBonus);
         boolean isCrit = ThreadLocalRandom.current().nextDouble(100.0) < totalCritChance;
