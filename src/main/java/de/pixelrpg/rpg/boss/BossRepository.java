@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.boss;
 
-import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.item.ItemRarity;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -13,13 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level as LogLevel;
 
 public final class BossRepository {
     private final Plugin plugin;
     private final File file;
     private final Map<String, BossDefinition> definitionsById = new ConcurrentHashMap<>();
-
     public BossRepository(Plugin plugin) { this.plugin = plugin; this.file = new File(plugin.getDataFolder(), "bosses.yml"); }
 
     public void load() {
@@ -50,11 +47,7 @@ public final class BossRepository {
             phases.sort((a, b) -> Double.compare(b.healthPercentageThreshold(), a.healthPercentageThreshold()));
             definition.setPhases(phases);
             ConfigurationSection lootSection = section.getConfigurationSection("loot");
-            if (lootSection != null) {
-                List<String> materials = lootSection.getStringList("materials");
-                ItemRarity guaranteedRarity = parseRarity(lootSection.getString("guaranteed-rarity", "LEGENDARY"));
-                definition.setLootConfig(new BossLootConfig(materials, guaranteedRarity, lootSection.getDouble("money", 500.0), lootSection.getLong("exp", 1000L)));
-            }
+            if (lootSection != null) definition.setLootConfig(new BossLootConfig(lootSection.getStringList("materials"), parseRarity(lootSection.getString("guaranteed-rarity", "LEGENDARY")), lootSection.getDouble("money", 500.0), lootSection.getLong("exp", 1000L)));
             definitionsById.put(id, definition);
         }
     }
@@ -102,9 +95,7 @@ public final class BossRepository {
         yaml.set("bosses.void_reaper.loot.guaranteed-rarity", "LEGENDARY");
         yaml.set("bosses.void_reaper.loot.money", 1500.0);
         yaml.set("bosses.void_reaper.loot.exp", 4000);
-
-        try { yaml.save(file); }
-        catch (IOException e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to create default bosses.yml", e); }
+        try { yaml.save(file); } catch (IOException e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to create default bosses.yml", e); }
     }
 
     public BossDefinition get(String id) { return definitionsById.get(id); }
