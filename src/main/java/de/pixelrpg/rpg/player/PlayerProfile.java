@@ -64,7 +64,6 @@ public final class PlayerProfile {
     public synchronized void setExperience(long value) { experience = Math.max(0L, value); dirty = true; }
     public synchronized void addExperience(long amount) { if (amount > 0L) { experience += amount; dirty = true; } }
     public synchronized int getLevel() { return Level.fromExperience(experience); }
-
     public synchronized PlayerClass getPlayerClass() { return playerClass; }
     public synchronized void setPlayerClass(PlayerClass value) { playerClass = value; dirty = true; }
     public synchronized double getMoney() { return money; }
@@ -73,33 +72,29 @@ public final class PlayerProfile {
     public synchronized boolean removeMoney(double amount) { if (amount <= 0.0 || money < amount) return false; money -= amount; dirty = true; return true; }
     public synchronized boolean hasReceivedStartBonus() { return receivedStartBonus; }
     public synchronized void setReceivedStartBonus(boolean value) { receivedStartBonus = value; dirty = true; }
-
     public synchronized double getCurrentMana() { return currentMana; }
     public synchronized boolean isManaInitialized() { return manaInitialized; }
     public synchronized void initializeMana(double maxMana) { currentMana = Math.max(0.0, maxMana); manaInitialized = true; dirty = true; }
     public synchronized void setCurrentMana(double value, double maxMana) { currentMana = Math.max(0.0, Math.min(maxMana, value)); manaInitialized = true; dirty = true; }
     public synchronized boolean consumeMana(double amount, double maxMana) { if (amount <= 0.0) return true; if (currentMana + 1.0E-9 < amount) return false; currentMana = Math.max(0.0, Math.min(maxMana, currentMana - amount)); manaInitialized = true; dirty = true; return true; }
     public synchronized void restoreMana(double amount, double maxMana) { if (amount <= 0.0) return; currentMana = Math.min(maxMana, currentMana + amount); manaInitialized = true; dirty = true; }
-
     public synchronized int getAttributePoints(PlayerAttribute attribute) { return attributePoints.getOrDefault(attribute, 0); }
     public synchronized void setAttributePoints(PlayerAttribute attribute, int value) { attributePoints.put(attribute, Math.max(0, value)); dirty = true; }
     public synchronized void addAttributePoint(PlayerAttribute attribute) { attributePoints.merge(attribute, 1, Integer::sum); dirty = true; }
-
     public synchronized int getProfessionLevel(Profession profession) { return professionLevels.getOrDefault(profession, Profession.MIN_LEVEL); }
     public synchronized void setProfessionLevel(Profession profession, int level) { int clamped = Math.max(Profession.MIN_LEVEL, Math.min(Profession.MAX_LEVEL, level)); professionLevels.put(profession, clamped); dirty = true; }
     public synchronized Map<Profession, Integer> getProfessionLevels() { return Collections.unmodifiableMap(new EnumMap<>(professionLevels)); }
     public synchronized long getProfessionExperience(Profession profession) { return professionExperience.getOrDefault(profession, 0L); }
     public synchronized void setProfessionExperience(Profession profession, long value) { professionExperience.put(profession, Math.max(0L, value)); dirty = true; }
-    public synchronized void addProfessionExperience(Profession profession, long amount) { if (amount > 0L) professionExperience.merge(profession, amount, Long::sum); if (amount > 0L) dirty = true; }
+    public synchronized void addProfessionExperience(Profession profession, long amount) { if (amount > 0L) { professionExperience.merge(profession, amount, Long::sum); dirty = true; } }
     public synchronized Map<Profession, Long> getProfessionExperiences() { return Collections.unmodifiableMap(new EnumMap<>(professionExperience)); }
-
     public synchronized Set<String> getUnlockedWaypoints() { return Collections.unmodifiableSet(new HashSet<>(unlockedWaypoints)); }
     public synchronized boolean hasUnlockedWaypoint(String id) { return unlockedWaypoints.contains(id); }
     public synchronized void unlockWaypoint(String id) { if (unlockedWaypoints.add(id)) dirty = true; }
     public synchronized void setUnlockedWaypoints(Set<String> ids) { unlockedWaypoints.clear(); unlockedWaypoints.addAll(ids); dirty = true; }
     public synchronized int getStoryChapterIndex() { return storyChapterIndex; }
     public synchronized void setStoryChapterIndex(int value) { storyChapterIndex = value; dirty = true; }
-    public synchronized Map<String, QuestProgress> getActiveQuests() { Map<String, QuestProgress> snapshot = new HashMap<>(); activeQuests.forEach((id, progress) -> snapshot.put(id, new QuestProgress(progress.getQuestId(), progress.getCurrentAmount(), progress.getExpiryTimestampMillis()))); return Collections.unmodifiableMap(snapshot); }
+    public synchronized Map<String, QuestProgress> getActiveQuests() { return Collections.unmodifiableMap(new HashMap<>(activeQuests)); }
     public synchronized boolean hasActiveQuest(String id) { return activeQuests.containsKey(id); }
     public synchronized void startQuest(QuestProgress progress) { activeQuests.put(progress.getQuestId(), progress); dirty = true; }
     public synchronized void removeActiveQuest(String id) { if (activeQuests.remove(id) != null) dirty = true; }
@@ -120,15 +115,8 @@ public final class PlayerProfile {
     public synchronized long getPlaytimeMillis() { return playtimeMillis; }
     public synchronized void addPlaytimeMillis(long amount) { if (amount > 0L) { playtimeMillis += amount; dirty = true; } }
     public synchronized void setPlaytimeMillis(long value) { playtimeMillis = value; dirty = true; }
-
     public synchronized boolean isDirty() { return dirty; }
-
-    public synchronized boolean beginSave() {
-        if (!dirty) return false;
-        dirty = false;
-        return true;
-    }
-
+    public synchronized boolean beginSave() { if (!dirty) return false; dirty = false; return true; }
     public synchronized void markDirty() { dirty = true; }
     public synchronized void markClean() { dirty = false; }
 
