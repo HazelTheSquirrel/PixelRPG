@@ -1,24 +1,30 @@
 package de.pixelrpg.rpg.npc.behavior;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.gui.BlacksmithGUI;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import io.papermc.paper.registry.data.dialog.body.DialogBody;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
-public final class BlacksmithBehavior implements NpcBehavior {
+import java.util.List;
 
+public final class BlacksmithBehavior implements NpcBehavior {
     private final BlacksmithGUI blacksmithGUI;
     private final PlayerProfileManager profileManager;
+    private final DialogueEngine dialogueEngine;
     private final LanguageManager lang;
 
-    public BlacksmithBehavior(BlacksmithGUI blacksmithGUI, PlayerProfileManager profileManager) {
+    public BlacksmithBehavior(BlacksmithGUI blacksmithGUI, PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
         this.blacksmithGUI = blacksmithGUI;
         this.profileManager = profileManager;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
+        this.dialogueEngine = dialogueEngine;
+        this.lang = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -32,6 +38,17 @@ public final class BlacksmithBehavior implements NpcBehavior {
             lang.send(player, "npc.not-registered");
             return;
         }
-        blacksmithGUI.open(player);
+
+        dialogueEngine.openMultiAction(
+                player,
+                Component.text("Schmied", NamedTextColor.GOLD),
+                List.of(DialogBody.plainMessage(Component.text("Verwalte und verbessere deine PixelRPG-Ausrüstung."))),
+                List.of(dialogueEngine.actionButton(
+                        Component.text("Schmied öffnen"),
+                        NamedTextColor.GREEN,
+                        target -> blacksmithGUI.open(target)
+                )),
+                1
+        );
     }
 }
