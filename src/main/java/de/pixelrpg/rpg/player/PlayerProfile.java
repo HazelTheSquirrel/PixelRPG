@@ -53,10 +53,6 @@ public final class PlayerProfile {
     public void addExperience(long amount) { if (amount > 0L) { experience += amount; dirty = true; } }
     public int getLevel() { return Level.fromExperience(experience); }
 
-    /** @deprecated Legacy source compatibility; the returned value is the player level. */
-    @Deprecated(forRemoval = true)
-    public int getRank() { return getLevel(); }
-
     public PlayerClass getPlayerClass() { return playerClass; }
     public void setPlayerClass(PlayerClass value) { playerClass = value; dirty = true; }
     public double getMoney() { return money; }
