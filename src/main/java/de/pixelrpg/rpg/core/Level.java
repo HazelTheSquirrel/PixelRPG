@@ -70,7 +70,7 @@ public final class Level {
 
     private static long[] createExperienceTable() {
         long[] experience = new long[MAX_NORMAL_LEVEL];
-        long[] wotlkXpPerLevel = {
+        long[] wotlkXpToNextLevel = {
             400L, 900L, 1400L, 2100L, 2800L, 3600L, 4500L, 5400L, 6500L, 7600L,
             8700L, 9800L, 11000L, 12300L, 13600L, 15000L, 16400L, 17800L, 19300L, 20800L,
             22400L, 24000L, 25500L, 27200L, 28900L, 30500L, 32200L, 33900L, 36300L, 38800L,
@@ -84,7 +84,7 @@ public final class Level {
         long cumulative = 0L;
         experience[0] = 0L;
         for (int level = 1; level <= 79; level++) {
-            cumulative = Math.addExact(cumulative, wotlkXpPerLevel[level - 1]);
+            cumulative = Math.addExact(cumulative, wotlkXpToNextLevel[level - 1]);
             experience[level] = cumulative;
         }
 
@@ -93,7 +93,7 @@ public final class Level {
         // From there the increment grows geometrically so that 98 -> 99 is
         // exactly 100 times the XP required for 80 -> 81.
         double continuationRatio = Math.pow(100.0D, 1.0D / 18.0D);
-        double increment = wotlkXpPerLevel[79];
+        double increment = wotlkXpToNextLevel[78];
         for (int level = 81; level <= 99; level++) {
             if (level > 81) increment *= continuationRatio;
             cumulative = Math.addExact(cumulative, Math.round(increment));
