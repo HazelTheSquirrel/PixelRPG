@@ -33,6 +33,7 @@ import de.pixelrpg.rpg.command.impl.ShopSubCommand;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.dialogue.DialogueCommand;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
@@ -120,13 +121,11 @@ public final class PixelRPGPlugin extends JavaPlugin {
         ClassBalance.load(getConfig());
         StoryBookFactory.load(getConfig());
         GuildCurrencyItemFactory.configureMaxStackSize(getConfig().getInt("economy.currency.max-stack-size", 64));
-
         playerProfileManager = new PlayerProfileManager(this);
         playerProfileManager.initialize(getConfig());
         statEngine = new StatEngine(playerProfileManager);
         new ProfessionSystem(this, playerProfileManager).register();
         WeaponAbilityEngine weaponAbilityEngine = new WeaponAbilityEngine(playerProfileManager, statEngine);
-
         itemEconomyConfig = new ItemEconomyConfig();
         itemEconomyConfig.load(getConfig());
         RPGItemBuilder.configureChances(getConfig().getDouble("items.loot.blessing-chance", 0.12), getConfig().getDouble("items.loot.curse-chance", 0.10));
@@ -150,7 +149,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         double partyShareRange = getConfig().getDouble("quests.party-share-range", 24.0);
         questManager = new QuestManager(this, questRepository, playerProfileManager, playerProfileManager, globalEventState, partyShareRange);
         questManager.startTimerCheckTask();
-
         BossAttackPatternRegistry patternRegistry = new BossAttackPatternRegistry();
         patternRegistry.register(new SlamAttackPattern());
         patternRegistry.register(new SummonAddsPattern());
@@ -163,7 +161,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         int phaseCheckInterval = getConfig().getInt("bosses.phase-check-interval-ticks", 10);
         bossManager = new BossManager(this, patternRegistry, playerProfileManager, playerProfileManager, itemEconomyConfig, barRadius, barUpdateInterval, phaseCheckInterval);
         new WorldBossSpawnTask(this, bossRepository, bossManager, playerProfileManager, getConfig().getBoolean("bosses.auto-spawn.enabled", true), getConfig().getInt("bosses.auto-spawn.interval-minutes", 45), getConfig().getDouble("bosses.auto-spawn.spawn-radius", 80.0), getConfig().getInt("bosses.auto-spawn.max-concurrent", 2)).start();
-
         statisticsService = new StatisticsService(playerProfileManager);
         Bukkit.getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
         scoreboardService = new ScoreboardService(this, playerProfileManager, getConfig().getInt("scoreboard.update-interval-ticks", 20));
@@ -173,7 +170,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         equipmentAuraListener = new EquipmentAuraListener(getConfig().getInt("effects.aura-interval-ticks", 60));
         equipmentAuraListener.start();
         AttributeConfig.configureElytraCost(getConfig().getDouble("elytra.permit-cost", 750.0));
-
         npcManager = new NpcManager(this);
         npcManager.loadAll();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
@@ -181,7 +177,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         DialogueEngine dialogueEngine = new DialogueEngine();
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager);
-
         npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager));
         npcBehaviorRegistry.register(new BlacksmithBehavior(blacksmithGUI, playerProfileManager));
@@ -190,7 +185,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new TravelBehavior(npcManager, playerProfileManager));
         npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogue, playerProfileManager));
         npcBehaviorRegistry.register(new de.pixelrpg.rpg.npc.behavior.BankerBehavior(playerProfileManager));
-
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(new GuildJoinLeaveListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new RPGStatsListener(statEngine), this);
@@ -215,8 +209,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ElytraPermissionListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(scoreboardService, this);
         getServer().getPluginManager().registerEvents(playtimeTracker, this);
+        getServer().getPluginManager().registerEvents(new QuickActionsDialogListener(quickActions), this);
         new QuestPassiveCheckTask(this, questManager).start();
-
         RootCommand rootCommand = new RootCommand();
         rootCommand.register(new BlacksmithSubCommand(blacksmithGUI));
         rootCommand.register(new NpcSubCommand(npcManager));
