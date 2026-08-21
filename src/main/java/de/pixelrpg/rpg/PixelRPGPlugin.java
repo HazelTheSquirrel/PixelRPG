@@ -32,6 +32,8 @@ import de.pixelrpg.rpg.command.impl.QuestAdminSubCommand;
 import de.pixelrpg.rpg.command.impl.QuestLogCommand;
 import de.pixelrpg.rpg.command.impl.ShopSubCommand;
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.dialogue.DialogueCommand;
+import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.economy.GuildCurrencyPickupListener;
@@ -183,7 +185,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcManager.loadAll();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
         new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 8.0), getConfig().getInt("npc.look-interval-ticks", 5)).start();
-        StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager);
+        DialogueEngine dialogueEngine = new DialogueEngine();
+        StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
 
         npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager));
@@ -236,6 +239,12 @@ public final class PixelRPGPlugin extends JavaPlugin {
             getCommand("rpgparty").setTabCompleter(partyCommand);
         }
         if (getCommand("questlog") != null) getCommand("questlog").setExecutor(new QuestLogCommand(questManager, playerProfileManager));
+        if (getCommand("rpgcraft") != null) getCommand("rpgcraft").setExecutor(new de.pixelrpg.rpg.command.impl.CraftingCommand(new de.pixelrpg.rpg.profession.CraftingService(new de.pixelrpg.rpg.profession.CraftingRecipeRegistry(), playerProfileManager), playerProfileManager));
+        if (getCommand("dialogue") != null) {
+            DialogueCommand dialogueCommand = new DialogueCommand(playerProfileManager, dialogueEngine);
+            getCommand("dialogue").setExecutor(dialogueCommand);
+            getCommand("dialogue").setTabCompleter(dialogueCommand);
+        }
         getLogger().info("PixelRPG core enabled.");
     }
 
