@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/command/RootCommand.java
 package de.pixelrpg.rpg.command;
 
 import net.kyori.adventure.text.Component;
@@ -8,12 +7,11 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.LinkedHashMap;
 
 public final class RootCommand implements CommandExecutor, TabCompleter {
     private final Map<String, SubCommand> subCommands = new LinkedHashMap<>();
@@ -25,27 +23,27 @@ public final class RootCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            sendHelp(sender);
+            sendHelp(sender, command.getName());
             return true;
         }
 
         String name = args[0].toLowerCase(Locale.ROOT);
         SubCommand subCommand = subCommands.get(name);
         if (subCommand == null) {
-            sender.sendMessage(Component.text("Unknown subcommand: " + args[0], NamedTextColor.RED));
-            sendHelp(sender);
+            sender.sendMessage(Component.text("Unbekannter Unterbefehl: " + args[0], NamedTextColor.RED));
+            sendHelp(sender, command.getName());
             return true;
         }
 
         String permission = subCommand.permission();
-        if (permission != null && !sender.hasPermission(permission)) {
-            sender.sendMessage(Component.text("You do not have permission to use /" + command.getName() + " " + name + ".", NamedTextColor.RED));
+        if (permission != null && !permission.isBlank() && !sender.hasPermission(permission)) {
+            sender.sendMessage(Component.text("Keine Berechtigung für /" + command.getName() + " " + name + ".", NamedTextColor.RED));
             return true;
         }
 
         String[] remaining = Arrays.copyOfRange(args, 1, args.length);
         if (!subCommand.execute(sender, remaining)) {
-            sender.sendMessage(Component.text("Invalid usage for /" + command.getName() + " " + name + ".", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Verwendung: " + subCommand.usage(), NamedTextColor.YELLOW));
         }
         return true;
     }
@@ -54,46 +52,43 @@ public final class RootCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
             String prefix = args[0].toLowerCase(Locale.ROOT);
-            List<String> matches = new ArrayList<>();
-            for (Map.Entry<String, SubCommand> entry : subCommands.entrySet()) {
-                SubCommand subCommand = entry.getValue();
-                String permission = subCommand.permission();
-                if ((permission == null || sender.hasPermission(permission)) && entry.getKey().startsWith(prefix)) {
-                    matches.add(entry.getKey());
-                }
-            }
-            return matches;
+            return subCommands.entrySet().stream()
+                    .filter(entry -> hasPermission(sender, entry.getValue()))
+                    .map(Map.Entry::getKey)
+                    .filter(value -> value.startsWith(prefix))
+                    .sorted()
+                    .toList();
         }
 
-        if (args.length > 1) {
-            SubCommand subCommand = subCommands.get(args[0].toLowerCase(Locale.ROOT));
-            if (subCommand != null) {
-                String permission = subCommand.permission();
-                if (permission != null && !sender.hasPermission(permission)) return List.of();
-                return filterSuggestions(subCommand.tabComplete(sender, Arrays.copyOfRange(args, 1, args.length)), args[args.length - 1]);
-            }
-        }
+        SubCommand subCommand = subCommands.get(args[0].toLowerCase(Locale.ROOT));
+        if (subCommand == null || !hasPermission(sender, subCommand)) return List.of();
 
-        return List.of();
-    }
-
-    private List<String> filterSuggestions(List<String> suggestions, String prefix) {
+        List<String> suggestions = subCommand.tabComplete(sender, Arrays.copyOfRange(args, 1, args.length));
         if (suggestions == null || suggestions.isEmpty()) return List.of();
-        String normalizedPrefix = prefix.toLowerCase(Locale.ROOT);
+
+        String prefix = args[args.length - 1].toLowerCase(Locale.ROOT);
         return suggestions.stream()
-                .filter(value -> value != null && value.toLowerCase(Locale.ROOT).startsWith(normalizedPrefix))
+                .filter(value -> value != null && value.toLowerCase(Locale.ROOT).startsWith(prefix))
                 .distinct()
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .toList();
     }
 
-    private void sendHelp(CommandSender sender) {
-        sender.sendMessage(Component.text("PixelRPG Admin Commands", NamedTextColor.GOLD));
-        subCommands.forEach((name, subCommand) -> {
-            String permission = subCommand.permission();
-            if (permission == null || sender.hasPermission(permission)) {
-                sender.sendMessage(Component.text("/rpgadmin " + name, NamedTextColor.YELLOW));
-            }
-        });
+    private boolean hasPermission(CommandSender sender, SubCommand subCommand) {
+        String permission = subCommand.permission();
+        return permission == null || permission.isBlank() || sender.hasPermission(permission);
+    }
+
+    private void sendHelp(CommandSender sender, String commandName) {
+        sender.sendMessage(Component.text("PixelRPG Admin-Befehle", NamedTextColor.GOLD));
+        subCommands.values().stream()
+                .filter(subCommand -> hasPermission(sender, subCommand))
+                .forEach(subCommand -> {
+                    Component line = Component.text(subCommand.usage(), NamedTextColor.YELLOW);
+                    if (!subCommand.description().isBlank()) {
+                        line = line.append(Component.text(" – " + subCommand.description(), NamedTextColor.GRAY));
+                    }
+                    sender.sendMessage(line);
+                });
     }
 }
