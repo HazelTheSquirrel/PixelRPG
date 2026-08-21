@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level as JavaLevel;
 
 public final class QuestRepository {
 
@@ -35,34 +34,25 @@ public final class QuestRepository {
         }
 
         File[] files = questFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".yml"));
-        if (files == null) {
-            return;
-        }
+        if (files == null) return;
 
         for (File file : files) {
-            int categoryLevel = parseCategoryLevel(file.getName());
-            loadFile(file, categoryLevel);
+            loadFile(file, parseCategoryLevel(file.getName()));
         }
     }
 
     private void loadFile(File file, int fileCategoryLevel) {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection root = yaml.getConfigurationSection("quests");
-        if (root == null) {
-            return;
-        }
+        if (root == null) return;
 
         for (String id : root.getKeys(false)) {
             ConfigurationSection section = root.getConfigurationSection(id);
-            if (section == null) {
-                continue;
-            }
+            if (section == null) continue;
 
             QuestType type = parseType(section.getString("type", "HUNT"));
             int requiredLevel = readLevelRequirement(section, fileCategoryLevel);
             int categoryLevel = clampLevel(section.getInt("category-level", fileCategoryLevel));
-            Location escortDestination = readLocation(section, "escort-destination");
-            Location reachLocation = readLocation(section, "reach-location");
 
             Quest quest = new Quest(
                     id,
@@ -77,8 +67,8 @@ public final class QuestRepository {
                     section.getLong("reward-exp", 0L),
                     section.getInt("duration-minutes", 0),
                     section.getStringList("reward-items"),
-                    escortDestination,
-                    reachLocation,
+                    readLocation(section, "escort-destination"),
+                    readLocation(section, "reach-location"),
                     section.getDouble("reach-radius", 5.0)
             );
             questsById.put(id, quest);
@@ -90,21 +80,16 @@ public final class QuestRepository {
             return clampLevel(section.getInt("required-level", fallback));
         }
 
-        // Backwards-compatible data migration for old F-S quest files.
         String oldRank = section.getString("required-rank");
         return oldRank == null ? clampLevel(fallback) : oldRankToLevel(oldRank);
     }
 
     private Location readLocation(ConfigurationSection parent, String path) {
         ConfigurationSection section = parent.getConfigurationSection(path);
-        if (section == null) {
-            return null;
-        }
+        if (section == null) return null;
         String worldName = section.getString("world");
         World world = worldName != null ? Bukkit.getWorld(worldName) : null;
-        if (world == null) {
-            return null;
-        }
+        if (world == null) return null;
         return new Location(world, section.getDouble("x"), section.getDouble("y"), section.getDouble("z"));
     }
 
@@ -114,30 +99,24 @@ public final class QuestRepository {
                 "collect_cobblestone_example", questMap("Steinlieferung", "Sammle Bruchstein für die Befestigungsanlagen.", "COLLECT", "COBBLESTONE", 32, 30.0, 100L, 0, List.of(), 1),
                 "reach_ruins_example", questMapReach("Erkunde die Ruinen", "Reise zu den alten Ruinen und melde dich zurück.", 1, 20.0, 80L, 8.0, 1)
         ));
-
         saveDefault(11, Map.of(
                 "hunt_skeletons_example", questMap("Skelett-Säuberung", "Die Knochenklapperer werden dreister. Dünne ihre Reihen aus.", "HUNT", "SKELETON", 15, 65.0, 180L, 0, List.of(), 11),
                 "escort_merchant_example", questMap("Eskortiere den Händler", "Begleite den Händler sicher zum Kontrollpunkt.", "ESCORT", "merchant_npc", 1, 80.0, 200L, 15, List.of(), 11)
         ));
-
         saveDefault(21, Map.of(
                 "collect_blaze_rods_example", questMap("Lohenrutenlieferung", "Der Schmied benötigt Lohenruten als Brennstoff für die Verzauberung.", "COLLECT", "BLAZE_ROD", 8, 90.0, 220L, 0, List.of(), 21)
         ));
-
         saveDefault(31, Map.of(
                 "event_wither_example", questMap("Kalamität: Wither-Ausbruch", "Der Server muss den Wither besiegen, bevor er die Stadt zerstört.", "GLOBAL_EVENT", "WITHER", 1, 300.0, 800L, 0, List.of(), 31)
         ));
-
         saveDefault(41, Map.of(
                 "hunt_witches_example", questMap("Hexenzirkel des verseuchten Hains", "Hexen haben den Hain verdorben. Vertreibe sie.", "HUNT", "WITCH", 12, 140.0, 420L, 0, List.of(), 41),
                 "collect_ender_pearls_example", questMap("Bitte des Enderwanderers", "Sammle Enderperlen für ein Ritual der Rückkehr.", "COLLECT", "ENDER_PEARL", 16, 160.0, 450L, 0, List.of(), 41)
         ));
-
         saveDefault(51, Map.of(
                 "escort_envoy_example", questMap("Der stille Gesandte", "Eskortiere den Gesandten unbemerkt durch feindliches Gebiet.", "ESCORT", "envoy_npc", 1, 260.0, 900L, 20, List.of(), 51),
                 "reach_summit_example", questMapReach("Der eisige Gipfel", "Erklimme den Gipfelmarker und hisse das Banner.", 1, 200.0, 700L, 6.0, 51)
         ));
-
         saveDefault(61, Map.of(
                 "event_dragon_example", questMap("Kalamität: Der uralte Wyrm", "Eine legendäre Bedrohung erwacht. Der gesamte Server muss sich ihr stellen.", "GLOBAL_EVENT", "ENDER_DRAGON", 1, 1000.0, 3000L, 0, List.of(), 61)
         ));
@@ -180,17 +159,14 @@ public final class QuestRepository {
         try {
             yaml.save(file);
         } catch (IOException e) {
-            plugin.getLogger().log(JavaLevel.SEVERE, "Failed to create default quest file " + file.getName(), e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                    "Failed to create default quest file " + file.getName(), e);
         }
     }
 
-    public Quest getQuest(String id) {
-        return questsById.get(id);
-    }
+    public Quest getQuest(String id) { return questsById.get(id); }
 
-    public List<Quest> getAllQuests() {
-        return new ArrayList<>(questsById.values());
-    }
+    public List<Quest> getAllQuests() { return new ArrayList<>(questsById.values()); }
 
     public List<Quest> getQuestsByCategory(int playerLevel) {
         int category = categoryForLevel(playerLevel);
@@ -212,9 +188,7 @@ public final class QuestRepository {
         int level = clampLevel(playerLevel);
         int best = 1;
         for (Quest quest : questsById.values()) {
-            if (quest.categoryLevel() <= level && quest.categoryLevel() > best) {
-                best = quest.categoryLevel();
-            }
+            if (quest.categoryLevel() <= level && quest.categoryLevel() > best) best = quest.categoryLevel();
         }
         return best;
     }
@@ -226,11 +200,8 @@ public final class QuestRepository {
     private int parseCategoryLevel(String fileName) {
         String base = fileName.substring(0, fileName.length() - 4);
         if (base.startsWith("level-")) {
-            try {
-                return clampLevel(Integer.parseInt(base.substring("level-".length())));
-            } catch (NumberFormatException ignored) {
-                return Level.MIN_LEVEL;
-            }
+            try { return clampLevel(Integer.parseInt(base.substring("level-".length()))); }
+            catch (NumberFormatException ignored) { return Level.MIN_LEVEL; }
         }
         return oldRankToLevel(base);
     }
@@ -253,10 +224,7 @@ public final class QuestRepository {
     }
 
     private QuestType parseType(String raw) {
-        try {
-            return QuestType.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return QuestType.HUNT;
-        }
+        try { return QuestType.valueOf(raw.trim().toUpperCase()); }
+        catch (IllegalArgumentException | NullPointerException e) { return QuestType.HUNT; }
     }
 }
