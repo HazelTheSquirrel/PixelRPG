@@ -49,7 +49,7 @@ public final class BossManager {
     private final Map<UUID, ActiveBoss> activeBosses = new ConcurrentHashMap<>();
 
     public BossManager(Plugin plugin, BossAttackPatternRegistry patternRegistry, GuildAPI guildAPI,
-                       EconomyAPI economyAPI, Object ignoredLegacyGemRepository, ItemEconomyConfig itemEconomyConfig,
+                       EconomyAPI economyAPI, ItemEconomyConfig itemEconomyConfig,
                        double barRadius, int barUpdateIntervalTicks, int phaseCheckIntervalTicks) {
         this.plugin = plugin;
         this.patternRegistry = patternRegistry;
