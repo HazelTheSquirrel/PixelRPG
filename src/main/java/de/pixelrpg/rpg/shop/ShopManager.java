@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/shop/ShopManager.java (VOLLSTÄNDIG, ersetzt alte Datei — Fallback auf alten "item"-Schlüssel für Bestandsschutz bereits existierender Shops)
 package de.pixelrpg.rpg.shop;
 
 import org.bukkit.Material;
@@ -17,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public final class ShopManager {
-
     private final Plugin plugin;
     private final File file;
     private final Map<String, List<ShopEntry>> shopsByNpcId = new ConcurrentHashMap<>();
@@ -28,29 +26,19 @@ public final class ShopManager {
     }
 
     // Lädt Shop-Items primär aus dem neuen Base64-NBT-Format ("item-data").
-    // Fallback auf den alten YAML-nativen Schlüssel ("item") für bereits vor dem
-    // Shop-Fix angelegte Bestände, damit diese nicht durch das Format-Update
-    // verloren gehen — Ursache des zuvor gemeldeten "Shop-Items werden nicht
-    // angezeigt"-Problems bei bestehenden shops.yml-Dateien.
+    // Fallback auf den alten YAML-nativen Schlüssel ("item") für Bestandsschutz.
     public void load() {
         shopsByNpcId.clear();
-        if (!file.exists()) {
-            return;
-        }
+        if (!file.exists()) return;
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection root = yaml.getConfigurationSection("shops");
-        if (root == null) {
-            return;
-        }
+        if (root == null) return;
 
         boolean migratedAny = false;
-
         for (String npcId : root.getKeys(false)) {
             ConfigurationSection section = root.getConfigurationSection(npcId);
-            if (section == null) {
-                continue;
-            }
+            if (section == null) continue;
 
             List<ShopEntry> entries = new ArrayList<>();
             ConfigurationSection entriesSection = section.getConfigurationSection("entries");
@@ -60,20 +48,14 @@ public final class ShopManager {
                     ItemStack item = readItem(entriesSection, key);
                     if (item != null && item.getType() != Material.AIR) {
                         entries.add(new ShopEntry(item, price));
-                        if (!entriesSection.contains(key + ".item-data")) {
-                            migratedAny = true;
-                        }
+                        if (!entriesSection.contains(key + ".item-data")) migratedAny = true;
                     }
                 }
             }
             shopsByNpcId.put(npcId, entries);
         }
 
-        // Legacy-Einträge sofort im neuen Format re-persistieren, damit die
-        // Migration nur einmalig beim ersten Laden nach dem Update passiert.
-        if (migratedAny) {
-            save();
-        }
+        if (migratedAny) save();
     }
 
     private ItemStack readItem(ConfigurationSection entriesSection, String key) {
@@ -87,7 +69,6 @@ public final class ShopManager {
             }
         }
 
-        // Legacy-Pfad: alte YAML-native Serialisierung (vor dem Shop-Fix).
         try {
             return entriesSection.getItemStack(key + ".item");
         } catch (Exception e) {
@@ -115,9 +96,11 @@ public final class ShopManager {
         }
     }
 
-    public List<ShopEntry> getEntries(String npcId) {
-        return shopsByNpcId.getOrDefault(npcId, List.of());
+    public void shutdown() {
+        save();
     }
+
+    public List<ShopEntry> getEntries(String npcId) { return shopsByNpcId.getOrDefault(npcId, List.of()); }
 
     public void addEntry(String npcId, ShopEntry entry) {
         shopsByNpcId.computeIfAbsent(npcId, k -> new ArrayList<>()).add(entry);
@@ -126,9 +109,7 @@ public final class ShopManager {
 
     public boolean removeEntry(String npcId, int index) {
         List<ShopEntry> entries = shopsByNpcId.get(npcId);
-        if (entries == null || index < 0 || index >= entries.size()) {
-            return false;
-        }
+        if (entries == null || index < 0 || index >= entries.size()) return false;
         entries.remove(index);
         save();
         return true;
