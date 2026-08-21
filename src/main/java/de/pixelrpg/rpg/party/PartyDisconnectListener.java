@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/party/PartyDisconnectListener.java
 package de.pixelrpg.rpg.party;
 
 import org.bukkit.event.EventHandler;
@@ -13,6 +12,7 @@ public final class PartyDisconnectListener implements Listener {
         this.partyManager = partyManager;
     }
 
+    // Zuständig für das Entfernen eines Spielers aus Party und ausstehenden Einladungen beim Verlassen des Servers.
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         partyManager.handleDisconnect(event.getPlayer().getUniqueId());
