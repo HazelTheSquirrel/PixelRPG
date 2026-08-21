@@ -2,6 +2,7 @@ package de.pixelrpg.rpg;
 
 import de.pixelrpg.rpg.api.StatisticsAPI;
 import de.pixelrpg.rpg.boss.BossAttackPatternRegistry;
+import de.pixelrpg.rpg.boss.BossDamageContributionListener;
 import de.pixelrpg.rpg.boss.BossDeathListener;
 import de.pixelrpg.rpg.boss.BossManager;
 import de.pixelrpg.rpg.boss.BossRepository;
@@ -199,6 +200,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MobLevelScalingListener(playerProfileManager, mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(new MobNameplateListener(mobNameplateService, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new CombatDamageListener(playerProfileManager, playerProfileManager, statEngine, mobScalingConfig), this);
+        getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new MobExperienceListener(playerProfileManager, mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry), this);
         getServer().getPluginManager().registerEvents(new QuestMobKillListener(questManager), this);
