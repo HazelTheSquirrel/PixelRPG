@@ -178,7 +178,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager);
         npcBehaviorRegistry = new NpcBehaviorRegistry();
-        npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager));
+        npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new BlacksmithBehavior(blacksmithGUI, playerProfileManager));
         npcBehaviorRegistry.register(new QuestBehavior(questManager, playerProfileManager));
         npcBehaviorRegistry.register(new ShopBehavior(shopManager, playerProfileManager));
