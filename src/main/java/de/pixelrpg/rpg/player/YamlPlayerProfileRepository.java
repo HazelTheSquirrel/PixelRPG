@@ -34,7 +34,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         profile.setPlayerClass(parseClass(yaml.getString("player-class", "NONE")));
         profile.setMoney(yaml.getDouble("money", 0.0));
         profile.setReceivedStartBonus(yaml.getBoolean("start-bonus", false));
-        if (yaml.contains("mana.current")) profile.setCurrentMana(yaml.getDouble("mana.current", 0.0), yaml.getDouble("mana.max", 100.0));
+        if (yaml.contains("mana.current")) profile.setCurrentMana(yaml.getDouble("mana.current", 0.0), Double.MAX_VALUE);
 
         for (PlayerAttribute attribute : PlayerAttribute.values()) profile.setAttributePoints(attribute, yaml.getInt("attributes." + attribute.name().toLowerCase(), 0));
 
