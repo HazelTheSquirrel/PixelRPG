@@ -1,10 +1,7 @@
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
-import de.pixelrpg.rpg.item.ItemRarity;
-import de.pixelrpg.rpg.item.RPGItemBuilder;
 import de.pixelrpg.rpg.item.SoulboundService;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
@@ -25,14 +22,12 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 
+/** Complex blacksmith input is kept as an inventory operation; item identification no longer exists. */
 public final class BlacksmithGUI implements Listener {
-
     private static final int ITEM_SLOT = 13;
-    private static final int IDENTIFY_BUTTON = 11;
     private static final int SOULBOUND_BUTTON = 15;
 
     private final PlayerProfileManager profileManager;
@@ -41,7 +36,11 @@ public final class BlacksmithGUI implements Listener {
 
     public static final class BlacksmithHolder implements InventoryHolder {
         private Inventory inventory;
-        @Override public Inventory getInventory() { return inventory; }
+
+        @Override
+        public Inventory getInventory() {
+            return inventory;
+        }
     }
 
     public BlacksmithGUI(PlayerProfileManager profileManager, ItemEconomyConfig economyConfig) {
@@ -52,7 +51,8 @@ public final class BlacksmithGUI implements Listener {
 
     public void open(Player player) {
         BlacksmithHolder holder = new BlacksmithHolder();
-        Inventory inventory = Bukkit.createInventory(holder, 27, lang.get("blacksmith.gui-title").color(NamedTextColor.DARK_GRAY));
+        Inventory inventory = Bukkit.createInventory(holder, 27,
+                lang.get("blacksmith.gui-title").color(NamedTextColor.DARK_GRAY));
         holder.inventory = inventory;
 
         ItemStack filler = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
@@ -60,30 +60,23 @@ public final class BlacksmithGUI implements Listener {
         fillerMeta.displayName(Component.text(" "));
         filler.setItemMeta(fillerMeta);
         for (int slot = 0; slot < inventory.getSize(); slot++) {
-            if (slot != ITEM_SLOT && slot != IDENTIFY_BUTTON && slot != SOULBOUND_BUTTON) inventory.setItem(slot, filler);
+            if (slot != ITEM_SLOT && slot != SOULBOUND_BUTTON) inventory.setItem(slot, filler);
         }
 
-        inventory.setItem(IDENTIFY_BUTTON, buildButton(Material.ANVIL, "blacksmith.identify-button", NamedTextColor.YELLOW, "blacksmith.identify-desc"));
         inventory.setItem(SOULBOUND_BUTTON, buildSoulbindButton());
         player.openInventory(inventory);
-    }
-
-    private ItemStack buildButton(Material material, String nameKey, NamedTextColor color, String descriptionKey) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        meta.displayName(lang.get(nameKey).color(color).decoration(TextDecoration.ITALIC, false));
-        meta.lore(List.of(lang.get(descriptionKey).color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
-        item.setItemMeta(meta);
-        return item;
     }
 
     private ItemStack buildSoulbindButton() {
         ItemStack item = new ItemStack(Material.SOUL_SAND);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(lang.get("blacksmith.soulbind-button").color(NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get("blacksmith.soulbind-button")
+                .color(NamedTextColor.LIGHT_PURPLE)
+                .decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(
                 lang.get("blacksmith.soulbind-desc").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
-                Component.text("Benötigtes Level: " + economyConfig.getSoulboundMinLevel(), NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false)
+                Component.text("Required Level: " + economyConfig.getSoulboundMinLevel(), NamedTextColor.GOLD)
+                        .decoration(TextDecoration.ITALIC, false)
         ));
         item.setItemMeta(meta);
         return item;
@@ -101,51 +94,25 @@ public final class BlacksmithGUI implements Listener {
         }
     }
 
-    // Verarbeitet Identifizieren und Seelenbindung im Schmiedemenü.
+    // Verarbeitet ausschließlich die Seelenbindung im Schmiedemenü.
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof BlacksmithHolder holder)) return;
         if (!(event.getWhoClicked() instanceof Player player)) return;
         Inventory top = holder.getInventory();
-        if (event.getClick().isShiftClick()) { event.setCancelled(true); return; }
+        if (event.getClick().isShiftClick()) {
+            event.setCancelled(true);
+            return;
+        }
         if (event.getClickedInventory() != top) return;
 
         int slot = event.getSlot();
-        if (slot == IDENTIFY_BUTTON) {
-            event.setCancelled(true);
-            processIdentify(player, top);
-            return;
-        }
         if (slot == SOULBOUND_BUTTON) {
             event.setCancelled(true);
             processSoulbound(player, top);
             return;
         }
         if (slot != ITEM_SLOT) event.setCancelled(true);
-    }
-
-    private void processIdentify(Player player, Inventory inventory) {
-        ItemStack target = inventory.getItem(ITEM_SLOT);
-        if (!isUnidentified(target)) {
-            lang.send(player, "blacksmith.place-unidentified");
-            return;
-        }
-
-        String rarityRaw = target.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.rarity(), PersistentDataType.STRING);
-        ItemRarity rarity;
-        try { rarity = rarityRaw == null ? ItemRarity.COMMON : ItemRarity.valueOf(rarityRaw); }
-        catch (IllegalArgumentException ignored) { rarity = ItemRarity.COMMON; }
-
-        double cost = economyConfig.identificationCost(rarity);
-        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.removeMoney(cost)) {
-            lang.send(player, "blacksmith.need-gold-identify", "cost", String.valueOf(cost));
-            return;
-        }
-
-        inventory.setItem(ITEM_SLOT, RPGItemBuilder.identify(target));
-        player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 1.0f);
-        lang.send(player, "blacksmith.identified");
     }
 
     private void processSoulbound(Player player, Inventory inventory) {
@@ -187,12 +154,6 @@ public final class BlacksmithGUI implements Listener {
         }
     }
 
-    private boolean isUnidentified(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return false;
-        Boolean identified = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN);
-        return Boolean.FALSE.equals(identified);
-    }
-
     // Gibt ein beim Schließen des Schmiedemenüs noch eingelegtes Item sicher an den Spieler zurück.
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
@@ -201,6 +162,7 @@ public final class BlacksmithGUI implements Listener {
         ItemStack leftover = event.getInventory().getItem(ITEM_SLOT);
         if (leftover == null || leftover.getType() == Material.AIR) return;
         event.getInventory().setItem(ITEM_SLOT, null);
-        player.getInventory().addItem(leftover).values().forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
+        player.getInventory().addItem(leftover).values()
+                .forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
     }
 }

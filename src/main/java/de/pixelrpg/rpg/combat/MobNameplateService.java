@@ -7,8 +7,6 @@ import de.pixelrpg.rpg.core.RPGKeys;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -20,9 +18,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/** Lightweight per-viewer RPG mob nameplates. Displays are attached to mobs instead of being teleported every tick. */
 public final class MobNameplateService {
-    private static final long UPDATE_INTERVAL_TICKS = 2L;
-    private static final double HEIGHT_OFFSET = 0.35D;
+    private static final long UPDATE_INTERVAL_TICKS = 5L;
 
     private final PixelRPGPlugin plugin;
     private final MobScalingConfig scalingConfig;
@@ -54,24 +52,27 @@ public final class MobNameplateService {
         updateDisplay(mob, display);
 
         if (tracked.task == null) {
-            tracked.task = Bukkit.getScheduler().runTaskTimer(plugin, () -> updateTrackedMob(mob, mobUuid, tracked),
-                    UPDATE_INTERVAL_TICKS, UPDATE_INTERVAL_TICKS);
+            tracked.task = Bukkit.getScheduler().runTaskTimer(plugin,
+                    () -> updateTrackedMob(mob, mobUuid, tracked),
+                    UPDATE_INTERVAL_TICKS,
+                    UPDATE_INTERVAL_TICKS);
         }
     }
 
     private TextDisplay createDisplay(LivingEntity mob) {
-        Location location = displayLocation(mob);
-        return mob.getWorld().spawn(location, TextDisplay.class, display -> {
-            display.setPersistent(false);
-            display.setVisibleByDefault(false);
-            display.setBillboard(Display.Billboard.CENTER);
-            display.setAlignment(TextDisplay.TextAlignment.CENTER);
-            display.setDefaultBackground(false);
-            display.setShadowed(true);
-            display.setSeeThrough(true);
-            display.setLineWidth(512);
-            display.setViewRange(32.0F);
+        TextDisplay display = mob.getWorld().spawn(mob.getLocation(), TextDisplay.class, entity -> {
+            entity.setPersistent(false);
+            entity.setVisibleByDefault(false);
+            entity.setBillboard(Display.Billboard.CENTER);
+            entity.setAlignment(TextDisplay.TextAlignment.CENTER);
+            entity.setDefaultBackground(false);
+            entity.setShadowed(true);
+            entity.setSeeThrough(true);
+            entity.setLineWidth(512);
+            entity.setViewRange(32.0F);
         });
+        mob.addPassenger(display);
+        return display;
     }
 
     private void updateTrackedMob(LivingEntity mob, UUID mobUuid, TrackedMob tracked) {
@@ -83,7 +84,7 @@ public final class MobNameplateService {
         for (Map.Entry<UUID, TextDisplay> entry : tracked.displays.entrySet()) {
             Player viewer = Bukkit.getPlayer(entry.getKey());
             TextDisplay display = entry.getValue();
-            if (viewer == null || !viewer.isOnline()) {
+            if (viewer == null || !viewer.isOnline() || !display.isValid()) {
                 display.remove();
                 tracked.displays.remove(entry.getKey(), display);
                 continue;
@@ -94,12 +95,7 @@ public final class MobNameplateService {
     }
 
     private void updateDisplay(LivingEntity mob, TextDisplay display) {
-        display.teleport(displayLocation(mob));
         display.text(buildInfo(mob));
-    }
-
-    private Location displayLocation(LivingEntity mob) {
-        return mob.getLocation().add(0.0D, mob.getHeight() + HEIGHT_OFFSET, 0.0D);
     }
 
     private Component buildInfo(LivingEntity mob) {
@@ -109,17 +105,16 @@ public final class MobNameplateService {
                 : Level.MIN_LEVEL;
 
         double currentHealth = Math.max(0.0D, mob.getHealth());
-        var maxHealthAttribute = mob.getAttribute(Attribute.MAX_HEALTH);
+        var maxHealthAttribute = mob.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
         double maxHealth = maxHealthAttribute != null ? maxHealthAttribute.getValue() : currentHealth;
 
         String rawName = mob.getType().name().replace('_', ' ').toLowerCase(java.util.Locale.ROOT);
         String prettyName = Character.toUpperCase(rawName.charAt(0)) + rawName.substring(1);
 
-        return Component.text(formatHealth(currentHealth) + "/" + formatHealth(maxHealth), NamedTextColor.RED)
-                .append(Component.text(" ", NamedTextColor.WHITE))
+        return Component.text("[" + level + "] ", NamedTextColor.GOLD)
                 .append(Component.text(prettyName, NamedTextColor.WHITE))
-                .append(Component.text(" ", NamedTextColor.WHITE))
-                .append(Component.text("[lvl " + level + "]", NamedTextColor.GOLD));
+                .append(Component.text("  ", NamedTextColor.GRAY))
+                .append(Component.text(formatHealth(currentHealth) + "/" + formatHealth(maxHealth), NamedTextColor.RED));
     }
 
     private String formatHealth(double value) {

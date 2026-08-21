@@ -46,7 +46,7 @@ public final class LootDropListener implements Listener {
         this.economyConfig = economyConfig;
     }
 
-    // Zuständig für Ausrüstungs- und Gildengold-Loot beim Töten eines Monsters.
+    // Zuständig für direkt identifizierte Ausrüstungs- und Gildengold-Loot beim Töten eines Monsters.
     @EventHandler(priority = EventPriority.HIGH)
     public void onMonsterDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
@@ -55,19 +55,17 @@ public final class LootDropListener implements Listener {
         if (killer == null || !guildAPI.isRegistered(killer.getUniqueId())) return;
 
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        Integer mobLevel = entity.getPersistentDataContainer().get(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER);
+        Integer mobLevel = entity.getPersistentDataContainer()
+                .get(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER);
         int itemLevel = mobLevel != null ? mobLevel : guildAPI.getLevel(killer.getUniqueId());
         itemLevel = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, itemLevel));
 
-        if (random.nextDouble() < economyConfig.getUnidentifiedDropChance()) {
+        if (random.nextDouble() < economyConfig.getItemDropChance()) {
             Material material = DROP_POOL.get(random.nextInt(DROP_POOL.size()));
-            RPGItemBuilder.createUnidentified(material, ItemRarity.rollRandom(), itemLevel).ifPresent(event.getDrops()::add);
+            RPGItemBuilder.createItem(material, ItemRarity.rollRandom(), itemLevel)
+                    .ifPresent(event.getDrops()::add);
         }
-        if (random.nextDouble() < economyConfig.getIdentifiedDropChance()) {
-            Material material = DROP_POOL.get(random.nextInt(DROP_POOL.size()));
-            RPGItemBuilder.createUnidentified(material, ItemRarity.rollRandomUpTo(ItemRarity.RARE), itemLevel)
-                    .map(RPGItemBuilder::identify).ifPresent(event.getDrops()::add);
-        }
+
         if (random.nextDouble() < economyConfig.getCurrencyDropChance()) {
             long min = economyConfig.getCurrencyDropMinAmount();
             long max = Math.max(min, economyConfig.getCurrencyDropMaxAmount());

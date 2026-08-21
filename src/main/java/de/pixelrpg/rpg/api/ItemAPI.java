@@ -10,11 +10,9 @@ import java.util.Optional;
 
 public interface ItemAPI {
 
-    Optional<ItemStack> createUnidentifiedItem(Material material, ItemRarity rarity, int itemLevel);
+    Optional<ItemStack> createItem(Material material, ItemRarity rarity, int itemLevel);
 
-    ItemStack identify(ItemStack unidentifiedItem);
-
-    boolean isIdentified(ItemStack item);
+    boolean isRPGItem(ItemStack item);
 
     boolean isGuildItem(ItemStack item);
 
