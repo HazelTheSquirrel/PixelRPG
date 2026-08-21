@@ -1,4 +1,4 @@
-// src/main/java/de/pixelrpg/rpg/PixelRPGPlugin.java (VOLLSTÄNDIG, ersetzt alte Datei — StoryNpcDialogueTest verdrahtet, an StoryBehavior übergeben)
+// src/main/java/de/pixelrpg/rpg/PixelRPGPlugin.java
 package de.pixelrpg.rpg;
 
 import de.pixelrpg.rpg.api.StatisticsAPI;
@@ -21,7 +21,7 @@ import de.pixelrpg.rpg.combat.SoulboundDeathListener;
 import de.pixelrpg.rpg.combat.gem.GemRepository;
 import de.pixelrpg.rpg.combat.gem.SkillGemCastEngine;
 import de.pixelrpg.rpg.combat.loot.LootDropListener;
-import de.pixelrpg.rpg.combat.scaling.MobRankScalingListener;
+import de.pixelrpg.rpg.combat.scaling.MobLevelScalingListener;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.combat.skill.PassiveGemRecalcTask;
 import de.pixelrpg.rpg.combat.skill.SkillInputListener;
@@ -34,7 +34,7 @@ import de.pixelrpg.rpg.command.impl.QuestAdminSubCommand;
 import de.pixelrpg.rpg.command.impl.QuestLogCommand;
 import de.pixelrpg.rpg.command.impl.ShopSubCommand;
 import de.pixelrpg.rpg.core.RPGKeys;
-import de.pixelrpg.rpg.dialogue.StoryNpcDialogueTest;
+import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.economy.GuildCurrencyPickupListener;
 import de.pixelrpg.rpg.gui.BlacksmithGUI;
@@ -84,9 +84,7 @@ import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class PixelRPGPlugin extends JavaPlugin {
-
     private static PixelRPGPlugin instance;
-
     private PlayerProfileManager playerProfileManager;
     private StatEngine statEngine;
     private ItemEconomyConfig itemEconomyConfig;
@@ -116,66 +114,48 @@ public final class PixelRPGPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-
         saveDefaultConfig();
         RPGKeys.init(this);
-
-        this.languageManager = new LanguageManager(this);
+        languageManager = new LanguageManager(this);
         languageManager.load(getConfig().getString("language.default", "en"));
-
         AttributeConfig.load(getConfig());
         ClassBalance.load(getConfig());
         RuneType.load(getConfig());
         StoryBookFactory.load(getConfig());
         GuildCurrencyItemFactory.configureMaxStackSize(getConfig().getInt("economy.currency.max-stack-size", 64));
 
-        this.playerProfileManager = new PlayerProfileManager(this);
-        this.playerProfileManager.initialize(getConfig());
+        playerProfileManager = new PlayerProfileManager(this);
+        playerProfileManager.initialize(getConfig());
+        statEngine = new StatEngine(playerProfileManager);
 
-        this.statEngine = new StatEngine(playerProfileManager);
-
-        this.gemRepository = new GemRepository(this);
+        gemRepository = new GemRepository(this);
         gemRepository.load();
-        this.skillGemCastEngine = new SkillGemCastEngine(playerProfileManager, statEngine, gemRepository);
+        skillGemCastEngine = new SkillGemCastEngine(playerProfileManager, statEngine, gemRepository);
         new PassiveGemRecalcTask(this, statEngine).start();
 
-        this.itemEconomyConfig = new ItemEconomyConfig();
+        itemEconomyConfig = new ItemEconomyConfig();
         itemEconomyConfig.load(getConfig());
-        RPGItemBuilder.configureChances(
-                getConfig().getDouble("items.loot.blessing-chance", 0.12),
-                getConfig().getDouble("items.loot.curse-chance", 0.10));
+        RPGItemBuilder.configureChances(getConfig().getDouble("items.loot.blessing-chance", 0.12), getConfig().getDouble("items.loot.curse-chance", 0.10));
+        itemService = new ItemService();
+        Bukkit.getServicesManager().register(de.pixelrpg.rpg.api.ItemAPI.class, itemService, this, ServicePriority.Normal);
+        blacksmithGUI = new BlacksmithGUI(playerProfileManager, itemEconomyConfig);
 
-        this.itemService = new ItemService();
-        Bukkit.getServicesManager().register(
-                de.pixelrpg.rpg.api.ItemAPI.class, itemService, this, ServicePriority.Normal);
-
-        this.blacksmithGUI = new BlacksmithGUI(playerProfileManager, itemEconomyConfig);
-
-        this.mobScalingConfig = new MobScalingConfig();
+        mobScalingConfig = new MobScalingConfig();
         mobScalingConfig.load(getConfig());
-
-        this.mobNameplateService = new MobNameplateService(this, mobScalingConfig);
-
-        this.shopManager = new ShopManager(this);
+        mobNameplateService = new MobNameplateService(this, mobScalingConfig);
+        shopManager = new ShopManager(this);
         shopManager.load();
-        this.shopEditorGUI = new ShopEditorGUI(shopManager);
-
-        this.storyManager = new StoryManager(this, playerProfileManager);
+        shopEditorGUI = new ShopEditorGUI(shopManager);
+        storyManager = new StoryManager(this, playerProfileManager);
         storyManager.load();
-
-        this.partyManager = new PartyManager();
-        Bukkit.getServicesManager().register(
-                de.pixelrpg.rpg.api.PartyAPI.class, partyManager, this, ServicePriority.Normal);
-
-        this.questRepository = new QuestRepository(this);
+        partyManager = new PartyManager();
+        Bukkit.getServicesManager().register(de.pixelrpg.rpg.api.PartyAPI.class, partyManager, this, ServicePriority.Normal);
+        questRepository = new QuestRepository(this);
         questRepository.load();
-
-        this.globalEventState = new GlobalEventState(this);
+        globalEventState = new GlobalEventState(this);
         globalEventState.load();
-
         double partyShareRange = getConfig().getDouble("quests.party-share-range", 24.0);
-        this.questManager = new QuestManager(this, questRepository, playerProfileManager,
-                playerProfileManager, globalEventState, partyShareRange);
+        questManager = new QuestManager(this, questRepository, playerProfileManager, playerProfileManager, globalEventState, partyShareRange);
         questManager.startTimerCheckTask();
 
         BossAttackPatternRegistry patternRegistry = new BossAttackPatternRegistry();
@@ -183,62 +163,41 @@ public final class PixelRPGPlugin extends JavaPlugin {
         patternRegistry.register(new SummonAddsPattern());
         patternRegistry.register(new ProjectileVolleyPattern());
         patternRegistry.register(new EnrageBuffPattern());
-
-        this.bossRepository = new BossRepository(this);
+        bossRepository = new BossRepository(this);
         bossRepository.load();
-
         double barRadius = getConfig().getDouble("bosses.bar-radius", 60.0);
         int barUpdateInterval = getConfig().getInt("bosses.bar-update-interval-ticks", 20);
         int phaseCheckInterval = getConfig().getInt("bosses.phase-check-interval-ticks", 10);
-
-        this.bossManager = new BossManager(this, patternRegistry, playerProfileManager, playerProfileManager,
-                gemRepository, itemEconomyConfig, barRadius, barUpdateInterval, phaseCheckInterval);
-
-        boolean autoSpawnEnabled = getConfig().getBoolean("bosses.auto-spawn.enabled", true);
-        int autoSpawnIntervalMinutes = getConfig().getInt("bosses.auto-spawn.interval-minutes", 45);
-        double autoSpawnRadius = getConfig().getDouble("bosses.auto-spawn.spawn-radius", 80.0);
-        int autoSpawnMaxConcurrent = getConfig().getInt("bosses.auto-spawn.max-concurrent", 2);
-
+        bossManager = new BossManager(this, patternRegistry, playerProfileManager, playerProfileManager, gemRepository, itemEconomyConfig, barRadius, barUpdateInterval, phaseCheckInterval);
         new WorldBossSpawnTask(this, bossRepository, bossManager, playerProfileManager,
-                autoSpawnEnabled, autoSpawnIntervalMinutes, autoSpawnRadius, autoSpawnMaxConcurrent).start();
+                getConfig().getBoolean("bosses.auto-spawn.enabled", true),
+                getConfig().getInt("bosses.auto-spawn.interval-minutes", 45),
+                getConfig().getDouble("bosses.auto-spawn.spawn-radius", 80.0),
+                getConfig().getInt("bosses.auto-spawn.max-concurrent", 2)).start();
 
-        this.statisticsService = new StatisticsService(playerProfileManager);
+        statisticsService = new StatisticsService(playerProfileManager);
         Bukkit.getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
-
-        int scoreboardInterval = getConfig().getInt("scoreboard.update-interval-ticks", 20);
-        this.scoreboardService = new ScoreboardService(this, playerProfileManager, scoreboardInterval);
+        scoreboardService = new ScoreboardService(this, playerProfileManager, getConfig().getInt("scoreboard.update-interval-ticks", 20));
         scoreboardService.startTask();
-
-        this.playtimeTracker = new PlaytimeTracker(this, playerProfileManager);
-        int autosaveInterval = getConfig().getInt("statistics.autosave-interval-ticks", 6000);
-        playtimeTracker.startAutosaveTask(autosaveInterval);
-
-        this.equipmentAuraListener = new EquipmentAuraListener(getConfig().getInt("effects.aura-interval-ticks", 60));
+        playtimeTracker = new PlaytimeTracker(this, playerProfileManager);
+        playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
+        equipmentAuraListener = new EquipmentAuraListener(getConfig().getInt("effects.aura-interval-ticks", 60));
         equipmentAuraListener.start();
-
         AttributeConfig.configureElytraCost(getConfig().getDouble("elytra.permit-cost", 750.0));
 
-        this.npcManager = new NpcManager(this);
+        npcManager = new NpcManager(this);
         npcManager.loadAll();
+        getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
+        new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 8.0), getConfig().getInt("npc.look-interval-ticks", 5)).start();
+        StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager);
 
-        NpcChunkListener npcChunkListener = new NpcChunkListener(npcManager);
-        getServer().getPluginManager().registerEvents(npcChunkListener, this);
-
-        NpcLookTask npcLookTask = new NpcLookTask(this, npcManager,
-                getConfig().getDouble("npc.look-radius", 8.0),
-                getConfig().getInt("npc.look-interval-ticks", 5));
-        npcLookTask.start();
-
-        StoryNpcDialogueTest storyNpcDialogueTest = new StoryNpcDialogueTest(questManager, shopManager, playerProfileManager, npcManager);
-        getServer().getPluginManager().registerEvents(storyNpcDialogueTest, this);
-
-        this.npcBehaviorRegistry = new NpcBehaviorRegistry();
+        npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager));
         npcBehaviorRegistry.register(new BlacksmithBehavior(blacksmithGUI, playerProfileManager));
         npcBehaviorRegistry.register(new QuestBehavior(questManager, playerProfileManager));
         npcBehaviorRegistry.register(new ShopBehavior(shopManager, playerProfileManager));
         npcBehaviorRegistry.register(new TravelBehavior(npcManager, playerProfileManager));
-        npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogueTest, playerProfileManager));
+        npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogue, playerProfileManager));
         npcBehaviorRegistry.register(new de.pixelrpg.rpg.npc.behavior.BankerBehavior(playerProfileManager));
 
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
@@ -247,41 +206,24 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SkillInputListener(skillGemCastEngine), this);
         getServer().getPluginManager().registerEvents(blacksmithGUI, this);
         getServer().getPluginManager().registerEvents(shopEditorGUI, this);
-        getServer().getPluginManager().registerEvents(
-                new LootDropListener(playerProfileManager, itemEconomyConfig, gemRepository), this);
-        getServer().getPluginManager().registerEvents(
-                new MobRankScalingListener(playerProfileManager, mobScalingConfig), this);
-        getServer().getPluginManager().registerEvents(
-                new MobNameplateListener(mobNameplateService, playerProfileManager), this);
-        getServer().getPluginManager().registerEvents(
-                new CombatDamageListener(playerProfileManager, playerProfileManager, statEngine, mobScalingConfig), this);
-        getServer().getPluginManager().registerEvents(
-                new MobExperienceListener(playerProfileManager, mobScalingConfig), this);
-        getServer().getPluginManager().registerEvents(
-                new NpcInteractListener(npcManager, npcBehaviorRegistry), this);
-        getServer().getPluginManager().registerEvents(
-                new QuestMobKillListener(questManager), this);
-        getServer().getPluginManager().registerEvents(
-                new PartyDisconnectListener(partyManager), this);
-        getServer().getPluginManager().registerEvents(
-                new BossDeathListener(bossManager), this);
-        getServer().getPluginManager().registerEvents(
-                new MobKillStatisticListener(playerProfileManager, statisticsService), this);
-        getServer().getPluginManager().registerEvents(
-                new PlayerDeathStatisticListener(playerProfileManager, statisticsService), this);
-        getServer().getPluginManager().registerEvents(
-                new QuestBossStatisticListener(statisticsService), this);
-        getServer().getPluginManager().registerEvents(
-                new GuildCurrencyPickupListener(playerProfileManager, playerProfileManager), this);
-        getServer().getPluginManager().registerEvents(
-                new GuildCompassListener(npcManager, playerProfileManager), this);
-        getServer().getPluginManager().registerEvents(
-                new SoulboundDeathListener(), this);
-        getServer().getPluginManager().registerEvents(
-                new ElytraPermissionListener(playerProfileManager), this);
+        getServer().getPluginManager().registerEvents(new LootDropListener(playerProfileManager, itemEconomyConfig, gemRepository), this);
+        getServer().getPluginManager().registerEvents(new MobLevelScalingListener(playerProfileManager, mobScalingConfig), this);
+        getServer().getPluginManager().registerEvents(new MobNameplateListener(mobNameplateService, playerProfileManager), this);
+        getServer().getPluginManager().registerEvents(new CombatDamageListener(playerProfileManager, playerProfileManager, statEngine, mobScalingConfig), this);
+        getServer().getPluginManager().registerEvents(new MobExperienceListener(playerProfileManager, mobScalingConfig), this);
+        getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry), this);
+        getServer().getPluginManager().registerEvents(new QuestMobKillListener(questManager), this);
+        getServer().getPluginManager().registerEvents(new PartyDisconnectListener(partyManager), this);
+        getServer().getPluginManager().registerEvents(new BossDeathListener(bossManager), this);
+        getServer().getPluginManager().registerEvents(new MobKillStatisticListener(playerProfileManager, statisticsService), this);
+        getServer().getPluginManager().registerEvents(new PlayerDeathStatisticListener(playerProfileManager, statisticsService), this);
+        getServer().getPluginManager().registerEvents(new QuestBossStatisticListener(statisticsService), this);
+        getServer().getPluginManager().registerEvents(new GuildCurrencyPickupListener(playerProfileManager, playerProfileManager), this);
+        getServer().getPluginManager().registerEvents(new GuildCompassListener(npcManager, playerProfileManager), this);
+        getServer().getPluginManager().registerEvents(new SoulboundDeathListener(), this);
+        getServer().getPluginManager().registerEvents(new ElytraPermissionListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(scoreboardService, this);
         getServer().getPluginManager().registerEvents(playtimeTracker, this);
-
         new QuestPassiveCheckTask(this, questManager).start();
 
         RootCommand rootCommand = new RootCommand();
@@ -290,121 +232,47 @@ public final class PixelRPGPlugin extends JavaPlugin {
         rootCommand.register(new ShopSubCommand(shopManager, shopEditorGUI, npcManager));
         rootCommand.register(new QuestAdminSubCommand(questManager));
         rootCommand.register(new BossSubCommand(bossRepository, bossManager));
-
-
         if (getCommand("rpgadmin") != null) {
             getCommand("rpgadmin").setExecutor(rootCommand);
             getCommand("rpgadmin").setTabCompleter(rootCommand);
         }
-
         PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
         if (getCommand("rpgparty") != null) {
             getCommand("rpgparty").setExecutor(partyCommand);
             getCommand("rpgparty").setTabCompleter(partyCommand);
         }
-
-        if (getCommand("questlog") != null) {
-            getCommand("questlog").setExecutor(new QuestLogCommand(questManager, playerProfileManager));
-        }
-
+        if (getCommand("questlog") != null) getCommand("questlog").setExecutor(new QuestLogCommand(questManager, playerProfileManager));
         getLogger().info("PixelRPG core enabled.");
     }
 
     @Override
     public void onDisable() {
-        if (playtimeTracker != null) {
-            playtimeTracker.flushAll();
-        }
-        if (bossManager != null) {
-            bossManager.shutdownAll();
-        }
-        if (mobNameplateService != null) {
-            mobNameplateService.cancelAll();
-        }
-        if (npcManager != null) {
-            npcManager.saveAll();
-        }
-        if (shopManager != null) {
-            shopManager.save();
-        }
-        if (globalEventState != null) {
-            globalEventState.save();
-        }
-        if (playerProfileManager != null) {
-            playerProfileManager.shutdown();
-        }
+        if (playtimeTracker != null) playtimeTracker.flushAll();
+        if (bossManager != null) bossManager.shutdownAll();
+        if (mobNameplateService != null) mobNameplateService.cancelAll();
+        if (npcManager != null) npcManager.saveAll();
+        if (shopManager != null) shopManager.save();
+        if (globalEventState != null) globalEventState.save();
+        if (playerProfileManager != null) playerProfileManager.shutdown();
         getLogger().info("PixelRPG core disabled.");
     }
 
-    public static PixelRPGPlugin getInstance() {
-        return instance;
-    }
-
-    public PlayerProfileManager getPlayerProfileManager() {
-        return playerProfileManager;
-    }
-
-    public StatEngine getStatEngine() {
-        return statEngine;
-    }
-
-    public ItemEconomyConfig getItemEconomyConfig() {
-        return itemEconomyConfig;
-    }
-
-    public MobScalingConfig getMobScalingConfig() {
-        return mobScalingConfig;
-    }
-
-    public NpcManager getNpcManager() {
-        return npcManager;
-    }
-
-    public NpcBehaviorRegistry getNpcBehaviorRegistry() {
-        return npcBehaviorRegistry;
-    }
-
-    public ShopManager getShopManager() {
-        return shopManager;
-    }
-
-    public StoryManager getStoryManager() {
-        return storyManager;
-    }
-
-    public PartyManager getPartyManager() {
-        return partyManager;
-    }
-
-    public QuestManager getQuestManager() {
-        return questManager;
-    }
-
-    public BossRepository getBossRepository() {
-        return bossRepository;
-    }
-
-    public BossManager getBossManager() {
-        return bossManager;
-    }
-
-    public StatisticsService getStatisticsService() {
-        return statisticsService;
-    }
-
-    public ScoreboardService getScoreboardService() {
-        return scoreboardService;
-    }
-
-    public LanguageManager getLanguageManager() {
-        return languageManager;
-    }
-
-    public GemRepository getGemRepository() {
-        return gemRepository;
-    }
-
-    public SkillGemCastEngine getSkillGemCastEngine() {
-        return skillGemCastEngine;
-    }
+    public static PixelRPGPlugin getInstance() { return instance; }
+    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
+    public StatEngine getStatEngine() { return statEngine; }
+    public ItemEconomyConfig getItemEconomyConfig() { return itemEconomyConfig; }
+    public MobScalingConfig getMobScalingConfig() { return mobScalingConfig; }
+    public NpcManager getNpcManager() { return npcManager; }
+    public NpcBehaviorRegistry getNpcBehaviorRegistry() { return npcBehaviorRegistry; }
+    public ShopManager getShopManager() { return shopManager; }
+    public StoryManager getStoryManager() { return storyManager; }
+    public PartyManager getPartyManager() { return partyManager; }
+    public QuestManager getQuestManager() { return questManager; }
+    public BossRepository getBossRepository() { return bossRepository; }
+    public BossManager getBossManager() { return bossManager; }
+    public StatisticsService getStatisticsService() { return statisticsService; }
+    public ScoreboardService getScoreboardService() { return scoreboardService; }
+    public LanguageManager getLanguageManager() { return languageManager; }
+    public GemRepository getGemRepository() { return gemRepository; }
+    public SkillGemCastEngine getSkillGemCastEngine() { return skillGemCastEngine; }
 }
