@@ -18,13 +18,11 @@ import de.pixelrpg.rpg.combat.MobExperienceListener;
 import de.pixelrpg.rpg.combat.MobNameplateListener;
 import de.pixelrpg.rpg.combat.MobNameplateService;
 import de.pixelrpg.rpg.combat.SoulboundDeathListener;
-import de.pixelrpg.rpg.combat.gem.GemRepository;
-import de.pixelrpg.rpg.combat.gem.SkillGemCastEngine;
 import de.pixelrpg.rpg.combat.loot.LootDropListener;
 import de.pixelrpg.rpg.combat.scaling.MobLevelScalingListener;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
-import de.pixelrpg.rpg.combat.skill.PassiveGemRecalcTask;
 import de.pixelrpg.rpg.combat.skill.SkillInputListener;
+import de.pixelrpg.rpg.combat.skill.WeaponAbilityEngine;
 import de.pixelrpg.rpg.command.RootCommand;
 import de.pixelrpg.rpg.command.impl.BlacksmithSubCommand;
 import de.pixelrpg.rpg.command.impl.BossSubCommand;
@@ -43,7 +41,6 @@ import de.pixelrpg.rpg.gui.ShopEditorGUI;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
-import de.pixelrpg.rpg.item.RuneType;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcBehaviorRegistry;
 import de.pixelrpg.rpg.npc.NpcChunkListener;
@@ -109,8 +106,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private PlaytimeTracker playtimeTracker;
     private LanguageManager languageManager;
     private EquipmentAuraListener equipmentAuraListener;
-    private GemRepository gemRepository;
-    private SkillGemCastEngine skillGemCastEngine;
 
     @Override
     public void onEnable() {
@@ -121,7 +116,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         languageManager.load(getConfig().getString("language.default", "en"));
         AttributeConfig.load(getConfig());
         ClassBalance.load(getConfig());
-        RuneType.load(getConfig());
         StoryBookFactory.load(getConfig());
         GuildCurrencyItemFactory.configureMaxStackSize(getConfig().getInt("economy.currency.max-stack-size", 64));
 
@@ -130,10 +124,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         statEngine = new StatEngine(playerProfileManager);
         new ProfessionSystem(this, playerProfileManager).register();
 
-        gemRepository = new GemRepository(this);
-        gemRepository.load();
-        skillGemCastEngine = new SkillGemCastEngine(playerProfileManager, statEngine, gemRepository);
-        new PassiveGemRecalcTask(this, statEngine).start();
+        WeaponAbilityEngine weaponAbilityEngine = new WeaponAbilityEngine(playerProfileManager, statEngine);
 
         itemEconomyConfig = new ItemEconomyConfig();
         itemEconomyConfig.load(getConfig());
@@ -170,7 +161,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         double barRadius = getConfig().getDouble("bosses.bar-radius", 60.0);
         int barUpdateInterval = getConfig().getInt("bosses.bar-update-interval-ticks", 20);
         int phaseCheckInterval = getConfig().getInt("bosses.phase-check-interval-ticks", 10);
-        bossManager = new BossManager(this, patternRegistry, playerProfileManager, playerProfileManager, gemRepository, itemEconomyConfig, barRadius, barUpdateInterval, phaseCheckInterval);
+        bossManager = new BossManager(this, patternRegistry, playerProfileManager, playerProfileManager, itemEconomyConfig,
+                barRadius, barUpdateInterval, phaseCheckInterval);
         new WorldBossSpawnTask(this, bossRepository, bossManager, playerProfileManager,
                 getConfig().getBoolean("bosses.auto-spawn.enabled", true),
                 getConfig().getInt("bosses.auto-spawn.interval-minutes", 45),
@@ -205,10 +197,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(new GuildJoinLeaveListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new RPGStatsListener(statEngine), this);
-        getServer().getPluginManager().registerEvents(new SkillInputListener(skillGemCastEngine), this);
+        getServer().getPluginManager().registerEvents(new SkillInputListener(weaponAbilityEngine), this);
         getServer().getPluginManager().registerEvents(blacksmithGUI, this);
         getServer().getPluginManager().registerEvents(shopEditorGUI, this);
-        getServer().getPluginManager().registerEvents(new LootDropListener(playerProfileManager, itemEconomyConfig, gemRepository), this);
+        getServer().getPluginManager().registerEvents(new LootDropListener(playerProfileManager, itemEconomyConfig), this);
         getServer().getPluginManager().registerEvents(new MobLevelScalingListener(playerProfileManager, mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(new MobNameplateListener(mobNameplateService, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new CombatDamageListener(playerProfileManager, playerProfileManager, statEngine, mobScalingConfig), this);
