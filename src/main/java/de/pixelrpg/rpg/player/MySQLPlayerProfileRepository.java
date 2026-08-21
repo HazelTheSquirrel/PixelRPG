@@ -17,6 +17,8 @@ import java.util.UUID;
 public final class MySQLPlayerProfileRepository implements PlayerProfileRepository {
     private static final String PROFESSION_LEVEL_PREFIX = "profession.";
     private static final String PROFESSION_XP_PREFIX = "profession.xp.";
+    private static final String PROFESSION_LEARNED_PREFIX = "profession.learned.";
+    private static final String RECIPE_UNLOCK_PREFIX = "recipe.unlocked.";
     private final DatabaseManager databaseManager;
 
     public MySQLPlayerProfileRepository(DatabaseManager databaseManager) { this.databaseManager = databaseManager; }
@@ -95,9 +97,14 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                     if (key.startsWith(PROFESSION_XP_PREFIX)) {
                         try { profile.setProfessionExperience(Profession.valueOf(key.substring(PROFESSION_XP_PREFIX.length()).toUpperCase()), value); }
                         catch (IllegalArgumentException ignored) { }
+                    } else if (key.startsWith(PROFESSION_LEARNED_PREFIX)) {
+                        try { if (value > 0L) profile.learnProfession(Profession.valueOf(key.substring(PROFESSION_LEARNED_PREFIX.length()).toUpperCase())); }
+                        catch (IllegalArgumentException ignored) { }
                     } else if (key.startsWith(PROFESSION_LEVEL_PREFIX)) {
                         try { profile.setProfessionLevel(Profession.valueOf(key.substring(PROFESSION_LEVEL_PREFIX.length()).toUpperCase()), (int) value); }
                         catch (IllegalArgumentException ignored) { }
+                    } else if (key.startsWith(RECIPE_UNLOCK_PREFIX)) {
+                        if (value > 0L) profile.unlockRecipe(key.substring(RECIPE_UNLOCK_PREFIX.length()));
                     } else {
                         profile.setStatistic(key, value);
                     }
@@ -190,6 +197,15 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                         statStatement.addBatch();
                         statStatement.setString(2, PROFESSION_XP_PREFIX + profession.name().toLowerCase());
                         statStatement.setLong(3, profile.getProfessionExperience(profession));
+                        statStatement.addBatch();
+                        statStatement.setString(2, PROFESSION_LEARNED_PREFIX + profession.name().toLowerCase());
+                        statStatement.setLong(3, profile.hasLearnedProfession(profession) ? 1L : 0L);
+                        statStatement.addBatch();
+                    }
+                    for (String recipeId : profile.getUnlockedRecipes()) {
+                        statStatement.setString(1, profile.getUuid().toString());
+                        statStatement.setString(2, RECIPE_UNLOCK_PREFIX + recipeId);
+                        statStatement.setLong(3, 1L);
                         statStatement.addBatch();
                     }
                     statStatement.executeBatch();
