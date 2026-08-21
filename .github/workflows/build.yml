@@ -2,7 +2,11 @@ name: Build
 
 on:
   push:
+    branches: [main]
   pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -16,11 +20,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+          cache: gradle
 
       - name: Set up Gradle 9.2.0
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.2.0'
 
-      - name: Build
-        run: gradle build --no-daemon
+      - name: Build PixelRPG
+        run: gradle build --no-daemon --stacktrace
