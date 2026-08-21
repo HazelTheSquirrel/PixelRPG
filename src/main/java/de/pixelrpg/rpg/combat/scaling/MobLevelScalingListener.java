@@ -14,19 +14,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class MobLevelScalingListener implements Listener {
-    private static final long LEVEL_CACHE_TTL_MILLIS = 3000L;
-    private static final double SCAN_RADIUS = 48.0;
-
-    private record CachedLevel(int level, boolean noScaling, long expiresAtMillis) { }
-
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
-    private final Map<Long, CachedLevel> nearbyLevelCache = new ConcurrentHashMap<>();
 
     public MobLevelScalingListener(GuildAPI guildAPI, MobScalingConfig scalingConfig) {
         this.guildAPI = guildAPI;
@@ -115,35 +107,6 @@ public final class MobLevelScalingListener implements Listener {
         pdc.remove(RPGKeys.Combat.mobLevel());
         pdc.remove(RPGKeys.Combat.originalMaxHealth());
         pdc.remove(RPGKeys.Combat.originalAttackDamage());
-    }
-
-    private CachedLevel computeAverageNearbyLevelCached(Monster monster) {
-        long key = packChunkKey(monster.getWorld().getName(), monster.getLocation().getBlockX() >> 4, monster.getLocation().getBlockZ() >> 4);
-        long now = System.currentTimeMillis();
-        CachedLevel cached = nearbyLevelCache.get(key);
-        if (cached != null && cached.expiresAtMillis() > now) return cached;
-        CachedLevel computed = computeAverageNearbyLevel(monster, now);
-        nearbyLevelCache.put(key, computed);
-        return computed;
-    }
-
-    private long packChunkKey(String worldName, int chunkX, int chunkZ) {
-        long worldHash = worldName.hashCode() & 0xFFFFL;
-        return (worldHash << 48) | (((long) chunkX & 0xFFFFFFL) << 24) | ((long) chunkZ & 0xFFFFFFL);
-    }
-
-    private CachedLevel computeAverageNearbyLevel(Monster monster, long now) {
-        int total = 0;
-        int count = 0;
-        for (Player player : monster.getLocation().getNearbyPlayers(SCAN_RADIUS)) {
-            if (guildAPI.isRegistered(player.getUniqueId())) {
-                total += guildAPI.getLevel(player.getUniqueId());
-                count++;
-            }
-        }
-        if (count == 0) return new CachedLevel(Level.MIN_LEVEL, true, now + LEVEL_CACHE_TTL_MILLIS);
-        int average = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, Math.round((float) total / count)));
-        return new CachedLevel(average, false, now + LEVEL_CACHE_TTL_MILLIS);
     }
 
     private RegionDangerProvider resolveRegionProvider() {
