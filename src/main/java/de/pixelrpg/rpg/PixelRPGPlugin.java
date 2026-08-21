@@ -260,7 +260,19 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     public static PixelRPGPlugin getInstance() { return instance; }
 
+    public LanguageManager getLanguageManager() { return languageManager; }
+    public StatEngine getStatEngine() { return statEngine; }
+    public PartyManager getPartyManager() { return partyManager; }
+    public QuestManager getQuestManager() { return questManager; }
+    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
+    public ProfessionSystem getProfessionSystem() { return professionSystem; }
+    public ItemService getItemService() { return itemService; }
+    public NpcManager getNpcManager() { return npcManager; }
+    public ShopManager getShopManager() { return shopManager; }
+    public StoryManager getStoryManager() { return storyManager; }
+    public BossManager getBossManager() { return bossManager; }
+
     public void registerCommand(String name, PaperBasicCommandAdapter command) {
-        getLifecycleManager().registerEventHandler(org.bukkit.event.lifecycle.LifecycleEvents.COMMANDS, event -> event.registrar().register(name, command));
+        getLifecycleManager().registerEventHandler(org.bukkit.plugin.lifecycle.LifecycleEvents.COMMANDS, event -> event.registrar().register(name, command));
     }
 }
