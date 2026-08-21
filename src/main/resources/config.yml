@@ -169,9 +169,6 @@ statistics:
 scoreboard:
   update-interval-ticks: 20
 
-leaderboard:
-  default-limit: 10
-
 classes:
   respec-cost: 300.0
   respec-min-level: 40
