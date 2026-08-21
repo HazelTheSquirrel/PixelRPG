@@ -1,6 +1,7 @@
-// src/main/java/de/pixelrpg/rpg/player/YamlPlayerProfileRepository.java (VOLLSTÄNDIG, ersetzt alte Datei — atomarer Schreibvorgang über Temp-Datei + Rename gegen korrupte Dateien bei Absturz mitten im Speichern)
+// src/main/java/de/pixelrpg/rpg/player/YamlPlayerProfileRepository.java
 package de.pixelrpg.rpg.player;
 
+import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.quest.QuestProgress;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -33,9 +34,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
     @Override
     public Optional<PlayerProfile> load(UUID uuid) {
         File file = new File(playersFolder, uuid + ".yml");
-        if (!file.exists()) {
-            return Optional.empty();
-        }
+        if (!file.exists()) return Optional.empty();
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         PlayerProfile profile = new PlayerProfile(uuid);
@@ -46,8 +45,16 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         profile.setReceivedStartBonus(yaml.getBoolean("start-bonus", false));
 
         for (PlayerAttribute attribute : PlayerAttribute.values()) {
-            int value = yaml.getInt("attributes." + attribute.name().toLowerCase(), 0);
-            profile.setAttributePoints(attribute, value);
+            profile.setAttributePoints(attribute, yaml.getInt("attributes." + attribute.name().toLowerCase(), 0));
+        }
+
+        ConfigurationSection professionSection = yaml.getConfigurationSection("professions");
+        if (professionSection != null) {
+            for (Profession profession : Profession.values()) {
+                if (professionSection.contains(profession.name().toLowerCase())) {
+                    profile.setProfessionLevel(profession, professionSection.getInt(profession.name().toLowerCase(), Profession.MIN_LEVEL));
+                }
+            }
         }
 
         profile.setUnlockedWaypoints(new HashSet<>(yaml.getStringList("unlocked-waypoints")));
@@ -74,7 +81,6 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         profile.setPartyHudEnabled(yaml.getBoolean("party-hud-enabled", true));
         profile.setQuestTrackerEnabled(yaml.getBoolean("quest-tracker-enabled", true));
         profile.setPlaytimeMillis(yaml.getLong("playtime-millis", 0L));
-
         profile.markClean();
         return Optional.of(profile);
     }
@@ -91,6 +97,9 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         for (PlayerAttribute attribute : PlayerAttribute.values()) {
             yaml.set("attributes." + attribute.name().toLowerCase(), profile.getAttributePoints(attribute));
         }
+        for (Profession profession : Profession.values()) {
+            yaml.set("professions." + profession.name().toLowerCase(), profile.getProfessionLevel(profession));
+        }
 
         yaml.set("unlocked-waypoints", new ArrayList<>(profile.getUnlockedWaypoints()));
         yaml.set("story-chapter-index", profile.getStoryChapterIndex());
@@ -101,7 +110,6 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
             yaml.set(path + ".amount", progress.getCurrentAmount());
             yaml.set(path + ".expiry", progress.getExpiryTimestampMillis());
         }
-
         for (var entry : profile.getAllStatistics().entrySet()) {
             yaml.set("statistics." + entry.getKey(), entry.getValue());
         }
@@ -111,18 +119,12 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         yaml.set("quest-tracker-enabled", profile.isQuestTrackerEnabled());
         yaml.set("playtime-millis", profile.getPlaytimeMillis());
 
-        // Atomarer Schreibvorgang: erst in eine Temp-Datei speichern, dann per
-        // Rename ersetzen. Verhindert eine halb geschriebene/korrupte Profildatei,
-        // falls der Prozess genau während des Schreibens beendet wird.
-        if (!playersFolder.exists()) {
-            playersFolder.mkdirs();
-        }
+        if (!playersFolder.exists()) playersFolder.mkdirs();
         File target = new File(playersFolder, profile.getUuid() + ".yml");
         File tempFile = new File(playersFolder, profile.getUuid() + ".yml.tmp");
         yaml.save(tempFile);
         try {
-            Files.move(tempFile.toPath(), target.toPath(),
-                    StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            Files.move(tempFile.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (AtomicMoveNotSupportedException e) {
             Files.move(tempFile.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
