@@ -26,7 +26,7 @@ public final class QuestPassiveCheckTask {
         if (task != null) return;
         task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
-                if (!questManager.isRegistered(player.getUniqueId())) continue;
+                if (!questManager.isPlayerRegistered(player.getUniqueId())) continue;
                 questManager.checkInventoryQuests(player);
                 questManager.checkReachLocationQuests(player);
             }
