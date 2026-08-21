@@ -17,6 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -24,39 +25,73 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class MobLevelScalingListener implements Listener {
+public final class MobLevelScalingListener implements Listener {
     private static final long LEVEL_CACHE_TTL_MILLIS = 3000L;
     private static final double SCAN_RADIUS = 48.0;
+
     private record CachedLevel(int level, boolean noScaling, long expiresAtMillis) { }
+
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
     private final Map<Long, CachedLevel> nearbyLevelCache = new ConcurrentHashMap<>();
 
-    public MobLevelScalingListener(GuildAPI guildAPI, MobScalingConfig scalingConfig) { this.guildAPI = guildAPI; this.scalingConfig = scalingConfig; }
+    public MobLevelScalingListener(GuildAPI guildAPI, MobScalingConfig scalingConfig) {
+        this.guildAPI = guildAPI;
+        this.scalingConfig = scalingConfig;
+    }
 
-    // Zuständig für die Level-Skalierung von Monstern beim Spawn.
+    // Zuständig für die initiale Level-Skalierung von Monstern beim Spawn.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMonsterSpawn(CreatureSpawnEvent event) {
         if (event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.CUSTOM) return;
         if (!(event.getEntity() instanceof Monster monster)) return;
+        if (monster.getPersistentDataContainer().has(RPGKeys.Combat.bossId(), PersistentDataType.STRING)) return;
         if (monster.getPersistentDataContainer().has(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER)) return;
+
         CachedLevel cached = computeAverageNearbyLevelCached(monster);
         if (cached.noScaling()) return;
-        RegionDangerProvider regionProvider = resolveRegionProvider();
-        int regionMin = Math.max(Level.MIN_LEVEL, regionProvider.getMinLevel(monster.getLocation()));
-        int regionMax = Math.min(Level.MAX_NORMAL_LEVEL, regionProvider.getMaxLevel(monster.getLocation()));
-        if (regionMin > regionMax) { int tmp = regionMin; regionMin = regionMax; regionMax = tmp; }
+
+        applyScaling(monster, cached.level());
+    }
+
+    // Zuständig dafür, dass ein RPG-Mob beim Wechsel seines Ziels auf den tatsächlich kämpfenden Spieler skaliert wird.
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onMonsterTarget(EntityTargetLivingEntityEvent event) {
+        if (!(event.getEntity() instanceof Monster monster)) return;
+        if (!(event.getTarget() instanceof Player player)) return;
+        if (!guildAPI.isRegistered(player.getUniqueId())) return;
+        if (monster.getPersistentDataContainer().has(RPGKeys.Combat.bossId(), PersistentDataType.STRING)) return;
+
+        applyScaling(monster, guildAPI.getLevel(player.getUniqueId()));
+    }
+
+    private void applyScaling(Monster monster, int playerLevel) {
+        int regionMin = Math.max(Level.MIN_LEVEL, resolveRegionProvider().getMinLevel(monster.getLocation()));
+        int regionMax = Math.min(Level.MAX_NORMAL_LEVEL, resolveRegionProvider().getMaxLevel(monster.getLocation()));
+        if (regionMin > regionMax) {
+            int tmp = regionMin;
+            regionMin = regionMax;
+            regionMax = tmp;
+        }
+
         MobScalingConfig.DimensionModifier dimension = scalingConfig.getDimensionModifier(monster.getWorld().getEnvironment());
-        int targetLevel = cached.level() + ThreadLocalRandom.current().nextInt(-1, 2) + dimension.levelOffset();
+        int targetLevel = playerLevel + ThreadLocalRandom.current().nextInt(-1, 2) + dimension.levelOffset();
         targetLevel = Math.max(regionMin, Math.min(targetLevel, regionMax));
         targetLevel = Math.max(Level.MIN_LEVEL, Math.min(targetLevel, Level.MAX_NORMAL_LEVEL));
+
         MobScalingConfig.LevelBaseStats stats = scalingConfig.getBaseStats(targetLevel);
         double maxHp = stats.hp() * dimension.hpMultiplier() * scalingConfig.getPlayerParityMultiplier();
         double damage = stats.damage() * dimension.damageMultiplier() * scalingConfig.getPlayerParityMultiplier();
+
         AttributeInstance hp = monster.getAttribute(Attribute.MAX_HEALTH);
-        if (hp != null) { hp.setBaseValue(maxHp); monster.setHealth(maxHp); }
+        if (hp != null) {
+            hp.setBaseValue(maxHp);
+            monster.setHealth(Math.min(maxHp, monster.getHealth()));
+        }
+
         AttributeInstance attackDamage = monster.getAttribute(Attribute.ATTACK_DAMAGE);
         if (attackDamage != null) attackDamage.setBaseValue(damage);
+
         monster.getPersistentDataContainer().set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, targetLevel);
         if (monster instanceof Zombie || monster instanceof Skeleton) applyVisualGear(monster, targetLevel);
     }
@@ -77,9 +112,13 @@ public class MobLevelScalingListener implements Listener {
     }
 
     private CachedLevel computeAverageNearbyLevel(Monster monster, long now) {
-        int total = 0, count = 0;
+        int total = 0;
+        int count = 0;
         for (Player player : monster.getLocation().getNearbyPlayers(SCAN_RADIUS)) {
-            if (guildAPI.isRegistered(player.getUniqueId())) { total += guildAPI.getLevel(player.getUniqueId()); count++; }
+            if (guildAPI.isRegistered(player.getUniqueId())) {
+                total += guildAPI.getLevel(player.getUniqueId());
+                count++;
+            }
         }
         if (count == 0) return new CachedLevel(Level.MIN_LEVEL, true, now + LEVEL_CACHE_TTL_MILLIS);
         int average = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, Math.round((float) total / count)));
@@ -93,14 +132,32 @@ public class MobLevelScalingListener implements Listener {
 
     private void applyVisualGear(Monster monster, int level) {
         if (monster.getEquipment() == null) return;
-        ItemStack chest, legs = null, weapon;
-        if (level >= 75) { chest = new ItemStack(Material.NETHERITE_CHESTPLATE); legs = new ItemStack(Material.NETHERITE_LEGGINGS); weapon = new ItemStack(Material.NETHERITE_SWORD); }
-        else if (level >= 50) { chest = new ItemStack(Material.DIAMOND_CHESTPLATE); legs = new ItemStack(Material.DIAMOND_LEGGINGS); weapon = new ItemStack(Material.DIAMOND_SWORD); }
-        else if (level >= 25) { chest = new ItemStack(Material.IRON_CHESTPLATE); legs = new ItemStack(Material.IRON_LEGGINGS); weapon = new ItemStack(Material.IRON_SWORD); }
-        else { chest = new ItemStack(Material.LEATHER_CHESTPLATE); weapon = new ItemStack(Material.STONE_SWORD); }
+
+        ItemStack chest;
+        ItemStack legs = null;
+        ItemStack weapon;
+        if (level >= 75) {
+            chest = new ItemStack(Material.NETHERITE_CHESTPLATE);
+            legs = new ItemStack(Material.NETHERITE_LEGGINGS);
+            weapon = new ItemStack(Material.NETHERITE_SWORD);
+        } else if (level >= 50) {
+            chest = new ItemStack(Material.DIAMOND_CHESTPLATE);
+            legs = new ItemStack(Material.DIAMOND_LEGGINGS);
+            weapon = new ItemStack(Material.DIAMOND_SWORD);
+        } else if (level >= 25) {
+            chest = new ItemStack(Material.IRON_CHESTPLATE);
+            legs = new ItemStack(Material.IRON_LEGGINGS);
+            weapon = new ItemStack(Material.IRON_SWORD);
+        } else {
+            chest = new ItemStack(Material.LEATHER_CHESTPLATE);
+            weapon = new ItemStack(Material.STONE_SWORD);
+        }
+
         monster.getEquipment().setChestplate(chest);
         monster.getEquipment().setLeggings(legs);
-        if (monster.getType() == EntityType.ZOMBIE || monster.getType() == EntityType.SKELETON) monster.getEquipment().setItemInMainHand(weapon);
+        if (monster.getType() == EntityType.ZOMBIE || monster.getType() == EntityType.SKELETON) {
+            monster.getEquipment().setItemInMainHand(weapon);
+        }
         monster.getEquipment().setChestplateDropChance(0.0f);
         monster.getEquipment().setLeggingsDropChance(0.0f);
         monster.getEquipment().setItemInMainHandDropChance(0.0f);
