@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.player;
 
-import org.bukkit.entity.Player;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -24,7 +25,7 @@ public final class PlayerProfileLifecycleListener implements Listener {
         PlayerProfileManager.LoadOutcome outcome = profileManager.loadForPreLogin(event.getUniqueId());
         if (outcome == PlayerProfileManager.LoadOutcome.FAILED) {
             event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
-                    org.bukkit.ChatColor.RED + "PixelRPG profile could not be loaded. Please try again later.");
+                    Component.text("PixelRPG profile could not be loaded. Please try again later.", NamedTextColor.RED));
         }
     }
 
