@@ -46,11 +46,6 @@ public final class LootDropListener implements Listener {
         this.economyConfig = economyConfig;
     }
 
-    /** Temporary compatibility constructor while the plugin bootstrap is migrated. */
-    public LootDropListener(GuildAPI guildAPI, ItemEconomyConfig economyConfig, Object ignoredLegacyGemRepository) {
-        this(guildAPI, economyConfig);
-    }
-
     // Zuständig für Ausrüstungs- und Gildengold-Loot beim Töten eines Monsters.
     @EventHandler(priority = EventPriority.HIGH)
     public void onMonsterDeath(EntityDeathEvent event) {
