@@ -10,11 +10,9 @@ import java.util.Optional;
 
 /** Executes validated profession crafting recipes. */
 public final class CraftingService {
-    private final CraftingRecipeRegistry registry;
     private final ProfessionService professionService;
 
-    public CraftingService(CraftingRecipeRegistry registry, ProfessionService professionService) {
-        this.registry = Objects.requireNonNull(registry);
+    public CraftingService(ProfessionService professionService) {
         this.professionService = Objects.requireNonNull(professionService);
     }
 
@@ -31,18 +29,15 @@ public final class CraftingService {
         if (level < recipe.requiredProfessionLevel()) return CraftResult.failure("Profession level too low");
 
         for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) {
-            if (!player.getInventory().contains(cost.getKey(), cost.getValue())) {
-                return CraftResult.failure("Missing materials");
-            }
+            if (!player.getInventory().contains(cost.getKey(), cost.getValue())) return CraftResult.failure("Missing materials");
         }
-
         for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) {
             player.getInventory().removeItem(new ItemStack(cost.getKey(), cost.getValue()));
         }
 
-        ItemStack result = new ItemStack(recipe.resultMaterial(), 1);
-        var leftovers = player.getInventory().addItem(result);
-        leftovers.values().forEach(stack -> player.getWorld().dropItemNaturally(player.getLocation(), stack));
+        ItemStack result = new ItemStack(recipe.resultMaterial());
+        player.getInventory().addItem(result).values()
+                .forEach(stack -> player.getWorld().dropItemNaturally(player.getLocation(), stack));
 
         long experience = Math.max(25L, recipe.craftSeconds() * 25L);
         professionService.addExperience(player, recipe.profession(), experience);
