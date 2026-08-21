@@ -16,7 +16,7 @@ public final class ProfessionGatheringListener implements Listener {
         this.professionService = professionService;
     }
 
-    // Vergibt Mining-, Woodcutting- oder Herbalism-XP für erfolgreich abgebaute Ressourcen.
+    // Vergibt Versorger- oder Schmied-XP für das Abbauen relevanter Vanilla-Ressourcen.
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
@@ -27,44 +27,46 @@ public final class ProfessionGatheringListener implements Listener {
                  COPPER_ORE, DEEPSLATE_COPPER_ORE, GOLD_ORE, DEEPSLATE_GOLD_ORE,
                  REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE, LAPIS_ORE, DEEPSLATE_LAPIS_ORE,
                  DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE, EMERALD_ORE, DEEPSLATE_EMERALD_ORE,
-                 NETHER_GOLD_ORE, NETHER_QUARTZ_ORE, ANCIENT_DEBRIS -> Profession.MINING;
-            case OAK_LOG, SPRUCE_LOG, BIRCH_LOG, JUNGLE_LOG, ACACIA_LOG, DARK_OAK_LOG,
-                 MANGROVE_LOG, CHERRY_LOG, PALE_OAK_LOG, CRIMSON_STEM, WARPED_STEM -> Profession.WOODCUTTING;
+                 NETHER_GOLD_ORE, NETHER_QUARTZ_ORE, ANCIENT_DEBRIS,
+                 RAW_IRON_BLOCK, RAW_COPPER_BLOCK, RAW_GOLD_BLOCK, IRON_BLOCK, COPPER_BLOCK, GOLD_BLOCK -> Profession.BLACKSMITH;
             case WHEAT, CARROTS, POTATOES, BEETROOTS, NETHER_WART, COCOA, SWEET_BERRY_BUSH,
                  GLOW_BERRIES, KELP, SEAGRASS, TALL_SEAGRASS, SUGAR_CANE, CACTUS, BAMBOO,
-                 VINE, GLOW_LICHEN, MOSS_BLOCK -> Profession.HERBALISM;
+                 VINE, GLOW_LICHEN, MOSS_BLOCK -> Profession.PROVISIONER;
             default -> null;
         };
         if (profession == null) return;
-        long amount = switch (profession) {
-            case MINING -> 10L;
-            case WOODCUTTING -> 8L;
-            case HERBALISM -> 6L;
-            default -> 0L;
-        };
+        long amount = profession == Profession.BLACKSMITH ? miningXp(material) : 8L;
         professionService.addExperience(player, profession, amount);
     }
 
-    // Vergibt Fishing-XP, wenn tatsächlich ein Fang abgeschlossen wurde.
+    // Vergibt Versorger-XP, wenn ein tatsächlicher Fischfang abgeschlossen wurde.
     @EventHandler
     public void onPlayerFish(PlayerFishEvent event) {
         if (event.getState() != PlayerFishEvent.State.CAUGHT_FISH) return;
-        professionService.addExperience(event.getPlayer(), Profession.FISHING, 12L);
+        professionService.addExperience(event.getPlayer(), Profession.PROVISIONER, 18L);
     }
 
-    // Vergibt Skinning-XP für von einem registrierten Spieler erlegte geeignete Tiere.
+    // Vergibt Versorger-XP für verwertbare Tierprodukte und Nahrungstiere.
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
         Player killer = event.getEntity().getKiller();
-        if (killer == null) return;
-        if (!isSkinnable(event.getEntityType())) return;
-        professionService.addExperience(killer, Profession.SKINNING, 10L);
+        if (killer == null || !isProvisionerTarget(event.getEntityType())) return;
+        professionService.addExperience(killer, Profession.PROVISIONER, 12L);
     }
 
-    private boolean isSkinnable(EntityType type) {
+    private long miningXp(Material material) {
+        return switch (material) {
+            case DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE, EMERALD_ORE, DEEPSLATE_EMERALD_ORE, ANCIENT_DEBRIS -> 35L;
+            case GOLD_ORE, DEEPSLATE_GOLD_ORE, NETHER_GOLD_ORE, REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE,
+                 LAPIS_ORE, DEEPSLATE_LAPIS_ORE -> 20L;
+            case IRON_ORE, DEEPSLATE_IRON_ORE, COPPER_ORE, DEEPSLATE_COPPER_ORE -> 12L;
+            default -> 8L;
+        };
+    }
+
+    private boolean isProvisionerTarget(EntityType type) {
         return switch (type) {
-            case COW, MOOSHROOM, SHEEP, PIG, CHICKEN, RABBIT, HORSE, DONKEY, MULE,
-                 LLAMA, TRADER_LLAMA, GOAT, CAMEL, HOGLIN -> true;
+            case COW, MOOSHROOM, SHEEP, PIG, CHICKEN, RABBIT, GOAT, CAMEL, HOGLIN -> true;
             default -> false;
         };
     }
