@@ -4,6 +4,7 @@ import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.BlessingType;
 import de.pixelrpg.rpg.item.CurseType;
+import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -44,8 +45,12 @@ public final class EquipmentAuraListener {
 
     private void scanAndApply(Player player) {
         PlayerInventory inv = player.getInventory();
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegisteredInGuild()) return;
+
         List<ItemStack> equipped = new ArrayList<>();
         equipped.add(inv.getItemInMainHand());
+        equipped.add(inv.getItemInOffHand());
         if (inv.getHelmet() != null) equipped.add(inv.getHelmet());
         if (inv.getChestplate() != null) equipped.add(inv.getChestplate());
         if (inv.getLeggings() != null) equipped.add(inv.getLeggings());
@@ -57,6 +62,9 @@ public final class EquipmentAuraListener {
             if (item == null || !item.hasItemMeta()) continue;
 
             var pdc = item.getItemMeta().getPersistentDataContainer();
+            Integer itemLevel = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
+            if (itemLevel != null && profile.getLevel() < itemLevel) continue;
+
             String blessingRaw = pdc.get(RPGKeys.Item.blessingType(), PersistentDataType.STRING);
             if (blessingRaw != null) {
                 try {
