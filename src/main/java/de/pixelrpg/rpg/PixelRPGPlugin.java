@@ -33,6 +33,7 @@ import de.pixelrpg.rpg.command.impl.ShopSubCommand;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.dialogue.DialogueCommand;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.economy.GuildCurrencyPickupListener;
@@ -124,7 +125,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         playerProfileManager.initialize(getConfig());
         statEngine = new StatEngine(playerProfileManager);
         new ProfessionSystem(this, playerProfileManager).register();
-
         WeaponAbilityEngine weaponAbilityEngine = new WeaponAbilityEngine(playerProfileManager, statEngine);
 
         itemEconomyConfig = new ItemEconomyConfig();
@@ -133,7 +133,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         itemService = new ItemService();
         Bukkit.getServicesManager().register(de.pixelrpg.rpg.api.ItemAPI.class, itemService, this, ServicePriority.Normal);
         blacksmithGUI = new BlacksmithGUI(playerProfileManager, itemEconomyConfig);
-
         mobScalingConfig = new MobScalingConfig();
         mobScalingConfig.load(getConfig());
         mobNameplateService = new MobNameplateService(this, mobScalingConfig);
@@ -162,13 +161,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         double barRadius = getConfig().getDouble("bosses.bar-radius", 60.0);
         int barUpdateInterval = getConfig().getInt("bosses.bar-update-interval-ticks", 20);
         int phaseCheckInterval = getConfig().getInt("bosses.phase-check-interval-ticks", 10);
-        bossManager = new BossManager(this, patternRegistry, playerProfileManager, playerProfileManager, itemEconomyConfig,
-                barRadius, barUpdateInterval, phaseCheckInterval);
-        new WorldBossSpawnTask(this, bossRepository, bossManager, playerProfileManager,
-                getConfig().getBoolean("bosses.auto-spawn.enabled", true),
-                getConfig().getInt("bosses.auto-spawn.interval-minutes", 45),
-                getConfig().getDouble("bosses.auto-spawn.spawn-radius", 80.0),
-                getConfig().getInt("bosses.auto-spawn.max-concurrent", 2)).start();
+        bossManager = new BossManager(this, patternRegistry, playerProfileManager, playerProfileManager, itemEconomyConfig, barRadius, barUpdateInterval, phaseCheckInterval);
+        new WorldBossSpawnTask(this, bossRepository, bossManager, playerProfileManager, getConfig().getBoolean("bosses.auto-spawn.enabled", true), getConfig().getInt("bosses.auto-spawn.interval-minutes", 45), getConfig().getDouble("bosses.auto-spawn.spawn-radius", 80.0), getConfig().getInt("bosses.auto-spawn.max-concurrent", 2)).start();
 
         statisticsService = new StatisticsService(playerProfileManager);
         Bukkit.getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
@@ -186,6 +180,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 8.0), getConfig().getInt("npc.look-interval-ticks", 5)).start();
         DialogueEngine dialogueEngine = new DialogueEngine();
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
+        QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager);
 
         npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager));
@@ -228,15 +223,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         rootCommand.register(new ShopSubCommand(shopManager, shopEditorGUI, npcManager));
         rootCommand.register(new QuestAdminSubCommand(questManager));
         rootCommand.register(new BossSubCommand(bossRepository, bossManager));
-        if (getCommand("rpgadmin") != null) {
-            getCommand("rpgadmin").setExecutor(rootCommand);
-            getCommand("rpgadmin").setTabCompleter(rootCommand);
-        }
+        if (getCommand("rpgadmin") != null) { getCommand("rpgadmin").setExecutor(rootCommand); getCommand("rpgadmin").setTabCompleter(rootCommand); }
         PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
-        if (getCommand("rpgparty") != null) {
-            getCommand("rpgparty").setExecutor(partyCommand);
-            getCommand("rpgparty").setTabCompleter(partyCommand);
-        }
+        if (getCommand("rpgparty") != null) { getCommand("rpgparty").setExecutor(partyCommand); getCommand("rpgparty").setTabCompleter(partyCommand); }
         if (getCommand("questlog") != null) getCommand("questlog").setExecutor(new QuestLogCommand(questManager, playerProfileManager));
         if (getCommand("dialogue") != null) {
             DialogueCommand dialogueCommand = new DialogueCommand(playerProfileManager, dialogueEngine);
