@@ -1,0 +1,25 @@
+name: PixelRPG
+version: 1.0.0
+main: de.pixelrpg.rpg.PixelRPGPlugin
+description: Core MMORPG framework plugin
+author: PixelRPGTeam
+api-version: '26.2'
+
+commands:
+  rpgadmin:
+    description: PixelRPG administration commands
+    permission: rpg.admin
+  rpgparty:
+    description: PixelRPG party commands
+    permission: rpg.member
+  questlog:
+    description: Opens the PixelRPG quest log
+    permission: rpg.member
+
+permissions:
+  rpg.admin:
+    description: Allows access to PixelRPG administration commands
+    default: op
+  rpg.member:
+    description: Allows access to PixelRPG player commands
+    default: true
