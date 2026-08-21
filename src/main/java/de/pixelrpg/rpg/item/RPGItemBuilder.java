@@ -6,8 +6,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -109,9 +107,6 @@ public final class RPGItemBuilder {
                 double critChance = round((1.0 + levelFactor * 0.22) * multiplier * 0.7 * roll);
                 pdc.set(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, bonusDamage);
                 pdc.set(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, critChance);
-                meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
-                        new AttributeModifier(RPGKeys.Item.attackDamageModifier(instanceId), bonusDamage,
-                                AttributeModifier.Operation.ADD_NUMBER, category.getSlotGroup()));
                 lore.add(Component.text("Bonus Damage: +" + bonusDamage, NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
                 lore.add(Component.text("Crit Chance: +" + critChance + "%", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
             }
@@ -122,14 +117,8 @@ public final class RPGItemBuilder {
                         : round((1.0 + levelFactor * 0.9) * multiplier * roll);
                 pdc.set(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, armorValue);
                 pdc.set(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, healthBonus);
-                meta.addAttributeModifier(Attribute.ARMOR,
-                        new AttributeModifier(RPGKeys.Item.armorModifier(instanceId), armorValue,
-                                AttributeModifier.Operation.ADD_NUMBER, category.getSlotGroup()));
                 lore.add(Component.text("Armor: +" + armorValue, NamedTextColor.BLUE).decoration(TextDecoration.ITALIC, false));
                 if (healthBonus > 0.0) {
-                    meta.addAttributeModifier(Attribute.MAX_HEALTH,
-                            new AttributeModifier(RPGKeys.Item.healthModifier(instanceId), healthBonus,
-                                    AttributeModifier.Operation.ADD_NUMBER, category.getSlotGroup()));
                     lore.add(Component.text("Max Health: +" + healthBonus, NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
                 }
             }
@@ -151,7 +140,7 @@ public final class RPGItemBuilder {
             lore.add(Component.text("☠ ", NamedTextColor.DARK_RED).append(curse.displayName()).decoration(TextDecoration.ITALIC, false));
         }
 
-        String materialLabel = item.getType().name().replace('_', ' ').toLowerCase();
+        String materialLabel = item.getType().name().replace('_', ' ').toLowerCase(java.util.Locale.ROOT);
         String prettyMaterial = Character.toUpperCase(materialLabel.charAt(0)) + materialLabel.substring(1);
         meta.displayName(rarity.displayName()
                 .append(Component.text(" " + prettyMaterial, NamedTextColor.WHITE))
