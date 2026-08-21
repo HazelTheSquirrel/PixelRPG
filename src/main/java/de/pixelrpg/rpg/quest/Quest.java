@@ -1,7 +1,5 @@
-// src/main/java/de/pixelrpg/rpg/quest/Quest.java (VOLLSTÄNDIG, ersetzt alte Datei — category für Rang-Untermenüs)
 package de.pixelrpg.rpg.quest;
 
-import de.pixelrpg.rpg.core.Rank;
 import org.bukkit.Location;
 
 import java.util.List;
@@ -13,8 +11,8 @@ public record Quest(
         QuestType type,
         String targetKey,
         int requiredAmount,
-        Rank requiredRank,
-        Rank category,
+        int requiredLevel,
+        int categoryLevel,
         double rewardMoney,
         long rewardExp,
         int durationMinutes,
