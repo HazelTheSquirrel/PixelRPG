@@ -75,7 +75,8 @@ public final class MobLevelScalingListener implements Listener {
         }
 
         MobScalingConfig.DimensionModifier dimension = scalingConfig.getDimensionModifier(monster.getWorld().getEnvironment());
-        int targetLevel = playerLevel + ThreadLocalRandom.current().nextInt(-1, 2) + dimension.levelOffset();
+        int baselineLevel = Math.max(playerLevel, dimension.baseLevel());
+        int targetLevel = baselineLevel + ThreadLocalRandom.current().nextInt(-1, 2) + dimension.levelOffset();
         targetLevel = Math.max(regionMin, Math.min(targetLevel, regionMax));
         targetLevel = Math.max(Level.MIN_LEVEL, Math.min(targetLevel, Level.MAX_NORMAL_LEVEL));
 
