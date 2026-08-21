@@ -1,59 +1,67 @@
 package de.pixelrpg.rpg.dialogue;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.companion.CompanionService;
 import io.papermc.paper.connection.PlayerGameConnection;
 import io.papermc.paper.event.player.PlayerCustomClickEvent;
-import io.papermc.paper.registry.data.dialog.ActionButton;
-import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.bukkit.event.server.PluginDisableEvent;
 
 public final class QuickActionsDialogListener implements Listener {
-    private static final Key CHARACTER_CARD_ACTION = Key.key("pixelrpg:character_card/open");
+    private static final Key COMPANIONS_ACTION = Key.key("pixelrpg:character_card/companions");
+    private static final Key PROFESSIONS_ACTION = Key.key("pixelrpg:character_card/professions");
+    private static final Key CLOSE_ACTION = Key.key("pixelrpg:character_card/close");
+
+    private final PixelRPGPlugin plugin;
     private final QuickActionsDialogService service;
     private final CompanionDialog companionDialog;
     private final ProfessionDialog professionDialog;
-    private final DialogueEngine dialogueEngine;
+    private final CharacterCardScoreboardService characterCardScoreboard;
 
     public QuickActionsDialogListener(QuickActionsDialogService service) {
+        this.plugin = PixelRPGPlugin.getInstance();
         this.service = service;
-        this.dialogueEngine = new DialogueEngine();
+        DialogueEngine dialogueEngine = new DialogueEngine();
         this.companionDialog = new CompanionDialog(new CompanionService(), dialogueEngine);
         this.professionDialog = new ProfessionDialog(service.profileManager(), dialogueEngine);
+        this.characterCardScoreboard = new CharacterCardScoreboardService(plugin, service.profileManager(), service.statEngine());
+        this.characterCardScoreboard.start();
     }
 
-    /** Handles the G-triggered native action and opens the complete player character card. */
+    /** Opens the companion section from the direct G character card. */
     @EventHandler
-    public void onCharacterCardAction(PlayerCustomClickEvent event) {
-        if (!CHARACTER_CARD_ACTION.equals(event.getIdentifier())) return;
+    public void onCompanionAction(PlayerCustomClickEvent event) {
+        handlePlayerAction(event, COMPANIONS_ACTION, companionDialog::open);
+    }
+
+    /** Opens the profession section from the direct G character card. */
+    @EventHandler
+    public void onProfessionAction(PlayerCustomClickEvent event) {
+        handlePlayerAction(event, PROFESSIONS_ACTION, professionDialog::open);
+    }
+
+    /** Closes the native character card when the player selects the close action. */
+    @EventHandler
+    public void onCloseAction(PlayerCustomClickEvent event) {
+        handlePlayerAction(event, CLOSE_ACTION, Player::closeDialog);
+    }
+
+    /** Stops the character-card scoreboard bridge when PixelRPG is disabled. */
+    @EventHandler
+    public void onPluginDisable(PluginDisableEvent event) {
+        if (event.getPlugin() != plugin) return;
+        characterCardScoreboard.stop();
+    }
+
+    private void handlePlayerAction(PlayerCustomClickEvent event, Key identifier, java.util.function.Consumer<Player> action) {
+        if (!identifier.equals(event.getIdentifier())) return;
         if (!(event.getCommonConnection() instanceof PlayerGameConnection connection)) return;
 
         Player player = connection.getPlayer();
         if (!service.isAvailable(player)) return;
-
-        List<ActionButton> actions = new ArrayList<>();
-        actions.add(dialogueEngine.actionButton(
-                Component.text("Begleiter"), NamedTextColor.LIGHT_PURPLE,
-                companionDialog::open));
-        actions.add(dialogueEngine.actionButton(
-                Component.text("Berufe"), NamedTextColor.GREEN,
-                professionDialog::open));
-        actions.add(dialogueEngine.actionButton(
-                Component.text("Schließen"), NamedTextColor.GRAY,
-                Player::closeDialog));
-
-        dialogueEngine.openMultiAction(
-                player,
-                Component.text("PixelRPG – Charakter", NamedTextColor.GOLD),
-                List.of(DialogBody.plainMessage(service.characterCard(player))),
-                actions,
-                1);
+        action.accept(player);
     }
 }
