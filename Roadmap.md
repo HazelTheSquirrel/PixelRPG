@@ -2,7 +2,7 @@
 
 ## Ziel
 
-PixelRPG wird ein modernes RPG-/MMO-System für Paper 26.2, das **mit Minecraft Vanilla koexistiert**, statt Vanilla zu ersetzen.
+PixelRPG wird ein modernes RPG-System für Paper 26.2, das **mit Minecraft Vanilla koexistiert**, statt Vanilla zu ersetzen.
 
 Minecraft Vanilla und PixelRPG müssen auf demselben Server und in derselben Welt parallel spielbar sein.
 
@@ -83,6 +83,26 @@ Ein PixelRPG-Schwert ist ein eigenes RPG-Item mit eigener Identität, eigenen St
 
 Die Registrierung ist der Schalter zwischen Vanilla und PixelRPG.
 
+### Registrierung über NPC-Mannequin
+
+Die bereits vorhandenen **Mannequin-NPCs sind die Schnittstellen zur PixelRPG-Welt**. Der Spieler spricht einen PixelRPG-Mannequin an und gelangt über den nativen Dialog zur Registrierung.
+
+Grundprinzip:
+
+```text
+PixelRPG-Mannequin
+        ↓
+Native Dialog
+        ↓
+Registrierung
+        ↓
+PlayerProfile aktiv
+        ↓
+PixelRPG-Systeme greifen
+```
+
+Die Registrierung ist der zentrale Einstieg in PixelRPG. Alles weitere baut darauf auf.
+
 ### Nicht registriert
 
 - keine PixelRPG-Level-/XP-Progression
@@ -106,7 +126,108 @@ Die Registrierung ist der Schalter zwischen Vanilla und PixelRPG.
 
 ---
 
-## 4. Spieler-Level
+## 4. NPCs und Dialoge – zentrale Schnittstelle
+
+NPC-Mannequins sind die **Schnittstellen zu den PixelRPG-Systemen**.
+
+Sie sind kein Ersatz für Minecraft-Vanilla-NPCs, sondern bieten registrierten PixelRPG-Spielern den Zugang zu Plugin-Funktionen.
+
+Mögliche Services:
+
+- Registrierung
+- Bank
+- Berufe lernen
+- Quest-Annahme und Abgabe
+- Shop
+- Blacksmithing
+- Crafting
+- Reisen
+- Story
+- weitere PixelRPG-Dienste
+
+### Interaktionsprinzip
+
+Die Standardkette lautet:
+
+```text
+NPC-Mannequin
+      ↓
+Native Minecraft Dialog
+      ↓
+Spielerauswahl
+      ↓
+PixelRPG-Aktion
+```
+
+**Dialog ist der primäre Einstieg.**
+
+Wenn eine Funktion mit einem Dialog sinnvoll umgesetzt werden kann, wird der native Dialog verwendet.
+
+Wenn eine Funktion eine komplexere Darstellung benötigt, wird ein Inventory-GUI verwendet. Das bereits vorhandene GUI-System dient dabei als Grundlage; es wird kein paralleles UI-System ohne Bedarf gebaut.
+
+Beispiel:
+
+```text
+Bankier-Mannequin
+      ↓
+Dialog
+      ↓
+[Bank öffnen]
+      ↓
+Inventory GUI
+```
+
+### `/dialogue`
+
+`/dialogue` verwendet dieselbe zentrale Dialog-Engine wie die NPC-Mannequins.
+
+Es darf kein zweites, paralleles Dialogsystem entstehen.
+
+---
+
+## 5. Spielerprofil / G-Taste
+
+Die Minecraft-Interaktion `minecraft:quick_actions` wird **ausschließlich für das eigene PixelRPG-Spielerprofil** verwendet.
+
+Sie ist **nicht** die allgemeine NPC-Interaktion.
+
+Ziel:
+
+```text
+G / minecraft:quick_actions
+        ↓
+eigenes PixelRPG-Profil
+        ↓
+Charakterkarte
+```
+
+Die Spielerkarte kann unter anderem anzeigen:
+
+- Name
+- Level
+- Klasse
+- Health
+- Mana
+- RPG-Stats
+- Ausrüstung
+- Berufe
+- Quests
+- Statistiken
+- weitere persönliche PixelRPG-Informationen
+
+Damit sind die beiden Interaktionswege strikt getrennt:
+
+```text
+NPC-Mannequin → Native Dialoge → PixelRPG-Dienste
+
+G / quick_actions → eigenes Spielerprofil → Charakterkarte
+```
+
+Es wird kein WoW-artiges dauerhaftes MMO-HUD daraus gebaut.
+
+---
+
+## 6. Spieler-Level
 
 - Level 1–99
 - Level 100 bleibt gesperrt
@@ -121,7 +242,7 @@ Es gibt **kein F–S-Rank-System** mehr.
 
 ---
 
-## 5. Stats und Combat
+## 7. Stats und Combat
 
 Eine zentrale StatEngine bildet die Grundlage für das RPG-Kampfsystem.
 
@@ -145,7 +266,7 @@ Vanilla-Spieler dürfen von diesen RPG-Stats nicht betroffen sein.
 
 ---
 
-## 6. Klassen
+## 8. Klassen
 
 Klassen bleiben Bestandteil des PixelRPG-Systems.
 
@@ -163,7 +284,7 @@ Es gibt **keine klassischen Charakter-Skilltrees**.
 
 ---
 
-## 7. Waffen und Fähigkeiten
+## 9. Waffen und Fähigkeiten
 
 Aktive Fähigkeiten kommen ausschließlich über PixelRPG-Waffen.
 
@@ -185,7 +306,7 @@ Vanilla-Waffen erhalten dadurch nicht automatisch PixelRPG-Fähigkeiten.
 
 ---
 
-## 8. Equipment
+## 10. Equipment
 
 PixelRPG-Equipment erhält ein eigenes RPG-System.
 
@@ -212,7 +333,7 @@ Das alte Gem-/Rune-Modell wird nicht weitergeführt.
 
 ---
 
-## 9. Gems / Runes entfernen
+## 11. Gems / Runes entfernen
 
 Das bisherige Gem-/Rune-Konzept wird vollständig aus dem zukünftigen Kernsystem entfernt.
 
@@ -231,7 +352,7 @@ Stats und Fähigkeiten kommen stattdessen direkt aus Spieler, Klasse und Equipme
 
 ---
 
-## 10. Open World und dynamische Skalierung
+## 12. Open World und dynamische Skalierung
 
 PixelRPG verwendet **keine festen Level-Gebiete**.
 
@@ -282,7 +403,7 @@ Die Skalierung darf Vanilla-Spieler nicht beeinflussen.
 
 ---
 
-## 11. Vanilla-Mobs und PixelRPG-Mobs
+## 13. Vanilla-Mobs und PixelRPG-Mobs
 
 Vanilla-Mobs dürfen nicht global für alle Spieler in RPG-Mobs verwandelt werden.
 
@@ -301,7 +422,7 @@ Dabei sind insbesondere zu berücksichtigen:
 
 ---
 
-## 12. Loot
+## 14. Loot
 
 Loot ist ein Kernbestandteil der Progression.
 
@@ -323,7 +444,7 @@ PixelRPG-Loot wird zusätzlich bzw. gezielt für registrierte Spieler erzeugt.
 
 ---
 
-## 13. Quests und Story
+## 15. Quests und Story
 
 Das bestehende Quest-/Story-System wird weiterentwickelt.
 
@@ -340,60 +461,6 @@ Quest-Arten können umfassen:
 - Daily/Repeatable, falls später benötigt
 
 Quests sind PixelRPG-Inhalte und werden nur für registrierte Spieler relevant.
-
----
-
-## 14. Native Dialog-Systeme und `/dialogue`
-
-Die aktuelle native Dialog-Mechanik von Paper/Minecraft 26.2 ist das zentrale Interaktionssystem.
-
-Ziel:
-
-```text
-NPC
- ↓
-Interaktion
- ↓
-Native Minecraft Dialog
- ↓
-Spielerauswahl
- ↓
-Aktion
-```
-
-Mögliche Aktionen:
-
-- Quest starten
-- Quest abgeben
-- Shop öffnen
-- Bank öffnen
-- Crafting öffnen
-- Reisen
-- Story fortsetzen
-- Informationen anzeigen
-
-`/dialogue` verwendet dieselbe Dialog-Engine und dient als direkter Einstieg bzw. Admin-/Testzugang, ohne ein zweites Dialogsystem zu bauen.
-
-Keine alten 1.21.x-Dialog-Workarounds.
-
----
-
-## 15. NPC-System
-
-Das vorhandene NPC-System wird weiterverwendet und modernisiert.
-
-NPC-Rollen können sein:
-
-- Questgiver
-- Blacksmith
-- Merchant
-- Banker
-- Trainer
-- Story NPC
-- Travel NPC
-- weitere Dienste
-
-NPCs bleiben PixelRPG-Inhalte.
 
 ---
 
@@ -547,78 +614,80 @@ PixelRPG ergänzt Minecraft, es ersetzt Minecraft nicht.
 4. native Dialog API
 5. `/dialogue`
 6. NPC → Dialog → Aktion
-7. Level 1–99
-8. XP
-9. Player Profile
-10. StatEngine
+7. NPC-Mannequin als zentrale PixelRPG-Schnittstelle
+8. G / `minecraft:quick_actions` ausschließlich für das eigene Spielerprofil
+9. Spielerprofil / Charakterkarte
+10. Level 1–99
+11. XP
+12. Player Profile
+13. StatEngine
 
 ### Phase 2 – RPG Combat
 
-11. Health
-12. Mana
-13. Klassen
-14. Combat Stats
-15. Mob Scaling
-16. Dimension Scaling
-17. XP Scaling
-18. Loot Scaling
+14. Health
+15. Mana
+16. Klassen
+17. Combat Stats
+18. Mob Scaling
+19. Dimension Scaling
+20. XP Scaling
+21. Loot Scaling
 
 ### Phase 3 – Equipment
 
-19. PixelRPG Item Identity
-20. Rarity
-21. Item Level
-22. Item Stats
-23. Armor
-24. Accessories
-25. Weapon Abilities
-26. Sets
-27. Gems/Runes vollständig entfernen
+22. PixelRPG Item Identity
+23. Rarity
+24. Item Level
+25. Item Stats
+26. Armor
+27. Accessories
+28. Weapon Abilities
+29. Sets
+30. Gems/Runes vollständig entfernen
 
 ### Phase 4 – Open World Content
 
-28. Quest-System
-29. Story
-30. NPC Services
-31. Shops
-32. Bank
-33. Economy
-34. Berufe
-35. PixelRPG Crafting
-36. World Bosse
-37. Open-World Events
+31. Quest-System
+32. Story
+33. NPC Services
+34. Shops
+35. Bank
+36. Economy
+37. Berufe
+38. PixelRPG Crafting
+39. World Bosse
+40. Open-World Events
 
 ### Phase 5 – Multiplayer
 
-38. Party
-39. Open-World Scaling für Gruppen
-40. Party XP
-41. gemeinsames Open-World Gameplay
-42. Loot-Verteilung
+41. Party
+42. Open-World Scaling für Gruppen
+43. Party XP
+44. gemeinsames Open-World Gameplay
+45. Loot-Verteilung
 
 ### Phase 6 – Feinschliff
 
-43. Vanilla-Kompatibilität vollständig prüfen
-44. registrierte vs. nicht registrierte Spieler testen
-45. Vanilla-Items vs. PixelRPG-Items testen
-46. Vanilla-Mobs vs. PixelRPG-Mobs testen
-47. Dimension Scaling testen
-48. Loot Scaling testen
-49. Dialog-Flows testen
-50. alte Rank-/Gem-/Rune-/Test-Reste vollständig entfernen
+46. Vanilla-Kompatibilität vollständig prüfen
+47. registrierte vs. nicht registrierte Spieler testen
+48. Vanilla-Items und PixelRPG-Items sauber trennen
+49. Vanilla-Mobs und PixelRPG-Skalierung sauber trennen
+50. Dialoge und NPC-Schnittstellen vereinheitlichen
+51. alte Rank-/Gem-/Rune-/Test-Reste entfernen
+52. Paper-26.2-API und native Mechaniken abschließend prüfen
 
 ---
 
-## Leitprinzip
+## Architektur-Leitsatz
 
-> **PixelRPG erweitert Minecraft, aber ersetzt Minecraft nicht.**
+> **PixelRPG ist eine optionale RPG-Ebene über Minecraft Vanilla.**
 >
-> Ein nicht registrierter Spieler spielt Minecraft.
+> **Ein Spieler wird erst durch die ausdrückliche Registrierung zum PixelRPG-Spieler.**
 >
-> Ein registrierter Spieler spielt Minecraft mit der PixelRPG-RPG-Ebene.
+> **NPC-Mannequins sind die Schnittstellen zu den PixelRPG-Systemen. Dialoge sind der primäre Interaktionsweg. Inventory-GUIs werden nur dort eingesetzt, wo ein Dialog nicht ausreicht.**
 >
-> Beide können gleichzeitig auf demselben Server und in derselben Welt existieren.
-
-Die Open World bleibt frei. Der Spieler darf überall hin. Schwierige Regionen werden nicht durch unsichtbare Level-Grenzen gesperrt, sondern durch stärkere Gegner und entsprechend skalierenden Content gefährlich gemacht.
-
-**Minecraft Vanilla ist die Welt. PixelRPG ist das RPG-System, das darin koexistiert.**
+> **Die G-Taste (`minecraft:quick_actions`) gehört ausschließlich zum eigenen Spielerprofil und öffnet die persönliche PixelRPG-Charakterkarte.**
+>
+> **Vanilla und PixelRPG müssen auf demselben Server und in derselben Welt koexistieren können, ohne sich gegenseitig zu beschädigen.**
+>
+> **Die Welt bleibt Open World. Progression entsteht durch Spieler-Level, dynamische Skalierung, Equipment, Waffenfähigkeiten, Quests, Berufe, Loot und Weltinhalte – nicht durch künstliche Gebietsgrenzen.**
