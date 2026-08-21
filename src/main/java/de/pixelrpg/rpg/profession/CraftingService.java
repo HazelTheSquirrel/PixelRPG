@@ -37,6 +37,8 @@ public final class CraftingService {
 
         CraftRecipe recipe = find(recipeId).orElse(null);
         if (recipe == null) return CraftResult.failure("Unknown recipe");
+        if (!profile.hasLearnedProfession(recipe.profession())) return CraftResult.failure("Profession not learned");
+        if (!profile.hasUnlockedRecipe(recipe.id())) return CraftResult.failure("Recipe not learned");
 
         int level = professionService.getLevel(player.getUniqueId(), recipe.profession());
         if (level < recipe.requiredProfessionLevel()) return CraftResult.failure("Profession level too low");
