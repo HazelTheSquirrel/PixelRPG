@@ -114,7 +114,11 @@ public final class BossManager {
             cleanup(activeBoss);
             return;
         }
-        updateBossBar(activeBoss, entity);
+        activeBoss.incrementBarUpdateTimer(phaseCheckIntervalTicks);
+        if (activeBoss.getTicksSinceLastBarUpdate() >= barUpdateIntervalTicks) {
+            activeBoss.resetBarUpdateTimer();
+            updateBossBar(activeBoss, entity);
+        }
         checkPhaseTransition(activeBoss, entity);
         runAttackPatternIfDue(activeBoss, entity);
     }
