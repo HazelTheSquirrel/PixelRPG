@@ -20,9 +20,11 @@ elytra:
 items:
   identification-cost:
     common: 20.0
+    uncommon: 30.0
     rare: 45.0
     epic: 90.0
     legendary: 180.0
+    unique: 360.0
   soulbound:
     cost: 200.0
     min-level: 30
