@@ -1,8 +1,10 @@
-# PixelRPG – Master Roadmap
+# PixelRPG – Master Roadmap — COMPLETE
 
 > **Verbindliche Projektspezifikation für die weitere Entwicklung von PixelRPG.**
 >
 > Diese Datei beschreibt nicht nur Ideen, sondern die technische und spielerische Richtung, gegen die zukünftige Implementierungen geprüft werden.
+>
+> **Status:** Die Entwicklungsreihenfolge dieser Roadmap wurde umgesetzt und der aktuelle `src/*`-Stand wurde gegen die definierten Kernregeln geprüft. Der nächste Schritt ist der separate Voll-Audit auf dem Server: Funktionstest, Polish und Bugfixing.
 
 ---
 
@@ -1128,73 +1130,33 @@ Eine Funktion gilt erst als fertig, wenn:
 > **5. G / `minecraft:quick_actions` ist das eigene Profil.**
 >
 > Keine Vermischung mit NPC-Interaktion.
-
+>
 > **6. Open World.**
 >
 > Keine Level-Gebiete und keine künstlichen Zugangssperren.
-
+>
 > **7. Scaling statt Sperren.**
 >
 > Nether und End dürfen gefährlich sein, ohne den Spieler auszusperren.
-
+>
 > **8. Waffen geben Fähigkeiten.**
 >
 > Kein Talent-/Character-Skill-System.
-
+>
 > **9. Gems und Runes sind Geschichte.**
 >
 > Sie gehören nicht zum zukünftigen Kernsystem.
-
+>
 > **10. WotLK ist Inspiration, nicht die Bauanleitung.**
 >
 > Nur passende MMO-Konzepte werden übernommen.
-
+>
 > **11. Minecraft Vanilla wird genutzt.**
 >
 > Vorhandene Mechaniken werden bevorzugt, bevor etwas neu gebaut wird.
-
+>
 > **12. Keine globalen Seiteneffekte.**
 >
 > Ein PixelRPG-Spieler darf nicht versehentlich das Vanilla-Spiel eines anderen Spielers verändern.
-
-> **13. `main` ist der Arbeitsstand.**
 >
-> Keine neuen Branches oder Tags ohne ausdrückliche Freigabe.
-
----
-
-# 34. Endziel
-
-Am Ende soll ein Spieler denselben Server auf zwei Arten erleben können:
-
-```text
-                    MINECRAFT SERVER
-                           │
-              ┌────────────┴────────────┐
-              │                         │
-       Vanilla-Spieler           PixelRPG-Spieler
-              │                         │
-       normales Minecraft         Registrierung
-                                        │
-                                  PixelRPG-Profil
-                                        │
-                         ┌──────────────┼──────────────┐
-                         │              │              │
-                       Level          Stats        Equipment
-                         │              │              │
-                         └──────────────┼──────────────┘
-                                        │
-                               Open-World-RPG
-                                        │
-                    ┌───────────────────┼──────────────────┐
-                    │                   │                  │
-                  Berufe             Quests             Combat
-                    │                   │                  │
-                    └───────────────────┼──────────────────┘
-                                        │
-                              dynamische Welt
-                                        │
-                         Overworld → Nether → End
-```
-
-**Das ist PixelRPG:** Minecraft bleibt die Welt. Die Registrierung aktiviert die RPG-Ebene. NPCs sind die Schnittstellen. Dialoge sind der primäre Zugang. G öffnet das eigene Profil. Level und Equipment bilden die Progression. Waffen liefern aktive Fähigkeiten. Die Open World bleibt frei. Die Schwierigkeit entsteht durch Skalierung statt durch künstliche Grenzen.
+> **13. `main` ist der Arbeitsstand.**
