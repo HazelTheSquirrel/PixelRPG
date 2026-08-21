@@ -98,12 +98,6 @@ public final class CombatDamageListener implements Listener {
             attacker.sendActionBar(lang.get("combat.set-bonus-proc"));
         }
         event.setDamage(damage);
-        if (targetIsBoss) {
-            PixelRPGPlugin plugin = PixelRPGPlugin.getInstance();
-            if (plugin != null && plugin.getBossManager() != null) {
-                plugin.getBossManager().recordDamage(target.getUniqueId(), attacker.getUniqueId(), damage);
-            }
-        }
         if (weaponLifesteal > 0.0) {
             var healthAttribute = attacker.getAttribute(Attribute.MAX_HEALTH);
             double maxHealth = healthAttribute != null ? healthAttribute.getValue() : attacker.getHealth();
