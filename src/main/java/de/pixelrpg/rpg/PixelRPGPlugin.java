@@ -205,7 +205,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new QuestBossStatisticListener(statisticsService), this);
         getServer().getPluginManager().registerEvents(new GuildCurrencyPickupListener(playerProfileManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new GuildCompassListener(npcManager, playerProfileManager), this);
-        getServer().getPluginManager().registerEvents(new SoulboundDeathListener(), this);
+        getServer().getPluginManager().registerEvents(new SoulboundDeathListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new ElytraPermissionListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(scoreboardService, this);
         getServer().getPluginManager().registerEvents(playtimeTracker, this);
@@ -231,15 +231,17 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (playtimeTracker != null) playtimeTracker.flushAll();
-        if (bossManager != null) bossManager.shutdownAll();
-        if (mobNameplateService != null) mobNameplateService.cancelAll();
-        if (npcManager != null) npcManager.saveAll();
-        if (shopManager != null) shopManager.save();
-        if (globalEventState != null) globalEventState.save();
+        if (equipmentAuraListener != null) equipmentAuraListener.stop();
+        if (questManager != null) questManager.shutdown();
+        if (scoreboardService != null) scoreboardService.shutdown();
+        if (playtimeTracker != null) playtimeTracker.shutdown();
+        if (bossManager != null) bossManager.shutdown();
+        if (shopManager != null) shopManager.shutdown();
         if (playerProfileManager != null) playerProfileManager.shutdown();
-        getLogger().info("PixelRPG core disabled.");
+        Bukkit.getServicesManager().unregisterAll(this);
+        instance = null;
     }
 
     public static PixelRPGPlugin getInstance() { return instance; }
+    public LanguageManager getLanguageManager() { return languageManager; }
 }
