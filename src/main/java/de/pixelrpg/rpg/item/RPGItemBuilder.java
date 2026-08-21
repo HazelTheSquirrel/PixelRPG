@@ -46,6 +46,7 @@ public final class RPGItemBuilder {
         lore.add(Component.text("Bring this to the Blacksmith", NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("to reveal its true power.", NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("Item Level: " + itemLevel, NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("Required Level: " + itemLevel, NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
 
         var pdc = meta.getPersistentDataContainer();
         pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, false);
@@ -96,6 +97,7 @@ public final class RPGItemBuilder {
                 .append(rarity.displayName())
                 .decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("Item Level: " + itemLevel, NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("Required Level: " + itemLevel, NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("Category: ", NamedTextColor.GRAY)
                 .append(category.displayName())
                 .decoration(TextDecoration.ITALIC, false));
