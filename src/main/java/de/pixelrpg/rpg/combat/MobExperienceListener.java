@@ -2,8 +2,10 @@ package de.pixelrpg.rpg.combat;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.GuildAPI;
+import de.pixelrpg.rpg.api.PartyAPI;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.lang.LanguageManager;
+import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
@@ -12,21 +14,31 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.plugin.RegisteredServiceProvider;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 
 public final class MobExperienceListener implements Listener {
 
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
     private final LanguageManager lang;
+    private final PartyAPI partyAPI;
+    private final double partyShareRange;
 
     public MobExperienceListener(GuildAPI guildAPI, MobScalingConfig scalingConfig) {
         this.guildAPI = guildAPI;
         this.scalingConfig = scalingConfig;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
+        RegisteredServiceProvider<PartyAPI> provider = Bukkit.getServicesManager().getRegistration(PartyAPI.class);
+        this.partyAPI = provider != null ? provider.getProvider() : null;
+        this.partyShareRange = Math.max(0.0, PixelRPGPlugin.getInstance().getConfig().getDouble("quests.party-share-range", 24.0));
     }
 
-    // Zuständig für die Vergabe von Gilden-Erfahrungspunkten an registrierte
-    // Spieler beim Töten von Monstern, proportional zur maximalen HP des Mobs.
+    // Zuständig für die Vergabe von RPG-Erfahrung an registrierte Spieler beim Töten von Monstern.
     @EventHandler(priority = EventPriority.HIGH)
     public void onMonsterDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
@@ -41,13 +53,62 @@ public final class MobExperienceListener implements Listener {
 
         var maxHealthAttribute = entity.getAttribute(Attribute.MAX_HEALTH);
         double maxHealth = maxHealthAttribute != null ? maxHealthAttribute.getBaseValue() : 20.0;
-
         long xpReward = Math.round(maxHealth * scalingConfig.getXpPerMaxHealth());
-        if (xpReward <= 0) {
+        if (xpReward <= 0L) {
             return;
         }
 
-        guildAPI.addExperience(killer.getUniqueId(), xpReward);
-        killer.sendActionBar(lang.get("xp.gained", "amount", String.valueOf(xpReward)));
+        List<Player> recipients = resolveRecipients(killer);
+        if (recipients.isEmpty()) {
+            return;
+        }
+
+        long sharedXp = xpReward / recipients.size();
+        long remainder = xpReward % recipients.size();
+
+        for (int index = 0; index < recipients.size(); index++) {
+            Player recipient = recipients.get(index);
+            long amount = sharedXp + (index < remainder ? 1L : 0L);
+            if (amount <= 0L) {
+                continue;
+            }
+            guildAPI.addExperience(recipient.getUniqueId(), amount);
+            recipient.sendActionBar(lang.get("xp.gained", "amount", String.valueOf(amount)));
+        }
+    }
+
+    private List<Player> resolveRecipients(Player killer) {
+        if (partyAPI == null || !partyAPI.isInParty(killer.getUniqueId())) {
+            return List.of(killer);
+        }
+
+        double maxDistanceSquared = partyShareRange * partyShareRange;
+        UUID killerUuid = killer.getUniqueId();
+        List<Player> recipients = new ArrayList<>();
+
+        for (UUID memberUuid : partyAPI.getPartyMembers(killerUuid)) {
+            if (!guildAPI.isRegistered(memberUuid)) {
+                continue;
+            }
+
+            Player member = Bukkit.getPlayer(memberUuid);
+            if (member == null || !member.isOnline()) {
+                continue;
+            }
+            if (!member.getWorld().equals(killer.getWorld())) {
+                continue;
+            }
+            if (member.getLocation().distanceSquared(killer.getLocation()) > maxDistanceSquared) {
+                continue;
+            }
+            recipients.add(member);
+        }
+
+        if (recipients.stream().noneMatch(player -> player.getUniqueId().equals(killerUuid))) {
+            recipients.add(killer);
+        }
+
+        recipients.sort(Comparator.comparing(player -> !player.getUniqueId().equals(killerUuid)));
+        return recipients;
     }
 }
