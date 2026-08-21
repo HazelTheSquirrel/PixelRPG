@@ -39,7 +39,8 @@ public final class WeaponAbilityEngine {
         var pdc = weapon.getItemMeta().getPersistentDataContainer();
         if (!Boolean.TRUE.equals(pdc.get(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN))) return;
         String category = pdc.get(RPGKeys.Item.category(), PersistentDataType.STRING);
-        if (!ItemCategory.WEAPON.name().equals(category)) return;
+        if (category == null) return;
+        if (!ItemCategory.MELEE_WEAPON.name().equals(category) && !ItemCategory.RANGED_WEAPON.name().equals(category)) return;
         String abilityId = pdc.get(RPGKeys.Item.weaponAbility(), PersistentDataType.STRING);
         if (abilityId == null || abilityId.isBlank()) return;
 
@@ -118,5 +119,7 @@ public final class WeaponAbilityEngine {
         return true;
     }
 
-    private String format(double value) { return String.format(java.util.Locale.ROOT, "%.1f", value); }
+    private static String format(double value) {
+        return String.format(java.util.Locale.ROOT, "%.1f", value);
+    }
 }
