@@ -17,6 +17,10 @@ public final class QuickActionsDialogService {
         this.statEngine = statEngine;
     }
 
+    public PlayerProfileManager profileManager() {
+        return profiles;
+    }
+
     public boolean isAvailable(Player player) {
         return profiles.isRegistered(player.getUniqueId());
     }
