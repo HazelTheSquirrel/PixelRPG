@@ -56,7 +56,7 @@ public final class PixelRPGBootstrap implements PluginBootstrap {
                                                 180,
                                                 DialogAction.customClick(CLOSE_ACTION, null)
                                         )
-                                )))
+                                )).build())
                 )));
 
         context.getLifecycleManager().registerEventHandler(
