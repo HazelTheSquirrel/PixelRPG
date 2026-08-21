@@ -22,7 +22,7 @@ public final class StatEngine {
     public record CachedStats(double maxHealth, double armor, double movementSpeedBonus, double blockReach,
                               double entityReach, double bonusDamage, double critChance,
                               double critDamageMultiplier, double lifestealBonus) {
-        public static final CachedStats EMPTY = new CachedStats(20.0, 0.0, 0.0, 0.0, 0.0, 5.0, 2.0, 0.0, 0.0);
+        public static final CachedStats EMPTY = new CachedStats(20.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 2.0, 0.0);
     }
 
     private final PlayerProfileManager profileManager;
