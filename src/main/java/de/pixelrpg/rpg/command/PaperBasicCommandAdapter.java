@@ -26,7 +26,6 @@ public final class PaperBasicCommandAdapter implements BasicCommand {
                 return executor.onCommand(sender, this, commandLabel, args);
             }
         };
-        this.tabCompleter = tabCompleter;
         this.permission = permission;
     }
 
