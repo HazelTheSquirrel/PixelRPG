@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.npc;
 
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.profession.Profession;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -24,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 public final class NpcManager {
-
     private final Plugin plugin;
     private final File file;
     private final Map<String, RPGNpc> npcsById = new ConcurrentHashMap<>();
@@ -40,7 +40,6 @@ public final class NpcManager {
     public void loadAll() {
         despawnAllTracked();
         npcsById.clear();
-
         if (!file.exists()) return;
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
@@ -54,25 +53,32 @@ public final class NpcManager {
 
             NpcType type = parseType(section.getString("type"));
             if (type == null) continue;
-
             String name = section.getString("name", "NPC");
-            String worldName = section.getString("world");
-            World world = worldName != null ? Bukkit.getWorld(worldName) : null;
+            World world = section.getString("world") == null ? null : Bukkit.getWorld(section.getString("world"));
             if (world == null) continue;
 
             Location location = new Location(world, section.getDouble("x"), section.getDouble("y"), section.getDouble("z"),
                     (float) section.getDouble("yaw"), (float) section.getDouble("pitch"));
             String skinSource = section.getString("skin-source", null);
-            RPGNpc npc = new RPGNpc(id, type, name, location, skinSource);
-            npcsById.put(id, npc);
+            Profession profession = parseProfession(section.getString("profession"));
+            if (type == NpcType.PROFESSION_TRAINER && profession == null) {
+                plugin.getLogger().warning("Skipping profession trainer NPC " + id + ": missing profession.");
+                continue;
+            }
 
+            RPGNpc npc = new RPGNpc(id, type, name, location, skinSource, profession);
+            npcsById.put(id, npc);
             if (world.isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) spawnEntityFor(npc);
         }
     }
 
     public RPGNpc create(NpcType type, String name, Location location, String skinSource) {
+        return create(type, name, location, skinSource, null);
+    }
+
+    public RPGNpc create(NpcType type, String name, Location location, String skinSource, Profession profession) {
         String id = String.valueOf(nextId.getAndIncrement());
-        RPGNpc npc = new RPGNpc(id, type, name, location.clone(), skinSource);
+        RPGNpc npc = new RPGNpc(id, type, name, location.clone(), skinSource, profession);
         npcsById.put(id, npc);
         spawnEntityFor(npc);
         saveAll();
@@ -102,10 +108,9 @@ public final class NpcManager {
     public boolean updateSkin(String npcId, String newSkinSource) {
         RPGNpc existing = npcsById.get(npcId);
         if (existing == null) return false;
-        RPGNpc updated = new RPGNpc(existing.id(), existing.type(), existing.name(), existing.location(), newSkinSource);
+        RPGNpc updated = new RPGNpc(existing.id(), existing.type(), existing.name(), existing.location(), newSkinSource, existing.profession());
         npcsById.put(npcId, updated);
         saveAll();
-
         UUID entityUuid = spawnedEntityByNpcId.get(npcId);
         if (entityUuid != null) {
             Entity entity = Bukkit.getEntity(entityUuid);
@@ -127,9 +132,7 @@ public final class NpcManager {
         String worldName = chunk.getWorld().getName();
         for (RPGNpc npc : npcsById.values()) {
             if (!npc.location().getWorld().getName().equals(worldName)) continue;
-            int npcChunkX = npc.location().getBlockX() >> 4;
-            int npcChunkZ = npc.location().getBlockZ() >> 4;
-            if (npcChunkX == chunkX && npcChunkZ == chunkZ) spawnEntityFor(npc);
+            if ((npc.location().getBlockX() >> 4) == chunkX && (npc.location().getBlockZ() >> 4) == chunkZ) spawnEntityFor(npc);
         }
     }
 
@@ -144,10 +147,9 @@ public final class NpcManager {
     public boolean rename(String id, String newName) {
         RPGNpc existing = npcsById.get(id);
         if (existing == null) return false;
-        RPGNpc updated = new RPGNpc(existing.id(), existing.type(), newName, existing.location(), existing.skinSource());
+        RPGNpc updated = new RPGNpc(existing.id(), existing.type(), newName, existing.location(), existing.skinSource(), existing.profession());
         npcsById.put(id, updated);
         saveAll();
-
         UUID entityUuid = spawnedEntityByNpcId.get(id);
         if (entityUuid != null) {
             Entity entity = Bukkit.getEntity(entityUuid);
@@ -184,6 +186,7 @@ public final class NpcManager {
             yaml.set(path + ".yaw", (double) npc.location().getYaw());
             yaml.set(path + ".pitch", (double) npc.location().getPitch());
             if (npc.hasCustomSkin()) yaml.set(path + ".skin-source", npc.skinSource());
+            if (npc.profession() != null) yaml.set(path + ".profession", npc.profession().name());
         }
         try {
             yaml.save(file);
@@ -211,10 +214,13 @@ public final class NpcManager {
 
     private NpcType parseType(String raw) {
         if (raw == null) return null;
-        try {
-            return NpcType.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+        try { return NpcType.valueOf(raw.trim().toUpperCase()); }
+        catch (IllegalArgumentException e) { return null; }
+    }
+
+    private Profession parseProfession(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        try { return Profession.valueOf(raw.trim().toUpperCase()); }
+        catch (IllegalArgumentException e) { return null; }
     }
 }
