@@ -10,6 +10,9 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -44,8 +47,10 @@ public final class StatEngine {
         }
 
         ClassBalance classBalance = ClassBalance.of(profile);
-        double maxHealth = 20.0 + classBalance.healthBonus();
-        double armor = classBalance.armorBonus();
+        double itemArmor = getEquippedItemArmor(player);
+        double itemHealth = getEquippedItemHealth(player);
+        double maxHealth = 20.0 + classBalance.healthBonus() + itemHealth;
+        double armor = classBalance.armorBonus() + itemArmor;
         double movementSpeedBonus = classBalance.speedBonus();
         double blockReach = 0.0;
         double entityReach = 0.0;
@@ -57,7 +62,7 @@ public final class StatEngine {
         int vitality = profile.getAttributePoints(PlayerAttribute.VITALITY);
         int agility = profile.getAttributePoints(PlayerAttribute.AGILITY);
         int precision = profile.getAttributePoints(PlayerAttribute.PRECISION);
-        int range = profile.getAttributePoints(PlayerAttribute.RANGE);
+        int range = Math.max(0, profile.getAttributePoints(PlayerAttribute.RANGE));
         int toughness = profile.getAttributePoints(PlayerAttribute.TOUGHNESS);
 
         maxHealth += vitality * AttributeConfig.VITALITY_HP_PER_POINT;
@@ -146,6 +151,36 @@ public final class StatEngine {
 
     public double getMaxMana(Player player) {
         return getCachedStats(player.getUniqueId()).maxMana();
+    }
+
+    private double getEquippedItemArmor(Player player) {
+        double total = 0.0;
+        for (ItemStack item : equippedItems(player)) {
+            if (item == null || !item.hasItemMeta()) continue;
+            total += item.getItemMeta().getPersistentDataContainer()
+                    .getOrDefault(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, 0.0);
+        }
+        return total;
+    }
+
+    private double getEquippedItemHealth(Player player) {
+        double total = 0.0;
+        for (ItemStack item : equippedItems(player)) {
+            if (item == null || !item.hasItemMeta()) continue;
+            total += item.getItemMeta().getPersistentDataContainer()
+                    .getOrDefault(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, 0.0);
+        }
+        return total;
+    }
+
+    private ItemStack[] equippedItems(Player player) {
+        PlayerInventory inventory = player.getInventory();
+        ItemStack[] armor = inventory.getArmorContents();
+        ItemStack[] equipped = new ItemStack[armor.length + 2];
+        System.arraycopy(armor, 0, equipped, 0, armor.length);
+        equipped[armor.length] = inventory.getItemInMainHand();
+        equipped[armor.length + 1] = inventory.getItemInOffHand();
+        return equipped;
     }
 
     private void applyModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key, double value) {
