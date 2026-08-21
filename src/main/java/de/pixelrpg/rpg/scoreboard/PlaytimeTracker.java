@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.Map;
 import java.util.UUID;
@@ -19,6 +20,7 @@ public final class PlaytimeTracker implements Listener {
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
     private final Map<UUID, Long> sessionStart = new ConcurrentHashMap<>();
+    private BukkitTask autosaveTask;
 
     public PlaytimeTracker(Plugin plugin, PlayerProfileManager profileManager) {
         this.plugin = plugin;
@@ -26,7 +28,17 @@ public final class PlaytimeTracker implements Listener {
     }
 
     public void startAutosaveTask(int intervalTicks) {
-        Bukkit.getScheduler().runTaskTimer(plugin, this::flushAll, intervalTicks, intervalTicks);
+        if (autosaveTask != null) return;
+        autosaveTask = Bukkit.getScheduler().runTaskTimer(plugin, this::flushAll, intervalTicks, intervalTicks);
+    }
+
+    public void shutdown() {
+        if (autosaveTask != null) {
+            autosaveTask.cancel();
+            autosaveTask = null;
+        }
+        flushAll();
+        sessionStart.clear();
     }
 
     // Zuständig für den Start einer Spielzeit-Sitzung registrierter Spieler.
@@ -51,9 +63,10 @@ public final class PlaytimeTracker implements Listener {
         sessionStart.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
     }
 
-    // Zuständig dafür, dass beim Verlassen von PixelRPG keine weitere Spielzeit gesammelt wird.
+    // Zuständig dafür, dass beim Verlassen von PixelRPG die bis dahin gesammelte Spielzeit gespeichert wird.
     @EventHandler
     public void onGuildLeave(PlayerLeaveGuildEvent event) {
+        flush(event.getPlayer().getUniqueId());
         sessionStart.remove(event.getPlayer().getUniqueId());
     }
 
