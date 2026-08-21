@@ -255,4 +255,8 @@ public final class BossManager {
     public void shutdownAll() {
         for (ActiveBoss activeBoss : activeBosses.values()) cleanup(activeBoss);
     }
+
+    public void shutdown() {
+        shutdownAll();
+    }
 }
