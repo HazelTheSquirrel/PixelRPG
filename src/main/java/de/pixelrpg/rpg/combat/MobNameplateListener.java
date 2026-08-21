@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.combat;
 
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.core.RPGKeys;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -21,7 +22,7 @@ public final class MobNameplateListener implements Listener {
         this.guildAPI = guildAPI;
     }
 
-    // Zuständig für die Anzeige von Level-, HP- und Rüstungsinformationen eines RPG-Mobs nach einem Treffer.
+    // Zuständig für die Anzeige der RPG-Mob-Nameplate nach einem Treffer durch einen registrierten Spieler.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerDamageMob(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity target)) return;
@@ -36,6 +37,16 @@ public final class MobNameplateListener implements Listener {
         }
 
         if (damager == null || !guildAPI.isRegistered(damager.getUniqueId())) return;
-        nameplateService.onPlayerHit(target, damager.getUniqueId());
+
+        Player finalDamager = damager;
+        Bukkit.getScheduler().runTask(nameplateServicePlugin(), () -> {
+            if (target.isValid() && !target.isDead()) {
+                nameplateService.onPlayerHit(target, finalDamager.getUniqueId());
+            }
+        });
+    }
+
+    private org.bukkit.plugin.Plugin nameplateServicePlugin() {
+        return org.bukkit.Bukkit.getPluginManager().getPlugin("PixelRPG");
     }
 }
