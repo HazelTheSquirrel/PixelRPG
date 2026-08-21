@@ -47,8 +47,8 @@ public final class StatEngine {
         }
 
         ClassBalance classBalance = ClassBalance.of(profile);
-        double itemArmor = getEquippedItemArmor(player);
-        double itemHealth = getEquippedItemHealth(player);
+        double itemArmor = getEquippedItemArmor(player, profile.getLevel());
+        double itemHealth = getEquippedItemHealth(player, profile.getLevel());
         double maxHealth = 20.0 + classBalance.healthBonus() + itemHealth;
         double armor = classBalance.armorBonus() + itemArmor;
         double movementSpeedBonus = classBalance.speedBonus();
@@ -153,24 +153,30 @@ public final class StatEngine {
         return getCachedStats(player.getUniqueId()).maxMana();
     }
 
-    private double getEquippedItemArmor(Player player) {
+    private double getEquippedItemArmor(Player player, int playerLevel) {
         double total = 0.0;
         for (ItemStack item : equippedItems(player)) {
-            if (item == null || !item.hasItemMeta()) continue;
+            if (item == null || !item.hasItemMeta() || !meetsLevelRequirement(item, playerLevel)) continue;
             total += item.getItemMeta().getPersistentDataContainer()
                     .getOrDefault(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, 0.0);
         }
         return total;
     }
 
-    private double getEquippedItemHealth(Player player) {
+    private double getEquippedItemHealth(Player player, int playerLevel) {
         double total = 0.0;
         for (ItemStack item : equippedItems(player)) {
-            if (item == null || !item.hasItemMeta()) continue;
+            if (item == null || !item.hasItemMeta() || !meetsLevelRequirement(item, playerLevel)) continue;
             total += item.getItemMeta().getPersistentDataContainer()
                     .getOrDefault(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, 0.0);
         }
         return total;
+    }
+
+    private boolean meetsLevelRequirement(ItemStack item, int playerLevel) {
+        Integer itemLevel = item.getItemMeta().getPersistentDataContainer()
+                .get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
+        return itemLevel == null || playerLevel >= itemLevel;
     }
 
     private ItemStack[] equippedItems(Player player) {
