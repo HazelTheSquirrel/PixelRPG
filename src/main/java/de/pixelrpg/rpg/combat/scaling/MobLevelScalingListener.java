@@ -29,6 +29,7 @@ public final class MobLevelScalingListener implements Listener {
     private final Plugin plugin;
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
+    private final RegionDangerProvider regionDangerProvider;
     private final Map<UUID, Map<UUID, Long>> activeParticipants = new ConcurrentHashMap<>();
     private BukkitTask cleanupTask;
 
@@ -36,6 +37,8 @@ public final class MobLevelScalingListener implements Listener {
         this.plugin = plugin;
         this.guildAPI = guildAPI;
         this.scalingConfig = scalingConfig;
+        RegionDangerProvider provider = Bukkit.getServicesManager().load(RegionDangerProvider.class);
+        this.regionDangerProvider = provider != null ? provider : new DefaultRegionDangerProvider();
     }
 
     public void start() {
@@ -96,8 +99,8 @@ public final class MobLevelScalingListener implements Listener {
                 .max()
                 .orElse(Level.MIN_LEVEL);
 
-        int regionMin = Math.max(Level.MIN_LEVEL, resolveRegionProvider().getMinLevel(monster.getLocation()));
-        int regionMax = Math.min(Level.MAX_NORMAL_LEVEL, resolveRegionProvider().getMaxLevel(monster.getLocation()));
+        int regionMin = Math.max(Level.MIN_LEVEL, regionDangerProvider.getMinLevel(monster.getLocation()));
+        int regionMax = Math.min(Level.MAX_NORMAL_LEVEL, regionDangerProvider.getMaxLevel(monster.getLocation()));
         if (regionMin > regionMax) {
             int tmp = regionMin;
             regionMin = regionMax;
@@ -123,7 +126,6 @@ public final class MobLevelScalingListener implements Listener {
 
         AttributeInstance attackDamage = monster.getAttribute(Attribute.ATTACK_DAMAGE);
         if (attackDamage != null) attackDamage.setBaseValue(damage);
-
         monster.getPersistentDataContainer().set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, targetLevel);
     }
 
@@ -142,14 +144,12 @@ public final class MobLevelScalingListener implements Listener {
 
     private void restoreExpiredScaling() {
         long now = System.currentTimeMillis();
-
         for (UUID mobUuid : activeParticipants.keySet()) {
             Map<UUID, Long> participants = activeParticipants.get(mobUuid);
             if (participants == null) continue;
 
             participants.entrySet().removeIf(entry -> now - entry.getValue() >= COMBAT_TIMEOUT_MILLIS || !guildAPI.isRegistered(entry.getKey()));
             var entity = Bukkit.getEntity(mobUuid);
-
             if (!(entity instanceof Monster monster)) {
                 activeParticipants.remove(mobUuid);
                 continue;
@@ -160,7 +160,6 @@ public final class MobLevelScalingListener implements Listener {
                 activeParticipants.remove(mobUuid);
                 continue;
             }
-
             applyScaling(monster);
         }
     }
@@ -185,10 +184,5 @@ public final class MobLevelScalingListener implements Listener {
         pdc.remove(RPGKeys.Combat.mobLevel());
         pdc.remove(RPGKeys.Combat.originalMaxHealth());
         pdc.remove(RPGKeys.Combat.originalAttackDamage());
-    }
-
-    private RegionDangerProvider resolveRegionProvider() {
-        RegionDangerProvider provider = Bukkit.getServicesManager().load(RegionDangerProvider.class);
-        return provider != null ? provider : new DefaultRegionDangerProvider();
     }
 }
