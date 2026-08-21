@@ -1,7 +1,5 @@
-// src/main/java/de/pixelrpg/rpg/api/GuildAPI.java
 package de.pixelrpg.rpg.api;
 
-import de.pixelrpg.rpg.core.Rank;
 import de.pixelrpg.rpg.player.PlayerAttribute;
 import de.pixelrpg.rpg.player.PlayerClass;
 
@@ -11,7 +9,7 @@ public interface GuildAPI {
 
     boolean isRegistered(UUID uuid);
 
-    Rank getRank(UUID uuid);
+    int getLevel(UUID uuid);
 
     PlayerClass getPlayerClass(UUID uuid);
 
