@@ -73,8 +73,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     }
 
     public void shutdown() {
-        List<CompletableFuture<Void>> pending = activeProfiles.values().stream()
-                .map(profile -> enqueueVoid(profile.getUuid(), () -> persistSync(profile))).toList();
+        List<CompletableFuture<Void>> pending = activeProfiles.values().stream().map(profile -> enqueueVoid(profile.getUuid(), () -> persistSync(profile))).toList();
         try { CompletableFuture.allOf(pending.toArray(new CompletableFuture[0])).get(30, TimeUnit.SECONDS); }
         catch (Exception e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Not all player profiles could be flushed cleanly on shutdown.", e); }
         if (saveExecutor != null) {
@@ -115,11 +114,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         activeProfiles.put(uuid, profile != null ? profile : new PlayerProfile(uuid));
     }
 
-    public void deactivateOnQuit(UUID uuid) {
-        PlayerProfile profile = activeProfiles.remove(uuid);
-        if (profile != null) persistAsync(profile);
-    }
-
+    public void deactivateOnQuit(UUID uuid) { PlayerProfile profile = activeProfiles.remove(uuid); if (profile != null) persistAsync(profile); }
     public Optional<PlayerProfile> getProfile(UUID uuid) { return Optional.ofNullable(activeProfiles.get(uuid)); }
 
     public void registerToGuild(Player player) {
@@ -181,58 +176,31 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         return AttributePurchaseResult.SUCCESS;
     }
 
-    public void unlockWaypoint(UUID uuid, String waypointId) {
-        PlayerProfile profile = activeProfiles.get(uuid);
-        if (profile != null) {
-            profile.unlockWaypoint(waypointId);
-            persistAsync(profile);
-        }
-    }
-
-    public void saveProfileAsync(UUID uuid) {
-        PlayerProfile profile = activeProfiles.get(uuid);
-        if (profile != null) persistAsync(profile);
-    }
-
+    public void unlockWaypoint(UUID uuid, String waypointId) { PlayerProfile profile = activeProfiles.get(uuid); if (profile != null) { profile.unlockWaypoint(waypointId); persistAsync(profile); } }
+    public void saveProfileAsync(UUID uuid) { PlayerProfile profile = activeProfiles.get(uuid); if (profile != null) persistAsync(profile); }
     private void persistAsync(PlayerProfile profile) { enqueueVoid(profile.getUuid(), () -> persistSync(profile)); }
 
     private void persistSync(PlayerProfile profile) {
         if (!profile.isDirty()) return;
-        try {
-            repository.save(profile);
-            profile.markClean();
-        } catch (Exception e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to save profile for " + profile.getUuid(), e);
-            if (storageType == StorageType.MYSQL) writeEmergencyBackup(profile);
-        }
+        try { repository.save(profile); profile.markClean(); }
+        catch (Exception e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to save profile for " + profile.getUuid(), e); if (storageType == StorageType.MYSQL) writeEmergencyBackup(profile); }
     }
 
     private void writeEmergencyBackup(PlayerProfile profile) {
-        try {
-            File folder = new File(plugin.getDataFolder(), "emergency");
-            YamlPlayerProfileRepository emergency = new YamlPlayerProfileRepository(folder);
-            emergency.init();
-            emergency.save(profile);
-        } catch (Exception e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Emergency backup failed for " + profile.getUuid(), e);
-        }
+        try { File folder = new File(plugin.getDataFolder(), "emergency"); YamlPlayerProfileRepository emergency = new YamlPlayerProfileRepository(folder); emergency.init(); emergency.save(profile); }
+        catch (Exception e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Emergency backup failed for " + profile.getUuid(), e); }
     }
 
     private <T> CompletableFuture<T> enqueue(UUID uuid, Supplier<T> task) {
         CompletableFuture<T> result = new CompletableFuture<>();
         saveChain.compute(uuid, (id, previous) -> {
             CompletableFuture<Void> base = previous != null ? previous : CompletableFuture.completedFuture(null);
-            return base.exceptionally(ignored -> null).thenRunAsync(() -> {
-                try { result.complete(task.get()); }
-                catch (Throwable throwable) { result.completeExceptionally(throwable); }
-            }, saveExecutor);
+            return base.exceptionally(ignored -> null).thenRunAsync(() -> { try { result.complete(task.get()); } catch (Throwable throwable) { result.completeExceptionally(throwable); } }, saveExecutor);
         });
         return result;
     }
 
-    private CompletableFuture<Void> enqueueVoid(UUID uuid, Runnable task) {
-        return enqueue(uuid, () -> { task.run(); return null; });
-    }
+    private CompletableFuture<Void> enqueueVoid(UUID uuid, Runnable task) { return enqueue(uuid, () -> { task.run(); return null; }); }
 
     @Override public boolean isRegistered(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null && p.isRegisteredInGuild(); }
     @Override public int getLevel(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null ? p.getLevel() : Level.MIN_LEVEL; }
@@ -259,9 +227,12 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     @Override public void deposit(UUID uuid, double amount) { PlayerProfile p = activeProfiles.get(uuid); if (p != null && p.isRegisteredInGuild()) { p.addMoney(amount); persistAsync(p); } }
     @Override public boolean withdraw(UUID uuid, double amount) { PlayerProfile p = activeProfiles.get(uuid); if (p == null || !p.isRegisteredInGuild()) return false; boolean success = p.removeMoney(amount); if (success) persistAsync(p); return success; }
 
-    /** @deprecated Legacy source compatibility; LEVEL_TOO_LOW is the canonical result. */
-    @Deprecated(forRemoval = true)
-    public static final AttributePurchaseResult RANK_TOO_LOW = AttributePurchaseResult.LEVEL_TOO_LOW;
-
-    public enum AttributePurchaseResult { SUCCESS, NOT_REGISTERED, MAX_REACHED, LEVEL_TOO_LOW, INSUFFICIENT_FUNDS }
+    public enum AttributePurchaseResult {
+        SUCCESS,
+        NOT_REGISTERED,
+        MAX_REACHED,
+        LEVEL_TOO_LOW,
+        @Deprecated(forRemoval = true) RANK_TOO_LOW,
+        INSUFFICIENT_FUNDS
+    }
 }
