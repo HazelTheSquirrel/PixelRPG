@@ -34,10 +34,7 @@ public final class MobLevelScalingListener implements Listener {
 
         if (event.getTarget() instanceof Player player && guildAPI.isRegistered(player.getUniqueId())) {
             applyScaling(monster, guildAPI.getLevel(player.getUniqueId()));
-            return;
         }
-
-        restoreVanillaScaling(monster);
     }
 
     // Zuständig dafür, dass ein registrierter Angreifer die Skalierung auch dann bestimmt, wenn der Mob keinen Zielwechsel ausführt.
@@ -53,13 +50,9 @@ public final class MobLevelScalingListener implements Listener {
             ProjectileSource shooter = projectile.getShooter();
             if (shooter instanceof Player player) attacker = player;
         }
-        if (attacker == null) return;
+        if (attacker == null || !guildAPI.isRegistered(attacker.getUniqueId())) return;
 
-        if (guildAPI.isRegistered(attacker.getUniqueId())) {
-            applyScaling(monster, guildAPI.getLevel(attacker.getUniqueId()));
-        } else {
-            restoreVanillaScaling(monster);
-        }
+        applyScaling(monster, guildAPI.getLevel(attacker.getUniqueId()));
     }
 
     private void applyScaling(Monster monster, int playerLevel) {
@@ -75,7 +68,8 @@ public final class MobLevelScalingListener implements Listener {
 
         MobScalingConfig.DimensionModifier dimension = scalingConfig.getDimensionModifier(monster.getWorld().getEnvironment());
         int baselineLevel = Math.max(playerLevel, dimension.baseLevel());
-        int targetLevel = baselineLevel + dimension.levelOffset();
+        int existingLevel = monster.getPersistentDataContainer().getOrDefault(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, Level.MIN_LEVEL);
+        int targetLevel = Math.max(existingLevel, baselineLevel) + dimension.levelOffset();
         targetLevel = Math.max(regionMin, Math.min(targetLevel, regionMax));
         targetLevel = Math.max(Level.MIN_LEVEL, Math.min(targetLevel, Level.MAX_NORMAL_LEVEL));
 
@@ -108,28 +102,6 @@ public final class MobLevelScalingListener implements Listener {
         if (attackDamage != null && !pdc.has(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE)) {
             pdc.set(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE, attackDamage.getBaseValue());
         }
-    }
-
-    private void restoreVanillaScaling(Monster monster) {
-        var pdc = monster.getPersistentDataContainer();
-        if (!pdc.has(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER)) return;
-
-        AttributeInstance hp = monster.getAttribute(Attribute.MAX_HEALTH);
-        Double originalMaxHp = pdc.get(RPGKeys.Combat.originalMaxHealth(), PersistentDataType.DOUBLE);
-        if (hp != null && originalMaxHp != null) {
-            double oldMaxHp = Math.max(1.0, hp.getValue());
-            double healthRatio = Math.max(0.0, Math.min(1.0, monster.getHealth() / oldMaxHp));
-            hp.setBaseValue(originalMaxHp);
-            monster.setHealth(Math.max(0.0, Math.min(originalMaxHp, originalMaxHp * healthRatio)));
-        }
-
-        AttributeInstance attackDamage = monster.getAttribute(Attribute.ATTACK_DAMAGE);
-        Double originalAttackDamage = pdc.get(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE);
-        if (attackDamage != null && originalAttackDamage != null) attackDamage.setBaseValue(originalAttackDamage);
-
-        pdc.remove(RPGKeys.Combat.mobLevel());
-        pdc.remove(RPGKeys.Combat.originalMaxHealth());
-        pdc.remove(RPGKeys.Combat.originalAttackDamage());
     }
 
     private RegionDangerProvider resolveRegionProvider() {
