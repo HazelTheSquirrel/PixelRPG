@@ -38,10 +38,8 @@ public final class WeaponAbilityEngine {
         if (!weapon.hasItemMeta()) return;
         var pdc = weapon.getItemMeta().getPersistentDataContainer();
         if (!Boolean.TRUE.equals(pdc.get(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN))) return;
-
         String category = pdc.get(RPGKeys.Item.category(), PersistentDataType.STRING);
         if (!ItemCategory.WEAPON.name().equals(category)) return;
-
         String abilityId = pdc.get(RPGKeys.Item.weaponAbility(), PersistentDataType.STRING);
         if (abilityId == null || abilityId.isBlank()) return;
 
@@ -73,11 +71,13 @@ public final class WeaponAbilityEngine {
             case "ARCANE_BURST" -> arcaneBurst(player, weaponDamage);
             default -> false;
         };
-
         if (!executed) return;
+
         if (manaCost > 0.0) statEngine.consumeMana(player, manaCost);
         if (cooldown > 0L) cooldownExpiry.put(player.getUniqueId(), now + cooldown);
     }
+
+    public void clearCooldown(UUID uuid) { cooldownExpiry.remove(uuid); }
 
     private boolean heavyStrike(Player player, double weaponDamage) {
         Entity target = player.getTargetEntity(8, false);
@@ -118,7 +118,5 @@ public final class WeaponAbilityEngine {
         return true;
     }
 
-    private String format(double value) {
-        return String.format(java.util.Locale.ROOT, "%.1f", value);
-    }
+    private String format(double value) { return String.format(java.util.Locale.ROOT, "%.1f", value); }
 }
