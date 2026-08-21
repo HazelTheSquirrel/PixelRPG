@@ -50,6 +50,15 @@ public final class RootCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        // Paper 26.2 may request root suggestions with an empty argument array.
+        if (args.length == 0) {
+            return subCommands.entrySet().stream()
+                    .filter(entry -> hasPermission(sender, entry.getValue()))
+                    .map(Map.Entry::getKey)
+                    .sorted()
+                    .toList();
+        }
+
         if (args.length == 1) {
             String prefix = args[0].toLowerCase(Locale.ROOT);
             return subCommands.entrySet().stream()
