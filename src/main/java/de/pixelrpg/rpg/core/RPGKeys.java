@@ -52,6 +52,8 @@ public final class RPGKeys {
 
         public static NamespacedKey mobLevel() { return of("combat_mob_level"); }
         public static NamespacedKey mobBarExpiry() { return of("combat_mob_bar_expiry"); }
+        public static NamespacedKey originalMaxHealth() { return of("combat_original_max_health"); }
+        public static NamespacedKey originalAttackDamage() { return of("combat_original_attack_damage"); }
     }
 
     public static final class Stats {
