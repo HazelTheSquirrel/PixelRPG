@@ -170,7 +170,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         double barRadius = getConfig().getDouble("bosses.bar-radius", 60.0);
         int barUpdateInterval = getConfig().getInt("bosses.bar-update-interval-ticks", 20);
         int phaseCheckInterval = getConfig().getInt("bosses.phase-check-interval-ticks", 10);
-        bossManager = new BossManager(this, patternRegistry, playerProfileManager, playerProfileManager, itemEconomyConfig, barRadius, phaseCheckInterval, phaseCheckInterval);
+        bossManager = new BossManager(this, patternRegistry, playerProfileManager, playerProfileManager, itemEconomyConfig, barRadius, barUpdateInterval, phaseCheckInterval);
         new WorldBossSpawnTask(this, bossRepository, bossManager, playerProfileManager, getConfig().getBoolean("bosses.auto-spawn.enabled", true), getConfig().getInt("bosses.auto-spawn.interval-minutes", 45), getConfig().getDouble("bosses.auto-spawn.spawn-radius", 80.0), getConfig().getInt("bosses.auto-spawn.max-concurrent", 2)).start();
         statisticsService = new StatisticsService(playerProfileManager);
         Bukkit.getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
