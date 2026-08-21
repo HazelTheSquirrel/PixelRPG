@@ -1,7 +1,9 @@
-// src/main/java/de/pixelrpg/rpg/quest/GlobalEventState.java (VOLLSTÄNDIG, ersetzt alte Datei — internes System, jetzt JSON statt YAML, wie in Phase 3 gefordert)
 package de.pixelrpg.rpg.quest;
 
 import com.google.gson.Gson;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.FileReader;
@@ -12,7 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
-import org.bukkit.plugin.Plugin;
 
 public final class GlobalEventState {
 
@@ -20,6 +21,8 @@ public final class GlobalEventState {
     private final File file;
     private final Gson gson = new Gson();
     private final Map<String, Integer> progressByQuestId = new ConcurrentHashMap<>();
+    private final Object saveLock = new Object();
+    private BukkitTask pendingSave;
 
     public GlobalEventState(Plugin plugin) {
         this.plugin = plugin;
@@ -28,26 +31,29 @@ public final class GlobalEventState {
 
     public void load() {
         progressByQuestId.clear();
-        if (!file.exists()) {
-            return;
-        }
+        if (!file.exists()) return;
         try (FileReader reader = new FileReader(file)) {
             Type type = new com.google.gson.reflect.TypeToken<Map<String, Integer>>() {}.getType();
             Map<String, Integer> loaded = gson.fromJson(reader, type);
-            if (loaded != null) {
-                progressByQuestId.putAll(loaded);
-            }
+            if (loaded != null) progressByQuestId.putAll(loaded);
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to load global_events.json", e);
         }
     }
 
     public void save() {
-        try (FileWriter writer = new FileWriter(file)) {
-            gson.toJson(new HashMap<>(progressByQuestId), writer);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save global_events.json", e);
+        BukkitTask task = pendingSave;
+        if (task != null) {
+            task.cancel();
+            pendingSave = null;
         }
+        synchronized (saveLock) {
+            writeSave();
+        }
+    }
+
+    public void shutdown() {
+        save();
     }
 
     public int getProgress(String questId) {
@@ -56,12 +62,30 @@ public final class GlobalEventState {
 
     public int addProgress(String questId, int amount) {
         int updated = progressByQuestId.merge(questId, amount, Integer::sum);
-        save();
+        scheduleSave();
         return updated;
     }
 
     public void resetProgress(String questId) {
         progressByQuestId.put(questId, 0);
-        save();
+        scheduleSave();
+    }
+
+    private void scheduleSave() {
+        if (pendingSave != null && !pendingSave.isCancelled()) return;
+        pendingSave = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+            synchronized (saveLock) {
+                writeSave();
+            }
+            pendingSave = null;
+        }, 20L);
+    }
+
+    private void writeSave() {
+        try (FileWriter writer = new FileWriter(file)) {
+            gson.toJson(new HashMap<>(progressByQuestId), writer);
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to save global_events.json", e);
+        }
     }
 }
