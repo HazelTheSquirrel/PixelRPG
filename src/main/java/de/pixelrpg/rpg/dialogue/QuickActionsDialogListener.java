@@ -1,12 +1,13 @@
 package de.pixelrpg.rpg.dialogue;
 
+import de.pixelrpg.rpg.player.PlayerProfileManager;
 import io.papermc.paper.connection.PlayerGameConnection;
 import io.papermc.paper.event.player.PlayerCustomClickEvent;
+import io.papermc.paper.registry.data.dialog.ActionButton;
+import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import io.papermc.paper.registry.data.dialog.ActionButton;
-import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,13 +19,16 @@ public final class QuickActionsDialogListener implements Listener {
     private static final Key CHARACTER_CARD_ACTION = Key.key("pixelrpg:character_card/open");
     private final QuickActionsDialogService service;
     private final CompanionDialog companionDialog;
+    private final ProfessionDialog professionDialog;
     private final DialogueEngine dialogueEngine;
 
     public QuickActionsDialogListener(QuickActionsDialogService service,
                                       CompanionDialog companionDialog,
+                                      PlayerProfileManager profileManager,
                                       DialogueEngine dialogueEngine) {
         this.service = service;
         this.companionDialog = companionDialog;
+        this.professionDialog = new ProfessionDialog(profileManager, dialogueEngine);
         this.dialogueEngine = dialogueEngine;
     }
 
@@ -43,7 +47,7 @@ public final class QuickActionsDialogListener implements Listener {
                 companionDialog::open));
         actions.add(dialogueEngine.actionButton(
                 Component.text("Berufe"), NamedTextColor.GREEN,
-                target -> new ProfessionDialog(target, dialogueEngine).open()));
+                professionDialog::open));
         actions.add(dialogueEngine.actionButton(
                 Component.text("Schließen"), NamedTextColor.GRAY,
                 Player::closeDialog));
