@@ -1,22 +1,17 @@
-// src/main/java/de/pixelrpg/rpg/item/ItemEconomyConfig.java (VOLLSTÄNDIG, ersetzt alte Datei — Gildengold-Drop-Chance ergänzt)
 package de.pixelrpg.rpg.item;
 
-import de.pixelrpg.rpg.core.Rank;
+import de.pixelrpg.rpg.core.Level;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public final class ItemEconomyConfig {
-
     private double commonIdentifyCost = 20.0;
     private double rareIdentifyCost = 45.0;
     private double epicIdentifyCost = 90.0;
     private double legendaryIdentifyCost = 180.0;
     private double soulboundCost = 200.0;
-    private Rank soulboundMinRank = Rank.C;
+    private int soulboundMinLevel = 30;
     private double unidentifiedDropChance = 0.09;
     private double identifiedDropChance = 0.14;
-    private double runeDropChance = 0.05;
-    private double gemDropChance = 0.05;
-    private double gemActiveChance = 0.35;
     private double currencyDropChance = 0.20;
     private long currencyDropMinAmount = 1;
     private long currencyDropMaxAmount = 8;
@@ -27,23 +22,12 @@ public final class ItemEconomyConfig {
         epicIdentifyCost = config.getDouble("items.identification-cost.epic", epicIdentifyCost);
         legendaryIdentifyCost = config.getDouble("items.identification-cost.legendary", legendaryIdentifyCost);
         soulboundCost = config.getDouble("items.soulbound.cost", soulboundCost);
-        soulboundMinRank = parseRank(config.getString("items.soulbound.min-rank", "C"));
+        soulboundMinLevel = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, config.getInt("items.soulbound.min-level", soulboundMinLevel)));
         unidentifiedDropChance = config.getDouble("items.loot.unidentified-drop-chance", unidentifiedDropChance);
         identifiedDropChance = config.getDouble("items.loot.identified-drop-chance", identifiedDropChance);
-        runeDropChance = config.getDouble("items.loot.rune-drop-chance", runeDropChance);
-        gemDropChance = config.getDouble("items.loot.gem-drop-chance", gemDropChance);
-        gemActiveChance = config.getDouble("items.loot.gem-active-chance", gemActiveChance);
         currencyDropChance = config.getDouble("items.loot.currency-drop-chance", currencyDropChance);
         currencyDropMinAmount = config.getLong("items.loot.currency-drop-min-amount", currencyDropMinAmount);
         currencyDropMaxAmount = config.getLong("items.loot.currency-drop-max-amount", currencyDropMaxAmount);
-    }
-
-    private Rank parseRank(String raw) {
-        try {
-            return Rank.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return Rank.C;
-        }
     }
 
     public double identificationCost(ItemRarity rarity) {
@@ -55,43 +39,11 @@ public final class ItemEconomyConfig {
         };
     }
 
-    public double getSoulboundCost() {
-        return soulboundCost;
-    }
-
-    public Rank getSoulboundMinRank() {
-        return soulboundMinRank;
-    }
-
-    public double getUnidentifiedDropChance() {
-        return unidentifiedDropChance;
-    }
-
-    public double getIdentifiedDropChance() {
-        return identifiedDropChance;
-    }
-
-    public double getRuneDropChance() {
-        return runeDropChance;
-    }
-
-    public double getGemDropChance() {
-        return gemDropChance;
-    }
-
-    public double getGemActiveChance() {
-        return gemActiveChance;
-    }
-
-    public double getCurrencyDropChance() {
-        return currencyDropChance;
-    }
-
-    public long getCurrencyDropMinAmount() {
-        return currencyDropMinAmount;
-    }
-
-    public long getCurrencyDropMaxAmount() {
-        return currencyDropMaxAmount;
-    }
+    public double getSoulboundCost() { return soulboundCost; }
+    public int getSoulboundMinLevel() { return soulboundMinLevel; }
+    public double getUnidentifiedDropChance() { return unidentifiedDropChance; }
+    public double getIdentifiedDropChance() { return identifiedDropChance; }
+    public double getCurrencyDropChance() { return currencyDropChance; }
+    public long getCurrencyDropMinAmount() { return currencyDropMinAmount; }
+    public long getCurrencyDropMaxAmount() { return currencyDropMaxAmount; }
 }
