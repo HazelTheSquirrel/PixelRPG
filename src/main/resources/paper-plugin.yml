@@ -15,8 +15,6 @@ commands:
   questlog:
     description: Opens the PixelRPG quest log
     permission: rpg.member
-  dialogue:
-    description: Opens a PixelRPG native dialogue
 
 permissions:
   rpg.admin:
