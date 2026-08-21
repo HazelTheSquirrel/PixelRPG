@@ -55,8 +55,8 @@ public final class QuestManager {
                 UUID uuid = playerEntry.getKey();
                 for (Map.Entry<String, Long> questEntry : new HashMap<>(playerEntry.getValue()).entrySet()) {
                     if (now < questEntry.getValue()) continue;
-                    playerEntry.getValue().remove(questEntry.getKey());
                     String questId = questEntry.getKey();
+                    playerEntry.getValue().remove(questId);
                     Bukkit.getScheduler().runTask(plugin, () -> {
                         profileManager.getProfile(uuid).filter(PlayerProfile::isRegisteredInGuild)
                                 .ifPresent(profile -> profile.removeActiveQuest(questId));
@@ -74,10 +74,6 @@ public final class QuestManager {
             timerTask = null;
         }
         questTimers.clear();
-    }
-
-    public boolean isRegistered(UUID uuid) {
-        return profileManager.getProfile(uuid).map(PlayerProfile::isRegisteredInGuild).orElse(false);
     }
 
     public boolean canAccept(PlayerProfile profile, Quest quest) {
