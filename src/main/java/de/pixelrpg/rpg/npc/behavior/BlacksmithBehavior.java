@@ -24,7 +24,8 @@ public final class BlacksmithBehavior implements NpcBehavior {
     private final DialogueEngine dialogueEngine;
     private final LanguageManager lang;
 
-    public BlacksmithBehavior(BlacksmithGUI blacksmithGUI, CraftingGUI craftingGUI, PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
+    public BlacksmithBehavior(BlacksmithGUI blacksmithGUI, CraftingGUI craftingGUI,
+                              PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
         this.blacksmithGUI = blacksmithGUI;
         this.craftingGUI = craftingGUI;
         this.profileManager = profileManager;
@@ -47,10 +48,11 @@ public final class BlacksmithBehavior implements NpcBehavior {
         dialogueEngine.openMultiAction(
                 player,
                 Component.text("Schmied", NamedTextColor.GOLD),
-                List.of(DialogBody.plainMessage(Component.text("Schmieden, Ausrüstung identifizieren und Seelenbindung verwalten."))),
+                List.of(DialogBody.plainMessage(Component.text(
+                        "Ausrüstung verbessern, Gegenstände verwalten und neue Ausrüstung schmieden."))),
                 List.of(
                         dialogueEngine.actionButton(
-                                Component.text("Schmied öffnen"),
+                                Component.text("Ausrüstung verwalten"),
                                 NamedTextColor.GREEN,
                                 target -> blacksmithGUI.open(target)
                         ),
