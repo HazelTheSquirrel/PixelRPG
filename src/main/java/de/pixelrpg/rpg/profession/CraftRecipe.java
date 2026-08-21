@@ -16,8 +16,8 @@ public record CraftRecipe(
         int craftSeconds
 ) {
     public CraftRecipe {
-        if (!profession.name().equals(profession.name())) {
-            throw new IllegalArgumentException("Invalid profession");
+        if (profession == null) {
+            throw new IllegalArgumentException("Profession must not be null");
         }
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Recipe id must not be blank");
@@ -31,7 +31,9 @@ public record CraftRecipe(
         if (rarity == null) {
             throw new IllegalArgumentException("Rarity must not be null");
         }
-        if (costs == null || costs.isEmpty() || costs.entrySet().stream().anyMatch(entry -> entry.getKey() == null || entry.getValue() == null || entry.getValue() <= 0)) {
+        if (costs == null || costs.isEmpty()
+                || costs.entrySet().stream().anyMatch(entry -> entry.getKey() == null
+                || entry.getValue() == null || entry.getValue() <= 0)) {
             throw new IllegalArgumentException("Recipe costs must contain positive material amounts");
         }
         if (requiredProfessionLevel < Profession.MIN_LEVEL || requiredProfessionLevel > Profession.MAX_LEVEL) {
