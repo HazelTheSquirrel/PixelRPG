@@ -12,7 +12,6 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,9 +20,8 @@ public final class StatEngine {
     public record CachedStats(double maxHealth, double armor, double movementSpeedBonus, double blockReach,
                               double entityReach, double bonusDamage, double critChance,
                               double critDamageMultiplier, double lifestealBonus) {
-        public static final CachedStats EMPTY = new CachedStats(20.0, 0.0, 0.0, 0.0, 0.0, 5.0, 2.0, 0.0);
+        public static final CachedStats EMPTY = new CachedStats(20.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 2.0, 0.0);
     }
-
     private final PlayerProfileManager profileManager;
     private final Map<UUID, CachedStats> cache = new ConcurrentHashMap<>();
     public StatEngine(PlayerProfileManager profileManager) { this.profileManager = profileManager; }
@@ -51,7 +49,6 @@ public final class StatEngine {
         blockReach += range * AttributeConfig.RANGE_BLOCK_PER_POINT;
         entityReach += range * AttributeConfig.RANGE_ENTITY_PER_POINT;
         armor += profile.getAttributePoints(PlayerAttribute.TOUGHNESS) * AttributeConfig.TOUGHNESS_ARMOR_PER_POINT;
-
         CachedStats stats = new CachedStats(maxHealth, armor, movementSpeedBonus, blockReach, entityReach, bonusDamage, critChance, critDamageMultiplier, lifestealBonus);
         cache.put(player.getUniqueId(), stats);
         applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), maxHealth - 20.0);
@@ -59,14 +56,8 @@ public final class StatEngine {
         applyModifier(player, Attribute.MOVEMENT_SPEED, RPGKeys.Stats.movementSpeed(), movementSpeedBonus);
         applyModifier(player, Attribute.BLOCK_INTERACTION_RANGE, RPGKeys.Stats.blockRange(), blockReach);
         applyModifier(player, Attribute.ENTITY_INTERACTION_RANGE, RPGKeys.Stats.entityRange(), entityReach);
-
         AttributeInstance healthInstance = player.getAttribute(Attribute.MAX_HEALTH);
-        if (healthInstance != null) {
-            double max = healthInstance.getValue();
-            player.setHealthScaled(true);
-            player.setHealthScale(Math.min(40.0, max));
-            if (player.getHealth() > max) player.setHealth(max);
-        }
+        if (healthInstance != null) { double max = healthInstance.getValue(); player.setHealthScaled(true); player.setHealthScale(Math.min(40.0, max)); if (player.getHealth() > max) player.setHealth(max); }
         boolean hasSoulview = profile.getAttributePoints(PlayerAttribute.SOULVIEW) > 0;
         if (hasSoulview) player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, PotionEffect.INFINITE_DURATION, 0, false, false));
         else player.removePotionEffect(PotionEffectType.NIGHT_VISION);
@@ -81,14 +72,12 @@ public final class StatEngine {
         player.setHealthScaled(false);
         player.removePotionEffect(PotionEffectType.NIGHT_VISION);
     }
-
     private void applyModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key, double value) {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance == null) return;
         removeModifier(player, attribute, key);
         if (value != 0.0) instance.addModifier(new AttributeModifier(key, value, AttributeModifier.Operation.ADD_NUMBER));
     }
-
     private void removeModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key) {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance == null) return;
