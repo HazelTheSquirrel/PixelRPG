@@ -5,13 +5,23 @@ import org.bukkit.plugin.Plugin;
 
 public final class RPGKeys {
     private static Plugin plugin;
+
     private RPGKeys() { }
-    public static void init(Plugin owningPlugin) { plugin = owningPlugin; }
-    private static NamespacedKey of(String value) { if (plugin == null) throw new IllegalStateException("RPGKeys.init() was not called before first use."); return new NamespacedKey(plugin, value); }
+
+    public static void init(Plugin owningPlugin) {
+        plugin = owningPlugin;
+    }
+
+    private static NamespacedKey of(String value) {
+        if (plugin == null) throw new IllegalStateException("RPGKeys.init() was not called before first use.");
+        return new NamespacedKey(plugin, value);
+    }
 
     public static final class Item {
         private Item() { }
+
         public static NamespacedKey identified() { return of("item_identified"); }
+        public static NamespacedKey itemId() { return of("item_id"); }
         public static NamespacedKey rarity() { return of("item_rarity"); }
         public static NamespacedKey category() { return of("item_category"); }
         public static NamespacedKey itemLevel() { return of("item_level"); }
@@ -35,47 +45,48 @@ public final class RPGKeys {
         public static NamespacedKey attackDamageModifier(String instanceId) { return of("item_mod_attack_damage_" + instanceId); }
         public static NamespacedKey armorModifier(String instanceId) { return of("item_mod_armor_" + instanceId); }
         public static NamespacedKey healthModifier(String instanceId) { return of("item_mod_health_" + instanceId); }
-        @Deprecated public static NamespacedKey runeType() { return of("legacy_rune_type"); }
-        @Deprecated public static NamespacedKey runeValue() { return of("legacy_rune_value"); }
-        @Deprecated public static NamespacedKey gemType() { return of("legacy_gem_type"); }
-        @Deprecated public static NamespacedKey gemMaxSockets() { return of("legacy_gem_max_sockets"); }
-        @Deprecated public static NamespacedKey gemUsedSockets() { return of("legacy_gem_used_sockets"); }
-        @Deprecated public static NamespacedKey gemSocket(int index) { return of("legacy_gem_socket_" + index); }
-        @Deprecated public static NamespacedKey maxSockets() { return of("legacy_max_sockets"); }
-        @Deprecated public static NamespacedKey usedSockets() { return of("legacy_used_sockets"); }
-        @Deprecated public static NamespacedKey socket(int index) { return of("legacy_socket_" + index); }
     }
 
     public static final class Combat {
         private Combat() { }
+
         public static NamespacedKey mobLevel() { return of("combat_mob_level"); }
-        @Deprecated public static NamespacedKey mobRank() { return of("legacy_mob_rank"); }
         public static NamespacedKey mobBarExpiry() { return of("combat_mob_bar_expiry"); }
     }
+
     public static final class Stats {
         private Stats() { }
+
         public static NamespacedKey maxHealth() { return of("stat_max_health"); }
         public static NamespacedKey armor() { return of("stat_armor"); }
         public static NamespacedKey movementSpeed() { return of("stat_movement_speed"); }
         public static NamespacedKey blockRange() { return of("stat_block_range"); }
         public static NamespacedKey entityRange() { return of("stat_entity_range"); }
     }
+
     public static final class Npc {
         private Npc() { }
+
         public static NamespacedKey npcType() { return of("npc_type"); }
         public static NamespacedKey npcId() { return of("npc_id"); }
     }
+
     public static final class Economy {
         private Economy() { }
+
         public static NamespacedKey guildGold() { return of("economy_guild_gold"); }
     }
+
     public static final class Boss {
         private Boss() { }
+
         public static NamespacedKey bossId() { return of("boss_id"); }
         public static NamespacedKey worldBossMarker() { return of("boss_world_marker"); }
     }
+
     public static final class Special {
         private Special() { }
+
         public static NamespacedKey guildCompassMarker() { return of("special_guild_compass"); }
     }
 }
