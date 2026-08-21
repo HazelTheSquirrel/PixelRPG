@@ -85,8 +85,10 @@ public final class MobLevelScalingListener implements Listener {
 
         AttributeInstance hp = monster.getAttribute(Attribute.MAX_HEALTH);
         if (hp != null) {
+            double oldMaxHp = Math.max(1.0, hp.getValue());
+            double healthRatio = Math.max(0.0, Math.min(1.0, monster.getHealth() / oldMaxHp));
             hp.setBaseValue(maxHp);
-            monster.setHealth(Math.min(maxHp, monster.getHealth()));
+            monster.setHealth(Math.max(0.0, Math.min(maxHp, maxHp * healthRatio)));
         }
 
         AttributeInstance attackDamage = monster.getAttribute(Attribute.ATTACK_DAMAGE);
