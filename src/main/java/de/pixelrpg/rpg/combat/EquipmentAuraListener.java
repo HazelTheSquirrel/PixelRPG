@@ -4,6 +4,7 @@ import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.BlessingType;
 import de.pixelrpg.rpg.item.CurseType;
+import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -16,15 +17,18 @@ import java.util.List;
 
 public final class EquipmentAuraListener {
 
+    private final PlayerProfileManager profileManager;
     private final int intervalTicks;
 
-    public EquipmentAuraListener(int intervalTicks) {
+    public EquipmentAuraListener(PlayerProfileManager profileManager, int intervalTicks) {
+        this.profileManager = profileManager;
         this.intervalTicks = intervalTicks;
     }
 
     public void start() {
         Bukkit.getScheduler().runTaskTimer(PixelRPGPlugin.getInstance(), () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
+                if (!profileManager.isRegistered(player.getUniqueId())) continue;
                 scanAndApply(player);
             }
         }, intervalTicks, intervalTicks);

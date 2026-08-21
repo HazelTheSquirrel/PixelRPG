@@ -167,7 +167,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         scoreboardService.startTask();
         playtimeTracker = new PlaytimeTracker(this, playerProfileManager);
         playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
-        equipmentAuraListener = new EquipmentAuraListener(getConfig().getInt("effects.aura-interval-ticks", 60));
+        equipmentAuraListener = new EquipmentAuraListener(playerProfileManager, getConfig().getInt("effects.aura-interval-ticks", 60));
         equipmentAuraListener.start();
         AttributeConfig.configureElytraCost(getConfig().getDouble("elytra.permit-cost", 750.0));
         npcManager = new NpcManager(this);
