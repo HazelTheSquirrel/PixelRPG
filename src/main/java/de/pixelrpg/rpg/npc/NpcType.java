@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/npc/NpcType.java (VOLLSTÄNDIG, ersetzt alte Datei — BANKER ergänzt)
 package de.pixelrpg.rpg.npc;
 
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -7,6 +6,7 @@ public enum NpcType {
 
     RECEPTION(NamedTextColor.AQUA),
     BLACKSMITH(NamedTextColor.RED),
+    PROFESSION_TRAINER(NamedTextColor.BLUE),
     QUEST(NamedTextColor.YELLOW),
     SHOP(NamedTextColor.GREEN),
     TRAVEL(NamedTextColor.LIGHT_PURPLE),
