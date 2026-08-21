@@ -1,6 +1,8 @@
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.ReceptionDialog;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.AttributeConfig;
 import de.pixelrpg.rpg.player.PlayerAttribute;
@@ -44,7 +46,7 @@ public final class AttributeTraderGUI extends AbstractGUI {
         setAttributeItem(24, Material.SHIELD, PlayerAttribute.TOUGHNESS, profile, "+" + AttributeConfig.TOUGHNESS_ARMOR_PER_POINT + " Armor per point");
         setAttributeItem(29, Material.ENDER_EYE, PlayerAttribute.SOULVIEW, profile, "Grants permanent Night Vision.");
         setAttributeItem(31, Material.ELYTRA, PlayerAttribute.ELYTRA_PERMIT, profile, "Grants permission to use an Elytra.");
-        setItem(49, backButton(), event -> new ReceptionGUI(viewer, profileManager).open(viewer));
+        setItem(49, backButton(), event -> new ReceptionDialog(viewer, profileManager, new DialogueEngine()).open());
     }
 
     private void setAttributeItem(int slot, Material material, PlayerAttribute attribute, PlayerProfile profile, String description) {
@@ -58,8 +60,7 @@ public final class AttributeTraderGUI extends AbstractGUI {
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(attribute.displayName().append(Component.text(" [" + current + "/" + max + "]", NamedTextColor.GRAY))
-                .decoration(TextDecoration.ITALIC, false));
+        meta.displayName(attribute.displayName().append(Component.text(" [" + current + "/" + max + "]", NamedTextColor.GRAY)).decoration(TextDecoration.ITALIC, false));
         List<Component> lore = new ArrayList<>();
         lore.add(Component.text(description, NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
         if (discounted) lore.add(lang.get("attribute.class-affinity").color(NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
