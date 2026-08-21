@@ -39,6 +39,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
 
         ConfigurationSection professionSection = yaml.getConfigurationSection("professions");
         if (professionSection != null) loadProfessions(profile, professionSection);
+        profile.setUnlockedRecipes(new HashSet<>(yaml.getStringList("unlocked-recipes")));
 
         profile.setUnlockedWaypoints(new HashSet<>(yaml.getStringList("unlocked-waypoints")));
         profile.setStoryChapterIndex(yaml.getInt("story-chapter-index", -1));
@@ -61,6 +62,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
             if (section.contains(key + ".level")) {
                 profile.setProfessionLevel(profession, section.getInt(key + ".level", Profession.MIN_LEVEL));
                 profile.setProfessionExperience(profession, section.getLong(key + ".experience", 0L));
+                if (section.getBoolean(key + ".learned", false)) profile.learnProfession(profession);
                 continue;
             }
             String[] legacyKeys = switch (profession) {
@@ -69,8 +71,11 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
                 case ALCHEMIST -> new String[]{"alchemy", "herbalism"};
                 case SCHOLAR -> new String[0];
             };
-            profile.setProfessionLevel(profession, maxLegacyLevel(section, legacyKeys));
-            profile.setProfessionExperience(profession, maxLegacyExperience(section, legacyKeys));
+            int level = maxLegacyLevel(section, legacyKeys);
+            long experience = maxLegacyExperience(section, legacyKeys);
+            profile.setProfessionLevel(profession, level);
+            profile.setProfessionExperience(profession, experience);
+            if (level > Profession.MIN_LEVEL) profile.learnProfession(profession);
         }
     }
 
@@ -101,7 +106,9 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
             String key = profession.name().toLowerCase();
             yaml.set("professions." + key + ".level", profile.getProfessionLevel(profession));
             yaml.set("professions." + key + ".experience", profile.getProfessionExperience(profession));
+            yaml.set("professions." + key + ".learned", profile.hasLearnedProfession(profession));
         }
+        yaml.set("unlocked-recipes", new ArrayList<>(profile.getUnlockedRecipes()));
         yaml.set("unlocked-waypoints", new ArrayList<>(profile.getUnlockedWaypoints()));
         yaml.set("story-chapter-index", profile.getStoryChapterIndex());
         yaml.set("completed-quests", new ArrayList<>(profile.getCompletedQuests()));
