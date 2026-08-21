@@ -6,12 +6,8 @@ import org.bukkit.plugin.Plugin;
 public final class RPGKeys {
     private static Plugin plugin;
     private RPGKeys() { }
-
     public static void init(Plugin owningPlugin) { plugin = owningPlugin; }
-    private static NamespacedKey of(String value) {
-        if (plugin == null) throw new IllegalStateException("RPGKeys.init() was not called before first use.");
-        return new NamespacedKey(plugin, value);
-    }
+    private static NamespacedKey of(String value) { if (plugin == null) throw new IllegalStateException("RPGKeys.init() was not called before first use."); return new NamespacedKey(plugin, value); }
 
     public static final class Item {
         private Item() { }
@@ -19,10 +15,6 @@ public final class RPGKeys {
         public static NamespacedKey rarity() { return of("item_rarity"); }
         public static NamespacedKey category() { return of("item_category"); }
         public static NamespacedKey itemLevel() { return of("item_level"); }
-        public static NamespacedKey itemRank() { return of("item_rank"); }
-        public static NamespacedKey maxSockets() { return of("item_max_sockets"); }
-        public static NamespacedKey usedSockets() { return of("item_used_sockets"); }
-        public static NamespacedKey socket(int index) { return of("item_socket_" + index); }
         public static NamespacedKey bonusDamage() { return of("item_bonus_damage"); }
         public static NamespacedKey critChance() { return of("item_crit_chance"); }
         public static NamespacedKey armorValue() { return of("item_armor_value"); }
@@ -32,8 +24,9 @@ public final class RPGKeys {
         public static NamespacedKey blessingType() { return of("item_blessing_type"); }
         public static NamespacedKey curseType() { return of("item_curse_type"); }
         public static NamespacedKey soulbound() { return of("item_soulbound"); }
-        public static NamespacedKey runeType() { return of("item_rune_type"); }
-        public static NamespacedKey runeValue() { return of("item_rune_value"); }
+        public static NamespacedKey weaponAbility() { return of("item_weapon_ability"); }
+        public static NamespacedKey weaponAbilityManaCost() { return of("item_weapon_ability_mana"); }
+        public static NamespacedKey weaponAbilityCooldownMillis() { return of("item_weapon_ability_cooldown"); }
         public static NamespacedKey guildItem() { return of("item_guild_marker"); }
         public static NamespacedKey shopPriceTag() { return of("item_shop_price_tag"); }
         public static NamespacedKey classSetClass() { return of("item_class_set_class"); }
@@ -42,16 +35,11 @@ public final class RPGKeys {
         public static NamespacedKey attackDamageModifier(String instanceId) { return of("item_mod_attack_damage_" + instanceId); }
         public static NamespacedKey armorModifier(String instanceId) { return of("item_mod_armor_" + instanceId); }
         public static NamespacedKey healthModifier(String instanceId) { return of("item_mod_health_" + instanceId); }
-        public static NamespacedKey gemType() { return of("item_gem_type"); }
-        public static NamespacedKey gemMaxSockets() { return of("item_gem_max_sockets"); }
-        public static NamespacedKey gemUsedSockets() { return of("item_gem_used_sockets"); }
-        public static NamespacedKey gemSocket(int index) { return of("item_gem_socket_" + index); }
     }
 
     public static final class Combat {
         private Combat() { }
         public static NamespacedKey mobLevel() { return of("combat_mob_level"); }
-        public static NamespacedKey mobRank() { return of("combat_mob_rank"); }
         public static NamespacedKey mobBarExpiry() { return of("combat_mob_bar_expiry"); }
     }
 
@@ -69,18 +57,15 @@ public final class RPGKeys {
         public static NamespacedKey npcType() { return of("npc_type"); }
         public static NamespacedKey npcId() { return of("npc_id"); }
     }
-
     public static final class Economy {
         private Economy() { }
         public static NamespacedKey guildGold() { return of("economy_guild_gold"); }
     }
-
     public static final class Boss {
         private Boss() { }
         public static NamespacedKey bossId() { return of("boss_id"); }
         public static NamespacedKey worldBossMarker() { return of("boss_world_marker"); }
     }
-
     public static final class Special {
         private Special() { }
         public static NamespacedKey guildCompassMarker() { return of("special_guild_compass"); }
