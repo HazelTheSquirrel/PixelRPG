@@ -134,7 +134,6 @@ effects:
 
 mob-scaling:
   nameplate-duration-ticks: 120
-  vanilla-player-damage-cap: 4.0
   xp-per-max-health: 0.6
   hp-per-level: 8.0
   damage-per-level: 1.1
