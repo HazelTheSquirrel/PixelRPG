@@ -24,6 +24,8 @@ public final class PlayerProfile {
     private final Map<PlayerAttribute, Integer> attributePoints = new EnumMap<>(PlayerAttribute.class);
     private final Map<Profession, Integer> professionLevels = new EnumMap<>(Profession.class);
     private final Map<Profession, Long> professionExperience = new EnumMap<>(Profession.class);
+    private final Set<Profession> learnedProfessions = new HashSet<>();
+    private final Set<String> unlockedRecipes = new HashSet<>();
     private final Set<String> unlockedWaypoints = new HashSet<>();
     private int storyChapterIndex;
     private final Map<String, QuestProgress> activeQuests = new HashMap<>();
@@ -88,6 +90,13 @@ public final class PlayerProfile {
     public synchronized void setProfessionExperience(Profession profession, long value) { professionExperience.put(profession, Math.max(0L, value)); dirty = true; }
     public synchronized void addProfessionExperience(Profession profession, long amount) { if (amount > 0L) { professionExperience.merge(profession, amount, Long::sum); dirty = true; } }
     public synchronized Map<Profession, Long> getProfessionExperiences() { return Collections.unmodifiableMap(new EnumMap<>(professionExperience)); }
+    public synchronized boolean hasLearnedProfession(Profession profession) { return learnedProfessions.contains(profession); }
+    public synchronized void learnProfession(Profession profession) { if (learnedProfessions.add(profession)) dirty = true; }
+    public synchronized Set<Profession> getLearnedProfessions() { return Collections.unmodifiableSet(new HashSet<>(learnedProfessions)); }
+    public synchronized boolean hasUnlockedRecipe(String recipeId) { return recipeId != null && unlockedRecipes.contains(recipeId.toLowerCase()); }
+    public synchronized void unlockRecipe(String recipeId) { if (recipeId != null && unlockedRecipes.add(recipeId.toLowerCase())) dirty = true; }
+    public synchronized Set<String> getUnlockedRecipes() { return Collections.unmodifiableSet(new HashSet<>(unlockedRecipes)); }
+    public synchronized void setUnlockedRecipes(Set<String> recipeIds) { unlockedRecipes.clear(); recipeIds.stream().map(String::toLowerCase).forEach(unlockedRecipes::add); dirty = true; }
     public synchronized Set<String> getUnlockedWaypoints() { return Collections.unmodifiableSet(new HashSet<>(unlockedWaypoints)); }
     public synchronized boolean hasUnlockedWaypoint(String id) { return unlockedWaypoints.contains(id); }
     public synchronized void unlockWaypoint(String id) { if (unlockedWaypoints.add(id)) dirty = true; }
@@ -128,6 +137,8 @@ public final class PlayerProfile {
         currentMana = 0.0;
         manaInitialized = false;
         storyChapterIndex = -1;
+        learnedProfessions.clear();
+        unlockedRecipes.clear();
         unlockedWaypoints.clear();
         activeQuests.clear();
         completedQuests.clear();
