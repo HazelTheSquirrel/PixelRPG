@@ -18,18 +18,16 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Lightweight per-viewer RPG mob nameplates. Displays are attached to mobs instead of being teleported every tick. */
+/** Handles lightweight per-viewer RPG mob nameplates without a repeating teleport/update loop. */
 public final class MobNameplateService {
-    private static final long UPDATE_INTERVAL_TICKS = 5L;
-
     private final PixelRPGPlugin plugin;
     private final MobScalingConfig scalingConfig;
     private final Map<UUID, TrackedMob> activeMobs = new ConcurrentHashMap<>();
 
     private static final class TrackedMob {
         private final Map<UUID, TextDisplay> displays = new ConcurrentHashMap<>();
-        private BukkitTask task;
         private long expiresAtNanos;
+        private BukkitTask expiryTask;
     }
 
     public MobNameplateService(PixelRPGPlugin plugin, MobScalingConfig scalingConfig) {
@@ -51,12 +49,10 @@ public final class MobNameplateService {
         viewer.showEntity(plugin, display);
         updateDisplay(mob, display);
 
-        if (tracked.task == null) {
-            tracked.task = Bukkit.getScheduler().runTaskTimer(plugin,
-                    () -> updateTrackedMob(mob, mobUuid, tracked),
-                    UPDATE_INTERVAL_TICKS,
-                    UPDATE_INTERVAL_TICKS);
-        }
+        if (tracked.expiryTask != null) tracked.expiryTask.cancel();
+        long delay = Math.max(1L, scalingConfig.getNameplateDurationTicks());
+        tracked.expiryTask = Bukkit.getScheduler().runTaskLater(plugin,
+                () -> expireIfDue(mob, mobUuid, tracked), delay);
     }
 
     private TextDisplay createDisplay(LivingEntity mob) {
@@ -75,27 +71,20 @@ public final class MobNameplateService {
         return display;
     }
 
-    private void updateTrackedMob(LivingEntity mob, UUID mobUuid, TrackedMob tracked) {
+    private void updateDisplay(LivingEntity mob, TextDisplay display) {
+        display.text(buildInfo(mob));
+    }
+
+    private void expireIfDue(LivingEntity mob, UUID mobUuid, TrackedMob tracked) {
         if (!mob.isValid() || mob.isDead() || System.nanoTime() >= tracked.expiresAtNanos) {
             stop(mobUuid, tracked);
             return;
         }
 
-        for (Map.Entry<UUID, TextDisplay> entry : tracked.displays.entrySet()) {
-            Player viewer = Bukkit.getPlayer(entry.getKey());
-            TextDisplay display = entry.getValue();
-            if (viewer == null || !viewer.isOnline() || !display.isValid()) {
-                display.remove();
-                tracked.displays.remove(entry.getKey(), display);
-                continue;
-            }
-            viewer.showEntity(plugin, display);
-            updateDisplay(mob, display);
-        }
-    }
-
-    private void updateDisplay(LivingEntity mob, TextDisplay display) {
-        display.text(buildInfo(mob));
+        long remainingNanos = tracked.expiresAtNanos - System.nanoTime();
+        long remainingTicks = Math.max(1L, (remainingNanos + 49_999_999L) / 50_000_000L);
+        tracked.expiryTask = Bukkit.getScheduler().runTaskLater(plugin,
+                () -> expireIfDue(mob, mobUuid, tracked), remainingTicks);
     }
 
     private Component buildInfo(LivingEntity mob) {
@@ -123,8 +112,8 @@ public final class MobNameplateService {
     }
 
     private void stop(UUID mobUuid, TrackedMob tracked) {
-        if (tracked.task != null) tracked.task.cancel();
-        tracked.task = null;
+        if (tracked.expiryTask != null) tracked.expiryTask.cancel();
+        tracked.expiryTask = null;
         tracked.displays.values().forEach(TextDisplay::remove);
         tracked.displays.clear();
         activeMobs.remove(mobUuid, tracked);
