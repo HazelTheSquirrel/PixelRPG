@@ -96,7 +96,7 @@ public final class PlayerProfile {
     public synchronized void setStoryChapterIndex(int value) { storyChapterIndex = value; dirty = true; }
     public synchronized Map<String, QuestProgress> getActiveQuests() { return Collections.unmodifiableMap(new HashMap<>(activeQuests)); }
     public synchronized boolean hasActiveQuest(String id) { return activeQuests.containsKey(id); }
-    public synchronized void startQuest(QuestProgress progress) { activeQuests.put(progress.getQuestId(), progress); dirty = true; }
+    public synchronized void startQuest(QuestProgress progress) { progress.setDirtyCallback(this::markDirty); activeQuests.put(progress.getQuestId(), progress); dirty = true; }
     public synchronized void removeActiveQuest(String id) { if (activeQuests.remove(id) != null) dirty = true; }
     public synchronized Set<String> getCompletedQuests() { return Collections.unmodifiableSet(new HashSet<>(completedQuests)); }
     public synchronized boolean hasCompletedQuest(String id) { return completedQuests.contains(id); }
