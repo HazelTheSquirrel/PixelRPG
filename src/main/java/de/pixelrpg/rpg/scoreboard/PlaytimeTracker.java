@@ -1,6 +1,7 @@
-// src/main/java/de/pixelrpg/rpg/scoreboard/PlaytimeTracker.java
 package de.pixelrpg.rpg.scoreboard;
 
+import de.pixelrpg.rpg.api.events.PlayerJoinGuildEvent;
+import de.pixelrpg.rpg.api.events.PlayerLeaveGuildEvent;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -15,7 +16,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class PlaytimeTracker implements Listener {
-
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
     private final Map<UUID, Long> sessionStart = new ConcurrentHashMap<>();
@@ -29,35 +29,54 @@ public final class PlaytimeTracker implements Listener {
         Bukkit.getScheduler().runTaskTimer(plugin, this::flushAll, intervalTicks, intervalTicks);
     }
 
+    // Zuständig für den Start einer Spielzeit-Sitzung registrierter Spieler.
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        sessionStart.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
+        Player player = event.getPlayer();
+        if (profileManager.isRegistered(player.getUniqueId())) {
+            sessionStart.put(player.getUniqueId(), System.currentTimeMillis());
+        }
     }
 
+    // Zuständig für die Speicherung der Spielzeit beim Verlassen des Servers.
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         flush(event.getPlayer().getUniqueId());
         sessionStart.remove(event.getPlayer().getUniqueId());
     }
 
+    // Zuständig dafür, dass die Spielzeit nach einer erfolgreichen PixelRPG-Registrierung ab diesem Moment zählt.
+    @EventHandler
+    public void onGuildJoin(PlayerJoinGuildEvent event) {
+        sessionStart.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
+    }
+
+    // Zuständig dafür, dass beim Verlassen von PixelRPG keine weitere Spielzeit gesammelt wird.
+    @EventHandler
+    public void onGuildLeave(PlayerLeaveGuildEvent event) {
+        sessionStart.remove(event.getPlayer().getUniqueId());
+    }
+
     public void flushAll() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             flush(player.getUniqueId());
-            sessionStart.put(player.getUniqueId(), System.currentTimeMillis());
+            if (profileManager.isRegistered(player.getUniqueId())) {
+                sessionStart.put(player.getUniqueId(), System.currentTimeMillis());
+            } else {
+                sessionStart.remove(player.getUniqueId());
+            }
         }
     }
 
     private void flush(UUID uuid) {
         Long start = sessionStart.get(uuid);
-        if (start == null) {
-            return;
-        }
+        if (start == null || !profileManager.isRegistered(uuid)) return;
+
         long delta = System.currentTimeMillis() - start;
-        if (delta <= 0L) {
-            return;
-        }
+        if (delta <= 0L) return;
 
         profileManager.getProfile(uuid).ifPresent(profile -> {
+            if (!profile.isRegisteredInGuild()) return;
             profile.addPlaytimeMillis(delta);
             profileManager.saveProfileAsync(uuid);
         });
