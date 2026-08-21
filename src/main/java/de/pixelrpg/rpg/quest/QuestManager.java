@@ -14,6 +14,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -23,7 +24,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class QuestManager {
-
     private static final int MAX_ACTIVE_QUESTS = 3;
 
     private final Plugin plugin;
@@ -34,6 +34,7 @@ public final class QuestManager {
     private final double partyShareRange;
     private final LanguageManager lang;
     private final Map<UUID, Map<String, Long>> questTimers = new ConcurrentHashMap<>();
+    private BukkitTask timerTask;
 
     public QuestManager(Plugin plugin, QuestRepository questRepository, PlayerProfileManager profileManager,
                         de.pixelrpg.rpg.api.GuildAPI guildAPI, GlobalEventState globalEventState, double partyShareRange) {
@@ -47,7 +48,8 @@ public final class QuestManager {
     }
 
     public void startTimerCheckTask() {
-        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+        if (timerTask != null) return;
+        timerTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             long now = System.currentTimeMillis();
             for (Map.Entry<UUID, Map<String, Long>> playerEntry : new HashMap<>(questTimers).entrySet()) {
                 UUID uuid = playerEntry.getKey();
@@ -66,6 +68,14 @@ public final class QuestManager {
         }, 20L, 20L);
     }
 
+    public void shutdown() {
+        if (timerTask != null) {
+            timerTask.cancel();
+            timerTask = null;
+        }
+        questTimers.clear();
+    }
+
     public boolean canAccept(PlayerProfile profile, Quest quest) {
         if (!profile.isRegisteredInGuild()) return false;
         if (profile.hasCompletedQuest(quest.id())) return false;
@@ -79,7 +89,6 @@ public final class QuestManager {
             lang.send(player, "quest.max-active");
             return false;
         }
-
         long expiry = quest.hasTimeLimit() ? System.currentTimeMillis() + quest.durationMinutes() * 60_000L : 0L;
         profile.startQuest(new QuestProgress(quest.id(), 0, expiry));
         if (quest.hasTimeLimit()) {
