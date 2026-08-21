@@ -55,9 +55,9 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         if (activeSection != null) for (String questId : activeSection.getKeys(false)) profile.startQuest(new QuestProgress(questId, activeSection.getInt(questId + ".amount", 0), activeSection.getLong(questId + ".expiry", 0L)));
         ConfigurationSection statsSection = yaml.getConfigurationSection("statistics");
         if (statsSection != null) for (String key : statsSection.getKeys(false)) profile.setStatistic(key, statsSection.getLong(key));
-        profile.setScoreboardEnabled(yaml.getBoolean("scoreboard-enabled", true));
-        profile.setPartyHudEnabled(yaml.getBoolean("party-hud-enabled", true));
-        profile.setQuestTrackerEnabled(yaml.getBoolean("quest-tracker-enabled", true));
+        profile.setScoreboardEnabled(yaml.getBoolean("scoreboard-enabled", false));
+        profile.setPartyHudEnabled(yaml.getBoolean("party-hud-enabled", false));
+        profile.setQuestTrackerEnabled(yaml.getBoolean("quest-tracker-enabled", false));
         profile.setPlaytimeMillis(yaml.getLong("playtime-millis", 0L));
         profile.markClean();
         return Optional.of(profile);
