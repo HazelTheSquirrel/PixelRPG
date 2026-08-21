@@ -1,6 +1,7 @@
-// src/main/java/de/pixelrpg/rpg/player/MySQLPlayerProfileRepository.java (VOLLSTÄNDIG, ersetzt alte Datei — Save läuft in einer einzigen Transaktion mit Batch-Inserts, Load über eine gemeinsame Connection)
+// src/main/java/de/pixelrpg/rpg/player/MySQLPlayerProfileRepository.java
 package de.pixelrpg.rpg.player;
 
+import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.quest.QuestProgress;
 import de.pixelrpg.rpg.storage.DatabaseManager;
 
@@ -29,13 +30,10 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
 
     @Override
     public Optional<PlayerProfile> load(UUID uuid) throws SQLException {
-        // Läuft komplett über eine einzige Connection, damit Hauptzeile, aktive
-        // Quests und Statistiken denselben konsistenten Stand widerspiegeln.
         try (Connection connection = databaseManager.getDataSource().getConnection()) {
             PlayerProfile profile = loadPlayerRow(connection, uuid);
-            if (profile == null) {
-                return Optional.empty();
-            }
+            if (profile == null) return Optional.empty();
+            loadProfessions(connection, uuid, profile);
             loadActiveQuests(connection, uuid, profile);
             loadStatistics(connection, uuid, profile);
             profile.markClean();
@@ -48,9 +46,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, uuid.toString());
             try (ResultSet resultSet = statement.executeQuery()) {
-                if (!resultSet.next()) {
-                    return null;
-                }
+                if (!resultSet.next()) return null;
 
                 PlayerProfile profile = new PlayerProfile(uuid);
                 profile.setRegisteredInGuild(resultSet.getBoolean("registered"));
@@ -58,7 +54,6 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 profile.setPlayerClass(parseClass(resultSet.getString("player_class")));
                 profile.setMoney(resultSet.getDouble("money"));
                 profile.setReceivedStartBonus(resultSet.getBoolean("start_bonus"));
-
                 profile.setAttributePoints(PlayerAttribute.VITALITY, resultSet.getInt("attr_vitality"));
                 profile.setAttributePoints(PlayerAttribute.AGILITY, resultSet.getInt("attr_agility"));
                 profile.setAttributePoints(PlayerAttribute.PRECISION, resultSet.getInt("attr_precision"));
@@ -66,7 +61,6 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 profile.setAttributePoints(PlayerAttribute.TOUGHNESS, resultSet.getInt("attr_toughness"));
                 profile.setAttributePoints(PlayerAttribute.SOULVIEW, resultSet.getInt("attr_soulview"));
                 profile.setAttributePoints(PlayerAttribute.ELYTRA_PERMIT, resultSet.getInt("attr_elytra"));
-
                 profile.setUnlockedWaypoints(splitCsv(resultSet.getString("waypoints")));
                 profile.setStoryChapterIndex(resultSet.getInt("story_chapter"));
                 profile.setCompletedQuests(splitCsv(resultSet.getString("completed_quests")));
@@ -79,11 +73,24 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
         }
     }
 
+    private void loadProfessions(Connection connection, UUID uuid, PlayerProfile profile) throws SQLException {
+        String sql = "SELECT profession, level FROM pixelrpg_professions WHERE uuid = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, uuid.toString());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    try {
+                        profile.setProfessionLevel(Profession.valueOf(resultSet.getString("profession")), resultSet.getInt("level"));
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                }
+            }
+        }
+    }
+
     private Set<String> splitCsv(String raw) {
         Set<String> result = new HashSet<>();
-        if (raw != null && !raw.isBlank()) {
-            result.addAll(Arrays.asList(raw.split(",")));
-        }
+        if (raw != null && !raw.isBlank()) result.addAll(Arrays.asList(raw.split(",")));
         return result;
     }
 
@@ -93,11 +100,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
             statement.setString(1, uuid.toString());
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    profile.startQuest(new QuestProgress(
-                            resultSet.getString("quest_id"),
-                            resultSet.getInt("amount"),
-                            resultSet.getLong("expiry")
-                    ));
+                    profile.startQuest(new QuestProgress(resultSet.getString("quest_id"), resultSet.getInt("amount"), resultSet.getLong("expiry")));
                 }
             }
         }
@@ -108,9 +111,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, uuid.toString());
             try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    profile.setStatistic(resultSet.getString("stat_key"), resultSet.getLong("value"));
-                }
+                while (resultSet.next()) profile.setStatistic(resultSet.getString("stat_key"), resultSet.getLong("value"));
             }
         }
     }
@@ -125,38 +126,23 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                      scoreboard_enabled, party_hud_enabled, quest_tracker_enabled, playtime_millis)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
-                    registered = VALUES(registered),
-                    experience = VALUES(experience),
-                    player_class = VALUES(player_class),
-                    money = VALUES(money),
-                    start_bonus = VALUES(start_bonus),
-                    attr_vitality = VALUES(attr_vitality),
-                    attr_agility = VALUES(attr_agility),
-                    attr_precision = VALUES(attr_precision),
-                    attr_range = VALUES(attr_range),
-                    attr_toughness = VALUES(attr_toughness),
-                    attr_soulview = VALUES(attr_soulview),
-                    attr_elytra = VALUES(attr_elytra),
-                    waypoints = VALUES(waypoints),
-                    story_chapter = VALUES(story_chapter),
-                    completed_quests = VALUES(completed_quests),
-                    scoreboard_enabled = VALUES(scoreboard_enabled),
-                    party_hud_enabled = VALUES(party_hud_enabled),
-                    quest_tracker_enabled = VALUES(quest_tracker_enabled),
-                    playtime_millis = VALUES(playtime_millis)
+                    registered = VALUES(registered), experience = VALUES(experience), player_class = VALUES(player_class),
+                    money = VALUES(money), start_bonus = VALUES(start_bonus), attr_vitality = VALUES(attr_vitality),
+                    attr_agility = VALUES(attr_agility), attr_precision = VALUES(attr_precision), attr_range = VALUES(attr_range),
+                    attr_toughness = VALUES(attr_toughness), attr_soulview = VALUES(attr_soulview), attr_elytra = VALUES(attr_elytra),
+                    waypoints = VALUES(waypoints), story_chapter = VALUES(story_chapter), completed_quests = VALUES(completed_quests),
+                    scoreboard_enabled = VALUES(scoreboard_enabled), party_hud_enabled = VALUES(party_hud_enabled),
+                    quest_tracker_enabled = VALUES(quest_tracker_enabled), playtime_millis = VALUES(playtime_millis)
                 """;
+        String deleteProfessionsSql = "DELETE FROM pixelrpg_professions WHERE uuid = ?";
+        String insertProfessionSql = "INSERT INTO pixelrpg_professions (uuid, profession, level) VALUES (?, ?, ?)";
         String deleteQuestsSql = "DELETE FROM pixelrpg_active_quests WHERE uuid = ?";
         String insertQuestSql = "INSERT INTO pixelrpg_active_quests (uuid, quest_id, amount, expiry) VALUES (?, ?, ?, ?)";
         String upsertStatSql = """
-                INSERT INTO pixelrpg_player_stats (uuid, stat_key, value)
-                VALUES (?, ?, ?)
+                INSERT INTO pixelrpg_player_stats (uuid, stat_key, value) VALUES (?, ?, ?)
                 ON DUPLICATE KEY UPDATE value = VALUES(value)
                 """;
 
-        // Alles läuft in EINER Connection und EINER Transaktion: entweder wird der
-        // komplette Profilstand (Hauptzeile + Quests + Statistiken) übernommen,
-        // oder bei einem Fehler wird alles zurückgerollt - kein inkonsistenter
-        // Zwischenstand mehr bei einem Absturz/Verbindungsfehler mittendrin.
         try (Connection connection = databaseManager.getDataSource().getConnection()) {
             connection.setAutoCommit(false);
             try {
@@ -184,11 +170,24 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                     statement.executeUpdate();
                 }
 
+                try (PreparedStatement deleteStatement = connection.prepareStatement(deleteProfessionsSql)) {
+                    deleteStatement.setString(1, profile.getUuid().toString());
+                    deleteStatement.executeUpdate();
+                }
+                try (PreparedStatement insertStatement = connection.prepareStatement(insertProfessionSql)) {
+                    for (Profession profession : Profession.values()) {
+                        insertStatement.setString(1, profile.getUuid().toString());
+                        insertStatement.setString(2, profession.name());
+                        insertStatement.setInt(3, profile.getProfessionLevel(profession));
+                        insertStatement.addBatch();
+                    }
+                    insertStatement.executeBatch();
+                }
+
                 try (PreparedStatement deleteStatement = connection.prepareStatement(deleteQuestsSql)) {
                     deleteStatement.setString(1, profile.getUuid().toString());
                     deleteStatement.executeUpdate();
                 }
-
                 if (!profile.getActiveQuests().isEmpty()) {
                     try (PreparedStatement insertStatement = connection.prepareStatement(insertQuestSql)) {
                         for (QuestProgress progress : profile.getActiveQuests().values()) {
@@ -213,7 +212,6 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                         statStatement.executeBatch();
                     }
                 }
-
                 connection.commit();
             } catch (SQLException e) {
                 connection.rollback();
