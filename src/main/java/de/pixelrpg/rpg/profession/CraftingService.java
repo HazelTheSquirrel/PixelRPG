@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.profession;
 
+import de.pixelrpg.rpg.item.CraftedItemFactory;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.Material;
@@ -47,7 +48,13 @@ public final class CraftingService {
             player.getInventory().removeItem(new ItemStack(cost.getKey(), cost.getValue()));
         }
 
-        ItemStack result = new ItemStack(recipe.resultMaterial());
+        ItemStack result = CraftedItemFactory.create(
+                recipe.id(),
+                recipe.displayName(),
+                recipe.resultMaterial(),
+                recipe.rarity(),
+                profile.getLevel()
+        );
         player.getInventory().addItem(result).values()
                 .forEach(stack -> player.getWorld().dropItemNaturally(player.getLocation(), stack));
 
