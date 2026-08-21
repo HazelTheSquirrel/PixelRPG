@@ -4,10 +4,6 @@ import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.EconomyAPI;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.api.events.BossDefeatedEvent;
-import de.pixelrpg.rpg.combat.gem.ActiveSkillGemDefinition;
-import de.pixelrpg.rpg.combat.gem.GemItemFactory;
-import de.pixelrpg.rpg.combat.gem.GemRepository;
-import de.pixelrpg.rpg.combat.gem.PassiveGemDefinition;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.ClassSetItemFactory;
 import de.pixelrpg.rpg.item.ClassSetSlot;
@@ -45,7 +41,6 @@ public final class BossManager {
     private final BossAttackPatternRegistry patternRegistry;
     private final GuildAPI guildAPI;
     private final EconomyAPI economyAPI;
-    private final GemRepository gemRepository;
     private final ItemEconomyConfig itemEconomyConfig;
     private final double barRadius;
     private final int phaseCheckIntervalTicks;
@@ -54,13 +49,12 @@ public final class BossManager {
     private final Map<UUID, ActiveBoss> activeBosses = new ConcurrentHashMap<>();
 
     public BossManager(Plugin plugin, BossAttackPatternRegistry patternRegistry, GuildAPI guildAPI,
-                       EconomyAPI economyAPI, GemRepository gemRepository, ItemEconomyConfig itemEconomyConfig,
+                       EconomyAPI economyAPI, Object ignoredLegacyGemRepository, ItemEconomyConfig itemEconomyConfig,
                        double barRadius, int barUpdateIntervalTicks, int phaseCheckIntervalTicks) {
         this.plugin = plugin;
         this.patternRegistry = patternRegistry;
         this.guildAPI = guildAPI;
         this.economyAPI = economyAPI;
-        this.gemRepository = gemRepository;
         this.itemEconomyConfig = itemEconomyConfig;
         this.barRadius = barRadius;
         this.phaseCheckIntervalTicks = phaseCheckIntervalTicks;
@@ -85,17 +79,12 @@ public final class BossManager {
         BossBar bossBar = BossBar.bossBar(Component.text(definition.getDisplayName(), NamedTextColor.DARK_RED), 1.0f, BossBar.Color.RED, BossBar.Overlay.NOTCHED_10);
         ActiveBoss activeBoss = new ActiveBoss(entity.getUniqueId(), definition, bossBar);
         activeBosses.put(entity.getUniqueId(), activeBoss);
-        var task = Bukkit.getScheduler().runTaskTimer(plugin, () -> tick(activeBoss), 0L, phaseCheckIntervalTicks);
-        activeBoss.setTask(task);
+        activeBoss.setTask(Bukkit.getScheduler().runTaskTimer(plugin, () -> tick(activeBoss), 0L, phaseCheckIntervalTicks));
     }
 
     private void applyBaseStats(LivingEntity entity, BossDefinition definition) {
         AttributeInstance hpAttribute = entity.getAttribute(Attribute.MAX_HEALTH);
-        if (hpAttribute != null) {
-            double newHp = hpAttribute.getBaseValue() * definition.getHealthMultiplier();
-            hpAttribute.setBaseValue(newHp);
-            entity.setHealth(newHp);
-        }
+        if (hpAttribute != null) { double newHp = hpAttribute.getBaseValue() * definition.getHealthMultiplier(); hpAttribute.setBaseValue(newHp); entity.setHealth(newHp); }
         AttributeInstance dmgAttribute = entity.getAttribute(Attribute.ATTACK_DAMAGE);
         if (dmgAttribute != null) dmgAttribute.setBaseValue(dmgAttribute.getBaseValue() * definition.getDamageMultiplier());
     }
@@ -175,7 +164,6 @@ public final class BossManager {
             if (player == null || !player.isOnline() || !guildAPI.isRegistered(viewerUuid)) continue;
             participants.add(viewerUuid);
             rollClassSetDrop(player, viewerUuid, activeBoss.getDefinition().getLevel(), random);
-            rollGemDrop(player, random);
             if (lootConfig == null) continue;
             economyAPI.deposit(viewerUuid, lootConfig.moneyReward());
             guildAPI.addExperience(viewerUuid, lootConfig.expReward());
@@ -191,21 +179,6 @@ public final class BossManager {
         Bukkit.getPluginManager().callEvent(new BossDefeatedEvent(activeBoss.getDefinition().getId(), participants));
     }
 
-    private void rollGemDrop(Player player, Random random) {
-        if (itemEconomyConfig.getGemDropChance() <= 0.0 || random.nextDouble() >= itemEconomyConfig.getGemDropChance()) return;
-        boolean dropActive = random.nextDouble() < itemEconomyConfig.getGemActiveChance();
-        ItemStack gemItem = null;
-        if (dropActive) {
-            List<ActiveSkillGemDefinition> activeGems = gemRepository.getAllActive();
-            if (!activeGems.isEmpty()) gemItem = GemItemFactory.createActive(activeGems.get(random.nextInt(activeGems.size())));
-        }
-        if (gemItem == null) {
-            List<PassiveGemDefinition> passiveGems = gemRepository.getAllPassive();
-            if (!passiveGems.isEmpty()) gemItem = GemItemFactory.createPassive(passiveGems.get(random.nextInt(passiveGems.size())));
-        }
-        if (gemItem != null) player.getInventory().addItem(gemItem).values().forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
-    }
-
     private void rollClassSetDrop(Player player, UUID uuid, int bossLevel, Random random) {
         if (classSetDropChance <= 0.0 || random.nextDouble() >= classSetDropChance) return;
         PlayerClass playerClass = guildAPI.getPlayerClass(uuid);
@@ -214,11 +187,7 @@ public final class BossManager {
         ClassSetSlot slot = slots[random.nextInt(slots.length)];
         ItemStack setItem = ClassSetItemFactory.create(playerClass, slot, bossLevel);
         player.getInventory().addItem(setItem).values().forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
-        lang.send(player, "boss.class-set-drop", "class", plainClassName(playerClass), "slot", slot.name());
-    }
-
-    private String plainClassName(PlayerClass playerClass) {
-        return net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(playerClass.displayName());
+        lang.send(player, "boss.class-set-drop", "class", net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(playerClass.displayName()), "slot", slot.name());
     }
 
     private void cleanup(ActiveBoss activeBoss) {
@@ -226,7 +195,6 @@ public final class BossManager {
         for (UUID viewerUuid : activeBoss.getViewers()) { Player viewer = Bukkit.getPlayer(viewerUuid); if (viewer != null) viewer.hideBossBar(activeBoss.getBossBar()); }
         activeBosses.remove(activeBoss.getEntityUuid());
     }
-
     public boolean hasActiveBossOfType(String bossId) { return activeBosses.values().stream().anyMatch(active -> active.getDefinition().getId().equals(bossId)); }
     public int getActiveBossCount() { return activeBosses.size(); }
     public void shutdownAll() { for (ActiveBoss activeBoss : activeBosses.values()) cleanup(activeBoss); }
