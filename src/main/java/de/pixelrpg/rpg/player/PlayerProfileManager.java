@@ -232,7 +232,6 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         NOT_REGISTERED,
         MAX_REACHED,
         LEVEL_TOO_LOW,
-        @Deprecated(forRemoval = true) RANK_TOO_LOW,
         INSUFFICIENT_FUNDS
     }
 }
