@@ -187,7 +187,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new de.pixelrpg.rpg.npc.behavior.BankerBehavior(playerProfileManager));
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(new GuildJoinLeaveListener(playerProfileManager), this);
-        getServer().getPluginManager().registerEvents(new RPGStatsListener(statEngine), this);
+        getServer().getPluginManager().registerEvents(new RPGStatsListener(statEngine, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new SkillInputListener(weaponAbilityEngine), this);
         getServer().getPluginManager().registerEvents(blacksmithGUI, this);
         getServer().getPluginManager().registerEvents(shopEditorGUI, this);
