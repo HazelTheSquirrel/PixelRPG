@@ -15,12 +15,10 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.projectiles.ProjectileSource;
 
 public final class MobNameplateListener implements Listener {
-    private final PixelRPGPlugin plugin;
     private final MobNameplateService nameplateService;
     private final GuildAPI guildAPI;
 
-    public MobNameplateListener(PixelRPGPlugin plugin, MobNameplateService nameplateService, GuildAPI guildAPI) {
-        this.plugin = plugin;
+    public MobNameplateListener(MobNameplateService nameplateService, GuildAPI guildAPI) {
         this.nameplateService = nameplateService;
         this.guildAPI = guildAPI;
     }
@@ -42,7 +40,7 @@ public final class MobNameplateListener implements Listener {
         if (damager == null || !guildAPI.isRegistered(damager.getUniqueId())) return;
 
         Player finalDamager = damager;
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        Bukkit.getScheduler().runTask(PixelRPGPlugin.getInstance(), () -> {
             if (target.isValid() && !target.isDead()) {
                 nameplateService.onPlayerHit(target, finalDamager.getUniqueId());
             }
