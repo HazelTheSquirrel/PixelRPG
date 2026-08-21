@@ -7,13 +7,16 @@ import de.pixelrpg.rpg.profession.CraftingService;
 import de.pixelrpg.rpg.profession.Profession;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class CraftingCommand implements SubCommand {
+public final class CraftingCommand implements SubCommand, CommandExecutor, TabCompleter {
     private final CraftingService craftingService;
 
     public CraftingCommand(CraftingService craftingService) {
@@ -21,14 +24,10 @@ public final class CraftingCommand implements SubCommand {
     }
 
     @Override
-    public String name() {
-        return "craft";
-    }
+    public String name() { return "craft"; }
 
     @Override
-    public String permission() {
-        return "rpg.member";
-    }
+    public String permission() { return "rpg.member"; }
 
     @Override
     public boolean execute(CommandSender sender, String[] args) {
@@ -46,12 +45,9 @@ public final class CraftingCommand implements SubCommand {
             }
             return true;
         }
-
         var result = craftingService.craft(player, args[0]);
         sender.sendMessage(Component.text(result.message(), result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
-        if (result.success()) {
-            sender.sendMessage(Component.text("+" + result.experience() + " profession XP", NamedTextColor.AQUA));
-        }
+        if (result.success()) sender.sendMessage(Component.text("+" + result.experience() + " profession XP", NamedTextColor.AQUA));
         return true;
     }
 
@@ -65,5 +61,19 @@ public final class CraftingCommand implements SubCommand {
             }
         }
         return ids;
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!sender.hasPermission(permission())) {
+            sender.sendMessage(Component.text("You do not have permission to use this command.", NamedTextColor.RED));
+            return true;
+        }
+        return execute(sender, args);
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        return tabComplete(sender, args);
     }
 }
