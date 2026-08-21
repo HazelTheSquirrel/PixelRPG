@@ -50,7 +50,7 @@ public final class MobNameplateService {
         if (viewer == null || !viewer.isOnline()) return;
 
         TextDisplay display = tracked.displays.computeIfAbsent(viewerUuid, ignored -> createDisplay(mob));
-        if (!viewer.canSee(display)) viewer.showEntity(plugin, display);
+        viewer.showEntity(plugin, display);
         updateDisplay(mob, display);
 
         if (tracked.task == null) {
@@ -88,7 +88,7 @@ public final class MobNameplateService {
                 tracked.displays.remove(entry.getKey(), display);
                 continue;
             }
-            if (!viewer.canSee(display)) viewer.showEntity(plugin, display);
+            viewer.showEntity(plugin, display);
             updateDisplay(mob, display);
         }
     }
