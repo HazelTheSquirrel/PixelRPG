@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.profession;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.command.PaperBasicCommandAdapter;
 import de.pixelrpg.rpg.command.impl.CraftingCommand;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 
@@ -25,10 +26,7 @@ public final class ProfessionSystem {
                 new ProfessionGatheringListener(professionService), plugin);
 
         CraftingCommand command = new CraftingCommand(craftingService);
-        if (plugin.getCommand("rpgcraft") != null) {
-            plugin.getCommand("rpgcraft").setExecutor(command);
-            plugin.getCommand("rpgcraft").setTabCompleter(command);
-        }
+        plugin.registerCommand("rpgcraft", new PaperBasicCommandAdapter("rpgcraft", command, command, "rpg.member"));
     }
 
     public ProfessionService professionService() {
