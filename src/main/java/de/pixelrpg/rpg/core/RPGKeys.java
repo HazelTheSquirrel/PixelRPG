@@ -35,14 +35,23 @@ public final class RPGKeys {
         public static NamespacedKey attackDamageModifier(String instanceId) { return of("item_mod_attack_damage_" + instanceId); }
         public static NamespacedKey armorModifier(String instanceId) { return of("item_mod_armor_" + instanceId); }
         public static NamespacedKey healthModifier(String instanceId) { return of("item_mod_health_" + instanceId); }
+        @Deprecated public static NamespacedKey runeType() { return of("legacy_rune_type"); }
+        @Deprecated public static NamespacedKey runeValue() { return of("legacy_rune_value"); }
+        @Deprecated public static NamespacedKey gemType() { return of("legacy_gem_type"); }
+        @Deprecated public static NamespacedKey gemMaxSockets() { return of("legacy_gem_max_sockets"); }
+        @Deprecated public static NamespacedKey gemUsedSockets() { return of("legacy_gem_used_sockets"); }
+        @Deprecated public static NamespacedKey gemSocket(int index) { return of("legacy_gem_socket_" + index); }
+        @Deprecated public static NamespacedKey maxSockets() { return of("legacy_max_sockets"); }
+        @Deprecated public static NamespacedKey usedSockets() { return of("legacy_used_sockets"); }
+        @Deprecated public static NamespacedKey socket(int index) { return of("legacy_socket_" + index); }
     }
 
     public static final class Combat {
         private Combat() { }
         public static NamespacedKey mobLevel() { return of("combat_mob_level"); }
+        @Deprecated public static NamespacedKey mobRank() { return of("legacy_mob_rank"); }
         public static NamespacedKey mobBarExpiry() { return of("combat_mob_bar_expiry"); }
     }
-
     public static final class Stats {
         private Stats() { }
         public static NamespacedKey maxHealth() { return of("stat_max_health"); }
@@ -51,7 +60,6 @@ public final class RPGKeys {
         public static NamespacedKey blockRange() { return of("stat_block_range"); }
         public static NamespacedKey entityRange() { return of("stat_entity_range"); }
     }
-
     public static final class Npc {
         private Npc() { }
         public static NamespacedKey npcType() { return of("npc_type"); }
