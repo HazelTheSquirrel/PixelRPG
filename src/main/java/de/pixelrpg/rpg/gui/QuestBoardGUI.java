@@ -1,7 +1,6 @@
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.core.Rank;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -23,34 +22,30 @@ public final class QuestBoardGUI extends AbstractGUI {
     private final Player viewer;
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
-    private final Rank category;
+    private final int categoryLevel;
     private final LanguageManager lang;
 
-    public QuestBoardGUI(Player viewer, QuestManager questManager, PlayerProfileManager profileManager, Rank category) {
-        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("quest.board-rank-title", "rank", category.name()));
+    public QuestBoardGUI(Player viewer, QuestManager questManager, PlayerProfileManager profileManager, int categoryLevel) {
+        super(54, Component.text("Quests – Level " + categoryLevel, NamedTextColor.GOLD));
         this.viewer = viewer;
         this.questManager = questManager;
         this.profileManager = profileManager;
-        this.category = category;
+        this.categoryLevel = categoryLevel;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
     protected void populate() {
         PlayerProfile profile = profileManager.getProfile(viewer.getUniqueId()).orElse(null);
-        if (profile == null) {
-            return;
-        }
+        if (profile == null) return;
 
-        List<Quest> quests = questManager.getRepository().getQuestsByCategory(category).stream()
+        List<Quest> quests = questManager.getRepository().getQuestsByCategoryLevel(categoryLevel).stream()
                 .filter(q -> !profile.hasCompletedQuest(q.id()))
                 .toList();
 
         int slot = 0;
         for (Quest quest : quests) {
-            if (slot >= 45) {
-                break;
-            }
+            if (slot >= 45) break;
             setItem(slot, buildQuestItem(quest, profile), event ->
                     new QuestDetailGUI(viewer, questManager, profileManager, quest).open(viewer));
             slot++;
@@ -75,8 +70,7 @@ public final class QuestBoardGUI extends AbstractGUI {
         List<Component> lore = new ArrayList<>();
         lore.add(Component.text(quest.description(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text(" "));
-        lore.add(lang.get("quest.required-rank", "rank", quest.requiredRank().name())
-                .color(NamedTextColor.AQUA)
+        lore.add(Component.text("Benötigtes Level: " + quest.requiredLevel(), NamedTextColor.AQUA)
                 .decoration(TextDecoration.ITALIC, false));
 
         boolean hasActive = profile.hasActiveQuest(quest.id());
@@ -87,7 +81,7 @@ public final class QuestBoardGUI extends AbstractGUI {
                     .color(NamedTextColor.GREEN)
                     .decoration(TextDecoration.ITALIC, false));
         } else if (!questManager.canAccept(profile, quest)) {
-            lore.add(lang.get("quest.rank-too-low").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Level zu niedrig.", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         } else {
             lore.add(lang.get("quest.click-for-details").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
         }

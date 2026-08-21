@@ -3,9 +3,7 @@ package de.pixelrpg.rpg.player;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public final class AttributeConfig {
-
     private static final int[] LEVEL_REQUIREMENTS = {1, 10, 20, 30, 40, 50, 60};
-
     private static double baseCost = 30.0;
     private static double costMultiplier = 1.40;
     private static double soulviewCost = 500.0;
@@ -20,8 +18,7 @@ public final class AttributeConfig {
     public static double RANGE_ENTITY_PER_POINT = 0.20;
     public static double TOUGHNESS_ARMOR_PER_POINT = 2.0;
 
-    private AttributeConfig() {
-    }
+    private AttributeConfig() { }
 
     /** Loads attribute costs and scaling values from the plugin config. */
     public static void load(FileConfiguration config) {
@@ -29,7 +26,6 @@ public final class AttributeConfig {
         costMultiplier = config.getDouble("attributes.cost-multiplier", costMultiplier);
         classDiscount = config.getDouble("attributes.class-discount", classDiscount);
         soulviewCost = config.getDouble("attributes.soulview-cost", soulviewCost);
-
         VITALITY_HP_PER_POINT = config.getDouble("attributes.per-point.vitality-hp", VITALITY_HP_PER_POINT);
         AGILITY_SPEED_PER_POINT = config.getDouble("attributes.per-point.agility-speed", AGILITY_SPEED_PER_POINT);
         AGILITY_CRIT_PER_POINT = config.getDouble("attributes.per-point.agility-crit", AGILITY_CRIT_PER_POINT);
@@ -39,14 +35,10 @@ public final class AttributeConfig {
         TOUGHNESS_ARMOR_PER_POINT = config.getDouble("attributes.per-point.toughness-armor", TOUGHNESS_ARMOR_PER_POINT);
     }
 
-    public static void configureElytraCost(double cost) {
-        elytraPermitCost = cost;
-    }
+    public static void configureElytraCost(double cost) { elytraPermitCost = cost; }
 
     public static int levelRequirementForPoint(PlayerAttribute attribute, int currentPoints) {
-        if (attribute == PlayerAttribute.SOULVIEW || attribute == PlayerAttribute.ELYTRA_PERMIT) {
-            return 60;
-        }
+        if (attribute == PlayerAttribute.SOULVIEW || attribute == PlayerAttribute.ELYTRA_PERMIT) return 60;
         return LEVEL_REQUIREMENTS[Math.min(currentPoints, LEVEL_REQUIREMENTS.length - 1)];
     }
 
@@ -67,10 +59,7 @@ public final class AttributeConfig {
             case ELYTRA_PERMIT -> elytraPermitCost;
             default -> Math.round(baseCost * Math.pow(costMultiplier, currentPoints) * 100.0) / 100.0;
         };
-
-        if (isPrimaryFor(playerClass, attribute)) {
-            base = Math.round(base * classDiscount * 100.0) / 100.0;
-        }
+        if (isPrimaryFor(playerClass, attribute)) base = Math.round(base * classDiscount * 100.0) / 100.0;
         return base;
     }
 

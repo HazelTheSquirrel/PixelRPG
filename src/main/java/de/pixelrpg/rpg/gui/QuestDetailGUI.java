@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/gui/QuestDetailGUI.java (VOLLSTÄNDIG, ersetzt alte Datei — GUI bleibt bei fehlgeschlagener Annahme offen und zeigt Rückmeldung)
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
@@ -37,9 +36,7 @@ public final class QuestDetailGUI extends AbstractGUI {
     @Override
     protected void populate() {
         PlayerProfile profile = profileManager.getProfile(viewer.getUniqueId()).orElse(null);
-        if (profile == null) {
-            return;
-        }
+        if (profile == null) return;
 
         ItemStack info = new ItemStack(Material.BOOK);
         ItemMeta infoMeta = info.getItemMeta();
@@ -47,6 +44,8 @@ public final class QuestDetailGUI extends AbstractGUI {
         infoMeta.lore(List.of(
                 Component.text(quest.description(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
                 Component.text(" "),
+                Component.text("Benötigtes Level: " + quest.requiredLevel(), NamedTextColor.AQUA)
+                        .decoration(TextDecoration.ITALIC, false),
                 lang.get("quest.reward-label", "money", String.valueOf(quest.rewardMoney()), "exp", String.valueOf(quest.rewardExp()))
                         .color(NamedTextColor.GOLD)
                         .decoration(TextDecoration.ITALIC, false)
@@ -70,16 +69,13 @@ public final class QuestDetailGUI extends AbstractGUI {
         } else {
             setItem(20, buildButton(Material.LIME_DYE, "quest.accept", NamedTextColor.GREEN), event -> {
                 boolean accepted = questManager.acceptQuest(viewer, quest);
-                if (accepted) {
-                    viewer.closeInventory();
-                } else {
-                    open(viewer);
-                }
+                if (accepted) viewer.closeInventory();
+                else open(viewer);
             });
         }
 
         setItem(49, buildButton(Material.ARROW, "common.back", NamedTextColor.RED), event ->
-                new QuestBoardGUI(viewer, questManager, profileManager, quest.category()).open(viewer));
+                new QuestBoardGUI(viewer, questManager, profileManager, quest.categoryLevel()).open(viewer));
     }
 
     private ItemStack buildButton(Material material, String labelKey, NamedTextColor color) {

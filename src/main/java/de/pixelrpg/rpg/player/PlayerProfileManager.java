@@ -78,8 +78,12 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         catch (Exception e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Not all player profiles could be flushed cleanly on shutdown.", e); }
         if (saveExecutor != null) {
             saveExecutor.shutdown();
-            try { if (!saveExecutor.awaitTermination(10, TimeUnit.SECONDS)) saveExecutor.shutdownNow(); }
-            catch (InterruptedException e) { saveExecutor.shutdownNow(); Thread.currentThread().interrupt(); }
+            try {
+                if (!saveExecutor.awaitTermination(10, TimeUnit.SECONDS)) saveExecutor.shutdownNow();
+            } catch (InterruptedException e) {
+                saveExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
         if (repository != null) repository.shutdown();
     }
@@ -223,5 +227,12 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     @Override public void deposit(UUID uuid, double amount) { PlayerProfile p = activeProfiles.get(uuid); if (p != null && p.isRegisteredInGuild()) { p.addMoney(amount); persistAsync(p); } }
     @Override public boolean withdraw(UUID uuid, double amount) { PlayerProfile p = activeProfiles.get(uuid); if (p == null || !p.isRegisteredInGuild()) return false; boolean success = p.removeMoney(amount); if (success) persistAsync(p); return success; }
 
-    public enum AttributePurchaseResult { SUCCESS, NOT_REGISTERED, MAX_REACHED, LEVEL_TOO_LOW, INSUFFICIENT_FUNDS }
+    public enum AttributePurchaseResult {
+        SUCCESS,
+        NOT_REGISTERED,
+        MAX_REACHED,
+        LEVEL_TOO_LOW,
+        @Deprecated(forRemoval = true) RANK_TOO_LOW,
+        INSUFFICIENT_FUNDS
+    }
 }

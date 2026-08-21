@@ -1,7 +1,6 @@
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.core.Rank;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.QuestManager;
@@ -16,6 +15,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.List;
 
 public final class QuestCategoryGUI extends AbstractGUI {
+
+    private static final int[] CATEGORY_LEVELS = {1, 11, 21, 31, 41, 51, 61};
+    private static final int[] SLOTS = {19, 21, 23, 25, 29, 31, 33};
 
     private final Player viewer;
     private final QuestManager questManager;
@@ -32,27 +34,25 @@ public final class QuestCategoryGUI extends AbstractGUI {
 
     @Override
     protected void populate() {
-        int[] slots = {19, 21, 23, 25, 29, 31, 33};
-        Rank[] ranks = Rank.values();
-
-        for (int i = 0; i < ranks.length && i < slots.length; i++) {
-            Rank rank = ranks[i];
-            int questCount = questManager.getRepository().getQuestsByCategory(rank).size();
+        for (int i = 0; i < CATEGORY_LEVELS.length; i++) {
+            int level = CATEGORY_LEVELS[i];
+            int questCount = questManager.getRepository().getQuestsByCategoryLevel(level).size();
 
             ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
             ItemMeta meta = item.getItemMeta();
-            meta.displayName(Component.text("Rank " + rank.name(), rank.getColor())
+            meta.displayName(Component.text("Level " + level, NamedTextColor.GOLD)
                     .decoration(TextDecoration.ITALIC, false));
             meta.lore(List.of(
                     lang.get("quest.quest-count", "count", String.valueOf(questCount))
                             .color(NamedTextColor.GRAY)
                             .decoration(TextDecoration.ITALIC, false),
-                    lang.get("quest.click-to-browse").color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
+                    lang.get("quest.click-to-browse").color(NamedTextColor.YELLOW)
+                            .decoration(TextDecoration.ITALIC, false)
             ));
             item.setItemMeta(meta);
 
-            setItem(slots[i], item, event ->
-                    new QuestBoardGUI(viewer, questManager, profileManager, rank).open(viewer));
+            setItem(SLOTS[i], item, event ->
+                    new QuestBoardGUI(viewer, questManager, profileManager, level).open(viewer));
         }
     }
 }

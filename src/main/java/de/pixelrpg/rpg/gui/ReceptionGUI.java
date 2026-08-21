@@ -2,7 +2,6 @@
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.core.Rank;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -118,11 +117,11 @@ public final class ReceptionGUI extends AbstractGUI {
 
         List<Component> lore = new ArrayList<>();
         if (registered && profile != null) {
-            Rank rank = profile.getRank();
             lore.add(lang.get("reception.status")
                     .append(lang.get("reception.status-member").color(NamedTextColor.GREEN))
                     .decoration(TextDecoration.ITALIC, false));
-            lore.add(lang.get("reception.rank-label").append(rank.displayName())
+            lore.add(Component.text("Level: ", NamedTextColor.GRAY)
+                    .append(Component.text(profile.getLevel(), NamedTextColor.WHITE))
                     .decoration(TextDecoration.ITALIC, false));
             lore.add(lang.get("reception.class-label").append(profile.getPlayerClass().displayName())
                     .decoration(TextDecoration.ITALIC, false));
