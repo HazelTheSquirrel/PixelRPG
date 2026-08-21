@@ -194,7 +194,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new QuestBehavior(questManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new ShopBehavior(shopManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new TravelBehavior(npcManager, playerProfileManager, dialogueEngine));
-        npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogue, playerProfileManager));
+        npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogue, dialogueEngine, playerProfileManager));
         npcBehaviorRegistry.register(new de.pixelrpg.rpg.npc.behavior.BankerBehavior(playerProfileManager, dialogueEngine));
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(craftingGUI, this);
