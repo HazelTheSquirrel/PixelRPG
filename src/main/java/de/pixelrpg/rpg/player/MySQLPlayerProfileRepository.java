@@ -48,8 +48,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 profile.setPlayerClass(parseClass(resultSet.getString("player_class")));
                 profile.setMoney(resultSet.getDouble("money"));
                 profile.setReceivedStartBonus(resultSet.getBoolean("start_bonus"));
-                profile.setCurrentMana(resultSet.getDouble("mana_current"), Double.MAX_VALUE);
-                if (!resultSet.getBoolean("mana_initialized")) profile.setCurrentMana(0.0, Double.MAX_VALUE);
+                if (resultSet.getBoolean("mana_initialized")) profile.setCurrentMana(resultSet.getDouble("mana_current"), Double.MAX_VALUE);
                 profile.setAttributePoints(PlayerAttribute.VITALITY, resultSet.getInt("attr_vitality"));
                 profile.setAttributePoints(PlayerAttribute.AGILITY, resultSet.getInt("attr_agility"));
                 profile.setAttributePoints(PlayerAttribute.PRECISION, resultSet.getInt("attr_precision"));
