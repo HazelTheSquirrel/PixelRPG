@@ -56,7 +56,13 @@ public final class CombatDamageListener implements Listener {
             ProjectileSource shooter = projectile.getShooter();
             if (shooter instanceof Player player) { attacker = player; isRanged = true; }
         }
-        if (attacker == null || !guildAPI.isRegistered(attacker.getUniqueId())) return;
+        if (attacker == null) return;
+
+        if (isRpgEntity(target) && !guildAPI.isRegistered(attacker.getUniqueId())) {
+            event.setCancelled(true);
+            return;
+        }
+        if (!guildAPI.isRegistered(attacker.getUniqueId())) return;
         if (target instanceof Player targetPlayer && !guildAPI.isRegistered(targetPlayer.getUniqueId())) return;
         if (target instanceof Player) return;
         PlayerProfile profile = profileManager.getProfile(attacker.getUniqueId()).orElse(null);
@@ -127,5 +133,11 @@ public final class CombatDamageListener implements Listener {
         for (var nearby : monster.getNearbyEntities(16, 8, 16)) {
             if (nearby instanceof Player guildPlayer && guildAPI.isRegistered(guildPlayer.getUniqueId())) { monster.setTarget(guildPlayer); break; }
         }
+    }
+
+    private boolean isRpgEntity(LivingEntity entity) {
+        var pdc = entity.getPersistentDataContainer();
+        return pdc.has(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER)
+                || pdc.has(RPGKeys.Boss.bossId(), PersistentDataType.STRING);
     }
 }
