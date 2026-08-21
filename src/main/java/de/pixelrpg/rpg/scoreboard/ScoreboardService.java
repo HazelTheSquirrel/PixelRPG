@@ -17,6 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -37,6 +38,7 @@ public final class ScoreboardService implements Listener {
     private final PlayerProfileManager profileManager;
     private final int updateIntervalTicks;
     private final Map<UUID, PlayerScoreboardState> stateByPlayer = new ConcurrentHashMap<>();
+    private BukkitTask task;
 
     private static final class PlayerScoreboardState {
         final Scoreboard board;
@@ -54,7 +56,8 @@ public final class ScoreboardService implements Listener {
     }
 
     public void startTask() {
-        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+        if (task != null) return;
+        task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 profileManager.getProfile(player.getUniqueId()).ifPresent(profile -> {
                     if (profile.isRegisteredInGuild() && profile.isScoreboardEnabled()) apply(player, profile);
@@ -62,6 +65,15 @@ public final class ScoreboardService implements Listener {
                 });
             }
         }, updateIntervalTicks, updateIntervalTicks);
+    }
+
+    public void shutdown() {
+        if (task != null) {
+            task.cancel();
+            task = null;
+        }
+        for (Player player : Bukkit.getOnlinePlayers()) clear(player);
+        stateByPlayer.clear();
     }
 
     // Zuständig für den initialen Scoreboard-Aufbau beim Login.
@@ -124,7 +136,7 @@ public final class ScoreboardService implements Listener {
         return team;
     }
 
-    private String entryFor(int index) { return "\u00A7" + Integer.toHexString(index) + "\u00A7r"; }
+    private String entryFor(int index) { return "pixelrpg_line_" + index; }
 
     private List<Component> buildLines(Player player, PlayerProfile profile) {
         List<Component> lines = new ArrayList<>();
