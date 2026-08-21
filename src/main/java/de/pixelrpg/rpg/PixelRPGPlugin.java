@@ -53,6 +53,7 @@ import de.pixelrpg.rpg.npc.NpcChunkListener;
 import de.pixelrpg.rpg.npc.NpcInteractListener;
 import de.pixelrpg.rpg.npc.NpcLookTask;
 import de.pixelrpg.rpg.npc.NpcManager;
+import de.pixelrpg.rpg.npc.behavior.BankerBehavior;
 import de.pixelrpg.rpg.npc.behavior.BlacksmithBehavior;
 import de.pixelrpg.rpg.npc.behavior.QuestBehavior;
 import de.pixelrpg.rpg.npc.behavior.ReceptionBehavior;
@@ -197,7 +198,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new ShopBehavior(shopManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new TravelBehavior(npcManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogue, dialogueEngine, playerProfileManager));
-        npcBehaviorRegistry.register(new de.pixelrpg.rpg.npc.behavior.BankerBehavior(playerProfileManager, dialogueEngine));
+        npcBehaviorRegistry.register(new BankerBehavior(playerProfileManager, dialogueEngine));
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(craftingGUI, this);
         getServer().getPluginManager().registerEvents(new GuildJoinLeaveListener(playerProfileManager), this);
@@ -206,7 +207,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(blacksmithGUI, this);
         getServer().getPluginManager().registerEvents(shopEditorGUI, this);
         getServer().getPluginManager().registerEvents(new LootDropListener(playerProfileManager, itemEconomyConfig), this);
-        getServer().getPluginManager().registerEvents(new MobLevelScalingListener(playerProfileManager, mobScalingConfig), this);
+        MobLevelScalingListener mobLevelScalingListener = new MobLevelScalingListener(this, playerProfileManager, mobScalingConfig);
+        getServer().getPluginManager().registerEvents(mobLevelScalingListener, this);
+        mobLevelScalingListener.start();
         getServer().getPluginManager().registerEvents(new MobNameplateListener(mobNameplateService, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new CombatDamageListener(playerProfileManager, playerProfileManager, statEngine, mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, playerProfileManager), this);
@@ -258,15 +261,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     }
 
     public static PixelRPGPlugin getInstance() { return instance; }
-    public LanguageManager getLanguageManager() { return languageManager; }
-    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
-    public StatEngine getStatEngine() { return statEngine; }
-    public ItemService getItemService() { return itemService; }
-    public NpcManager getNpcManager() { return npcManager; }
-    public ShopManager getShopManager() { return shopManager; }
-    public StoryManager getStoryManager() { return storyManager; }
-    public PartyManager getPartyManager() { return partyManager; }
-    public QuestManager getQuestManager() { return questManager; }
-    public BossManager getBossManager() { return bossManager; }
-    public ScoreboardService getScoreboardService() { return scoreboardService; }
+
+    private void registerCommand(String name, PaperBasicCommandAdapter command) {
+        getLifecycleManager().registerEventHandler(org.bukkit.event.lifecycle.LifecycleEvents.COMMANDS, event -> event.registrar().register(name, command));
+    }
 }
