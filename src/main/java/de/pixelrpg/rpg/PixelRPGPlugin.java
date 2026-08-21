@@ -85,6 +85,7 @@ import de.pixelrpg.rpg.stats.StatisticsService;
 import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryManager;
 import de.pixelrpg.rpg.travel.GuildCompassListener;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -273,6 +274,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public BossManager getBossManager() { return bossManager; }
 
     public void registerCommand(String name, PaperBasicCommandAdapter command) {
-        getLifecycleManager().registerEventHandler(org.bukkit.plugin.lifecycle.LifecycleEvents.COMMANDS, event -> event.registrar().register(name, command));
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> event.registrar().register(name, command));
     }
 }
