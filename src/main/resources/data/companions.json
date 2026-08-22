@@ -4,7 +4,9 @@
     "level100Mode": "GRIND",
     "xp": {
       "base": 100,
-      "perLevel": 50
+      "perLevel": 50,
+      "mobKill": 25,
+      "questCompletion": 100
     }
   },
   "defaults": {
@@ -21,11 +23,18 @@
     "UNIQUE": { "powerMultiplier": 1.50, "xpMultiplier": 2.00 }
   },
   "definitions": [
-    { "id": "test-wolf", "name": "PixelRPG Wolf", "entityType": "WOLF", "rarity": "UNCOMMON", "renameable": true, "adminOnly": false, "scale": 1.00 },
     { "id": "test-bee", "name": "PixelRPG Bee", "entityType": "BEE", "rarity": "COMMON", "renameable": true, "adminOnly": false, "scale": 1.00 },
+    { "id": "test-wolf", "name": "PixelRPG Wolf", "entityType": "WOLF", "rarity": "UNCOMMON", "renameable": true, "adminOnly": false, "scale": 1.00 },
+    { "id": "test-copper-golem", "name": "PixelRPG Copper Golem", "entityType": "COPPER_GOLEM", "rarity": "UNCOMMON", "renameable": true, "adminOnly": false, "scale": 0.85 },
     { "id": "test-zombie", "name": "PixelRPG Zombie", "entityType": "ZOMBIE", "rarity": "RARE", "renameable": true, "adminOnly": false, "scale": 1.00 },
+    { "id": "test-bogged", "name": "PixelRPG Bogged", "entityType": "BOGGED", "rarity": "RARE", "renameable": true, "adminOnly": false, "scale": 1.00 },
+    { "id": "test-parched", "name": "PixelRPG Parched", "entityType": "PARCHED", "rarity": "RARE", "renameable": true, "adminOnly": false, "scale": 1.00 },
     { "id": "test-pig", "name": "PixelRPG Pig", "entityType": "PIG", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 1.00 },
+    { "id": "test-nautilus", "name": "PixelRPG Nautilus", "entityType": "NAUTILUS", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 0.85 },
+    { "id": "test-creaking", "name": "PixelRPG Creaking", "entityType": "CREAKING", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 0.90 },
+    { "id": "test-happy-ghast", "name": "PixelRPG Happy Ghast", "entityType": "HAPPY_GHAST", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 0.65 },
     { "id": "test-warden", "name": "PixelRPG Warden", "entityType": "WARDEN", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.50 },
+    { "id": "test-sulfur-cube", "name": "PixelRPG Sulfur Cube", "entityType": "SULFUR_CUBE", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.55 },
     { "id": "admin_unique_example", "name": "PixelRPG Guardian", "entityType": "MANNEQUIN", "rarity": "UNIQUE", "renameable": false, "adminOnly": true, "scale": 1.00 }
   ]
 }
