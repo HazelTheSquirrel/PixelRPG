@@ -11,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginDisableEvent;
 
 public final class QuickActionsDialogListener implements Listener {
+    private static final Key PROFILE_ACTION = Key.key("pixelrpg:character_card/profile");
     private static final Key COMPANIONS_ACTION = Key.key("pixelrpg:character_card/companions");
     private static final Key PROFESSIONS_ACTION = Key.key("pixelrpg:character_card/professions");
     private static final Key CLOSE_ACTION = Key.key("pixelrpg:character_card/close");
@@ -29,6 +30,13 @@ public final class QuickActionsDialogListener implements Listener {
         this.professionDialog = new ProfessionDialog(service.profileManager(), dialogueEngine);
         this.characterCardScoreboard = new CharacterCardScoreboardService(plugin, service.profileManager(), service.statEngine());
         this.characterCardScoreboard.start();
+    }
+
+    /** Opens the dynamic player-specific character profile from the G quick action. */
+    @EventHandler
+    public void onProfileAction(PlayerCustomClickEvent event) {
+        handlePlayerAction(event, PROFILE_ACTION,
+                player -> service.openCharacterProfile(player, companionDialog, professionDialog));
     }
 
     /** Opens the companion section from the direct G character card. */
