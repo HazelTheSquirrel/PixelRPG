@@ -25,7 +25,7 @@ public final class QuestExperienceScalingListener implements Listener {
         Quest quest = questRepository.getQuest(event.getQuestId());
         if (quest == null) return;
 
-        int level = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, quest.recommendedLevel()));
+        int level = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, quest.requiredLevel()));
         long currentThreshold = Level.getRequiredExperience(level);
         long nextThreshold = level < Level.MAX_NORMAL_LEVEL
                 ? Level.getRequiredExperience(level + 1)
