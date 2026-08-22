@@ -14,19 +14,18 @@ import de.pixelrpg.rpg.player.PlayerClass;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -68,7 +67,6 @@ public final class BossManager {
     public LivingEntity spawnWorldBoss(BossDefinition definition, Location location) {
         LivingEntity entity = (LivingEntity) location.getWorld().spawnEntity(location, definition.getBaseEntityType());
         entity.getPersistentDataContainer().set(RPGKeys.Boss.worldBossMarker(), PersistentDataType.BOOLEAN, true);
-        announceSpawn(definition, location);
         attachPhaseController(entity, definition);
         return entity;
     }
@@ -94,18 +92,9 @@ public final class BossManager {
         }
         AttributeInstance dmgAttribute = entity.getAttribute(Attribute.ATTACK_DAMAGE);
         if (dmgAttribute != null) dmgAttribute.setBaseValue(dmgAttribute.getBaseValue() * definition.getDamageMultiplier());
-    }
-
-    private void announceSpawn(BossDefinition definition, Location location) {
-        Component announcement = lang.get("boss.world-boss-appeared", "name", definition.getDisplayName());
-        Component title = Component.text(definition.getDisplayName(), NamedTextColor.DARK_RED);
-        Component subtitle = lang.get("boss.world-boss-awakened");
-        for (Player player : location.getWorld().getPlayers()) {
-            if (!guildAPI.isRegistered(player.getUniqueId())) continue;
-            player.sendMessage(announcement);
-            player.showTitle(Title.title(title, subtitle, Title.Times.times(
-                    Duration.ofMillis(500), Duration.ofMillis(2500), Duration.ofMillis(500))));
-        }
+        AttributeInstance scaleAttribute = entity.getAttribute(Attribute.SCALE);
+        if (scaleAttribute != null) scaleAttribute.setBaseValue(scaleAttribute.getBaseValue() * definition.getScaleMultiplier());
+        entity.setRemoveWhenFarAway(false);
     }
 
     private void tick(ActiveBoss activeBoss) {
