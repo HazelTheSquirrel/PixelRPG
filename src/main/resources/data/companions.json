@@ -1,0 +1,30 @@
+{
+  "progression": {
+    "maxLevel": 99,
+    "level100Mode": "GRIND",
+    "xp": {
+      "base": 100,
+      "perLevel": 50
+    }
+  },
+  "defaults": {
+    "activeXpOnly": true,
+    "maxNameLength": 24,
+    "passive": true
+  },
+  "rarities": {
+    "COMMON": { "powerMultiplier": 1.00, "xpMultiplier": 1.00 },
+    "UNCOMMON": { "powerMultiplier": 1.10, "xpMultiplier": 1.15 },
+    "RARE": { "powerMultiplier": 1.22, "xpMultiplier": 1.35 },
+    "EPIC": { "powerMultiplier": 1.38, "xpMultiplier": 1.60 },
+    "LEGENDARY": { "powerMultiplier": 1.58, "xpMultiplier": 2.00 },
+    "UNIQUE": { "powerMultiplier": 1.50, "xpMultiplier": 2.00 }
+  },
+  "definitions": [
+    { "id": "test-wolf", "name": "PixelRPG Wolf", "entityType": "WOLF", "rarity": "UNCOMMON", "renameable": true, "adminOnly": false },
+    { "id": "test-bee", "name": "PixelRPG Bee", "entityType": "BEE", "rarity": "COMMON", "renameable": true, "adminOnly": false },
+    { "id": "test-zombie", "name": "PixelRPG Zombie", "entityType": "ZOMBIE", "rarity": "RARE", "renameable": true, "adminOnly": false },
+    { "id": "test-pig", "name": "PixelRPG Pig", "entityType": "PIG", "rarity": "EPIC", "renameable": true, "adminOnly": false },
+    { "id": "test-warden", "name": "PixelRPG Warden", "entityType": "WARDEN", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false }
+  ]
+}
