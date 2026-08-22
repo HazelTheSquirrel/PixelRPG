@@ -14,9 +14,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 /** Keeps active passive companions near their owning player without enabling combat AI. */
@@ -26,9 +24,9 @@ public final class CompanionFollowTask implements Runnable {
 
     private final Plugin plugin;
     private final Map<UUID, UUID> activeEntities;
-    private final Set<UUID> configuredEntities = new HashSet<>();
     private final Map<String, CompanionVisualDefinition> definitionsById = new HashMap<>();
     private final Map<String, CompanionStatDefinition> statsByRarity = new HashMap<>();
+    private final Map<UUID, AppliedCompanionState> appliedStates = new HashMap<>();
     private CompanionLevelScaling levelScaling = CompanionLevelScaling.defaults();
 
     public CompanionFollowTask(Plugin plugin, Map<UUID, UUID> activeEntities) {
@@ -45,13 +43,11 @@ public final class CompanionFollowTask implements Runnable {
 
             if (player == null || companion == null || !companion.isValid()) {
                 activeEntities.remove(entry.getKey(), entry.getValue());
-                configuredEntities.remove(entry.getValue());
+                appliedStates.remove(entry.getValue());
                 continue;
             }
 
-            if (companion instanceof LivingEntity living && configuredEntities.add(companion.getUniqueId())) {
-                applyConfiguredAttributes(living);
-            }
+            if (companion instanceof LivingEntity living) applyConfiguredAttributes(living);
 
             Location playerLocation = player.getLocation();
             if (companion.getWorld() != player.getWorld()) {
@@ -82,24 +78,31 @@ public final class CompanionFollowTask implements Runnable {
                 .getOrDefault(RPGKeys.Companion.level(), PersistentDataType.INTEGER, 1));
         String rarity = entity.getPersistentDataContainer()
                 .getOrDefault(RPGKeys.Companion.rarity(), PersistentDataType.STRING, definition.rarity());
-        entity.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, level);
-        entity.getPersistentDataContainer().set(RPGKeys.Companion.rarity(), PersistentDataType.STRING, rarity);
+        CompanionStatDefinition stats = statsByRarity.get(rarity.toUpperCase());
+        if (stats == null) return;
+
+        AppliedCompanionState state = appliedStates.get(entity.getUniqueId());
+        if (state == null) {
+            state = AppliedCompanionState.capture(entity, level, rarity);
+            appliedStates.put(entity.getUniqueId(), state);
+        } else if (state.level() != level || !state.rarity().equalsIgnoreCase(rarity)) {
+            state.restore(entity);
+            state = AppliedCompanionState.capture(entity, level, rarity);
+            appliedStates.put(entity.getUniqueId(), state);
+        }
 
         AttributeInstance scale = entity.getAttribute(Attribute.SCALE);
         if (scale != null && Double.isFinite(definition.scale()) && definition.scale() > 0.0D) {
             scale.setBaseValue(definition.scale());
         }
 
-        CompanionStatDefinition stats = statsByRarity.get(rarity.toUpperCase());
-        if (stats == null) return;
-
         double healthMultiplier = capped(stats.healthMultiplier() * levelMultiplier(levelScaling.healthPerLevel(), level), levelScaling.healthCap());
         double damageMultiplier = capped(stats.damageMultiplier() * levelMultiplier(levelScaling.damagePerLevel(), level), levelScaling.damageCap());
         double speedMultiplier = capped(stats.speedMultiplier() * levelMultiplier(levelScaling.speedPerLevel(), level), levelScaling.speedCap());
 
-        setMultiplier(entity, Attribute.MAX_HEALTH, healthMultiplier);
-        setMultiplier(entity, Attribute.ATTACK_DAMAGE, damageMultiplier);
-        setMultiplier(entity, Attribute.MOVEMENT_SPEED, speedMultiplier);
+        setFromBase(entity, Attribute.MAX_HEALTH, state.baseHealth(), healthMultiplier);
+        setFromBase(entity, Attribute.ATTACK_DAMAGE, state.baseDamage(), damageMultiplier);
+        setFromBase(entity, Attribute.MOVEMENT_SPEED, state.baseSpeed(), speedMultiplier);
     }
 
     private static double levelMultiplier(double perLevel, int level) {
@@ -110,10 +113,10 @@ public final class CompanionFollowTask implements Runnable {
         return Math.min(Math.max(0.01D, value), Math.max(0.01D, cap));
     }
 
-    private static void setMultiplier(LivingEntity entity, Attribute attribute, double multiplier) {
+    private static void setFromBase(LivingEntity entity, Attribute attribute, double baseValue, double multiplier) {
         AttributeInstance instance = entity.getAttribute(attribute);
-        if (instance == null || !Double.isFinite(multiplier) || multiplier <= 0.0D) return;
-        instance.setBaseValue(Math.max(0.01D, instance.getBaseValue() * multiplier));
+        if (instance == null || !Double.isFinite(baseValue) || !Double.isFinite(multiplier) || multiplier <= 0.0D) return;
+        instance.setBaseValue(Math.max(0.01D, baseValue * multiplier));
         if (attribute == Attribute.MAX_HEALTH) entity.setHealth(Math.min(entity.getHealth(), instance.getValue()));
     }
 
@@ -192,6 +195,31 @@ public final class CompanionFollowTask implements Runnable {
     }
 
     private record CompanionStatDefinition(double healthMultiplier, double damageMultiplier, double speedMultiplier) {
+    }
+
+    private record AppliedCompanionState(int level, String rarity, double baseHealth, double baseDamage, double baseSpeed) {
+        private static AppliedCompanionState capture(LivingEntity entity, int level, String rarity) {
+            return new AppliedCompanionState(level, rarity,
+                    base(entity, Attribute.MAX_HEALTH),
+                    base(entity, Attribute.ATTACK_DAMAGE),
+                    base(entity, Attribute.MOVEMENT_SPEED));
+        }
+
+        private void restore(LivingEntity entity) {
+            restore(entity, Attribute.MAX_HEALTH, baseHealth);
+            restore(entity, Attribute.ATTACK_DAMAGE, baseDamage);
+            restore(entity, Attribute.MOVEMENT_SPEED, baseSpeed);
+        }
+
+        private static double base(LivingEntity entity, Attribute attribute) {
+            AttributeInstance instance = entity.getAttribute(attribute);
+            return instance == null ? 1.0D : instance.getBaseValue();
+        }
+
+        private static void restore(LivingEntity entity, Attribute attribute, double value) {
+            AttributeInstance instance = entity.getAttribute(attribute);
+            if (instance != null && Double.isFinite(value) && value > 0.0D) instance.setBaseValue(value);
+        }
     }
 
     private record CompanionLevelScaling(double healthPerLevel, double damagePerLevel, double speedPerLevel,
