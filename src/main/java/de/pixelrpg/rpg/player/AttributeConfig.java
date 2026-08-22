@@ -3,7 +3,9 @@ package de.pixelrpg.rpg.player;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import de.pixelrpg.rpg.config.JsonDataManager;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.Plugin;
 
 public final class AttributeConfig {
     private static int[] levelRequirements = {1, 10, 20, 30, 40, 50, 60};
@@ -28,13 +30,11 @@ public final class AttributeConfig {
         JsonObject root = dataManager.load("attributes.json");
         JsonObject cost = root.getAsJsonObject("cost");
         JsonObject scaling = root.getAsJsonObject("pointScaling");
-
         baseCost = number(cost, "base", baseCost);
         costMultiplier = number(cost, "multiplier", costMultiplier);
         classDiscount = number(cost, "classDiscount", classDiscount);
         soulviewCost = number(cost, "soulview", soulviewCost);
         elytraPermitCost = number(cost, "elytraPermit", elytraPermitCost);
-
         VITALITY_HP_PER_POINT = number(scaling, "vitalityHp", VITALITY_HP_PER_POINT);
         AGILITY_SPEED_PER_POINT = number(scaling, "agilitySpeed", AGILITY_SPEED_PER_POINT);
         AGILITY_CRIT_PER_POINT = number(scaling, "agilityCrit", AGILITY_CRIT_PER_POINT);
@@ -42,15 +42,21 @@ public final class AttributeConfig {
         RANGE_BLOCK_PER_POINT = number(scaling, "rangeBlock", RANGE_BLOCK_PER_POINT);
         RANGE_ENTITY_PER_POINT = number(scaling, "rangeEntity", RANGE_ENTITY_PER_POINT);
         TOUGHNESS_ARMOR_PER_POINT = number(scaling, "toughnessArmor", TOUGHNESS_ARMOR_PER_POINT);
-
         JsonArray requirements = root.getAsJsonArray("levelRequirements");
-        if (requirements != null && !requirements.isEmpty()) {
-            levelRequirements = requirements.asList().stream().mapToInt(element -> element.getAsInt()).toArray();
-        }
+        if (requirements != null && !requirements.isEmpty()) levelRequirements = requirements.asList().stream().mapToInt(element -> element.getAsInt()).toArray();
     }
 
-    /** Compatibility loader for the legacy main config; JSON should be preferred. */
+    /** Loads JSON data during the existing plugin startup path, with the legacy config as fallback. */
     public static void load(FileConfiguration config) {
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("PixelRPG");
+        if (plugin != null) {
+            try {
+                load(new JsonDataManager(plugin));
+                return;
+            } catch (RuntimeException ignored) {
+                plugin.getLogger().warning("Falling back to legacy attribute config because attributes.json could not be loaded.");
+            }
+        }
         baseCost = config.getDouble("attributes.base-cost", baseCost);
         costMultiplier = config.getDouble("attributes.cost-multiplier", costMultiplier);
         classDiscount = config.getDouble("attributes.class-discount", classDiscount);
@@ -59,8 +65,8 @@ public final class AttributeConfig {
         AGILITY_SPEED_PER_POINT = config.getDouble("attributes.per-point.agility-speed", AGILITY_SPEED_PER_POINT);
         AGILITY_CRIT_PER_POINT = config.getDouble("attributes.per-point.agility-crit", AGILITY_CRIT_PER_POINT);
         PRECISION_DAMAGE_PER_POINT = config.getDouble("attributes.per-point.precision-damage", PRECISION_DAMAGE_PER_POINT);
-        RANGE_BLOCK_PER_POINT = config.getDouble("attributes.per-point.range-block", RANGE_BLOCK_PER_POINT);
-        RANGE_ENTITY_PER_POINT = config.getDouble("attributes.per-point.range-entity", RANGE_ENTITY_PER_POINT);
+        RANGE_BLOCK_PER_POINT = config.getDouble("attributes.range-block", RANGE_BLOCK_PER_POINT);
+        RANGE_ENTITY_PER_POINT = config.getDouble("attributes.range-entity", RANGE_ENTITY_PER_POINT);
         TOUGHNESS_ARMOR_PER_POINT = config.getDouble("attributes.per-point.toughness-armor", TOUGHNESS_ARMOR_PER_POINT);
     }
 
