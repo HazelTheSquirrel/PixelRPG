@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.npc.behavior;
 
 import de.pixelrpg.rpg.dialogue.BankDialog;
+import de.pixelrpg.rpg.dialogue.BankStorageService;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcBehavior;
@@ -12,11 +13,13 @@ import org.bukkit.entity.Player;
 public final class BankerBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
+    private final BankStorageService bankStorage;
     private final LanguageManager lang;
 
-    public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
+    public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, BankStorageService bankStorage) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
+        this.bankStorage = bankStorage;
         this.lang = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
@@ -32,6 +35,6 @@ public final class BankerBehavior implements NpcBehavior {
             return;
         }
 
-        new BankDialog(profileManager, dialogueEngine).open(player);
+        new BankDialog(profileManager, dialogueEngine, bankStorage).open(player);
     }
 }
