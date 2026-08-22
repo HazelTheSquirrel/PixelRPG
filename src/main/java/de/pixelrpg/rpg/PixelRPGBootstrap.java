@@ -2,7 +2,7 @@ package de.pixelrpg.rpg;
 
 import io.papermc.paper.plugin.bootstrap.BootstrapContext;
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
-import io.papermc.paper.plugin.bootstrap.PluginProviderContext;
+import io.papermc.paper.plugin.provider.PluginProviderContext;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.data.dialog.ActionButton;
@@ -25,6 +25,7 @@ import java.util.Set;
 public final class PixelRPGBootstrap implements PluginBootstrap {
     private static final Key CHARACTER_CARD_DIALOG = Key.key("pixelrpg:character_card");
     private static final Key PROFILE_ACTION = Key.key("pixelrpg:character_card/profile");
+    private static final Key ACTIVE_QUESTS_ACTION = Key.key("pixelrpg:character_card/active_quests");
     private static final Key COMPANIONS_ACTION = Key.key("pixelrpg:character_card/companions");
     private static final Key PROFESSIONS_ACTION = Key.key("pixelrpg:character_card/professions");
     private static final Key CLOSE_ACTION = Key.key("pixelrpg:character_card/close");
@@ -47,6 +48,18 @@ public final class PixelRPGBootstrap implements PluginBootstrap {
                                                 Component.text("Deine aktuellen Charakterwerte anzeigen", NamedTextColor.WHITE),
                                                 220,
                                                 DialogAction.customClick(PROFILE_ACTION, null)
+                                        ),
+                                        ActionButton.create(
+                                                Component.text(" "),
+                                                null,
+                                                220,
+                                                null
+                                        ),
+                                        ActionButton.create(
+                                                Component.text("Aktive Quests", NamedTextColor.AQUA),
+                                                Component.text("Deine aktuell laufenden Quests anzeigen", NamedTextColor.WHITE),
+                                                220,
+                                                DialogAction.customClick(ACTIVE_QUESTS_ACTION, null)
                                         ),
                                         ActionButton.create(
                                                 Component.text("Begleiter", NamedTextColor.LIGHT_PURPLE),
