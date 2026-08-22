@@ -8,5 +8,16 @@
     "overworld": { "hpMultiplier": 1.0, "damageMultiplier": 1.0, "levelOffset": 0, "baseLevel": 1 },
     "nether": { "hpMultiplier": 1.30, "damageMultiplier": 1.20, "levelOffset": 0, "baseLevel": 50 },
     "the_end": { "hpMultiplier": 1.60, "damageMultiplier": 1.40, "levelOffset": 0, "baseLevel": 75 }
+  },
+  "companions": {
+    "maxLevel": 99,
+    "healthPerLevel": 0.008,
+    "damagePerLevel": 0.006,
+    "speedPerLevel": 0.0015,
+    "caps": {
+      "health": 1.80,
+      "damage": 1.60,
+      "speed": 1.15
+    }
   }
 }
