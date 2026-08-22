@@ -33,7 +33,6 @@ public final class RPGKeys {
         public static NamespacedKey lifestealPercent() { return of("item_lifesteal_percent"); }
         public static NamespacedKey soulbound() { return of("item_soulbound"); }
         public static NamespacedKey weaponAbility() { return of("item_weapon_ability"); }
-        public static NamespacedKey weaponAbilityManaCost() { return of("item_weapon_ability_mana"); }
         public static NamespacedKey weaponAbilityCooldownMillis() { return of("item_weapon_ability_cooldown"); }
         public static NamespacedKey guildItem() { return of("item_guild_marker"); }
         public static NamespacedKey shopPriceTag() { return of("item_shop_price_tag"); }
