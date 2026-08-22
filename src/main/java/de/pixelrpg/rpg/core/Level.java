@@ -45,7 +45,7 @@ public final class Level {
         return Math.max(0L, getExperienceForNextLevel(level) - experience);
     }
 
-    /** Returns the deliberately absurd XP threshold for the reserved level 100. */
+    /** Returns the deliberately extreme XP threshold for the reserved level 100. */
     public static long getExperienceForTranscendence() {
         long level98 = REQUIRED_EXPERIENCE[MAX_NORMAL_LEVEL - 2];
         long level99 = REQUIRED_EXPERIENCE[MAX_NORMAL_LEVEL - 1];
@@ -88,14 +88,13 @@ public final class Level {
             experience[level] = cumulative;
         }
 
-        // Continue the WotLK 80-cap curve through level 99. The first
-        // extension increment (80 -> 81) equals the WotLK 79 -> 80 increment.
-        // From there the increment grows geometrically so that 98 -> 99 is
-        // exactly 100 times the XP required for 80 -> 81.
-        double continuationRatio = Math.pow(100.0D, 1.0D / 18.0D);
-        double increment = wotlkXpToNextLevel[78];
+        // PixelRPG keeps the WotLK-inspired curve through level 79 and then
+        // starts a controlled endgame progression. 80 -> 81 starts at 1.7M
+        // XP and each following increment grows by 3.5%, reaching roughly
+        // 72M cumulative XP at level 99 instead of hundreds of millions.
+        double increment = 1_700_000.0D;
         for (int level = 81; level <= 99; level++) {
-            if (level > 81) increment *= continuationRatio;
+            if (level > 81) increment *= 1.035D;
             cumulative = Math.addExact(cumulative, Math.round(increment));
             experience[level - 1] = cumulative;
         }
