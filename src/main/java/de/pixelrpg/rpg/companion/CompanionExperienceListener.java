@@ -1,8 +1,6 @@
 package de.pixelrpg.rpg.companion;
 
-import com.google.gson.JsonObject;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
-import de.pixelrpg.rpg.config.JsonDataManager;
 import de.pixelrpg.rpg.core.RPGKeys;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -10,34 +8,39 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.Plugin;
+
+import java.util.Locale;
 
 /** Awards companion progression only while a companion is actively summoned. */
 public final class CompanionExperienceListener implements Listener {
+    private static final long MOB_KILL_EXPERIENCE = 50L;
+    private static final long QUEST_COMPLETION_EXPERIENCE = 500L;
+
     private final CompanionService companionService;
-    private final long mobKillExperience;
-    private final long questCompletionExperience;
 
     public CompanionExperienceListener(CompanionService companionService) {
         this.companionService = companionService;
-        Plugin plugin = de.pixelrpg.rpg.PixelRPGPlugin.getInstance();
-        this.mobKillExperience = readExperience(plugin, "mobKill", 25L);
-        this.questCompletionExperience = readExperience(plugin, "questCompletion", 100L);
     }
 
-    // Awards companion XP when the player defeats a mob while a companion is active.
+    // Awards rarity-scaled companion XP when the player defeats a mob while a companion is active.
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
         if (event.getEntity().getPersistentDataContainer().has(RPGKeys.Companion.id(), PersistentDataType.STRING)) return;
         Player player = event.getEntity().getKiller();
         if (player == null) return;
-        companionService.awardExperience(player.getUniqueId(), mobKillExperience);
+        Companion active = companionService.getActive(player.getUniqueId());
+        if (active == null) return;
+        long gained = scaledExperience(MOB_KILL_EXPERIENCE, active.rarity());
+        companionService.awardExperience(player.getUniqueId(), gained);
     }
 
-    // Awards companion XP for completing a quest while the companion is active.
+    // Awards rarity-scaled companion XP for completing a quest while the companion is active.
     @EventHandler
     public void onQuestCompleted(QuestCompletedEvent event) {
-        companionService.awardExperience(event.getPlayer().getUniqueId(), questCompletionExperience);
+        Companion active = companionService.getActive(event.getPlayer().getUniqueId());
+        if (active == null) return;
+        long gained = scaledExperience(QUEST_COMPLETION_EXPERIENCE, active.rarity());
+        companionService.awardExperience(event.getPlayer().getUniqueId(), gained);
     }
 
     // Removes the active companion entity when its owner leaves the server.
@@ -46,17 +49,7 @@ public final class CompanionExperienceListener implements Listener {
         companionService.clearActive(event.getPlayer().getUniqueId());
     }
 
-    private static long readExperience(Plugin plugin, String key, long fallback) {
-        try {
-            JsonObject root = new JsonDataManager(plugin).load("companions.json");
-            JsonObject progression = root.getAsJsonObject("progression");
-            JsonObject xp = progression == null ? null : progression.getAsJsonObject("xp");
-            return xp != null && xp.has(key) && xp.get(key).isJsonPrimitive() && xp.getAsJsonPrimitive(key).isNumber()
-                    ? Math.max(0L, xp.get(key).getAsLong())
-                    : fallback;
-        } catch (RuntimeException exception) {
-            plugin.getLogger().warning("Unable to read companion XP setting '" + key + "': " + exception.getMessage());
-            return fallback;
-        }
+    private static long scaledExperience(long base, CompanionRarity rarity) {
+        return Math.max(1L, Math.round(base * rarity.experienceMultiplier()));
     }
 }
