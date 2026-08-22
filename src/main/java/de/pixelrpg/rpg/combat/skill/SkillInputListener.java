@@ -15,10 +15,9 @@ public final class SkillInputListener implements Listener {
         this.abilityEngine = abilityEngine;
     }
 
-    // Zuständig für die Aktivierung einer Waffenfähigkeit per Shift + Rechtsklick.
+    // Zuständig für die Aktivierung einer Waffenfähigkeit per Rechtsklick.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onWeaponAbility(PlayerInteractEvent event) {
-        if (!event.getPlayer().isSneaking()) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (!event.getPlayer().getInventory().getItemInMainHand().hasItemMeta()) return;
