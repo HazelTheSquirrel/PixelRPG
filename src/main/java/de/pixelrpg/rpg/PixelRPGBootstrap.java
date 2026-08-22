@@ -2,7 +2,7 @@ package de.pixelrpg.rpg;
 
 import io.papermc.paper.plugin.bootstrap.BootstrapContext;
 import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
-import io.papermc.paper.plugin.provider.PluginProviderContext;
+import io.papermc.paper.plugin.bootstrap.PluginProviderContext;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.data.dialog.ActionButton;
@@ -17,7 +17,6 @@ import io.papermc.paper.registry.keys.tags.DialogTagKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
@@ -66,7 +65,7 @@ public final class PixelRPGBootstrap implements PluginBootstrap {
                                         Component.text("Charaktermenü schließen", NamedTextColor.WHITE),
                                         220,
                                         DialogAction.customClick(CLOSE_ACTION, null)
-                                ), 1).build())
+                                ), 1))
                 )));
 
         context.getLifecycleManager().registerEventHandler(
