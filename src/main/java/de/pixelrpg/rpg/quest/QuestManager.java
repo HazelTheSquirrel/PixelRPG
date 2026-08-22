@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
+import de.pixelrpg.rpg.companion.CompanionService;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -29,18 +30,21 @@ public final class QuestManager {
     private final PlayerProfileManager profileManager;
     private final de.pixelrpg.rpg.api.GuildAPI guildAPI;
     private final GlobalEventState globalEventState;
+    private final CompanionService companionService;
     private final double partyShareRange;
     private final LanguageManager lang;
     private final Map<UUID, Map<String, Long>> questTimers = new ConcurrentHashMap<>();
     private BukkitTask timerTask;
 
     public QuestManager(Plugin plugin, QuestRepository questRepository, PlayerProfileManager profileManager,
-                        de.pixelrpg.rpg.api.GuildAPI guildAPI, GlobalEventState globalEventState, double partyShareRange) {
+                        de.pixelrpg.rpg.api.GuildAPI guildAPI, GlobalEventState globalEventState,
+                        CompanionService companionService, double partyShareRange) {
         this.plugin = plugin;
         this.questRepository = questRepository;
         this.profileManager = profileManager;
         this.guildAPI = guildAPI;
         this.globalEventState = globalEventState;
+        this.companionService = companionService;
         this.partyShareRange = partyShareRange;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
@@ -131,6 +135,14 @@ public final class QuestManager {
                 Material material = Material.valueOf(materialName.toUpperCase());
                 player.getInventory().addItem(new ItemStack(material));
             } catch (IllegalArgumentException ignored) {
+            }
+        }
+
+        if (quest.rewardsCompanion()) {
+            if (companionService.unlockDefinition(player.getUniqueId(), quest.rewardCompanionId())) {
+                lang.send(player, "quest.companion-reward", "companion", quest.rewardCompanionId());
+            } else {
+                plugin.getLogger().warning("Quest '" + quest.id() + "' rewards unknown companion '" + quest.rewardCompanionId() + "'.");
             }
         }
 
