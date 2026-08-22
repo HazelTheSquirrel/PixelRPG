@@ -22,13 +22,17 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class StatEngine {
+    private static final double BASE_CRIT_CHANCE = 5.0D;
+    private static final double MAX_CRIT_CHANCE = 50.0D;
+    private static final double MAX_CRIT_DAMAGE_MULTIPLIER = 2.5D;
+
     public record CachedStats(double maxHealth, double armor, double movementSpeedBonus, double blockReach,
                               double entityReach, double bonusDamage, double critChance,
                               double critDamageMultiplier, double lifestealBonus,
                               double strength, double agility, double stamina, double intellect,
                               double attackPower, double spellPower, double maxMana) {
         public static final CachedStats EMPTY = new CachedStats(
-                20.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 2.0, 0.0,
+                20.0, 0.0, 0.0, 0.0, 0.0, 0.0, BASE_CRIT_CHANCE, 2.0, 0.0,
                 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 100.0);
     }
 
@@ -49,14 +53,15 @@ public final class StatEngine {
         ClassBalance classBalance = ClassBalance.of(profile);
         double itemArmor = getEquippedItemArmor(player, profile.getLevel());
         double itemHealth = getEquippedItemHealth(player, profile.getLevel());
+        double itemCritChance = getEquippedItemCritChance(player, profile.getLevel());
         double maxHealth = 20.0 + classBalance.healthBonus() + itemHealth;
         double armor = classBalance.armorBonus() + itemArmor;
         double movementSpeedBonus = classBalance.speedBonus();
         double blockReach = 0.0;
         double entityReach = 0.0;
         double bonusDamage = 0.0;
-        double critChance = 5.0 + classBalance.critChanceBonus();
-        double critDamageMultiplier = 2.0 * classBalance.critDamageMultiplier();
+        double critChance = BASE_CRIT_CHANCE + classBalance.critChanceBonus();
+        double critDamageMultiplier = Math.min(MAX_CRIT_DAMAGE_MULTIPLIER, 2.0 * classBalance.critDamageMultiplier());
         double lifestealBonus = 0.0;
 
         int vitality = profile.getAttributePoints(PlayerAttribute.VITALITY);
@@ -68,6 +73,7 @@ public final class StatEngine {
         maxHealth += vitality * AttributeConfig.VITALITY_HP_PER_POINT;
         movementSpeedBonus += agility * AttributeConfig.AGILITY_SPEED_PER_POINT;
         critChance += agility * AttributeConfig.AGILITY_CRIT_PER_POINT;
+        critChance += itemCritChance;
         bonusDamage += precision * AttributeConfig.PRECISION_DAMAGE_PER_POINT;
         blockReach += range * AttributeConfig.RANGE_BLOCK_PER_POINT;
         entityReach += range * AttributeConfig.RANGE_ENTITY_PER_POINT;
@@ -89,9 +95,24 @@ public final class StatEngine {
         };
         double maxMana = classManaBase + intellect * 5.0;
 
-        CachedStats stats = new CachedStats(maxHealth, armor, movementSpeedBonus, blockReach, entityReach,
-                bonusDamage, critChance, critDamageMultiplier, lifestealBonus,
-                strength, agilityStat, stamina, intellect, attackPower, spellPower, maxMana);
+        CachedStats stats = new CachedStats(
+                maxHealth,
+                armor,
+                movementSpeedBonus,
+                blockReach,
+                entityReach,
+                bonusDamage,
+                Math.min(MAX_CRIT_CHANCE, Math.max(0.0D, critChance)),
+                Math.min(MAX_CRIT_DAMAGE_MULTIPLIER, Math.max(1.0D, critDamageMultiplier)),
+                lifestealBonus,
+                strength,
+                agilityStat,
+                stamina,
+                intellect,
+                attackPower,
+                spellPower,
+                maxMana
+        );
         cache.put(player.getUniqueId(), stats);
 
         boolean manaChanged = false;
@@ -171,6 +192,15 @@ public final class StatEngine {
         for (ItemStack item : equippedItems(player)) {
             if (item == null || !item.hasItemMeta() || !meetsLevelRequirement(item, playerLevel)) continue;
             total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, 0.0);
+        }
+        return total;
+    }
+
+    private double getEquippedItemCritChance(Player player, int playerLevel) {
+        double total = 0.0;
+        for (ItemStack item : equippedItems(player)) {
+            if (item == null || !item.hasItemMeta() || !meetsLevelRequirement(item, playerLevel)) continue;
+            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, 0.0);
         }
         return total;
     }
