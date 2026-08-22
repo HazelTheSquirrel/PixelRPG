@@ -154,6 +154,7 @@ bosses:
     interval-minutes: 45
     spawn-radius: 80.0
     max-concurrent: 2
+    spawn-chance-percent: 15.0
 
 statistics:
   autosave-interval-ticks: 6000
