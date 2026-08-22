@@ -238,34 +238,53 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
         RootCommand rootCommand = new RootCommand();
         rootCommand.register(new BlacksmithSubCommand(blacksmithGUI));
-        rootCommand.register(new BossSubCommand(bossRepository, bossManager));
         rootCommand.register(new CompanionSubCommand(companionService));
         rootCommand.register(new NpcSubCommand(npcManager));
-        rootCommand.register(new PartySubCommand(partyManager));
-        rootCommand.register(new QuestAdminSubCommand(questRepository, questManager));
-        rootCommand.register(new ShopSubCommand(shopManager));
-        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> new PaperBasicCommandAdapter(rootCommand).register(event.registrar()));
-        getLogger().info("PixelRPG enabled.");
+        rootCommand.register(new ShopSubCommand(shopManager, shopEditorGUI, npcManager));
+        rootCommand.register(new QuestAdminSubCommand(questManager));
+        rootCommand.register(new BossSubCommand(bossRepository, bossManager));
+        registerCommand("rpgadmin", new PaperBasicCommandAdapter("rpgadmin", rootCommand, rootCommand, "rpg.admin"));
+
+        PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
+        registerCommand("rpgparty", new PaperBasicCommandAdapter("rpgparty", partyCommand, partyCommand, "rpg.member"));
+        registerCommand("questlog", new PaperBasicCommandAdapter("questlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member"));
+        DialogueCommand dialogueCommand = new DialogueCommand(playerProfileManager, dialogueEngine);
+        registerCommand("dialogue", new PaperBasicCommandAdapter("dialogue", dialogueCommand, dialogueCommand, "rpg.member"));
+        getLogger().info("PixelRPG core enabled.");
     }
 
     @Override
     public void onDisable() {
         if (manaRegenerationTask != null) manaRegenerationTask.stop();
         if (equipmentAuraListener != null) equipmentAuraListener.stop();
-        if (scoreboardService != null) scoreboardService.stopTask();
-        if (playtimeTracker != null) playtimeTracker.stopAutosaveTask();
         if (questManager != null) questManager.shutdown();
+        if (scoreboardService != null) scoreboardService.shutdown();
+        if (playtimeTracker != null) playtimeTracker.shutdown();
         if (bossManager != null) bossManager.shutdown();
-        if (companionService != null) companionService.shutdown();
         if (shopManager != null) shopManager.shutdown();
+        if (companionService != null) companionService.shutdown();
         if (npcManager != null) npcManager.shutdown();
         if (playerProfileManager != null) playerProfileManager.shutdown();
+        Bukkit.getServicesManager().unregisterAll(this);
         instance = null;
     }
 
     public static PixelRPGPlugin getInstance() { return instance; }
-    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
-    public StatEngine getStatEngine() { return statEngine; }
-    public CompanionService getCompanionService() { return companionService; }
+
     public LanguageManager getLanguageManager() { return languageManager; }
+    public StatEngine getStatEngine() { return statEngine; }
+    public PartyManager getPartyManager() { return partyManager; }
+    public QuestManager getQuestManager() { return questManager; }
+    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
+    public ProfessionSystem getProfessionSystem() { return professionSystem; }
+    public ItemService getItemService() { return itemService; }
+    public NpcManager getNpcManager() { return npcManager; }
+    public ShopManager getShopManager() { return shopManager; }
+    public StoryManager getStoryManager() { return storyManager; }
+    public BossManager getBossManager() { return bossManager; }
+    public CompanionService getCompanionService() { return companionService; }
+
+    public void registerCommand(String name, PaperBasicCommandAdapter command) {
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> event.registrar().register(name, command));
+    }
 }
