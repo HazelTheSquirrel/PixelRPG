@@ -28,7 +28,14 @@ public final class WorldBossSpawnTask {
 
     public WorldBossSpawnTask(Plugin plugin, BossRepository bossRepository, BossManager bossManager,
                                de.pixelrpg.rpg.api.GuildAPI guildAPI, boolean enabled, int intervalMinutes,
-                               double spawnRadius, int maxConcurrentBosses, double spawnChancePercent) {
+                               double spawnRadius, int maxConcurrentBosses) {
+        this(plugin, bossRepository, bossManager, guildAPI, enabled, intervalMinutes, spawnRadius,
+                maxConcurrentBosses, plugin.getConfig().getDouble("bosses.auto-spawn.spawn-chance-percent", 15.0D));
+    }
+
+    public WorldBossSpawnTask(Plugin plugin, BossRepository bossRepository, BossManager bossManager,
+                              de.pixelrpg.rpg.api.GuildAPI guildAPI, boolean enabled, int intervalMinutes,
+                              double spawnRadius, int maxConcurrentBosses, double spawnChancePercent) {
         this.plugin = plugin;
         this.bossRepository = bossRepository;
         this.bossManager = bossManager;
