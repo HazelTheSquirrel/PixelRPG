@@ -44,14 +44,13 @@ public final class BankDialog {
                         .append(Component.text(format(profile.getMoney()) + " Gold", NamedTextColor.GOLD))),
                 DialogBody.plainMessage(Component.text(
                         "Dein persönliches Bankfach besitzt zwei Seiten und bleibt dauerhaft erhalten.",
-                        NamedTextColor.DARK_GRAY))
+                        NamedTextColor.WHITE))
         );
 
         List<ActionButton> actions = new ArrayList<>();
         actions.add(dialogueEngine.actionButton(Component.text("Einzahlen"), NamedTextColor.GREEN, this::openDepositSelector));
         actions.add(dialogueEngine.actionButton(Component.text("Auszahlen"), NamedTextColor.YELLOW, this::openWithdrawSelector));
         actions.add(dialogueEngine.actionButton(Component.text("Bankfach öffnen"), NamedTextColor.AQUA, this::openBankCompartment));
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
 
         dialogueEngine.openMultiAction(player, Component.text("Bank", NamedTextColor.GOLD), body, actions, 2);
     }
@@ -64,14 +63,14 @@ public final class BankDialog {
         }
 
         List<DialogBody> body = List.of(
-                DialogBody.plainMessage(Component.text("Wähle den Betrag, den du einzahlen möchtest.", NamedTextColor.GRAY)),
+                DialogBody.plainMessage(Component.text("Wähle den Betrag, den du einzahlen möchtest.", NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text("Verfügbar: " + maxAmount + " Gold", NamedTextColor.GOLD))
         );
         DialogInput input = DialogInput.numberRange(
-                "amount", 260, Component.text("Betrag", NamedTextColor.GREEN),
+                "amount", 260, Component.text("Betrag", NamedTextColor.WHITE),
                 "%s Gold", 1.0f, (float) maxAmount, 1.0f, 1.0f);
 
-        dialogueEngine.openNumberRangeAction(player, Component.text("Geld einzahlen", NamedTextColor.GREEN),
+        dialogueEngine.openNumberRangeAction(player, Component.text("Geld einzahlen", NamedTextColor.GOLD),
                 body, input, Component.text("Einzahlen"), NamedTextColor.GREEN,
                 (target, response) -> depositFromResponse(target, response));
     }
@@ -87,14 +86,14 @@ public final class BankDialog {
         }
 
         List<DialogBody> body = List.of(
-                DialogBody.plainMessage(Component.text("Wähle den Betrag, den du auszahlen möchtest.", NamedTextColor.GRAY)),
+                DialogBody.plainMessage(Component.text("Wähle den Betrag, den du auszahlen möchtest.", NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text("Kontostand: " + format(profile.getMoney()) + " Gold", NamedTextColor.GOLD))
         );
         DialogInput input = DialogInput.numberRange(
-                "amount", 260, Component.text("Betrag", NamedTextColor.YELLOW),
+                "amount", 260, Component.text("Betrag", NamedTextColor.WHITE),
                 "%s Gold", 1.0f, (float) maxAmount, 1.0f, 1.0f);
 
-        dialogueEngine.openNumberRangeAction(player, Component.text("Geld auszahlen", NamedTextColor.YELLOW),
+        dialogueEngine.openNumberRangeAction(player, Component.text("Geld auszahlen", NamedTextColor.GOLD),
                 body, input, Component.text("Auszahlen"), NamedTextColor.YELLOW,
                 (target, response) -> withdrawFromResponse(target, response));
     }
