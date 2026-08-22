@@ -4,6 +4,7 @@ import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.EconomyAPI;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.api.events.BossDefeatedEvent;
+import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.ClassSetItemFactory;
 import de.pixelrpg.rpg.item.ClassSetSlot;
@@ -42,6 +43,7 @@ public final class BossManager {
     private final GuildAPI guildAPI;
     private final EconomyAPI economyAPI;
     private final ItemEconomyConfig itemEconomyConfig;
+    private final MobScalingConfig mobScalingConfig;
     private final double barRadius;
     private final int barUpdateIntervalTicks;
     private final int phaseCheckIntervalTicks;
@@ -51,12 +53,14 @@ public final class BossManager {
 
     public BossManager(Plugin plugin, BossAttackPatternRegistry patternRegistry, GuildAPI guildAPI,
                        EconomyAPI economyAPI, ItemEconomyConfig itemEconomyConfig,
+                       MobScalingConfig mobScalingConfig,
                        double barRadius, int barUpdateIntervalTicks, int phaseCheckIntervalTicks) {
         this.plugin = plugin;
         this.patternRegistry = patternRegistry;
         this.guildAPI = guildAPI;
         this.economyAPI = economyAPI;
         this.itemEconomyConfig = itemEconomyConfig;
+        this.mobScalingConfig = mobScalingConfig;
         this.barRadius = barRadius;
         this.barUpdateIntervalTicks = Math.max(1, barUpdateIntervalTicks);
         this.phaseCheckIntervalTicks = Math.max(1, phaseCheckIntervalTicks);
@@ -84,14 +88,18 @@ public final class BossManager {
     }
 
     private void applyBaseStats(LivingEntity entity, BossDefinition definition) {
+        MobScalingConfig.LevelBaseStats levelStats = mobScalingConfig.getBaseStats(definition.getLevel());
+        MobScalingConfig.DimensionModifier dimension = mobScalingConfig.getDimensionModifier(entity.getWorld().getEnvironment());
+        double newHp = levelStats.hp() * dimension.hpMultiplier() * mobScalingConfig.getPlayerParityMultiplier() * definition.getHealthMultiplier();
+        double newDamage = levelStats.damage() * dimension.damageMultiplier() * mobScalingConfig.getPlayerParityMultiplier() * definition.getDamageMultiplier();
+
         AttributeInstance hpAttribute = entity.getAttribute(Attribute.MAX_HEALTH);
         if (hpAttribute != null) {
-            double newHp = hpAttribute.getBaseValue() * definition.getHealthMultiplier();
             hpAttribute.setBaseValue(newHp);
             entity.setHealth(newHp);
         }
         AttributeInstance dmgAttribute = entity.getAttribute(Attribute.ATTACK_DAMAGE);
-        if (dmgAttribute != null) dmgAttribute.setBaseValue(dmgAttribute.getBaseValue() * definition.getDamageMultiplier());
+        if (dmgAttribute != null) dmgAttribute.setBaseValue(newDamage);
         AttributeInstance scaleAttribute = entity.getAttribute(Attribute.SCALE);
         if (scaleAttribute != null) scaleAttribute.setBaseValue(scaleAttribute.getBaseValue() * definition.getScaleMultiplier());
         entity.setRemoveWhenFarAway(false);
