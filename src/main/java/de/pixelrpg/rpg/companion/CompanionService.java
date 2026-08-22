@@ -72,20 +72,15 @@ public final class CompanionService {
 
     /** Adds the configured test wolf used for the companion-system test. */
     public void ensureTestWolf(UUID playerId) {
-        load(playerId);
-        Companion definition = readDefinition(TEST_WOLF_ID);
-        if (definition == null) {
-            plugin.getLogger().warning("Companion definition '" + TEST_WOLF_ID + "' is missing from companions.json.");
-            return;
-        }
-        companions.compute(playerId, (ignored, current) -> {
-            List<Companion> updated = current == null ? new ArrayList<>() : new ArrayList<>(current);
-            if (updated.stream().noneMatch(existing -> existing.id().equals(TEST_WOLF_ID))) {
-                updated.add(definition.withActive(false));
-                save(playerId, updated);
-            }
-            return updated;
-        });
+        unlockDefinition(playerId, TEST_WOLF_ID);
+    }
+
+    /** Unlocks a configured companion definition, preserving its configured name and rarity. */
+    public boolean unlockDefinition(UUID playerId, String id) {
+        Companion definition = readDefinition(id);
+        if (definition == null) return false;
+        unlock(playerId, definition);
+        return true;
     }
 
     public void unlock(UUID playerId, Companion companion) {
@@ -179,7 +174,7 @@ public final class CompanionService {
         List<Companion> current = companions.get(playerId);
         if (current == null) return false;
         Companion selected = current.stream().filter(companion -> companion.id().equals(companionId)).findFirst().orElse(null);
-        if (selected == null || selected.rarity().isUnique()) return false;
+        if (selected == null || selected.rarity().isUnique() || !isRenameable(companionId)) return false;
 
         List<Companion> updated = current.stream()
                 .map(companion -> companion.id().equals(companionId) ? companion.withName(cleaned) : companion)
@@ -283,6 +278,22 @@ public final class CompanionService {
             plugin.getLogger().warning("Unable to read companion definition '" + id + "': " + exception.getMessage());
         }
         return null;
+    }
+
+    private boolean isRenameable(String id) {
+        try {
+            JsonObject root = new JsonDataManager(plugin).load("companions.json");
+            JsonArray definitions = root.getAsJsonArray("definitions");
+            if (definitions == null) return false;
+            for (var element : definitions) {
+                if (!element.isJsonObject()) continue;
+                JsonObject json = element.getAsJsonObject();
+                if (id.equals(string(json, "id", ""))) return bool(json, "renameable", true);
+            }
+        } catch (RuntimeException exception) {
+            plugin.getLogger().warning("Unable to read renameable flag for companion '" + id + "'.");
+        }
+        return false;
     }
 
     private void clearActiveEntity(Player player) {
