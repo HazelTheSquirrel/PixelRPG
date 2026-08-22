@@ -22,7 +22,6 @@ public final class QuestRepository {
     private final Plugin plugin;
     private final File questFolder;
     private final Map<String, Quest> questsById = new ConcurrentHashMap<>();
-    private boolean jsonLoaded;
 
     public QuestRepository(Plugin plugin) {
         this.plugin = plugin;
@@ -31,15 +30,12 @@ public final class QuestRepository {
 
     public void load() {
         questsById.clear();
-        jsonLoaded = false;
         try {
             loadJsonDefinitions();
-            jsonLoaded = !questsById.isEmpty();
         } catch (RuntimeException exception) {
-            plugin.getLogger().warning("Unable to load quests.json; falling back to legacy YAML quests: " + exception.getMessage());
+            plugin.getLogger().warning("Unable to load quests.json; continuing with legacy YAML quests: " + exception.getMessage());
         }
-
-        if (!jsonLoaded) loadLegacyYaml();
+        loadLegacyYaml();
     }
 
     /** Loads all user-editable quest definitions from data/quests.json. */
@@ -47,7 +43,6 @@ public final class QuestRepository {
         JsonObject root = new JsonDataManager(plugin).load("quests.json");
         JsonArray definitions = root.getAsJsonArray("definitions");
         if (definitions == null) return;
-
         for (var element : definitions) {
             if (!element.isJsonObject()) continue;
             JsonObject json = element.getAsJsonObject();
@@ -56,31 +51,15 @@ public final class QuestRepository {
                 plugin.getLogger().warning("Ignoring quest definition without an id.");
                 continue;
             }
-
             QuestType type = parseType(string(json, "type", "HUNT"));
             int recommendedLevel = clampLevel(number(json, "recommendedLevel", number(json, "requiredLevel", 1)));
             int categoryLevel = clampLevel(number(json, "categoryLevel", Math.max(1, recommendedLevel - 5)));
             int requiredAmount = Math.max(1, number(json, "requiredAmount", 1));
             JsonObject reward = object(json, "reward");
-            List<String> rewardItems = stringList(reward, "items");
-
-            Quest quest = new Quest(
-                    id,
-                    string(json, "title", id),
-                    string(json, "description", ""),
-                    type,
-                    string(json, "targetKey", ""),
-                    requiredAmount,
-                    recommendedLevel,
-                    categoryLevel,
-                    numberDouble(reward, "money", 0.0),
-                    numberLong(reward, "experience", 0L),
-                    number(reward, "durationMinutes", 0),
-                    rewardItems,
-                    readJsonLocation(json, "escortDestination"),
-                    readJsonLocation(json, "reachLocation"),
-                    numberDouble(json, "reachRadius", 5.0)
-            );
+            Quest quest = new Quest(id, string(json, "title", id), string(json, "description", ""), type,
+                    string(json, "targetKey", ""), requiredAmount, recommendedLevel, categoryLevel,
+                    numberDouble(reward, "money", 0.0), numberLong(reward, "experience", 0L), number(reward, "durationMinutes", 0),
+                    stringList(reward, "items"), readJsonLocation(json, "escortDestination"), readJsonLocation(json, "reachLocation"), numberDouble(json, "reachRadius", 5.0));
             questsById.put(id, quest);
         }
     }
@@ -105,11 +84,7 @@ public final class QuestRepository {
             QuestType type = parseType(section.getString("type", "HUNT"));
             int requiredLevel = readLevelRequirement(section, fileCategoryLevel);
             int categoryLevel = clampLevel(section.getInt("category-level", fileCategoryLevel));
-            Quest quest = new Quest(id, section.getString("title", id), section.getString("description", ""), type,
-                    section.getString("target-key", ""), section.getInt("required-amount", 1), requiredLevel, categoryLevel,
-                    section.getDouble("reward-money", 0.0), section.getLong("reward-exp", 0L), section.getInt("duration-minutes", 0),
-                    section.getStringList("reward-items"), readLocation(section, "escort-destination"), readLocation(section, "reach-location"),
-                    section.getDouble("reach-radius", 5.0));
+            Quest quest = new Quest(id, section.getString("title", id), section.getString("description", ""), type, section.getString("target-key", ""), section.getInt("required-amount", 1), requiredLevel, categoryLevel, section.getDouble("reward-money", 0.0), section.getLong("reward-exp", 0L), section.getInt("duration-minutes", 0), section.getStringList("reward-items"), readLocation(section, "escort-destination"), readLocation(section, "reach-location"), section.getDouble("reach-radius", 5.0));
             questsById.put(id, quest);
         }
     }
@@ -123,8 +98,7 @@ public final class QuestRepository {
     private Location readLocation(ConfigurationSection parent, String path) {
         ConfigurationSection section = parent.getConfigurationSection(path);
         if (section == null) return null;
-        String worldName = section.getString("world");
-        World world = worldName != null ? Bukkit.getWorld(worldName) : null;
+        World world = Bukkit.getWorld(section.getString("world", ""));
         if (world == null) return null;
         return new Location(world, section.getDouble("x"), section.getDouble("y"), section.getDouble("z"));
     }
@@ -137,27 +111,11 @@ public final class QuestRepository {
         return new Location(world, numberDouble(location, "x", 0.0), numberDouble(location, "y", 0.0), numberDouble(location, "z", 0.0));
     }
 
-    private static JsonObject object(JsonObject parent, String key) {
-        if (parent == null || !parent.has(key) || !parent.get(key).isJsonObject()) return null;
-        return parent.getAsJsonObject(key);
-    }
-
-    private static String string(JsonObject object, String key, String fallback) {
-        return object != null && object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsString() : fallback;
-    }
-
-    private static int number(JsonObject object, String key, int fallback) {
-        return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsInt() : fallback;
-    }
-
-    private static long numberLong(JsonObject object, String key, long fallback) {
-        return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsLong() : fallback;
-    }
-
-    private static double numberDouble(JsonObject object, String key, double fallback) {
-        return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsDouble() : fallback;
-    }
-
+    private static JsonObject object(JsonObject parent, String key) { return parent != null && parent.has(key) && parent.get(key).isJsonObject() ? parent.getAsJsonObject(key) : null; }
+    private static String string(JsonObject object, String key, String fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsString() : fallback; }
+    private static int number(JsonObject object, String key, int fallback) { return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsInt() : fallback; }
+    private static long numberLong(JsonObject object, String key, long fallback) { return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsLong() : fallback; }
+    private static double numberDouble(JsonObject object, String key, double fallback) { return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsDouble() : fallback; }
     private static List<String> stringList(JsonObject object, String key) {
         if (object == null || !object.has(key) || !object.get(key).isJsonArray()) return List.of();
         List<String> result = new ArrayList<>();
@@ -176,20 +134,10 @@ public final class QuestRepository {
     }
 
     private Map<String, Object> questMap(String title, String description, String type, String targetKey, int requiredAmount, double rewardMoney, long rewardExp, int durationMinutes, List<String> rewardItems, int level) {
-        Map<String, Object> map = new java.util.HashMap<>();
-        map.put("title", title); map.put("description", description); map.put("type", type); map.put("target-key", targetKey); map.put("required-amount", requiredAmount); map.put("required-level", level); map.put("category-level", level); map.put("reward-money", rewardMoney); map.put("reward-exp", rewardExp); map.put("duration-minutes", durationMinutes); map.put("reward-items", rewardItems); return map;
+        Map<String, Object> map = new java.util.HashMap<>(); map.put("title", title); map.put("description", description); map.put("type", type); map.put("target-key", targetKey); map.put("required-amount", requiredAmount); map.put("required-level", level); map.put("category-level", level); map.put("reward-money", rewardMoney); map.put("reward-exp", rewardExp); map.put("duration-minutes", durationMinutes); map.put("reward-items", rewardItems); return map;
     }
-
-    private Map<String, Object> questMapReach(String title, String description, int requiredAmount, double rewardMoney, long rewardExp, double reachRadius, int level) {
-        Map<String, Object> map = questMap(title, description, "REACH_LOCATION", "", requiredAmount, rewardMoney, rewardExp, 0, List.of(), level); map.put("reach-radius", reachRadius); return map;
-    }
-
-    private void saveDefault(int level, Map<String, Map<String, Object>> quests) {
-        File file = new File(questFolder, "level-" + level + ".yml");
-        YamlConfiguration yaml = new YamlConfiguration();
-        for (var entry : quests.entrySet()) for (var field : entry.getValue().entrySet()) yaml.set("quests." + entry.getKey() + "." + field.getKey(), field.getValue());
-        try { yaml.save(file); } catch (IOException e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to create default quest file " + file.getName(), e); }
-    }
+    private Map<String, Object> questMapReach(String title, String description, int requiredAmount, double rewardMoney, long rewardExp, double reachRadius, int level) { Map<String, Object> map = questMap(title, description, "REACH_LOCATION", "", requiredAmount, rewardMoney, rewardExp, 0, List.of(), level); map.put("reach-radius", reachRadius); return map; }
+    private void saveDefault(int level, Map<String, Map<String, Object>> quests) { File file = new File(questFolder, "level-" + level + ".yml"); YamlConfiguration yaml = new YamlConfiguration(); for (var entry : quests.entrySet()) for (var field : entry.getValue().entrySet()) yaml.set("quests." + entry.getKey() + "." + field.getKey(), field.getValue()); try { yaml.save(file); } catch (IOException e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to create default quest file " + file.getName(), e); } }
 
     public Quest getQuest(String id) { return questsById.get(id); }
     public List<Quest> getAllQuests() { return new ArrayList<>(questsById.values()); }
@@ -197,17 +145,8 @@ public final class QuestRepository {
     public List<Quest> getQuestsByCategoryLevel(int categoryLevel) { int category = clampLevel(categoryLevel); return questsById.values().stream().filter(q -> q.categoryLevel() == category).filter(q -> q.type() != QuestType.GLOBAL_EVENT).toList(); }
     public int categoryForLevel(int playerLevel) { int level = clampLevel(playerLevel); int best = 1; for (Quest quest : questsById.values()) if (quest.categoryLevel() <= level && quest.categoryLevel() > best) best = quest.categoryLevel(); return best; }
     public List<Quest> getQuestsByType(QuestType type) { return questsById.values().stream().filter(q -> q.type() == type).toList(); }
-
-    private int parseCategoryLevel(String fileName) {
-        String base = fileName.substring(0, fileName.length() - 4);
-        if (base.startsWith("level-")) { try { return clampLevel(Integer.parseInt(base.substring("level-".length()))); } catch (NumberFormatException ignored) { return Level.MIN_LEVEL; } }
-        return oldRankToLevel(base);
-    }
-
-    private int oldRankToLevel(String raw) {
-        return switch (raw.trim().toUpperCase()) { case "F" -> 1; case "E" -> 11; case "D" -> 21; case "C" -> 31; case "B" -> 41; case "A" -> 51; case "S" -> 61; default -> Level.MIN_LEVEL; };
-    }
-
+    private int parseCategoryLevel(String fileName) { String base = fileName.substring(0, fileName.length() - 4); if (base.startsWith("level-")) { try { return clampLevel(Integer.parseInt(base.substring(6))); } catch (NumberFormatException ignored) { return Level.MIN_LEVEL; } } return oldRankToLevel(base); }
+    private int oldRankToLevel(String raw) { return switch (raw.trim().toUpperCase()) { case "F" -> 1; case "E" -> 11; case "D" -> 21; case "C" -> 31; case "B" -> 41; case "A" -> 51; case "S" -> 61; default -> Level.MIN_LEVEL; }; }
     private int clampLevel(int level) { return Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, level)); }
     private QuestType parseType(String raw) { try { return QuestType.valueOf(raw.trim().toUpperCase()); } catch (IllegalArgumentException | NullPointerException e) { return QuestType.HUNT; } }
 }
