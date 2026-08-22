@@ -30,10 +30,6 @@ Der Spieler soll geführt werden, aber die Open World weiterhin selbst erleben.
 
 Ein Spieler kann maximal **5 aktive Quests gleichzeitig** besitzen.
 
-```text
-Maximal aktive Quests = 5
-```
-
 Das Quest-System muss verhindern, dass eine sechste Quest angenommen wird.
 
 Die Begrenzung ist bewusst gewählt: Quests sollen Entscheidungen erzeugen und nicht zu einer riesigen Liste gleichzeitig aktiver Aufgaben werden.
@@ -68,9 +64,8 @@ Die Spielerprogression läuft über:
 
 ```text
 Level 1 → 99
+Level 100 → Grind-Bereich
 ```
-
-Level 100 bleibt der reservierte **Grind-Bereich**.
 
 Langfristig wird deshalb eine große Menge an Quests benötigt. Ziel ist nicht, zwanghaft jedem Level exakt dieselbe Anzahl an Quests zu geben, sondern über die gesamte Progression regelmäßig sinnvolle Inhalte anzubieten.
 
@@ -130,9 +125,7 @@ Beispiele:
 
 ```text
 „Gehe zum Dorf Sonnenhain und sprich mit Mira.“
-
 „Reise zum Dorf Eisenfels und finde den dortigen Händler.“
-
 „Finde den Verwalter des Dorfes und frage ihn nach dem Weg.“
 ```
 
@@ -164,23 +157,7 @@ lokale Questlinie
 weiterer Ort / NPC
 ```
 
-Ein weiteres Beispiel mit einem Spielerdorf:
-
-```text
-Dorf A
-  ↓
-Quest: „Die Händlerroute ist unterbrochen.“
-  ↓
-Reise zum Spielerdorf B
-  ↓
-NPC dort
-  ↓
-Information über Banditen / Ressourcen / lokale Probleme
-  ↓
-neue Questkette
-```
-
-Dadurch können später auch organisch entstandene Orte Teil der Welt werden.
+Auch Spielerdörfer können später über entsprechend gesetzte NPCs in solche Questketten eingebunden werden.
 
 ---
 
@@ -209,11 +186,7 @@ Für klar definierte, vom Admin gesetzte Orte darf intern natürlich mit Positio
 
 ## 9. Recovery Compass als Quest-Hilfe
 
-Der `minecraft:recovery_compass` soll eine neue Aufgabe bekommen: Quest-Navigation.
-
-Er ersetzt keinen normalen Questmarker und soll kein permanentes GPS-System werden.
-
-Ziel:
+Der `minecraft:recovery_compass` soll als Quest-Navigationshilfe dienen.
 
 ```text
 Questziel bekannt
@@ -225,9 +198,7 @@ Richtung zum Ziel
 Spieler findet den Ort selbst
 ```
 
-Der Spieler erhält damit Unterstützung bei der Orientierung, ohne dass die Open World durch permanente Wegpunkte oder eine vollständige automatische Navigation entwertet wird.
-
-Die genaue technische Umsetzung und die Frage, ob der Kompass automatisch ausgerüstet, als Questwerkzeug verwendet oder nur temporär bereitgestellt wird, wird bei der Implementierung entschieden.
+Er ersetzt kein vollständiges GPS-System. Die Open World soll weiterhin selbst erkundet werden.
 
 ---
 
@@ -254,55 +225,87 @@ Reine „Gehe zu XYZ“-Quests ohne Kontext gehören nicht zum gewünschten Stan
 
 # 11. Begleiter – Grundkonzept
 
-Begleiter sollen ein eigenständiges Progressionssystem werden, das sich an der Spielerprogression orientiert, ohne das Kampfsystem zu zerstören.
+Begleiter werden ein eigenständiges Progressionssystem, das sich an der Spielerprogression orientiert, ohne das Kampfsystem zu zerstören.
 
 Der wichtigste Grundsatz lautet:
 
 > **Begleiter unterstützen den Spieler. Sie ersetzen ihn nicht.**
 
-Begleiter sollen deshalb grundsätzlich schwächer als ein gleichwertiger Spielercharakter sein und abhängig von ihrer Seltenheit feste Basiswerte besitzen.
+Begleiter können optisch normale Minecraft-Entities, Tiere, Monster, NPC-/Mannequin-Modelle oder spielerähnliche Modelle sein. Das Aussehen bestimmt nicht automatisch die Stärke.
 
-Begleiter können optisch normale Minecraft-Entities, Monster oder Spieler-/Mannequin-ähnliche Modelle sein. Das Aussehen bestimmt nicht automatisch die Stärke.
+Wichtig: Die bisher genannten Beispiele **Wolf, Biene, Zombie, Schwein und Warden sind nur Beispiele und keine abschließende Begleiterliste.**
 
-Beispiele:
-
-- Wolf
-- Biene
-- Zombie
-- Schwein
-- Warden
-- später individuelle Unique-Begleiter
-
-Auch ungewöhnliche Modelle sind grundsätzlich möglich. Ein „Mini Warden“ kann beispielsweise optisch klein sein, ohne dadurch automatisch Bossstärke zu erhalten.
+Langfristig soll grundsätzlich eine möglichst große Auswahl aus den tatsächlich in der verwendeten Minecraft-/Paper-Version vorhandenen und technisch geeigneten Mob-/Entity-Typen möglich sein. Die Begleiterarchitektur darf deshalb nicht auf eine feste Handvoll Mob-Klassen zugeschnitten werden.
 
 ---
 
-## 12. Begleiter-Seltenheiten
+## 12. Begleiter-Pool – alle geeigneten Minecraft-Mobs
 
-Die geplante Zuordnung lautet:
+Die Auswahl soll sich an den tatsächlich vorhandenen Mob-/Entity-Typen der verwendeten Serverversion orientieren, nicht an einer manuell fest verdrahteten Liste von fünf Beispielen.
+
+Grundidee:
+
+```text
+Minecraft Entity-/Mob-Pool
+          ↓
+technisch geeignete Entity-Typen
+          ↓
+als Begleiter konfigurierbar
+          ↓
+Seltenheit + Basiswerte + Skalierung
+          ↓
+Begleiter
+```
+
+Damit können neben klassischen Tieren und Monstern auch ungewöhnliche Begleiter entstehen, sofern die jeweilige Entity technisch als Begleiter sinnvoll dargestellt und kontrolliert werden kann.
+
+Beispiele für mögliche Kategorien:
+
+- Haustiere und Tiere
+- neutrale Mobs
+- feindliche Mobs
+- fliegende Mobs
+- aquatische Mobs
+- seltene / außergewöhnliche Mobs
+- große oder kleine Modelle
+- humanoide Mobs
+- besondere Entity-Typen, sofern sie für das Begleitersystem technisch geeignet sind
+- Custom-/Mannequin-/Spielermodelle für Unique
+
+Die Minecraft-Wiki-Mob-Liste dient dabei als Inspirations- und Referenzquelle. Für die tatsächliche Implementierung gilt ausschließlich, was in der verwendeten Minecraft-/Paper-Version tatsächlich vorhanden und technisch nutzbar ist.
+
+**Keine feste Whitelist nur für Wolf/Biene/Zombie/Schwein/Warden.** Neue geeignete Mobs sollen später durch Konfiguration bzw. das Begleiter-Datenmodell ergänzt werden können, ohne das komplette System umzubauen.
+
+Nicht jede Entity muss automatisch ein Begleiter werden. Boss-, Projektil-, Partikel-, reine Effekt- oder technisch ungeeignete Entity-Typen können ausgeschlossen werden, wenn sie keine sinnvolle Begleiterdarstellung ermöglichen oder die Balance bzw. Performance gefährden.
+
+---
+
+## 13. Begleiter-Seltenheiten
+
+Die geplante Seltenheitsstruktur lautet:
 
 | Seltenheit | Beispiel | Grundidee |
 |---|---|---|
 | Common | Biene | sehr schwacher, einfacher Begleiter |
 | Uncommon | Wolf | solider früher Begleiter |
-| Rare | Zombie | stärkerer Kampfbegleiter |
-| Epic | Schwein | besonderer Begleiter, perspektivisch reitbar |
-| Legendary | Warden | extrem seltener, starker Begleiter, aber weiterhin Spielerunterstützung |
+| Rare | Zombie | stärkerer Begleiter |
+| Epic | Schwein | besonderer, perspektivisch reitbarer Begleiter |
+| Legendary | Warden | extrem seltener Begleiter, aber weiterhin Spielerunterstützung |
 | Unique | Custom-/Mannequin-Begleiter | ausschließlich individuell durch Admin vergeben |
 
-Die Seltenheit bestimmt nicht nur die Optik, sondern die Basis für die Skalierung von Werten und den benötigten Erfahrungsaufwand.
+Diese Beispiele definieren **nicht**, welche Mobs ausschließlich zu einer Seltenheit gehören. Jeder geeignete Mob kann abhängig von seiner vorgesehenen Rolle, Verfügbarkeit und Balance einer passenden Seltenheit zugeordnet werden.
+
+Ein Warden muss beispielsweise nicht zwingend der einzige Legendary-Begleiter sein. Ebenso kann ein weiterer ungewöhnlicher Mob Legendary werden, wenn seine Freischaltung und Werte entsprechend selten und kontrolliert gestaltet sind.
 
 ---
 
-## 13. Begleiter-Level und Erfahrung
+## 14. Begleiter-Level und Erfahrung
 
 Begleiter besitzen ein eigenes Level und eigene Erfahrung.
 
-Geplanter Bereich:
-
 ```text
 Begleiter-Level 1 → 99
-Level 100 = Grind-Bereich
+Level 100 → Grind-Bereich
 ```
 
 Ein Begleiter erhält nur Erfahrung, **wenn er aktiv beim Spieler ist**.
@@ -317,40 +320,33 @@ Begleiter weggeschickt
 keine Begleiter-XP
 ```
 
-Der Begleiter soll nicht automatisch durch die komplette Spielerprogression mitgezogen werden, wenn er dauerhaft nicht eingesetzt wird.
-
-Die XP-Kurve muss später so balanciert werden, dass ein aktiver Begleiter sinnvoll mit dem Spieler mitwächst, ohne dass Begleiter-Leveln zum Pflicht-Grind wird.
+Der Begleiter wird nicht automatisch auf das Spielerlevel gesetzt.
 
 ---
 
-## 14. Feste Begleiterwerte und Skalierung
+## 15. Feste Begleiterwerte und Skalierung
 
 Begleiter sollen **keine frei zusammenstellbaren Spielerbuilds** werden.
 
-Jede Begleiterart und Seltenheit erhält definierte Basiswerte.
+Jede Begleiterdefinition erhält kontrollierte Basiswerte und eine definierte Skalierung pro Level.
 
-Beispielhafte Struktur:
+Beispiel:
 
 ```text
-Biene – Common
+Mob-Typ
+   ↓
+Seltenheit
+   ↓
 Basiswerte
-  ↓
-leichte Skalierung pro Level
-
-Wolf – Uncommon
-Basiswerte
-  ↓
-mittlere Skalierung pro Level
-
-Warden – Legendary
-Basiswerte
-  ↓
-höhere Skalierung pro Level
+   ↓
+Level-Skalierung 1–99
+   ↓
+finale Begleiterwerte
 ```
 
 Die Skalierung muss konservativ gewählt werden. Ein Legendary-Begleiter darf nicht dazu führen, dass ein Spielerboss trivial wird.
 
-Wichtig ist die Harmonie zwischen:
+Die Balance wird immer anhand von:
 
 ```text
 Spieler
@@ -362,29 +358,51 @@ Gegner
 Boss
 ```
 
-Das System soll sich an der bereits geplanten WoW-/WotLK-inspirierten Progressionslogik orientieren: klare Stufen, kontrollierte Werte und keine exponentielle Eskalation durch zusätzliche Einheiten.
+bewertet.
 
 ---
 
-## 15. Passive Begleiter als erster Schritt
+## 16. Größen- und Modellfreiheit
 
-Der erste Begleiter-Ausbau soll bewusst **passiv bzw. nicht kämpfend** bleiben.
+Die verwendete Entity muss nicht automatisch in ihrer normalen Größe erscheinen.
+
+Wenn die technische Umsetzung es erlaubt, können Begleiter perspektivisch über kontrollierte Attribute/Modelle angepasst werden.
+
+Beispiel:
+
+```text
+Warden
+   ↓
+Begleiterdefinition
+   ↓
+kleinere Darstellung
+   ↓
+„Mini Warden“
+```
+
+Wichtig ist die Trennung von **Darstellung und Kampfbalance**. Ein kleiner Warden wird nicht automatisch schwächer oder stärker, nur weil sein Modell kleiner dargestellt wird.
+
+Ebenso kann ein kleiner Mob nicht durch reine Modellgröße zu einem Mini-Boss werden.
+
+---
+
+## 17. Passive Begleiter als erster Schritt
+
+Der erste Begleiter-Ausbau bleibt bewusst **passiv bzw. nicht kämpfend**.
 
 Das bedeutet:
 
-- Begleiter können wie Monster, Tiere oder Spieler aussehen.
+- Begleiter können wie Tiere, Monster oder Spieler aussehen.
 - Sie folgen dem Spieler.
 - Sie können gerufen und weggeschickt werden.
-- Sie müssen nicht sofort eigene komplexe Kampflogik besitzen.
-- Das Aussehen ist unabhängig von ihrer tatsächlichen Rolle.
+- Sie benötigen zunächst keine komplexe Kampflogik.
+- Das Aussehen ist unabhängig von ihrer Rolle.
 
-Damit kann das Begleiter-System zunächst sicher getestet werden, bevor offensive Fähigkeiten und KI hinzugefügt werden.
-
-Ein Wolf kann also zunächst als sichtbarer Begleiter funktionieren, ohne dass sein Kampfschaden Teil des ersten Tests sein muss.
+Erst wenn dieses Fundament stabil ist, werden aktive Angriffe, KI und Spezialfähigkeiten betrachtet.
 
 ---
 
-## 16. Begleiter-Befehle
+## 18. Begleiter-Befehle
 
 Die grundlegenden Aktionen sollen einheitlich sein:
 
@@ -398,25 +416,21 @@ Die Umbenennung gilt grundsätzlich nur für normale Begleiter.
 
 ### Unique-Ausnahme
 
-Unique-Begleiter können einen festen Namen besitzen.
+Unique-Begleiter können einen festen Namen besitzen:
 
 ```text
-Unique Begleiter
-    ↓
-Admin vergibt Begleiter
-    ↓
-Name ist fest definiert
-    ↓
-Spieler kann ihn nicht umbenennen
-    ↓
+Admin vergibt Unique-Begleiter
+        ↓
+Name / Skin / Modell fest definiert
+        ↓
+Spieler kann Namen nicht ändern
+        ↓
 nur rufen / wegschicken
 ```
 
-Das ist insbesondere für individuelle Geschenk-/Event-Begleiter gedacht.
-
 ---
 
-## 17. Unique-Begleiter
+## 19. Unique-Begleiter
 
 Unique ist keine normale Farm-/Drop-Seltenheit.
 
@@ -441,133 +455,33 @@ Verhalten: passiv
 Besitz: nur durch Admin-Vergabe
 ```
 
-Unique-Begleiter dürfen technisch stärker oder spezieller sein, müssen aber trotzdem in die allgemeine Progression passen. „Unique“ bedeutet nicht automatisch „zerstört jede Balance“.
+Unique bedeutet nicht automatisch „unbalanciert“. Auch Unique-Begleiter müssen in die allgemeine Progression passen.
 
 ---
 
-## 18. Begleiter als Questbelohnung
+## 20. Begleiter-Freischaltung
 
-Begleiter sollen nicht einfach wahllos aus jeder Quest fallen.
+Begleiter sollen nicht wahllos aus jeder Quest oder jedem Mobdrop fallen.
 
-Ein Begleiter als Belohnung soll sich **thematisch aus der Quest ergeben**.
-
-Beispiele:
-
-### Beispiel A – Wolf / Uncommon
-
-Questkette:
-
-```text
-„Der verletzte Wolf“
-      ↓
-Finde Nahrung
-      ↓
-Verteidige den Bau
-      ↓
-Bringe den Wolf zurück
-      ↓
-Questabschluss
-      ↓
-Belohnung: Wolf-Begleiter
-```
-
-Der Spieler bekommt den Begleiter nicht als zufälligen Gegenstand, sondern als Ergebnis einer kleinen Geschichte.
-
-### Beispiel B – Biene / Common
-
-```text
-Dorf-Imker
-   ↓
-Honigproduktion gestört
-   ↓
-Sammle Blumen / beschütze Bienenstöcke
-   ↓
-Imker bedankt sich
-   ↓
-Belohnung: Bienen-Begleiter
-```
-
-### Beispiel C – Zombie / Rare
-
-Ein Zombie-Begleiter sollte nicht aus einer normalen „Töte 5 Zombies“-Quest fallen.
-
-Besser:
-
-```text
-Questkette über einen ungewöhnlichen Zombie
-   ↓
-Untersuche sein Verhalten
-   ↓
-Finde die Ursache
-   ↓
-mehrere Schritte
-   ↓
-Freischaltung eines besonderen Zombie-Begleiters
-```
-
-Damit fühlt sich Rare tatsächlich selten an.
-
-### Beispiel D – Schwein / Epic
-
-```text
-Questkette eines reisenden Händlers
-   ↓
-Suche sein verlorenes Reittier
-   ↓
-Schütze das Tier
-   ↓
-Bringe es zurück
-   ↓
-Belohnung: Epic-Schwein-Begleiter
-```
-
-Das Schwein kann perspektivisch als besonderer reitbarer Begleiter umgesetzt werden.
-
-### Beispiel E – Warden / Legendary
-
-Ein Legendary-Begleiter sollte **nicht** als gewöhnlicher Questabschluss verteilt werden.
-
-Beispiel:
-
-```text
-lange Questkette
-   ↓
-mehrere schwierige Abschnitte
-   ↓
-Ende einer besonderen Story
-   ↓
-sehr seltene Freischaltung
-   ↓
-Warden-Begleiter
-```
-
-Die Belohnung muss dabei so balanciert sein, dass der Begleiter zwar mächtig und besonders ist, aber Bosse und Endgame-Inhalte nicht trivialisiert.
-
----
-
-## 19. Begleiter-Freischaltung – geplantes Modell
-
-Noch nicht jede Freischaltungsquelle ist endgültig festgelegt. Das System soll aber mehrere kontrollierte Quellen ermöglichen.
-
-Mögliche Kategorien:
+Mögliche Freischaltungswege:
 
 ### Questbelohnung
 
 Besonders geeignet für thematische Common-, Uncommon- und einzelne Rare-Begleiter.
 
+### Besondere Questketten
+
+Geeignet für seltene, thematisch wichtige Begleiter.
+
 ### Seltene Inhalte / besondere Gegner
 
 Für höherwertige Begleiter können seltene Freischaltungen über spezielle Inhalte vorgesehen werden.
 
-Wichtig: Kein Begleiter soll durch einen beliebigen Standard-Mobdrop massenhaft verfügbar werden, wenn er laut Seltenheit besonders sein soll.
-
-### Besondere Questketten
-
-Für Epic und Legendary besonders geeignet.
-
 ### Admin-Vergabe
 
 Ausschließlich für Unique.
+
+Grundmodell:
 
 ```text
 Common / Uncommon
@@ -586,15 +500,125 @@ Unique
     → ausschließlich Admin
 ```
 
-Die konkreten Dropchancen und Freischaltbedingungen werden erst festgelegt, wenn das Grundsystem getestet werden kann.
+Die konkreten Dropchancen und Bedingungen werden erst nach Tests des Grundsystems festgelegt.
 
 ---
 
-## 20. Begleiter und Quests müssen zusammenpassen
+## 21. Begleiter als Questbelohnung
+
+Ein Begleiter als Belohnung soll sich **thematisch aus der Quest ergeben**.
+
+### Wolf – Uncommon
+
+```text
+„Der verletzte Wolf“
+      ↓
+Finde Nahrung
+      ↓
+Verteidige den Bau
+      ↓
+Bringe den Wolf zurück
+      ↓
+Belohnung: Wolf-Begleiter
+```
+
+### Biene – Common
+
+```text
+Dorf-Imker
+   ↓
+Honigproduktion gestört
+   ↓
+Sammle Blumen / beschütze Bienenstöcke
+   ↓
+Belohnung: Bienen-Begleiter
+```
+
+### Zombie – Rare
+
+```text
+Ungewöhnlicher Zombie
+   ↓
+Untersuche sein Verhalten
+   ↓
+Finde die Ursache
+   ↓
+mehrere Questschritte
+   ↓
+Freischaltung des Zombie-Begleiters
+```
+
+### Schwein – Epic
+
+```text
+Reisender Händler
+   ↓
+Verlorenes Reittier suchen
+   ↓
+Tier schützen
+   ↓
+Zum Händler zurückbringen
+   ↓
+Epic-Schwein-Begleiter
+```
+
+### Warden – Legendary
+
+```text
+lange Questkette
+   ↓
+mehrere schwierige Abschnitte
+   ↓
+besondere Story / Prüfung
+   ↓
+sehr seltene Freischaltung
+   ↓
+Legendary-Warden-Begleiter
+```
+
+Weitere Mobs sollen nach demselben Prinzip verwendet werden können. Die Quest muss zum jeweiligen Mob passen.
+
+Beispiele:
+
+```text
+Axolotl
+→ Unterwasser-/Rettungsquest
+
+Fox
+→ Wald-/Beute-/Schutzquest
+
+Bee
+→ Imker-/Blumen-/Honigquest
+
+Horse
+→ Reise-/Stall-/Rettungsquest
+
+Allay
+→ verlorene Gegenstände / Hilfe für einen NPC
+
+Goat
+→ Bergdorf / Tierherde / Transport
+
+Dolphin
+→ Küsten-/Schiffs-/Meeresquest
+
+Iron Golem
+→ Dorfverteidigung / Schmied / Schutzauftrag
+
+Skeleton
+→ verfluchte Ruinen / Untoten-Questkette
+
+Enderman
+→ seltene End-/Teleport-/Erkundungsquest
+```
+
+Diese Beispiele sind nur Inspiration. Der Pool bleibt offen für weitere technisch geeignete Minecraft-Mobs.
+
+---
+
+## 22. Begleiter und Quests müssen zusammenpassen
 
 Begleiter sollen nicht als isoliertes System neben den Quests stehen.
-
-Sie können Bestandteil der Welt und der Queststruktur werden.
 
 Mögliche Questarten:
 
@@ -604,49 +628,38 @@ Begleiter retten
 Begleiter freischalten
 Begleiter trainieren
 Begleiter-Level erhöhen
-Begleiter zu einem NPC bringen
 Begleiter in einer Quest dabeihaben
 ```
 
-Dabei darf niemals das Gefühl entstehen, dass ein Spieler einen Begleiter zwingend besitzen muss, um normale Quests zu schaffen.
-
-Begleiter sind eine zusätzliche Progressions- und Komfortebene.
+Ein Begleiter darf niemals zwingend erforderlich sein, um normale Quests abschließen zu können.
 
 ---
 
-## 21. Begleiter und Open World
+## 23. Begleiter und Open World
 
 Die Welt soll auch durch Begleiter interessanter werden.
 
-Beispiel:
+Unterschiedliche Spieler können durch unterschiedliche Questlinien unterschiedliche Begleiter freischalten.
 
 ```text
-Spieler entdeckt einen alten Wald
-        ↓
-NPC erzählt von Wölfen
-        ↓
-Questkette
-        ↓
-Wolf-Begleiter wird freigeschaltet
-        ↓
-Wolf begleitet den Spieler künftig
-```
+Spieler A
+   ↓
+findet Wald-Questlinie
+   ↓
+Wolf-Begleiter
 
-Ein anderer Spieler kann dieselbe Welt anders erleben:
-
-```text
 Spieler B
-        ↓
-findet eine seltene Questlinie
-        ↓
-schaltet Zombie-Begleiter frei
+   ↓
+findet seltene Ruinen-Questlinie
+   ↓
+Skeleton-Begleiter
 ```
 
-So können unterschiedliche Spieler unterschiedliche Begleiter besitzen, ohne dass daraus automatisch ein klassisches „Pay-to-win“- oder Pflichtsystem entsteht.
+Damit entsteht Vielfalt, ohne dass ein einzelner Begleiter zwingend die einzig richtige Wahl wird.
 
 ---
 
-## 22. Begleiter-Skalierung und Gegner/Bosse
+## 24. Begleiter und Gegner/Bosse
 
 Dieser Punkt ist besonders kritisch.
 
@@ -662,9 +675,7 @@ Begleiterunterstützung
 Spielergruppe / vorgesehene Endgame-Leistung
 ```
 
-Ein Begleiter darf den Einzelspieler stärker machen, aber nicht die gesamte Encounter-Balance verdoppeln.
-
-Besonders bei Legendary und Unique müssen deshalb folgende Punkte getestet werden:
+Besonders bei Epic, Legendary und Unique müssen getestet werden:
 
 - DPS des Spielers ohne Begleiter
 - DPS des Spielers mit Begleiter
@@ -672,20 +683,16 @@ Besonders bei Legendary und Unique müssen deshalb folgende Punkte getestet werd
 - Bossdauer
 - Aggro-/Target-Verhalten
 - Flächenschaden gegen Gruppen
-- mögliche Ausnutzung durch AFK-/Grind-Situationen
-- XP-Gewinn des Begleiters
-
-Die Werte werden nicht theoretisch endgültig festgelegt. Sie werden anhand echter Serverkämpfe angepasst.
+- AFK-/Grind-Ausnutzung
+- Begleiter-XP
 
 ---
 
-## 23. Quest- und Begleiter-XP nicht koppeln
+## 25. Quest- und Begleiter-XP nicht koppeln
 
 Spieler-XP und Begleiter-XP müssen getrennt behandelt werden.
 
 Eine Quest darf nicht automatisch zu einer unverhältnismäßigen Doppelbelohnung führen.
-
-Beispiel:
 
 ```text
 Questabschluss
@@ -699,11 +706,7 @@ Der Begleiter soll seine Progression hauptsächlich durch tatsächliche aktive T
 
 ---
 
-## 24. Quest-Navigation und Begleiter gemeinsam denken
-
-Questnavigation und Begleiter dürfen sich ergänzen.
-
-Beispiel:
+## 26. Quest-Navigation und Begleiter gemeinsam denken
 
 ```text
 Questziel: Dorf Sonnenhain
@@ -719,15 +722,15 @@ NPC im Dorf
 neue Questkette
 ```
 
-Der Begleiter darf dabei nicht zum automatischen Questfinder werden. Er soll den Spieler begleiten, nicht die Welt für ihn durchsuchen.
+Der Begleiter darf nicht zum automatischen Questfinder werden.
 
 ---
 
-## 25. Balance-Ziel
+## 27. Balance-Ziel
 
 PixelRPG orientiert sich bei der Progressionslogik an klassischen MMORPG-Prinzipien, insbesondere der klaren Stufenprogression von WoW/WotLK.
 
-Übernommen werden soll vor allem das Prinzip:
+Übernommen werden soll vor allem:
 
 - klare Levelprogression
 - definierte Stärke pro Stufe
@@ -735,25 +738,19 @@ PixelRPG orientiert sich bei der Progressionslogik an klassischen MMORPG-Prinzip
 - seltene besondere Belohnungen
 - langfristige Progression
 
-Nicht übernommen werden sollen Systeme wie Reputation oder Titel, da diese für PixelRPG ausdrücklich nicht vorgesehen sind.
-
-Die Begleiter müssen so skaliert werden, dass sie sich wie ein sinnvoller Teil des MMORPG-Systems anfühlen und nicht wie ein zweiter vollständiger Spielercharakter.
+Nicht übernommen werden Reputation und Titel.
 
 ---
 
-# 26. Spätere Erweiterungen
+## 28. Spätere Erweiterungen
 
 Phase C wird vorerst **nicht umgesetzt**.
 
 Erweiterungen wie zusätzliche Endgame-/Post-Progression-Systeme werden erst betrachtet, wenn das Plugin angenommen wurde und ausreichend reale Spielerfahrung vorliegt.
 
-Bis dahin bleibt der Fokus auf den Kernsystemen.
-
 ---
 
-# 27. Aktueller Arbeitsauftrag – Quests
-
-Vor der vollständigen Quest-Implementierung:
+# 29. Aktueller Arbeitsauftrag – Quests
 
 ```text
 Quest-NPCs prüfen
@@ -770,7 +767,7 @@ Filler-/Reise-NPC vorbereiten
       ↓
 Dorf-/Ortsverknüpfungen vorbereiten
       ↓
-Recovery-Compass integrieren
+Recovery Compass integrieren
       ↓
 Questketten erweitern
       ↓
@@ -783,14 +780,14 @@ Balance / Vereinfachung / Erweiterung
 
 ---
 
-# 28. Aktueller Arbeitsauftrag – Begleiter
-
-Die Begleiter werden bewusst schrittweise entwickelt.
+# 30. Aktueller Arbeitsauftrag – Begleiter
 
 ### Stufe 1 – Grundlage
 
 ```text
 Begleiter-Datenmodell
+      ↓
+Entity-/Mob-Typ konfigurierbar
       ↓
 Seltenheit
       ↓
@@ -807,7 +804,7 @@ Umbenennen für normale Begleiter
 
 Zunächst nur Begleiter, die den Spieler begleiten und sich passiv verhalten.
 
-Testobjekte:
+Die bisherigen Testobjekte:
 
 ```text
 Bee     → Common
@@ -817,9 +814,9 @@ Pig     → Epic
 Warden  → Legendary
 ```
 
-### Stufe 3 – Unique
+Diese fünf sind **Testbeispiele und keine Begrenzung des Systems**. Weitere geeignete Minecraft-Mobs sollen später ohne grundlegenden Umbau ergänzt werden können.
 
-Admin kann einen individuellen Begleiter vergeben:
+### Stufe 3 – Unique
 
 ```text
 Custom Modell / Mannequin
@@ -851,9 +848,7 @@ Erst wenn das passive Grundsystem stabil ist, werden komplexere Kampffunktionen,
 
 ---
 
-# 29. Gesamtbild
-
-Die Quest- und Begleiter-Systeme sollen langfristig ineinandergreifen:
+# 31. Gesamtbild
 
 ```text
                  PIXELRPG OPEN WORLD
@@ -868,11 +863,11 @@ Die Quest- und Begleiter-Systeme sollen langfristig ineinandergreifen:
           │                             │
    Questketten                   eigene XP
           │                             │
-   Dörfer / Orte                 Seltenheiten
+   Dörfer / Orte                 offene Mob-Auswahl
           │                             │
-   Recovery Compass              feste Werte
+   Recovery Compass              Seltenheiten
           │                             │
-   5 aktive Quests               Rufen / Wegschicken
+   5 aktive Quests               feste Werte
           │                             │
           └──────────────┬──────────────┘
                          │
@@ -887,7 +882,7 @@ Keines der beiden Systeme soll die anderen Systeme überrollen. Die Welt, der Sp
 
 ---
 
-# 30. Wichtigste Designregeln
+# 32. Wichtigste Designregeln
 
 1. **Maximal 5 aktive Quests.**
 2. **Questfreischaltung 5 Level vor dem empfohlenen Quest-Level.**
@@ -900,12 +895,15 @@ Keines der beiden Systeme soll die anderen Systeme überrollen. Die Welt, der Sp
 9. **Begleiter besitzen eigene XP und Level 1–99.**
 10. **Begleiter erhalten nur XP, solange sie aktiv draußen sind.**
 11. **Begleiterwerte sind grundsätzlich fest definiert und werden kontrolliert skaliert.**
-12. **Begleiter sollen den Spieler unterstützen, nicht ersetzen.**
-13. **Common bis Legendary können kontrolliert über normale bzw. besondere Inhalte freigeschaltet werden.**
-14. **Unique-Begleiter werden ausschließlich von Admins vergeben.**
-15. **Unique-Namen können fest und nicht veränderbar sein.**
-16. **Passive Begleiter kommen vor komplexen Kampffähigkeiten.**
-17. **Quest- und Begleiter-XP müssen gemeinsam auf Balance geprüft werden.**
-18. **Jede Begleiter-Seltenheit muss gegen reale Gegner- und Bosskämpfe getestet werden.**
-19. **Keine Begleitermechanik darf zur Pflicht werden, um normale Quests abschließen zu können.**
-20. **Phase C bleibt vorerst außen vor.**
+12. **Der Begleiter-Pool ist nicht auf fünf Beispiel-Mobs begrenzt.**
+13. **Technisch geeignete Minecraft-Mobs sollen grundsätzlich als Begleiter konfigurierbar sein.**
+14. **Nicht jede Entity ist automatisch geeignet; technische und Balance-Ausschlüsse sind erlaubt.**
+15. **Begleiter sollen den Spieler unterstützen, nicht ersetzen.**
+16. **Common bis Legendary können kontrolliert über normale bzw. besondere Inhalte freigeschaltet werden.**
+17. **Unique-Begleiter werden ausschließlich von Admins vergeben.**
+18. **Unique-Namen können fest und nicht veränderbar sein.**
+19. **Passive Begleiter kommen vor komplexen Kampffähigkeiten.**
+20. **Quest- und Begleiter-XP müssen gemeinsam auf Balance geprüft werden.**
+21. **Jede Begleiter-Seltenheit muss gegen reale Gegner- und Bosskämpfe getestet werden.**
+22. **Keine Begleitermechanik darf zur Pflicht werden, um normale Quests abschließen zu können.**
+23. **Phase C bleibt vorerst außen vor.**
