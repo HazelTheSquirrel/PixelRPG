@@ -145,6 +145,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         itemEconomyConfig = new ItemEconomyConfig();
         itemEconomyConfig.load(getConfig());
         RPGItemBuilder.configureChances(getConfig().getDouble("items.loot.blessing-chance", 0.12), getConfig().getDouble("items.loot.curse-chance", 0.10));
+        RPGItemBuilder.configureScaling(this);
         itemService = new ItemService();
         Bukkit.getServicesManager().register(de.pixelrpg.rpg.api.ItemAPI.class, itemService, this, ServicePriority.Normal);
         blacksmithGUI = new BlacksmithGUI(playerProfileManager, itemEconomyConfig);
