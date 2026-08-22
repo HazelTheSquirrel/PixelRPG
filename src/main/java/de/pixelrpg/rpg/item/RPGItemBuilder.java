@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 public final class RPGItemBuilder {
     private static double growthMultiplier = 10.0D;
@@ -26,15 +25,8 @@ public final class RPGItemBuilder {
     private static double armorBase = 0.7D;
     private static double healthBase = 1.2D;
     private static double toolBaseEfficiency = 1.0D;
-    private static double blessingChance = 0.12;
-    private static double curseChance = 0.10;
 
     private RPGItemBuilder() {
-    }
-
-    public static void configureChances(double blessing, double curse) {
-        blessingChance = Math.max(0.0, Math.min(1.0, blessing));
-        curseChance = Math.max(0.0, Math.min(1.0, curse));
     }
 
     /** Loads the deterministic item growth curve from the user-editable JSON baseline. */
@@ -75,7 +67,6 @@ public final class RPGItemBuilder {
 
         double multiplier = rarity.getStatMultiplier();
         double levelFactor = levelScaling(itemLevel);
-        ThreadLocalRandom random = ThreadLocalRandom.current();
 
         List<Component> lore = new ArrayList<>();
         lore.add(line(rarity.displayName()));
@@ -87,21 +78,6 @@ public final class RPGItemBuilder {
             case WEAPON -> addWeaponStats(lore, pdc, multiplier, levelFactor);
             case ARMOR, SHIELD -> addArmorStats(lore, pdc, category, multiplier, levelFactor);
             case TOOL -> addToolStats(lore, pdc, multiplier, levelFactor);
-        }
-
-        if (random.nextDouble() < blessingChance) {
-            BlessingType blessing = BlessingType.rollRandom();
-            pdc.set(RPGKeys.Item.blessingType(), PersistentDataType.STRING, blessing.name());
-            lore.add(Component.text("Blessing: ", NamedTextColor.AQUA)
-                    .append(blessing.displayName())
-                    .decoration(TextDecoration.ITALIC, false));
-        }
-        if (random.nextDouble() < curseChance) {
-            CurseType curse = CurseType.rollRandom();
-            pdc.set(RPGKeys.Item.curseType(), PersistentDataType.STRING, curse.name());
-            lore.add(Component.text("Curse: ", NamedTextColor.DARK_RED)
-                    .append(curse.displayName())
-                    .decoration(TextDecoration.ITALIC, false));
         }
 
         meta.displayName(rarity.displayName()
