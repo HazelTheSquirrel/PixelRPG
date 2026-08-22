@@ -1,13 +1,13 @@
 package de.pixelrpg.rpg.npc.behavior;
 
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
-import de.pixelrpg.rpg.gui.TravelGUI;
-import de.pixelrpg.rpg.lang.LanguageManager;
+import de.pixelrpg.rpg.dialogue.TravelDialog;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.lang.LanguageManager;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -53,16 +53,6 @@ public final class TravelBehavior implements NpcBehavior {
             return;
         }
 
-        dialogueEngine.openMultiAction(
-                player,
-                Component.text("Reisen", NamedTextColor.GOLD),
-                List.of(DialogBody.plainMessage(Component.text("Wähle einen freigeschalteten Reisepunkt."))),
-                List.of(dialogueEngine.actionButton(
-                        Component.text("Reisekarte öffnen"),
-                        NamedTextColor.GREEN,
-                        target -> new TravelGUI(target, npcManager, profileManager, npc.id()).open(target)
-                )),
-                1
-        );
+        new TravelDialog(npcManager, profileManager, dialogueEngine).open(player, npc.id());
     }
 }
