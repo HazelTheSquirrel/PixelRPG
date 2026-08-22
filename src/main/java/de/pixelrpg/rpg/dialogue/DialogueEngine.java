@@ -15,6 +15,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -29,20 +30,37 @@ public final class DialogueEngine {
 
     public void openMultiAction(Player player, Component title, List<DialogBody> body,
                                 List<ActionButton> actions, int columns) {
+        openMultiAction(player, title, body, actions, columns, null);
+    }
+
+    public void openMultiAction(Player player, Component title, List<DialogBody> body,
+                                List<ActionButton> actions, int columns, Consumer<Player> backAction) {
         Objects.requireNonNull(player, "player");
         Objects.requireNonNull(title, "title");
         Objects.requireNonNull(body, "body");
         Objects.requireNonNull(actions, "actions");
         int safeColumns = Math.max(1, Math.min(3, columns));
 
+        List<ActionButton> safeActions = new ArrayList<>(actions);
+        ActionButton back = null;
+        if (backAction != null) {
+            back = actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction);
+        }
+        ActionButton close = actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog);
+
+        if (back != null) {
+            safeActions.add(back);
+        }
+
+        ActionButton finalBack = back;
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(normalize(title))
-                    .body(body)
+                    .body(normalizeBody(body))
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .build());
-            builder.type(DialogType.multiAction(actions, null, safeColumns));
+            builder.type(DialogType.multiAction(safeActions, close, safeColumns));
         }));
     }
 
@@ -66,12 +84,12 @@ public final class DialogueEngine {
                 .action(dialogAction)
                 .width(220)
                 .build();
-        ActionButton cancel = actionButton(Component.text("Abbrechen"), NamedTextColor.GRAY, Player::closeDialog);
+        ActionButton cancel = actionButton(Component.text("Abbrechen"), NamedTextColor.RED, Player::closeDialog);
 
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(normalize(title))
-                    .body(body)
+                    .body(normalizeBody(body))
                     .inputs(List.of(input))
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
@@ -86,7 +104,7 @@ public final class DialogueEngine {
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(normalize(title))
-                    .body(body)
+                    .body(normalizeBody(body))
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .build());
@@ -113,12 +131,12 @@ public final class DialogueEngine {
     public void openUnavailable(Player player, String title, String message) {
         openNotice(player,
                 Component.text(title, NamedTextColor.GOLD),
-                Component.text(message, NamedTextColor.GRAY),
-                Component.text("Schließen", NamedTextColor.GREEN));
+                Component.text(message, NamedTextColor.WHITE),
+                Component.text("Schließen", NamedTextColor.GRAY));
     }
 
     private Dialog createNotice(Component title, Component body, Component closeLabel) {
-        ActionButton close = actionButton(closeLabel, NamedTextColor.GREEN, Player::closeDialog);
+        ActionButton close = actionButton(closeLabel, NamedTextColor.GRAY, Player::closeDialog);
         return Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(normalize(title))
@@ -128,6 +146,14 @@ public final class DialogueEngine {
                     .build());
             builder.type(DialogType.notice(close));
         });
+    }
+
+    private List<DialogBody> normalizeBody(List<DialogBody> body) {
+        return body.stream().map(this::normalizeBodyEntry).toList();
+    }
+
+    private DialogBody normalizeBodyEntry(DialogBody entry) {
+        return DialogBody.plainMessage(normalize(entry.content()));
     }
 
     private Component normalize(Component component) {
