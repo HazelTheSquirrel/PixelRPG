@@ -1,0 +1,50 @@
+{
+  "rules": {
+    "maxActive": 5,
+    "unlockEarlyLevels": 5,
+    "normalLevelMin": 1,
+    "normalLevelMax": 99,
+    "level100Mode": "GRIND",
+    "reputationEnabled": false,
+    "titlesEnabled": false,
+    "recoveryCompass": {
+      "enabled": true,
+      "oneActiveTargetOnly": true
+    }
+  },
+  "definitions": [
+    {
+      "id": "example_blacksmith_tools",
+      "title": "Die verschwundenen Werkzeuge",
+      "description": "Untersuche die Werkstatt und bringe die verschwundenen Werkzeuge zurück.",
+      "type": "STORY",
+      "recommendedLevel": 8,
+      "categoryLevel": 5,
+      "targetKey": "blacksmith_tools",
+      "requiredAmount": 1,
+      "reward": { "money": 50.0, "experience": 150, "items": [] }
+    },
+    {
+      "id": "example_sonnenhain",
+      "title": "Der Weg nach Sonnenhain",
+      "description": "Reise nach Sonnenhain und sprich dort mit Mira.",
+      "type": "TRAVEL",
+      "recommendedLevel": 15,
+      "categoryLevel": 10,
+      "targetKey": "village:sonnenhain",
+      "requiredAmount": 1,
+      "reward": { "money": 80.0, "experience": 200, "items": [] }
+    },
+    {
+      "id": "example_companion_wolf",
+      "title": "Ein treuer Begleiter",
+      "description": "Hilf einem verletzten Wolf und gewinne sein Vertrauen.",
+      "type": "COMPANION",
+      "recommendedLevel": 20,
+      "categoryLevel": 15,
+      "targetKey": "companion:test-wolf",
+      "requiredAmount": 1,
+      "reward": { "money": 0.0, "experience": 300, "items": [], "companionId": "test-wolf" }
+    }
+  ]
+}
