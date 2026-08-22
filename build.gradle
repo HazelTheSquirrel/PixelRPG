@@ -14,6 +14,14 @@ repositories {
         name = "papermc"
         url = "https://repo.papermc.io/repository/maven-public/"
     }
+    maven {
+        name = "minecraftLibraries"
+        url = "https://libraries.minecraft.net/"
+    }
+}
+
+configurations {
+    aprilFoolsReference
 }
 
 dependencies {
@@ -22,6 +30,9 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.13.1'
     implementation 'com.zaxxer:HikariCP:7.0.2'
     implementation 'com.mysql:mysql-connector-j:9.7.0'
+
+    // Isolated historical reference dependency. It is never placed on the plugin runtime classpath.
+    aprilFoolsReference 'com.mojang:minecraft:3D Shareware v1.34:client'
 }
 
 java {
@@ -33,6 +44,20 @@ java {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release.set(25)
+}
+
+tasks.register('verifyAprilFoolsReference') {
+    group = 'verification'
+    description = 'Verifies that the official Minecraft 3D Shareware v1.34 reference artifact containing the Nerd Creeper can be resolved.'
+    doLast {
+        def artifacts = configurations.aprilFoolsReference.resolvedConfiguration.resolvedArtifacts
+        if (artifacts.isEmpty()) {
+            throw new GradleException('The 3D Shareware v1.34 April-Fools reference dependency could not be resolved.')
+        }
+        artifacts.each { artifact ->
+            println("April-Fools reference resolved: ${artifact.moduleVersion.id} -> ${artifact.file.name}")
+        }
+    }
 }
 
 tasks.shadowJar {
