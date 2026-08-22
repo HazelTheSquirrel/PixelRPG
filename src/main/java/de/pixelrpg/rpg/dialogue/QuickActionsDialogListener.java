@@ -18,6 +18,7 @@ public final class QuickActionsDialogListener implements Listener {
 
     private final PixelRPGPlugin plugin;
     private final QuickActionsDialogService service;
+    private final CompanionService companionService;
     private final CompanionDialog companionDialog;
     private final ProfessionDialog professionDialog;
     private final CharacterCardScoreboardService characterCardScoreboard;
@@ -26,7 +27,8 @@ public final class QuickActionsDialogListener implements Listener {
         this.plugin = PixelRPGPlugin.getInstance();
         this.service = service;
         DialogueEngine dialogueEngine = new DialogueEngine();
-        this.companionDialog = new CompanionDialog(new CompanionService(), dialogueEngine);
+        this.companionService = new CompanionService(plugin);
+        this.companionDialog = new CompanionDialog(companionService, dialogueEngine);
         this.professionDialog = new ProfessionDialog(service.profileManager(), dialogueEngine);
         this.characterCardScoreboard = new CharacterCardScoreboardService(plugin, service.profileManager(), service.statEngine());
         this.characterCardScoreboard.start();
@@ -57,11 +59,12 @@ public final class QuickActionsDialogListener implements Listener {
         handlePlayerAction(event, CLOSE_ACTION, Player::closeDialog);
     }
 
-    /** Stops the character-card scoreboard bridge when PixelRPG is disabled. */
+    /** Stops the character-card and companion entity bridges when PixelRPG is disabled. */
     @EventHandler
     public void onPluginDisable(PluginDisableEvent event) {
         if (event.getPlugin() != plugin) return;
         characterCardScoreboard.stop();
+        companionService.shutdown();
     }
 
     private void handlePlayerAction(PlayerCustomClickEvent event, Key identifier, java.util.function.Consumer<Player> action) {
