@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.companion;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import de.pixelrpg.rpg.config.JsonDataManager;
+import de.pixelrpg.rpg.core.RPGKeys;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -12,6 +13,7 @@ import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +54,7 @@ public final class CompanionService {
             JsonObject root = new JsonDataManager(plugin).load("companions.json");
             JsonObject progression = object(root, "progression");
             if (progression != null) {
-                maxLevel = Math.max(1, number(progression, "maxLevel", maxLevel));
+                maxLevel = Math.max(1, Math.min(99, number(progression, "maxLevel", maxLevel)));
                 JsonObject xp = object(progression, "xp");
                 if (xp != null) {
                     experienceBase = Math.max(1L, numberLong(xp, "base", experienceBase));
@@ -64,6 +66,7 @@ public final class CompanionService {
                 activeXpOnly = bool(defaults, "activeXpOnly", activeXpOnly);
                 maxNameLength = Math.max(1, number(defaults, "maxNameLength", maxNameLength));
             }
+            validateDefinitions(root);
         } catch (RuntimeException exception) {
             plugin.getLogger().warning("Unable to load companions.json; using safe companion defaults: " + exception.getMessage());
         }
@@ -102,8 +105,15 @@ public final class CompanionService {
     }
 
     /** Unlocks a fixed-name Unique companion. Only administrative code should call this method. */
-    public void unlockUnique(UUID playerId, String id, String fixedName, org.bukkit.entity.EntityType entityType) {
-        unlock(playerId, new Companion(id, fixedName, 1, 0L, CompanionRarity.UNIQUE, entityType, false));
+    public boolean unlockUnique(UUID playerId, String id, String fixedName, org.bukkit.entity.EntityType entityType) {
+        if (id == null || id.isBlank() || fixedName == null || fixedName.isBlank() || entityType == null || !entityType.isSpawnable()) return false;
+        JsonObject configured = readDefinitionJson(id);
+        if (configured != null) {
+            String rarity = string(configured, "rarity", "").toUpperCase();
+            if (!"UNIQUE".equals(rarity) || !bool(configured, "adminOnly", false) || bool(configured, "renameable", true)) return false;
+        }
+        unlock(playerId, new Companion(id, fixedName.strip(), 1, 0L, CompanionRarity.UNIQUE, entityType, false));
+        return true;
     }
 
     public boolean setActive(Player player, String companionId) {
@@ -186,6 +196,7 @@ public final class CompanionService {
 
     /** Awards companion XP only to the currently active companion. */
     public boolean awardExperience(UUID playerId, long baseExperience) {
+        if (!activeXpOnly && baseExperience <= 0L) return false;
         if (baseExperience <= 0L) return false;
         load(playerId);
         List<Companion> current = companions.get(playerId);
@@ -201,6 +212,7 @@ public final class CompanionService {
                 .toList();
         companions.put(playerId, updated);
         save(playerId, updated);
+        refreshActiveMetadata(playerId, updated.stream().filter(Companion::active).findFirst().orElse(null));
         return level != active.level();
     }
 
@@ -251,6 +263,9 @@ public final class CompanionService {
                 return;
             }
 
+            living.getPersistentDataContainer().set(RPGKeys.Companion.id(), PersistentDataType.STRING, selected.id());
+            living.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, selected.level());
+            living.getPersistentDataContainer().set(RPGKeys.Companion.rarity(), PersistentDataType.STRING, selected.rarity().name());
             living.setCustomName(selected.name());
             living.setCustomNameVisible(true);
 
@@ -265,6 +280,16 @@ public final class CompanionService {
             plugin.getLogger().warning("Unable to spawn companion '" + selected.id() + "' as "
                     + selected.entityType() + ": " + exception.getMessage());
         }
+    }
+
+    private void refreshActiveMetadata(UUID playerId, Companion active) {
+        if (active == null) return;
+        UUID entityId = activeEntities.get(playerId);
+        if (entityId == null) return;
+        Entity entity = plugin.getServer().getEntity(entityId);
+        if (entity == null) return;
+        entity.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, active.level());
+        entity.getPersistentDataContainer().set(RPGKeys.Companion.rarity(), PersistentDataType.STRING, active.rarity().name());
     }
 
     private JsonObject readDefinitionJson(String id) {
@@ -287,6 +312,7 @@ public final class CompanionService {
         try {
             CompanionRarity rarity = CompanionRarity.valueOf(string(json, "rarity", "COMMON").toUpperCase());
             org.bukkit.entity.EntityType entityType = org.bukkit.entity.EntityType.valueOf(string(json, "entityType", "WOLF").toUpperCase());
+            if (!entityType.isSpawnable()) throw new IllegalArgumentException("EntityType is not spawnable");
             return new Companion(id, string(json, "name", id), 1, 0L, rarity, entityType, false);
         } catch (IllegalArgumentException exception) {
             plugin.getLogger().warning("Ignoring invalid companion definition '" + id + "'.");
@@ -355,6 +381,40 @@ public final class CompanionService {
             yaml.save(file);
         } catch (IOException exception) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to save companions for " + playerId, exception);
+        }
+    }
+
+    private void validateDefinitions(JsonObject root) {
+        JsonArray definitions = root.getAsJsonArray("definitions");
+        if (definitions == null) {
+            plugin.getLogger().warning("companions.json contains no definitions array.");
+            return;
+        }
+        for (var element : definitions) {
+            if (!element.isJsonObject()) {
+                plugin.getLogger().warning("Ignoring non-object companion definition.");
+                continue;
+            }
+            JsonObject json = element.getAsJsonObject();
+            String id = string(json, "id", "").strip();
+            String entityName = string(json, "entityType", "").toUpperCase();
+            String rarityName = string(json, "rarity", "").toUpperCase();
+            if (id.isBlank()) {
+                plugin.getLogger().warning("Ignoring companion definition without an id.");
+                continue;
+            }
+            try {
+                CompanionRarity rarity = CompanionRarity.valueOf(rarityName);
+                org.bukkit.entity.EntityType entityType = org.bukkit.entity.EntityType.valueOf(entityName);
+                if (!entityType.isSpawnable()) throw new IllegalArgumentException("entity type is not spawnable");
+                if (rarity.isUnique() && (!bool(json, "adminOnly", false) || bool(json, "renameable", true))) {
+                    plugin.getLogger().warning("Invalid UNIQUE companion '" + id + "': it must be adminOnly and not renameable.");
+                }
+                double scale = json.has("scale") && json.get("scale").isNumber() ? json.get("scale").getAsDouble() : 1.0D;
+                if (!Double.isFinite(scale) || scale <= 0.0D) plugin.getLogger().warning("Invalid scale for companion '" + id + "'.");
+            } catch (IllegalArgumentException exception) {
+                plugin.getLogger().warning("Invalid companion definition '" + id + "': " + exception.getMessage());
+            }
         }
     }
 
