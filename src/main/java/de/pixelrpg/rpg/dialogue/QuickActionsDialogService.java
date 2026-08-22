@@ -4,11 +4,15 @@ import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
 import io.papermc.paper.dialog.Dialog;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.DialogBase;
 import io.papermc.paper.registry.data.dialog.DialogRegistryEntry;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import io.papermc.paper.registry.data.dialog.type.DialogType;
+import io.papermc.paper.registry.keys.DialogKeys;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -20,6 +24,8 @@ import java.util.List;
 
 /** Builds the player-specific PixelRPG character card opened from the G action. */
 public final class QuickActionsDialogService {
+    private static final Key CHARACTER_CARD_DIALOG = Key.key("pixelrpg:character_card");
+
     private final PlayerProfileManager profiles;
     private final StatEngine statEngine;
 
@@ -40,35 +46,24 @@ public final class QuickActionsDialogService {
         return profiles.isRegistered(player.getUniqueId());
     }
 
-    /** Opens a per-player native dialog so the values are rendered as normal text instead of unresolved score components. */
+    /** Reopens the registered native G quick-actions dialog. */
+    public void openQuickActions(Player player) {
+        if (!isAvailable(player)) return;
+
+        Dialog dialog = RegistryAccess.registryAccess()
+                .getRegistry(RegistryKey.DIALOG)
+                .getOrThrow(DialogKeys.create(CHARACTER_CARD_DIALOG));
+        player.showDialog(dialog);
+    }
+
+    /** Opens the character profile; this view only exposes a back button to the G quick-actions menu. */
     public void openCharacterProfile(Player player, CompanionDialog companionDialog, ProfessionDialog professionDialog) {
         if (!isAvailable(player)) return;
 
-        ActionButton companions = ActionButton.builder(Component.text("Begleiter", NamedTextColor.LIGHT_PURPLE))
-                .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick(
-                        (response, audience) -> {
-                            if (audience instanceof Player target) companionDialog.open(target);
-                        }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
-                .width(220)
-                .build();
-        ActionButton professions = ActionButton.builder(Component.text("Berufe", NamedTextColor.GREEN))
-                .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick(
-                        (response, audience) -> {
-                            if (audience instanceof Player target) professionDialog.open(target);
-                        }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
-                .width(220)
-                .build();
-        ActionButton activeQuests = ActionButton.builder(Component.text("Aktive Quests", NamedTextColor.AQUA))
-                .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick(
-                        (response, audience) -> {
-                            if (audience instanceof Player target) openActiveQuests(target, companionDialog, professionDialog);
-                        }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
-                .width(220)
-                .build();
         ActionButton back = ActionButton.builder(Component.text("Zurück", NamedTextColor.WHITE))
                 .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick(
                         (response, audience) -> {
-                            if (audience instanceof Player target) target.closeDialog();
+                            if (audience instanceof Player target) openQuickActions(target);
                         }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
                 .width(220)
                 .build();
@@ -81,13 +76,14 @@ public final class QuickActionsDialogService {
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .build());
             builder.type(DialogType.multiAction(
-                    List.of(companions, professions, activeQuests, back),
+                    List.of(back),
                     DialogueEngineCloseButton.create(),
-                    2));
+                    1));
         }));
     }
 
-    private void openActiveQuests(Player player, CompanionDialog companionDialog, ProfessionDialog professionDialog) {
+    /** Opens the active-quest view from the G quick-actions menu. */
+    public void openActiveQuests(Player player, CompanionDialog companionDialog, ProfessionDialog professionDialog) {
         PlayerProfile profile = profiles.getProfile(player.getUniqueId())
                 .filter(PlayerProfile::isRegisteredInGuild)
                 .orElse(null);
@@ -109,7 +105,7 @@ public final class QuickActionsDialogService {
         }
 
         actions.add(actionButton(Component.text("Zurück"), NamedTextColor.WHITE,
-                target -> openCharacterProfile(target, companionDialog, professionDialog)));
+                this::openQuickActions));
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(Component.text("PixelRPG – Aktive Quests", NamedTextColor.GOLD))
