@@ -40,81 +40,81 @@ combat:
 
 attributes:
   base-cost: 30.0
-  cost-multiplier: 1.40
+  cost-multiplier: 1.08
   class-discount: 0.75
   soulview-cost: 500.0
   per-point:
-    vitality-hp: 4.0
-    agility-speed: 0.008
-    agility-crit: 1.5
-    precision-damage: 1.2
-    range-block: 0.15
-    range-entity: 0.20
-    toughness-armor: 2.0
+    vitality-hp: 2.0
+    agility-speed: 0.0025
+    agility-crit: 0.20
+    precision-damage: 0.75
+    range-block: 0.10
+    range-entity: 0.10
+    toughness-armor: 1.0
 
 class-balance:
   warrior:
-    armor-base: 10.0
-    armor-per-toughness: 1.8
-    health-base: 8.0
-    health-per-vitality: 1.2
+    armor-base: 5.0
+    armor-per-toughness: 0.0
+    health-base: 10.0
+    health-per-vitality: 0.0
     speed-base: 0.0
-    melee-mult-base: 1.15
-    melee-mult-per-toughness: 0.015
-    ranged-mult: 1.0
-    spell-mult: 1.0
+    melee-mult-base: 1.05
+    melee-mult-per-toughness: 0.0
+    ranged-mult: 0.95
+    spell-mult: 0.90
     heal-mult: 1.0
     crit-chance-bonus: 0.0
     crit-damage-mult: 1.0
   ranger:
     armor-base: 0.0
-    health-base: 2.0
-    health-per-vitality: 0.5
-    speed-base: 0.03
-    speed-per-agility: 0.002
-    melee-mult: 1.0
-    ranged-mult-base: 1.20
-    ranged-mult-per-point: 0.015
+    health-base: 3.0
+    health-per-vitality: 0.0
+    speed-base: 0.0025
+    speed-per-agility: 0.0
+    melee-mult: 0.95
+    ranged-mult-base: 1.05
+    ranged-mult-per-point: 0.0
     spell-mult: 1.0
     heal-mult: 1.0
-    crit-chance-base: 5.0
-    crit-chance-per-range: 0.8
+    crit-chance-base: 3.0
+    crit-chance-per-range: 0.0
     crit-damage-mult: 1.0
   rogue:
     armor-base: 0.0
     health-base: 0.0
-    speed-base: 0.02
-    speed-per-agility: 0.002
+    speed-base: 0.002
+    speed-per-agility: 0.0
     melee-mult: 1.0
     ranged-mult: 1.0
     spell-mult: 1.0
     heal-mult: 1.0
-    crit-chance-base: 15.0
-    crit-chance-per-point: 1.0
-    crit-damage-mult-base: 1.6
-    crit-damage-mult-per-precision: 0.03
+    crit-chance-base: 5.0
+    crit-chance-per-point: 0.0
+    crit-damage-mult-base: 1.15
+    crit-damage-mult-per-precision: 0.0
   healer:
     armor-base: 3.0
-    armor-per-toughness: 0.5
+    armor-per-toughness: 0.0
     health-base: 10.0
-    health-per-vitality: 1.5
+    health-per-vitality: 0.0
     speed-base: 0.0
-    melee-mult: 1.0
-    ranged-mult: 1.0
+    melee-mult: 0.95
+    ranged-mult: 0.95
     spell-mult: 1.0
-    heal-mult-base: 1.35
-    heal-mult-per-vitality: 0.025
+    heal-mult-base: 1.15
+    heal-mult-per-vitality: 0.0
     crit-chance-bonus: 0.0
     crit-damage-mult: 1.0
   mage:
     armor-base: -2.0
     health-base: -2.0
-    health-per-vitality: 0.5
+    health-per-vitality: 0.0
     speed-base: 0.0
-    melee-mult: 1.0
+    melee-mult: 0.85
     ranged-mult: 1.0
-    spell-mult-base: 1.25
-    spell-mult-per-precision: 0.025
+    spell-mult-base: 1.15
+    spell-mult-per-precision: 0.0
     heal-mult: 1.0
     crit-chance-bonus: 0.0
     crit-damage-mult: 1.0
@@ -128,14 +128,14 @@ effects:
 
 mob-scaling:
   nameplate-duration-ticks: 120
-  xp-per-max-health: 0.6
-  hp-per-level: 8.0
-  damage-per-level: 1.1
-  player-parity-multiplier: 1.15
+  xp-per-max-health: 4.0
+  hp-per-level: 5.0
+  damage-per-level: 0.30
+  player-parity-multiplier: 1.05
   dimension:
     overworld: { hp-multiplier: 1.0, damage-multiplier: 1.0, level-offset: 0, base-level: 1 }
-    nether: { hp-multiplier: 1.30, damage-multiplier: 1.20, level-offset: 0, base-level: 50 }
-    the-end: { hp-multiplier: 1.60, damage-multiplier: 1.40, level-offset: 0, base-level: 75 }
+    nether: { hp-multiplier: 1.15, damage-multiplier: 1.10, level-offset: 0, base-level: 50 }
+    the-end: { hp-multiplier: 1.30, damage-multiplier: 1.20, level-offset: 0, base-level: 75 }
 
 npc:
   look-radius: 8.0
