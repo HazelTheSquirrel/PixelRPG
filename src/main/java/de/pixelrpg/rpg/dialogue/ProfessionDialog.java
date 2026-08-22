@@ -73,7 +73,7 @@ public final class ProfessionDialog {
         body.add(DialogBody.plainMessage(Component.text(profession.description(), NamedTextColor.WHITE)));
         body.add(DialogBody.plainMessage(Component.text(
                 "Level " + level + "/" + Profession.MAX_LEVEL,
-                NamedTextColor.WHITE)));
+                NamedTextColor.AQUA)));
 
         List<ActionButton> actions = new ArrayList<>();
         for (CraftRecipe recipe : CraftingRecipeRegistry.getRecipes(profession)) {
@@ -110,10 +110,9 @@ public final class ProfessionDialog {
 
         List<DialogBody> body = new ArrayList<>();
         body.add(DialogBody.plainMessage(Component.text(
-                "Ergebnis: " + prettyMaterial(recipe.resultMaterial().name()),
-                NamedTextColor.WHITE)));
+                "Ergebnis: " + prettyMaterial(recipe.resultMaterial().name()), NamedTextColor.WHITE)));
         body.add(DialogBody.plainMessage(
-                Component.text("Seltenheit: ", NamedTextColor.WHITE).append(recipe.rarity().displayName())));
+                Component.text("Seltenheit: ", NamedTextColor.WHITE).append(recipe.rarity().displayName().color(NamedTextColor.LIGHT_PURPLE))));
         body.add(DialogBody.plainMessage(Component.text(
                 "Benötigt: " + profession.displayName() + " Level " + recipe.requiredProfessionLevel(),
                 NamedTextColor.WHITE)));
@@ -123,8 +122,7 @@ public final class ProfessionDialog {
         body.add(DialogBody.plainMessage(Component.text("Materialien:", NamedTextColor.WHITE)));
         for (Map.Entry<org.bukkit.Material, Integer> cost : recipe.costs().entrySet()) {
             body.add(DialogBody.plainMessage(Component.text(
-                    "• " + cost.getValue() + "x " + prettyMaterial(cost.getKey().name()),
-                    NamedTextColor.WHITE)));
+                    "• " + cost.getValue() + "x " + prettyMaterial(cost.getKey().name()), NamedTextColor.WHITE)));
         }
 
         List<ActionButton> actions = new ArrayList<>();
@@ -139,12 +137,10 @@ public final class ProfessionDialog {
                         }
                         var result = craftingService.craft(target, recipe.id());
                         target.sendMessage(Component.text(
-                                result.message(),
-                                result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
+                                result.message(), result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
                         if (result.success()) {
                             target.sendMessage(Component.text(
-                                    "+" + result.experience() + " Berufs-XP",
-                                    NamedTextColor.AQUA));
+                                    "+" + result.experience() + " Berufs-XP", NamedTextColor.AQUA));
                         }
                     }));
         } else if (allowPurchase && learned) {
@@ -159,14 +155,12 @@ public final class ProfessionDialog {
                         }
                         var result = professionService.buyRecipe(target, recipe);
                         target.sendMessage(Component.text(
-                                result.message(),
-                                result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
+                                result.message(), result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
                         if (result.success()) openRecipeDetails(target, recipe, true);
                     }));
         } else if (!learned) {
             body.add(DialogBody.plainMessage(Component.text(
-                    "Du musst diesen Beruf zuerst beim passenden Lehrer erlernen.",
-                    NamedTextColor.WHITE)));
+                    "Du musst diesen Beruf zuerst beim passenden Lehrer erlernen.", NamedTextColor.WHITE)));
         }
 
         java.util.function.Consumer<Player> back = target -> {
@@ -185,11 +179,9 @@ public final class ProfessionDialog {
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text(profession.description(), NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text(
-                        "Beruf Level " + level + "/" + Profession.MAX_LEVEL,
-                        NamedTextColor.WHITE)),
+                        "Beruf Level " + level + "/" + Profession.MAX_LEVEL, NamedTextColor.AQUA)),
                 DialogBody.plainMessage(Component.text(
-                        "Wähle ein Rezept für Zutaten, Herstellungszeit, Levelanforderung und Preis.",
-                        NamedTextColor.WHITE))
+                        "Wähle ein Rezept für Zutaten, Herstellungszeit, Levelanforderung und Preis.", NamedTextColor.WHITE))
         );
 
         List<ActionButton> actions = new ArrayList<>();
@@ -200,13 +192,13 @@ public final class ProfessionDialog {
                     unlocked ? NamedTextColor.GREEN : NamedTextColor.YELLOW,
                     target -> openRecipeDetails(target, recipe, true)));
         }
+        // The trainer recipe list intentionally has no "Zurück" action: this prevents falling back to the profession overview.
         dialogueEngine.openMultiAction(
                 player,
                 Component.text(profession.displayName() + "-Lehrer", NamedTextColor.GOLD),
                 body,
                 actions,
-                1,
-                target -> open(target));
+                1);
     }
 
     public static Component recipeLine(CraftRecipe recipe) {
