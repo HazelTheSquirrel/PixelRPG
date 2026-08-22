@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.item;
 
+import de.pixelrpg.rpg.config.JsonDataManager;
 import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.core.RPGKeys;
 import net.kyori.adventure.text.Component;
@@ -10,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +20,12 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class RPGItemBuilder {
-    private static final double LEVEL_ONE_TO_NINETY_NINE_GROWTH = 10.0D;
+    private static double growthMultiplier = 10.0D;
+    private static double weaponBaseDamage = 3.0D;
+    private static double weaponBaseCritChance = 0.5D;
+    private static double armorBase = 0.7D;
+    private static double healthBase = 1.2D;
+    private static double toolBaseEfficiency = 1.0D;
     private static double blessingChance = 0.12;
     private static double curseChance = 0.10;
 
@@ -28,6 +35,22 @@ public final class RPGItemBuilder {
     public static void configureChances(double blessing, double curse) {
         blessingChance = Math.max(0.0, Math.min(1.0, blessing));
         curseChance = Math.max(0.0, Math.min(1.0, curse));
+    }
+
+    /** Loads the deterministic item growth curve from the user-editable JSON baseline. */
+    public static void configureScaling(Plugin plugin) {
+        try {
+            var root = new JsonDataManager(plugin).load("item-scaling.json");
+            growthMultiplier = positive(root, "growthMultiplier", growthMultiplier);
+            var baseStats = root.getAsJsonObject("baseStats");
+            weaponBaseDamage = positive(baseStats, "weaponDamage", weaponBaseDamage);
+            weaponBaseCritChance = positive(baseStats, "weaponCritChance", weaponBaseCritChance);
+            armorBase = positive(baseStats, "armor", armorBase);
+            healthBase = positive(baseStats, "health", healthBase);
+            toolBaseEfficiency = positive(baseStats, "toolEfficiency", toolBaseEfficiency);
+        } catch (RuntimeException exception) {
+            plugin.getLogger().warning("Unable to load item-scaling.json; using safe deterministic item defaults: " + exception.getMessage());
+        }
     }
 
     /** Creates a fully identified PixelRPG item with deterministic core stats for its level and rarity. */
@@ -112,8 +135,8 @@ public final class RPGItemBuilder {
 
     private static void addWeaponStats(List<Component> lore, PersistentDataContainer pdc,
                                        double multiplier, double levelFactor) {
-        double damage = round(3.0D * levelFactor * multiplier);
-        double critChance = round(0.5D * levelFactor * multiplier);
+        double damage = round(weaponBaseDamage * levelFactor * multiplier);
+        double critChance = round(weaponBaseCritChance * levelFactor * multiplier);
         pdc.set(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, damage);
         pdc.set(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, critChance);
         lore.add(line(Component.text("+" + format(damage) + " Attack Power", NamedTextColor.RED)));
@@ -122,10 +145,10 @@ public final class RPGItemBuilder {
 
     private static void addArmorStats(List<Component> lore, PersistentDataContainer pdc, ItemCategory category,
                                       double multiplier, double levelFactor) {
-        double armor = round(0.7D * levelFactor * multiplier);
+        double armor = round(armorBase * levelFactor * multiplier);
         double health = category.getProfile() == ItemStatProfile.SHIELD
                 ? 0.0D
-                : round(1.2D * levelFactor * multiplier);
+                : round(healthBase * levelFactor * multiplier);
         pdc.set(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, armor);
         pdc.set(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, health);
         lore.add(line(Component.text("+" + format(armor) + " Armor", NamedTextColor.BLUE)));
@@ -134,7 +157,7 @@ public final class RPGItemBuilder {
 
     private static void addToolStats(List<Component> lore, PersistentDataContainer pdc,
                                      double multiplier, double levelFactor) {
-        double efficiency = round(1.0D * levelFactor * multiplier);
+        double efficiency = round(toolBaseEfficiency * levelFactor * multiplier);
         pdc.set(RPGKeys.Item.toolBonus(), PersistentDataType.DOUBLE, efficiency);
         lore.add(line(Component.text("+" + format(efficiency) + " Efficiency", NamedTextColor.YELLOW)));
     }
@@ -142,7 +165,13 @@ public final class RPGItemBuilder {
     private static double levelScaling(int itemLevel) {
         if (itemLevel <= Level.MIN_LEVEL) return 1.0D;
         double progress = (itemLevel - 1.0D) / (Level.MAX_NORMAL_LEVEL - 1.0D);
-        return Math.pow(LEVEL_ONE_TO_NINETY_NINE_GROWTH, progress);
+        return Math.pow(growthMultiplier, progress);
+    }
+
+    private static double positive(com.google.gson.JsonObject object, String key, double fallback) {
+        return object != null && object.has(key) && object.get(key).isJsonPrimitive()
+                && object.getAsJsonPrimitive(key).isNumber() && object.get(key).getAsDouble() > 0.0D
+                ? object.get(key).getAsDouble() : fallback;
     }
 
     private static Component line(Component component) {
