@@ -33,23 +33,12 @@ public final class ReceptionDialog {
         List<DialogBody> body = new ArrayList<>();
         body.add(DialogBody.plainMessage(Component.text(
                 "Willkommen im Rathaus. Hier verwalten wir deine Mitgliedschaft und deinen Charakterstatus.",
-                NamedTextColor.GRAY)));
+                NamedTextColor.WHITE)));
         body.add(DialogBody.plainMessage(
                 lang.get("reception.status").append(
                         registered
                                 ? lang.get("reception.status-member").color(NamedTextColor.GREEN)
                                 : lang.get("reception.status-not-registered").color(NamedTextColor.RED))));
-
-        if (registered && profile != null) {
-            body.add(DialogBody.plainMessage(Component.text("Spielerinformationen", NamedTextColor.AQUA)));
-            body.add(DialogBody.plainMessage(Component.text(
-                    "Level: " + profile.getLevel(), NamedTextColor.GRAY)));
-            body.add(DialogBody.plainMessage(
-                    lang.get("reception.class-label").append(profile.getPlayerClass().displayName())));
-            body.add(DialogBody.plainMessage(lang.get(
-                    "reception.money-label", "amount", String.format("%.2f", profile.getMoney()))
-                    .color(NamedTextColor.GOLD)));
-        }
 
         List<ActionButton> actions = new ArrayList<>();
         if (!registered) {
@@ -66,8 +55,6 @@ public final class ReceptionDialog {
                     NamedTextColor.RED,
                     this::openLeaveConfirmation));
         }
-        actions.add(dialogueEngine.actionButton(
-                Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
 
         dialogueEngine.openMultiAction(
                 player,
@@ -93,7 +80,7 @@ public final class ReceptionDialog {
                 target,
                 lang.get("reception.resign-title"),
                 List.of(DialogBody.plainMessage(
-                        lang.get("reception.resign-warning").color(NamedTextColor.RED))),
+                        lang.get("reception.resign-warning").color(NamedTextColor.WHITE))),
                 yes,
                 no);
     }
