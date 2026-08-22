@@ -110,6 +110,13 @@ public final class PartyManager implements PartyAPI {
         }
     }
 
+    /** Clears all in-memory party state when the plugin is disabled. */
+    public void shutdown() {
+        pendingInvites.clear();
+        partyIdByMember.clear();
+        partiesById.clear();
+    }
+
     @Override
     public boolean isInParty(UUID uuid) {
         Optional<Party> party = getParty(uuid);
