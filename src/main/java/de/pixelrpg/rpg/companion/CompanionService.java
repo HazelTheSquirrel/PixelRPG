@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import de.pixelrpg.rpg.config.JsonDataManager;
 import de.pixelrpg.rpg.core.RPGKeys;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -191,7 +192,7 @@ public final class CompanionService {
         UUID entityId = activeEntities.get(playerId);
         if (entityId != null) {
             Entity entity = plugin.getServer().getEntity(entityId);
-            if (entity instanceof LivingEntity living) living.setCustomName(cleaned);
+            if (entity instanceof LivingEntity living) living.customName(Component.text(cleaned));
         }
         return true;
     }
@@ -267,7 +268,7 @@ public final class CompanionService {
             living.getPersistentDataContainer().set(RPGKeys.Companion.id(), PersistentDataType.STRING, selected.id());
             living.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, selected.level());
             living.getPersistentDataContainer().set(RPGKeys.Companion.rarity(), PersistentDataType.STRING, selected.rarity().name());
-            living.setCustomName(selected.name());
+            living.customName(Component.text(selected.name()));
             living.setCustomNameVisible(true);
 
             // Phase 1 companions are visual/passive only; combat AI is intentionally not enabled yet.
