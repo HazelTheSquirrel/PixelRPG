@@ -71,7 +71,7 @@ public final class AttributeConfig {
     }
 
     private static double number(JsonObject object, String key, double fallback) {
-        return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsDouble() : fallback;
+        return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.get(key).getAsDouble() : fallback;
     }
 
     public static void configureElytraCost(double cost) { elytraPermitCost = cost; }
