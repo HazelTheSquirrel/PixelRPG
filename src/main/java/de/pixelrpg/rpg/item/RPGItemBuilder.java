@@ -127,7 +127,7 @@ public final class RPGItemBuilder {
         if (!lore.isEmpty() && !lore.getLast().equals(Component.text(" "))) lore.add(Component.text(" "));
         lore.add(Component.text("Ability", NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text(abilityId, NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
-        lore.add(Component.text("Shift + Right Click", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("Right Click", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         result.setItemMeta(meta);
         return result;
