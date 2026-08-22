@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.quest;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -11,6 +12,7 @@ public final class QuestPassiveCheckTask {
     private final QuestManager questManager;
     private final int intervalTicks;
     private BukkitTask task;
+    private QuestNavigationService navigationService;
 
     public QuestPassiveCheckTask(Plugin plugin, QuestManager questManager) {
         this(plugin, questManager, 40);
@@ -24,10 +26,14 @@ public final class QuestPassiveCheckTask {
 
     public void start() {
         if (task != null) return;
+        PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
+        navigationService = new QuestNavigationService(plugin, questManager.getRepository(),
+                pixelRPG.getPlayerProfileManager(), pixelRPG.getNpcManager());
         task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 questManager.checkInventoryQuests(player);
                 questManager.checkReachLocationQuests(player);
+                navigationService.refresh(player);
             }
         }, intervalTicks, intervalTicks);
     }
@@ -36,5 +42,6 @@ public final class QuestPassiveCheckTask {
         if (task == null) return;
         task.cancel();
         task = null;
+        navigationService = null;
     }
 }
