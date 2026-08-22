@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/storage/DatabaseManager.java
 package de.pixelrpg.rpg.storage;
 
 import com.zaxxer.hikari.HikariConfig;
@@ -50,8 +49,6 @@ public final class DatabaseManager {
                     player_class VARCHAR(32) NOT NULL DEFAULT 'NONE',
                     money DOUBLE NOT NULL DEFAULT 0,
                     start_bonus BOOLEAN NOT NULL DEFAULT FALSE,
-                    mana_current DOUBLE NOT NULL DEFAULT 0,
-                    mana_initialized BOOLEAN NOT NULL DEFAULT FALSE,
                     attr_vitality INT NOT NULL DEFAULT 0,
                     attr_agility INT NOT NULL DEFAULT 0,
                     attr_precision INT NOT NULL DEFAULT 0,
@@ -93,20 +90,6 @@ public final class DatabaseManager {
             statement.executeUpdate(playersSql);
             statement.executeUpdate(activeQuestsSql);
             statement.executeUpdate(statsSql);
-            addColumnIfMissing(statement, "pixelrpg_players", "mana_current", "DOUBLE NOT NULL DEFAULT 0");
-            addColumnIfMissing(statement, "pixelrpg_players", "mana_initialized", "BOOLEAN NOT NULL DEFAULT FALSE");
-        }
-    }
-
-    private void addColumnIfMissing(Statement statement, String table, String column, String definition) throws SQLException {
-        try {
-            statement.executeUpdate("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
-        } catch (SQLException exception) {
-            String message = exception.getMessage();
-            if (message == null || (!message.toLowerCase(java.util.Locale.ROOT).contains("duplicate")
-                    && !message.toLowerCase(java.util.Locale.ROOT).contains("exists"))) {
-                throw exception;
-            }
         }
     }
 
