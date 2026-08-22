@@ -26,8 +26,6 @@ items:
     currency-drop-chance: 0.20
     currency-drop-min-amount: 1
     currency-drop-max-amount: 8
-    blessing-chance: 0.12
-    curse-chance: 0.10
 
 economy:
   bank:
