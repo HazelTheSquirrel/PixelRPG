@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.dialogue;
 
-import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.CraftRecipe;
@@ -42,7 +41,7 @@ public final class ProfessionDialog {
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text(
                         "Wähle einen Beruf, um deine freigeschalteten Rezepte und Herstellungsdetails zu sehen.",
-                        NamedTextColor.GRAY))
+                        NamedTextColor.WHITE))
         );
         List<ActionButton> actions = new ArrayList<>();
         for (Profession profession : Profession.values()) {
@@ -54,7 +53,6 @@ public final class ProfessionDialog {
                     learned ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
                     target -> openProfession(target, profession)));
         }
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
         dialogueEngine.openMultiAction(player, Component.text("PixelRPG – Berufe", NamedTextColor.GOLD), body, actions, 1);
     }
 
@@ -72,17 +70,17 @@ public final class ProfessionDialog {
 
         int level = professionService.getLevel(player.getUniqueId(), profession);
         List<DialogBody> body = new ArrayList<>();
-        body.add(DialogBody.plainMessage(Component.text(profession.description(), NamedTextColor.GRAY)));
+        body.add(DialogBody.plainMessage(Component.text(profession.description(), NamedTextColor.WHITE)));
         body.add(DialogBody.plainMessage(Component.text(
                 "Level " + level + "/" + Profession.MAX_LEVEL,
-                NamedTextColor.YELLOW)));
+                NamedTextColor.WHITE)));
 
         List<ActionButton> actions = new ArrayList<>();
         for (CraftRecipe recipe : CraftingRecipeRegistry.getRecipes(profession)) {
             if (!profile.hasUnlockedRecipe(recipe.id())) continue;
             actions.add(dialogueEngine.actionButton(
                     Component.text(recipe.displayName()),
-                    NamedTextColor.WHITE,
+                    NamedTextColor.GREEN,
                     target -> openRecipeDetails(target, recipe, false)));
         }
 
@@ -90,10 +88,10 @@ public final class ProfessionDialog {
             body.add(DialogBody.plainMessage(Component.text(
                     "Du hast noch keine Rezepte freigeschaltet. Besuche einen "
                             + profession.displayName() + "-Lehrer, um Rezepte zu kaufen.",
-                    NamedTextColor.GRAY)));
+                    NamedTextColor.WHITE)));
         }
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
-        dialogueEngine.openMultiAction(player, Component.text(profession.displayName(), NamedTextColor.GOLD), body, actions, 1);
+        dialogueEngine.openMultiAction(player, Component.text(profession.displayName(), NamedTextColor.GOLD), body, actions, 1,
+                target -> open(target));
     }
 
     /** Opens a complete recipe description before crafting or buying the recipe. */
@@ -114,19 +112,20 @@ public final class ProfessionDialog {
         body.add(DialogBody.plainMessage(Component.text(
                 "Ergebnis: " + prettyMaterial(recipe.resultMaterial().name()),
                 NamedTextColor.WHITE)));
-        body.add(DialogBody.plainMessage(
-                Component.text("Seltenheit: ", NamedTextColor.GRAY).append(recipe.rarity().displayName())));
+        body.add(DialogBody.plainMessage(Component.text(
+                "Seltenheit: " + recipe.rarity().displayName().content(),
+                NamedTextColor.WHITE)));
         body.add(DialogBody.plainMessage(Component.text(
                 "Benötigt: " + profession.displayName() + " Level " + recipe.requiredProfessionLevel(),
-                levelAvailable ? NamedTextColor.GREEN : NamedTextColor.RED)));
+                NamedTextColor.WHITE)));
         body.add(DialogBody.plainMessage(Component.text(
                 "Herstellungszeit: " + recipe.craftSeconds() + " Sekunden",
-                NamedTextColor.GRAY)));
-        body.add(DialogBody.plainMessage(Component.text("Materialien:", NamedTextColor.GOLD)));
+                NamedTextColor.WHITE)));
+        body.add(DialogBody.plainMessage(Component.text("Materialien:", NamedTextColor.WHITE)));
         for (Map.Entry<org.bukkit.Material, Integer> cost : recipe.costs().entrySet()) {
             body.add(DialogBody.plainMessage(Component.text(
                     "• " + cost.getValue() + "x " + prettyMaterial(cost.getKey().name()),
-                    NamedTextColor.GRAY)));
+                    NamedTextColor.WHITE)));
         }
 
         List<ActionButton> actions = new ArrayList<>();
@@ -168,27 +167,14 @@ public final class ProfessionDialog {
         } else if (!learned) {
             body.add(DialogBody.plainMessage(Component.text(
                     "Du musst diesen Beruf zuerst beim passenden Lehrer erlernen.",
-                    NamedTextColor.RED)));
+                    NamedTextColor.WHITE)));
         }
 
-        actions.add(dialogueEngine.actionButton(
-                Component.text("Zurück"),
-                NamedTextColor.WHITE,
-                target -> {
-                    if (allowPurchase) {
-                        openTrainerRecipes(target, profession);
-                    } else {
-                        openProfession(target, profession);
-                    }
-                }));
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
-
-        dialogueEngine.openMultiAction(
-                player,
-                Component.text(recipe.displayName(), NamedTextColor.GOLD),
-                body,
-                actions,
-                1);
+        ConsumerBack back = new ConsumerBack(target -> {
+            if (allowPurchase) openTrainerRecipes(target, profession);
+            else openProfession(target, profession);
+        });
+        dialogueEngine.openMultiAction(player, Component.text(recipe.displayName(), NamedTextColor.GOLD), body, actions, 1, back);
     }
 
     /** Opens the trainer recipe list; every recipe leads to its own detail dialog. */
@@ -198,13 +184,13 @@ public final class ProfessionDialog {
 
         int level = professionService.getLevel(player.getUniqueId(), profession);
         List<DialogBody> body = List.of(
-                DialogBody.plainMessage(Component.text(profession.description(), NamedTextColor.GRAY)),
+                DialogBody.plainMessage(Component.text(profession.description(), NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text(
                         "Beruf Level " + level + "/" + Profession.MAX_LEVEL,
-                        NamedTextColor.YELLOW)),
+                        NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text(
                         "Wähle ein Rezept für Zutaten, Herstellungszeit, Levelanforderung und Preis.",
-                        NamedTextColor.DARK_GRAY))
+                        NamedTextColor.WHITE))
         );
 
         List<ActionButton> actions = new ArrayList<>();
@@ -215,13 +201,13 @@ public final class ProfessionDialog {
                     unlocked ? NamedTextColor.GREEN : NamedTextColor.YELLOW,
                     target -> openRecipeDetails(target, recipe, true)));
         }
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
         dialogueEngine.openMultiAction(
                 player,
                 Component.text(profession.displayName() + "-Lehrer", NamedTextColor.GOLD),
                 body,
                 actions,
-                1);
+                1,
+                target -> open(target));
     }
 
     public static Component recipeLine(CraftRecipe recipe) {
@@ -231,5 +217,9 @@ public final class ProfessionDialog {
     private static String prettyMaterial(String raw) {
         String value = raw.toLowerCase().replace('_', ' ');
         return Character.toUpperCase(value.charAt(0)) + value.substring(1);
+    }
+
+    @FunctionalInterface
+    private interface ConsumerBack extends java.util.function.Consumer<Player> {
     }
 }
