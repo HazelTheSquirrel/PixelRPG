@@ -112,9 +112,8 @@ public final class ProfessionDialog {
         body.add(DialogBody.plainMessage(Component.text(
                 "Ergebnis: " + prettyMaterial(recipe.resultMaterial().name()),
                 NamedTextColor.WHITE)));
-        body.add(DialogBody.plainMessage(Component.text(
-                "Seltenheit: " + recipe.rarity().displayName().content(),
-                NamedTextColor.WHITE)));
+        body.add(DialogBody.plainMessage(
+                Component.text("Seltenheit: ", NamedTextColor.WHITE).append(recipe.rarity().displayName())));
         body.add(DialogBody.plainMessage(Component.text(
                 "Benötigt: " + profession.displayName() + " Level " + recipe.requiredProfessionLevel(),
                 NamedTextColor.WHITE)));
@@ -170,10 +169,10 @@ public final class ProfessionDialog {
                     NamedTextColor.WHITE)));
         }
 
-        ConsumerBack back = new ConsumerBack(target -> {
+        java.util.function.Consumer<Player> back = target -> {
             if (allowPurchase) openTrainerRecipes(target, profession);
             else openProfession(target, profession);
-        });
+        };
         dialogueEngine.openMultiAction(player, Component.text(recipe.displayName(), NamedTextColor.GOLD), body, actions, 1, back);
     }
 
@@ -217,9 +216,5 @@ public final class ProfessionDialog {
     private static String prettyMaterial(String raw) {
         String value = raw.toLowerCase().replace('_', ' ');
         return Character.toUpperCase(value.charAt(0)) + value.substring(1);
-    }
-
-    @FunctionalInterface
-    private interface ConsumerBack extends java.util.function.Consumer<Player> {
     }
 }
