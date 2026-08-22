@@ -29,10 +29,6 @@ public final class RPGItemBuilder {
     private RPGItemBuilder() {
     }
 
-    /** Legacy compatibility hook retained while older bootstrap code is migrated; no rarity modifiers are configured here. */
-    public static void configureChances(double ignoredFirstValue, double ignoredSecondValue) {
-    }
-
     /** Loads the deterministic item growth curve from the user-editable JSON baseline. */
     public static void configureScaling(Plugin plugin) {
         try {
