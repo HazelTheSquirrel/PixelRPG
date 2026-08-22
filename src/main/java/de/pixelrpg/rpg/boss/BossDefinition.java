@@ -12,6 +12,7 @@ public final class BossDefinition {
     private int level;
     private double healthMultiplier;
     private double damageMultiplier;
+    private double scaleMultiplier;
     private List<BossPhase> phases;
     private BossLootConfig lootConfig;
 
@@ -22,6 +23,7 @@ public final class BossDefinition {
         this.level = 30;
         this.healthMultiplier = 5.0;
         this.damageMultiplier = 2.0;
+        this.scaleMultiplier = 1.35;
         this.phases = List.of();
     }
 
@@ -33,9 +35,11 @@ public final class BossDefinition {
     public int getLevel() { return level; }
     public void setLevel(int level) { this.level = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, level)); }
     public double getHealthMultiplier() { return healthMultiplier; }
-    public void setHealthMultiplier(double healthMultiplier) { this.healthMultiplier = healthMultiplier; }
+    public void setHealthMultiplier(double healthMultiplier) { this.healthMultiplier = Math.max(0.1D, healthMultiplier); }
     public double getDamageMultiplier() { return damageMultiplier; }
-    public void setDamageMultiplier(double damageMultiplier) { this.damageMultiplier = damageMultiplier; }
+    public void setDamageMultiplier(double damageMultiplier) { this.damageMultiplier = Math.max(0.1D, damageMultiplier); }
+    public double getScaleMultiplier() { return scaleMultiplier; }
+    public void setScaleMultiplier(double scaleMultiplier) { this.scaleMultiplier = Math.max(0.1D, scaleMultiplier); }
     public List<BossPhase> getPhases() { return phases; }
     public void setPhases(List<BossPhase> phases) { this.phases = phases; }
     public BossLootConfig getLootConfig() { return lootConfig; }
