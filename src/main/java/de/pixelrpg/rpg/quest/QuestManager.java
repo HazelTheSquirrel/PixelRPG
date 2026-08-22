@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.quest;
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
 import de.pixelrpg.rpg.lang.LanguageManager;
+import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import net.kyori.adventure.text.Component;
@@ -141,7 +142,7 @@ public final class QuestManager {
                 player.sendMessage(Component.text("Begleiter freigeschaltet: ", NamedTextColor.WHITE)
                         .append(Component.text(quest.rewardCompanionId(), NamedTextColor.YELLOW)));
             } else {
-                plugin.getLogger().warning("Quest '" + quest.id() + "' rewards unknown companion '" + quest.rewardCompanionId() + "'.");
+                plugin.getLogger().warning("Quest '" + quest.id() + "' rewards unknown or non-player companion '" + quest.rewardCompanionId() + "'.");
             }
         }
 
@@ -192,14 +193,30 @@ public final class QuestManager {
         if (profile == null || !profile.isRegisteredInGuild() || profile.getActiveQuests().isEmpty()) return;
         for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
-            if (quest == null || quest.type() != QuestType.REACH_LOCATION || quest.reachLocation() == null) continue;
-            if (entry.getValue().getCurrentAmount() >= quest.requiredAmount()) continue;
+            if (quest == null || quest.type() != QuestType.REACH_LOCATION) continue;
+            Location target = resolveQuestLocation(quest);
+            if (target == null || entry.getValue().getCurrentAmount() >= quest.requiredAmount()) continue;
             boolean reached = quest.reachRadius() <= 0.0
-                    ? isExactBlock(player.getLocation(), quest.reachLocation())
-                    : isWithinRadius(player.getLocation(), quest.reachLocation(), quest.reachRadius());
+                    ? isExactBlock(player.getLocation(), target)
+                    : isWithinRadius(player.getLocation(), target, quest.reachRadius());
             if (reached) {
                 entry.getValue().setCurrentAmount(quest.requiredAmount());
                 lang.send(player, "quest.location-reached", "title", quest.title());
+            }
+        }
+    }
+
+    /** Checks escort quests against their configured destination or stable target NPC. */
+    public void checkEscortQuests(Player player) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegisteredInGuild() || profile.getActiveQuests().isEmpty()) return;
+        for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
+            Quest quest = questRepository.getQuest(entry.getKey());
+            if (quest == null || quest.type() != QuestType.ESCORT || entry.getValue().getCurrentAmount() >= quest.requiredAmount()) continue;
+            Location destination = resolveQuestLocation(quest);
+            if (destination != null && isWithinRadius(player.getLocation(), destination, Math.max(3.0D, quest.reachRadius()))) {
+                entry.getValue().setCurrentAmount(quest.requiredAmount());
+                lang.send(player, "quest.escort-delivered");
             }
         }
     }
@@ -218,22 +235,8 @@ public final class QuestManager {
         }
     }
 
-    private boolean isExactBlock(Location a, Location b) {
-        return a.getWorld().equals(b.getWorld()) && a.getBlockX() == b.getBlockX()
-                && a.getBlockY() == b.getBlockY() && a.getBlockZ() == b.getBlockZ();
-    }
-
     public void progressEscortQuest(Player player, String escortKey) {
-        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegisteredInGuild()) return;
-        for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
-            Quest quest = questRepository.getQuest(entry.getKey());
-            if (quest == null || quest.type() != QuestType.ESCORT || !quest.targetKey().equalsIgnoreCase(escortKey)) continue;
-            if (quest.escortDestination() != null && isWithinRadius(player.getLocation(), quest.escortDestination(), 3.0)) {
-                entry.getValue().setCurrentAmount(quest.requiredAmount());
-                lang.send(player, "quest.escort-delivered");
-            }
-        }
+        checkEscortQuests(player);
     }
 
     public void progressGlobalEvent(String targetKey) {
@@ -249,17 +252,34 @@ public final class QuestManager {
     private void completeGlobalEvent(Quest quest) {
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (!guildAPI.isRegistered(online.getUniqueId())) continue;
+            PlayerProfile profile = profileManager.getProfile(online.getUniqueId()).orElse(null);
+            if (profile != null && profile.hasActiveQuest(quest.id())) {
+                QuestProgress progress = profile.getActiveQuests().get(quest.id());
+                progress.setCurrentAmount(quest.requiredAmount());
+                completeQuest(online, quest.id());
+                continue;
+            }
             lang.send(online, "quest.completed", "title", quest.title());
             online.showTitle(Title.title(
                     Component.text(quest.title(), NamedTextColor.GOLD),
                     Component.text(" "),
                     Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(3000), Duration.ofMillis(500))
             ));
-            profileManager.addExperience(online.getUniqueId(), quest.rewardExp());
         }
     }
 
     public int getGlobalEventProgress(String questId) { return globalEventState.getProgress(questId); }
+
+    private Location resolveQuestLocation(Quest quest) {
+        if (quest.reachLocation() != null) return quest.reachLocation();
+        if (quest.escortDestination() != null) return quest.escortDestination();
+        String key = quest.targetKey();
+        if (key == null || key.isBlank()) return null;
+        String id = key;
+        int separator = key.indexOf(':');
+        if (separator >= 0) id = key.substring(separator + 1);
+        return PixelRPGPlugin.getInstance().getNpcManager().getById(id).map(RPGNpc::location).orElse(null);
+    }
 
     private void incrementProgress(PlayerProfile profile, QuestProgress progress, Quest quest) {
         if (!profile.isRegisteredInGuild() || progress.getCurrentAmount() >= quest.requiredAmount()) return;
@@ -290,6 +310,11 @@ public final class QuestManager {
 
     private boolean isRegistered(UUID uuid) {
         return profileManager.getProfile(uuid).map(PlayerProfile::isRegisteredInGuild).orElse(false);
+    }
+
+    private boolean isExactBlock(Location a, Location b) {
+        return a.getWorld().equals(b.getWorld()) && a.getBlockX() == b.getBlockX()
+                && a.getBlockY() == b.getBlockY() && a.getBlockZ() == b.getBlockZ();
     }
 
     private boolean isWithinRadius(Location a, Location b, double radius) {
