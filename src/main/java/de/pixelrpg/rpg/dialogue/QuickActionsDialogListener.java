@@ -24,15 +24,19 @@ public final class QuickActionsDialogListener implements Listener {
     private final ProfessionDialog professionDialog;
     private final CharacterCardScoreboardService characterCardScoreboard;
 
-    public QuickActionsDialogListener(QuickActionsDialogService service) {
+    public QuickActionsDialogListener(QuickActionsDialogService service, CompanionService companionService) {
         this.plugin = PixelRPGPlugin.getInstance();
         this.service = service;
+        this.companionService = companionService;
         DialogueEngine dialogueEngine = new DialogueEngine();
-        this.companionService = new CompanionService(plugin);
         this.companionDialog = new CompanionDialog(companionService, dialogueEngine);
         this.professionDialog = new ProfessionDialog(service.profileManager(), dialogueEngine);
         this.characterCardScoreboard = new CharacterCardScoreboardService(plugin, service.profileManager(), service.statEngine());
         this.characterCardScoreboard.start();
+    }
+
+    public CompanionService companionService() {
+        return companionService;
     }
 
     /** Opens the dynamic player-specific character profile from the G quick action. */
