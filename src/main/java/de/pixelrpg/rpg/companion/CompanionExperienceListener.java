@@ -51,7 +51,7 @@ public final class CompanionExperienceListener implements Listener {
             JsonObject root = new JsonDataManager(plugin).load("companions.json");
             JsonObject progression = root.getAsJsonObject("progression");
             JsonObject xp = progression == null ? null : progression.getAsJsonObject("xp");
-            return xp != null && xp.has(key) && xp.get(key).isNumber()
+            return xp != null && xp.has(key) && xp.get(key).isJsonPrimitive() && xp.getAsJsonPrimitive(key).isNumber()
                     ? Math.max(0L, xp.get(key).getAsLong())
                     : fallback;
         } catch (RuntimeException exception) {
