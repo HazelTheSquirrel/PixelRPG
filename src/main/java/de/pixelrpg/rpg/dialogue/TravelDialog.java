@@ -43,18 +43,18 @@ public final class TravelDialog {
                 .toList();
 
         List<DialogBody> body = List.of(
-                DialogBody.plainMessage(Component.text("Wähle einen freigeschalteten Reisepunkt.", NamedTextColor.GRAY)),
+                DialogBody.plainMessage(Component.text("Wähle einen freigeschalteten Reisepunkt.", NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text(
                         "Nicht entdeckte Orte werden automatisch freigeschaltet, sobald du sie besuchst.",
-                        NamedTextColor.DARK_GRAY))
+                        NamedTextColor.WHITE))
         );
 
         if (destinations.isEmpty()) {
             dialogueEngine.openNotice(
                     player,
                     Component.text("Reisen", NamedTextColor.GOLD),
-                    Component.text("Du hast noch keinen weiteren Reisepunkt freigeschaltet.", NamedTextColor.GRAY),
-                    Component.text("Schließen", NamedTextColor.GREEN));
+                    Component.text("Du hast noch keinen weiteren Reisepunkt freigeschaltet.", NamedTextColor.WHITE),
+                    Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
 
@@ -65,7 +65,6 @@ public final class TravelDialog {
                     NamedTextColor.GREEN,
                     target -> teleport(target, destination)));
         }
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
 
         dialogueEngine.openMultiAction(
                 player,
