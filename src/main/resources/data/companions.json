@@ -35,6 +35,6 @@
     { "id": "test-happy-ghast", "name": "PixelRPG Happy Ghast", "entityType": "HAPPY_GHAST", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 0.65 },
     { "id": "test-warden", "name": "PixelRPG Warden", "entityType": "WARDEN", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.50 },
     { "id": "test-sulfur-cube", "name": "PixelRPG Sulfur Cube", "entityType": "SULFUR_CUBE", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.55 },
-    { "id": "admin_unique_example", "name": "PixelRPG Guardian", "entityType": "MANNEQUIN", "rarity": "UNIQUE", "renameable": false, "adminOnly": true, "scale": 1.00 }
+    { "id": "admin_unique_example", "name": "PixelRPG Guardian", "entityType": "MANNEQUIN", "rarity": "UNIQUE", "renameable": false, "adminOnly": true, "scale": 1.00, "skinSource": "Steve" }
   ]
 }
