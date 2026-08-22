@@ -9,6 +9,8 @@ import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.profession.CraftRecipe;
+import de.pixelrpg.rpg.profession.CraftingRecipeRegistry;
 import de.pixelrpg.rpg.profession.CraftingService;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.profession.ProfessionService;
@@ -76,11 +78,12 @@ public final class BlacksmithBehavior implements NpcBehavior {
                 NamedTextColor.DARK_GRAY)));
 
         List<ActionButton> actions = new ArrayList<>();
-        CraftingRecipeRegistry.getRecipes(Profession.BLACKSMITH).forEach(recipe -> actions.add(
-                dialogueEngine.actionButton(
-                        Component.text(recipe.displayName()),
-                        level >= recipe.requiredProfessionLevel() ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
-                        target -> professionDialog.openRecipeDetails(target, recipe, false))));
+        for (CraftRecipe recipe : CraftingRecipeRegistry.getRecipes(Profession.BLACKSMITH)) {
+            actions.add(dialogueEngine.actionButton(
+                    Component.text(recipe.displayName()),
+                    level >= recipe.requiredProfessionLevel() ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
+                    target -> professionDialog.openRecipeDetails(target, recipe, false)));
+        }
         actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
 
         dialogueEngine.openMultiAction(
