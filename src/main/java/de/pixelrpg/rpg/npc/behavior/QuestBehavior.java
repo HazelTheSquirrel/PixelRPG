@@ -57,10 +57,9 @@ public final class QuestBehavior implements NpcBehavior {
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text(
                         "Wähle zuerst deinen gewünschten Levelbereich. Danach siehst du die Quests dieses Bereichs.",
-                        NamedTextColor.GRAY)),
+                        NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text(
-                        "Dein aktuelles Level: " + profile.getLevel(),
-                        NamedTextColor.YELLOW))
+                        "Dein aktuelles Level: " + profile.getLevel(), NamedTextColor.AQUA))
         );
 
         List<ActionButton> actions = new ArrayList<>();
@@ -82,16 +81,10 @@ public final class QuestBehavior implements NpcBehavior {
             dialogueEngine.openNotice(
                     player,
                     Component.text("Questgeber", NamedTextColor.GOLD),
-                    Component.text("Aktuell sind keine Questbereiche konfiguriert.", NamedTextColor.GRAY),
-                    Component.text("Schließen", NamedTextColor.GREEN));
+                    Component.text("Aktuell sind keine Questbereiche konfiguriert.", NamedTextColor.WHITE),
+                    Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
-
-        actions.add(dialogueEngine.actionButton(
-                Component.text("Aktive Quests"),
-                NamedTextColor.AQUA,
-                this::openActiveQuests));
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
 
         dialogueEngine.openMultiAction(
                 player,
@@ -113,11 +106,9 @@ public final class QuestBehavior implements NpcBehavior {
 
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text(
-                        "Questbereich Level " + start + "–" + end,
-                        NamedTextColor.YELLOW)),
+                        "Questbereich Level " + start + "–" + end, NamedTextColor.AQUA)),
                 DialogBody.plainMessage(Component.text(
-                        "Wähle eine Quest für die vollständigen Anforderungen und Belohnungen.",
-                        NamedTextColor.GRAY))
+                        "Wähle eine Quest für die vollständigen Anforderungen und Belohnungen.", NamedTextColor.WHITE))
         );
 
         List<ActionButton> actions = new ArrayList<>();
@@ -134,48 +125,14 @@ public final class QuestBehavior implements NpcBehavior {
         if (actions.isEmpty()) {
             body = List.of(
                     DialogBody.plainMessage(Component.text(
-                            "In diesem Bereich sind aktuell keine Quests verfügbar.", NamedTextColor.GRAY)));
+                            "In diesem Bereich sind aktuell keine Quests verfügbar.", NamedTextColor.WHITE)));
         }
 
         actions.add(dialogueEngine.actionButton(
-                Component.text("Zurück"),
-                NamedTextColor.WHITE,
-                this::openQuestRanges));
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
-
+                Component.text("Zurück"), NamedTextColor.WHITE, this::openQuestRanges));
         dialogueEngine.openMultiAction(
                 player,
                 Component.text("Level " + start + "–" + end, NamedTextColor.GOLD),
-                body,
-                actions,
-                2);
-    }
-
-    private void openActiveQuests(Player player) {
-        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null) return;
-
-        List<ActionButton> actions = new ArrayList<>();
-        for (String questId : profile.getActiveQuests().keySet().stream().sorted().toList()) {
-            Quest quest = questManager.getRepository().getQuest(questId);
-            if (quest == null) continue;
-            actions.add(dialogueEngine.actionButton(
-                    Component.text("[Aktiv] " + quest.title()),
-                    NamedTextColor.YELLOW,
-                    target -> openQuestDetails(target, quest, quest.categoryLevel(), quest.categoryLevel())));
-        }
-
-        List<DialogBody> body = List.of(
-                DialogBody.plainMessage(Component.text(
-                        actions.isEmpty() ? "Du hast aktuell keine aktiven Quests." : "Wähle eine aktive Quest.",
-                        NamedTextColor.GRAY)));
-        actions.add(dialogueEngine.actionButton(
-                Component.text("Zurück"), NamedTextColor.WHITE, this::openQuestRanges));
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
-
-        dialogueEngine.openMultiAction(
-                player,
-                Component.text("Aktive Quests", NamedTextColor.GOLD),
                 body,
                 actions,
                 2);
@@ -195,15 +152,14 @@ public final class QuestBehavior implements NpcBehavior {
                 DialogBody.plainMessage(Component.text(quest.description(), NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text(
                         "Level " + quest.requiredLevel() + "+ • " + quest.requiredAmount() + "x • " + status,
-                        levelAvailable ? NamedTextColor.GRAY : NamedTextColor.RED)),
+                        levelAvailable ? NamedTextColor.AQUA : NamedTextColor.RED)),
                 DialogBody.plainMessage(Component.text(rewards, NamedTextColor.GOLD))
         );
 
         List<ActionButton> actions = new ArrayList<>();
         if (!active && !completed && levelAvailable && questManager.canAccept(profile, quest)) {
             actions.add(dialogueEngine.actionButton(
-                    Component.text("Quest annehmen"),
-                    NamedTextColor.GREEN,
+                    Component.text("Quest annehmen"), NamedTextColor.GREEN,
                     target -> {
                         questManager.acceptQuest(target, quest);
                         openQuestCategory(target, start, end);
@@ -211,25 +167,21 @@ public final class QuestBehavior implements NpcBehavior {
         }
         if (active) {
             actions.add(dialogueEngine.actionButton(
-                    Component.text("Quest abgeben"),
-                    NamedTextColor.YELLOW,
+                    Component.text("Quest abgeben"), NamedTextColor.YELLOW,
                     target -> {
                         questManager.completeQuest(target, quest.id());
                         openQuestCategory(target, start, end);
                     }));
             actions.add(dialogueEngine.actionButton(
-                    Component.text("Quest abbrechen"),
-                    NamedTextColor.RED,
+                    Component.text("Quest abbrechen"), NamedTextColor.RED,
                     target -> {
                         questManager.abandonQuest(target, quest.id());
                         openQuestCategory(target, start, end);
                     }));
         }
         actions.add(dialogueEngine.actionButton(
-                Component.text("Zurück"),
-                NamedTextColor.WHITE,
+                Component.text("Zurück"), NamedTextColor.WHITE,
                 target -> openQuestCategory(target, start, end)));
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
 
         dialogueEngine.openMultiAction(
                 player,
