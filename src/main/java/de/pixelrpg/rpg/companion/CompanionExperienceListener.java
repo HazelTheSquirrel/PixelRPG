@@ -3,11 +3,13 @@ package de.pixelrpg.rpg.companion;
 import com.google.gson.JsonObject;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
 import de.pixelrpg.rpg.config.JsonDataManager;
+import de.pixelrpg.rpg.core.RPGKeys;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
 /** Awards companion progression only while a companion is actively summoned. */
@@ -26,6 +28,7 @@ public final class CompanionExperienceListener implements Listener {
     // Awards companion XP when the player defeats a mob while a companion is active.
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
+        if (event.getEntity().getPersistentDataContainer().has(RPGKeys.Companion.id(), PersistentDataType.STRING)) return;
         Player player = event.getEntity().getKiller();
         if (player == null) return;
         companionService.awardExperience(player.getUniqueId(), mobKillExperience);
