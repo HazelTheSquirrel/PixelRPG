@@ -1,14 +1,14 @@
 # PixelRPG – Quest & Companion Roadmap
 
-> Verbindliche Planungsgrundlage für Quest- und Begleiter-System.
+> Verbindliche Planungs- und Umsetzungsgrundlage für Quest- und Begleiter-System.
 >
-> Zielplattform: Paper 26.x, aktuell Paper 26.2. Diese Datei beschreibt das gewünschte Design und die Reihenfolge der späteren Umsetzung. Sie ist keine Aufforderung, alle Punkte sofort zu implementieren.
+> Zielplattform: Paper 26.x, aktuell Paper 26.2. Java 25. Die Roadmap beschreibt Design, Datenmodell, Reihenfolge, Beispiele und Abnahmekriterien. Kampffähigkeiten für Begleiter bleiben bewusst zurückgestellt, bis das Quest- und Begleiter-Grundsystem stabil getestet ist.
 
 ---
 
-# 1. Grundprinzip
+# 1. Verbindliche Designregeln
 
-PixelRPG ist eine Open-World-RPG-Welt. Quests sollen den Spieler führen, ohne die Welt in eine reine GPS-/Marker-Map zu verwandeln.
+PixelRPG ist eine Open-World-RPG-Welt. Quests sollen den Spieler führen, ohne die Welt in eine GPS-/Marker-Map zu verwandeln.
 
 Nicht gewünscht:
 
@@ -18,8 +18,20 @@ Nicht gewünscht:
 - Titel-System
 - endlose Fetch-Quests ohne Zusammenhang
 - ein Begleiter-System, das den Spieler ersetzt
+- Begleiter-Kampf-KI in der ersten Begleiterphase
 
-Gewünscht sind erkennbare NPCs, Dörfer, Berufe, Gegner, Geschichten, Erkundung und nachvollziehbare Ziele.
+Gewünscht:
+
+- erkennbare NPCs und Rollen
+- Dörfer und Spielerprojekte als echte Quest-Orte
+- nachvollziehbare Questketten
+- Erkundung statt stumpfer Koordinatensuche
+- Recovery Compass als Richtungshelfer
+- Begleiter als unterstützende, eigene Progression
+- vollständig datengetriebene Inhalte
+- möglichst viele technisch geeignete Minecraft-/Mojang-Entities als Begleiter
+
+Reputation und Titel werden nicht eingeführt.
 
 ---
 
@@ -32,43 +44,48 @@ Level 100 → Grind-/Endgame-Bereich
 
 Level 100 ist kein normaler Quest-Level. Die reguläre Questprogression endet bei Level 99.
 
-Langfristig benötigen wir deshalb sehr viele Quests. Wir bauen aber nicht stumpf „X Quests pro Level“, sondern mehrere Questketten über Levelbereiche.
+Die Welt benötigt deshalb langfristig sehr viele Quests. Wir erzeugen aber keine sinnlose Pflichtzahl pro Level, sondern mehrere miteinander verbundene Questketten über Levelbereiche.
 
-Beispiel:
+Grundstruktur:
 
 ```text
-1–5     Einführung
-5–10    lokale Questkette
-10–20   Dorf / Berufe / erste größere Konflikte
-20–30   regionale Handlung
-30–50   mehrere miteinander verbundene Quest-Hubs
-50–70   größere Weltkonflikte
-70–90   fortgeschrittene Questketten
-90–99   späte Haupt-/Nebeninhalte
-100+    Grind / spätere Endgame-Systeme
+1–5      Einführung / lokale Aufgaben
+6–10     erster Quest-Hub
+11–20    Dorf / Berufe / erste Reisequests
+21–30    regionale Konflikte
+31–40    mehrere Quest-Hubs
+41–50    größere regionale Handlung
+51–60    fortgeschrittene Reise- und Storyketten
+61–70    große Weltkonflikte
+71–80    fortgeschrittene Questketten
+81–90    späte Haupt- und Nebeninhalte
+91–99    Endphase der regulären Progression
+100+     Grind / spätere Systeme
 ```
 
-Die exakte XP-Balance wird durch Tests bestimmt.
+Die XP-Kurve wird ausschließlich durch tatsächliche Spieltests finalisiert.
 
 ---
 
 # 3. Maximal 5 aktive Quests
 
-Ein Spieler kann maximal **5 aktive Quests gleichzeitig** besitzen.
+Ein Spieler kann maximal **5 aktive Quests** besitzen.
 
 Eine sechste Quest darf nicht angenommen werden.
 
-Eine mehrstufige Quest zählt weiterhin als eine aktive Quest, solange ihre Schritte Teil derselben Questinstanz sind.
+Eine mehrstufige Quest zählt als eine aktive Quest, solange ihre Schritte Bestandteil derselben Questinstanz sind.
 
 Ziel:
 
 ```text
 wenige bewusste Aufgaben
         ↓
-Spieler entscheidet, was er verfolgt
+Spieler entscheidet selbst
         ↓
 Questliste bleibt übersichtlich
 ```
+
+Die Grenze ist datengetrieben konfigurierbar, Standardwert `5`.
 
 ---
 
@@ -86,33 +103,23 @@ freigeschaltet ab Level 15
 empfohlen für Level 20
 ```
 
-Die fünf Level Vorlauf sind ein Designwert und müssen später mit realem Gameplay getestet werden.
+Der Vorlauf von fünf Leveln ist ein fester Designwert für die aktuelle Planung.
 
-Zusätzliche Voraussetzungen sind möglich, beispielsweise eine vorherige Quest, ein NPC-Gespräch oder ein benötigter Gegenstand.
+Zusätzliche Voraussetzungen sind weiterhin möglich:
+
+- vorherige Quest
+- Dialogentscheidung
+- benötigter Gegenstand
+- NPC-/Dorf-Fortschritt
+- Questkettenstatus
 
 ---
 
-# 5. Bestehende Quest-NPCs
+# 5. Quest-NPCs
 
-Die aktuellen Quest-NPCs bleiben die normalen Questgeber.
+Die bestehenden Quest-NPCs bleiben die normalen Questgeber.
 
-Grundstruktur:
-
-```text
-Quest-NPC
-   ↓
-Spielerlevel prüfen
-   ↓
-verfügbare Levelbereiche
-   ↓
-Quest auswählen
-   ↓
-Details / Dialog
-   ↓
-Annehmen
-```
-
-Die NPCs sollen erkennbare Rollen besitzen, zum Beispiel:
+Beispiele für Rollen:
 
 - Dorfvorsteher
 - Wache
@@ -124,15 +131,31 @@ Die NPCs sollen erkennbare Rollen besitzen, zum Beispiel:
 - Händler
 - Abenteurer
 
-Sie sollen nicht zu anonymen Koordinatengebern werden.
+Ablauf:
+
+```text
+Quest-NPC
+   ↓
+Spielerlevel prüfen
+   ↓
+verfügbare Levelbereiche
+   ↓
+Quest auswählen
+   ↓
+Questdetails
+   ↓
+Annehmen
+```
+
+Die NPCs sollen nicht zu anonymen Koordinatengebern werden.
 
 ---
 
 # 6. Filler-/Reise-NPC
 
-Wir benötigen einen generischen **Filler-/Reise-/Orts-NPC**.
+Es wird genau ein generischer **Filler-/Reise-/Orts-NPC-Typ** benötigt.
 
-Dieser NPC ist kein zweites großes Quest-Framework. Er dient als bewusst gesetzter Zielpunkt innerhalb einer Questkette.
+Er ist kein zweites großes Quest-Framework. Er dient als bewusst gesetzter Zielpunkt innerhalb einer Questkette.
 
 Beispiele:
 
@@ -142,9 +165,9 @@ Beispiele:
 „Finde den Verwalter des Dorfes und frage ihn nach dem verschwundenen Händler.“
 ```
 
-Der Admin kann den NPC in Dörfern, Spielerprojekten oder anderen wichtigen Orten platzieren.
+Der Admin kann diesen NPC in Dörfern, Spielerprojekten oder anderen wichtigen Orten platzieren.
 
-Damit können auch später von Spielern gebaute Dörfer in Questketten aufgenommen werden.
+Damit können später auch von Spielern gebaute Dörfer in Questketten aufgenommen werden.
 
 ---
 
@@ -168,9 +191,9 @@ Schmied / Händler / Wache / Gelehrter
 weitere Questkette
 ```
 
-Dorf B muss nicht einfach die Fortsetzung von Dorf A sein. Es kann eine eigene Geschichte und andere Aufgaben besitzen.
+Dorf B muss nicht die direkte Fortsetzung der Geschichte aus Dorf A sein. Es kann eine eigene lokale Handlung besitzen.
 
-Dadurch können auch Spielerdörfer später sinnvoll eingebunden werden.
+Das ermöglicht später auch vollständig selbst gebaute Dörfer als Teil der Welt.
 
 ---
 
@@ -182,22 +205,24 @@ Keine regulären Quests nach dem Muster:
 Gehe zu X:123 Y:64 Z:456.
 ```
 
-wenn der Spieler nicht weiß, was dort ist.
+wenn der Spieler nicht weiß, was ihn dort erwartet.
 
 Akzeptabel:
 
 ```text
 „Reise zum Dorf Sonnenhain.“
-„Sprich dort mit dem Dorfvorsteher.“
+„Sprich dort mit Mira.“
 ```
 
-Intern dürfen natürlich Koordinaten gespeichert werden. Die technische Position ersetzt aber nicht die verständliche Questbeschreibung.
+Koordinaten dürfen intern gespeichert werden. Sie ersetzen aber nicht die verständliche Questbeschreibung.
 
 ---
 
 # 9. Recovery Compass
 
-Der `minecraft:recovery_compass` soll eine echte Quest-Funktion bekommen.
+Der `minecraft:recovery_compass` erhält einen echten Questnutzen.
+
+Ziel:
 
 ```text
 Questziel bekannt
@@ -209,39 +234,49 @@ Richtung zum Ziel
 Spieler findet den Ort selbst
 ```
 
-Er soll kein vollständiges GPS sein. Die Welt bleibt offen und erkundbar.
+Er soll kein vollständiges GPS sein.
 
 Besonders geeignet für:
 
 - Dorfziele
 - NPC-Ziele
-- Erkundungsziele
-- definierte Quest-Orte
+- definierte Erkundungsorte
+- Quest-Hubs
 
-Bei mehreren aktiven Quests muss später eindeutig geregelt werden, welches Ziel der Compass verfolgt.
+Bei mehreren aktiven Quests wird genau ein aktives Navigationsziel ausgewählt. Die UI muss klar anzeigen, welche Quest aktuell verfolgt wird.
+
+Technische Umsetzung muss die aktuelle Paper-26.2-API verwenden. Kein altes 1.21.x-Verhalten nachbauen.
 
 ---
 
 # 10. Questtypen
 
-Der langfristige Quest-Pool soll mehrere Typen kombinieren:
+Der Quest-Pool soll mehrere Typen kombinieren:
 
-- Gegner besiegen
-- bestimmte Gegner untersuchen
-- Gegenstände sammeln
-- Ressourcen beschaffen
-- Gegenstände liefern
-- NPCs aufsuchen
-- Dialog-/Storyquests
-- Reise zu bekannten Dörfern/Orten
-- Dorf-zu-Dorf-Ketten
+- `HUNT` – Gegner besiegen
+- `COLLECT` – Gegenstände sammeln
+- `TALK_TO_NPC` – mit einem definierten NPC sprechen
+- `ESCORT` – Ziel/NPC begleiten
+- `REACH_LOCATION` – einen beschriebenen Ort erreichen
+- `GLOBAL_EVENT` – serverweites Ereignis
+
+Langfristig vorgesehen:
+
 - Erkundungsquests
+- Lieferquests
 - Berufsquests
+- Dialog-/Storyquests
+- Begleiterquests
 - mehrstufige Questketten
-- Begleiter-bezogene Quests
-- besondere Welt-/Eventquests
+- Welt-/Eventquests
 
-Ein Questtyp darf mit anderen kombiniert werden.
+Neue Questtypen werden erst eingeführt, wenn ihre komplette Progressionslogik vorhanden ist. Keine reinen Enum-Platzhalter ohne funktionierenden Fortschritt.
+
+---
+
+# 11. Questketten
+
+Questketten sollen aus mehreren sinnvollen Schritten bestehen.
 
 Beispiel:
 
@@ -261,45 +296,57 @@ Dorf B besuchen
 Gelehrten sprechen
  ↓
 Belohnung
+ ↓
+Folgequest freischalten
 ```
+
+Die Questinstanz bleibt dabei innerhalb des Limits von fünf aktiven Quests eine einzelne Quest.
 
 ---
 
-# 11. Questbeispiele
+# 12. Questbeispiele
 
-## Kleine Quest
+## Level 1–5 – Einführung
+
+```text
+„Die erste Lieferung“
+
+Der Versorger des Dorfes braucht einfache Materialien.
+Der Spieler sammelt Holz und bringt es zurück.
+
+Belohnung:
+Spieler-XP + Geld + erstes Verbrauchsitem
+```
+
+## Level 8 – kleine Quest
 
 ```text
 „Die verschwundenen Werkzeuge“
-Level 8
 
 Ein Schmied vermisst seine Werkzeuge.
 Der Spieler untersucht die Werkstatt,
-findet Spuren und holt die Werkzeuge zurück.
+findet Spuren und bringt die Werkzeuge zurück.
 
 Belohnung:
 XP + Geld + Item
 ```
 
-## Dorfquest
+## Level 15 – Dorfreise
 
 ```text
 „Der Weg nach Sonnenhain“
-Level 15
 
-Der Spieler soll nach Sonnenhain reisen
-und dort Mira finden.
+Der Spieler reist nach Sonnenhain und sucht Mira.
 
 Recovery Compass hilft bei der Richtung.
 
-Bei Mira beginnt eine neue lokale Quest.
+Bei Mira beginnt eine neue lokale Questkette.
 ```
 
-## Größere Kette
+## Level 25 – größere Kette
 
 ```text
 „Das Schweigen von Eisenfels“
-Level 25
 
 Wache befragen
  ↓
@@ -318,9 +365,47 @@ Gelehrten sprechen
 Folgequest freischalten
 ```
 
+## Level 50 – regionale Handlung
+
+```text
+„Die Handelsroute“
+
+Händler sprechen
+ ↓
+Route untersuchen
+ ↓
+Banditenlager finden
+ ↓
+Banditen besiegen
+ ↓
+gestohlene Waren sichern
+ ↓
+Ware nach Dorf B bringen
+ ↓
+Folgequest
+```
+
+## Level 90–99 – späte Handlung
+
+```text
+„Das letzte Siegel“
+
+Mehrere bekannte NPCs befragen
+ ↓
+alte Questinformationen verbinden
+ ↓
+mehrere Orte untersuchen
+ ↓
+Elite-Gegner besiegen
+ ↓
+Endziel erreichen
+ ↓
+Abschluss der regulären Questprogression
+```
+
 ---
 
-# 12. Questbelohnungen
+# 13. Questbelohnungen
 
 Mögliche Belohnungen:
 
@@ -334,19 +419,60 @@ Mögliche Belohnungen:
 - Begleiter
 - Begleiter-Freischaltungen
 
-Reputation und Titel gehören ausdrücklich nicht dazu.
+Nicht vorhanden:
+
+- Reputation
+- Titel
 
 ---
 
-# 13. Begleiter – Grundsatz
+# 14. Datengetriebenes Quest-System
+
+Alle veränderlichen Questdaten sollen außerhalb des Java-Codes bearbeitbar sein.
+
+Primäre Quelle:
+
+```text
+src/main/resources/data/quests.json
+```
+
+Später beim Plugin-Betrieb:
+
+```text
+plugins/PixelRPG/data/quests.json
+```
+
+Die Struktur muss mindestens erlauben:
+
+- Quest-ID
+- Titel
+- Beschreibung
+- Typ
+- empfohlenes Level
+- Kategorie-Level
+- Ziel
+- Zielmenge
+- Voraussetzungen
+- Belohnungen
+- Folgequests
+- Zeitlimit
+- Ortsdaten
+- NPC-Ziel
+- Begleiterbelohnung
+
+Grundregeln wie `maxActive` und `unlockEarlyLevels` bleiben ebenfalls datengetrieben.
+
+Keine Quest-Balance hart im Java-Code verteilen.
+
+---
+
+# 15. Begleiter – Grundsatz
 
 Begleiter werden ein eigenes Progressionssystem.
 
-Der wichtigste Grundsatz:
-
 > **Begleiter unterstützen den Spieler. Sie ersetzen ihn nicht.**
 
-Die Balance wird immer als Kombination betrachtet:
+Balance wird immer als Kombination betrachtet:
 
 ```text
 Spieler + Begleiter
@@ -354,64 +480,43 @@ Spieler + Begleiter
 Gegner / Elite / Boss
 ```
 
-Ein Legendary-Begleiter darf keinen Boss trivial machen.
+Ein Legendary-Begleiter darf einen Boss nicht trivial machen.
+
+Die Werte müssen sich an der geplanten Spieler-/Gegnerprogression orientieren und werden mit echten Tests angepasst.
 
 ---
 
-# 14. Begleiter-Pool – nicht auf wenige Mobs beschränken
+# 16. Begleiter-Pool – möglichst groß
 
-Wolf, Biene, Zombie, Schwein und Warden sind **nur Beispiele**.
+Wolf, Biene, Zombie, Schwein und Warden sind nur Beispiele.
 
-Das System soll grundsätzlich möglichst viele tatsächlich vorhandene und technisch geeignete Minecraft-/Mojang-Entities der verwendeten Version unterstützen.
+Das System soll grundsätzlich möglichst viele technisch geeignete Entities der tatsächlich verwendeten Paper-/Minecraft-Version unterstützen.
 
-Die Architektur darf deshalb nicht auf eine feste Liste von fünf oder zehn Mobs zugeschnitten werden.
-
-Ziel:
+Die aktuelle Paper-26.2-API stellt unter anderem `EntityType.MANNEQUIN` bereit und führt zahlreiche weitere lebende Entity-Typen. Für den tatsächlichen Begleiterpool gilt:
 
 ```text
-Entity Registry / vorhandene Entity-Typen
-              ↓
-technische Prüfung
-              ↓
-Begleiterdefinition
-              ↓
-Seltenheit
-              ↓
-Basiswerte + Skalierung
-              ↓
-Freischaltung
-              ↓
-Begleiter
+EntityType vorhanden
+        ↓
+LivingEntity / technisch geeignet
+        ↓
+spawnbar und kontrollierbar
+        ↓
+passiv verwendbar
+        ↓
+Balance geprüft
+        ↓
+als Begleiter freigeben
 ```
 
-Die Minecraft-Wiki-Mob-Liste kann als Inspirationsquelle dienen. Für den tatsächlichen Code gilt ausschließlich, was in der Zielversion vorhanden und technisch nutzbar ist.
+Die Minecraft-Wiki dient nur als Inspirationsquelle. Der Code darf ausschließlich tatsächlich vorhandene und technisch nutzbare Entity-Typen der Zielversion verwenden.
+
+Auch ungewöhnliche bzw. ursprünglich als April-Fools-, Test- oder Spaßfeature gedachte Entities werden geprüft, wenn sie in der Zielversion vorhanden und technisch nutzbar sind.
+
+Nicht geeignet sind beispielsweise reine Projektile, kurzlebige Effekte oder Entities ohne sinnvolle persistente Begleiterdarstellung.
 
 ---
 
-# 15. April-Fools- und ungewöhnliche Mobs
-
-Auch Entities, die ursprünglich als April-Fools-, Test-, Spaß- oder ungewöhnliches Feature eingeführt wurden, sollen nicht automatisch ausgeschlossen werden.
-
-Wenn eine solche Entity in der tatsächlich verwendeten Version weiterhin vorhanden und technisch nutzbar ist, wird sie wie jede andere mögliche Begleiter-Entity geprüft.
-
-Entscheidend sind:
-
-- tatsächlich in der Zielversion vorhanden
-- sicher spawnbar/darstellbar
-- kontrollierbar
-- persistent handhabbar
-- keine gefährlichen Weltmechaniken
-- vertretbare Performance
-- sinnvolle Darstellung
-- vertretbare Balance
-
-Damit bleibt das Spektrum bewusst groß.
-
-Nicht jede Entity muss Begleiter werden. Reine Projektile, kurzlebige Effekte oder technisch unkontrollierbare Entity-Typen dürfen ausgeschlossen werden.
-
----
-
-# 16. Begleiter-Kategorien
+# 17. Begleiter-Kategorien
 
 Mögliche Kategorien:
 
@@ -424,36 +529,38 @@ Mögliche Kategorien:
 - humanoide Mobs
 - große Mobs
 - kleine Mobs
-- seltene/ungewöhnliche Mobs
+- ungewöhnliche Mobs
 - Mannequin-/Spielermodelle
 - Custom-/Unique-Begleiter
 
-Das Aussehen bestimmt nicht automatisch das Verhalten.
+Darstellung und Verhalten sind getrennt.
 
-Ein Zombie-Begleiter muss beispielsweise nicht automatisch Spieler angreifen.
-
-Darstellung und Verhalten werden getrennt behandelt.
+Ein Zombie-Begleiter kann wie ein Zombie aussehen und trotzdem vollständig passiv sein.
 
 ---
 
-# 17. Seltenheiten
+# 18. Seltenheiten
 
-Geplante Seltenheiten:
+Verbindliche Grundbeispiele:
 
 | Seltenheit | Beispiel | Grundidee |
 |---|---|---|
 | Common | Biene | einfacher, schwacher Begleiter |
 | Uncommon | Wolf | solider früher Begleiter |
 | Rare | Zombie | stärkerer Begleiter |
-| Epic | Schwein | besonderer, perspektivisch reitbarer Begleiter |
-| Legendary | Warden | extrem selten, stark, aber kontrolliert |
+| Epic | Schwein | besonderer Begleiter, perspektivisch reitbar |
+| Legendary | Warden | extrem selten und stark, aber kontrolliert |
 | Unique | Custom/Mannequin | ausschließlich individuell durch Admin |
 
-Diese Beispiele sind keine feste Zuordnung aller Mobs. Jeder geeignete Mob kann abhängig von Rolle, Verfügbarkeit und Balance einer passenden Seltenheit zugeordnet werden.
+Das sind Beispiele und keine vollständige Entity-Zuordnung.
+
+Jeder geeignete Mob kann abhängig von Rolle, Verfügbarkeit und Balance einer Seltenheit zugeordnet werden.
+
+Seltenheit darf nicht einfach bedeuten „alles ×10“. Die Skalierung muss kontrolliert bleiben.
 
 ---
 
-# 18. Begleiter-Level
+# 19. Begleiter-Level
 
 Begleiter haben eigene Level:
 
@@ -471,11 +578,11 @@ Spieler Level 50
 Wolf Level 27
 ```
 
-Der Begleiter muss seinen eigenen Fortschritt machen.
+Der Begleiter besitzt seine eigene Progression.
 
 ---
 
-# 19. Begleiter-XP
+# 20. Begleiter-XP
 
 Ein Begleiter erhält XP nur, wenn er aktiv beim Spieler ist.
 
@@ -489,23 +596,23 @@ Begleiter weggeschickt
 keine Begleiter-XP
 ```
 
-Mögliche spätere XP-Quellen:
+Mögliche XP-Quellen:
 
 - Questabschluss
-- besiegte Gegner
+- besiegte Gegner, sobald Kampfsystem aktiv ist
 - Erkundung
 - Weltaktivitäten
 - spezielle Begleiterquests
 
-Die exakte Verteilung bleibt bis zu realen Tests offen.
+AFK-XP und XP ohne aktive Begleiterinstanz müssen verhindert werden.
 
-Wichtig: AFK-XP, Duplizierung und XP ohne aktive Begleiterinstanz müssen verhindert werden.
+Die konkrete XP-Verteilung wird erst nach Tests endgültig festgelegt.
 
 ---
 
-# 20. Feste Werte und Skalierung
+# 21. Feste Werte und Skalierung
 
-Begleiter werden keine zweiten frei konfigurierbaren Spielercharaktere.
+Begleiter sind keine zweiten frei konfigurierbaren Spielercharaktere.
 
 Grundmodell:
 
@@ -521,40 +628,56 @@ Level-Skalierung 1–99
 finale Begleiterwerte
 ```
 
-Die Werte werden pro Begleiterdefinition kontrolliert.
+Die Werte werden vollständig datengetrieben definiert.
 
-Seltenheit darf nicht einfach bedeuten „10× alles“. Die Progressionskurven müssen so gewählt werden, dass Spieler + Begleiter weiterhin mit Gegnern und Bossen harmonieren.
+Vorgesehene Trennung:
+
+```text
+src/main/resources/data/companions.json
+src/main/resources/data/companion-stats.json
+src/main/resources/data/mob-scaling.json
+```
+
+So kann ein Serverbetreiber die Begleiterwerte ändern, ohne Java-Code anzufassen.
+
+Seltenheitsmultiplikatoren bleiben kontrolliert und werden mit der Gegner-/Bossbalance getestet.
 
 ---
 
-# 21. Größe und Darstellung
+# 22. Größe und Darstellung
 
-Die Größe eines Begleiters soll perspektivisch unabhängig von seinen Kampfstärken angepasst werden können, sofern die aktuelle Paper-/Minecraft-API dies für die jeweilige Entity ermöglicht.
+Begleiter sollen ihre visuelle Größe unabhängig von ihren Kampfstärken verändern können, sofern die jeweilige Entity dies unterstützt.
+
+Paper 26.2 stellt hierfür die Entity-Attribute `Attribute.SCALE` bereit.
 
 Beispiele:
 
 ```text
-Wolf → 50 % → Mini-Wolf
-
-Warden → kleiner → Mini Warden
-
-Biene → größer → ungewöhnlich großer Begleiter
+Wolf   → 0.50 → Mini-Wolf
+Warden → 0.50 → Mini-Warden
+Biene  → 2.00 → große Biene
 ```
 
-Darstellungsgröße und Kampfbalance sind getrennt.
+Wichtig:
+
+```text
+Darstellungsgröße ≠ Kampfstärke
+```
 
 Ein kleiner Warden ist nicht automatisch schwächer.
 Ein großer Wolf ist nicht automatisch stärker.
 
 Die Größe darf nicht unbemerkt als Damage-/HP-Multiplikator dienen.
 
+Die gewünschte Größe gehört in die Begleiterdefinition und darf nicht hart im Java-Code stehen.
+
 ---
 
-# 22. Passive Begleiter zuerst
+# 23. Passive Begleiter – Phase 1
 
-Phase 1 des Begleitersystems ist bewusst passiv.
+Die erste Begleiterphase ist bewusst passiv.
 
-Zuerst müssen funktionieren:
+Zuerst müssen stabil funktionieren:
 
 - Besitz
 - Freischaltung
@@ -568,14 +691,22 @@ Zuerst müssen funktionieren:
 - XP
 - UI
 - Unique-Ausnahme
+- Größe
 
-Noch keine komplexe Kampf-KI.
+Noch nicht implementieren:
 
-Erst wenn dieses Fundament stabil ist, kommen Angriffe und Fähigkeiten.
+- komplexe Kampf-KI
+- Fähigkeiten
+- Skills
+- Aggro-System
+- Bossmechaniken
+- automatische Zielauswahl
+
+Erst wenn das Fundament und das Quest-System vollständig getestet sind, beginnt die Kampffunktion.
 
 ---
 
-# 23. Begleiter-Befehle
+# 24. Begleiter-Befehle
 
 Normale Begleiter:
 
@@ -592,775 +723,376 @@ Rufen
 Wegschicken
 ```
 
-Der feste Name eines Unique-Begleiters darf nicht verändert werden.
+Der feste Unique-Name darf nicht geändert werden.
 
 ---
 
-# 24. Unique-Begleiter
+# 25. Unique-Begleiter
 
-Unique ist keine normale Farm-/Drop-Seltenheit.
+Unique ist eine Sonderklasse.
 
-Unique-Begleiter werden **ausschließlich durch einen Admin vergeben**.
-
-Mögliche Gründe:
-
-- persönliches Geschenk
-- Event
-- Community-Meilenstein
-- besondere Leistung
-- Story-/Sonderbelohnung
-- individueller Spielerbegleiter
+Nur ein Admin darf einen Unique-Begleiter für einen Spieler freischalten.
 
 Beispiel:
 
 ```text
-Unique: „Arven“
-Modell: Mannequin / Spieler
-Skin: fest
-Name: fest
-Umbenennen: verboten
-Verhalten: passiv
-Vergabe: Admin
+Admin
+ ↓
+Unique Companion vergeben
+ ↓
+Spieler besitzt ihn dauerhaft
+ ↓
+Name bleibt fest
+ ↓
+Rufen / Wegschicken möglich
 ```
 
-Unique bedeutet nicht automatisch „stärker als alles andere“. Auch Unique muss zur Balance passen.
+Ein Unique-Begleiter kann beispielsweise ein Mannequin mit festem Namen und festem Skin sein.
+
+Der Spieler darf den Namen nicht ändern.
+
+Unique-Begleiter dürfen nicht über normale Questbelohnungen zufällig freigeschaltet werden, sofern sie ausdrücklich als Admin-only definiert sind.
 
 ---
 
-# 25. Freischaltung normaler Begleiter
+# 26. Begleiter als Questbelohnung
 
-Common bis Legendary sollen mehrere nachvollziehbare Freischaltungswege besitzen.
+Begleiter sollen nicht nur über einen Shop verfügbar sein.
 
-Mögliche Quellen:
-
-## Questbelohnung
-
-```text
-Questkette
- ↓
-Abschluss
- ↓
-Begleiter freigeschaltet
-```
-
-## Seltenes Drop-/Loot-System
-
-Ein passender Begleiter kann eine sehr seltene Dropchance besitzen.
-
-Das darf aber nicht der einzige Weg sein.
-
-## Besonderer NPC
-
-Ein Händler, Züchter, Forscher oder anderer NPC kann einen Begleiter unter bestimmten Voraussetzungen freischalten.
-
-## Event / Weltaktivität
-
-Besondere Ereignisse können Begleiter vergeben.
-
-## Begleiterbezogene Quest
-
-Beispiel:
-
-```text
-verletzten Wolf finden
- ↓
-Materialien beschaffen
- ↓
-Wolf retten
- ↓
-Wolf-Begleiter freigeschaltet
-```
-
-## Mehrere Voraussetzungen
-
-Spätere seltene Begleiter können mehrere Bedingungen verlangen:
-
-```text
-Level 50+
-+
-Questkette abgeschlossen
-+
-bestimmtes Item
-+
-NPC besucht
-=
-Begleiter
-```
-
-Die Freischaltung soll möglichst verständlich und thematisch begründet sein.
-
----
-
-# 26. Begleiter als Questbelohnung – Beispiele
-
-## Common – Biene
-
-```text
-„Der leere Bienenstock“
-Level 8
-
-Imker helfen
- ↓
-Bienenstöcke reparieren
- ↓
-verlorene Biene finden
- ↓
-Biene zurückbringen
-
-Belohnung:
-XP + Geld + Biene
-```
-
-## Uncommon – Wolf
-
-```text
-„Die Wölfe von Silberhain“
-Level 15–20
-
-Angriffe auf Holzfäller untersuchen
- ↓
-Spuren verfolgen
- ↓
-verletzten Wolf finden
- ↓
-Ursache des Konflikts lösen
-
-Belohnung:
-Wolf-Begleiter
-```
-
-## Rare – Zombie
-
-```text
-„Die Nacht unter dem Friedhof“
-Level 30–35
-
-ungewöhnliche Untote untersuchen
- ↓
-mehrere NPCs befragen
- ↓
-besonderen Zombie finden
- ↓
-Hintergrund aufklären
-
-Belohnung:
-Rare Zombie-Begleiter
-```
-
-## Epic – Schwein
-
-```text
-„Der legendäre Hof“
-Level 45+
-
-lokale Geschichte um ein außergewöhnliches Schwein
- ↓
-mehrere Aufgaben
- ↓
-Abschluss
-
-Belohnung:
-Epic Schwein-Begleiter
-```
-
-Perspektivisch kann ein Epic-Schwein reitbar sein, wenn das Reitsystem stabil ist.
-
-## Legendary – Warden
-
-Der Warden soll nicht einfach durch einen normalen Warden-Kill droppen.
-
-Beispiel:
-
-```text
-lange Questkette
- ↓
-Deep-Dark-/Ancient-City-Bezug
- ↓
-mehrere Voraussetzungen
- ↓
-gefährliche Questabschnitte
- ↓
-Abschluss
- ↓
-Legendary Warden-Begleiter
-```
-
----
-
-# 27. Begleiter müssen zur Geschichte passen
-
-Schlecht:
-
-```text
-Töte 10 Zombies.
-Belohnung: Zombie.
-```
-
-Besser:
-
-```text
-Ein ungewöhnlicher Zombie bewacht nachts einen Ort.
-Der Spieler untersucht sein Verhalten.
-Die Quest erklärt den Hintergrund.
-Am Ende kann dieser Zombie Begleiter werden.
-```
-
-Der Begleiter soll sich wie ein Teil der Welt anfühlen, nicht wie ein beliebiges Item.
-
----
-
-# 28. Begleiter als Teil einer Questkette
-
-Begleiter können selbst zum Inhalt einer Quest werden:
-
-```text
-NPC
- ↓
-„Finde das verletzte Tier.“
- ↓
-Tier finden
- ↓
-Materialien beschaffen
- ↓
-Tier heilen
- ↓
-Begleiter freigeschaltet
-```
-
-Danach kann derselbe Begleiter weitere XP sammeln und den Spieler durch andere Quests begleiten.
-
----
-
-# 29. Keine Begleiter-Inflation
-
-Begleiter sollen selten genug bleiben, damit neue Begleiter langfristig interessant sind.
-
-Ziel:
-
-```text
-wenige frühe Begleiter
- ↓
-mehr Auswahl im Midgame
- ↓
-seltene Endgame-Begleiter
- ↓
-Unique als Sonderkategorie
-```
-
-Nicht jeder zweite Questabschluss muss einen Begleiter vergeben.
-
----
-
-# 30. Mehrere besitzen, nur einer aktiv
-
-Langfristig soll ein Spieler mehrere Begleiter sammeln können.
-
-Aktiv ist grundsätzlich nur **einer gleichzeitig**.
-
-Beispiel:
-
-```text
-Besitz:
-Biene
-Wolf
-Zombie
-Schwein
-
-Aktiv:
-Wolf
-```
-
-Das hält die Kampfbalance und Entity-Anzahl kontrollierbar.
-
----
-
-# 31. Begleiter-UI
-
-Die bestehende native Dialog-Struktur soll genutzt werden.
-
-Die Oberfläche soll mindestens zeigen:
-
-- Name
-- Seltenheit
-- Level
-- XP
-- Status
-- Rufen
-- Wegschicken
-- Umbenennen bei normalen Begleitern
-
-Bei Unique wird „Umbenennen“ nicht angeboten.
-
----
-
-# 32. Persistenz und Besitz
-
-Begleiter müssen dauerhaft gespeichert werden.
-
-Mindestens benötigt:
-
-- Besitzer / Player UUID
-- Begleiter-ID
-- Entity-/Model-Typ
-- Seltenheit
-- Level
-- XP
-- Name
-- Unique-Daten
-- Skin-/Modellinformationen, falls relevant
-- aktiver Zustand bzw. eindeutige aktive Instanz
-
-Serverrestart darf keinen Begleiterfortschritt zerstören.
-
-Zielmodell:
-
-```text
-Player UUID
- ↓
-Companion Ownership
- ↓
-Companion Definition
- ↓
-Companion Instance
- ↓
-Level / XP / Name / Status
-```
-
----
-
-# 33. Exploit-Schutz
-
-Das System muss später mindestens gegen Folgendes getestet werden:
-
-- doppelte Begleiter
-- doppelte XP
-- XP ohne aktiven Begleiter
-- AFK-XP
-- mehrere aktive Begleiter
-- falscher Besitzer
-- Unique-Umbenennung
-- Begleiter nach Logout mehrfach aktiv
-- Weltwechsel
-- Chunkwechsel
-- Tod
-- Serverrestart
-- Entity manuell getötet
-- Entity durch andere Plugins verändert
-
----
-
-# 34. Kampfbegleiter – erst später
-
-Aktive Kampfbegleiter kommen erst nach dem stabilen passiven Fundament.
-
-Spätere Möglichkeiten:
-
-- automatischer Angriff
-- Targeting
-- Schaden
-- Verteidigung
-- Spezialfähigkeiten
-- Cooldowns
-- Rollen
-- Aggro-Regeln
-- Boss-Interaktion
-
-Die Vanilla-Werte eines Mobs werden nicht einfach 1:1 als PixelRPG-Begleiterwerte übernommen.
-
-```text
-Entity-Darstellung
-        ≠
-Vanilla-Kampfwerte
-```
-
-Ein Warden kann wie ein Warden aussehen und trotzdem kontrollierte PixelRPG-Werte besitzen.
-
----
-
-# 35. Begleiterrollen
-
-Später können Begleiter unterschiedliche Rollen erhalten:
-
-- offensiv
-- defensiv
-- unterstützend
-- Utility
-- Erkundung
-- schnell
-- reitbar
-- kosmetisch
-
-Dadurch kann ein Common-Begleiter interessant bleiben, obwohl er niemals die Rohwerte eines Legendary erreicht.
-
----
-
-# 36. Ungewöhnliche Begleiter sind ausdrücklich erlaubt
-
-Minecraft, Mojang und Paper bieten viele Möglichkeiten.
+Sie können als besondere Questbelohnung auftauchen.
 
 Beispiele:
 
+### Common
+
 ```text
-Mini Warden
-Mini Zombie
-Riesige Biene
-Mini-Skelett
-Spieler-Mannequin
-fliegender Begleiter
-aquatischer Begleiter
-ungewöhnlicher Sonder-/April-Fools-Mob
+Quest: „Das Bienennest“
+Level 7
+
+Hilf einem Imker, sein beschädigtes Nest zu retten.
+
+Belohnung:
+Biene – Common
 ```
 
-Das System soll solche Konzepte nicht durch unnötige Architekturgrenzen verhindern.
+### Uncommon
 
-Technische Machbarkeit und Balance bleiben die einzigen echten Grenzen.
+```text
+Quest: „Ein treuer Freund“
+Level 20
+
+Hilf einem verletzten Wolf und bringe ihn sicher zurück.
+
+Belohnung:
+Wolf – Uncommon
+```
+
+### Rare
+
+```text
+Questkette: „Die verlassene Gruft“
+Level 35
+
+Untersuche die Gruft und löse die Ursache der Untotenaktivität.
+
+Belohnung:
+Zombie – Rare
+```
+
+### Epic
+
+```text
+Questkette: „Der verlorene Sattel“
+Level 50
+
+Finde den verschwundenen Händler und seinen besonderen Reitgefährten.
+
+Belohnung:
+Schwein – Epic
+```
+
+### Legendary
+
+```text
+Sehr späte Questkette / außergewöhnliches Weltgeschehen
+
+Die Belohnung darf nicht einfach aus einer normalen Daily-Quest stammen.
+
+Belohnung:
+Warden – Legendary
+```
+
+### Unique
+
+```text
+Admin-Geschenk
+ ↓
+fest definierter Name
+ ↓
+fest definierter Skin / Entity
+ ↓
+Spieler kann nur rufen / wegschicken
+```
+
+Die Begleiterbelohnung wird über `companionId` in der Questdefinition angegeben.
 
 ---
 
-# 37. Quest + Begleiter gemeinsam planen
+# 27. Freischaltungsquellen für normale Begleiter
 
-Questdesign und Begleiterdesign sollen nicht getrennt entstehen.
+Normale Begleiter können langfristig über mehrere Wege verfügbar werden:
+
+1. Questbelohnung
+2. besondere Questketten
+3. seltene Welt-/Eventquests
+4. besondere NPC-Aufgaben
+5. definierte Entdeckungs-/Erkundungsinhalte
+6. spätere spezielle Systeme, sofern sie zur Spielbalance passen
+
+Kein Begleiter wird ausschließlich deshalb verfügbar, weil der Spieler irgendeinen Mob getötet hat.
+
+Die Freischaltung soll sich wie eine Belohnung oder Entdeckung anfühlen.
+
+---
+
+# 28. JSON-Konzept – Begleiter
+
+Alle veränderlichen Begleiterdaten müssen editierbar sein.
+
+Beispielstruktur:
+
+```json
+{
+  "id": "test-wolf",
+  "entityType": "WOLF",
+  "rarity": "UNCOMMON",
+  "name": "PixelRPG Wolf",
+  "renameable": true,
+  "adminOnly": false,
+  "scale": 1.0,
+  "stats": {
+    "health": 1.0,
+    "damage": 1.0,
+    "speed": 1.0
+  }
+}
+```
+
+Für Unique:
+
+```json
+{
+  "id": "admin_unique_example",
+  "entityType": "MANNEQUIN",
+  "rarity": "UNIQUE",
+  "name": "Fester Name",
+  "renameable": false,
+  "adminOnly": true,
+  "scale": 1.0
+}
+```
+
+Die Java-Logik darf keine konkreten Begleiterwerte voraussetzen.
+
+---
+
+# 29. JSON-Konzept – Questdaten
 
 Beispiel:
 
-```text
-Quest
- ↓
-Begleiter finden
- ↓
-Begleiter retten
- ↓
-Begleiter freischalten
- ↓
-weitere Quest
- ↓
-Begleiter sammelt XP
- ↓
-Begleiter entwickelt sich mit dem Spieler
+```json
+{
+  "id": "village_sonnenhain_mira",
+  "title": "Eine Nachricht aus Sonnenhain",
+  "description": "Finde Mira in Sonnenhain und sprich mit ihr.",
+  "type": "TALK_TO_NPC",
+  "recommendedLevel": 16,
+  "categoryLevel": 10,
+  "targetKey": "example_filler_mira",
+  "requiredAmount": 1,
+  "requirements": {
+    "previousQuest": "example_sonnenhain"
+  },
+  "reward": {
+    "money": 35.0,
+    "experience": 120,
+    "items": [],
+    "companionId": ""
+  }
+}
 ```
 
-So entstehen persönliche Geschichten statt bloßer Sammelobjekte.
+Questdesigner sollen neue Inhalte schreiben können, ohne Java-Klassen für jede einzelne Quest zu erstellen.
 
 ---
 
-# 38. Große Questkette – Beispiel
+# 30. Quest- und Begleiterbalance
 
-```text
-Level 25
-
-„Das Schweigen von Eisenfels“
-        ↓
-Wache befragen
-        ↓
-Mine untersuchen
-        ↓
-Erzproben sammeln
-        ↓
-Störung untersuchen
-        ↓
-Gegner besiegen
-        ↓
-Schmied informieren
-        ↓
-nach Dorf B reisen
-        ↓
-Gelehrten aufsuchen
-        ↓
-alten Hinweis finden
-        ↓
-Questabschluss
-        ↓
-XP + Geld + Item
-        ↓
-Folgequest
-```
-
-Die Quest bleibt eine aktive Questinstanz, obwohl sie mehrere Schritte besitzt.
-
----
-
-# 39. Questdesign-Fragen
-
-Eine gute Quest sollte möglichst beantworten:
-
-```text
-Warum?
-Wohin?
-Zu wem?
-Was passiert dort?
-Warum mache ich das?
-```
-
-Nicht nur:
-
-```text
-Wo sind die Koordinaten?
-```
-
-Das ist ein zentraler Designgrundsatz von PixelRPG.
-
----
-
-# 40. Entwicklungsreihenfolge
-
-## Phase A – Quest-Grundstruktur
-
-- Quest-NPCs bereinigen
-- Levelbereiche sauber darstellen
-- 5-Quest-Limit erzwingen
-- Questdetails verbessern
-- Dialoge vereinheitlichen
-- Recovery Compass vorbereiten
-- Filler-/Reise-NPC vorsehen
-
-## Phase B – Quest-Inhalte
-
-- Level 1–20 vollständig ausarbeiten
-- danach 21–40
-- danach 41–60
-- danach 61–80
-- danach 81–99
-- Questketten verbinden
-- Dörfer einbinden
-- Spielerdörfer über Admin-NPCs integrierbar machen
-
-## Phase C – Begleiter-Fundament
-
-- Datenmodell
-- Besitz
-- Persistenz
-- Freischaltung
-- Rufen
-- Wegschicken
-- Umbenennen
-- Unique-Ausnahme
-- Level
-- XP
-- passive Darstellung
-- Größen-/Modellkonzept
-
-## Phase D – Begleiter-Inhalte
-
-- viele geeignete Entity-Typen
-- Seltenheiten
-- Questbelohnungen
-- Drops
-- NPC-Freischaltungen
-- Events
-- besondere Begleiter
-- Unique-Begleiter
-
-## Phase E – Kampfbegleiter
-
-Erst nach stabilen Tests:
-
-- Kampf-KI
-- Angriff
-- Targeting
-- Skills
-- defensive Rollen
-- Boss-Balance
-- Performance
-
----
-
-# 41. Teststrategie
-
-## Questtests
-
-- Quest annehmen
-- sechste Quest blockieren
-- Quest abschließen
-- Level-Freischaltung prüfen
-- fünf Level Vorlauf prüfen
-- Questketten testen
-- NPC-Wechsel testen
-- Dorf-zu-Dorf testen
-- Recovery Compass testen
-- Serverrestart testen
-
-## Begleitertests
-
-- freischalten
-- speichern
-- laden
-- rufen
-- wegschicken
-- umbenennen
-- Unique-Umbenennung blockieren
-- XP erhalten
-- XP ohne aktiven Begleiter blockieren
-- Levelaufstieg
-- mehrere Begleiter besitzen
-- nur einen aktiv
-- Weltwechsel
-- Tod
-- Logout/Login
-- Serverrestart
-- Entity-Manipulation
-
----
-
-# 42. Balance
-
-Alle Zahlen sind zunächst Testwerte.
-
-Wir benötigen reale Tests mit:
+Die Systeme werden gemeinsam getestet.
 
 ```text
 Spielerlevel
+      ↓
+Spielerwerte
+      ↓
+Quest-XP
+      ↓
 Begleiterlevel
-Seltenheit
-Gegnerlevel
-Bosslevel
-Schaden
-Überlebensfähigkeit
-XP-Gewinn
+      ↓
+Begleiterwerte
+      ↓
+Gegner / Elite / Boss
 ```
 
-Die Balance darf nicht allein aus theoretischen Tabellen entstehen.
+Ziel ist nicht maximale Stärke, sondern ein stimmiges WotLK-inspiriertes Progressionsgefühl.
 
-Ziel:
+Besonders zu testen:
 
-```text
-Spieler + Begleiter
-        ↓
-spürbarer Vorteil
-        ↓
-aber keine Verdopplung der Spielerleistung
-        ↓
-Boss bleibt relevant
-```
+- Level 1–10
+- Level 20–30
+- Level 40–50
+- Level 60–70
+- Level 80–90
+- Level 99
+
+Jede Seltenheit muss sich sinnvoll anfühlen, ohne die Spielerklasse zu entwerten.
 
 ---
 
-# 43. Datengetriebene Architektur
+# 31. Datenvalidierung
 
-Das spätere System muss erweiterbar sein.
+Beim Laden der JSON-Dateien müssen ungültige Daten erkannt und sauber geloggt werden.
 
-Ein neuer Begleiter darf nicht verlangen, dass viele Java-Klassen angepasst werden.
+Beispiele:
 
-Zielmodell:
+- unbekannte Quest-ID
+- unbekannter Questtyp
+- Level außerhalb 1–99
+- unbekannte EntityType
+- ungültige Seltenheit
+- negative XP
+- ungültige Belohnung
+- Unique ohne `adminOnly`
+- Unique mit `renameable: true`
 
-```text
-CompanionDefinition
-    ├─ Entity-/Model-Typ
-    ├─ Seltenheit
-    ├─ Basiswerte
-    ├─ Level-Skalierung
-    ├─ XP-Kurve
-    ├─ Größe / Darstellung
-    ├─ Namensregeln
-    ├─ Freischaltungsquellen
-    └─ Verhalten
-```
-
-Ebenso für Quests:
-
-```text
-QuestDefinition
-    ├─ ID
-    ├─ empfohlenes Level
-    ├─ Freischaltungslevel
-    ├─ Questgeber
-    ├─ Schritte
-    ├─ Ziele
-    ├─ Dialoge
-    ├─ Belohnungen
-    └─ Folgequests
-```
-
-Neue Mobs, neue Questgeber und neue Questketten sollen später möglichst über Daten/Definitionen ergänzt werden können.
+Ein fehlerhafter Datensatz darf nicht den gesamten Serverstart zerstören, sofern ein sicherer Fallback möglich ist.
 
 ---
 
-# 44. Offene Punkte – bewusst noch nicht festlegen
+# 32. Testreihenfolge
 
-Folgende Werte werden erst nach Tests entschieden:
-
-- exakte Spieler-XP-Kurve
-- exakte Begleiter-XP-Kurve
-- XP aus Kampf / Quest / Erkundung
-- Werte pro Seltenheit
-- Dropchancen
-- maximale Anzahl besessener Begleiter
-- genaue Freischaltungsbedingungen einzelner Mobs
-- Reitbarkeit einzelner Begleiter
-- Kampffähigkeiten
-- konkrete Größen einzelner Begleiter
-- Boss-/Begleiter-Balance
-- Recovery-Compass-Verhalten bei mehreren Questzielen
-
-Wir bauen diese Punkte nicht vorschnell hart in die Architektur.
-
----
-
-# 45. Verbindliche Designregeln
-
-1. Spielerprogression: Level 1–99.
-2. Level 100+: Grind-/Endgame-Bereich.
-3. Maximal 5 aktive Quests.
-4. Quest grundsätzlich 5 Level vor dem empfohlenen Level freischalten.
-5. Keine Reputation.
-6. Keine Titel.
-7. Keine sinnlosen Koordinatenquests.
-8. Koordinaten sind intern erlaubt, aber Spielerziele brauchen Kontext.
-9. Ein generischer Filler-/Reise-NPC darf für Ortsziele verwendet werden.
-10. Dörfer dürfen eigene Quest-Hubs besitzen.
-11. Spielerdörfer sollen später über Admin-NPCs eingebunden werden können.
-12. Recovery Compass als Quest-Navigationshilfe.
-13. Begleiter haben eigene Level und XP.
-14. Begleiter erhalten XP nur während aktiver Begleitung.
-15. Begleiter leveln unabhängig vom Spieler.
-16. Begleiter besitzen feste, kontrollierte Werte.
-17. Seltenheit beeinflusst Stärke/Verfügbarkeit, nicht automatisch Größe.
-18. Keine Architektur auf wenige feste Mobs beschränken.
-19. Möglichst viele technisch geeignete Entities der tatsächlichen Zielversion berücksichtigen.
-20. Auch vorhandene ungewöhnliche bzw. ursprünglich als April-Fools eingeführte Entities dürfen geprüft werden.
-21. Darstellung, Größe und Kampfbalance getrennt behandeln.
-22. Passive Begleiter vor Kampfbegleitern.
-23. Unique ausschließlich durch Admin.
-24. Unique-Name kann fest und nicht veränderbar sein.
-25. Normale Begleiter dürfen umbenannt werden.
-26. Mehrere Begleiter besitzen, grundsätzlich nur einen aktiv.
-27. Begleiter können sinnvolle Questbelohnungen sein.
-28. Begleiter dürfen nicht inflationär verteilt werden.
-29. Begleiter unterstützen Spieler, entwerten aber keine Gegner/Bosse.
-30. Größere Änderungen werden real getestet.
-
----
-
-# 46. Langfristiges Zielbild
-
-PixelRPG soll sich so anfühlen:
+Die Implementierung und Prüfung erfolgt in dieser Reihenfolge:
 
 ```text
-Spieler
-  ↓
-Person kennenlernen
-  ↓
-Quest erhalten
-  ↓
-Welt erkunden
-  ↓
-Dorf / NPC / Gegner / Beruf
-  ↓
-Problem lösen
-  ↓
-Belohnung erhalten
-  ↓
-Begleiter kennenlernen
-  ↓
-Begleiter aufbauen
-  ↓
-mit Begleiter weitere Abenteuer erleben
+1. JSON-Laden / Validierung
+2. Quest-NPC-Auswahl
+3. Level-Freischaltung
+4. 5-Quest-Limit
+5. Questannahme
+6. Questfortschritt
+7. Questabschluss
+8. Questbelohnungen
+9. Questketten
+10. Dorf-/Filler-NPCs
+11. Recovery Compass
+12. Begleiter-Freischaltung
+13. Rufen / Wegschicken
+14. Folgen
+15. Umbenennen
+16. Unique-Regeln
+17. Begleiter-XP
+18. Begleiterlevel
+19. Begleitergröße
+20. Balanceprüfung
 ```
 
-Quests sollen keine GPS-Aufgaben sein.
-Begleiter sollen keine bloßen kosmetischen Entity-Spawns sein.
+Kampffunktionen für Begleiter kommen erst danach.
 
-Beide Systeme sollen Teil derselben Welt werden.
+---
 
-Die große Auswahl an Minecraft-Entities ist ausdrücklich gewollt. Wolf, Biene, Zombie, Schwein und Warden sind nur Beispiele. Jede technisch geeignete Entity der tatsächlichen Zielversion soll grundsätzlich als möglicher Begleiter in Betracht gezogen werden – inklusive ungewöhnlicher oder historisch als April-Fools eingeführter Entities, sofern sie noch vorhanden und sicher nutzbar sind.
+# 33. Phase C / spätere Systeme
 
-**Erst Fundament → dann Inhalte → dann Kampfsystem → dann Feintuning.**
+Die ursprünglich geplante Phase C bleibt vorerst ausdrücklich zurückgestellt.
+
+Wir investieren zunächst in:
+
+- Quest-System
+- Questdaten
+- Quest-NPCs
+- Filler-/Reise-NPCs
+- Recovery Compass
+- Begleiter-Grundsystem
+- Begleiterdaten
+- UI
+- Tests
+
+Erst wenn das Plugin angenommen wurde und über längere Zeit stabil läuft, wird Phase C neu bewertet.
+
+---
+
+# 34. Aktueller Implementierungsstand
+
+Stand: **22.08.2026**
+
+Bereits als Fundament vorhanden:
+
+- Levelsystem 1–99
+- datengetriebene `quests.json`
+- datengetriebene `companions.json`
+- maximal 5 aktive Quests
+- Questfreischaltung mit 5-Level-Vorlauf
+- Questtypen `HUNT`, `COLLECT`, `TALK_TO_NPC`, `ESCORT`, `REACH_LOCATION`, `GLOBAL_EVENT`
+- Quest-XP / Geld / Item-Belohnungen
+- Begleiterbelohnungen über `companionId`
+- eigener Begleiter-XP-Fortschritt
+- Begleiterlevel 1–99
+- aktive Begleiter erhalten XP, inaktive nicht
+- normale Begleiter können umbenannt werden
+- Unique-Begleiter sind als Admin-only-Konzept vorgesehen
+- passive Begleiterphase
+- Test-Begleiter für Wolf, Biene, Zombie, Schwein und Warden
+- Questbeispiel für einen Filler-/NPC-Folgepunkt
+
+Noch abzuarbeiten:
+
+- vollständige Questketten über die Levelbereiche 1–99
+- weitere Questtypen und deren echte Progressionslogik
+- Filler-/Reise-NPC vollständig als Admin-Werkzeug
+- Recovery-Compass-Zielsystem
+- saubere Begleiter-Folgebewegung
+- vollständige Begleiter-Definitionen und Größenwerte
+- separates Begleiter-Statdatenmodell
+- Unique-Mannequin mit festem Namen/Skin
+- vollständige Freischaltungslogik für normale Begleiter
+- Questbelohnungs- und Begleiter-XP-Verzahnung
+- umfangreiche Balance- und Regressionstests
+- spätere Begleiter-Kampffunktionen
+
+---
+
+# 35. Definition of Done
+
+Die Quest-/Begleiter-Grundphase gilt erst als fertig, wenn:
+
+- der Compiler grün durchläuft
+- JSON-Dateien ohne Java-Codeänderung bearbeitet werden können
+- neue Quests nur über Daten hinzugefügt werden können
+- neue Begleiterdefinitionen nur über Daten hinzugefügt werden können
+- maximal fünf aktive Quests zuverlässig erzwungen werden
+- die Level-5-Frühfreischaltung funktioniert
+- Questketten sauber fortgesetzt werden
+- Filler-NPCs als echte Ziele funktionieren
+- Recovery Compass ein klares Questziel verfolgt
+- Begleiter persistent gespeichert werden
+- Rufen / Wegschicken zuverlässig funktioniert
+- Begleiter dem Spieler folgen
+- normale Begleiter umbenannt werden können
+- Unique-Begleiter nicht umbenannt werden können
+- Begleiter-XP nur bei aktiver Begleitung vergeben wird
+- Level 1–99 korrekt funktioniert
+- Größe getrennt von Kampfstärke funktioniert
+- Quest- und Begleiterbelohnungen zuverlässig gespeichert werden
+- keine Duplizierung oder XP-Ausnutzung möglich ist
+- die Systeme mit realen Spieler-, Gegner- und Bosswerten getestet wurden
+
+Erst danach wird die Kampffunktion der Begleiter begonnen.
