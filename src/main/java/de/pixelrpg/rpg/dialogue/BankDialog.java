@@ -69,7 +69,7 @@ public final class BankDialog {
         );
         DialogInput input = DialogInput.numberRange(
                 "amount", 260, Component.text("Betrag", NamedTextColor.GREEN),
-                "%s Gold", 1.0f, maxAmount, Math.min(1.0f, maxAmount), 1.0f);
+                "%s Gold", 1.0f, (float) maxAmount, 1.0f, 1.0f);
 
         dialogueEngine.openNumberRangeAction(player, Component.text("Geld einzahlen", NamedTextColor.GREEN),
                 body, input, Component.text("Einzahlen"), NamedTextColor.GREEN,
@@ -92,7 +92,7 @@ public final class BankDialog {
         );
         DialogInput input = DialogInput.numberRange(
                 "amount", 260, Component.text("Betrag", NamedTextColor.YELLOW),
-                "%s Gold", 1.0f, maxAmount, Math.min(1.0f, maxAmount), 1.0f);
+                "%s Gold", 1.0f, (float) maxAmount, 1.0f, 1.0f);
 
         dialogueEngine.openNumberRangeAction(player, Component.text("Geld auszahlen", NamedTextColor.YELLOW),
                 body, input, Component.text("Auszahlen"), NamedTextColor.YELLOW,
