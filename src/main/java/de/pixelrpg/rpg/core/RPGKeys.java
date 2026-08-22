@@ -73,6 +73,12 @@ public final class RPGKeys {
         public static NamespacedKey npcId() { return of("npc_id"); }
     }
 
+    public static final class Quest {
+        private Quest() { }
+
+        public static NamespacedKey navigationCompass() { return of("quest_navigation_compass"); }
+    }
+
     public static final class Economy {
         private Economy() { }
 
