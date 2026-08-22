@@ -1,5 +1,7 @@
 package de.pixelrpg.rpg.combat.scaling;
 
+import com.google.gson.JsonObject;
+import de.pixelrpg.rpg.config.JsonDataManager;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -11,11 +13,27 @@ public final class MobScalingConfig {
     private DimensionModifier nether;
     private DimensionModifier theEnd;
     private int nameplateDurationTicks = 120;
-    private double xpPerMaxHealth = 0.9;
+    private double xpPerMaxHealth = 0.6;
     private double playerParityMultiplier = 1.15;
     private double hpPerLevel = 8.0;
     private double damagePerLevel = 1.1;
 
+    /** Loads mob scaling formulas from the user-editable JSON data file. */
+    public void load(JsonDataManager dataManager) {
+        JsonObject root = dataManager.load("mob-scaling.json");
+        nameplateDurationTicks = intValue(root, "nameplateDurationTicks", nameplateDurationTicks);
+        xpPerMaxHealth = number(root, "xpPerMaxHealth", xpPerMaxHealth);
+        playerParityMultiplier = number(root, "playerParityMultiplier", playerParityMultiplier);
+        hpPerLevel = number(root, "hpPerLevel", hpPerLevel);
+        damagePerLevel = number(root, "damagePerLevel", damagePerLevel);
+
+        JsonObject dimensions = root.getAsJsonObject("dimensions");
+        overworld = loadDimension(dimensions, "overworld", 1.0, 1.0, 0, 1);
+        nether = loadDimension(dimensions, "nether", 1.30, 1.20, 0, 50);
+        theEnd = loadDimension(dimensions, "the_end", 1.60, 1.40, 0, 75);
+    }
+
+    /** Compatibility loader for the legacy main config. */
     public void load(FileConfiguration config) {
         playerParityMultiplier = config.getDouble("mob-scaling.player-parity-multiplier", 1.15);
         hpPerLevel = config.getDouble("mob-scaling.hp-per-level", 8.0);
@@ -24,17 +42,25 @@ public final class MobScalingConfig {
         nether = loadDimension(config, "mob-scaling.dimension.nether", 1.30, 1.20, 0, 50);
         theEnd = loadDimension(config, "mob-scaling.dimension.the-end", 1.60, 1.40, 0, 75);
         nameplateDurationTicks = config.getInt("mob-scaling.nameplate-duration-ticks", 120);
-        xpPerMaxHealth = config.getDouble("mob-scaling.xp-per-max-health", 0.9);
+        xpPerMaxHealth = config.getDouble("mob-scaling.xp-per-max-health", 0.6);
     }
 
-    private DimensionModifier loadDimension(FileConfiguration config, String path, double defaultHp, double defaultDmg,
-                                            int defaultOffset, int defaultBaseLevel) {
-        return new DimensionModifier(
-                config.getDouble(path + ".hp-multiplier", defaultHp),
-                config.getDouble(path + ".damage-multiplier", defaultDmg),
-                config.getInt(path + ".level-offset", defaultOffset),
-                config.getInt(path + ".base-level", defaultBaseLevel)
-        );
+    private DimensionModifier loadDimension(JsonObject parent, String key, double defaultHp, double defaultDmg, int defaultOffset, int defaultBaseLevel) {
+        JsonObject object = parent == null ? null : parent.getAsJsonObject(key);
+        if (object == null) return new DimensionModifier(defaultHp, defaultDmg, defaultOffset, defaultBaseLevel);
+        return new DimensionModifier(number(object, "hpMultiplier", defaultHp), number(object, "damageMultiplier", defaultDmg), intValue(object, "levelOffset", defaultOffset), intValue(object, "baseLevel", defaultBaseLevel));
+    }
+
+    private DimensionModifier loadDimension(FileConfiguration config, String path, double defaultHp, double defaultDmg, int defaultOffset, int defaultBaseLevel) {
+        return new DimensionModifier(config.getDouble(path + ".hp-multiplier", defaultHp), config.getDouble(path + ".damage-multiplier", defaultDmg), config.getInt(path + ".level-offset", defaultOffset), config.getInt(path + ".base-level", defaultBaseLevel));
+    }
+
+    private static double number(JsonObject object, String key, double fallback) {
+        return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsDouble() : fallback;
+    }
+
+    private static int intValue(JsonObject object, String key, int fallback) {
+        return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsInt() : fallback;
     }
 
     public LevelBaseStats getBaseStats(int level) {
