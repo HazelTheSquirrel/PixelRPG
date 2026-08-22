@@ -25,6 +25,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class QuestManager {
+    public static final int MAX_ACTIVE_QUESTS = 5;
+
     private final Plugin plugin;
     private final QuestRepository questRepository;
     private final PlayerProfileManager profileManager;
