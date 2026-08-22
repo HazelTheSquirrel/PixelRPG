@@ -217,7 +217,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CombatDamageListener(playerProfileManager, playerProfileManager, statEngine, mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new MobExperienceListener(playerProfileManager, mobScalingConfig), this);
-        getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry), this);
+        getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry, questManager), this);
         getServer().getPluginManager().registerEvents(new QuestMobKillListener(questManager), this);
         getServer().getPluginManager().registerEvents(new PartyDisconnectListener(partyManager), this);
         getServer().getPluginManager().registerEvents(new BossDeathListener(bossManager), this);
