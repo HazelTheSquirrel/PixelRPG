@@ -15,6 +15,7 @@ import de.pixelrpg.rpg.command.PaperBasicCommandAdapter;
 import de.pixelrpg.rpg.command.RootCommand;
 import de.pixelrpg.rpg.command.impl.BlacksmithSubCommand;
 import de.pixelrpg.rpg.command.impl.BossSubCommand;
+import de.pixelrpg.rpg.command.impl.CompanionSubCommand;
 import de.pixelrpg.rpg.command.impl.NpcSubCommand;
 import de.pixelrpg.rpg.command.impl.PartySubCommand;
 import de.pixelrpg.rpg.command.impl.QuestAdminSubCommand;
@@ -237,6 +238,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
         RootCommand rootCommand = new RootCommand();
         rootCommand.register(new BlacksmithSubCommand(blacksmithGUI));
+        rootCommand.register(new CompanionSubCommand(companionService));
         rootCommand.register(new NpcSubCommand(npcManager));
         rootCommand.register(new ShopSubCommand(shopManager, shopEditorGUI, npcManager));
         rootCommand.register(new QuestAdminSubCommand(questManager));
@@ -261,6 +263,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (bossManager != null) bossManager.shutdown();
         if (shopManager != null) shopManager.shutdown();
         if (companionService != null) companionService.shutdown();
+        if (npcManager != null) npcManager.shutdown();
         if (playerProfileManager != null) playerProfileManager.shutdown();
         Bukkit.getServicesManager().unregisterAll(this);
         instance = null;
