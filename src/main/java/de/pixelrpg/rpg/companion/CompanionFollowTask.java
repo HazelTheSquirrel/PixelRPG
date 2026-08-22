@@ -12,7 +12,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /** Keeps active passive companions near their owning player without enabling combat AI. */
@@ -22,6 +24,7 @@ public final class CompanionFollowTask implements Runnable {
 
     private final Plugin plugin;
     private final Map<UUID, UUID> activeEntities;
+    private final Set<UUID> configuredEntities = new HashSet<>();
     private final Map<String, CompanionVisualDefinition> definitionsByName = new HashMap<>();
     private final Map<String, CompanionStatDefinition> statsByRarity = new HashMap<>();
 
@@ -40,10 +43,13 @@ public final class CompanionFollowTask implements Runnable {
 
             if (player == null || companion == null || !companion.isValid()) {
                 activeEntities.remove(entry.getKey(), entry.getValue());
+                configuredEntities.remove(entry.getValue());
                 continue;
             }
 
-            if (companion instanceof LivingEntity living) applyConfiguredAttributes(living);
+            if (companion instanceof LivingEntity living && configuredEntities.add(companion.getUniqueId())) {
+                applyConfiguredAttributes(living);
+            }
 
             Location playerLocation = player.getLocation();
             if (companion.getWorld() != player.getWorld()) {
@@ -74,7 +80,9 @@ public final class CompanionFollowTask implements Runnable {
         if (definition == null) return;
 
         AttributeInstance scale = entity.getAttribute(Attribute.SCALE);
-        if (scale != null) scale.setBaseValue(definition.scale());
+        if (scale != null && Double.isFinite(definition.scale()) && definition.scale() > 0.0D) {
+            scale.setBaseValue(definition.scale());
+        }
 
         CompanionStatDefinition stats = statsByRarity.get(definition.rarity());
         if (stats == null) return;
