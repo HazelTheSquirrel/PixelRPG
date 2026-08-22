@@ -18,6 +18,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class RPGItemBuilder {
+    private static final double LEVEL_ONE_TO_NINETY_NINE_GROWTH = 10.0D;
     private static double blessingChance = 0.12;
     private static double curseChance = 0.10;
 
@@ -29,7 +30,7 @@ public final class RPGItemBuilder {
         curseChance = Math.max(0.0, Math.min(1.0, curse));
     }
 
-    /** Creates a fully identified PixelRPG item. Unidentified items are no longer part of the item system. */
+    /** Creates a fully identified PixelRPG item with deterministic core stats for its level and rarity. */
     public static java.util.Optional<ItemStack> createItem(Material material, ItemRarity rarity, int itemLevel) {
         if (material == null || rarity == null || !Level.isValidNormalLevel(itemLevel)) return java.util.Optional.empty();
 
@@ -49,10 +50,9 @@ public final class RPGItemBuilder {
         pdc.set(RPGKeys.Item.category(), PersistentDataType.STRING, category.name());
         pdc.set(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN, true);
 
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        double roll = 0.85 + random.nextDouble(0.30);
         double multiplier = rarity.getStatMultiplier();
-        double levelFactor = 1.0 + itemLevel * 0.075;
+        double levelFactor = levelScaling(itemLevel);
+        ThreadLocalRandom random = ThreadLocalRandom.current();
 
         List<Component> lore = new ArrayList<>();
         lore.add(line(rarity.displayName()));
@@ -61,9 +61,9 @@ public final class RPGItemBuilder {
         lore.add(Component.text(" "));
 
         switch (category.getProfile()) {
-            case WEAPON -> addWeaponStats(lore, pdc, multiplier, levelFactor, roll);
-            case ARMOR, SHIELD -> addArmorStats(lore, pdc, category, multiplier, levelFactor, roll);
-            case TOOL -> addToolStats(lore, pdc, multiplier, levelFactor, roll);
+            case WEAPON -> addWeaponStats(lore, pdc, multiplier, levelFactor);
+            case ARMOR, SHIELD -> addArmorStats(lore, pdc, category, multiplier, levelFactor);
+            case TOOL -> addToolStats(lore, pdc, multiplier, levelFactor);
         }
 
         if (random.nextDouble() < blessingChance) {
@@ -111,9 +111,9 @@ public final class RPGItemBuilder {
     }
 
     private static void addWeaponStats(List<Component> lore, PersistentDataContainer pdc,
-                                       double multiplier, double levelFactor, double roll) {
-        double damage = round((2.0 + levelFactor * 1.8) * multiplier * roll);
-        double critChance = round((1.0 + levelFactor * 0.22) * multiplier * 0.7 * roll);
+                                       double multiplier, double levelFactor) {
+        double damage = round(3.0D * levelFactor * multiplier);
+        double critChance = round(0.5D * levelFactor * multiplier);
         pdc.set(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, damage);
         pdc.set(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, critChance);
         lore.add(line(Component.text("+" + format(damage) + " Attack Power", NamedTextColor.RED)));
@@ -121,11 +121,11 @@ public final class RPGItemBuilder {
     }
 
     private static void addArmorStats(List<Component> lore, PersistentDataContainer pdc, ItemCategory category,
-                                      double multiplier, double levelFactor, double roll) {
-        double armor = round((1.5 + levelFactor * 1.2) * multiplier * roll);
+                                      double multiplier, double levelFactor) {
+        double armor = round(0.7D * levelFactor * multiplier);
         double health = category.getProfile() == ItemStatProfile.SHIELD
-                ? 0.0
-                : round((1.0 + levelFactor * 0.9) * multiplier * roll);
+                ? 0.0D
+                : round(1.2D * levelFactor * multiplier);
         pdc.set(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, armor);
         pdc.set(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, health);
         lore.add(line(Component.text("+" + format(armor) + " Armor", NamedTextColor.BLUE)));
@@ -133,10 +133,16 @@ public final class RPGItemBuilder {
     }
 
     private static void addToolStats(List<Component> lore, PersistentDataContainer pdc,
-                                     double multiplier, double levelFactor, double roll) {
-        double efficiency = round((1.0 + levelFactor * 0.55) * multiplier * roll);
+                                     double multiplier, double levelFactor) {
+        double efficiency = round(1.0D * levelFactor * multiplier);
         pdc.set(RPGKeys.Item.toolBonus(), PersistentDataType.DOUBLE, efficiency);
         lore.add(line(Component.text("+" + format(efficiency) + " Efficiency", NamedTextColor.YELLOW)));
+    }
+
+    private static double levelScaling(int itemLevel) {
+        if (itemLevel <= Level.MIN_LEVEL) return 1.0D;
+        double progress = (itemLevel - 1.0D) / (Level.MAX_NORMAL_LEVEL - 1.0D);
+        return Math.pow(LEVEL_ONE_TO_NINETY_NINE_GROWTH, progress);
     }
 
     private static Component line(Component component) {
