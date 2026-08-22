@@ -31,8 +31,6 @@ public final class RPGKeys {
         public static NamespacedKey healthBonus() { return of("item_health_bonus"); }
         public static NamespacedKey toolBonus() { return of("item_tool_bonus"); }
         public static NamespacedKey lifestealPercent() { return of("item_lifesteal_percent"); }
-        public static NamespacedKey blessingType() { return of("item_blessing_type"); }
-        public static NamespacedKey curseType() { return of("item_curse_type"); }
         public static NamespacedKey soulbound() { return of("item_soulbound"); }
         public static NamespacedKey weaponAbility() { return of("item_weapon_ability"); }
         public static NamespacedKey weaponAbilityManaCost() { return of("item_weapon_ability_mana"); }
