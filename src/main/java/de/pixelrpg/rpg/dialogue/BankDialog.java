@@ -20,12 +20,14 @@ import java.util.List;
 public final class BankDialog {
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
+    private final BankStorageService bankStorage;
     private final LanguageManager lang;
     private final long quickAmount;
 
-    public BankDialog(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
+    public BankDialog(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, BankStorageService bankStorage) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
+        this.bankStorage = bankStorage;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
         this.quickAmount = Math.max(1L, PixelRPGPlugin.getInstance().getConfig()
                 .getLong("economy.bank.quick-amount", 10L));
@@ -42,7 +44,7 @@ public final class BankDialog {
                 DialogBody.plainMessage(Component.text("Kontostand: ", NamedTextColor.GRAY)
                         .append(Component.text(format(profile.getMoney()) + " Gold", NamedTextColor.GOLD))),
                 DialogBody.plainMessage(Component.text(
-                        "Dein Bankfach ist persönlich und bleibt auch nach dem Verlassen der Bank erhalten.",
+                        "Dein persönliches Bankfach besitzt zwei Seiten und bleibt dauerhaft erhalten.",
                         NamedTextColor.DARK_GRAY))
         );
 
@@ -178,7 +180,23 @@ public final class BankDialog {
 
     private void openBankCompartment(Player player) {
         player.closeDialog();
-        player.openInventory(player.getEnderChest());
+        ItemStack[] contents = bankStorage.load(player.getUniqueId());
+        BankInventoryHolder holder = new BankInventoryHolder(player.getUniqueId(), 0);
+        var inventory = org.bukkit.Bukkit.createInventory(holder, BankStorageService.PAGE_SIZE,
+                Component.text("Bankfach – Seite 1", NamedTextColor.GOLD));
+        holder.inventory(inventory);
+        System.arraycopy(contents, 0, inventory.getContents(), 0, BankStorageService.PAGE_SIZE);
+        inventory.setItem(53, createNavigationHead("MHF_ArrowRight", "Weiter"));
+        player.openInventory(inventory);
+    }
+
+    private ItemStack createNavigationHead(String profileName, String displayName) {
+        ItemStack item = new ItemStack(org.bukkit.Material.PLAYER_HEAD);
+        var meta = (org.bukkit.inventory.meta.SkullMeta) item.getItemMeta();
+        meta.setPlayerProfile(org.bukkit.Bukkit.createProfile(profileName));
+        meta.displayName(Component.text(displayName, NamedTextColor.YELLOW));
+        item.setItemMeta(meta);
+        return item;
     }
 
     private String format(double amount) {
