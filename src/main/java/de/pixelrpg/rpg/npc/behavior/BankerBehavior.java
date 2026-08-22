@@ -1,18 +1,13 @@
 package de.pixelrpg.rpg.npc.behavior;
 
-import de.pixelrpg.rpg.gui.BankGUI;
+import de.pixelrpg.rpg.dialogue.BankDialog;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import io.papermc.paper.registry.data.dialog.body.DialogBody;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
-
-import java.util.List;
 
 public final class BankerBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
@@ -37,16 +32,6 @@ public final class BankerBehavior implements NpcBehavior {
             return;
         }
 
-        dialogueEngine.openMultiAction(
-                player,
-                Component.text("Bank", NamedTextColor.GOLD),
-                List.of(DialogBody.plainMessage(Component.text("Verwalte dein PixelRPG-Bankkonto."))),
-                List.of(dialogueEngine.actionButton(
-                        Component.text("Bank öffnen"),
-                        NamedTextColor.GREEN,
-                        target -> new BankGUI(target, profileManager).open(target)
-                )),
-                1
-        );
+        new BankDialog(profileManager, dialogueEngine).open(player);
     }
 }
