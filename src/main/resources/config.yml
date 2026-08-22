@@ -59,36 +59,53 @@ class-balance:
     health-base: 10.0
     health-per-vitality: 0.0
     speed-base: 0.0
+    speed-per-agility: 0.0
     melee-mult-base: 1.05
     melee-mult-per-toughness: 0.0
-    ranged-mult: 0.95
-    spell-mult: 0.90
-    heal-mult: 1.0
-    crit-chance-bonus: 0.0
-    crit-damage-mult: 1.0
+    ranged-mult-base: 0.95
+    ranged-mult-per-point: 0.0
+    spell-mult-base: 0.90
+    spell-mult-per-precision: 0.0
+    heal-mult-base: 1.0
+    heal-mult-per-vitality: 0.0
+    crit-chance-base: 0.0
+    crit-chance-per-point: 0.0
+    crit-damage-mult-base: 1.0
+    crit-damage-mult-per-precision: 0.0
   ranger:
     armor-base: 0.0
+    armor-per-toughness: 0.0
     health-base: 3.0
     health-per-vitality: 0.0
     speed-base: 0.0025
     speed-per-agility: 0.0
-    melee-mult: 0.95
+    melee-mult-base: 0.95
+    melee-mult-per-toughness: 0.0
     ranged-mult-base: 1.05
     ranged-mult-per-point: 0.0
-    spell-mult: 1.0
-    heal-mult: 1.0
+    spell-mult-base: 1.0
+    spell-mult-per-precision: 0.0
+    heal-mult-base: 1.0
+    heal-mult-per-vitality: 0.0
     crit-chance-base: 3.0
-    crit-chance-per-range: 0.0
-    crit-damage-mult: 1.0
+    crit-chance-per-point: 0.0
+    crit-damage-mult-base: 1.0
+    crit-damage-mult-per-precision: 0.0
   rogue:
     armor-base: 0.0
+    armor-per-toughness: 0.0
     health-base: 0.0
+    health-per-vitality: 0.0
     speed-base: 0.002
     speed-per-agility: 0.0
-    melee-mult: 1.0
-    ranged-mult: 1.0
-    spell-mult: 1.0
-    heal-mult: 1.0
+    melee-mult-base: 1.0
+    melee-mult-per-toughness: 0.0
+    ranged-mult-base: 1.0
+    ranged-mult-per-point: 0.0
+    spell-mult-base: 1.0
+    spell-mult-per-precision: 0.0
+    heal-mult-base: 1.0
+    heal-mult-per-vitality: 0.0
     crit-chance-base: 5.0
     crit-chance-per-point: 0.0
     crit-damage-mult-base: 1.15
@@ -99,25 +116,38 @@ class-balance:
     health-base: 10.0
     health-per-vitality: 0.0
     speed-base: 0.0
-    melee-mult: 0.95
-    ranged-mult: 0.95
-    spell-mult: 1.0
+    speed-per-agility: 0.0
+    melee-mult-base: 0.95
+    melee-mult-per-toughness: 0.0
+    ranged-mult-base: 0.95
+    ranged-mult-per-point: 0.0
+    spell-mult-base: 1.0
+    spell-mult-per-precision: 0.0
     heal-mult-base: 1.15
     heal-mult-per-vitality: 0.0
-    crit-chance-bonus: 0.0
-    crit-damage-mult: 1.0
+    crit-chance-base: 0.0
+    crit-chance-per-point: 0.0
+    crit-damage-mult-base: 1.0
+    crit-damage-mult-per-precision: 0.0
   mage:
     armor-base: -2.0
+    armor-per-toughness: 0.0
     health-base: -2.0
     health-per-vitality: 0.0
     speed-base: 0.0
-    melee-mult: 0.85
-    ranged-mult: 1.0
+    speed-per-agility: 0.0
+    melee-mult-base: 0.85
+    melee-mult-per-toughness: 0.0
+    ranged-mult-base: 1.0
+    ranged-mult-per-point: 0.0
     spell-mult-base: 1.15
     spell-mult-per-precision: 0.0
-    heal-mult: 1.0
-    crit-chance-bonus: 0.0
-    crit-damage-mult: 1.0
+    heal-mult-base: 1.0
+    heal-mult-per-vitality: 0.0
+    crit-chance-base: 0.0
+    crit-chance-per-point: 0.0
+    crit-damage-mult-base: 1.0
+    crit-damage-mult-per-precision: 0.0
 
 story:
   chars-per-line: 18
