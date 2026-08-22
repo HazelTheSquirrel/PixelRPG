@@ -135,7 +135,7 @@ public final class DialogueEngine {
         return Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(normalize(title))
-                    .body(List.of(DialogBody.plainMessage(normalize(body))))
+                    .body(List.of(DialogBody.plainMessage(whiteText(body))))
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .build());
@@ -146,7 +146,7 @@ public final class DialogueEngine {
     private List<DialogBody> normalizeBody(List<DialogBody> body) {
         return body.stream().map(entry -> {
             if (entry instanceof PlainMessageDialogBody plain) {
-                return DialogBody.plainMessage(normalize(plain.contents()), plain.width());
+                return DialogBody.plainMessage(whiteText(plain.contents()), plain.width());
             }
             return entry;
         }).toList();
@@ -154,5 +154,10 @@ public final class DialogueEngine {
 
     private Component normalize(Component component) {
         return component.decoration(TextDecoration.ITALIC, false);
+    }
+
+    private Component whiteText(Component component) {
+        List<Component> children = component.children().stream().map(this::whiteText).toList();
+        return component.color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false).children(children);
     }
 }
