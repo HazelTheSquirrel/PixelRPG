@@ -10,8 +10,8 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -78,20 +78,24 @@ public final class CompanionFollowTask implements Runnable {
         CompanionVisualDefinition definition = definitionsById.get(id);
         if (definition == null) return;
 
-        entity.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, definition.level());
-        entity.getPersistentDataContainer().set(RPGKeys.Companion.rarity(), PersistentDataType.STRING, definition.rarity());
+        int level = Math.max(1, entity.getPersistentDataContainer()
+                .getOrDefault(RPGKeys.Companion.level(), PersistentDataType.INTEGER, 1));
+        String rarity = entity.getPersistentDataContainer()
+                .getOrDefault(RPGKeys.Companion.rarity(), PersistentDataType.STRING, definition.rarity());
+        entity.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, level);
+        entity.getPersistentDataContainer().set(RPGKeys.Companion.rarity(), PersistentDataType.STRING, rarity);
 
         AttributeInstance scale = entity.getAttribute(Attribute.SCALE);
         if (scale != null && Double.isFinite(definition.scale()) && definition.scale() > 0.0D) {
             scale.setBaseValue(definition.scale());
         }
 
-        CompanionStatDefinition stats = statsByRarity.get(definition.rarity());
+        CompanionStatDefinition stats = statsByRarity.get(rarity.toUpperCase());
         if (stats == null) return;
 
-        double healthMultiplier = capped(stats.healthMultiplier() * levelMultiplier(levelScaling.healthPerLevel(), definition.level()), levelScaling.healthCap());
-        double damageMultiplier = capped(stats.damageMultiplier() * levelMultiplier(levelScaling.damagePerLevel(), definition.level()), levelScaling.damageCap());
-        double speedMultiplier = capped(stats.speedMultiplier() * levelMultiplier(levelScaling.speedPerLevel(), definition.level()), levelScaling.speedCap());
+        double healthMultiplier = capped(stats.healthMultiplier() * levelMultiplier(levelScaling.healthPerLevel(), level), levelScaling.healthCap());
+        double damageMultiplier = capped(stats.damageMultiplier() * levelMultiplier(levelScaling.damagePerLevel(), level), levelScaling.damageCap());
+        double speedMultiplier = capped(stats.speedMultiplier() * levelMultiplier(levelScaling.speedPerLevel(), level), levelScaling.speedCap());
 
         setMultiplier(entity, Attribute.MAX_HEALTH, healthMultiplier);
         setMultiplier(entity, Attribute.ATTACK_DAMAGE, damageMultiplier);
@@ -130,13 +134,10 @@ public final class CompanionFollowTask implements Runnable {
                 JsonObject json = element.getAsJsonObject();
                 String id = string(json, "id", "").strip();
                 if (id.isBlank()) continue;
-                int maxLevel = number(root.getAsJsonObject("progression"), "maxLevel", 99);
-                int level = Math.max(1, Math.min(maxLevel, number(json, "level", 1)));
                 definitionsById.put(id, new CompanionVisualDefinition(
                         string(json, "entityType", ""),
                         string(json, "rarity", "COMMON").toUpperCase(),
-                        number(json, "scale", 1.0D),
-                        level));
+                        number(json, "scale", 1.0D)));
             }
         } catch (RuntimeException exception) {
             plugin.getLogger().warning("Unable to load companion visual configuration: " + exception.getMessage());
@@ -183,15 +184,11 @@ public final class CompanionFollowTask implements Runnable {
         return object != null && object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsString() : fallback;
     }
 
-    private static int number(JsonObject object, String key, int fallback) {
-        return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsInt() : fallback;
-    }
-
     private static double number(JsonObject object, String key, double fallback) {
         return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsDouble() : fallback;
     }
 
-    private record CompanionVisualDefinition(String entityType, String rarity, double scale, int level) {
+    private record CompanionVisualDefinition(String entityType, String rarity, double scale) {
     }
 
     private record CompanionStatDefinition(double healthMultiplier, double damageMultiplier, double speedMultiplier) {
