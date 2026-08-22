@@ -78,6 +78,13 @@ public final class NpcManager {
 
     public RPGNpc create(NpcType type, String name, Location location, String skinSource, Profession profession) {
         String id = String.valueOf(nextId.getAndIncrement());
+        return createWithId(id, type, name, location, skinSource, profession);
+    }
+
+    /** Creates an NPC with a stable administrator-defined id for data-driven quest targets. */
+    public RPGNpc createWithId(String id, NpcType type, String name, Location location, String skinSource, Profession profession) {
+        if (id == null || id.isBlank()) throw new IllegalArgumentException("NPC id must not be blank");
+        if (npcsById.containsKey(id)) throw new IllegalArgumentException("NPC id already exists: " + id);
         RPGNpc npc = new RPGNpc(id, type, name, location.clone(), skinSource, profession);
         npcsById.put(id, npc);
         spawnEntityFor(npc);
