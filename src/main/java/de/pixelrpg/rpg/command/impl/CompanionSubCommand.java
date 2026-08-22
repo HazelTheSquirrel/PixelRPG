@@ -5,6 +5,7 @@ import de.pixelrpg.rpg.companion.CompanionService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.Registry;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -57,8 +58,21 @@ public final class CompanionSubCommand implements SubCommand {
             return true;
         }
 
-        String fixedName = String.join(" ", Arrays.copyOfRange(args, 3, args.length - 1));
-        companionService.unlockUnique(target.getUniqueId(), args[2], fixedName, entityType);
+        if (!entityType.isAlive() || !entityType.isSpawnable()) {
+            sender.sendMessage(Component.text("Der EntityType ist kein spawnbarer lebender Begleiter.", NamedTextColor.RED));
+            return true;
+        }
+
+        String fixedName = String.join(" ", Arrays.copyOfRange(args, 3, args.length - 1)).strip();
+        if (fixedName.isBlank()) {
+            sender.sendMessage(Component.text("Der feste Name darf nicht leer sein.", NamedTextColor.RED));
+            return true;
+        }
+
+        if (!companionService.unlockUnique(target.getUniqueId(), args[2], fixedName, entityType)) {
+            sender.sendMessage(Component.text("Unique-Begleiter konnte nicht freigeschaltet werden. Prüfe id, Name und Unique-Konfiguration.", NamedTextColor.RED));
+            return true;
+        }
         sender.sendMessage(Component.text("Unique-Begleiter für " + target.getName() + " freigeschaltet: " + fixedName, NamedTextColor.GREEN));
         return true;
     }
@@ -67,7 +81,7 @@ public final class CompanionSubCommand implements SubCommand {
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) return List.of("unique");
         if (args.length == 2) return Bukkit.getOnlinePlayers().stream().map(Player::getName).sorted().toList();
-        if (args.length == 5) return Arrays.stream(EntityType.values()).map(EntityType::name).sorted().toList();
+        if (args.length == 5) return Registry.ENTITY_TYPE.stream().filter(EntityType::isAlive).filter(EntityType::isSpawnable).map(EntityType::name).sorted().toList();
         return List.of();
     }
 }
