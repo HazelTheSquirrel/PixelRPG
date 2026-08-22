@@ -59,12 +59,6 @@ public final class WeaponAbilityEngine {
             return;
         }
 
-        double manaCost = Math.max(0.0, pdc.getOrDefault(RPGKeys.Item.weaponAbilityManaCost(), PersistentDataType.DOUBLE, 0.0D));
-        if (manaCost > 0.0 && profile.getCurrentMana() + 1.0E-9 < manaCost) {
-            player.sendActionBar(Component.text("Nicht genug Mana: " + format(profile.getCurrentMana()) + "/" + format(statEngine.getMaxMana(player)), NamedTextColor.BLUE));
-            return;
-        }
-
         double weaponDamage = pdc.getOrDefault(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, 0.0D);
         boolean executed = switch (abilityId) {
             case "HEAVY_STRIKE" -> heavyStrike(player, weaponDamage);
@@ -74,7 +68,6 @@ public final class WeaponAbilityEngine {
         };
         if (!executed) return;
 
-        if (manaCost > 0.0) statEngine.consumeMana(player, manaCost);
         if (cooldown > 0L) cooldownExpiry.put(player.getUniqueId(), now + cooldown);
     }
 
@@ -117,9 +110,5 @@ public final class WeaponAbilityEngine {
         player.getWorld().spawnParticle(Particle.ENCHANT, player.getLocation().add(0, 1, 0), 30, 2.5, 1.0, 2.5);
         player.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 0.8f, 1.2f);
         return true;
-    }
-
-    private static String format(double value) {
-        return String.format(java.util.Locale.ROOT, "%.1f", value);
     }
 }
