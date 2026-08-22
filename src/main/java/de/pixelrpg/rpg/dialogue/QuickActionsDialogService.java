@@ -135,7 +135,6 @@ public final class QuickActionsDialogService {
                 .append(Component.text("Klasse: ", NamedTextColor.WHITE)).append(profile.getPlayerClass().displayName().color(NamedTextColor.LIGHT_PURPLE)).build();
         Component resources = Component.text()
                 .append(Component.text("Leben: ", NamedTextColor.WHITE)).append(Component.text(format(player.getHealth()) + "/" + format(maxHealth), NamedTextColor.RED)).append(Component.newline())
-                .append(Component.text("Mana: ", NamedTextColor.WHITE)).append(Component.text(format(profile.getCurrentMana()) + "/" + format(stats.maxMana()), NamedTextColor.BLUE)).append(Component.newline())
                 .append(Component.text("Rüstung: ", NamedTextColor.WHITE)).append(Component.text(format(armor), NamedTextColor.GRAY)).build();
         Component attributes = Component.text()
                 .append(Component.text("Stärke: ", NamedTextColor.WHITE)).append(Component.text(format(stats.strength()), NamedTextColor.AQUA)).append(Component.newline())
