@@ -66,7 +66,7 @@ public final class QuickActionsDialogService {
         ActionButton activeQuests = ActionButton.builder(Component.text("Aktive Quests", NamedTextColor.AQUA))
                 .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick(
                         (response, audience) -> {
-                            if (audience instanceof Player target) openActiveQuests(target);
+                            if (audience instanceof Player target) openActiveQuests(target, companionDialog, professionDialog);
                         }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
                 .width(220)
                 .build();
@@ -92,7 +92,7 @@ public final class QuickActionsDialogService {
         }));
     }
 
-    private void openActiveQuests(Player player) {
+    private void openActiveQuests(Player player, CompanionDialog companionDialog, ProfessionDialog professionDialog) {
         PlayerProfile profile = profiles.getProfile(player.getUniqueId())
                 .filter(PlayerProfile::isRegisteredInGuild)
                 .orElse(null);
@@ -107,8 +107,8 @@ public final class QuickActionsDialogService {
                     "Aktive Quests: " + profile.getActiveQuests().size() + "/3", NamedTextColor.AQUA)));
             for (String questId : profile.getActiveQuests().keySet().stream().sorted().toList()) {
                 Quest quest = questManager.getRepository().getQuest(questId);
-                if (quest == null) continue;
                 QuestProgress progress = profile.getActiveQuests().get(questId);
+                if (quest == null || progress == null) continue;
                 actions.add(actionButton(
                         Component.text(quest.title() + " • " + progress.getCurrentAmount() + "/" + quest.requiredAmount()),
                         NamedTextColor.YELLOW,
@@ -118,9 +118,8 @@ public final class QuickActionsDialogService {
             }
         }
 
-        ActionButton back = actionButton(Component.text("Zurück"), NamedTextColor.WHITE,
-                target -> openCharacterProfile(target, new CompanionDialog(new de.pixelrpg.rpg.companion.CompanionService(target.getServer().getPluginManager().getPlugin("PixelRPG")), new DialogueEngine()), new ProfessionDialog(profiles, new DialogueEngine())));
-        actions.add(back);
+        actions.add(actionButton(Component.text("Zurück"), NamedTextColor.WHITE,
+                target -> openCharacterProfile(target, companionDialog, professionDialog)));
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(Component.text("PixelRPG – Aktive Quests", NamedTextColor.GOLD))
