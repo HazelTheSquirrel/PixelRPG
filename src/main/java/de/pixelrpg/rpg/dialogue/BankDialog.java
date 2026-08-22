@@ -5,8 +5,10 @@ import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import io.papermc.paper.dialog.DialogResponseView;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
+import io.papermc.paper.registry.data.dialog.input.DialogInput;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Sound;
@@ -22,15 +24,12 @@ public final class BankDialog {
     private final DialogueEngine dialogueEngine;
     private final BankStorageService bankStorage;
     private final LanguageManager lang;
-    private final long quickAmount;
 
     public BankDialog(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, BankStorageService bankStorage) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.bankStorage = bankStorage;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
-        this.quickAmount = Math.max(1L, PixelRPGPlugin.getInstance().getConfig()
-                .getLong("economy.bank.quick-amount", 10L));
     }
 
     public void open(Player player) {
@@ -49,38 +48,91 @@ public final class BankDialog {
         );
 
         List<ActionButton> actions = new ArrayList<>();
-        actions.add(dialogueEngine.actionButton(Component.text("Einzahlen: " + quickAmount + " Gold"), NamedTextColor.GREEN, target -> deposit(target, quickAmount)));
-        actions.add(dialogueEngine.actionButton(Component.text("Alles einzahlen"), NamedTextColor.GREEN, this::depositAll));
-        actions.add(dialogueEngine.actionButton(Component.text("Auszahlen: " + quickAmount + " Gold"), NamedTextColor.YELLOW, target -> withdraw(target, quickAmount)));
-        actions.add(dialogueEngine.actionButton(Component.text("Alles auszahlen"), NamedTextColor.YELLOW, this::withdrawAll));
+        actions.add(dialogueEngine.actionButton(Component.text("Einzahlen"), NamedTextColor.GREEN, this::openDepositSelector));
+        actions.add(dialogueEngine.actionButton(Component.text("Auszahlen"), NamedTextColor.YELLOW, this::openWithdrawSelector));
         actions.add(dialogueEngine.actionButton(Component.text("Bankfach öffnen"), NamedTextColor.AQUA, this::openBankCompartment));
         actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
 
         dialogueEngine.openMultiAction(player, Component.text("Bank", NamedTextColor.GOLD), body, actions, 2);
     }
 
+    private void openDepositSelector(Player player) {
+        long maxAmount = getInventoryCurrencyAmount(player);
+        if (maxAmount <= 0L) {
+            lang.send(player, "bank.no-currency");
+            return;
+        }
+
+        List<DialogBody> body = List.of(
+                DialogBody.plainMessage(Component.text("Wähle den Betrag, den du einzahlen möchtest.", NamedTextColor.GRAY)),
+                DialogBody.plainMessage(Component.text("Verfügbar: " + maxAmount + " Gold", NamedTextColor.GOLD))
+        );
+        DialogInput input = DialogInput.numberRange(
+                "amount", 260, Component.text("Betrag", NamedTextColor.GREEN),
+                "%s Gold", 1.0f, maxAmount, Math.min(1.0f, maxAmount), 1.0f);
+
+        dialogueEngine.openNumberRangeAction(player, Component.text("Geld einzahlen", NamedTextColor.GREEN),
+                body, input, Component.text("Einzahlen"), NamedTextColor.GREEN,
+                (target, response) -> depositFromResponse(target, response));
+    }
+
+    private void openWithdrawSelector(Player player) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null) return;
+
+        long maxAmount = (long) Math.floor(profile.getMoney());
+        if (maxAmount <= 0L) {
+            lang.send(player, "bank.balance-empty");
+            return;
+        }
+
+        List<DialogBody> body = List.of(
+                DialogBody.plainMessage(Component.text("Wähle den Betrag, den du auszahlen möchtest.", NamedTextColor.GRAY)),
+                DialogBody.plainMessage(Component.text("Kontostand: " + format(profile.getMoney()) + " Gold", NamedTextColor.GOLD))
+        );
+        DialogInput input = DialogInput.numberRange(
+                "amount", 260, Component.text("Betrag", NamedTextColor.YELLOW),
+                "%s Gold", 1.0f, maxAmount, Math.min(1.0f, maxAmount), 1.0f);
+
+        dialogueEngine.openNumberRangeAction(player, Component.text("Geld auszahlen", NamedTextColor.YELLOW),
+                body, input, Component.text("Auszahlen"), NamedTextColor.YELLOW,
+                (target, response) -> withdrawFromResponse(target, response));
+    }
+
+    private void depositFromResponse(Player player, DialogResponseView response) {
+        Float value = response.getFloat("amount");
+        if (value == null || !Float.isFinite(value)) return;
+        long amount = Math.max(1L, (long) value.floatValue());
+        deposit(player, amount);
+    }
+
+    private void withdrawFromResponse(Player player, DialogResponseView response) {
+        Float value = response.getFloat("amount");
+        if (value == null || !Float.isFinite(value)) return;
+        long amount = Math.max(1L, (long) value.floatValue());
+        withdraw(player, amount);
+    }
+
+    private long getInventoryCurrencyAmount(Player player) {
+        double total = 0.0;
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (GuildCurrencyItemFactory.isCurrency(item)) {
+                total += GuildCurrencyItemFactory.readAmount(item) * item.getAmount();
+            }
+        }
+        return Math.max(0L, (long) Math.floor(total));
+    }
+
     private void deposit(Player player, long amount) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
         double removed = removeCurrencyFromInventory(player, amount);
-        if (removed <= 0.0) { lang.send(player, "bank.no-currency"); return; }
+        if (removed <= 0.0) {
+            lang.send(player, "bank.no-currency");
+            return;
+        }
         profile.addMoney(removed);
         lang.send(player, "bank.deposit-success", "amount", format(removed));
-        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.2f);
-        open(player);
-    }
-
-    private void depositAll(Player player) {
-        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null) return;
-        double total = 0.0;
-        for (ItemStack item : player.getInventory().getContents()) {
-            if (GuildCurrencyItemFactory.isCurrency(item)) total += GuildCurrencyItemFactory.readAmount(item) * item.getAmount();
-        }
-        if (total <= 0.0) { lang.send(player, "bank.no-currency"); return; }
-        removeCurrencyFromInventory(player, total);
-        profile.addMoney(total);
-        lang.send(player, "bank.deposit-success", "amount", format(total));
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.2f);
         open(player);
     }
@@ -106,17 +158,10 @@ public final class BankDialog {
     private void withdraw(Player player, long amount) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
-        if (!profile.removeMoney(amount)) { lang.send(player, "bank.insufficient"); return; }
-        giveCurrency(player, amount);
-        open(player);
-    }
-
-    private void withdrawAll(Player player) {
-        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null) return;
-        long amount = (long) Math.floor(profile.getMoney());
-        if (amount <= 0L) { lang.send(player, "bank.balance-empty"); return; }
-        profile.removeMoney(amount);
+        if (!profile.removeMoney(amount)) {
+            lang.send(player, "bank.insufficient");
+            return;
+        }
         giveCurrency(player, amount);
         open(player);
     }
