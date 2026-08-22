@@ -49,46 +49,21 @@ public final class BankDialog {
         );
 
         List<ActionButton> actions = new ArrayList<>();
-        actions.add(dialogueEngine.actionButton(
-                Component.text("Einzahlen: " + quickAmount + " Gold"),
-                NamedTextColor.GREEN,
-                target -> deposit(target, quickAmount)));
-        actions.add(dialogueEngine.actionButton(
-                Component.text("Alles einzahlen"),
-                NamedTextColor.GREEN,
-                target -> depositAll(target)));
-        actions.add(dialogueEngine.actionButton(
-                Component.text("Auszahlen: " + quickAmount + " Gold"),
-                NamedTextColor.YELLOW,
-                target -> withdraw(target, quickAmount)));
-        actions.add(dialogueEngine.actionButton(
-                Component.text("Alles auszahlen"),
-                NamedTextColor.YELLOW,
-                this::withdrawAll));
-        actions.add(dialogueEngine.actionButton(
-                Component.text("Bankfach öffnen"),
-                NamedTextColor.AQUA,
-                this::openBankCompartment));
+        actions.add(dialogueEngine.actionButton(Component.text("Einzahlen: " + quickAmount + " Gold"), NamedTextColor.GREEN, target -> deposit(target, quickAmount)));
+        actions.add(dialogueEngine.actionButton(Component.text("Alles einzahlen"), NamedTextColor.GREEN, this::depositAll));
+        actions.add(dialogueEngine.actionButton(Component.text("Auszahlen: " + quickAmount + " Gold"), NamedTextColor.YELLOW, target -> withdraw(target, quickAmount)));
+        actions.add(dialogueEngine.actionButton(Component.text("Alles auszahlen"), NamedTextColor.YELLOW, this::withdrawAll));
+        actions.add(dialogueEngine.actionButton(Component.text("Bankfach öffnen"), NamedTextColor.AQUA, this::openBankCompartment));
         actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
 
-        dialogueEngine.openMultiAction(
-                player,
-                Component.text("Bank", NamedTextColor.GOLD),
-                body,
-                actions,
-                2);
+        dialogueEngine.openMultiAction(player, Component.text("Bank", NamedTextColor.GOLD), body, actions, 2);
     }
 
     private void deposit(Player player, long amount) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
-
         double removed = removeCurrencyFromInventory(player, amount);
-        if (removed <= 0.0) {
-            lang.send(player, "bank.no-currency");
-            return;
-        }
-
+        if (removed <= 0.0) { lang.send(player, "bank.no-currency"); return; }
         profile.addMoney(removed);
         lang.send(player, "bank.deposit-success", "amount", format(removed));
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.2f);
@@ -98,19 +73,11 @@ public final class BankDialog {
     private void depositAll(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
-
         double total = 0.0;
         for (ItemStack item : player.getInventory().getContents()) {
-            if (GuildCurrencyItemFactory.isCurrency(item)) {
-                total += GuildCurrencyItemFactory.readAmount(item) * item.getAmount();
-            }
+            if (GuildCurrencyItemFactory.isCurrency(item)) total += GuildCurrencyItemFactory.readAmount(item) * item.getAmount();
         }
-
-        if (total <= 0.0) {
-            lang.send(player, "bank.no-currency");
-            return;
-        }
-
+        if (total <= 0.0) { lang.send(player, "bank.no-currency"); return; }
         removeCurrencyFromInventory(player, total);
         profile.addMoney(total);
         lang.send(player, "bank.deposit-success", "amount", format(total));
@@ -123,15 +90,12 @@ public final class BankDialog {
         for (int slot = 0; slot < player.getInventory().getSize() && removed < maxAmount; slot++) {
             ItemStack item = player.getInventory().getItem(slot);
             if (!GuildCurrencyItemFactory.isCurrency(item)) continue;
-
             double perItemValue = GuildCurrencyItemFactory.readAmount(item);
             if (perItemValue <= 0.0) continue;
-
             int available = item.getAmount();
             int neededUnits = (int) Math.ceil((maxAmount - removed) / perItemValue);
             int takeUnits = Math.min(available, Math.max(neededUnits, 0));
             if (takeUnits <= 0) continue;
-
             removed += perItemValue * takeUnits;
             if (takeUnits >= available) player.getInventory().setItem(slot, null);
             else item.setAmount(available - takeUnits);
@@ -142,11 +106,7 @@ public final class BankDialog {
     private void withdraw(Player player, long amount) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
-        if (!profile.removeMoney(amount)) {
-            lang.send(player, "bank.insufficient");
-            return;
-        }
-
+        if (!profile.removeMoney(amount)) { lang.send(player, "bank.insufficient"); return; }
         giveCurrency(player, amount);
         open(player);
     }
@@ -154,13 +114,8 @@ public final class BankDialog {
     private void withdrawAll(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
-
         long amount = (long) Math.floor(profile.getMoney());
-        if (amount <= 0L) {
-            lang.send(player, "bank.balance-empty");
-            return;
-        }
-
+        if (amount <= 0L) { lang.send(player, "bank.balance-empty"); return; }
         profile.removeMoney(amount);
         giveCurrency(player, amount);
         open(player);
@@ -169,13 +124,10 @@ public final class BankDialog {
     private void giveCurrency(Player player, long amount) {
         List<ItemStack> stacks = GuildCurrencyItemFactory.createStacks(amount);
         for (ItemStack stack : stacks) {
-            player.getInventory().addItem(stack).values()
-                    .forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
+            player.getInventory().addItem(stack).values().forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
         }
         player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.0f);
-        lang.send(player, "bank.withdrew-stacks",
-                "amount", String.valueOf(amount),
-                "stacks", String.valueOf(stacks.size()));
+        lang.send(player, "bank.withdrew-stacks", "amount", String.valueOf(amount), "stacks", String.valueOf(stacks.size()));
     }
 
     private void openBankCompartment(Player player) {
@@ -185,7 +137,7 @@ public final class BankDialog {
         var inventory = org.bukkit.Bukkit.createInventory(holder, BankStorageService.PAGE_SIZE,
                 Component.text("Bankfach – Seite 1", NamedTextColor.GOLD));
         holder.inventory(inventory);
-        System.arraycopy(contents, 0, inventory.getContents(), 0, BankStorageService.PAGE_SIZE);
+        for (int slot = 0; slot < BankStorageService.PAGE_SIZE; slot++) inventory.setItem(slot, contents[slot]);
         inventory.setItem(53, createNavigationHead("MHF_ArrowRight", "Weiter"));
         player.openInventory(inventory);
     }
