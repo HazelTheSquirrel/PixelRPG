@@ -29,6 +29,8 @@ import org.bukkit.projectiles.ProjectileSource;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class CombatDamageListener implements Listener {
+    private static final double MAX_CRIT_CHANCE = 50.0D;
+
     private final GuildAPI guildAPI;
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
@@ -67,22 +69,22 @@ public final class CombatDamageListener implements Listener {
         if (target instanceof Player) return;
         PlayerProfile profile = profileManager.getProfile(attacker.getUniqueId()).orElse(null);
         if (profile == null) return;
+
         StatEngine.CachedStats stats = statEngine.getCachedStats(attacker.getUniqueId());
         double damage = event.getDamage() + stats.bonusDamage();
         ItemStack weapon = attacker.getInventory().getItemInMainHand();
-        double weaponCritBonus = 0.0;
         double weaponLifesteal = stats.lifestealBonus();
         if (weapon.hasItemMeta()) {
             var pdc = weapon.getItemMeta().getPersistentDataContainer();
             Integer itemLevel = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
             boolean levelRequirementMet = itemLevel == null || profile.getLevel() >= itemLevel;
             if (levelRequirementMet) {
-                weaponCritBonus = pdc.getOrDefault(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, 0.0);
                 weaponLifesteal += pdc.getOrDefault(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, 0.0);
                 damage += pdc.getOrDefault(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, 0.0);
             }
         }
-        double totalCritChance = Math.min(100.0, stats.critChance() + weaponCritBonus);
+
+        double totalCritChance = Math.min(MAX_CRIT_CHANCE, Math.max(0.0D, stats.critChance()));
         boolean isCrit = ThreadLocalRandom.current().nextDouble(100.0) < totalCritChance;
         if (isCrit) {
             damage *= stats.critDamageMultiplier();
@@ -90,6 +92,7 @@ public final class CombatDamageListener implements Listener {
             target.getWorld().spawnParticle(Particle.CRIT, target.getLocation().add(0, 1, 0), 12, 0.3, 0.3, 0.3);
             attacker.playSound(attacker.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.6f, 1.4f);
         }
+
         PlayerClass playerClass = profile.getPlayerClass();
         ClassBalance classBalance = ClassBalance.of(profile);
         damage *= isRanged ? classBalance.rangedDamageMultiplier() : classBalance.meleeDamageMultiplier();
@@ -102,7 +105,7 @@ public final class CombatDamageListener implements Listener {
             damage = Math.min(damage, bossMaxHp * bossMaxHitPercentOfMaxHp);
         }
         if (!isRanged && ClassSetBonusService.rollProc(setBonus)) {
-            double procBurst = damage * 0.35;
+            double procBurst = damage * 0.25;
             damage += procBurst;
             target.getWorld().spawnParticle(Particle.FLASH, target.getLocation().add(0, 1, 0), 1);
             attacker.playSound(attacker.getLocation(), Sound.ITEM_TOTEM_USE, 0.7f, 1.6f);
