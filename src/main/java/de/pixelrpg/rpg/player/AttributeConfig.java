@@ -10,18 +10,18 @@ import org.bukkit.plugin.Plugin;
 public final class AttributeConfig {
     private static int[] levelRequirements = {1, 10, 20, 30, 40, 50, 60};
     private static double baseCost = 30.0;
-    private static double costMultiplier = 1.40;
+    private static double costMultiplier = 1.08;
     private static double soulviewCost = 500.0;
     private static double elytraPermitCost = 750.0;
     private static double classDiscount = 0.75;
 
-    public static double VITALITY_HP_PER_POINT = 4.0;
-    public static double AGILITY_SPEED_PER_POINT = 0.008;
-    public static double AGILITY_CRIT_PER_POINT = 1.5;
-    public static double PRECISION_DAMAGE_PER_POINT = 1.2;
-    public static double RANGE_BLOCK_PER_POINT = 0.15;
-    public static double RANGE_ENTITY_PER_POINT = 0.20;
-    public static double TOUGHNESS_ARMOR_PER_POINT = 2.0;
+    public static double VITALITY_HP_PER_POINT = 2.0;
+    public static double AGILITY_SPEED_PER_POINT = 0.0025;
+    public static double AGILITY_CRIT_PER_POINT = 0.20;
+    public static double PRECISION_DAMAGE_PER_POINT = 0.75;
+    public static double RANGE_BLOCK_PER_POINT = 0.10;
+    public static double RANGE_ENTITY_PER_POINT = 0.10;
+    public static double TOUGHNESS_ARMOR_PER_POINT = 1.0;
 
     private AttributeConfig() { }
 
@@ -65,8 +65,8 @@ public final class AttributeConfig {
         AGILITY_SPEED_PER_POINT = config.getDouble("attributes.per-point.agility-speed", AGILITY_SPEED_PER_POINT);
         AGILITY_CRIT_PER_POINT = config.getDouble("attributes.per-point.agility-crit", AGILITY_CRIT_PER_POINT);
         PRECISION_DAMAGE_PER_POINT = config.getDouble("attributes.per-point.precision-damage", PRECISION_DAMAGE_PER_POINT);
-        RANGE_BLOCK_PER_POINT = config.getDouble("attributes.range-block", RANGE_BLOCK_PER_POINT);
-        RANGE_ENTITY_PER_POINT = config.getDouble("attributes.range-entity", RANGE_ENTITY_PER_POINT);
+        RANGE_BLOCK_PER_POINT = config.getDouble("attributes.per-point.range-block", RANGE_BLOCK_PER_POINT);
+        RANGE_ENTITY_PER_POINT = config.getDouble("attributes.per-point.range-entity", RANGE_ENTITY_PER_POINT);
         TOUGHNESS_ARMOR_PER_POINT = config.getDouble("attributes.per-point.toughness-armor", TOUGHNESS_ARMOR_PER_POINT);
     }
 
