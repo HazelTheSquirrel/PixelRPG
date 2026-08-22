@@ -19,6 +19,7 @@ repositories {
 dependencies {
     paperweight.paperDevBundle("26.2.build.+")
 
+    implementation 'com.google.code.gson:gson:2.13.1'
     implementation 'com.zaxxer:HikariCP:7.0.2'
     implementation 'com.mysql:mysql-connector-j:9.7.0'
 }
@@ -36,6 +37,7 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.shadowJar {
     archiveFileName = "Pixel-RPG.jar"
+    relocate 'com.google.gson', 'de.pixelrpg.rpg.libs.gson'
     relocate 'com.zaxxer.hikari', 'de.pixelrpg.rpg.libs.hikari'
     relocate 'com.mysql', 'de.pixelrpg.rpg.libs.mysql'
 }
