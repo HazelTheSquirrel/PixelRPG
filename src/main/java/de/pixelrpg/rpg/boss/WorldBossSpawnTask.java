@@ -1,12 +1,10 @@
 package de.pixelrpg.rpg.boss;
 
-import de.pixelrpg.rpg.item.BossLootConfig;
 import de.pixelrpg.rpg.item.ItemRarity;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
