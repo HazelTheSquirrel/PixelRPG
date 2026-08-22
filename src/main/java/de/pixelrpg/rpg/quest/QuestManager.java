@@ -77,6 +77,7 @@ public final class QuestManager {
     public boolean canAccept(PlayerProfile profile, Quest quest) {
         if (!profile.isRegisteredInGuild()) return false;
         if (profile.hasCompletedQuest(quest.id())) return false;
+        if (!questRepository.prerequisitesMet(profile, quest.id())) return false;
         int minimumLevel = Math.max(1, quest.requiredLevel() - questRepository.unlockEarlyLevels());
         return profile.getLevel() >= minimumLevel;
     }
