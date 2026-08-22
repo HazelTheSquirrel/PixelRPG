@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.npc;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.npc.behavior.FillerBehavior;
 import de.pixelrpg.rpg.npc.behavior.ProfessionTrainerBehavior;
 
 import java.util.EnumMap;
@@ -19,16 +20,24 @@ public final class NpcBehaviorRegistry {
         NpcBehavior behavior = behaviors.get(type);
         if (behavior != null) return Optional.of(behavior);
 
-        if (type == NpcType.PROFESSION_TRAINER) {
-            PixelRPGPlugin plugin = PixelRPGPlugin.getInstance();
-            if (plugin != null && plugin.getProfessionSystem() != null) {
-                return Optional.of(new ProfessionTrainerBehavior(
-                        plugin.getPlayerProfileManager(),
-                        plugin.getProfessionSystem().professionService(),
-                        plugin.getProfessionSystem().craftingService(),
-                        new DialogueEngine()));
-            }
+        PixelRPGPlugin plugin = PixelRPGPlugin.getInstance();
+        if (plugin == null) return Optional.empty();
+
+        if (type == NpcType.PROFESSION_TRAINER && plugin.getProfessionSystem() != null) {
+            return Optional.of(new ProfessionTrainerBehavior(
+                    plugin.getPlayerProfileManager(),
+                    plugin.getProfessionSystem().professionService(),
+                    plugin.getProfessionSystem().craftingService(),
+                    new DialogueEngine()));
         }
+
+        if (type == NpcType.FILLER && plugin.getQuestManager() != null) {
+            return Optional.of(new FillerBehavior(
+                    plugin.getQuestManager(),
+                    plugin.getPlayerProfileManager(),
+                    new DialogueEngine()));
+        }
+
         return Optional.empty();
     }
 }
