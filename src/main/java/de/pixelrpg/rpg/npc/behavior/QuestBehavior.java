@@ -8,6 +8,7 @@ import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
 import de.pixelrpg.rpg.quest.QuestManager;
+import de.pixelrpg.rpg.quest.QuestType;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
@@ -15,11 +16,12 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
 public final class QuestBehavior implements NpcBehavior {
-    private static final int MAX_LEVEL = 100;
+    private static final int MAX_NORMAL_LEVEL = 99;
 
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
@@ -43,12 +45,16 @@ public final class QuestBehavior implements NpcBehavior {
         openQuestRanges(player);
     }
 
+    private int unlockBuffer() {
+        return questManager.getRepository().unlockEarlyLevels();
+    }
+
     private void openQuestRanges(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
 
         List<Integer> categoryLevels = new TreeSet<>(questManager.getRepository().getAllQuests().stream()
-                .filter(quest -> quest.type() != de.pixelrpg.rpg.quest.QuestType.GLOBAL_EVENT)
+                .filter(quest -> quest.type() != QuestType.GLOBAL_EVENT)
                 .map(Quest::categoryLevel)
                 .toList()).stream().toList();
 
@@ -63,10 +69,10 @@ public final class QuestBehavior implements NpcBehavior {
         for (int index = 0; index < categoryLevels.size(); index++) {
             int start = categoryLevels.get(index);
             int end = index + 1 < categoryLevels.size()
-                    ? Math.min(MAX_LEVEL, categoryLevels.get(index + 1) - 1)
-                    : MAX_LEVEL;
+                    ? Math.min(MAX_NORMAL_LEVEL, categoryLevels.get(index + 1) - 1)
+                    : MAX_NORMAL_LEVEL;
             boolean current = profile.getLevel() >= start && profile.getLevel() <= end;
-            boolean unlocked = profile.getLevel() >= Math.max(1, start - QuestManager.QUEST_LEVEL_UNLOCK_BUFFER);
+            boolean unlocked = profile.getLevel() >= Math.max(1, start - unlockBuffer());
 
             actions.add(dialogueEngine.actionButton(
                     Component.text("Level " + start + "–" + end),
@@ -96,21 +102,21 @@ public final class QuestBehavior implements NpcBehavior {
         if (profile == null) return;
 
         List<Quest> quests = questManager.getRepository().getAllQuests().stream()
-                .filter(quest -> quest.type() != de.pixelrpg.rpg.quest.QuestType.GLOBAL_EVENT)
+                .filter(quest -> quest.type() != QuestType.GLOBAL_EVENT)
                 .filter(quest -> quest.categoryLevel() == start)
-                .sorted(java.util.Comparator.comparingInt(Quest::requiredLevel).thenComparing(Quest::title))
+                .sorted(Comparator.comparingInt(Quest::requiredLevel).thenComparing(Quest::title))
                 .toList();
 
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text("Questbereich Level " + start + "–" + end, NamedTextColor.AQUA)),
                 DialogBody.plainMessage(Component.text(
-                        "Quests werden bis zu fünf Level vor ihrem empfohlenen Level freigeschaltet.", NamedTextColor.WHITE))
+                        "Quests werden bis zu " + unlockBuffer() + " Level vor ihrem empfohlenen Level freigeschaltet.", NamedTextColor.WHITE))
         );
 
         List<ActionButton> actions = new ArrayList<>();
         for (Quest quest : quests) {
             boolean active = profile.hasActiveQuest(quest.id());
-            boolean levelAvailable = profile.getLevel() >= Math.max(1, quest.requiredLevel() - QuestManager.QUEST_LEVEL_UNLOCK_BUFFER);
+            boolean levelAvailable = profile.getLevel() >= Math.max(1, quest.requiredLevel() - unlockBuffer());
             actions.add(dialogueEngine.actionButton(
                     Component.text((active ? "[Aktiv] " : "") + quest.title() + " • Level " + quest.requiredLevel()),
                     active ? NamedTextColor.YELLOW : levelAvailable ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
@@ -137,7 +143,7 @@ public final class QuestBehavior implements NpcBehavior {
 
         boolean active = profile.hasActiveQuest(quest.id());
         boolean completed = profile.hasCompletedQuest(quest.id());
-        int unlockLevel = Math.max(1, quest.requiredLevel() - QuestManager.QUEST_LEVEL_UNLOCK_BUFFER);
+        int unlockLevel = Math.max(1, quest.requiredLevel() - unlockBuffer());
         boolean levelAvailable = profile.getLevel() >= unlockLevel;
         String status = completed ? "Bereits abgeschlossen" : active ? "Aktiv" : levelAvailable ? "Verfügbar" : "Noch nicht verfügbar";
         String rewards = "Belohnung: " + quest.rewardMoney() + " Gold, " + quest.rewardExp() + " EP";
