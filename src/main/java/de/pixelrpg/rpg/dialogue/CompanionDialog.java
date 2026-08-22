@@ -35,15 +35,26 @@ public final class CompanionDialog {
         List<ActionButton> actions = new ArrayList<>();
 
         body.add(DialogBody.plainMessage(Component.text(
-                "Teste: Ein Wolf steht als Begleiter zur Verfügung. Du kannst ihn rufen, wegschicken und umbenennen.",
+                "Begleiter sammeln eigene Erfahrung und können bis Level 99 aufsteigen. Nur aktive Begleiter erhalten Erfahrung.",
                 NamedTextColor.WHITE)));
 
         for (Companion companion : companions) {
+            long currentXp = companionService.experienceWithinLevel(companion);
+            long nextXp = companionService.experienceNeededForCurrentLevel(companion);
+            Component status = companion.active()
+                    ? Component.text("Aktiv", NamedTextColor.GREEN)
+                    : Component.text("Inaktiv", NamedTextColor.GRAY);
+
             body.add(DialogBody.plainMessage(Component.text()
-                    .append(Component.text(companion.name(), NamedTextColor.LIGHT_PURPLE))
+                    .append(Component.text(companion.name(), companion.rarity().isUnique() ? NamedTextColor.GOLD : NamedTextColor.LIGHT_PURPLE))
+                    .append(Component.text("  •  ", NamedTextColor.DARK_GRAY))
+                    .append(Component.text(companion.rarity().name(), NamedTextColor.YELLOW))
                     .append(Component.text("  •  Level ", NamedTextColor.WHITE))
                     .append(Component.text(companion.level(), NamedTextColor.AQUA))
-                    .append(Component.text(companion.active() ? "  •  Aktiv" : "  •  Inaktiv", NamedTextColor.WHITE))
+                    .append(Component.text("  •  XP ", NamedTextColor.WHITE))
+                    .append(Component.text(currentXp + "/" + (nextXp == Long.MAX_VALUE ? "MAX" : nextXp), NamedTextColor.AQUA))
+                    .append(Component.text("  •  ", NamedTextColor.DARK_GRAY))
+                    .append(status)
                     .build()));
 
             if (!companion.active()) {
@@ -63,9 +74,11 @@ public final class CompanionDialog {
                         }));
             }
 
-            actions.add(dialogueEngine.actionButton(
-                    Component.text("Umbenennen"), NamedTextColor.YELLOW,
-                    target -> openRename(target, companion)));
+            if (!companion.rarity().isUnique()) {
+                actions.add(dialogueEngine.actionButton(
+                        Component.text("Umbenennen"), NamedTextColor.YELLOW,
+                        target -> openRename(target, companion)));
+            }
         }
 
         dialogueEngine.openMultiAction(
