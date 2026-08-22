@@ -23,7 +23,6 @@ import de.pixelrpg.rpg.command.impl.QuestLogCommand;
 import de.pixelrpg.rpg.command.impl.ShopSubCommand;
 import de.pixelrpg.rpg.combat.CombatDamageListener;
 import de.pixelrpg.rpg.combat.ElytraPermissionListener;
-import de.pixelrpg.rpg.combat.EquipmentAuraListener;
 import de.pixelrpg.rpg.combat.MobExperienceListener;
 import de.pixelrpg.rpg.combat.MobNameplateListener;
 import de.pixelrpg.rpg.combat.MobNameplateService;
@@ -119,7 +118,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ScoreboardService scoreboardService;
     private PlaytimeTracker playtimeTracker;
     private LanguageManager languageManager;
-    private EquipmentAuraListener equipmentAuraListener;
     private CompanionService companionService;
 
     @Override
@@ -182,8 +180,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         scoreboardService.startTask();
         playtimeTracker = new PlaytimeTracker(this, playerProfileManager);
         playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
-        equipmentAuraListener = new EquipmentAuraListener(playerProfileManager, getConfig().getInt("effects.aura-interval-ticks", 60));
-        equipmentAuraListener.start();
         AttributeConfig.configureElytraCost(getConfig().getDouble("elytra.permit-cost", 750.0));
         npcManager = new NpcManager(this);
         npcManager.loadAll();
@@ -242,7 +238,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         rootCommand.register(new QuestAdminSubCommand(questManager));
         rootCommand.register(new BossSubCommand(bossRepository, bossManager));
         registerCommand("rpgadmin", new PaperBasicCommandAdapter("rpgadmin", rootCommand, rootCommand, "rpg.admin"));
-
         PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
         registerCommand("rpgparty", new PaperBasicCommandAdapter("rpgparty", partyCommand, partyCommand, "rpg.member"));
         registerCommand("questlog", new PaperBasicCommandAdapter("questlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member"));
@@ -253,7 +248,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (equipmentAuraListener != null) equipmentAuraListener.stop();
         if (questManager != null) questManager.shutdown();
         if (scoreboardService != null) scoreboardService.shutdown();
         if (playtimeTracker != null) playtimeTracker.shutdown();
@@ -271,6 +265,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public static PixelRPGPlugin getInstance() { return instance; }
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
     public StatEngine getStatEngine() { return statEngine; }
+    public ProfessionSystem getProfessionSystem() { return professionSystem; }
+    public LanguageManager getLanguageManager() { return languageManager; }
     public ItemService getItemService() { return itemService; }
     public NpcManager getNpcManager() { return npcManager; }
     public QuestManager getQuestManager() { return questManager; }
