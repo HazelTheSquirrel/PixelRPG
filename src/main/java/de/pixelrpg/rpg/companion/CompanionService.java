@@ -11,6 +11,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,7 @@ public final class CompanionService {
     private final File storageFolder;
     private final Map<UUID, List<Companion>> companions = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> activeEntities = new ConcurrentHashMap<>();
+    private final BukkitTask followTask;
 
     private int maxLevel = 99;
     private long experienceBase = 100L;
@@ -40,6 +42,8 @@ public final class CompanionService {
         this.storageFolder = new File(plugin.getDataFolder(), "companions");
         if (!storageFolder.exists()) storageFolder.mkdirs();
         loadJsonConfiguration();
+        this.followTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
+                new CompanionFollowTask(plugin, activeEntities), 1L, 5L);
     }
 
     /** Loads user-editable companion progression and definitions from data/companions.json. */
@@ -188,7 +192,6 @@ public final class CompanionService {
         if (current == null) return false;
         Companion active = current.stream().filter(Companion::active).findFirst().orElse(null);
         if (active == null || active.level() >= maxLevel) return false;
-        if (!activeXpOnly && active == null) return false;
 
         long gained = Math.max(1L, Math.round(baseExperience));
         long experience = active.experience() + gained;
@@ -229,6 +232,7 @@ public final class CompanionService {
     }
 
     public void shutdown() {
+        followTask.cancel();
         for (UUID entityId : activeEntities.values()) removeEntity(entityId);
         activeEntities.clear();
         for (UUID playerId : companions.keySet()) {
