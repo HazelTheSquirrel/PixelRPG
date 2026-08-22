@@ -65,11 +65,11 @@ public final class MobScalingConfig {
     }
 
     private static double number(JsonObject object, String key, double fallback) {
-        return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsDouble() : fallback;
+        return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.get(key).getAsDouble() : fallback;
     }
 
     private static int intValue(JsonObject object, String key, int fallback) {
-        return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsInt() : fallback;
+        return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.get(key).getAsInt() : fallback;
     }
 
     public LevelBaseStats getBaseStats(int level) {
