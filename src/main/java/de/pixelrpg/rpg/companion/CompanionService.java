@@ -1,5 +1,8 @@
 package de.pixelrpg.rpg.companion;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import de.pixelrpg.rpg.config.JsonDataManager;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -20,18 +23,46 @@ import java.util.concurrent.ConcurrentHashMap;
 /** Owns persistent companion definitions, progression and active entity state. */
 public final class CompanionService {
     private static final String TEST_WOLF_ID = "test-wolf";
-    private static final String TEST_WOLF_NAME = "PixelRPG Wolf";
-    private static final int MAX_LEVEL = 99;
 
     private final Plugin plugin;
     private final File storageFolder;
     private final Map<UUID, List<Companion>> companions = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> activeEntities = new ConcurrentHashMap<>();
 
+    private int maxLevel = 99;
+    private long experienceBase = 100L;
+    private long experiencePerLevel = 50L;
+    private int maxNameLength = 24;
+    private boolean activeXpOnly = true;
+
     public CompanionService(Plugin plugin) {
         this.plugin = plugin;
         this.storageFolder = new File(plugin.getDataFolder(), "companions");
         if (!storageFolder.exists()) storageFolder.mkdirs();
+        loadJsonConfiguration();
+    }
+
+    /** Loads user-editable companion progression and definitions from data/companions.json. */
+    private void loadJsonConfiguration() {
+        try {
+            JsonObject root = new JsonDataManager(plugin).load("companions.json");
+            JsonObject progression = object(root, "progression");
+            if (progression != null) {
+                maxLevel = Math.max(1, number(progression, "maxLevel", maxLevel));
+                JsonObject xp = object(progression, "xp");
+                if (xp != null) {
+                    experienceBase = Math.max(1L, numberLong(xp, "base", experienceBase));
+                    experiencePerLevel = Math.max(0L, numberLong(xp, "perLevel", experiencePerLevel));
+                }
+            }
+            JsonObject defaults = object(root, "defaults");
+            if (defaults != null) {
+                activeXpOnly = bool(defaults, "activeXpOnly", activeXpOnly);
+                maxNameLength = Math.max(1, number(defaults, "maxNameLength", maxNameLength));
+            }
+        } catch (RuntimeException exception) {
+            plugin.getLogger().warning("Unable to load companions.json; using safe companion defaults: " + exception.getMessage());
+        }
     }
 
     public List<Companion> getCompanions(UUID playerId) {
@@ -39,14 +70,18 @@ public final class CompanionService {
         return List.copyOf(companions.getOrDefault(playerId, List.of()));
     }
 
-    /** Adds the temporary wolf used for the companion-system test. */
+    /** Adds the configured test wolf used for the companion-system test. */
     public void ensureTestWolf(UUID playerId) {
         load(playerId);
+        Companion definition = readDefinition(TEST_WOLF_ID);
+        if (definition == null) {
+            plugin.getLogger().warning("Companion definition '" + TEST_WOLF_ID + "' is missing from companions.json.");
+            return;
+        }
         companions.compute(playerId, (ignored, current) -> {
             List<Companion> updated = current == null ? new ArrayList<>() : new ArrayList<>(current);
             if (updated.stream().noneMatch(existing -> existing.id().equals(TEST_WOLF_ID))) {
-                updated.add(new Companion(TEST_WOLF_ID, TEST_WOLF_NAME, 1, 0L,
-                        CompanionRarity.UNCOMMON, org.bukkit.entity.EntityType.WOLF, false));
+                updated.add(definition.withActive(false));
                 save(playerId, updated);
             }
             return updated;
@@ -140,7 +175,7 @@ public final class CompanionService {
     public boolean rename(UUID playerId, String companionId, String newName) {
         load(playerId);
         String cleaned = newName == null ? "" : newName.strip();
-        if (cleaned.isEmpty() || cleaned.length() > 24) return false;
+        if (cleaned.isEmpty() || cleaned.length() > maxNameLength) return false;
         List<Companion> current = companions.get(playerId);
         if (current == null) return false;
         Companion selected = current.stream().filter(companion -> companion.id().equals(companionId)).findFirst().orElse(null);
@@ -167,12 +202,12 @@ public final class CompanionService {
         List<Companion> current = companions.get(playerId);
         if (current == null) return false;
         Companion active = current.stream().filter(Companion::active).findFirst().orElse(null);
-        if (active == null || active.level() >= MAX_LEVEL) return false;
+        if (active == null || active.level() >= maxLevel) return false;
+        if (!activeXpOnly && active == null) return false;
 
         long gained = Math.max(1L, Math.round(baseExperience));
         long experience = active.experience() + gained;
-        int level = calculateLevel(experience);
-        level = Math.min(MAX_LEVEL, level);
+        int level = Math.min(maxLevel, calculateLevel(experience));
         List<Companion> updated = current.stream()
                 .map(companion -> companion.id().equals(active.id()) ? companion.withProgress(level, experience) : companion)
                 .toList();
@@ -184,7 +219,7 @@ public final class CompanionService {
     public int calculateLevel(long experience) {
         long remaining = Math.max(0L, experience);
         int level = 1;
-        while (level < MAX_LEVEL) {
+        while (level < maxLevel) {
             long required = experienceToNextLevel(level);
             if (remaining < required) break;
             remaining -= required;
@@ -194,8 +229,8 @@ public final class CompanionService {
     }
 
     public long experienceToNextLevel(int level) {
-        if (level >= MAX_LEVEL) return Long.MAX_VALUE;
-        return 100L + (long) level * 50L;
+        if (level >= maxLevel) return Long.MAX_VALUE;
+        return experienceBase + (long) level * experiencePerLevel;
     }
 
     public long experienceWithinLevel(Companion companion) {
@@ -216,6 +251,38 @@ public final class CompanionService {
             if (current != null) save(playerId, current.stream().map(companion -> companion.withActive(false)).toList());
         }
         companions.clear();
+    }
+
+    private Companion readDefinition(String id) {
+        try {
+            JsonObject root = new JsonDataManager(plugin).load("companions.json");
+            JsonArray definitions = root.getAsJsonArray("definitions");
+            if (definitions == null) return null;
+            for (var element : definitions) {
+                if (!element.isJsonObject()) continue;
+                JsonObject json = element.getAsJsonObject();
+                if (!id.equals(string(json, "id", ""))) continue;
+                try {
+                    CompanionRarity rarity = CompanionRarity.valueOf(string(json, "rarity", "COMMON").toUpperCase());
+                    org.bukkit.entity.EntityType entityType = org.bukkit.entity.EntityType.valueOf(string(json, "entityType", "WOLF").toUpperCase());
+                    return new Companion(
+                            id,
+                            string(json, "name", id),
+                            1,
+                            0L,
+                            rarity,
+                            entityType,
+                            false
+                    );
+                } catch (IllegalArgumentException exception) {
+                    plugin.getLogger().warning("Ignoring invalid companion definition '" + id + "'.");
+                    return null;
+                }
+            }
+        } catch (RuntimeException exception) {
+            plugin.getLogger().warning("Unable to read companion definition '" + id + "': " + exception.getMessage());
+        }
+        return null;
     }
 
     private void clearActiveEntity(Player player) {
@@ -246,7 +313,7 @@ public final class CompanionService {
                     org.bukkit.entity.EntityType entityType = org.bukkit.entity.EntityType.valueOf(yaml.getString(path + ".entity-type", "WOLF").toUpperCase());
                     loaded.add(new Companion(id,
                             yaml.getString(path + ".name", id),
-                            Math.max(1, Math.min(MAX_LEVEL, yaml.getInt(path + ".level", 1))),
+                            Math.max(1, Math.min(maxLevel, yaml.getInt(path + ".level", 1))),
                             Math.max(0L, yaml.getLong(path + ".experience", 0L)),
                             rarity,
                             entityType,
@@ -273,7 +340,27 @@ public final class CompanionService {
         try {
             yaml.save(file);
         } catch (IOException exception) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to save companions for " + playerId + ".", exception);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to save companions for " + playerId, exception);
         }
+    }
+
+    private static JsonObject object(JsonObject parent, String key) {
+        return parent != null && parent.has(key) && parent.get(key).isJsonObject() ? parent.getAsJsonObject(key) : null;
+    }
+
+    private static String string(JsonObject object, String key, String fallback) {
+        return object != null && object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsString() : fallback;
+    }
+
+    private static int number(JsonObject object, String key, int fallback) {
+        return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsInt() : fallback;
+    }
+
+    private static long numberLong(JsonObject object, String key, long fallback) {
+        return object != null && object.has(key) && object.get(key).isNumber() ? object.get(key).getAsLong() : fallback;
+    }
+
+    private static boolean bool(JsonObject object, String key, boolean fallback) {
+        return object != null && object.has(key) && object.get(key).isBoolean() ? object.get(key).getAsBoolean() : fallback;
     }
 }
