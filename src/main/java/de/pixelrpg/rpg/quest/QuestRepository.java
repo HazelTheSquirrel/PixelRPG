@@ -23,6 +23,9 @@ public final class QuestRepository {
     private final File questFolder;
     private final Map<String, Quest> questsById = new ConcurrentHashMap<>();
 
+    private int maxActiveQuests = 5;
+    private int unlockEarlyLevels = 5;
+
     public QuestRepository(Plugin plugin) {
         this.plugin = plugin;
         this.questFolder = new File(plugin.getDataFolder(), "quest");
@@ -30,6 +33,8 @@ public final class QuestRepository {
 
     public void load() {
         questsById.clear();
+        maxActiveQuests = 5;
+        unlockEarlyLevels = 5;
         try {
             loadJsonDefinitions();
         } catch (RuntimeException exception) {
@@ -38,9 +43,15 @@ public final class QuestRepository {
         loadLegacyYaml();
     }
 
-    /** Loads all user-editable quest definitions from data/quests.json. */
+    /** Loads all user-editable quest rules and definitions from data/quests.json. */
     private void loadJsonDefinitions() {
         JsonObject root = new JsonDataManager(plugin).load("quests.json");
+        JsonObject rules = object(root, "rules");
+        if (rules != null) {
+            maxActiveQuests = Math.max(1, number(rules, "maxActive", maxActiveQuests));
+            unlockEarlyLevels = Math.max(0, number(rules, "unlockEarlyLevels", unlockEarlyLevels));
+        }
+
         JsonArray definitions = root.getAsJsonArray("definitions");
         if (definitions == null) return;
         for (var element : definitions) {
@@ -145,6 +156,8 @@ public final class QuestRepository {
     public List<Quest> getQuestsByCategoryLevel(int categoryLevel) { int category = clampLevel(categoryLevel); return questsById.values().stream().filter(q -> q.categoryLevel() == category).filter(q -> q.type() != QuestType.GLOBAL_EVENT).toList(); }
     public int categoryForLevel(int playerLevel) { int level = clampLevel(playerLevel); int best = 1; for (Quest quest : questsById.values()) if (quest.categoryLevel() <= level && quest.categoryLevel() > best) best = quest.categoryLevel(); return best; }
     public List<Quest> getQuestsByType(QuestType type) { return questsById.values().stream().filter(q -> q.type() == type).toList(); }
+    public int maxActiveQuests() { return maxActiveQuests; }
+    public int unlockEarlyLevels() { return unlockEarlyLevels; }
     private int parseCategoryLevel(String fileName) { String base = fileName.substring(0, fileName.length() - 4); if (base.startsWith("level-")) { try { return clampLevel(Integer.parseInt(base.substring(6))); } catch (NumberFormatException ignored) { return Level.MIN_LEVEL; } } return oldRankToLevel(base); }
     private int oldRankToLevel(String raw) { return switch (raw.trim().toUpperCase()) { case "F" -> 1; case "E" -> 11; case "D" -> 21; case "C" -> 31; case "B" -> 41; case "A" -> 51; case "S" -> 61; default -> Level.MIN_LEVEL; }; }
     private int clampLevel(int level) { return Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, level)); }
