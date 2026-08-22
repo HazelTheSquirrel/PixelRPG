@@ -10,6 +10,7 @@ public enum NpcType {
     QUEST(NamedTextColor.YELLOW),
     SHOP(NamedTextColor.GREEN),
     TRAVEL(NamedTextColor.LIGHT_PURPLE),
+    FILLER(NamedTextColor.WHITE),
     STORY(NamedTextColor.GOLD),
     BANKER(NamedTextColor.DARK_GREEN);
 
