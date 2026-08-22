@@ -203,6 +203,20 @@ public final class QuestManager {
         }
     }
 
+    /** Marks NPC dialogue quests complete when the configured NPC id is interacted with. */
+    public void progressTalkToNpc(Player player, String npcId) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegisteredInGuild() || npcId == null || npcId.isBlank()) return;
+        for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
+            Quest quest = questRepository.getQuest(entry.getKey());
+            if (quest == null || quest.type() != QuestType.TALK_TO_NPC) continue;
+            if (!quest.targetKey().equalsIgnoreCase(npcId)) continue;
+            if (entry.getValue().getCurrentAmount() >= quest.requiredAmount()) continue;
+            entry.getValue().setCurrentAmount(quest.requiredAmount());
+            lang.send(player, "quest.location-reached", "title", quest.title());
+        }
+    }
+
     private boolean isExactBlock(Location a, Location b) {
         return a.getWorld().equals(b.getWorld()) && a.getBlockX() == b.getBlockX()
                 && a.getBlockY() == b.getBlockY() && a.getBlockZ() == b.getBlockZ();
