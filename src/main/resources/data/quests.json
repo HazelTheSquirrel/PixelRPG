@@ -33,6 +33,17 @@
       "reward": { "money": 80.0, "experience": 200, "items": [] }
     },
     {
+      "id": "example_sonnenhain_mira",
+      "title": "Eine Nachricht aus Sonnenhain",
+      "description": "Finde Mira in Sonnenhain und sprich mit ihr, um die Reisequest fortzusetzen.",
+      "type": "TALK_TO_NPC",
+      "recommendedLevel": 16,
+      "categoryLevel": 10,
+      "targetKey": "example_filler_mira",
+      "requiredAmount": 1,
+      "reward": { "money": 35.0, "experience": 120, "items": [] }
+    },
+    {
       "id": "example_companion_wolf",
       "title": "Ein treuer Begleiter",
       "description": "Hilf einem verletzten Wolf und gewinne sein Vertrauen.",
