@@ -24,9 +24,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class QuestManager {
-    public static final int MAX_ACTIVE_QUESTS = 5;
-    public static final int QUEST_LEVEL_UNLOCK_BUFFER = 5;
-
     private final Plugin plugin;
     private final QuestRepository questRepository;
     private final PlayerProfileManager profileManager;
@@ -76,18 +73,18 @@ public final class QuestManager {
         questTimers.clear();
     }
 
-    /** A quest becomes available five player levels before its recommended level. */
+    /** A quest becomes available the configured number of player levels before its recommended level. */
     public boolean canAccept(PlayerProfile profile, Quest quest) {
         if (!profile.isRegisteredInGuild()) return false;
         if (profile.hasCompletedQuest(quest.id())) return false;
-        int minimumLevel = Math.max(1, quest.requiredLevel() - QUEST_LEVEL_UNLOCK_BUFFER);
+        int minimumLevel = Math.max(1, quest.requiredLevel() - questRepository.unlockEarlyLevels());
         return profile.getLevel() >= minimumLevel;
     }
 
     public boolean acceptQuest(Player player, Quest quest) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegisteredInGuild() || !canAccept(profile, quest) || profile.hasActiveQuest(quest.id())) return false;
-        if (profile.getActiveQuests().size() >= MAX_ACTIVE_QUESTS) {
+        if (profile.getActiveQuests().size() >= questRepository.maxActiveQuests()) {
             lang.send(player, "quest.max-active");
             return false;
         }
