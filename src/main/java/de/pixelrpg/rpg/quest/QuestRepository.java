@@ -22,6 +22,8 @@ public final class QuestRepository {
     private final Plugin plugin;
     private final File questFolder;
     private final Map<String, Quest> questsById = new ConcurrentHashMap<>();
+    private final Map<String, List<String>> prerequisitesByQuest = new ConcurrentHashMap<>();
+    private final Map<String, List<String>> followUpsByQuest = new ConcurrentHashMap<>();
 
     private int maxActiveQuests = 5;
     private int unlockEarlyLevels = 5;
@@ -33,6 +35,8 @@ public final class QuestRepository {
 
     public void load() {
         questsById.clear();
+        prerequisitesByQuest.clear();
+        followUpsByQuest.clear();
         maxActiveQuests = 5;
         unlockEarlyLevels = 5;
         try {
@@ -43,7 +47,7 @@ public final class QuestRepository {
         loadLegacyYaml();
     }
 
-    /** Loads all user-editable quest rules and definitions from data/quests.json. */
+    /** Loads all user-editable quest rules, prerequisites and definitions from data/quests.json. */
     private void loadJsonDefinitions() {
         JsonObject root = new JsonDataManager(plugin).load("quests.json");
         JsonObject rules = object(root, "rules");
@@ -73,6 +77,8 @@ public final class QuestRepository {
                     stringList(reward, "items"), string(reward, "companionId", ""),
                     readJsonLocation(json, "escortDestination"), readJsonLocation(json, "reachLocation"), numberDouble(json, "reachRadius", 5.0));
             questsById.put(id, quest);
+            prerequisitesByQuest.put(id, stringList(json, "prerequisites"));
+            followUpsByQuest.put(id, stringList(json, "followUpQuestIds"));
         }
     }
 
@@ -102,6 +108,8 @@ public final class QuestRepository {
                     section.getStringList("reward-items"), null, readLocation(section, "escort-destination"),
                     readLocation(section, "reach-location"), section.getDouble("reach-radius", 5.0));
             questsById.put(id, quest);
+            prerequisitesByQuest.put(id, section.getStringList("prerequisites"));
+            followUpsByQuest.put(id, section.getStringList("follow-up-quests"));
         }
     }
 
@@ -163,6 +171,16 @@ public final class QuestRepository {
     public List<Quest> getQuestsByType(QuestType type) { return questsById.values().stream().filter(q -> q.type() == type).toList(); }
     public int maxActiveQuests() { return maxActiveQuests; }
     public int unlockEarlyLevels() { return unlockEarlyLevels; }
+
+    /** Returns whether every configured prerequisite quest has already been completed. */
+    public boolean prerequisitesMet(de.pixelrpg.rpg.player.PlayerProfile profile, String questId) {
+        return prerequisitesByQuest.getOrDefault(questId, List.of()).stream().allMatch(profile::hasCompletedQuest);
+    }
+
+    public List<String> getFollowUpQuestIds(String questId) {
+        return followUpsByQuest.getOrDefault(questId, List.of());
+    }
+
     private int parseCategoryLevel(String fileName) { String base = fileName.substring(0, fileName.length() - 4); if (base.startsWith("level-")) { try { return clampLevel(Integer.parseInt(base.substring(6))); } catch (NumberFormatException ignored) { return Level.MIN_LEVEL; } } return oldRankToLevel(base); }
     private int oldRankToLevel(String raw) { return switch (raw.trim().toUpperCase()) { case "F" -> 1; case "E" -> 11; case "D" -> 21; case "C" -> 31; case "B" -> 41; case "A" -> 51; case "S" -> 61; default -> Level.MIN_LEVEL; }; }
     private int clampLevel(int level) { return Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, level)); }
