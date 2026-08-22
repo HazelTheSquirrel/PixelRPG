@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native guild reception dialog; it never opens legacy inventory GUIs. */
+/** Native guild reception dialog with textual player information instead of a player-card view. */
 public final class ReceptionDialog {
     private final Player player;
     private final PlayerProfileManager profileManager;
@@ -31,28 +31,43 @@ public final class ReceptionDialog {
         boolean registered = profile != null && profile.isRegisteredInGuild();
 
         List<DialogBody> body = new ArrayList<>();
-        body.add(DialogBody.plainMessage(lang.get("reception.card-title", "player", player.getName()).color(NamedTextColor.AQUA)));
-        body.add(DialogBody.plainMessage(lang.get("reception.status")
-                .append((registered ? lang.get("reception.status-member") : lang.get("reception.status-not-registered"))
-                        .color(registered ? NamedTextColor.GREEN : NamedTextColor.RED))));
+        body.add(DialogBody.plainMessage(Component.text(
+                "Willkommen im Rathaus. Hier verwalten wir deine Mitgliedschaft und deinen Charakterstatus.",
+                NamedTextColor.GRAY)));
+        body.add(DialogBody.plainMessage(
+                lang.get("reception.status").append(
+                        registered
+                                ? lang.get("reception.status-member").color(NamedTextColor.GREEN)
+                                : lang.get("reception.status-not-registered").color(NamedTextColor.RED))));
 
         if (registered && profile != null) {
-            body.add(DialogBody.plainMessage(Component.text("Level: ", NamedTextColor.GRAY)
-                    .append(Component.text(profile.getLevel(), NamedTextColor.YELLOW))));
-            body.add(DialogBody.plainMessage(lang.get("reception.class-label").append(profile.getPlayerClass().displayName())));
-            body.add(DialogBody.plainMessage(lang.get("reception.money-label", "amount", String.format("%.2f", profile.getMoney())).color(NamedTextColor.GOLD)));
+            body.add(DialogBody.plainMessage(Component.text("Spielerinformationen", NamedTextColor.AQUA)));
+            body.add(DialogBody.plainMessage(Component.text(
+                    "Level: " + profile.getLevel(), NamedTextColor.GRAY)));
+            body.add(DialogBody.plainMessage(
+                    lang.get("reception.class-label").append(profile.getPlayerClass().displayName())));
+            body.add(DialogBody.plainMessage(lang.get(
+                    "reception.money-label", "amount", String.format("%.2f", profile.getMoney()))
+                    .color(NamedTextColor.GOLD)));
         }
 
         List<ActionButton> actions = new ArrayList<>();
         if (!registered) {
-            actions.add(dialogueEngine.actionButton(lang.get("reception.register-button"), NamedTextColor.GREEN, target -> {
-                profileManager.registerToGuild(target);
-                new ReceptionDialog(target, profileManager, dialogueEngine).open();
-            }));
+            actions.add(dialogueEngine.actionButton(
+                    lang.get("reception.register-button"),
+                    NamedTextColor.GREEN,
+                    target -> {
+                        profileManager.registerToGuild(target);
+                        new ReceptionDialog(target, profileManager, dialogueEngine).open();
+                    }));
         } else {
-            actions.add(dialogueEngine.actionButton(lang.get("reception.resign-button"), NamedTextColor.RED, this::openLeaveConfirmation));
+            actions.add(dialogueEngine.actionButton(
+                    lang.get("reception.resign-button"),
+                    NamedTextColor.RED,
+                    this::openLeaveConfirmation));
         }
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
+        actions.add(dialogueEngine.actionButton(
+                Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
 
         dialogueEngine.openMultiAction(
                 player,
@@ -64,18 +79,21 @@ public final class ReceptionDialog {
 
     private void openLeaveConfirmation(Player target) {
         ActionButton yes = dialogueEngine.actionButton(
-                lang.get("reception.yes-resign"), NamedTextColor.RED,
+                lang.get("reception.yes-resign"),
+                NamedTextColor.RED,
                 player -> {
                     profileManager.leaveGuild(player);
                     lang.send(player, "reception.left-guild");
                 });
         ActionButton no = dialogueEngine.actionButton(
-                lang.get("reception.no-cancel"), NamedTextColor.GREEN,
+                lang.get("reception.no-cancel"),
+                NamedTextColor.GREEN,
                 player -> new ReceptionDialog(player, profileManager, dialogueEngine).open());
         dialogueEngine.openConfirmation(
                 target,
                 lang.get("reception.resign-title"),
-                List.of(DialogBody.plainMessage(lang.get("reception.resign-warning").color(NamedTextColor.RED))),
+                List.of(DialogBody.plainMessage(
+                        lang.get("reception.resign-warning").color(NamedTextColor.RED))),
                 yes,
                 no);
     }
