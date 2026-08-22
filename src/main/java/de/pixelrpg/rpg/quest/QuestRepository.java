@@ -70,7 +70,8 @@ public final class QuestRepository {
             Quest quest = new Quest(id, string(json, "title", id), string(json, "description", ""), type,
                     string(json, "targetKey", ""), requiredAmount, recommendedLevel, categoryLevel,
                     numberDouble(reward, "money", 0.0), numberLong(reward, "experience", 0L), number(reward, "durationMinutes", 0),
-                    stringList(reward, "items"), readJsonLocation(json, "escortDestination"), readJsonLocation(json, "reachLocation"), numberDouble(json, "reachRadius", 5.0));
+                    stringList(reward, "items"), string(reward, "companionId", ""),
+                    readJsonLocation(json, "escortDestination"), readJsonLocation(json, "reachLocation"), numberDouble(json, "reachRadius", 5.0));
             questsById.put(id, quest);
         }
     }
@@ -95,7 +96,11 @@ public final class QuestRepository {
             QuestType type = parseType(section.getString("type", "HUNT"));
             int requiredLevel = readLevelRequirement(section, fileCategoryLevel);
             int categoryLevel = clampLevel(section.getInt("category-level", fileCategoryLevel));
-            Quest quest = new Quest(id, section.getString("title", id), section.getString("description", ""), type, section.getString("target-key", ""), section.getInt("required-amount", 1), requiredLevel, categoryLevel, section.getDouble("reward-money", 0.0), section.getLong("reward-exp", 0L), section.getInt("duration-minutes", 0), section.getStringList("reward-items"), readLocation(section, "escort-destination"), readLocation(section, "reach-location"), section.getDouble("reach-radius", 5.0));
+            Quest quest = new Quest(id, section.getString("title", id), section.getString("description", ""), type,
+                    section.getString("target-key", ""), section.getInt("required-amount", 1), requiredLevel, categoryLevel,
+                    section.getDouble("reward-money", 0.0), section.getLong("reward-exp", 0L), section.getInt("duration-minutes", 0),
+                    section.getStringList("reward-items"), null, readLocation(section, "escort-destination"),
+                    readLocation(section, "reach-location"), section.getDouble("reach-radius", 5.0));
             questsById.put(id, quest);
         }
     }
