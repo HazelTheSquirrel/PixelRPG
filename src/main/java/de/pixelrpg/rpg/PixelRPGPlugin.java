@@ -85,6 +85,8 @@ import de.pixelrpg.rpg.stats.StatisticsService;
 import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryManager;
 import de.pixelrpg.rpg.travel.GuildCompassListener;
+import de.pixelrpg.rpg.companion.CompanionExperienceListener;
+import de.pixelrpg.rpg.companion.CompanionService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
@@ -118,6 +120,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private PlaytimeTracker playtimeTracker;
     private LanguageManager languageManager;
     private EquipmentAuraListener equipmentAuraListener;
+    private CompanionService companionService;
 
     @Override
     public void onEnable() {
@@ -191,6 +194,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         DialogueEngine dialogueEngine = new DialogueEngine();
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine);
+        companionService = new CompanionService(this);
         npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new BlacksmithBehavior(blacksmithGUI, craftingGUI, playerProfileManager, dialogueEngine));
@@ -226,7 +230,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ElytraPermissionListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(scoreboardService, this);
         getServer().getPluginManager().registerEvents(playtimeTracker, this);
-        getServer().getPluginManager().registerEvents(new QuickActionsDialogListener(quickActions), this);
+        QuickActionsDialogListener quickActionsListener = new QuickActionsDialogListener(quickActions, companionService);
+        getServer().getPluginManager().registerEvents(quickActionsListener, this);
+        getServer().getPluginManager().registerEvents(new CompanionExperienceListener(companionService), this);
         new QuestPassiveCheckTask(this, questManager).start();
 
         RootCommand rootCommand = new RootCommand();
@@ -254,6 +260,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (playtimeTracker != null) playtimeTracker.shutdown();
         if (bossManager != null) bossManager.shutdown();
         if (shopManager != null) shopManager.shutdown();
+        if (companionService != null) companionService.shutdown();
         if (playerProfileManager != null) playerProfileManager.shutdown();
         Bukkit.getServicesManager().unregisterAll(this);
         instance = null;
@@ -272,6 +279,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public ShopManager getShopManager() { return shopManager; }
     public StoryManager getStoryManager() { return storyManager; }
     public BossManager getBossManager() { return bossManager; }
+    public CompanionService getCompanionService() { return companionService; }
 
     public void registerCommand(String name, PaperBasicCommandAdapter command) {
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> event.registrar().register(name, command));
