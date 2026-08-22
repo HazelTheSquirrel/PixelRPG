@@ -30,10 +30,10 @@ public final class StatEngine {
                               double entityReach, double bonusDamage, double critChance,
                               double critDamageMultiplier, double lifestealBonus,
                               double strength, double agility, double stamina, double intellect,
-                              double attackPower, double spellPower, double maxMana) {
+                              double attackPower, double spellPower) {
         public static final CachedStats EMPTY = new CachedStats(
                 20.0, 0.0, 0.0, 0.0, 0.0, 0.0, BASE_CRIT_CHANCE, 2.0, 0.0,
-                10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 100.0);
+                10.0, 10.0, 10.0, 10.0, 0.0, 0.0);
     }
 
     private final PlayerProfileManager profileManager;
@@ -85,15 +85,6 @@ public final class StatEngine {
         double intellect = 10.0 + precision;
         double attackPower = strength + bonusDamage;
         double spellPower = intellect * classBalance.spellDamageMultiplier();
-        double classManaBase = switch (profile.getPlayerClass()) {
-            case MAGE -> 150.0;
-            case HEALER -> 130.0;
-            case RANGER -> 110.0;
-            case ROGUE -> 100.0;
-            case WARRIOR -> 80.0;
-            case NONE -> 100.0;
-        };
-        double maxMana = classManaBase + intellect * 5.0;
 
         CachedStats stats = new CachedStats(
                 maxHealth,
@@ -110,20 +101,9 @@ public final class StatEngine {
                 stamina,
                 intellect,
                 attackPower,
-                spellPower,
-                maxMana
+                spellPower
         );
         cache.put(player.getUniqueId(), stats);
-
-        boolean manaChanged = false;
-        if (!profile.isManaInitialized()) {
-            profile.initializeMana(maxMana);
-            manaChanged = true;
-        } else if (profile.getCurrentMana() > maxMana) {
-            profile.setCurrentMana(profile.getCurrentMana(), maxMana);
-            manaChanged = true;
-        }
-        if (manaChanged) profileManager.saveProfileAsync(player.getUniqueId());
 
         applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), maxHealth - 20.0);
         applyModifier(player, Attribute.ARMOR, RPGKeys.Stats.armor(), armor);
@@ -158,25 +138,6 @@ public final class StatEngine {
         player.setHealthScaled(false);
         if (managedSoulview.remove(player.getUniqueId())) player.removePotionEffect(PotionEffectType.NIGHT_VISION);
     }
-
-    public void restoreMana(Player player, double amount) {
-        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegisteredInGuild()) return;
-        profile.restoreMana(amount, getCachedStats(player.getUniqueId()).maxMana());
-    }
-
-    public boolean consumeMana(Player player, double amount) {
-        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegisteredInGuild()) return false;
-        return profile.consumeMana(amount, getCachedStats(player.getUniqueId()).maxMana());
-    }
-
-    public double getMana(Player player) {
-        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        return profile != null && profile.isRegisteredInGuild() ? profile.getCurrentMana() : 0.0;
-    }
-
-    public double getMaxMana(Player player) { return getCachedStats(player.getUniqueId()).maxMana(); }
 
     private double getEquippedItemArmor(Player player, int playerLevel) {
         double total = 0.0;
