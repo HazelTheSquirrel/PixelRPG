@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/combat/ClassSetBonusService.java (VOLLSTÄNDIG, ersetzt alte Datei — Proc-Chance bei 4-teiligem Set, WoW-T-Set-Gefühl)
 package de.pixelrpg.rpg.combat;
 
 import de.pixelrpg.rpg.core.RPGKeys;
@@ -20,9 +19,7 @@ public final class ClassSetBonusService {
     }
 
     public static SetBonus computeBonus(Player player, PlayerClass playerClass) {
-        if (playerClass == PlayerClass.NONE) {
-            return SetBonus.NONE;
-        }
+        if (playerClass == PlayerClass.NONE) return SetBonus.NONE;
 
         PlayerInventory inv = player.getInventory();
         int matching = 0;
@@ -37,29 +34,25 @@ public final class ClassSetBonusService {
         double procChance = 0.0;
 
         if (matching >= 2) {
-            damageMultiplier += 0.08;
-            healMultiplier += 0.08;
+            damageMultiplier = 1.04;
+            healMultiplier = 1.04;
         }
         if (matching >= 4) {
-            damageMultiplier += 0.15;
-            healMultiplier += 0.15;
-            procChance = 20.0;
+            damageMultiplier = 1.10;
+            healMultiplier = 1.10;
+            procChance = 10.0;
         }
 
         return new SetBonus(matching, damageMultiplier, healMultiplier, procChance);
     }
 
     public static boolean rollProc(SetBonus bonus) {
-        if (bonus.procChancePercent() <= 0.0) {
-            return false;
-        }
+        if (bonus.procChancePercent() <= 0.0) return false;
         return ThreadLocalRandom.current().nextDouble(100.0) < bonus.procChancePercent();
     }
 
     private static boolean matchesClass(ItemStack item, PlayerClass playerClass) {
-        if (item == null || !item.hasItemMeta()) {
-            return false;
-        }
+        if (item == null || !item.hasItemMeta()) return false;
         String raw = item.getItemMeta().getPersistentDataContainer()
                 .get(RPGKeys.Item.classSetClass(), PersistentDataType.STRING);
         return playerClass.name().equals(raw);
