@@ -137,7 +137,8 @@ public final class QuestManager {
         if (quest.rewardsCompanion()) {
             var companionService = PixelRPGPlugin.getInstance().getCompanionService();
             if (companionService != null && companionService.unlockDefinition(player.getUniqueId(), quest.rewardCompanionId())) {
-                lang.send(player, "quest.companion-reward", "companion", quest.rewardCompanionId());
+                player.sendMessage(Component.text("Begleiter freigeschaltet: ", NamedTextColor.WHITE)
+                        .append(Component.text(quest.rewardCompanionId(), NamedTextColor.YELLOW)));
             } else {
                 plugin.getLogger().warning("Quest '" + quest.id() + "' rewards unknown companion '" + quest.rewardCompanionId() + "'.");
             }
