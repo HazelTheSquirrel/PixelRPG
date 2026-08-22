@@ -19,8 +19,6 @@ public final class PlayerProfile {
     private PlayerClass playerClass;
     private double money;
     private boolean receivedStartBonus;
-    private double currentMana;
-    private boolean manaInitialized;
     private final Map<PlayerAttribute, Integer> attributePoints = new EnumMap<>(PlayerAttribute.class);
     private final Map<Profession, Integer> professionLevels = new EnumMap<>(Profession.class);
     private final Map<Profession, Long> professionExperience = new EnumMap<>(Profession.class);
@@ -44,8 +42,6 @@ public final class PlayerProfile {
         this.playerClass = PlayerClass.NONE;
         this.money = 0.0;
         this.receivedStartBonus = false;
-        this.currentMana = 0.0;
-        this.manaInitialized = false;
         this.storyChapterIndex = -1;
         this.scoreboardEnabled = false;
         this.partyHudEnabled = false;
@@ -74,12 +70,6 @@ public final class PlayerProfile {
     public synchronized boolean removeMoney(double amount) { if (amount <= 0.0 || money < amount) return false; money -= amount; dirty = true; return true; }
     public synchronized boolean hasReceivedStartBonus() { return receivedStartBonus; }
     public synchronized void setReceivedStartBonus(boolean value) { receivedStartBonus = value; dirty = true; }
-    public synchronized double getCurrentMana() { return currentMana; }
-    public synchronized boolean isManaInitialized() { return manaInitialized; }
-    public synchronized void initializeMana(double maxMana) { currentMana = Math.max(0.0, maxMana); manaInitialized = true; dirty = true; }
-    public synchronized void setCurrentMana(double value, double maxMana) { currentMana = Math.max(0.0, Math.min(maxMana, value)); manaInitialized = true; dirty = true; }
-    public synchronized boolean consumeMana(double amount, double maxMana) { if (amount <= 0.0) return true; if (currentMana + 1.0E-9 < amount) return false; currentMana = Math.max(0.0, Math.min(maxMana, currentMana - amount)); manaInitialized = true; dirty = true; return true; }
-    public synchronized void restoreMana(double amount, double maxMana) { if (amount <= 0.0) return; currentMana = Math.min(maxMana, currentMana + amount); manaInitialized = true; dirty = true; }
     public synchronized int getAttributePoints(PlayerAttribute attribute) { return attributePoints.getOrDefault(attribute, 0); }
     public synchronized void setAttributePoints(PlayerAttribute attribute, int value) { attributePoints.put(attribute, Math.max(0, value)); dirty = true; }
     public synchronized void addAttributePoint(PlayerAttribute attribute) { attributePoints.merge(attribute, 1, Integer::sum); dirty = true; }
@@ -134,8 +124,6 @@ public final class PlayerProfile {
         experience = 0L;
         playerClass = PlayerClass.NONE;
         money = 0.0;
-        currentMana = 0.0;
-        manaInitialized = false;
         storyChapterIndex = -1;
         learnedProfessions.clear();
         unlockedRecipes.clear();
