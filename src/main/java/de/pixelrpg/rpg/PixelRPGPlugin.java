@@ -77,7 +77,6 @@ import de.pixelrpg.rpg.quest.QuestRepository;
 import de.pixelrpg.rpg.scoreboard.PlaytimeTracker;
 import de.pixelrpg.rpg.scoreboard.ScoreboardService;
 import de.pixelrpg.rpg.shop.ShopManager;
-import de.pixelrpg.rpg.stats.ManaRegenerationTask;
 import de.pixelrpg.rpg.stats.MobKillStatisticListener;
 import de.pixelrpg.rpg.stats.PlayerDeathStatisticListener;
 import de.pixelrpg.rpg.stats.QuestBossStatisticListener;
@@ -99,7 +98,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private PlayerProfileManager playerProfileManager;
     private StatEngine statEngine;
     private ProfessionSystem professionSystem;
-    private ManaRegenerationTask manaRegenerationTask;
     private ItemEconomyConfig itemEconomyConfig;
     private ItemService itemService;
     private BlacksmithGUI blacksmithGUI;
@@ -144,7 +142,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         WeaponAbilityEngine weaponAbilityEngine = new WeaponAbilityEngine(playerProfileManager, statEngine);
         itemEconomyConfig = new ItemEconomyConfig();
         itemEconomyConfig.load(getConfig());
-        RPGItemBuilder.configureChances(getConfig().getDouble("items.loot.blessing-chance", 0.12), getConfig().getDouble("items.loot.curse-chance", 0.10));
         RPGItemBuilder.configureScaling(this);
         itemService = new ItemService();
         Bukkit.getServicesManager().register(de.pixelrpg.rpg.api.ItemAPI.class, itemService, this, ServicePriority.Normal);
@@ -187,8 +184,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
         equipmentAuraListener = new EquipmentAuraListener(playerProfileManager, getConfig().getInt("effects.aura-interval-ticks", 60));
         equipmentAuraListener.start();
-        manaRegenerationTask = new ManaRegenerationTask(this, statEngine, playerProfileManager);
-        manaRegenerationTask.start();
         AttributeConfig.configureElytraCost(getConfig().getDouble("elytra.permit-cost", 750.0));
         npcManager = new NpcManager(this);
         npcManager.loadAll();
@@ -258,35 +253,27 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (manaRegenerationTask != null) manaRegenerationTask.stop();
         if (equipmentAuraListener != null) equipmentAuraListener.stop();
         if (questManager != null) questManager.shutdown();
         if (scoreboardService != null) scoreboardService.shutdown();
         if (playtimeTracker != null) playtimeTracker.shutdown();
-        if (bossManager != null) bossManager.shutdown();
-        if (shopManager != null) shopManager.shutdown();
         if (companionService != null) companionService.shutdown();
-        if (npcManager != null) npcManager.shutdown();
+        if (bossManager != null) bossManager.shutdown();
+        if (partyManager != null) partyManager.shutdown();
         if (playerProfileManager != null) playerProfileManager.shutdown();
-        Bukkit.getServicesManager().unregisterAll(this);
         instance = null;
     }
 
+    private void registerCommand(String name, PaperBasicCommandAdapter adapter) {
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> event.registrar().register(name, adapter));
+    }
+
     public static PixelRPGPlugin getInstance() { return instance; }
-    public LanguageManager getLanguageManager() { return languageManager; }
-    public StatEngine getStatEngine() { return statEngine; }
-    public PartyManager getPartyManager() { return partyManager; }
-    public QuestManager getQuestManager() { return questManager; }
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
-    public ProfessionSystem getProfessionSystem() { return professionSystem; }
+    public StatEngine getStatEngine() { return statEngine; }
     public ItemService getItemService() { return itemService; }
     public NpcManager getNpcManager() { return npcManager; }
-    public ShopManager getShopManager() { return shopManager; }
-    public StoryManager getStoryManager() { return storyManager; }
+    public QuestManager getQuestManager() { return questManager; }
     public BossManager getBossManager() { return bossManager; }
     public CompanionService getCompanionService() { return companionService; }
-
-    public void registerCommand(String name, PaperBasicCommandAdapter command) {
-        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> event.registrar().register(name, command));
-    }
 }
