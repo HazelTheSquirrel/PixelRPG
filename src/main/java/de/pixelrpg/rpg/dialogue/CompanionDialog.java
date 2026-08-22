@@ -28,17 +28,16 @@ public final class CompanionDialog {
 
         if (companions.isEmpty()) {
             body.add(DialogBody.plainMessage(Component.text(
-                    "Du hast noch keine Begleiter freigeschaltet.", NamedTextColor.GRAY)));
+                    "Du hast noch keine Begleiter freigeschaltet.", NamedTextColor.WHITE)));
         } else {
             body.add(DialogBody.plainMessage(Component.text(
-                    "Deine Begleiter", NamedTextColor.AQUA)));
+                    "Deine Begleiter", NamedTextColor.WHITE)));
             for (Companion companion : companions) {
                 body.add(DialogBody.plainMessage(Component.text()
                         .append(Component.text(companion.name(), NamedTextColor.WHITE))
-                        .append(Component.text("  •  Level ", NamedTextColor.GRAY))
-                        .append(Component.text(companion.level(), NamedTextColor.YELLOW))
-                        .append(Component.text(companion.active() ? "  •  Aktiv" : "  •  Inaktiv",
-                                companion.active() ? NamedTextColor.GREEN : NamedTextColor.GRAY))
+                        .append(Component.text("  •  Level ", NamedTextColor.WHITE))
+                        .append(Component.text(companion.level(), NamedTextColor.WHITE))
+                        .append(Component.text(companion.active() ? "  •  Aktiv" : "  •  Inaktiv", NamedTextColor.WHITE))
                         .build()));
                 if (!companion.active()) {
                     actions.add(dialogueEngine.actionButton(
@@ -59,9 +58,6 @@ public final class CompanionDialog {
                         }));
             }
         }
-
-        actions.add(dialogueEngine.actionButton(
-                Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
 
         dialogueEngine.openMultiAction(player, Component.text("PixelRPG – Begleiter", NamedTextColor.GOLD),
                 body, actions, 1);
