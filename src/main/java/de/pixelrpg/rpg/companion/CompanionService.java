@@ -8,8 +8,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Wolf;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
@@ -75,11 +75,13 @@ public final class CompanionService {
         unlockDefinition(playerId, TEST_WOLF_ID);
     }
 
-    /** Unlocks a configured companion definition, preserving its configured name and rarity. */
+    /** Unlocks a player-accessible companion definition. Admin-only definitions are deliberately excluded. */
     public boolean unlockDefinition(UUID playerId, String id) {
-        Companion definition = readDefinition(id);
-        if (definition == null) return false;
-        unlock(playerId, definition);
+        JsonObject definition = readDefinitionJson(id);
+        if (definition == null || bool(definition, "adminOnly", false)) return false;
+        Companion companion = toCompanion(id, definition);
+        if (companion == null) return false;
+        unlock(playerId, companion);
         return true;
     }
 
@@ -114,19 +116,7 @@ public final class CompanionService {
         save(playerId, updated);
 
         Companion selected = updated.stream().filter(companion -> companion.id().equals(companionId)).findFirst().orElseThrow();
-        if (selected.entityType() == org.bukkit.entity.EntityType.WOLF) {
-            Location spawnLocation = player.getLocation().clone().add(1.0, 0.0, 1.0);
-            Wolf wolf = player.getWorld().spawn(spawnLocation, Wolf.class, spawned -> {
-                spawned.setTamed(true);
-                spawned.setOwner(player);
-                spawned.setAdult();
-                spawned.setCustomNameVisible(true);
-                spawned.setCustomName(selected.name());
-                spawned.setAngry(false);
-                spawned.setTarget(null);
-            });
-            activeEntities.put(playerId, wolf.getUniqueId());
-        }
+        spawnPassiveCompanion(player, selected);
         return true;
     }
 
@@ -248,7 +238,32 @@ public final class CompanionService {
         companions.clear();
     }
 
-    private Companion readDefinition(String id) {
+    private void spawnPassiveCompanion(Player player, Companion selected) {
+        try {
+            Location spawnLocation = player.getLocation().clone().add(1.0, 0.0, 1.0);
+            Entity entity = player.getWorld().spawnEntity(spawnLocation, selected.entityType());
+            if (!(entity instanceof LivingEntity living)) {
+                entity.remove();
+                return;
+            }
+
+            living.setCustomName(selected.name());
+            living.setCustomNameVisible(true);
+
+            // Phase 1 companions are visual/passive only; combat AI is intentionally not enabled yet.
+            if (living instanceof Mob mob) {
+                mob.setAware(false);
+                mob.setTarget(null);
+            }
+
+            activeEntities.put(player.getUniqueId(), entity.getUniqueId());
+        } catch (RuntimeException exception) {
+            plugin.getLogger().warning("Unable to spawn companion '" + selected.id() + "' as "
+                    + selected.entityType() + ": " + exception.getMessage());
+        }
+    }
+
+    private JsonObject readDefinitionJson(String id) {
         try {
             JsonObject root = new JsonDataManager(plugin).load("companions.json");
             JsonArray definitions = root.getAsJsonArray("definitions");
@@ -256,23 +271,7 @@ public final class CompanionService {
             for (var element : definitions) {
                 if (!element.isJsonObject()) continue;
                 JsonObject json = element.getAsJsonObject();
-                if (!id.equals(string(json, "id", ""))) continue;
-                try {
-                    CompanionRarity rarity = CompanionRarity.valueOf(string(json, "rarity", "COMMON").toUpperCase());
-                    org.bukkit.entity.EntityType entityType = org.bukkit.entity.EntityType.valueOf(string(json, "entityType", "WOLF").toUpperCase());
-                    return new Companion(
-                            id,
-                            string(json, "name", id),
-                            1,
-                            0L,
-                            rarity,
-                            entityType,
-                            false
-                    );
-                } catch (IllegalArgumentException exception) {
-                    plugin.getLogger().warning("Ignoring invalid companion definition '" + id + "'.");
-                    return null;
-                }
+                if (id.equals(string(json, "id", ""))) return json;
             }
         } catch (RuntimeException exception) {
             plugin.getLogger().warning("Unable to read companion definition '" + id + "': " + exception.getMessage());
@@ -280,20 +279,20 @@ public final class CompanionService {
         return null;
     }
 
-    private boolean isRenameable(String id) {
+    private Companion toCompanion(String id, JsonObject json) {
         try {
-            JsonObject root = new JsonDataManager(plugin).load("companions.json");
-            JsonArray definitions = root.getAsJsonArray("definitions");
-            if (definitions == null) return false;
-            for (var element : definitions) {
-                if (!element.isJsonObject()) continue;
-                JsonObject json = element.getAsJsonObject();
-                if (id.equals(string(json, "id", ""))) return bool(json, "renameable", true);
-            }
-        } catch (RuntimeException exception) {
-            plugin.getLogger().warning("Unable to read renameable flag for companion '" + id + "'.");
+            CompanionRarity rarity = CompanionRarity.valueOf(string(json, "rarity", "COMMON").toUpperCase());
+            org.bukkit.entity.EntityType entityType = org.bukkit.entity.EntityType.valueOf(string(json, "entityType", "WOLF").toUpperCase());
+            return new Companion(id, string(json, "name", id), 1, 0L, rarity, entityType, false);
+        } catch (IllegalArgumentException exception) {
+            plugin.getLogger().warning("Ignoring invalid companion definition '" + id + "'.");
+            return null;
         }
-        return false;
+    }
+
+    private boolean isRenameable(String id) {
+        JsonObject json = readDefinitionJson(id);
+        return json != null && bool(json, "renameable", true);
     }
 
     private void clearActiveEntity(Player player) {
