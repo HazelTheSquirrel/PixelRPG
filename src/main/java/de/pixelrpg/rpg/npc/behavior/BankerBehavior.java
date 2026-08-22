@@ -1,6 +1,8 @@
 package de.pixelrpg.rpg.npc.behavior;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.BankDialog;
+import de.pixelrpg.rpg.dialogue.BankInventoryListener;
 import de.pixelrpg.rpg.dialogue.BankStorageService;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.lang.LanguageManager;
@@ -16,11 +18,13 @@ public final class BankerBehavior implements NpcBehavior {
     private final BankStorageService bankStorage;
     private final LanguageManager lang;
 
-    public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, BankStorageService bankStorage) {
+    public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
-        this.bankStorage = bankStorage;
-        this.lang = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getLanguageManager();
+        this.bankStorage = new BankStorageService(PixelRPGPlugin.getInstance());
+        PixelRPGPlugin.getInstance().getServer().getPluginManager()
+                .registerEvents(new BankInventoryListener(bankStorage), PixelRPGPlugin.getInstance());
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
