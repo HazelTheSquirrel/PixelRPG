@@ -24,7 +24,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class QuestManager {
-    private static final int MAX_ACTIVE_QUESTS = 3;
+    public static final int MAX_ACTIVE_QUESTS = 5;
+    public static final int QUEST_LEVEL_UNLOCK_BUFFER = 5;
 
     private final Plugin plugin;
     private final QuestRepository questRepository;
@@ -55,11 +56,10 @@ public final class QuestManager {
                 UUID uuid = playerEntry.getKey();
                 for (Map.Entry<String, Long> questEntry : new HashMap<>(playerEntry.getValue()).entrySet()) {
                     if (now < questEntry.getValue()) continue;
-                    String questId = questEntry.getKey();
-                    playerEntry.getValue().remove(questId);
+                    playerEntry.getValue().remove(questEntry.getKey());
                     Bukkit.getScheduler().runTask(plugin, () -> {
                         profileManager.getProfile(uuid).filter(PlayerProfile::isRegisteredInGuild)
-                                .ifPresent(profile -> profile.removeActiveQuest(questId));
+                                .ifPresent(profile -> profile.removeActiveQuest(questEntry.getKey()));
                         Player player = Bukkit.getPlayer(uuid);
                         if (player != null && player.isOnline()) lang.send(player, "quest.expired");
                     });
@@ -76,10 +76,12 @@ public final class QuestManager {
         questTimers.clear();
     }
 
+    /** A quest becomes available five player levels before its recommended level. */
     public boolean canAccept(PlayerProfile profile, Quest quest) {
         if (!profile.isRegisteredInGuild()) return false;
         if (profile.hasCompletedQuest(quest.id())) return false;
-        return profile.getLevel() >= quest.requiredLevel();
+        int minimumLevel = Math.max(1, quest.requiredLevel() - QUEST_LEVEL_UNLOCK_BUFFER);
+        return profile.getLevel() >= minimumLevel;
     }
 
     public boolean acceptQuest(Player player, Quest quest) {
