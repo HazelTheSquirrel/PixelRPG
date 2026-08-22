@@ -1,0 +1,19 @@
+{
+  "cost": {
+    "base": 30.0,
+    "multiplier": 1.08,
+    "classDiscount": 0.75,
+    "soulview": 500.0,
+    "elytraPermit": 750.0
+  },
+  "pointScaling": {
+    "vitalityHp": 2.0,
+    "agilitySpeed": 0.0025,
+    "agilityCrit": 0.20,
+    "precisionDamage": 0.75,
+    "rangeBlock": 0.10,
+    "rangeEntity": 0.10,
+    "toughnessArmor": 1.0
+  },
+  "levelRequirements": [1, 10, 20, 30, 40, 50, 60]
+}
