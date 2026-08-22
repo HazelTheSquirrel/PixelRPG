@@ -1,5 +1,7 @@
 package de.pixelrpg.rpg.player;
 
+import com.google.gson.JsonObject;
+import de.pixelrpg.rpg.config.JsonDataManager;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.EnumMap;
@@ -16,7 +18,6 @@ public record ClassBalance(
         double critChanceBonus,
         double critDamageMultiplier
 ) {
-
     private static final ClassBalance NEUTRAL = new ClassBalance(0, 0, 0, 1.0, 1.0, 1.0, 1.0, 0, 1.0);
 
     private record ClassFormula(
@@ -28,90 +29,78 @@ public record ClassBalance(
             double spellMultBase, double spellMultPerPrecision,
             double healMultBase, double healMultPerVitality,
             double critChanceBase, double critChancePerPoint,
-            double critDamageMultBase, double critDamageMultPerPrecision
-    ) {
-    }
+            double critDamageMultBase, double critDamageMultPerPrecision) { }
 
     private static final Map<PlayerClass, ClassFormula> FORMULAS = new EnumMap<>(PlayerClass.class);
 
     static {
-        // Sinnvolle Defaults, identisch zu den vorherigen hartcodierten Werten,
-        // werden beim Fehlen der Config-Sektion verwendet.
-        FORMULAS.put(PlayerClass.WARRIOR, new ClassFormula(
-                10.0, 1.8, 8.0, 1.2, 0.0, 0.0,
-                1.15, 0.015, 1.0, 0.0, 1.0, 0.0,
-                1.0, 0.0, 0.0, 0.0, 1.0, 0.0));
-        FORMULAS.put(PlayerClass.RANGER, new ClassFormula(
-                0.0, 0.0, 2.0, 0.5, 0.03, 0.002,
-                1.0, 0.0, 1.20, 0.015, 1.0, 0.0,
-                1.0, 0.0, 5.0, 0.8, 1.0, 0.0));
-        FORMULAS.put(PlayerClass.ROGUE, new ClassFormula(
-                0.0, 0.0, 0.0, 0.0, 0.02, 0.002,
-                1.0, 0.0, 1.0, 0.0, 1.0, 0.0,
-                1.0, 0.0, 15.0, 1.0, 1.6, 0.03));
-        FORMULAS.put(PlayerClass.HEALER, new ClassFormula(
-                3.0, 0.5, 10.0, 1.5, 0.0, 0.0,
-                1.0, 0.0, 1.0, 0.0, 1.0, 0.0,
-                1.35, 0.025, 0.0, 0.0, 1.0, 0.0));
-        FORMULAS.put(PlayerClass.MAGE, new ClassFormula(
-                -2.0, 0.0, -2.0, 0.5, 0.0, 0.0,
-                1.0, 0.0, 1.0, 0.0, 1.25, 0.025,
-                1.0, 0.0, 0.0, 0.0, 1.0, 0.0));
+        FORMULAS.put(PlayerClass.WARRIOR, new ClassFormula(10.0, 1.8, 8.0, 1.2, 0.0, 0.0, 1.15, 0.015, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0));
+        FORMULAS.put(PlayerClass.RANGER, new ClassFormula(0.0, 0.0, 2.0, 0.5, 0.03, 0.002, 1.0, 0.0, 1.20, 0.015, 1.0, 0.0, 1.0, 0.0, 5.0, 0.8, 1.0, 0.0));
+        FORMULAS.put(PlayerClass.ROGUE, new ClassFormula(0.0, 0.0, 0.0, 0.0, 0.02, 0.002, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 15.0, 1.0, 1.6, 0.03));
+        FORMULAS.put(PlayerClass.HEALER, new ClassFormula(3.0, 0.5, 10.0, 1.5, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.35, 0.025, 0.0, 0.0, 1.0, 0.0));
+        FORMULAS.put(PlayerClass.MAGE, new ClassFormula(-2.0, 0.0, -2.0, 0.5, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.25, 0.025, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0));
     }
 
-    /**
-     * Lädt Klassen-Balancing-Formeln aus der Config-Sektion "class-balance".
-     * Fehlt ein Wert, bleibt der bereits gesetzte Default (siehe static-Block)
-     * bestehen, sodass ein unvollständiger Config-Abschnitt nicht zu 0-Werten führt.
-     */
-    public static void load(FileConfiguration config) {
-        loadClass(config, "warrior", PlayerClass.WARRIOR);
-        loadClass(config, "ranger", PlayerClass.RANGER);
-        loadClass(config, "rogue", PlayerClass.ROGUE);
-        loadClass(config, "healer", PlayerClass.HEALER);
-        loadClass(config, "mage", PlayerClass.MAGE);
-    }
-
-    private static void loadClass(FileConfiguration config, String path, PlayerClass playerClass) {
-        String base = "class-balance." + path + ".";
-        if (!config.contains(path.equals("warrior") ? "class-balance.warrior" : base.substring(0, base.length() - 1))) {
-            return;
+    /** Loads class calculation formulas from the user-editable JSON data file. */
+    public static void load(JsonDataManager dataManager) {
+        JsonObject root = dataManager.load("class-balance.json");
+        for (PlayerClass playerClass : PlayerClass.values()) {
+            if (playerClass == PlayerClass.NONE) continue;
+            JsonObject object = root.getAsJsonObject(playerClass.name().toLowerCase());
+            if (object != null) loadClass(object, playerClass);
         }
-        ClassFormula existing = FORMULAS.get(playerClass);
+    }
 
-        ClassFormula updated = new ClassFormula(
-                config.getDouble(base + "armor-base", existing.armorBase()),
-                config.getDouble(base + "armor-per-toughness", existing.armorPerToughness()),
-                config.getDouble(base + "health-base", existing.healthBase()),
-                config.getDouble(base + "health-per-vitality", existing.healthPerVitality()),
-                config.getDouble(base + "speed-base", existing.speedBase()),
-                config.getDouble(base + "speed-per-agility", existing.speedPerAgility()),
-                config.getDouble(base + "melee-mult-base", existing.meleeMultBase()),
-                config.getDouble(base + "melee-mult-per-toughness", existing.meleeMultPerToughness()),
-                config.getDouble(base + "ranged-mult-base", existing.rangedMultBase()),
-                config.getDouble(base + "ranged-mult-per-point", existing.rangedMultPerPoint()),
-                config.getDouble(base + "spell-mult-base", existing.spellMultBase()),
-                config.getDouble(base + "spell-mult-per-precision", existing.spellMultPerPrecision()),
-                config.getDouble(base + "heal-mult-base", existing.healMultBase()),
-                config.getDouble(base + "heal-mult-per-vitality", existing.healMultPerVitality()),
-                config.getDouble(base + "crit-chance-base", existing.critChanceBase()),
-                config.getDouble(base + "crit-chance-per-point", existing.critChancePerPoint()),
-                config.getDouble(base + "crit-damage-mult-base", existing.critDamageMultBase()),
-                config.getDouble(base + "crit-damage-mult-per-precision", existing.critDamageMultPerPrecision())
-        );
-        FORMULAS.put(playerClass, updated);
+    private static void loadClass(JsonObject json, PlayerClass playerClass) {
+        ClassFormula existing = FORMULAS.get(playerClass);
+        FORMULAS.put(playerClass, new ClassFormula(
+                number(json, "armorBase", existing.armorBase()), number(json, "armorPerToughness", existing.armorPerToughness()),
+                number(json, "healthBase", existing.healthBase()), number(json, "healthPerVitality", existing.healthPerVitality()),
+                number(json, "speedBase", existing.speedBase()), number(json, "speedPerAgility", existing.speedPerAgility()),
+                number(json, "meleeMultBase", existing.meleeMultBase()), number(json, "meleeMultPerToughness", existing.meleeMultPerToughness()),
+                number(json, "rangedMultBase", existing.rangedMultBase()), number(json, "rangedMultPerPoint", existing.rangedMultPerPoint()),
+                number(json, "spellMultBase", existing.spellMultBase()), number(json, "spellMultPerPrecision", existing.spellMultPerPrecision()),
+                number(json, "healMultBase", existing.healMultBase()), number(json, "healMultPerVitality", existing.healMultPerVitality()),
+                number(json, "critChanceBase", existing.critChanceBase()), number(json, "critChancePerPoint", existing.critChancePerPoint()),
+                number(json, "critDamageMultBase", existing.critDamageMultBase()), number(json, "critDamageMultPerPrecision", existing.critDamageMultPerPrecision())
+        ));
+    }
+
+    private static double number(JsonObject json, String key, double fallback) {
+        return json.has(key) && json.get(key).isNumber() ? json.get(key).getAsDouble() : fallback;
+    }
+
+    /** Compatibility loader for the legacy main config. */
+    public static void load(FileConfiguration config) {
+        loadClassConfig(config, "warrior", PlayerClass.WARRIOR);
+        loadClassConfig(config, "ranger", PlayerClass.RANGER);
+        loadClassConfig(config, "rogue", PlayerClass.ROGUE);
+        loadClassConfig(config, "healer", PlayerClass.HEALER);
+        loadClassConfig(config, "mage", PlayerClass.MAGE);
+    }
+
+    private static void loadClassConfig(FileConfiguration config, String path, PlayerClass playerClass) {
+        String base = "class-balance." + path + ".";
+        if (!config.contains("class-balance." + path)) return;
+        ClassFormula existing = FORMULAS.get(playerClass);
+        FORMULAS.put(playerClass, new ClassFormula(
+                config.getDouble(base + "armor-base", existing.armorBase()), config.getDouble(base + "armor-per-toughness", existing.armorPerToughness()),
+                config.getDouble(base + "health-base", existing.healthBase()), config.getDouble(base + "health-per-vitality", existing.healthPerVitality()),
+                config.getDouble(base + "speed-base", existing.speedBase()), config.getDouble(base + "speed-per-agility", existing.speedPerAgility()),
+                config.getDouble(base + "melee-mult-base", existing.meleeMultBase()), config.getDouble(base + "melee-mult-per-toughness", existing.meleeMultPerToughness()),
+                config.getDouble(base + "ranged-mult-base", existing.rangedMultBase()), config.getDouble(base + "ranged-mult-per-point", existing.rangedMultPerPoint()),
+                config.getDouble(base + "spell-mult-base", existing.spellMultBase()), config.getDouble(base + "spell-mult-per-precision", existing.spellMultPerPrecision()),
+                config.getDouble(base + "heal-mult-base", existing.healMultBase()), config.getDouble(base + "heal-mult-per-vitality", existing.healMultPerVitality()),
+                config.getDouble(base + "crit-chance-base", existing.critChanceBase()), config.getDouble(base + "crit-chance-per-point", existing.critChancePerPoint()),
+                config.getDouble(base + "crit-damage-mult-base", existing.critDamageMultBase()), config.getDouble(base + "crit-damage-mult-per-precision", existing.critDamageMultPerPrecision())
+        ));
     }
 
     public static ClassBalance of(PlayerProfile profile) {
-        if (profile == null) {
-            return NEUTRAL;
-        }
-
+        if (profile == null) return NEUTRAL;
         PlayerClass playerClass = profile.getPlayerClass();
         ClassFormula formula = FORMULAS.get(playerClass);
-        if (formula == null) {
-            return NEUTRAL;
-        }
+        if (formula == null) return NEUTRAL;
 
         int vitality = profile.getAttributePoints(PlayerAttribute.VITALITY);
         int agility = profile.getAttributePoints(PlayerAttribute.AGILITY);
@@ -126,10 +115,7 @@ public record ClassBalance(
         double rangedMult = formula.rangedMultBase() + (agility + range) * formula.rangedMultPerPoint();
         double spellMult = formula.spellMultBase() + precision * formula.spellMultPerPrecision();
         double healMult = formula.healMultBase() + vitality * formula.healMultPerVitality();
-        double critChance = formula.critChanceBase() + (
-                playerClass == PlayerClass.RANGER ? range * formula.critChancePerPoint()
-                        : (agility + precision) * formula.critChancePerPoint()
-        );
+        double critChance = formula.critChanceBase() + (playerClass == PlayerClass.RANGER ? range * formula.critChancePerPoint() : (agility + precision) * formula.critChancePerPoint());
         double critDamageMult = formula.critDamageMultBase() + precision * formula.critDamageMultPerPrecision();
 
         return new ClassBalance(armor, health, speed, meleeMult, rangedMult, spellMult, healMult, critChance, critDamageMult);
