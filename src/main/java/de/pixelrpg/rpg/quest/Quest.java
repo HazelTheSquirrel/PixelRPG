@@ -17,6 +17,7 @@ public record Quest(
         long rewardExp,
         int durationMinutes,
         List<String> rewardItemMaterials,
+        String rewardCompanionId,
         Location escortDestination,
         Location reachLocation,
         double reachRadius
@@ -24,5 +25,9 @@ public record Quest(
 
     public boolean hasTimeLimit() {
         return durationMinutes > 0;
+    }
+
+    public boolean rewardsCompanion() {
+        return rewardCompanionId != null && !rewardCompanionId.isBlank();
     }
 }
