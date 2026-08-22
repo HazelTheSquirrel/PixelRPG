@@ -70,8 +70,8 @@ public final class QuestNavigationService {
             if (quest == null || progress.getCurrentAmount() >= quest.requiredAmount()) continue;
 
             Location location = switch (quest.type()) {
-                case REACH_LOCATION -> quest.reachLocation();
-                case ESCORT -> quest.escortDestination();
+                case REACH_LOCATION -> resolveReachLocation(quest);
+                case ESCORT -> resolveEscortLocation(quest);
                 case TALK_TO_NPC -> npcManager.getById(quest.targetKey()).map(npc -> npc.location()).orElse(null);
                 default -> null;
             };
@@ -80,11 +80,34 @@ public final class QuestNavigationService {
         return null;
     }
 
+    private Location resolveReachLocation(Quest quest) {
+        if (quest.reachLocation() != null) return quest.reachLocation();
+        return resolveNpcTarget(quest.targetKey());
+    }
+
+    private Location resolveEscortLocation(Quest quest) {
+        if (quest.escortDestination() != null) return quest.escortDestination();
+        return resolveNpcTarget(quest.targetKey());
+    }
+
+    private Location resolveNpcTarget(String targetKey) {
+        if (targetKey == null || targetKey.isBlank()) return null;
+        String id = targetKey;
+        if (targetKey.regionMatches(true, 0, "npc:", 0, 4) || targetKey.regionMatches(true, 0, "village:", 0, 8)) {
+            id = targetKey.substring(targetKey.indexOf(':') + 1);
+        }
+        return npcManager.getById(id).map(npc -> npc.location()).orElse(null);
+    }
+
     private void updateCompass(Player player, Quest quest, Location target) {
         ItemStack compass = findCompass(player);
         if (compass == null) {
             compass = new ItemStack(Material.RECOVERY_COMPASS);
-            player.getInventory().addItem(compass);
+            Map<Integer, ItemStack> leftovers = player.getInventory().addItem(compass);
+            if (!leftovers.isEmpty()) {
+                player.sendActionBar(Component.text("Kein Platz für den Quest-Kompass.", NamedTextColor.RED));
+                return;
+            }
             compass = findCompass(player);
             if (compass == null) return;
         }
