@@ -58,6 +58,7 @@ public final class QuestBoardGUI extends AbstractGUI {
         Material material = switch (quest.type()) {
             case HUNT -> Material.IRON_SWORD;
             case COLLECT -> Material.CHEST;
+            case TALK_TO_NPC -> Material.VILLAGER_SPAWN_EGG;
             case ESCORT -> Material.SADDLE;
             case REACH_LOCATION -> Material.COMPASS;
             case GLOBAL_EVENT -> Material.NETHER_STAR;
