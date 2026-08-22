@@ -6,6 +6,7 @@ import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.DialogBase;
 import io.papermc.paper.registry.data.dialog.DialogRegistryEntry;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
+import io.papermc.paper.registry.data.dialog.body.PlainMessageDialogBody;
 import io.papermc.paper.registry.data.dialog.input.DialogInput;
 import io.papermc.paper.registry.data.dialog.type.DialogType;
 import io.papermc.paper.registry.data.dialog.action.DialogAction;
@@ -42,17 +43,11 @@ public final class DialogueEngine {
         int safeColumns = Math.max(1, Math.min(3, columns));
 
         List<ActionButton> safeActions = new ArrayList<>(actions);
-        ActionButton back = null;
         if (backAction != null) {
-            back = actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction);
+            safeActions.add(actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
         }
         ActionButton close = actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog);
 
-        if (back != null) {
-            safeActions.add(back);
-        }
-
-        ActionButton finalBack = back;
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(normalize(title))
@@ -149,11 +144,12 @@ public final class DialogueEngine {
     }
 
     private List<DialogBody> normalizeBody(List<DialogBody> body) {
-        return body.stream().map(this::normalizeBodyEntry).toList();
-    }
-
-    private DialogBody normalizeBodyEntry(DialogBody entry) {
-        return DialogBody.plainMessage(normalize(entry.content()));
+        return body.stream().map(entry -> {
+            if (entry instanceof PlainMessageDialogBody plain) {
+                return DialogBody.plainMessage(normalize(plain.contents()), plain.width());
+            }
+            return entry;
+        }).toList();
     }
 
     private Component normalize(Component component) {
