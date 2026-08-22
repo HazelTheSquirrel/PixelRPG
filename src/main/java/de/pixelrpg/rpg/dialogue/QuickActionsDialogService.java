@@ -2,9 +2,6 @@ package de.pixelrpg.rpg.dialogue;
 
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import de.pixelrpg.rpg.quest.Quest;
-import de.pixelrpg.rpg.quest.QuestManager;
-import de.pixelrpg.rpg.quest.QuestProgress;
 import de.pixelrpg.rpg.stats.StatEngine;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.registry.data.dialog.ActionButton;
@@ -25,12 +22,10 @@ import java.util.List;
 public final class QuickActionsDialogService {
     private final PlayerProfileManager profiles;
     private final StatEngine statEngine;
-    private final QuestManager questManager;
 
-    public QuickActionsDialogService(PlayerProfileManager profiles, StatEngine statEngine, QuestManager questManager) {
+    public QuickActionsDialogService(PlayerProfileManager profiles, StatEngine statEngine) {
         this.profiles = profiles;
         this.statEngine = statEngine;
-        this.questManager = questManager;
     }
 
     public PlayerProfileManager profileManager() {
@@ -105,17 +100,12 @@ public final class QuickActionsDialogService {
         } else {
             body.add(DialogBody.plainMessage(Component.text(
                     "Aktive Quests: " + profile.getActiveQuests().size() + "/3", NamedTextColor.AQUA)));
-            for (String questId : profile.getActiveQuests().keySet().stream().sorted().toList()) {
-                Quest quest = questManager.getRepository().getQuest(questId);
-                QuestProgress progress = profile.getActiveQuests().get(questId);
-                if (quest == null || progress == null) continue;
-                actions.add(actionButton(
-                        Component.text(quest.title() + " • " + progress.getCurrentAmount() + "/" + quest.requiredAmount()),
-                        NamedTextColor.YELLOW,
-                        target -> target.sendMessage(Component.text(
-                                quest.description() + "  [" + progress.getCurrentAmount() + "/" + quest.requiredAmount() + "]",
-                                NamedTextColor.WHITE))));
-            }
+            profile.getActiveQuests().forEach((questId, progress) -> actions.add(actionButton(
+                    Component.text(questId + " • " + progress.getCurrentAmount(), NamedTextColor.YELLOW),
+                    NamedTextColor.YELLOW,
+                    target -> target.sendMessage(Component.text(
+                            "Quest " + questId + ": " + progress.getCurrentAmount() + " Fortschritt",
+                            NamedTextColor.WHITE)))));
         }
 
         actions.add(actionButton(Component.text("Zurück"), NamedTextColor.WHITE,
