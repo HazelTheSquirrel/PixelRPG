@@ -4,12 +4,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import de.pixelrpg.rpg.config.JsonDataManager;
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.npc.MannequinSkinResolver;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
@@ -270,6 +272,12 @@ public final class CompanionService {
             living.getPersistentDataContainer().set(RPGKeys.Companion.rarity(), PersistentDataType.STRING, selected.rarity().name());
             living.customName(Component.text(selected.name()));
             living.setCustomNameVisible(true);
+
+            JsonObject definition = readDefinitionJson(selected.id());
+            if (living instanceof Mannequin mannequin && definition != null) {
+                String skinSource = string(definition, "skinSource", "");
+                if (!skinSource.isBlank()) MannequinSkinResolver.apply(mannequin, skinSource, plugin.getLogger());
+            }
 
             // Phase 1 companions are visual/passive only; combat AI is intentionally not enabled yet.
             if (living instanceof Mob mob) {
