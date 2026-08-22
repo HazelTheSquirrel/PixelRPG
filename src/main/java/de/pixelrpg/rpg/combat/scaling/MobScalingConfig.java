@@ -2,13 +2,14 @@ package de.pixelrpg.rpg.combat.scaling;
 
 import com.google.gson.JsonObject;
 import de.pixelrpg.rpg.config.JsonDataManager;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.Plugin;
 
 public final class MobScalingConfig {
     public record LevelBaseStats(double hp, double damage) { }
     public record DimensionModifier(double hpMultiplier, double damageMultiplier, int levelOffset, int baseLevel) { }
-
     private DimensionModifier overworld;
     private DimensionModifier nether;
     private DimensionModifier theEnd;
@@ -26,15 +27,23 @@ public final class MobScalingConfig {
         playerParityMultiplier = number(root, "playerParityMultiplier", playerParityMultiplier);
         hpPerLevel = number(root, "hpPerLevel", hpPerLevel);
         damagePerLevel = number(root, "damagePerLevel", damagePerLevel);
-
         JsonObject dimensions = root.getAsJsonObject("dimensions");
         overworld = loadDimension(dimensions, "overworld", 1.0, 1.0, 0, 1);
         nether = loadDimension(dimensions, "nether", 1.30, 1.20, 0, 50);
         theEnd = loadDimension(dimensions, "the_end", 1.60, 1.40, 0, 75);
     }
 
-    /** Compatibility loader for the legacy main config. */
+    /** Loads JSON data during the existing plugin startup path, with the legacy config as fallback. */
     public void load(FileConfiguration config) {
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("PixelRPG");
+        if (plugin != null) {
+            try {
+                load(new JsonDataManager(plugin));
+                return;
+            } catch (RuntimeException ignored) {
+                plugin.getLogger().warning("Falling back to legacy mob scaling config because mob-scaling.json could not be loaded.");
+            }
+        }
         playerParityMultiplier = config.getDouble("mob-scaling.player-parity-multiplier", 1.15);
         hpPerLevel = config.getDouble("mob-scaling.hp-per-level", 8.0);
         damagePerLevel = config.getDouble("mob-scaling.damage-per-level", 1.1);
