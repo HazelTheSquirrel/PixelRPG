@@ -25,8 +25,6 @@ public final class CharacterCardScoreboardService {
             Map.entry("level", "px_cc_lvl"),
             Map.entry("health", "px_cc_hp"),
             Map.entry("maxHealth", "px_cc_maxhp"),
-            Map.entry("mana", "px_cc_mana"),
-            Map.entry("maxMana", "px_cc_maxmana"),
             Map.entry("armor", "px_cc_armor"),
             Map.entry("strength", "px_cc_str"),
             Map.entry("agility", "px_cc_agi"),
@@ -100,8 +98,6 @@ public final class CharacterCardScoreboardService {
         set(player, "level", profile.getLevel());
         set(player, "health", round(player.getHealth()));
         set(player, "maxHealth", round(maxHealth));
-        set(player, "mana", round(profile.getCurrentMana()));
-        set(player, "maxMana", round(stats.maxMana()));
         set(player, "armor", round(armor));
         set(player, "strength", round(stats.strength()));
         set(player, "agility", round(stats.agility()));
