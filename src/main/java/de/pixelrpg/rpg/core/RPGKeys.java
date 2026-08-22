@@ -79,6 +79,14 @@ public final class RPGKeys {
         public static NamespacedKey navigationCompass() { return of("quest_navigation_compass"); }
     }
 
+    public static final class Companion {
+        private Companion() { }
+
+        public static NamespacedKey id() { return of("companion_id"); }
+        public static NamespacedKey level() { return of("companion_level"); }
+        public static NamespacedKey rarity() { return of("companion_rarity"); }
+    }
+
     public static final class Economy {
         private Economy() { }
 
