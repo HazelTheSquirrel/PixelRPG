@@ -11,9 +11,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,10 +82,11 @@ public final class CompanionService {
         unlockDefinition(playerId, TEST_WOLF_ID);
     }
 
-    /** Unlocks a player-accessible companion definition. Admin-only definitions are deliberately excluded. */
+    /** Unlocks a player-accessible companion definition. Admin-only and Unique definitions are excluded. */
     public boolean unlockDefinition(UUID playerId, String id) {
         JsonObject definition = readDefinitionJson(id);
         if (definition == null || bool(definition, "adminOnly", false)) return false;
+        if ("UNIQUE".equalsIgnoreCase(string(definition, "rarity", ""))) return false;
         Companion companion = toCompanion(id, definition);
         if (companion == null) return false;
         unlock(playerId, companion);
@@ -106,7 +107,8 @@ public final class CompanionService {
 
     /** Unlocks a fixed-name Unique companion. Only administrative code should call this method. */
     public boolean unlockUnique(UUID playerId, String id, String fixedName, org.bukkit.entity.EntityType entityType) {
-        if (id == null || id.isBlank() || fixedName == null || fixedName.isBlank() || entityType == null || !entityType.isSpawnable()) return false;
+        if (id == null || id.isBlank() || fixedName == null || fixedName.isBlank() || fixedName.length() > maxNameLength
+                || entityType == null || !entityType.isSpawnable()) return false;
         JsonObject configured = readDefinitionJson(id);
         if (configured != null) {
             String rarity = string(configured, "rarity", "").toUpperCase();
@@ -196,7 +198,6 @@ public final class CompanionService {
 
     /** Awards companion XP only to the currently active companion. */
     public boolean awardExperience(UUID playerId, long baseExperience) {
-        if (!activeXpOnly && baseExperience <= 0L) return false;
         if (baseExperience <= 0L) return false;
         load(playerId);
         List<Companion> current = companions.get(playerId);
@@ -406,7 +407,7 @@ public final class CompanionService {
             try {
                 CompanionRarity rarity = CompanionRarity.valueOf(rarityName);
                 org.bukkit.entity.EntityType entityType = org.bukkit.entity.EntityType.valueOf(entityName);
-                if (!entityType.isSpawnable()) throw new IllegalArgumentException("entity type is not spawnable");
+                if (!entityType.isAlive() || !entityType.isSpawnable()) throw new IllegalArgumentException("entity type is not a spawnable living entity");
                 if (rarity.isUnique() && (!bool(json, "adminOnly", false) || bool(json, "renameable", true))) {
                     plugin.getLogger().warning("Invalid UNIQUE companion '" + id + "': it must be adminOnly and not renameable.");
                 }
