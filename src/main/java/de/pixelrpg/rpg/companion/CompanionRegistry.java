@@ -109,6 +109,7 @@ public final class CompanionRegistry {
                 bool(combat, "enabled", bool(json, "combat", false)),
                 Math.max(1.0D, number(combat, "attackRange", number(json, "attackRange", 3.5D))),
                 Math.max(1.0D, number(combat, "aggroRange", 12.0D)),
+                Math.max(1.0D, number(combat, "maxOwnerCombatDistance", Double.MAX_VALUE)),
                 Math.max(1, (int) Math.round(number(combat, "attackIntervalTicks", number(json, "attackIntervalTicks", 20)))),
                 bool(combat, "hostileTargets", true),
                 bool(combat, "playerTargets", false),
