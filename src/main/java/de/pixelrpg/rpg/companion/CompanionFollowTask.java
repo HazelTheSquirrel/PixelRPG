@@ -10,8 +10,8 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Mob;
+import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
@@ -21,13 +21,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** Keeps active companions near their owning player and delegates Mannequin companions to their dedicated controller. */
+/** Keeps active companions near their owners and delegates Mannequins to their dedicated controller. */
 public final class CompanionFollowTask implements Runnable {
     private static final double FOLLOW_DISTANCE_SQUARED = 9.0D;
     private static final double FOLLOW_OFFSET = 2.0D;
     private static final double TELEPORT_RECOVERY_DISTANCE_SQUARED = 576.0D;
     private static final double FOLLOW_SPEED = 1.15D;
-    private static final double MANNEQUIN_FOLLOW_SPEED = 0.14D;
 
     private final Plugin plugin;
     private final Map<UUID, UUID> activeEntities;
@@ -37,10 +36,10 @@ public final class CompanionFollowTask implements Runnable {
     private final Map<UUID, AppliedCompanionState> appliedStates = new HashMap<>();
     private CompanionLevelScaling levelScaling = CompanionLevelScaling.defaults();
 
-    public CompanionFollowTask(Plugin plugin, Map<UUID, UUID> activeEntities) {
+    public CompanionFollowTask(Plugin plugin, Map<UUID, UUID> activeEntities, CompanionService companionService) {
         this.plugin = plugin;
         this.activeEntities = activeEntities;
-        this.mannequinController = new MannequinCompanionController(plugin);
+        this.mannequinController = new MannequinCompanionController(plugin, companionService);
         reloadConfiguration();
     }
 
@@ -81,17 +80,15 @@ public final class CompanionFollowTask implements Runnable {
                 continue;
             }
 
-            var direction = playerLocation.getDirection().clone();
+            Vector direction = playerLocation.getDirection().clone();
+            direction.setY(0.0D);
             if (direction.lengthSquared() < 0.001D) direction.setZ(1.0D);
             direction.normalize().multiply(FOLLOW_OFFSET);
             Location target = playerLocation.clone().subtract(direction);
             target.setY(playerLocation.getY());
 
-            if (companion instanceof Mob mob) {
-                moveMob(mob, target);
-            } else {
-                moveEntity(companion, target, MANNEQUIN_FOLLOW_SPEED);
-            }
+            if (companion instanceof Mob mob) moveMob(mob, target);
+            else moveEntity(companion, target, 0.34D);
         }
     }
 
@@ -99,16 +96,13 @@ public final class CompanionFollowTask implements Runnable {
         mob.setAware(true);
         Pathfinder pathfinder = mob.getPathfinder();
         Pathfinder.PathResult path = pathfinder.findPath(target);
-        if (path != null) {
-            pathfinder.moveTo(path, FOLLOW_SPEED);
-        } else {
-            moveEntity(mob, target, MANNEQUIN_FOLLOW_SPEED);
-        }
+        if (path != null) pathfinder.moveTo(path, FOLLOW_SPEED);
+        else moveEntity(mob, target, 0.34D);
     }
 
     private static void moveEntity(Entity entity, Location target, double speed) {
         Vector delta = target.toVector().subtract(entity.getLocation().toVector());
-        delta.setY(0.0D);
+        delta.setY(Math.max(-0.35D, Math.min(0.35D, delta.getY())));
         if (delta.lengthSquared() < 0.04D) {
             entity.setVelocity(entity.getVelocity().multiply(0.35D));
             return;
@@ -155,7 +149,13 @@ public final class CompanionFollowTask implements Runnable {
         instance.setBaseValue(Math.max(0.01D, baseValue * multiplier));
         if (attribute == Attribute.MAX_HEALTH) entity.setHealth(Math.min(entity.getHealth(), instance.getValue()));
     }
-    private void reloadConfiguration() { loadVisualDefinitions(); loadStatDefinitions(); loadLevelScaling(); }
+
+    private void reloadConfiguration() {
+        loadVisualDefinitions();
+        loadStatDefinitions();
+        loadLevelScaling();
+    }
+
     private void loadVisualDefinitions() {
         definitionsById.clear();
         try {
@@ -169,8 +169,11 @@ public final class CompanionFollowTask implements Runnable {
                 if (id.isBlank()) continue;
                 definitionsById.put(id, new CompanionVisualDefinition(string(json, "entityType", ""), string(json, "rarity", "COMMON").toUpperCase(), number(json, "scale", 1.0D)));
             }
-        } catch (RuntimeException exception) { plugin.getLogger().warning("Unable to load companion visual configuration: " + exception.getMessage()); }
+        } catch (RuntimeException exception) {
+            plugin.getLogger().warning("Unable to load companion visual configuration: " + exception.getMessage());
+        }
     }
+
     private void loadStatDefinitions() {
         statsByRarity.clear();
         try {
@@ -181,18 +184,26 @@ public final class CompanionFollowTask implements Runnable {
                 JsonObject json = rarities.getAsJsonObject(rarity);
                 statsByRarity.put(rarity.toUpperCase(), new CompanionStatDefinition(number(json, "health", 1.0D), number(json, "damage", 1.0D), number(json, "speed", 1.0D)));
             }
-        } catch (RuntimeException exception) { plugin.getLogger().warning("Unable to load companion stat configuration: " + exception.getMessage()); }
+        } catch (RuntimeException exception) {
+            plugin.getLogger().warning("Unable to load companion stat configuration: " + exception.getMessage());
+        }
     }
+
     private void loadLevelScaling() {
         try {
             JsonObject root = new JsonDataManager(plugin).load("mob-scaling.json");
             JsonObject companions = root.getAsJsonObject("companions");
             JsonObject caps = companions == null ? null : companions.getAsJsonObject("caps");
             levelScaling = new CompanionLevelScaling(number(companions, "healthPerLevel", 0.008D), number(companions, "damagePerLevel", 0.006D), number(companions, "speedPerLevel", 0.0015D), number(caps, "health", 1.80D), number(caps, "damage", 1.60D), number(caps, "speed", 1.15D));
-        } catch (RuntimeException exception) { plugin.getLogger().warning("Unable to load companion level scaling: " + exception.getMessage()); levelScaling = CompanionLevelScaling.defaults(); }
+        } catch (RuntimeException exception) {
+            plugin.getLogger().warning("Unable to load companion level scaling: " + exception.getMessage());
+            levelScaling = CompanionLevelScaling.defaults();
+        }
     }
+
     private static String string(JsonObject object, String key, String fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsString() : fallback; }
     private static double number(JsonObject object, String key, double fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.get(key).getAsDouble() : fallback; }
+
     private record CompanionVisualDefinition(String entityType, String rarity, double scale) {}
     private record CompanionStatDefinition(double healthMultiplier, double damageMultiplier, double speedMultiplier) {}
     private record AppliedCompanionState(int level, String rarity, double baseHealth, double baseDamage, double baseSpeed) {
