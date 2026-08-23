@@ -67,6 +67,7 @@ public record CompanionDefinition(
             boolean enabled,
             double attackRange,
             double aggroRange,
+            double maxOwnerCombatDistance,
             int attackIntervalTicks,
             boolean hostileTargets,
             boolean playerTargets,
