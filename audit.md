@@ -4,7 +4,7 @@ Stand: 2026-08-23
 
 > **Dieses Dokument ist die zentrale aktuelle Referenz für den technischen Projektstand.**
 > Nach jeder größeren Analyse, Bereinigung oder Testphase wird diese Datei aktualisiert.
-> Spezifische Markdown-Dateien (`balancing.md`, `Compboss.md`, `Roadmap_Quests.md`, `resourcepack/README.md`) bleiben als Fach-/Arbeitsdokumente bestehen. Bei Widersprüchen gilt dieses Audit.
+> Spezifische Markdown-Dateien (`balancing.md`, `Compboss.md`, `Roadmap_Quests.md`) bleiben als Fach-/Arbeitsdokumente bestehen. Bei Widersprüchen gilt dieses Audit.
 
 ## Technische Basis
 
@@ -25,6 +25,19 @@ PixelRPG ist kein reiner Prototyp mehr. Die Kernsysteme sind vorhanden.
 
 **Aktuelle Phase: systematischer Voll-Audit, Validation, Polish und gezielte Bugfixes.**
 
+Wir konzentrieren uns aktuell auf **Aufräumen und Altlastenbereinigung**.
+
+Arbeitsregel für Altlasten:
+
+```text
+nicht verwendet → entfernen
+verwendet, aber veraltete Abhängigkeit → aufräumen / auf aktuellen Pfad bringen
+verwendet und aktuell → bestehen lassen
+unklar → erst Verwendung nachweisen, dann entscheiden
+```
+
+Companions befinden sich vollständig in der Testphase und werden bei diesem Cleanup **nicht als Altlasten bewertet**.
+
 Keine neuen großen Gameplay-Systeme, solange offene P0/P1-Punkte nicht geprüft sind.
 
 Vorhandene Kernbereiche:
@@ -42,11 +55,39 @@ Vorhandene Kernbereiche:
 - Berufe/Crafting
 - Economy/Party
 - Story/Travel
-- Companions
+- Companions (Testphase)
 - Bosse/World-Bosse
 - Statistics/Scoreboard
-- Resourcepack
 - API/Event-Schicht
+
+## Bereits durchgeführte Cleanup-Schritte
+
+### Resourcepack
+
+Das bisherige `resourcepack/` wurde vollständig aus `main` entfernt.
+
+Es war kein Bestandteil des aktuellen Plugin-Build-/Runtime-Pfades und enthielt zusätzlich veraltete Assets, unter anderem Mana-Potion-Daten.
+
+Ein neues Resourcepack wird später separat und passend zum finalen Item-/Asset-System aufgebaut.
+
+### Companion-Stat-Daten
+
+`src/main/resources/data/companion-stats.json` wurde entfernt, da im aktuellen Runtime-Pfad keine Verwendung dieser separaten generischen Statquelle nachweisbar war. Das aktive Companion-System verwendet `companions.json` und die Companion-/Mannequin-Controller.
+
+### Veraltete GUI-Klassen
+
+Folgende alte Inventory-GUIs wurden entfernt, da der aktuelle Interaktionspfad über native Dialoge bzw. andere aktive Inventory-Systeme läuft:
+
+- `AttributeTraderGUI`
+- `BankGUI`
+- `ClassSelectionGUI`
+- `TravelGUI`
+
+Aktive GUIs bleiben bestehen, wenn sie tatsächlich noch verwendet werden.
+
+### Veraltete Config
+
+`effects.aura-interval-ticks` wurde aus `config.yml` entfernt. Der zugehörige alte Equipment-Aura-Pfad existiert nicht mehr und der Config-Key wurde im aktuellen Code nicht verwendet.
 
 ## Wichtige Lifecycle-Regeln
 
@@ -218,11 +259,7 @@ Aktive Grundsätze:
 
 Das Balancing ist strukturell definiert, aber noch nicht final servervalidiert. Keine Einzelwerte auf Verdacht ändern.
 
-## Resourcepack
-
-Das Resourcepack ist vom Plugin-Code getrennt. Vorhandene Assets müssen gegen die aktuellen Gameplay-Systeme geprüft werden. Nach dem Mana-Cleanup sind insbesondere mögliche verwaiste Mana-Assets zu klassifizieren.
-
-# Offene Aufgaben
+# Offene Cleanup-/Audit-Aufgaben
 
 ## P0
 
@@ -232,25 +269,35 @@ Das Resourcepack ist vom Plugin-Code getrennt. Vorhandene Assets müssen gegen d
 
 ## P1
 
-4. Companion-Ruf nach Logout/Login vollständig testen.
-5. Companion Spawn → Skin → Equipment → Follow → Despawn → erneuter Spawn testen.
-6. `balancing.md` mit den tatsächlichen aktiven Daten synchron halten.
-7. Inventory-GUIs einzeln als Runtime/Admin/Inventaroperation/Legacy klassifizieren.
-8. PDC-Keys und historische Datenpfade auf tote Einträge prüfen.
-9. Quest-/Companion-Daten gegen die tatsächliche Runtime-Verwendung prüfen.
-10. Resourcepack auf verwaiste/historische Gameplay-Assets prüfen.
+4. Language-Dateien vollständig gegen tatsächlich verwendete Keys prüfen.
+5. Alte Rank-/Gem-/Rune-/Socket-/HUD-Texte aus Language-Dateien entfernen, sobald die Nichtverwendung bzw. der veraltete Pfad bestätigt ist.
+6. Inventory-GUIs einzeln als Runtime/Admin/Inventaroperation/Legacy klassifizieren.
+7. PDC-Keys und historische Datenpfade auf tote Einträge prüfen.
+8. Config-Keys systematisch gegen den aktuellen Code abgleichen.
+9. API-Schicht prüfen: verwendete APIs behalten, veraltete/inkonsistente APIs aufräumen.
+10. Quest-/Companion-Daten gegen die tatsächliche Runtime-Verwendung prüfen; Companion-Testdaten dabei ausdrücklich ausnehmen.
 
 ## P2
 
 11. End-to-End: Registrierung → NPC → Dialog → Quest → Combat → XP → Loot/Reward.
 12. Persistenztest über Server-Neustart.
 13. Level-/Scaling-Testmatrix.
-14. Abschließender Voll-Audit nach den Tests.
+14. Abschließender Voll-Audit nach den Cleanup-Schritten.
 
 ## Arbeitsregel
 
 ```text
-Analyse → Problem eindeutig feststellen → gezielt beheben → Build → Server-Test → Audit aktualisieren
+Analyse → Verwendung nachweisen → nicht verwendet = entfernen
+                         ↓
+              verwendet + veraltet = aufräumen
+                         ↓
+              verwendet + aktuell = bestehen lassen
+                         ↓
+                       Build
+                         ↓
+                    Server-Test
+                         ↓
+                   Audit aktualisieren
 ```
 
 Zusätzlich gilt:
@@ -271,4 +318,4 @@ Insbesondere bei bestehenden Dialogen, Buttons und `minecraft:quick_actions` wir
 
 Keine erfundenen APIs, keine alten Minecraft-/Paper-Versionen und keine unnötigen Komplett-Refactorings.
 
-**Dieses Dokument ist ab jetzt die Master-Referenz für den aktuellen Projektstand.**
+**Dieses Dokument ist die Master-Referenz für den aktuellen Projektstand.**
