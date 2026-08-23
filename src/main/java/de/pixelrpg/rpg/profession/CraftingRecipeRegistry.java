@@ -49,7 +49,7 @@ public final class CraftingRecipeRegistry {
                 recipe(Profession.PROVISIONER, "provisioner_cake", "Kuchen", Material.CAKE, ItemRarity.UNCOMMON, Map.of(Material.WHEAT, 3, Material.SUGAR, 2, Material.EGG, 1, Material.MILK_BUCKET, 3), 15, 5),
                 recipe(Profession.PROVISIONER, "provisioner_pumpkin_pie", "Kürbiskuchen", Material.PUMPKIN_PIE, ItemRarity.UNCOMMON, Map.of(Material.PUMPKIN, 1, Material.SUGAR, 1, Material.EGG, 1), 20, 4),
                 recipe(Profession.PROVISIONER, "provisioner_golden_carrot", "Goldene Karotte", Material.GOLDEN_CARROT, ItemRarity.RARE, Map.of(Material.CARROT, 1, Material.GOLD_NUGGET, 8), 35, 6),
-                recipe(Profession.PROVISIONER, "provisioner_suspicious_stew", "Verdächtiger Eintopf", Material.SUSPICIOUS_STEW, ItemRarity.RARE, Map.of(Material.BOWL, 1, Material.BROWN_MUSHROOM, 1, Material.RED_MUSHROOM, 1, Material.FLOWER, 1), 45, 7),
+                recipe(Profession.PROVISIONER, "provisioner_suspicious_stew", "Verdächtiger Eintopf", Material.SUSPICIOUS_STEW, ItemRarity.RARE, Map.of(Material.BOWL, 1, Material.BROWN_MUSHROOM, 1, Material.RED_MUSHROOM, 1, Material.POPPY, 1), 45, 7),
                 recipe(Profession.PROVISIONER, "provisioner_golden_apple", "Goldener Apfel", Material.GOLDEN_APPLE, ItemRarity.EPIC, Map.of(Material.APPLE, 1, Material.GOLD_BLOCK, 8), 65, 12),
                 recipe(Profession.PROVISIONER, "provisioner_honey_block", "Honigvorrat", Material.HONEY_BLOCK, ItemRarity.EPIC, Map.of(Material.HONEY_BOTTLE, 4), 70, 8),
                 recipe(Profession.PROVISIONER, "provisioner_enchanted_golden_apple", "Verzauberter goldener Apfel", Material.ENCHANTED_GOLDEN_APPLE, ItemRarity.LEGENDARY, Map.of(Material.GOLD_BLOCK, 8, Material.APPLE, 1), 99, 25),
