@@ -13,6 +13,7 @@ import io.papermc.paper.registry.data.dialog.type.DialogType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickCallback;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -74,7 +75,11 @@ public final class CompanionDialog {
                         }));
             }
 
-            if (!companion.rarity().isUnique()) {
+            if (companion.entityType() == EntityType.MANNEQUIN) {
+                actions.add(dialogueEngine.actionButton(
+                        Component.text("Equip"), NamedTextColor.AQUA,
+                        target -> companionService.openEquipment(target, companion)));
+            } else if (!companion.rarity().isUnique()) {
                 actions.add(dialogueEngine.actionButton(
                         Component.text("Umbenennen"), NamedTextColor.YELLOW,
                         target -> openRename(target, companion)));
