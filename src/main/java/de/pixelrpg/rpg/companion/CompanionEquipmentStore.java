@@ -17,9 +17,11 @@ public final class CompanionEquipmentStore {
     public CompanionEquipmentStore(File pluginDataFolder, Logger logger) {
         this.folder = new File(pluginDataFolder, "companions/equipment");
         this.logger = logger;
-        if (!folder.exists() && !folder.mkdirs()) {
-            logger.warning("Unable to create companion equipment storage folder: " + folder);
-        }
+        if (!folder.exists() && !folder.mkdirs()) logger.warning("Unable to create companion equipment storage folder: " + folder);
+    }
+
+    public boolean hasEntry(UUID playerId, String companionId) {
+        return loadFile(playerId).contains("companions." + companionId + ".initialized");
     }
 
     public CompanionEquipment load(UUID playerId, String companionId) {
@@ -38,6 +40,7 @@ public final class CompanionEquipmentStore {
     public void save(UUID playerId, String companionId, CompanionEquipment equipment) {
         YamlConfiguration yaml = loadFile(playerId);
         String path = "companions." + companionId;
+        yaml.set(path + ".initialized", true);
         set(yaml, path + ".helmet", equipment.helmet());
         set(yaml, path + ".chestplate", equipment.chestplate());
         set(yaml, path + ".leggings", equipment.leggings());
