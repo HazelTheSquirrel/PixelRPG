@@ -32,7 +32,6 @@ public final class CompanionFollowTask implements Runnable {
     private final Map<UUID, UUID> activeEntities;
     private final MannequinCompanionController mannequinController;
     private final Map<String, CompanionVisualDefinition> definitionsById = new HashMap<>();
-    private final Map<String, CompanionStatDefinition> statsByRarity = new HashMap<>();
     private final Map<UUID, AppliedCompanionState> appliedStates = new HashMap<>();
     private CompanionLevelScaling levelScaling = CompanionLevelScaling.defaults();
 
@@ -120,8 +119,13 @@ public final class CompanionFollowTask implements Runnable {
         if (definition == null) return;
         int level = Math.max(1, entity.getPersistentDataContainer().getOrDefault(RPGKeys.Companion.level(), PersistentDataType.INTEGER, 1));
         String rarity = entity.getPersistentDataContainer().getOrDefault(RPGKeys.Companion.rarity(), PersistentDataType.STRING, definition.rarity());
-        CompanionStatDefinition stats = statsByRarity.get(rarity.toUpperCase());
-        if (stats == null) return;
+        double rarityMultiplier;
+        try {
+            rarityMultiplier = CompanionRarity.valueOf(rarity.toUpperCase()).statMultiplier();
+        } catch (IllegalArgumentException exception) {
+            rarityMultiplier = 1.0D;
+        }
+
         AppliedCompanionState state = appliedStates.get(entity.getUniqueId());
         if (state == null) {
             state = AppliedCompanionState.capture(entity, level, rarity);
@@ -133,9 +137,9 @@ public final class CompanionFollowTask implements Runnable {
         }
         AttributeInstance scale = entity.getAttribute(Attribute.SCALE);
         if (scale != null && Double.isFinite(definition.scale()) && definition.scale() > 0.0D) scale.setBaseValue(definition.scale());
-        double healthMultiplier = capped(stats.healthMultiplier() * levelMultiplier(levelScaling.healthPerLevel(), level), levelScaling.healthCap());
-        double damageMultiplier = capped(stats.damageMultiplier() * levelMultiplier(levelScaling.damagePerLevel(), level), levelScaling.damageCap());
-        double speedMultiplier = capped(stats.speedMultiplier() * levelMultiplier(levelScaling.speedPerLevel(), level), levelScaling.speedCap());
+        double healthMultiplier = capped(rarityMultiplier * levelMultiplier(levelScaling.healthPerLevel(), level), levelScaling.healthCap());
+        double damageMultiplier = capped(rarityMultiplier * levelMultiplier(levelScaling.damagePerLevel(), level), levelScaling.damageCap());
+        double speedMultiplier = capped(rarityMultiplier * levelMultiplier(levelScaling.speedPerLevel(), level), levelScaling.speedCap());
         setFromBase(entity, Attribute.MAX_HEALTH, state.baseHealth(), healthMultiplier);
         setFromBase(entity, Attribute.ATTACK_DAMAGE, state.baseDamage(), damageMultiplier);
         setFromBase(entity, Attribute.MOVEMENT_SPEED, state.baseSpeed(), speedMultiplier);
@@ -152,7 +156,6 @@ public final class CompanionFollowTask implements Runnable {
 
     private void reloadConfiguration() {
         loadVisualDefinitions();
-        loadStatDefinitions();
         loadLevelScaling();
     }
 
@@ -174,21 +177,6 @@ public final class CompanionFollowTask implements Runnable {
         }
     }
 
-    private void loadStatDefinitions() {
-        statsByRarity.clear();
-        try {
-            JsonObject root = new JsonDataManager(plugin).load("companion-stats.json");
-            JsonObject rarities = root.getAsJsonObject("rarities");
-            if (rarities == null) return;
-            for (String rarity : rarities.keySet()) {
-                JsonObject json = rarities.getAsJsonObject(rarity);
-                statsByRarity.put(rarity.toUpperCase(), new CompanionStatDefinition(number(json, "health", 1.0D), number(json, "damage", 1.0D), number(json, "speed", 1.0D)));
-            }
-        } catch (RuntimeException exception) {
-            plugin.getLogger().warning("Unable to load companion stat configuration: " + exception.getMessage());
-        }
-    }
-
     private void loadLevelScaling() {
         try {
             JsonObject root = new JsonDataManager(plugin).load("mob-scaling.json");
@@ -205,7 +193,6 @@ public final class CompanionFollowTask implements Runnable {
     private static double number(JsonObject object, String key, double fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.get(key).getAsDouble() : fallback; }
 
     private record CompanionVisualDefinition(String entityType, String rarity, double scale) {}
-    private record CompanionStatDefinition(double healthMultiplier, double damageMultiplier, double speedMultiplier) {}
     private record AppliedCompanionState(int level, String rarity, double baseHealth, double baseDamage, double baseSpeed) {
         private static AppliedCompanionState capture(LivingEntity entity, int level, String rarity) { return new AppliedCompanionState(level, rarity, base(entity, Attribute.MAX_HEALTH), base(entity, Attribute.ATTACK_DAMAGE), base(entity, Attribute.MOVEMENT_SPEED)); }
         private void restore(LivingEntity entity) { restore(entity, Attribute.MAX_HEALTH, baseHealth); restore(entity, Attribute.ATTACK_DAMAGE, baseDamage); restore(entity, Attribute.MOVEMENT_SPEED, baseSpeed); }
