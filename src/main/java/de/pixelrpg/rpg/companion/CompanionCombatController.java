@@ -17,26 +17,20 @@ public final class CompanionCombatController {
     public LivingEntity tick(Player owner, LivingEntity companion, CompanionDefinition definition, long gameTime) {
         CompanionDefinition.CompanionCombatDefinition combat = definition.combat();
         if (!combat.enabled()) return null;
-
         LivingEntity target = findTarget(owner, companion, combat);
         if (target == null) return null;
-
         double range = Math.max(1.0D, combat.attackRange());
-        double distanceSquared = companion.getLocation().distanceSquared(target.getLocation());
-        if (distanceSquared > range * range) {
+        if (companion.getLocation().distanceSquared(target.getLocation()) > range * range) {
             moveTowards(companion, target, definition.follow().movementSpeed());
             return target;
         }
-
         stop(companion);
         face(companion, target);
         attack(companion, target, combat.attackIntervalTicks(), gameTime);
         return target;
     }
 
-    public void clear(LivingEntity companion) {
-        nextAttackTick.remove(companion.getUniqueId());
-    }
+    public void clear(LivingEntity companion) { nextAttackTick.remove(companion.getUniqueId()); }
 
     private LivingEntity findTarget(Player owner, LivingEntity companion, CompanionDefinition.CompanionCombatDefinition combat) {
         double range = Math.max(combat.aggroRange(), combat.attackRange());
@@ -59,12 +53,8 @@ public final class CompanionCombatController {
 
     private void attack(LivingEntity attacker, LivingEntity target, int interval, long gameTime) {
         long next = nextAttackTick.getOrDefault(attacker.getUniqueId(), 0L);
-        if (gameTime < next) return;
-        if (target.isDead() || !target.isValid()) return;
-        double damage = attacker.getAttribute(org.bukkit.attribute.Attribute.ATTACK_DAMAGE) == null
-                ? 1.0D : Math.max(0.0D, attacker.getAttribute(org.bukkit.attribute.Attribute.ATTACK_DAMAGE).getValue());
-        if (damage <= 0.0D) return;
-        target.damage(damage, attacker);
+        if (gameTime < next || target.isDead() || !target.isValid()) return;
+        attacker.attack(target);
         attacker.swingMainHand();
         nextAttackTick.put(attacker.getUniqueId(), gameTime + Math.max(1, interval));
     }
