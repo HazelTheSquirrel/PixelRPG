@@ -11,6 +11,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mannequin;
+import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
@@ -93,7 +94,14 @@ public final class NpcManager {
     }
 
     public void spawnEntityFor(RPGNpc npc) {
-        if (spawnedEntityByNpcId.containsKey(npc.id())) return;
+        UUID trackedUuid = spawnedEntityByNpcId.get(npc.id());
+        if (trackedUuid != null) {
+            Entity trackedEntity = Bukkit.getEntity(trackedUuid);
+            if (trackedEntity instanceof Mannequin mannequin && trackedEntity.isValid()) return;
+
+            spawnedEntityByNpcId.remove(npc.id(), trackedUuid);
+            entityToId.remove(trackedUuid, npc.id());
+        }
 
         Mannequin mannequin = npc.location().getWorld().spawn(npc.location(), Mannequin.class, entity -> {
             entity.setAI(false);
@@ -110,6 +118,33 @@ public final class NpcManager {
 
         spawnedEntityByNpcId.put(npc.id(), mannequin.getUniqueId());
         entityToId.put(mannequin.getUniqueId(), npc.id());
+    }
+
+    /** Re-synchronizes NPC entities for a player after login without requiring a server restart. */
+    public void resyncPlayer(Player player) {
+        for (RPGNpc npc : npcsById.values()) {
+            Location location = npc.location();
+            if (location.getWorld() != player.getWorld()) continue;
+            if (!location.getChunk().isLoaded()) continue;
+
+            UUID entityUuid = spawnedEntityByNpcId.get(npc.id());
+            Entity entity = entityUuid == null ? null : Bukkit.getEntity(entityUuid);
+
+            if (!(entity instanceof Mannequin) || !entity.isValid()) {
+                if (entityUuid != null) {
+                    spawnedEntityByNpcId.remove(npc.id(), entityUuid);
+                    entityToId.remove(entityUuid, npc.id());
+                }
+                spawnEntityFor(npc);
+                entityUuid = spawnedEntityByNpcId.get(npc.id());
+                entity = entityUuid == null ? null : Bukkit.getEntity(entityUuid);
+            }
+
+            if (entity != null && entity.isValid()) {
+                player.hideEntity(plugin, entity);
+                player.showEntity(plugin, entity);
+            }
+        }
     }
 
     public boolean updateSkin(String npcId, String newSkinSource) {
