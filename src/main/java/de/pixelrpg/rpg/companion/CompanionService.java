@@ -96,6 +96,19 @@ public final class CompanionService {
 
     public boolean setActive(UUID playerId, String companionId) { Player player = plugin.getServer().getPlayer(playerId); return player != null && setActive(player, companionId); }
 
+    public void restoreActive(Player player) {
+        UUID playerId = player.getUniqueId();
+        load(playerId);
+        if (activeEntities.containsKey(playerId)) return;
+        Companion active = companions.getOrDefault(playerId, List.of()).stream().filter(Companion::active).findFirst().orElse(null);
+        if (active != null) spawnPassiveCompanion(player, active);
+    }
+
+    public void despawn(UUID playerId) {
+        UUID entityId = activeEntities.remove(playerId);
+        if (entityId != null) removeEntity(entityId);
+    }
+
     public void clearActive(Player player) {
         clearActiveEntity(player);
         UUID playerId = player.getUniqueId();
@@ -136,8 +149,9 @@ public final class CompanionService {
         Map<String, CompanionEquipment> playerEquipment = equipment.computeIfAbsent(playerId, ignored -> new ConcurrentHashMap<>());
         CompanionEquipment cached = playerEquipment.get(companionId);
         if (cached != null) return cached.copy();
-        CompanionEquipment loaded = equipmentStore.hasEntry(playerId, companionId) ? equipmentStore.load(playerId, companionId) : defaultEquipment(companionId);
-        if (!equipmentStore.hasEntry(playerId, companionId)) equipmentStore.save(playerId, companionId, loaded);
+        boolean exists = equipmentStore.hasEntry(playerId, companionId);
+        CompanionEquipment loaded = exists ? equipmentStore.load(playerId, companionId) : defaultEquipment(companionId);
+        if (!exists) equipmentStore.save(playerId, companionId, loaded);
         playerEquipment.put(companionId, loaded.copy());
         return loaded.copy();
     }
@@ -228,7 +242,7 @@ public final class CompanionService {
         activeEntities.clear();
         for (UUID playerId : companions.keySet()) {
             List<Companion> current = companions.get(playerId);
-            if (current != null) save(playerId, current.stream().map(companion -> companion.withActive(false)).toList());
+            if (current != null) save(playerId, current);
         }
         companions.clear();
         equipment.clear();
@@ -292,8 +306,9 @@ public final class CompanionService {
                 int level = Math.max(1, Math.min(registry.maxLevel(), yaml.getInt(path + ".level", 1)));
                 long experience = Math.max(0L, yaml.getLong(path + ".experience", 0L));
                 String name = yaml.getString(path + ".name", definition.displayName());
-                loaded.add(new Companion(id, name, level, experience, definition.rarity(), definition.visual().entityType(), false));
-            } catch (IllegalArgumentException exception) { plugin.getLogger().warning("Ignoring invalid companion '" + id + "' for " + playerId + "."); }
+                boolean active = yaml.getBoolean(path + ".active", false);
+                loaded.add(new Companion(id, name, level, experience, definition.rarity(), definition.visual().entityType(), active));
+            } catch (RuntimeException exception) { plugin.getLogger().warning("Ignoring invalid companion '" + id + "' for " + playerId + "."); }
         }
         companions.put(playerId, loaded);
     }
@@ -306,6 +321,7 @@ public final class CompanionService {
             yaml.set(path + ".name", companion.name());
             yaml.set(path + ".level", companion.level());
             yaml.set(path + ".experience", companion.experience());
+            yaml.set(path + ".active", companion.active());
         }
         try { yaml.save(file); }
         catch (IOException exception) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to save companions for " + playerId, exception); }
