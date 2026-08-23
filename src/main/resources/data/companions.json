@@ -47,15 +47,16 @@
       "visual": { "type": "MANNEQUIN", "scale": 0.50, "skinSource": "HazelTheSquirrel" },
       "combat": {
         "enabled": true,
-        "attackRange": 3.5,
-        "aggroRange": 12.0,
+        "attackRange": 16.0,
+        "aggroRange": 24.0,
+        "maxOwnerCombatDistance": 24.0,
         "attackIntervalTicks": 20,
         "hostileTargets": true,
         "playerTargets": false,
         "friendlyTargets": false,
         "protectOwner": true
       },
-      "follow": { "enabled": true, "startDistance": 3.0, "stopDistance": 1.5, "teleportDistance": 30.0, "movementSpeed": 0.34 },
+      "follow": { "enabled": true, "startDistance": 3.0, "stopDistance": 1.5, "teleportDistance": 24.0, "movementSpeed": 0.34 },
       "progression": { "maxLevel": 99, "healthPerLevel": 0.008, "damagePerLevel": 0.006, "speedPerLevel": 0.0015, "healthCap": 1.80, "damageCap": 1.60, "speedCap": 1.15 },
       "equipment": { "mainHand": "NETHERITE_SWORD" },
       "unlock": { "type": "ADMIN" }
