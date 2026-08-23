@@ -1,14 +1,13 @@
 package de.pixelrpg.rpg.npc;
 
-import com.destroystokyo.paper.profile.PlayerProfile;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 
 import java.net.URI;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,21 +25,20 @@ public final class MannequinSkinResolver {
             return;
         }
         try {
-            if (skinSource.startsWith("http://") || skinSource.startsWith("https://")) applySkinUrl(mannequin, skinSource, plugin);
-            else applyPlayerName(mannequin, skinSource, plugin, logger);
+            if (skinSource.startsWith("http://") || skinSource.startsWith("https://")) {
+                applySkinUrl(mannequin, skinSource, plugin);
+            } else {
+                applyPlayerName(mannequin, skinSource, plugin, logger);
+            }
         } catch (RuntimeException exception) {
             logger.log(Level.WARNING, "Failed to start mannequin skin resolution for '" + skinSource + "'", exception);
         }
     }
 
     private static void applyPlayerName(Mannequin mannequin, String playerName, Plugin plugin, Logger logger) {
-        UUID uuid = Bukkit.getOfflinePlayer(playerName).getUniqueId();
-        PlayerProfile profile = Bukkit.createProfile(uuid, playerName);
-
-        // Give the client a dynamic name-backed profile immediately while the server resolves the textures.
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            if (mannequin.isValid()) mannequin.setProfile(ResolvableProfile.resolvableProfile(profile));
-        });
+        // Resolve by name. Using an OfflinePlayer UUID here can produce an offline UUID and therefore no Mojang skin.
+        PlayerProfile profile = Bukkit.createProfile(playerName);
+        mannequin.setProfile(ResolvableProfile.resolvableProfile(profile));
 
         CompletableFuture<PlayerProfile> update = profile.update();
         update.thenAcceptAsync(updatedProfile -> Bukkit.getScheduler().runTask(plugin, () -> {
@@ -54,7 +52,7 @@ public final class MannequinSkinResolver {
 
     private static void applySkinUrl(Mannequin mannequin, String skinUrl, Plugin plugin) throws RuntimeException {
         try {
-            PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID(), "MannequinSkin");
+            PlayerProfile profile = Bukkit.createProfile("MannequinSkin");
             PlayerTextures textures = profile.getTextures();
             textures.setSkin(URI.create(skinUrl).toURL());
             profile.setTextures(textures);
