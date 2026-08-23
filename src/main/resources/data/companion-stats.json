@@ -1,5 +1,5 @@
 {
-  "description": "Base companion stat multipliers. Combat is intentionally disabled in Phase 1; these values are already loaded for the later combat phase.",
+  "description": "Base companion stat multipliers used by the generic companion stat layer. Mannequin companions additionally use their dedicated movement, combat, scale and equipment controller.",
   "rarities": {
     "COMMON": { "health": 0.70, "damage": 0.70, "speed": 0.95 },
     "UNCOMMON": { "health": 0.82, "damage": 0.82, "speed": 0.98 },
