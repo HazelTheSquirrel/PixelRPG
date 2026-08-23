@@ -186,6 +186,7 @@ public final class QuestRepository {
     private static List<String> stringList(JsonObject object, String key) { if (object == null || !object.has(key) || !object.get(key).isJsonArray()) return List.of(); List<String> result = new ArrayList<>(); for (var element : object.getAsJsonArray(key)) if (element.isJsonPrimitive()) result.add(element.getAsString()); return List.copyOf(result); }
 
     public Quest getQuest(String id) { return questsById.get(id); }
+    public List<Quest> getAllQuests() { return List.copyOf(questsById.values()); }
     public List<Quest> getQuestsByType(QuestType type) { return questsById.values().stream().filter(quest -> quest.type() == type).toList(); }
     public int maxActiveQuests() { return maxActiveQuests; }
     public int unlockEarlyLevels() { return unlockEarlyLevels; }
