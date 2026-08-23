@@ -34,6 +34,7 @@ public final class CompanionService {
     private final Map<UUID, Map<String, CompanionEquipment>> equipment = new ConcurrentHashMap<>();
     private final CompanionEquipmentStore equipmentStore;
     private final CompanionEquipmentListener equipmentListener;
+    private final CompanionMountController mountController = new CompanionMountController();
     private final BukkitTask followTask;
 
     public CompanionService(Plugin plugin) {
@@ -44,9 +45,11 @@ public final class CompanionService {
         this.progression = new CompanionProgression(registry);
         this.equipmentStore = new CompanionEquipmentStore(plugin.getDataFolder(), plugin.getLogger());
         this.equipmentListener = new CompanionEquipmentListener(plugin, this);
-        this.followTask = plugin.getServer().getScheduler().runTaskTimer(plugin, new CompanionFollowTask(plugin, activeEntities, this), 1L, 2L);
+        CompanionFollowTask runtimeTask = new CompanionFollowTask(plugin, activeEntities, this);
+        this.followTask = plugin.getServer().getScheduler().runTaskTimer(plugin, runtimeTask, 1L, 2L);
         plugin.getServer().getPluginManager().registerEvents(equipmentListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(new CompanionBossRewardListener(this), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new CompanionMountListener(this, registry, mountController), plugin);
     }
 
     public List<String> definitionIds() { return registry.definitions().keySet().stream().sorted().toList(); }
@@ -232,7 +235,10 @@ public final class CompanionService {
             if (!(entity instanceof LivingEntity living)) { entity.remove(); return; }
             living.getPersistentDataContainer().set(RPGKeys.Companion.id(), PersistentDataType.STRING, selected.id()); living.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, selected.level()); living.getPersistentDataContainer().set(RPGKeys.Companion.rarity(), PersistentDataType.STRING, selected.rarity().name());
             living.customName(Component.text(selected.name())); living.setCustomNameVisible(true); if (living instanceof Mob mob) { mob.setAware(true); mob.setTarget(null); }
-            applyEquipmentToEntity(player.getUniqueId(), selected.id(), living); activeEntities.put(player.getUniqueId(), entity.getUniqueId());
+            CompanionDefinition definition = registry.require(selected.id());
+            applyEquipmentToEntity(player.getUniqueId(), selected.id(), living);
+            mountController.prepare(living, definition.mount(), player);
+            activeEntities.put(player.getUniqueId(), entity.getUniqueId());
         } catch (RuntimeException exception) { plugin.getLogger().warning("Unable to spawn companion '" + selected.id() + "': " + exception.getMessage()); }
     }
 
