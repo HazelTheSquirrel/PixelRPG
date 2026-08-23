@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -19,6 +20,12 @@ public final class CompanionExperienceListener implements Listener {
 
     public CompanionExperienceListener(CompanionService companionService) {
         this.companionService = companionService;
+    }
+
+    // Restores the player's persisted active companion after the player entity is fully joined.
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        companionService.restoreActive(event.getPlayer());
     }
 
     // Clears a companion's active runtime state when its spawned entity dies.
@@ -52,9 +59,9 @@ public final class CompanionExperienceListener implements Listener {
         companionService.clearActive(event.getEntity());
     }
 
-    // Removes the runtime companion entity when its owner leaves the server.
+    // Despawns the runtime entity on quit but preserves the persisted active selection for the next join.
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        companionService.clearActive(event.getPlayer().getUniqueId());
+        companionService.despawn(event.getPlayer().getUniqueId());
     }
 }
