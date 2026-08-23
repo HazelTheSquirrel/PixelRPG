@@ -44,6 +44,6 @@
     { "id": "test-warden", "name": "PixelRPG Warden", "entityType": "WARDEN", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.50, "passive": true },
     { "id": "legendary-ravager", "name": "PixelRPG Ravager", "entityType": "RAVAGER", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.55, "passive": true },
     { "id": "test-sulfur-cube", "name": "PixelRPG Sulfur Cube", "entityType": "SULFUR_CUBE", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.55, "passive": true },
-    { "id": "unique-hazel", "name": "Hazel", "entityType": "MANNEQUIN", "rarity": "UNIQUE", "renameable": false, "adminOnly": true, "scale": 0.50, "passive": false, "skinSource": "HazelTheSquirrel", "combat": true, "attackRange": 3.5, "attackIntervalTicks": 20, "equipment": { "mainHand": "NETHERITE_SWORD" } }
+    { "id": "unique-hazel", "name": "Hazel", "entityType": "MANNEQUIN", "rarity": "UNIQUE", "renameable": false, "adminOnly": true, "scale": 0.50, "passive": false, "skinSource": "HazelTheSquirrel", "combat": true, "attackRange": 3.5, "attackIntervalTicks": 20, "equipment": {} }
   ]
 }
