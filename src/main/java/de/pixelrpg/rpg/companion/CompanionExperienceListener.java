@@ -9,7 +9,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataType;
 
-/** Converts player activities into centralized companion progression requests. */
+/** Converts player activities into centralized companion progression and lifecycle requests. */
 public final class CompanionExperienceListener implements Listener {
     private static final long MOB_KILL_EXPERIENCE = 50L;
     private static final long QUEST_COMPLETION_EXPERIENCE = 500L;
@@ -18,6 +18,14 @@ public final class CompanionExperienceListener implements Listener {
 
     public CompanionExperienceListener(CompanionService companionService) {
         this.companionService = companionService;
+    }
+
+    // Clears a companion's active runtime state when its spawned entity dies.
+    @EventHandler
+    public void onCompanionDeath(EntityDeathEvent event) {
+        if (!event.getEntity().getPersistentDataContainer().has(RPGKeys.Companion.id(), PersistentDataType.STRING)) return;
+        java.util.UUID ownerUuid = companionService.getOwnerOfEntity(event.getEntity().getUniqueId());
+        if (ownerUuid != null) companionService.clearActive(ownerUuid);
     }
 
     // Awards base companion XP for a mob kill; rarity scaling is owned by CompanionProgression.
