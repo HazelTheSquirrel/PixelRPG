@@ -38,11 +38,28 @@ unklar → erst Verwendung nachweisen, dann entscheiden
 
 Companions befinden sich vollständig in der Testphase und werden bei diesem Cleanup **nicht als Altlasten bewertet**.
 
+## Verworfen / dauerhaft außerhalb des Scopes
+
+Die folgenden Systeme wurden ausdrücklich abgelehnt und werden **nicht implementiert, nicht weiter geplant und nicht als offene Aufgaben geführt**:
+
+- Mana-System als Gameplay-Ressource
+- Blessings
+- Curses
+- Gems
+- Runes
+- Sockets
+- fertiges/eigenständiges Resourcepack-System
+- vollständiges Guild-System
+
+Das gilt auch dann, wenn historische Klassen, Keys, Language-Einträge oder Dokumentationsreste dieser Systeme noch im Repository gefunden werden. Solche Reste werden bei Cleanup/Analyse entfernt oder entsprechend als historische Altlasten behandelt, sofern sie nicht mehr verwendet werden.
+
+Das bedeutet ausdrücklich **nicht**, dass jede bestehende Guild-bezogene Klasse automatisch entfernt wird. Aktive, weiterhin benötigte Economy-/Guild-Currency-Pfade bleiben bestehen, sofern sie tatsächlich verwendet werden. Verworfen ist das **vollständige Guild-System als zukünftiges Feature**.
+
 ## Bereits durchgeführte Cleanup-Schritte
 
 ### Resourcepack
 
-Das bisherige `resourcepack/` wurde vollständig aus `main` entfernt. Ein neues Resourcepack wird später separat und passend zum finalen Item-/Asset-System aufgebaut.
+Das bisherige `resourcepack/` wurde vollständig aus `main` entfernt. Ein neues fertiges Resourcepack ist **nicht mehr geplant** und wird nicht als zukünftige Aufgabe geführt.
 
 ### Companion-Stat-Daten
 
