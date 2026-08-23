@@ -1,8 +1,5 @@
 package de.pixelrpg.rpg.companion;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import de.pixelrpg.rpg.config.JsonDataManager;
 import de.pixelrpg.rpg.core.RPGKeys;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
@@ -26,76 +23,40 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Owns persistent companion definitions, progression, equipment and active entity state. */
+/** Facade/orchestrator for companion ownership, persistence, progression and runtime lifecycle. */
 public final class CompanionService {
-    private static final String TEST_WOLF_ID = "test-wolf";
-
     private final Plugin plugin;
     private final File storageFolder;
+    private final CompanionRegistry registry;
+    private final CompanionProgression progression;
     private final Map<UUID, List<Companion>> companions = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> activeEntities = new ConcurrentHashMap<>();
     private final Map<UUID, Map<String, CompanionEquipment>> equipment = new ConcurrentHashMap<>();
     private final CompanionEquipmentStore equipmentStore;
     private final CompanionEquipmentListener equipmentListener;
     private final BukkitTask followTask;
-    private int maxLevel = 99;
-    private long experienceBase = 100L;
-    private long experiencePerLevel = 8L;
-    private int maxNameLength = 24;
-    private boolean activeXpOnly = true;
 
     public CompanionService(Plugin plugin) {
         this.plugin = plugin;
         this.storageFolder = new File(plugin.getDataFolder(), "companions");
-        if (!storageFolder.exists()) storageFolder.mkdirs();
+        if (!storageFolder.exists() && !storageFolder.mkdirs()) plugin.getLogger().warning("Unable to create companion storage folder.");
+        this.registry = CompanionRegistry.load(plugin);
+        this.progression = new CompanionProgression(registry);
         this.equipmentStore = new CompanionEquipmentStore(plugin.getDataFolder(), plugin.getLogger());
         this.equipmentListener = new CompanionEquipmentListener(plugin, this);
-        loadJsonConfiguration();
-        this.followTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
-                new CompanionFollowTask(plugin, activeEntities, this), 1L, 2L);
+        this.followTask = plugin.getServer().getScheduler().runTaskTimer(plugin, new CompanionFollowTask(plugin, activeEntities, this), 1L, 2L);
         plugin.getServer().getPluginManager().registerEvents(equipmentListener, plugin);
     }
 
-    /** Loads user-editable companion progression and definitions from data/companions.json. */
-    private void loadJsonConfiguration() {
-        try {
-            JsonObject root = new JsonDataManager(plugin).load("companions.json");
-            JsonObject progression = object(root, "progression");
-            if (progression != null) {
-                maxLevel = Math.max(1, Math.min(99, number(progression, "maxLevel", maxLevel)));
-                JsonObject xp = object(progression, "xp");
-                if (xp != null) {
-                    experienceBase = Math.max(1L, numberLong(xp, "base", experienceBase));
-                    experiencePerLevel = Math.max(0L, numberLong(xp, "perLevel", experiencePerLevel));
-                }
-            }
-            JsonObject defaults = object(root, "defaults");
-            if (defaults != null) {
-                activeXpOnly = bool(defaults, "activeXpOnly", activeXpOnly);
-                maxNameLength = Math.max(1, number(defaults, "maxNameLength", maxNameLength));
-            }
-            validateDefinitions(root);
-        } catch (RuntimeException exception) {
-            plugin.getLogger().warning("Unable to load companions.json; using safe companion defaults: " + exception.getMessage());
-        }
-    }
+    public List<String> definitionIds() { return registry.definitions().keySet().stream().sorted().toList(); }
+    public List<Companion> getCompanions(UUID playerId) { load(playerId); return List.copyOf(companions.getOrDefault(playerId, List.of())); }
+    public CompanionDefinition definition(String id) { return registry.require(id); }
+    public void ensureTestWolf(UUID playerId) { unlockDefinition(playerId, "test-wolf"); }
 
-    public List<Companion> getCompanions(UUID playerId) {
-        load(playerId);
-        return List.copyOf(companions.getOrDefault(playerId, List.of()));
-    }
-
-    /** Adds the configured test wolf used for the companion-system test. */
-    public void ensureTestWolf(UUID playerId) { unlockDefinition(playerId, TEST_WOLF_ID); }
-
-    /** Unlocks a player-accessible companion definition. Admin-only and Unique definitions are excluded. */
     public boolean unlockDefinition(UUID playerId, String id) {
-        JsonObject definition = readDefinitionJson(id);
-        if (definition == null || bool(definition, "adminOnly", false)) return false;
-        if ("UNIQUE".equalsIgnoreCase(string(definition, "rarity", ""))) return false;
-        Companion companion = toCompanion(id, definition);
-        if (companion == null) return false;
-        unlock(playerId, companion);
+        CompanionDefinition definition = registry.find(id).orElse(null);
+        if (definition == null || definition.adminOnly() || definition.rarity().isUnique()) return false;
+        unlock(playerId, toCompanion(definition));
         return true;
     }
 
@@ -111,15 +72,11 @@ public final class CompanionService {
         });
     }
 
-    /** Grants a Unique companion strictly from its immutable JSON definition. */
+    /** Grants a Unique companion only when the immutable registry definition itself permits it. */
     public boolean unlockUnique(UUID playerId, String id, String ignoredName, org.bukkit.entity.EntityType ignoredEntityType) {
-        JsonObject configured = readDefinitionJson(id);
-        if (configured == null) return false;
-        String rarity = string(configured, "rarity", "").toUpperCase();
-        if (!"UNIQUE".equals(rarity) || !bool(configured, "adminOnly", false) || bool(configured, "renameable", true)) return false;
-        Companion companion = toCompanion(id, configured);
-        if (companion == null || companion.entityType() != org.bukkit.entity.EntityType.MANNEQUIN) return false;
-        unlock(playerId, companion);
+        CompanionDefinition definition = registry.find(id).orElse(null);
+        if (definition == null || !definition.rarity().isUnique() || !definition.adminOnly()) return false;
+        unlock(playerId, toCompanion(definition));
         return true;
     }
 
@@ -137,10 +94,7 @@ public final class CompanionService {
         return true;
     }
 
-    public boolean setActive(UUID playerId, String companionId) {
-        Player player = plugin.getServer().getPlayer(playerId);
-        return player != null && setActive(player, companionId);
-    }
+    public boolean setActive(UUID playerId, String companionId) { Player player = plugin.getServer().getPlayer(playerId); return player != null && setActive(player, companionId); }
 
     public void clearActive(Player player) {
         clearActiveEntity(player);
@@ -155,10 +109,7 @@ public final class CompanionService {
 
     public void clearActive(UUID playerId) {
         Player player = plugin.getServer().getPlayer(playerId);
-        if (player != null) {
-            clearActive(player);
-            return;
-        }
+        if (player != null) { clearActive(player); return; }
         UUID entityId = activeEntities.remove(playerId);
         if (entityId != null) removeEntity(entityId);
         load(playerId);
@@ -178,22 +129,15 @@ public final class CompanionService {
         return null;
     }
 
-    public void openEquipment(Player player, Companion companion) {
-        equipmentListener.open(player, companion);
-    }
+    public void openEquipment(Player player, Companion companion) { equipmentListener.open(player, companion); }
 
     public CompanionEquipment getEquipment(UUID playerId, String companionId) {
         load(playerId);
         Map<String, CompanionEquipment> playerEquipment = equipment.computeIfAbsent(playerId, ignored -> new ConcurrentHashMap<>());
         CompanionEquipment cached = playerEquipment.get(companionId);
         if (cached != null) return cached.copy();
-
-        CompanionEquipment loaded;
-        if (equipmentStore.hasEntry(playerId, companionId)) loaded = equipmentStore.load(playerId, companionId);
-        else {
-            loaded = defaultEquipment(companionId);
-            equipmentStore.save(playerId, companionId, loaded);
-        }
+        CompanionEquipment loaded = equipmentStore.hasEntry(playerId, companionId) ? equipmentStore.load(playerId, companionId) : defaultEquipment(companionId);
+        if (!equipmentStore.hasEntry(playerId, companionId)) equipmentStore.save(playerId, companionId, loaded);
         playerEquipment.put(companionId, loaded.copy());
         return loaded.copy();
     }
@@ -205,25 +149,26 @@ public final class CompanionService {
     }
 
     public void applyEquipmentToEntity(UUID playerId, String companionId, LivingEntity entity) {
-        CompanionEquipment equipment = getEquipment(playerId, companionId);
+        CompanionEquipment value = getEquipment(playerId, companionId);
         var target = entity.getEquipment();
         if (target == null) return;
-        target.setHelmet(equipment.helmet(), true);
-        target.setChestplate(equipment.chestplate(), true);
-        target.setLeggings(equipment.leggings(), true);
-        target.setBoots(equipment.boots(), true);
-        target.setItemInMainHand(equipment.mainHand(), true);
-        target.setItemInOffHand(equipment.offHand(), true);
+        target.setHelmet(value.helmet(), true);
+        target.setChestplate(value.chestplate(), true);
+        target.setLeggings(value.leggings(), true);
+        target.setBoots(value.boots(), true);
+        target.setItemInMainHand(value.mainHand(), true);
+        target.setItemInOffHand(value.offHand(), true);
     }
 
     public boolean rename(UUID playerId, String companionId, String newName) {
         load(playerId);
         String cleaned = newName == null ? "" : newName.strip();
-        if (cleaned.isEmpty() || cleaned.length() > maxNameLength) return false;
+        if (cleaned.isEmpty() || cleaned.length() > registry.maxNameLength()) return false;
         List<Companion> current = companions.get(playerId);
         if (current == null) return false;
         Companion selected = current.stream().filter(companion -> companion.id().equals(companionId)).findFirst().orElse(null);
-        if (selected == null || selected.rarity().isUnique() || !isRenameable(companionId)) return false;
+        CompanionDefinition definition = registry.find(companionId).orElse(null);
+        if (selected == null || definition == null || !definition.renameable()) return false;
         List<Companion> updated = current.stream().map(companion -> companion.id().equals(companionId) ? companion.withName(cleaned) : companion).toList();
         companions.put(playerId, updated);
         save(playerId, updated);
@@ -235,39 +180,47 @@ public final class CompanionService {
         return true;
     }
 
-    /** Awards companion XP only to the currently active companion. */
+    /** Awards XP through the centralized progression engine to the active companion only. */
     public boolean awardExperience(UUID playerId, long baseExperience) {
         if (baseExperience <= 0L) return false;
         load(playerId);
         List<Companion> current = companions.get(playerId);
         if (current == null) return false;
         Companion active = current.stream().filter(Companion::active).findFirst().orElse(null);
-        if (active == null || active.level() >= maxLevel) return false;
-        long gained = Math.max(1L, Math.round(baseExperience));
-        long experience = active.experience() + gained;
-        int level = Math.min(maxLevel, calculateLevel(experience));
-        List<Companion> updated = current.stream().map(companion -> companion.id().equals(active.id()) ? companion.withProgress(level, experience) : companion).toList();
+        if (active == null) return false;
+        CompanionDefinition definition = registry.find(active.id()).orElse(null);
+        if (definition == null) return false;
+        CompanionInstance instance = new CompanionInstance(playerId, active.id(), active.level(), active.experience(), true, true, getEquipment(playerId, active.id()));
+        CompanionInstance progressed = progression.addExperience(definition, instance, baseExperience);
+        if (progressed.experience() == active.experience()) return false;
+        List<Companion> updated = current.stream().map(companion -> companion.id().equals(active.id()) ? companion.withProgress(progressed.level(), progressed.experience()) : companion).toList();
         companions.put(playerId, updated);
         save(playerId, updated);
         refreshActiveMetadata(playerId, updated.stream().filter(Companion::active).findFirst().orElse(null));
-        return level != active.level();
+        return progressed.level() != active.level();
     }
 
     public int calculateLevel(long experience) {
-        long remaining = Math.max(0L, experience);
-        int level = 1;
-        while (level < maxLevel) {
-            long required = experienceToNextLevel(level);
-            if (remaining < required) break;
-            remaining -= required;
-            level++;
-        }
-        return level;
+        CompanionDefinition definition = registry.definitions().values().stream().findFirst().orElse(null);
+        return definition == null ? 1 : progression.levelForExperience(definition, experience);
     }
 
-    public long experienceToNextLevel(int level) { return level >= maxLevel ? Long.MAX_VALUE : experienceBase + (long) level * experiencePerLevel; }
-    public long experienceWithinLevel(Companion companion) { long remaining = companion.experience(); for (int level = 1; level < companion.level(); level++) remaining -= experienceToNextLevel(level); return Math.max(0L, remaining); }
-    public long experienceNeededForCurrentLevel(Companion companion) { return experienceToNextLevel(companion.level()); }
+    public long experienceToNextLevel(int level) {
+        CompanionDefinition definition = registry.definitions().values().stream().findFirst().orElse(null);
+        return definition == null ? Long.MAX_VALUE : progression.experienceToNextLevel(definition, level);
+    }
+
+    public long experienceWithinLevel(Companion companion) {
+        CompanionDefinition definition = registry.find(companion.id()).orElse(null);
+        if (definition == null) return 0L;
+        CompanionInstance instance = new CompanionInstance(UUID.randomUUID(), companion.id(), companion.level(), companion.experience(), true, companion.active(), CompanionEquipment.empty());
+        return progression.experienceWithinLevel(definition, instance);
+    }
+
+    public long experienceNeededForCurrentLevel(Companion companion) {
+        CompanionDefinition definition = registry.find(companion.id()).orElse(null);
+        return definition == null ? Long.MAX_VALUE : progression.experienceToNextLevel(definition, companion.level());
+    }
 
     public void shutdown() {
         followTask.cancel();
@@ -280,6 +233,8 @@ public final class CompanionService {
         companions.clear();
         equipment.clear();
     }
+
+    private Companion toCompanion(CompanionDefinition definition) { return new Companion(definition.id(), definition.displayName(), 1, 0L, definition.rarity(), definition.visual().entityType(), false); }
 
     private void spawnPassiveCompanion(Player player, Companion selected) {
         try {
@@ -294,9 +249,7 @@ public final class CompanionService {
             if (living instanceof Mob mob) { mob.setAware(true); mob.setTarget(null); }
             applyEquipmentToEntity(player.getUniqueId(), selected.id(), living);
             activeEntities.put(player.getUniqueId(), entity.getUniqueId());
-        } catch (RuntimeException exception) {
-            plugin.getLogger().warning("Unable to spawn companion '" + selected.id() + "' as " + selected.entityType() + ": " + exception.getMessage());
-        }
+        } catch (RuntimeException exception) { plugin.getLogger().warning("Unable to spawn companion '" + selected.id() + "': " + exception.getMessage()); }
     }
 
     private void refreshActiveMetadata(UUID playerId, Companion active) {
@@ -310,39 +263,17 @@ public final class CompanionService {
     }
 
     private CompanionEquipment defaultEquipment(String id) {
-        JsonObject definition = readDefinitionJson(id);
-        JsonObject configured = definition == null ? null : object(definition, "equipment");
-        if (configured == null) return CompanionEquipment.empty();
-        return new CompanionEquipment(item(configured, "helmet"), item(configured, "chestplate"), item(configured, "leggings"), item(configured, "boots"), item(configured, "mainHand"), item(configured, "offHand"));
+        CompanionDefinition definition = registry.find(id).orElse(null);
+        if (definition == null || !definition.equipment().enabled()) return CompanionEquipment.empty();
+        CompanionDefinition.CompanionEquipmentDefaults configured = definition.equipment();
+        return new CompanionEquipment(item(configured.helmet()), item(configured.chestplate()), item(configured.leggings()), item(configured.boots()), item(configured.mainHand()), item(configured.offHand()));
     }
 
-    private static ItemStack item(JsonObject object, String key) {
-        String material = string(object, key, "");
-        if (material.isBlank()) return null;
+    private static ItemStack item(String material) {
+        if (material == null || material.isBlank()) return null;
         Material matched = Material.matchMaterial(material);
         return matched == null || matched.isAir() ? null : new ItemStack(matched);
     }
-
-    private JsonObject readDefinitionJson(String id) {
-        try {
-            JsonObject root = new JsonDataManager(plugin).load("companions.json");
-            JsonArray definitions = root.getAsJsonArray("definitions");
-            if (definitions == null) return null;
-            for (var element : definitions) if (element.isJsonObject() && id.equals(string(element.getAsJsonObject(), "id", ""))) return element.getAsJsonObject();
-        } catch (RuntimeException exception) { plugin.getLogger().warning("Unable to read companion definition '" + id + "': " + exception.getMessage()); }
-        return null;
-    }
-
-    private Companion toCompanion(String id, JsonObject json) {
-        try {
-            CompanionRarity rarity = CompanionRarity.valueOf(string(json, "rarity", "COMMON").toUpperCase());
-            org.bukkit.entity.EntityType entityType = org.bukkit.entity.EntityType.valueOf(string(json, "entityType", "WOLF").toUpperCase());
-            if (!entityType.isSpawnable()) throw new IllegalArgumentException("EntityType is not spawnable");
-            return new Companion(id, string(json, "name", id), 1, 0L, rarity, entityType, false);
-        } catch (IllegalArgumentException exception) { plugin.getLogger().warning("Ignoring invalid companion definition '" + id + "'."); return null; }
-    }
-
-    private boolean isRenameable(String id) { JsonObject json = readDefinitionJson(id); return json != null && bool(json, "renameable", true); }
 
     private void clearActiveEntity(Player player) { UUID entityId = activeEntities.remove(player.getUniqueId()); if (entityId != null) removeEntity(entityId); }
     private void removeEntity(UUID entityId) { Entity entity = plugin.getServer().getEntity(entityId); if (entity != null) entity.remove(); }
@@ -357,10 +288,12 @@ public final class CompanionService {
         if (section != null) for (String id : section.getKeys(false)) {
             String path = "companions." + id;
             try {
-                CompanionRarity rarity = CompanionRarity.valueOf(yaml.getString(path + ".rarity", "COMMON").toUpperCase());
-                org.bukkit.entity.EntityType entityType = org.bukkit.entity.EntityType.valueOf(yaml.getString(path + ".entity-type", "WOLF").toUpperCase());
-                loaded.add(new Companion(id, yaml.getString(path + ".name", id), Math.max(1, Math.min(maxLevel, yaml.getInt(path + ".level", 1))), Math.max(0L, yaml.getLong(path + ".experience", 0L)), rarity, entityType, false));
-            } catch (IllegalArgumentException ignored) { plugin.getLogger().warning("Ignoring invalid companion definition '" + id + "' for " + playerId + "."); }
+                CompanionDefinition definition = registry.require(id);
+                int level = Math.max(1, Math.min(registry.maxLevel(), yaml.getInt(path + ".level", 1)));
+                long experience = Math.max(0L, yaml.getLong(path + ".experience", 0L));
+                String name = yaml.getString(path + ".name", definition.displayName());
+                loaded.add(new Companion(id, name, level, experience, definition.rarity(), definition.visual().entityType(), false));
+            } catch (IllegalArgumentException exception) { plugin.getLogger().warning("Ignoring invalid companion '" + id + "' for " + playerId + "."); }
         }
         companions.put(playerId, loaded);
     }
@@ -370,34 +303,11 @@ public final class CompanionService {
         YamlConfiguration yaml = new YamlConfiguration();
         for (Companion companion : values) {
             String path = "companions." + companion.id();
-            yaml.set(path + ".name", companion.name()); yaml.set(path + ".level", companion.level()); yaml.set(path + ".experience", companion.experience()); yaml.set(path + ".rarity", companion.rarity().name()); yaml.set(path + ".entity-type", companion.entityType().name());
+            yaml.set(path + ".name", companion.name());
+            yaml.set(path + ".level", companion.level());
+            yaml.set(path + ".experience", companion.experience());
         }
-        try { yaml.save(file); } catch (IOException exception) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to save companions for " + playerId, exception); }
+        try { yaml.save(file); }
+        catch (IOException exception) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to save companions for " + playerId, exception); }
     }
-
-    private void validateDefinitions(JsonObject root) {
-        JsonArray definitions = root.getAsJsonArray("definitions");
-        if (definitions == null) { plugin.getLogger().warning("companions.json contains no definitions array."); return; }
-        for (var element : definitions) {
-            if (!element.isJsonObject()) continue;
-            JsonObject json = element.getAsJsonObject();
-            String id = string(json, "id", "").strip();
-            if (id.isBlank()) continue;
-            try {
-                CompanionRarity rarity = CompanionRarity.valueOf(string(json, "rarity", "").toUpperCase());
-                org.bukkit.entity.EntityType entityType = org.bukkit.entity.EntityType.valueOf(string(json, "entityType", "").toUpperCase());
-                if (!entityType.isAlive() || !entityType.isSpawnable()) throw new IllegalArgumentException("entity type is not a spawnable living entity");
-                if (rarity.isUnique() && (!bool(json, "adminOnly", false) || bool(json, "renameable", true))) plugin.getLogger().warning("Invalid UNIQUE companion '" + id + "'.");
-                double scale = number(json, "scale", 1.0D);
-                if (!Double.isFinite(scale) || scale <= 0.0D) plugin.getLogger().warning("Invalid scale for companion '" + id + "'.");
-            } catch (IllegalArgumentException exception) { plugin.getLogger().warning("Invalid companion definition '" + id + "': " + exception.getMessage()); }
-        }
-    }
-
-    private static JsonObject object(JsonObject parent, String key) { return parent != null && parent.has(key) && parent.get(key).isJsonObject() ? parent.getAsJsonObject(key) : null; }
-    private static String string(JsonObject object, String key, String fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsString() : fallback; }
-    private static int number(JsonObject object, String key, int fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.get(key).getAsInt() : fallback; }
-    private static long numberLong(JsonObject object, String key, long fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.get(key).getAsLong() : fallback; }
-    private static double number(JsonObject object, String key, double fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.get(key).getAsDouble() : fallback; }
-    private static boolean bool(JsonObject object, String key, boolean fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsBoolean() : fallback; }
 }
