@@ -2,18 +2,9 @@
   "progression": {
     "maxLevel": 99,
     "level100Mode": "GRIND",
-    "xp": {
-      "base": 100,
-      "perLevel": 8,
-      "mobKill": 50,
-      "questCompletion": 500
-    }
+    "xp": { "base": 100, "perLevel": 8, "mobKill": 50, "questCompletion": 500 }
   },
-  "defaults": {
-    "activeXpOnly": true,
-    "maxNameLength": 24,
-    "passive": true
-  },
+  "defaults": { "activeXpOnly": true, "maxNameLength": 24, "passive": true },
   "rarities": {
     "COMMON": { "powerMultiplier": 1.00, "xpMultiplier": 1.00 },
     "UNCOMMON": { "powerMultiplier": 1.10, "xpMultiplier": 1.15 },
@@ -53,6 +44,6 @@
     { "id": "test-warden", "name": "PixelRPG Warden", "entityType": "WARDEN", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.50, "passive": true },
     { "id": "legendary-ravager", "name": "PixelRPG Ravager", "entityType": "RAVAGER", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.55, "passive": true },
     { "id": "test-sulfur-cube", "name": "PixelRPG Sulfur Cube", "entityType": "SULFUR_CUBE", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.55, "passive": true },
-    { "id": "unique-hazel", "name": "Hazel", "entityType": "MANNEQUIN", "rarity": "UNIQUE", "renameable": false, "adminOnly": true, "scale": 0.50, "passive": false, "skinSource": "HazelTheSquirrel", "weapon": "NETHERITE_SWORD", "combat": true, "attackRange": 3.5, "attackIntervalTicks": 20 }
+    { "id": "unique-hazel", "name": "Hazel", "entityType": "MANNEQUIN", "rarity": "UNIQUE", "renameable": false, "adminOnly": true, "scale": 0.50, "passive": false, "skinSource": "HazelTheSquirrel", "combat": true, "attackRange": 3.5, "attackIntervalTicks": 20, "equipment": { "mainHand": "NETHERITE_SWORD" } }
   ]
 }
