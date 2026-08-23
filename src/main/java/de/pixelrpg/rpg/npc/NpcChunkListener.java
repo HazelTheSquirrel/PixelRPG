@@ -1,6 +1,7 @@
 // src/main/java/de/pixelrpg/rpg/npc/NpcChunkListener.java
 package de.pixelrpg.rpg.npc;
 
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -18,7 +19,7 @@ public final class NpcChunkListener implements Listener {
     // Re-synchronizes NPC entities for a player after the client has finished joining.
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        npcManager.getPlugin().getServer().getScheduler().runTaskLater(npcManager.getPlugin(), () -> npcManager.resyncPlayer(event.getPlayer()), 2L);
+        Bukkit.getScheduler().runTaskLater(npcManager.getPlugin(), () -> npcManager.resyncPlayer(event.getPlayer()), 2L);
     }
 
     // Restores NPCs when their chunk becomes loaded again.
