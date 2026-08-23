@@ -151,9 +151,6 @@ story:
   chars-per-line: 18
   lines-per-page: 13
 
-effects:
-  aura-interval-ticks: 60
-
 mob-scaling:
   nameplate-duration-ticks: 120
   xp-per-max-health: 4.0
