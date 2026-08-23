@@ -10,6 +10,7 @@ import io.papermc.paper.registry.data.dialog.action.DialogAction;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import io.papermc.paper.registry.data.dialog.input.DialogInput;
 import io.papermc.paper.registry.data.dialog.type.DialogType;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickCallback;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -21,6 +22,8 @@ import java.util.List;
 
 /** Native dialog for viewing and managing the player's companions. */
 public final class CompanionDialog {
+    private static final String EQUIP_ACTION_PREFIX = "pixelrpg:companion_equip/";
+
     private final CompanionService companionService;
     private final DialogueEngine dialogueEngine;
 
@@ -30,7 +33,6 @@ public final class CompanionDialog {
     }
 
     public void open(Player player) {
-        companionService.ensureTestWolf(player.getUniqueId());
         List<Companion> companions = companionService.getCompanions(player.getUniqueId());
         List<DialogBody> body = new ArrayList<>();
         List<ActionButton> actions = new ArrayList<>();
@@ -58,6 +60,7 @@ public final class CompanionDialog {
                     .append(status)
                     .build()));
 
+            // Der Active-State steuert ausschließlich Rufen/Wegschicken.
             if (!companion.active()) {
                 actions.add(dialogueEngine.actionButton(
                         Component.text("Rufen: ").append(Component.text(companion.name(), NamedTextColor.LIGHT_PURPLE)),
@@ -75,14 +78,12 @@ public final class CompanionDialog {
                         }));
             }
 
+            // Equip ist eine feste Eigenschaft des Mannequin-Companions und unabhängig vom Active-State.
             if (companion.entityType() == EntityType.MANNEQUIN) {
-                actions.add(dialogueEngine.actionButton(
-                        Component.text("Equip"), NamedTextColor.AQUA,
-                        target -> companionService.openEquipment(target, companion)));
-            } else if (!companion.rarity().isUnique()) {
-                actions.add(dialogueEngine.actionButton(
-                        Component.text("Umbenennen"), NamedTextColor.YELLOW,
-                        target -> openRename(target, companion)));
+                actions.add(ActionButton.builder(Component.text("Equip", NamedTextColor.AQUA))
+                        .action(DialogAction.customClick(Key.key(EQUIP_ACTION_PREFIX + companion.id()), null))
+                        .width(220)
+                        .build());
             }
         }
 
@@ -92,6 +93,16 @@ public final class CompanionDialog {
                 body,
                 actions,
                 2);
+    }
+
+    public static boolean isEquipAction(Key identifier) {
+        return identifier.asString().startsWith(EQUIP_ACTION_PREFIX);
+    }
+
+    public static String companionIdFromEquipAction(Key identifier) {
+        if (!isEquipAction(identifier)) return null;
+        String id = identifier.asString().substring(EQUIP_ACTION_PREFIX.length()).strip();
+        return id.isBlank() ? null : id;
     }
 
     private void openRename(Player player, Companion companion) {
