@@ -1,48 +1,40 @@
 # PixelRPG – Aktuelle Balancing-Baseline
 
-Stand: 2026-08-22
+Stand: 2026-08-23
 
-Dieses Dokument beschreibt ausschließlich den aktuellen Balancing-Stand. Historische Testwerte und verworfene Systeme werden nicht mehr als aktuelle Referenz geführt.
+> Fachreferenz für das aktuelle Balancing. Der technische Gesamtstatus steht in `audit.md`.
 
 ## Grundprinzip
 
-PixelRPG verwendet eine kontrollierte, deterministische Progression.
+PixelRPG verwendet kontrollierte, deterministische Progression.
 
-Keine zufällige Kernstat-Streuung als versteckter Multiplikator. Keine Mana-Ressource. Keine Blessings. Keine Curses. Keine Gems, Runes oder Sockets.
+Nicht Bestandteil der aktuellen Progression:
 
-Die Hauptprogression lautet:
+- Mana
+- Blessings
+- Curses
+- Gems
+- Runes
+- Sockets
+- alte F–S-Ranks
+
+Hauptprogression:
 
 ```text
-Spieler-Level
-    ↓
-Attribute / Klasse
-    ↓
-Equipment
-    ↓
-Finale Stats
-    ↓
-Combat / Mob Scaling
-    ↓
-XP / Loot / Progression
+Spieler-Level → Attribute/Klasse → Equipment → finale Stats → Combat/Mob Scaling → XP/Loot
 ```
 
 ## Spieler-Level
 
-Normale Progression: **Level 1–99**.
-
-Level 100 ist reserviert und wird durch das aktuelle Level-System nicht erreicht.
-
-Die XP-Kurve ist bis Level 79 WotLK-inspiriert. Ab Level 80 beginnt eine kontrollierte Endgame-Kurve:
-
-- 80 → 81: ca. `1.7M` zusätzlich
-- weitere Level-Inkremente wachsen um `3.5%`
-- Level 99 liegt bewusst weit unter der früheren extremen Endgame-Explosion
-
-Die Levelkurve ist damit inspiriert von WotLK, aber nicht 1:1 als WotLK-Kopie gedacht.
+- reguläre Progression: **Level 1–99**
+- Level 100 ist reserviert bzw. Endgame
+- XP-Kurve bis Level 79 WotLK-inspiriert
+- ab Level 80 kontrollierte Endgame-Kurve
+- keine weitere Anpassung ohne reale Testdaten
 
 ## Attribute
 
-Aktive Punktwerte aus `data/attributes.json`:
+Aktive Quelle: `src/main/resources/data/attributes.json`.
 
 | Attribut | Effekt pro Punkt |
 |---|---:|
@@ -64,7 +56,7 @@ Kosten:
 
 ## Klassen
 
-Die Klassenwerte stammen aus `data/class-balance.json`.
+Aktive Quelle: `data/class-balance.json`.
 
 | Klasse | Armor | Health | Speed | Melee | Ranged | Spell | Heal | Crit | Crit Damage |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -76,7 +68,7 @@ Die Klassenwerte stammen aus `data/class-balance.json`.
 
 ## Items
 
-Aktive Datenquelle: `data/item-scaling.json`.
+Aktive Quelle: `data/item-scaling.json`.
 
 ```text
 Growth multiplier = 10.0
@@ -87,9 +79,7 @@ Health base = 1.2
 Tool efficiency base = 1.0
 ```
 
-Die Levelskalierung wächst deterministisch von Level 1 bis 99.
-
-Rarity multipliziert die resultierenden Item-Werte:
+Rarity-Multiplikatoren:
 
 | Rarity | Multiplikator |
 |---|---:|
@@ -100,24 +90,20 @@ Rarity multipliziert die resultierenden Item-Werte:
 | Legendary | `1.60` |
 | Unique | `1.60` |
 
-Unique ist nicht als normale Zufallsrarität gedacht.
+Unique ist keine normale Zufallsrarität.
 
 ## Weapon-Abilities
 
-Waffenfähigkeiten besitzen aktuell:
-
 - Rechtsklick als Trigger
-- waffenbezogenen Cooldown
+- waffenbezogener Cooldown
 - keine Mana-Kosten
 - keine globale Mana-Ressource
 
-Die vorhandenen Ability-Implementierungen sind noch fest im `WeaponAbilityEngine` definiert. Das ist bewusst kein neues datengetriebenes Ability-Framework.
-
-Bogen-/Schussmechaniken bleiben ein späterer Designpunkt und werden hier nicht künstlich vorweggenommen.
+Die vorhandenen Fähigkeiten bleiben zunächst bewusst im bestehenden `WeaponAbilityEngine`-Modell. Kein neues datengetriebenes Ability-Framework auf Verdacht.
 
 ## Mob Scaling
 
-Aktive Baseline aus `config.yml` / `data/mob-scaling.json`:
+Aktive Baseline:
 
 - HP pro Level: `5.0`
 - Damage pro Level: `0.30`
@@ -130,54 +116,20 @@ Aktive Baseline aus `config.yml` / `data/mob-scaling.json`:
 | Nether | 1.15 | 1.10 | 50 |
 | The End | 1.30 | 1.20 | 75 |
 
-Der wichtigste offene Balance-Test ist die Interaktion zwischen diesem Scaling und Vanilla-Spielern in derselben Welt.
+**Offener Test:** Verhalten bei gleichzeitig registrierten PixelRPG-Spielern und Vanilla-Spielern in derselben Welt.
 
 ## Companion
 
-Companion-Combat ist aktuell bewusst deaktiviert.
+Companion-Combat ist aktuell nicht als aktive Kernprogression zu behandeln.
 
-`companion-stats.json` enthält die spätere Rarity-Basis:
-
-| Rarity | Health | Damage | Speed |
-|---|---:|---:|---:|
-| Common | 0.70 | 0.70 | 0.95 |
-| Uncommon | 0.82 | 0.82 | 0.98 |
-| Rare | 0.95 | 0.95 | 1.00 |
-| Epic | 1.08 | 1.08 | 1.02 |
-| Legendary | 1.22 | 1.18 | 1.04 |
-| Unique | 1.00 | 1.00 | 1.00 |
-
-Diese Werte sind für die spätere Combat-Phase vorbereitet und derzeit nicht als aktive Companion-Kampfwerte zu behandeln.
-
-## Bewusst nicht vorhanden
-
-- Mana
-- Mana-Regeneration
-- Mana-Kosten
-- Mana-HUD
-- Blessings
-- Curses
-- Gems
-- Runes
-- Sockets
-- alte F–S-Ranks
+Die vorbereiteten Rarity-Basiswerte in `companion-stats.json` bleiben Datenbasis für die spätere Combat-Phase.
 
 ## Aktueller Status
 
-Das Balancing ist strukturell definiert, aber noch nicht final durch reale Servertests validiert.
-
-Deshalb werden aktuell keine weiteren Einzelwerte auf Verdacht angepasst.
+Die Baseline ist strukturell festgelegt, aber noch nicht final durch reale Servertests validiert.
 
 ```text
-Build
- ↓
-Server-Test
- ↓
-Messwerte
- ↓
-Abweichung feststellen
- ↓
-gezielt korrigieren
+Build → Server-Test → Messwerte → Abweichung → gezielte Korrektur
 ```
 
-Keine neuen Systeme, bevor diese Baseline nicht praktisch validiert wurde.
+**Keine Balancing-Werte auf Verdacht verändern.**
