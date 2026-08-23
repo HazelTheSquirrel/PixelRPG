@@ -36,12 +36,13 @@ public final class MannequinSkinResolver {
     }
 
     private static void applyPlayerName(Mannequin mannequin, String playerName, Plugin plugin, Logger logger) {
-        // Resolve by name. Using an OfflinePlayer UUID here can produce an offline UUID and therefore no Mojang skin.
-        PlayerProfile profile = Bukkit.createProfile(playerName);
-        mannequin.setProfile(ResolvableProfile.resolvableProfile(profile));
+        // A dynamic ResolvableProfile lets the client resolve the named Mojang profile directly.
+        ResolvableProfile profile = ResolvableProfile.resolvableProfile()
+                .name(playerName)
+                .build();
+        mannequin.setProfile(profile);
 
-        CompletableFuture<PlayerProfile> update = profile.update();
-        update.thenAcceptAsync(updatedProfile -> Bukkit.getScheduler().runTask(plugin, () -> {
+        profile.resolve().thenAcceptAsync(updatedProfile -> Bukkit.getScheduler().runTask(plugin, () -> {
             if (!mannequin.isValid()) return;
             mannequin.setProfile(ResolvableProfile.resolvableProfile(updatedProfile));
         })).exceptionally(exception -> {
@@ -56,8 +57,12 @@ public final class MannequinSkinResolver {
             PlayerTextures textures = profile.getTextures();
             textures.setSkin(URI.create(skinUrl).toURL());
             profile.setTextures(textures);
+
+            // Paper's PlayerProfile implementation is also the profile type consumed by ResolvableProfile.
+            com.destroystokyo.paper.profile.PlayerProfile paperProfile =
+                    (com.destroystokyo.paper.profile.PlayerProfile) profile;
             Bukkit.getScheduler().runTask(plugin, () -> {
-                if (mannequin.isValid()) mannequin.setProfile(ResolvableProfile.resolvableProfile(profile));
+                if (mannequin.isValid()) mannequin.setProfile(ResolvableProfile.resolvableProfile(paperProfile));
             });
         } catch (Exception exception) {
             throw new IllegalArgumentException("Unable to configure skin URL", exception);
