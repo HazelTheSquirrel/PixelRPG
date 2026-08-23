@@ -36,8 +36,6 @@ public final class RPGKeys {
         public static NamespacedKey weaponAbilityCooldownMillis() { return of("item_weapon_ability_cooldown"); }
         public static NamespacedKey guildItem() { return of("item_guild_marker"); }
         public static NamespacedKey shopPriceTag() { return of("item_shop_price_tag"); }
-        public static NamespacedKey classSetClass() { return of("item_class_set_class"); }
-        public static NamespacedKey classSetSlot() { return of("item_class_set_slot"); }
         public static NamespacedKey instanceId() { return of("item_instance_id"); }
         public static NamespacedKey attackDamageModifier(String instanceId) { return of("item_mod_attack_damage_" + instanceId); }
         public static NamespacedKey armorModifier(String instanceId) { return of("item_mod_armor_" + instanceId); }
