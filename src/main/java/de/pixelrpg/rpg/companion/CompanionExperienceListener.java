@@ -9,7 +9,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataType;
 
-/** Awards companion progression from player activities. */
+/** Converts player activities into centralized companion progression requests. */
 public final class CompanionExperienceListener implements Listener {
     private static final long MOB_KILL_EXPERIENCE = 50L;
     private static final long QUEST_COMPLETION_EXPERIENCE = 500L;
@@ -20,34 +20,26 @@ public final class CompanionExperienceListener implements Listener {
         this.companionService = companionService;
     }
 
-    // Awards rarity-scaled companion XP when the player defeats a mob while a companion is active.
+    // Awards base companion XP for a mob kill; rarity scaling is owned by CompanionProgression.
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
         if (event.getEntity().getPersistentDataContainer().has(RPGKeys.Companion.id(), PersistentDataType.STRING)) return;
         Player player = event.getEntity().getKiller();
         if (player == null) return;
-        Companion active = companionService.getActive(player.getUniqueId());
-        if (active == null) return;
-        long gained = scaledExperience(MOB_KILL_EXPERIENCE, active.rarity());
-        companionService.awardExperience(player.getUniqueId(), gained);
+        if (companionService.getActive(player.getUniqueId()) == null) return;
+        companionService.awardExperience(player.getUniqueId(), MOB_KILL_EXPERIENCE);
     }
 
-    // Awards rarity-scaled companion XP for completing a quest while the companion is active.
+    // Awards base companion XP for a quest completion; rarity scaling is centralized in progression.
     @EventHandler
     public void onQuestCompleted(QuestCompletedEvent event) {
-        Companion active = companionService.getActive(event.getPlayer().getUniqueId());
-        if (active == null) return;
-        long gained = scaledExperience(QUEST_COMPLETION_EXPERIENCE, active.rarity());
-        companionService.awardExperience(event.getPlayer().getUniqueId(), gained);
+        if (companionService.getActive(event.getPlayer().getUniqueId()) == null) return;
+        companionService.awardExperience(event.getPlayer().getUniqueId(), QUEST_COMPLETION_EXPERIENCE);
     }
 
-    // Removes the active companion entity when its owner leaves the server.
+    // Removes the runtime companion entity when its owner leaves the server.
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         companionService.clearActive(event.getPlayer().getUniqueId());
-    }
-
-    private static long scaledExperience(long base, CompanionRarity rarity) {
-        return Math.max(1L, Math.round(base * rarity.experienceMultiplier()));
     }
 }
