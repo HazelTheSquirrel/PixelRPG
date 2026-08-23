@@ -2,47 +2,67 @@
 
 Stand: 2026-08-23
 
-> Arbeits-/Designreferenz für Companions, Bosse und Reittiere. Der technische Gesamtstatus steht in `audit.md`.
+> Verbindliche Content-Referenz für Companion-Freischaltungen, Bosse und spätere Rewards.
 
-## Aktueller Stand
+## 100%-Content-Regel
 
-Das Companion-Grundsystem und das Boss-System sind bereits im Code vorhanden. Diese Datei ist deshalb **keine reine Zukunftsplanung mehr**.
+- `test-wolf` ist der **Default-Companion**. Jeder Spieler erhält ihn automatisch.
+- Alle anderen normalen Companions müssen über **Quests oder Bosse** freigeschaltet werden.
+- `unique-hazel` bleibt **ADMIN-only** und ist nicht über normale Quests/Bosse erhältlich.
+- Companion-ID, Rarity und Unlock-Quelle werden datengetrieben in `companions.json` gepflegt.
+- Java enthält keine Companion-ID-spezifische Unlock-Sonderlogik.
 
-Aktuell gilt:
+## Companion Unlock Matrix
 
-- Companion-Besitz und Grundverwaltung vorhanden.
-- Companion-Equipment vorhanden.
-- Mannequin-Companions vorhanden.
-- Companion-Follow vorhanden.
-- Companion-Combat bleibt bis zur Stabilisierung des Basissystems zurückgestellt.
-- Boss-Grundsystem, Phasen, Damage Contribution und Loot-Strukturen vorhanden.
-- Mount-System ist noch kein abgeschlossener Gameplay-Bereich.
+| Companion | Rarity | Unlock |
+|---|---|---|
+| test-wolf | UNCOMMON | DEFAULT |
+| test-bee | COMMON | QUEST `bee_nest` |
+| common-chicken | COMMON | QUEST `companion_chicken` |
+| common-cow | COMMON | QUEST `companion_cow` |
+| common-sheep | COMMON | QUEST `companion_sheep` |
+| common-rabbit | COMMON | QUEST `companion_rabbit` |
+| common-bat | COMMON | QUEST `companion_bat` |
+| uncommon-cat | UNCOMMON | QUEST `companion_cat` |
+| uncommon-fox | UNCOMMON | QUEST `companion_fox` |
+| uncommon-goat | UNCOMMON | QUEST `companion_goat` |
+| test-copper-golem | UNCOMMON | QUEST `companion_copper_golem` |
+| uncommon-parrot | UNCOMMON | QUEST `companion_parrot` |
+| uncommon-armadillo | UNCOMMON | QUEST `companion_armadillo` |
+| uncommon-panda | UNCOMMON | QUEST `companion_panda` |
+| test-zombie | RARE | QUEST `rare_zombie_companion` |
+| test-bogged | RARE | QUEST `companion_bogged` |
+| test-parched | RARE | QUEST `companion_parched` |
+| rare-skeleton | RARE | BOSS `forest_tyrant` |
+| rare-spider | RARE | QUEST `companion_spider` |
+| rare-creeper | RARE | QUEST `companion_creeper` |
+| test-pig | EPIC | QUEST `epic_pig_companion` |
+| epic-horse | EPIC | BOSS `frost_sovereign` |
+| epic-camel | EPIC | QUEST `companion_camel` |
+| test-nautilus | EPIC | QUEST `companion_nautilus` |
+| test-creaking | EPIC | QUEST `companion_creaking` |
+| test-happy-ghast | EPIC | QUEST `companion_happy_ghast` |
+| legendary-iron-golem | LEGENDARY | QUEST `companion_iron_golem` |
+| test-warden | LEGENDARY | QUEST `legendary_warden_companion` |
+| legendary-ravager | LEGENDARY | BOSS `void_reaper` |
+| test-sulfur-cube | LEGENDARY | QUEST `companion_sulfur_cube` |
+| unique-hazel | UNIQUE | ADMIN ONLY |
 
-## Verbindliche Companion-Regel
+## Boss Rewards
 
-Companions sind Runtime-Entities und keine persistenten Welt-NPCs.
+Die vorhandenen World-Boss-Definitionen werden als Companion-Reward-Quellen verwendet:
 
-```text
-Spieler besitzt Companion
-        ↓
-Spieler ruft ihn
-        ↓
-Spawn
-        ↓
-Follow / vorhandene Runtime-Funktionen
-        ↓
-Logout
-        ↓
-Companion verschwindet
-        ↓
-Login
-        ↓
-kein automatischer Restore
-        ↓
-Spieler ruft ihn erneut
-```
+- `forest_tyrant` → `rare-skeleton`
+- `frost_sovereign` → `epic-horse`
+- `void_reaper` → `legendary-ravager`
 
-Der erneute Ruf nach Login muss zuverlässig funktionieren.
+Die Zuordnung steht in der jeweiligen Companion-Definition unter `unlock.bossId`. Der Boss selbst muss keine Companion-spezifische Java-Logik kennen.
+
+## Quest-Rewards
+
+Die Companion-Questinhalte sind direkt in `src/main/resources/data/quests.json` integriert. Damit bleibt der bestehende Quest-Loader die einzige Quelle für Questdefinitionen.
+
+Die Questbelohnungen decken alle nicht durch Bosse freigeschalteten normalen Companions ab.
 
 ## Companion-Raritäten
 
@@ -57,9 +77,9 @@ Unique-Companions bleiben Admin-vergeben und können feste Namen/Skins besitzen.
 
 ## Companion-Design
 
-Für jeden Companion müssen langfristig definiert sein:
+Für jeden Companion werden langfristig definiert:
 
-- Entity
+- Entity / Visual
 - Seltenheit
 - Basiswerte
 - Level 1–99
@@ -78,27 +98,11 @@ Für jeden Companion müssen langfristig definiert sein:
 - Datenkonfiguration
 - Teststatus
 
-Aktive Companion-Fähigkeiten werden erst nach Stabilisierung des passiven Basissystems betrachtet.
+## Boss-Content
 
-## Reittiere
+Das bestehende Boss-System besitzt Definitionen, aktive Bosse, Phasen, Loot, Contribution, Angriffsmuster und Spawnlogik.
 
-Erste Designziele:
-
-1. Pig – Boden
-2. Bee – Flug
-3. Skeleton Horse – Boden
-4. Strider – Nether/Lava
-5. Goat – Charge
-6. Frog – Sprung
-7. Turtle – langsam/defensiv
-
-Das Mount-System ist noch nicht als fertig zu betrachten.
-
-## Boss-System
-
-Das Boss-System besitzt bereits Definitionen, aktive Bosse, Phasen, Loot, Contribution, Angriffsmuster und Spawnlogik.
-
-Für jeden Boss müssen später geprüft werden:
+Für jeden Boss werden bei der Content-Abnahme geprüft:
 
 - Entity/Variante
 - Dimension
@@ -113,27 +117,88 @@ Für jeden Boss müssen später geprüft werden:
 - Cooldowns
 - Reichweiten
 - Status-Effekte
-- `block_break`
 - Umgebungseinfluss
 - Loot
 - Companion-Belohnung
-- Mount-Belohnung
 - Teststatus
 
-Vanilla-Sonderbosse wie der Ender Dragon bleiben zunächst vom normalen Boss-Pool getrennt.
+Vanilla-Sonderbosse wie Ender Dragon bleiben vom normalen Boss-Pool getrennt.
 
-## Grundpool
+## Mount-Pool
 
-Die vorhandenen Boss-/Companion-Kandidaten und Reittierideen bleiben als Designpool bestehen. Einzelne Werte und Fähigkeiten werden erst bei der tatsächlichen Implementierung bzw. Balancevalidierung verbindlich.
+Spätere Designziele:
 
-## Nächste Arbeiten
+1. Pig – Boden
+2. Bee – Flug
+3. Skeleton Horse – Boden
+4. Strider – Nether/Lava
+5. Goat – Charge
+6. Frog – Sprung
+7. Turtle – langsam/defensiv
 
-Die Reihenfolge wird nicht mehr hier verwaltet. Offene Aufgaben stehen in `audit.md`.
+Das Mount-System ist bewusst noch nicht Teil des Companion-Unlock-100%-Blocks.
 
-Insbesondere:
+## Fortschrittsstatus
 
-1. Companion-Ruf nach Login testen.
-2. Spawn/Skin/Equipment/Follow/Despawn testen.
-3. Companion-Daten gegen Runtime-Verwendung prüfen.
-4. Boss-Lifecycle end-to-end testen.
-5. Mount-System erst nach Bedarf weiter ausbauen.
+### 🟢 Abschnitt 01 – Unlock-Grundregeln
+
+FERTIG
+
+- Wolf automatisch
+- alle anderen normalen Companions locked
+- Hazel Admin-only
+- datengetriebene Unlock-Definitionen
+
+### 🟢 Abschnitt 02 – Quest-Companion-Content
+
+FERTIG
+
+- alle normalen Quest-Companions besitzen eine Questquelle
+- Quest-Rewards sind in `quests.json` hinterlegt
+- Wolf-Quest ist keine Freischaltquelle mehr
+
+### 🟢 Abschnitt 03 – Boss-Companion-Content
+
+FERTIG
+
+- Forest Tyrant → Skeleton
+- Frost Sovereign → Horse
+- Void Reaper → Ravager
+- generischer BossDefeated → Companion-Unlock
+
+### 🟡 Abschnitt 04 – Ingame-Abnahme
+
+OFFEN
+
+- Questannahme und Abschluss für jeden Companion testen
+- Bosskill und Reward testen
+- Relog/Restart testen
+- mehrere Spieler bei Bosskills testen
+- bereits besessene Rewards testen
+- Companion-Dialog und Auswahl testen
+
+### 🟡 Abschnitt 05 – Spätere Companion-Fähigkeiten
+
+OFFEN
+
+- passive Fähigkeiten
+- aktive Fähigkeiten
+- Cooldowns
+- Ressourcen/Mana
+- Support/Utility
+- besondere Unique-Mechaniken
+
+## Definition of Done
+
+Der Content-Block gilt erst als vollständig abgeschlossen, wenn:
+
+- Build grün ist
+- alle Unlock-IDs validiert werden
+- Wolf bei neuen Spielern vorhanden ist
+- kein normaler Companion ohne Quest/Boss-Quelle existiert
+- Hazel nicht normal freischaltbar ist
+- Quest-Rewards funktionieren
+- Boss-Rewards funktionieren
+- Relog/Restart die Besitzdaten erhält
+- mehrere Spieler gleichzeitig korrekt belohnt werden
+- keine Companion-ID-spezifische Unlock-Logik in Java erforderlich ist
