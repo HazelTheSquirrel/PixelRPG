@@ -18,9 +18,9 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 /** Controls movement, presentation, equipment and combat for Mannequin companions. */
 public final class MannequinCompanionController {
@@ -34,18 +34,23 @@ public final class MannequinCompanionController {
 
     private final Plugin plugin;
     private final CompanionService companionService;
-    private final Map<UUID, Long> nextAttackTick = new ConcurrentHashMap<>();
-    private final Map<UUID, String> configuredSkin = new ConcurrentHashMap<>();
+    private final Map<String, CompanionDefinition> definitionsById = new HashMap<>();
+    private final Map<UUID, Long> nextAttackTick = new HashMap<>();
+    private final Map<UUID, String> configuredSkin = new HashMap<>();
 
     public MannequinCompanionController(Plugin plugin, CompanionService companionService) {
         this.plugin = plugin;
         this.companionService = companionService;
+        reloadConfiguration();
     }
 
     public void tick(Player owner, Mannequin mannequin) {
         if (!mannequin.isValid() || !owner.isOnline()) return;
 
-        applyPresentation(mannequin);
+        CompanionDefinition definition = definitionsById.get(companionId(mannequin));
+        if (definition == null) return;
+
+        applyPresentation(mannequin, definition);
         applyEquipment(owner, mannequin);
 
         if (mannequin.getWorld() != owner.getWorld()) {
@@ -60,16 +65,16 @@ public final class MannequinCompanionController {
             return;
         }
 
-        if (isCombatEnabled(mannequin)) {
-            Monster target = findTarget(mannequin, owner);
+        if (definition.combat()) {
+            Monster target = findTarget(mannequin, owner, definition.attackRange());
             if (target != null) {
-                double attackRange = Math.max(2.0D, loadDouble(mannequin, "attackRange", ATTACK_RANGE));
+                double attackRange = Math.max(2.0D, definition.attackRange());
                 if (mannequin.getLocation().distanceSquared(target.getLocation()) > attackRange * attackRange) {
                     moveTowards(mannequin, target.getLocation(), owner.isSprinting() ? SPRINT_SPEED : NORMAL_SPEED);
                 } else {
                     stop(mannequin);
                     face(mannequin, target.getLocation());
-                    attack(mannequin, target);
+                    attack(mannequin, target, definition.attackIntervalTicks());
                 }
                 return;
             }
@@ -87,16 +92,12 @@ public final class MannequinCompanionController {
         }
     }
 
-    private boolean isCombatEnabled(Mannequin mannequin) {
-        return loadBoolean(mannequin, "combat", false);
-    }
-
-    private void applyPresentation(Mannequin mannequin) {
+    private void applyPresentation(Mannequin mannequin, CompanionDefinition definition) {
         AttributeInstance scale = mannequin.getAttribute(Attribute.SCALE);
-        if (scale != null) scale.setBaseValue(loadDouble(mannequin, "scale", 0.5D));
+        if (scale != null) scale.setBaseValue(definition.scale());
         mannequin.setImmovable(false);
 
-        String skin = loadString(mannequin, "skinSource");
+        String skin = definition.skinSource();
         if (!skin.isBlank() && !skin.equals(configuredSkin.get(mannequin.getUniqueId()))) {
             configuredSkin.put(mannequin.getUniqueId(), skin);
             MannequinSkinResolver.apply(mannequin, skin, plugin.getLogger());
@@ -107,15 +108,15 @@ public final class MannequinCompanionController {
         companionService.applyEquipmentToEntity(owner.getUniqueId(), companionId(mannequin), mannequin);
     }
 
-    private void attack(Mannequin attacker, Monster target) {
+    private void attack(Mannequin attacker, Monster target, int interval) {
         long now = attacker.getWorld().getGameTime();
         long next = nextAttackTick.getOrDefault(attacker.getUniqueId(), 0L);
         if (now < next || target.isDead() || !target.isValid()) return;
 
-        int interval = Math.max(1, loadInt(attacker, "attackIntervalTicks", DEFAULT_ATTACK_INTERVAL));
         double damage = calculateDamage(attacker);
         target.damage(damage, attacker);
-        nextAttackTick.put(attacker.getUniqueId(), now + interval);
+        attacker.swingMainHand();
+        nextAttackTick.put(attacker.getUniqueId(), now + Math.max(1, interval));
     }
 
     private double calculateDamage(Mannequin mannequin) {
@@ -135,8 +136,8 @@ public final class MannequinCompanionController {
         };
     }
 
-    private Monster findTarget(Mannequin mannequin, Player owner) {
-        double range = Math.max(ATTACK_RANGE, loadDouble(mannequin, "attackRange", ATTACK_RANGE));
+    private Monster findTarget(Mannequin mannequin, Player owner, double configuredRange) {
+        double range = Math.max(ATTACK_RANGE, configuredRange);
         Monster best = null;
         double bestDistance = range * range;
         for (Entity nearby : mannequin.getNearbyEntities(range + 4.0D, range + 2.0D, range + 4.0D)) {
@@ -179,63 +180,33 @@ public final class MannequinCompanionController {
         return mannequin.getPersistentDataContainer().get(RPGKeys.Companion.id(), PersistentDataType.STRING);
     }
 
-    private String loadString(Mannequin mannequin, String key) {
-        String id = companionId(mannequin);
-        if (id == null) return "";
+    private void reloadConfiguration() {
+        definitionsById.clear();
         try {
             JsonObject root = new JsonDataManager(plugin).load("companions.json");
             JsonArray definitions = root.getAsJsonArray("definitions");
-            if (definitions == null) return "";
+            if (definitions == null) return;
             for (var element : definitions) {
                 if (!element.isJsonObject()) continue;
                 JsonObject json = element.getAsJsonObject();
-                if (!id.equals(string(json, "id", ""))) continue;
-                return string(json, key, "");
+                String id = string(json, "id", "").strip();
+                if (id.isBlank()) continue;
+                definitionsById.put(id, new CompanionDefinition(
+                        number(json, "scale", 0.5D),
+                        bool(json, "combat", false),
+                        number(json, "attackRange", ATTACK_RANGE),
+                        Math.max(1, (int) Math.round(number(json, "attackIntervalTicks", DEFAULT_ATTACK_INTERVAL))),
+                        string(json, "skinSource", "")
+                ));
             }
-        } catch (RuntimeException ignored) {
+        } catch (RuntimeException exception) {
+            plugin.getLogger().warning("Unable to load companion mannequin configuration: " + exception.getMessage());
         }
-        return "";
     }
 
-    private double loadDouble(Mannequin mannequin, String key, double fallback) {
-        String id = companionId(mannequin);
-        if (id == null) return fallback;
-        try {
-            JsonObject root = new JsonDataManager(plugin).load("companions.json");
-            JsonArray definitions = root.getAsJsonArray("definitions");
-            if (definitions == null) return fallback;
-            for (var element : definitions) {
-                if (!element.isJsonObject()) continue;
-                JsonObject json = element.getAsJsonObject();
-                if (id.equals(string(json, "id", "")) && json.has(key) && json.get(key).isJsonPrimitive()) return json.get(key).getAsDouble();
-            }
-        } catch (RuntimeException ignored) {
-        }
-        return fallback;
-    }
+    private static String string(JsonObject object, String key, String fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsString() : fallback; }
+    private static double number(JsonObject object, String key, double fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.get(key).getAsDouble() : fallback; }
+    private static boolean bool(JsonObject object, String key, boolean fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsBoolean() : fallback; }
 
-    private boolean loadBoolean(Mannequin mannequin, String key, boolean fallback) {
-        String id = companionId(mannequin);
-        if (id == null) return fallback;
-        try {
-            JsonObject root = new JsonDataManager(plugin).load("companions.json");
-            JsonArray definitions = root.getAsJsonArray("definitions");
-            if (definitions == null) return fallback;
-            for (var element : definitions) {
-                if (!element.isJsonObject()) continue;
-                JsonObject json = element.getAsJsonObject();
-                if (id.equals(string(json, "id", "")) && json.has(key) && json.get(key).isJsonPrimitive()) return json.get(key).getAsBoolean();
-            }
-        } catch (RuntimeException ignored) {
-        }
-        return fallback;
-    }
-
-    private int loadInt(Mannequin mannequin, String key, int fallback) {
-        return (int) Math.round(loadDouble(mannequin, key, fallback));
-    }
-
-    private static String string(JsonObject object, String key, String fallback) {
-        return object != null && object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsString() : fallback;
-    }
+    private record CompanionDefinition(double scale, boolean combat, double attackRange, int attackIntervalTicks, String skinSource) {}
 }
