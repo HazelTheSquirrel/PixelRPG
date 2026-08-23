@@ -38,37 +38,11 @@ unklar → erst Verwendung nachweisen, dann entscheiden
 
 Companions befinden sich vollständig in der Testphase und werden bei diesem Cleanup **nicht als Altlasten bewertet**.
 
-Keine neuen großen Gameplay-Systeme, solange offene P0/P1-Punkte nicht geprüft sind.
-
-Vorhandene Kernbereiche:
-
-- Player/Profile/Persistenz
-- Registrierung und Vanilla-/PixelRPG-Isolation
-- Level/XP
-- Attribute/Klassen
-- Items/Rarity/Item-Level/Equipment
-- Combat/Mob Scaling/Loot
-- Weapon-Abilities
-- NPC-Mannequins
-- native Dialoge
-- Quests
-- Berufe/Crafting
-- Economy/Party
-- Story/Travel
-- Companions (Testphase)
-- Bosse/World-Bosse
-- Statistics/Scoreboard
-- API/Event-Schicht
-
 ## Bereits durchgeführte Cleanup-Schritte
 
 ### Resourcepack
 
-Das bisherige `resourcepack/` wurde vollständig aus `main` entfernt.
-
-Es war kein Bestandteil des aktuellen Plugin-Build-/Runtime-Pfades und enthielt zusätzlich veraltete Assets, unter anderem Mana-Potion-Daten.
-
-Ein neues Resourcepack wird später separat und passend zum finalen Item-/Asset-System aufgebaut.
+Das bisherige `resourcepack/` wurde vollständig aus `main` entfernt. Ein neues Resourcepack wird später separat und passend zum finalen Item-/Asset-System aufgebaut.
 
 ### Companion-Stat-Daten
 
@@ -76,18 +50,35 @@ Ein neues Resourcepack wird später separat und passend zum finalen Item-/Asset-
 
 ### Veraltete GUI-Klassen
 
-Folgende alte Inventory-GUIs wurden entfernt, da der aktuelle Interaktionspfad über native Dialoge bzw. andere aktive Inventory-Systeme läuft:
+Entfernt:
 
 - `AttributeTraderGUI`
 - `BankGUI`
 - `ClassSelectionGUI`
 - `TravelGUI`
+- `QuestCategoryGUI`
+- `QuestBoardGUI`
 
-Aktive GUIs bleiben bestehen, wenn sie tatsächlich noch verwendet werden.
+Die letzten beiden bildeten einen nicht erreichbaren Quest-Category-/Board-GUI-Pfad. Aktive GUIs bleiben bestehen, wenn sie tatsächlich verwendet werden.
 
 ### Veraltete Config
 
 `effects.aura-interval-ticks` wurde aus `config.yml` entfernt. Der zugehörige alte Equipment-Aura-Pfad existiert nicht mehr und der Config-Key wurde im aktuellen Code nicht verwendet.
+
+### Nachgewiesene ungenutzte Java-Klassen
+
+Entfernt:
+
+- `command/impl/CraftingCommand.java` – nicht registriert und nicht Teil des aktuellen Command-Pfades.
+- `combat/ClassSetBonusService.java` – kein aktueller Aufrufer/Runtime-Pfad.
+- `item/ClassSetItemFactory.java` – keine aktuelle Item-/Loot-/Command-Verwendung.
+- `item/ClassSetSlot.java` – gehörte ausschließlich zum entfernten Class-Set-Factory-Pfad.
+
+Die dazugehörigen `RPGKeys.Item.classSetClass()` und `RPGKeys.Item.classSetSlot()` wurden ebenfalls entfernt.
+
+### Aktive, aber historisch benannte Systeme
+
+Nicht alles mit alten Begriffen ist automatisch ungenutzt. Beispielsweise existieren `GuildAPI`, `EconomyAPI`, `GuildCurrencyItemFactory` und `GuildCompassListener` weiterhin in aktiven Pfaden. Diese werden nicht gelöscht, sondern separat darauf geprüft, ob ihre Benennung/Abstraktion noch zum aktuellen System passt.
 
 ## Wichtige Lifecycle-Regeln
 
@@ -102,8 +93,6 @@ NPC-Definition → NpcManager → Entity → Chunk-/Login-Resync
 ### Companions
 
 Companions sind **keine persistenten Welt-NPCs**.
-
-Das gewünschte Verhalten ist:
 
 ```text
 Spieler besitzt Companion
@@ -125,7 +114,7 @@ Spieler ruft ihn erneut
 
 **Kein automatischer Companion-Restore beim Login.**
 
-Zu prüfen ist deshalb ausschließlich, ob das erneute Rufen nach Login zuverlässig funktioniert.
+Zu prüfen ist ausschließlich, ob das erneute Rufen nach Login zuverlässig funktioniert.
 
 ## Dialoge / Quick Actions – feste Scope-Regel
 
@@ -144,8 +133,6 @@ Die einzige reguläre Ausnahme ist der Bereich `minecraft:quick_actions` über d
 
 Eine Änderung an einem bestehenden Dialog, bestehenden Button oder bestehenden Quick-Action-Bereich erfolgt **nur dann, wenn Hazel dies ausdrücklich und gezielt verlangt**.
 
-Analyseergebnisse zu bestehenden Dialogen dürfen dokumentiert werden, führen aber ohne ausdrückliche Anweisung **nicht automatisch zu einer Umsetzung**.
-
 ## Vanilla-/PixelRPG-Isolation
 
 Ein Spieler ist zunächst Vanilla. Erst nach PixelRPG-Registrierung dürfen RPG-Systeme greifen.
@@ -157,18 +144,6 @@ Besonders kritisch zu validieren:
 - Item Events
 - Crafting und Inventory
 - Combat
-
-Wichtigster Mischfall:
-
-```text
-Vanilla-Spieler
-      ↓
-selbe Welt / selbe Entity
-      ↑
-PixelRPG-Spieler
-```
-
-Mob Scaling darf Vanilla-Spieler nicht unbeabsichtigt in RPG-Mechaniken ziehen.
 
 ## Persistenz
 
@@ -216,32 +191,15 @@ Mob Scaling ist strukturell vorhanden; der reale Vanilla-/PixelRPG-Mischbetrieb 
 
 Native Dialoge sind der primäre Interaktionsweg. Vorhanden sind u. a. Registrierung, Empfang, Schmied, Quest, Shop, Travel, Story, Bank, Companion und Berufe.
 
-Inventory-GUIs bleiben dort bestehen, wo ein Dialog nicht ausreicht. Sie werden nicht pauschal entfernt.
-
-Bestehende Dialoge und bestehende Buttons bleiben grundsätzlich unverändert. Änderungen daran erfolgen nur auf ausdrückliche, gezielte Anweisung von Hazel.
+Inventory-GUIs bleiben dort, wo ein Dialog nicht ausreicht. Sie werden nicht pauschal entfernt.
 
 ## Quests
 
 Das Quest-System besitzt Repository, Manager, Progress, Navigation, globale Events, passive Checks, Mob-Kills und XP-/Progressionslogik.
 
-Die Quest-Roadmap bleibt Designreferenz. Jetzt wird die Runtime gegen reale Questdefinitionen und End-to-End-Abläufe validiert.
-
 ## Companions / Bosse / Mounts
 
-Companion-Grundsystem und Boss-System sind vorhanden.
-
-Companion-Kampflogik bleibt bis zur Stabilisierung des Basissystems zurückgestellt.
-
-Zu prüfen:
-
-- Companion erneut rufen nach Login
-- Spawn/Despawn
-- Skin
-- Equipment
-- Follow
-- Datenpersistenz
-- Entity-Verlust
-- Boss Spawn/Phasen/Damage/Death/Contribution/Loot
+Companion-Grundsystem und Boss-System sind vorhanden. Companion-Testdaten werden während dieses Cleanups bewusst nicht bewertet.
 
 ## Balancing
 
@@ -256,8 +214,6 @@ Aktive Grundsätze:
 - keine Blessings/Curses
 - keine Gems/Runes/Sockets
 - keine alten F–S-Ranks
-
-Das Balancing ist strukturell definiert, aber noch nicht final servervalidiert. Keine Einzelwerte auf Verdacht ändern.
 
 # Offene Cleanup-/Audit-Aufgaben
 
@@ -276,13 +232,14 @@ Das Balancing ist strukturell definiert, aber noch nicht final servervalidiert. 
 8. Config-Keys systematisch gegen den aktuellen Code abgleichen.
 9. API-Schicht prüfen: verwendete APIs behalten, veraltete/inkonsistente APIs aufräumen.
 10. Quest-/Companion-Daten gegen die tatsächliche Runtime-Verwendung prüfen; Companion-Testdaten dabei ausdrücklich ausnehmen.
+11. Weitere Java-Orphan-Kandidaten aus Command/GUI/Service/Factory-Schichten gegen den tatsächlichen Dependency-Graph prüfen.
 
 ## P2
 
-11. End-to-End: Registrierung → NPC → Dialog → Quest → Combat → XP → Loot/Reward.
-12. Persistenztest über Server-Neustart.
-13. Level-/Scaling-Testmatrix.
-14. Abschließender Voll-Audit nach den Cleanup-Schritten.
+12. End-to-End: Registrierung → NPC → Dialog → Quest → Combat → XP → Loot/Reward.
+13. Persistenztest über Server-Neustart.
+14. Level-/Scaling-Testmatrix.
+15. Abschließender Voll-Audit nach den Cleanup-Schritten.
 
 ## Arbeitsregel
 
