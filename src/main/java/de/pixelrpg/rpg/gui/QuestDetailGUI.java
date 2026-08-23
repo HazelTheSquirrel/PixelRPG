@@ -74,8 +74,7 @@ public final class QuestDetailGUI extends AbstractGUI {
             });
         }
 
-        setItem(49, buildButton(Material.ARROW, "common.back", NamedTextColor.RED), event ->
-                new QuestBoardGUI(viewer, questManager, profileManager, quest.categoryLevel()).open(viewer));
+        setItem(49, buildButton(Material.ARROW, "common.back", NamedTextColor.RED), event -> viewer.closeInventory());
     }
 
     private ItemStack buildButton(Material material, String labelKey, NamedTextColor color) {
