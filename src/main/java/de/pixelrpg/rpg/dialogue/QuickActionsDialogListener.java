@@ -1,10 +1,12 @@
 package de.pixelrpg.rpg.dialogue;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.companion.Companion;
 import de.pixelrpg.rpg.companion.CompanionService;
 import io.papermc.paper.connection.PlayerGameConnection;
 import io.papermc.paper.event.player.PlayerCustomClickEvent;
 import net.kyori.adventure.key.Key;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -63,6 +65,27 @@ public final class QuickActionsDialogListener implements Listener {
     @EventHandler
     public void onProfessionAction(PlayerCustomClickEvent event) {
         handlePlayerAction(event, PROFESSIONS_ACTION, professionDialog::open);
+    }
+
+    /** Opens the validated Mannequin companion equipment inventory from its unique dialog action. */
+    @EventHandler
+    public void onCompanionEquipAction(PlayerCustomClickEvent event) {
+        if (!(event.getCommonConnection() instanceof PlayerGameConnection connection)) return;
+        if (!CompanionDialog.isEquipAction(event.getIdentifier())) return;
+
+        Player player = connection.getPlayer();
+        if (!service.isAvailable(player)) return;
+
+        String companionId = CompanionDialog.companionIdFromEquipAction(event.getIdentifier());
+        if (companionId == null) return;
+
+        Companion companion = companionService.getCompanions(player.getUniqueId()).stream()
+                .filter(candidate -> candidate.id().equals(companionId))
+                .findFirst()
+                .orElse(null);
+        if (companion == null || companion.entityType() != EntityType.MANNEQUIN) return;
+
+        companionService.openEquipment(player, companion);
     }
 
     /** Closes the native character card when the player selects the close action. */
