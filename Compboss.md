@@ -1,122 +1,50 @@
 # PixelRPG – Companions, Bosses & Mounts
 
-## Ziel
+Stand: 2026-08-23
 
-Diese Datei ist die zentrale Arbeitsliste für das geplante Boss-, Companion- und Reittier-System. Sie dient als Design- und Implementierungsgrundlage. Fähigkeiten, Werte und konkrete JSON-Strukturen werden später separat ausgearbeitet.
+> Arbeits-/Designreferenz für Companions, Bosse und Reittiere. Der technische Gesamtstatus steht in `audit.md`.
 
-## Grundregeln
+## Aktueller Stand
 
-- Spielerlevel: 1–99; Level 100 ist Grind-Endgame.
-- Companions besitzen eigene Erfahrung und eigene Level.
-- Ein Companion erhält nur Erfahrung, solange er aktiv/ausgesendet ist.
-- Companions sind grundsätzlich schwächer als Spieler und Bosse.
-- Werte skalieren kontrolliert mit dem Companion-Level.
-- Seltenheit bestimmt die grundsätzliche Stärke und den benötigten Fortschritt.
-- Companion-Namen können bei normalen Companions nach dem später festzulegenden System behandelt werden.
-- Unique-Companions werden ausschließlich von Admins vergeben.
-- Unique-Companions können feste Namen und feste Skins besitzen und sind nicht umbenennbar.
-- Zunächst werden ausschließlich passive Companion-Fähigkeiten umgesetzt; aktive Fähigkeiten folgen erst nach Fertigstellung des Basissystems.
-- Boss- und Companion-Werte sollen vollständig konfigurierbar bleiben.
-- Quests, Bosse und Companions sollen von externen JSON/YAML-Dateien geladen werden können.
-- Boss-Kämpfe dürfen die Welt nicht unnötig zerstören; `block_break: false` ist für entsprechende Fähigkeiten vorgesehen.
-- Ein Boss darf nicht doppelt im aktiven Boss-System vorkommen.
-- Vanilla-Sonderbosse wie der Ender Dragon werden zunächst nicht in den normalen Boss-Pool aufgenommen.
+Das Companion-Grundsystem und das Boss-System sind bereits im Code vorhanden. Diese Datei ist deshalb **keine reine Zukunftsplanung mehr**.
 
-## Reittiere – erster fester Satz
+Aktuell gilt:
 
-Diese sieben Reittiere werden als erste Reittier-Ziele übernommen:
+- Companion-Besitz und Grundverwaltung vorhanden.
+- Companion-Equipment vorhanden.
+- Mannequin-Companions vorhanden.
+- Companion-Follow vorhanden.
+- Companion-Combat bleibt bis zur Stabilisierung des Basissystems zurückgestellt.
+- Boss-Grundsystem, Phasen, Damage Contribution und Loot-Strukturen vorhanden.
+- Mount-System ist noch kein abgeschlossener Gameplay-Bereich.
 
-1. Pig – Boden-Reittier
-2. Bee – Flug-Reittier
-3. Skeleton Horse – klassisches Boden-Reittier / Skelettreiter-Boss
-4. Strider – Nether-/Lava-Reittier
-5. Goat – Charge-Reittier
-6. Frog – Sprung-Reittier
-7. Turtle – langsames, defensives Reittier
+## Verbindliche Companion-Regel
 
-## Boss-Pool
+Companions sind Runtime-Entities und keine persistenten Welt-NPCs.
 
-### Overworld
+```text
+Spieler besitzt Companion
+        ↓
+Spieler ruft ihn
+        ↓
+Spawn
+        ↓
+Follow / vorhandene Runtime-Funktionen
+        ↓
+Logout
+        ↓
+Companion verschwindet
+        ↓
+Login
+        ↓
+kein automatischer Restore
+        ↓
+Spieler ruft ihn erneut
+```
 
-| Entity | Boss | Kernidee | Companion | Mount |
-|---|---|---|---|---|
-| Chicken | Die Eierkanone | Riesiges Huhn, Eier-Salven | Chicken | – |
-| Pig | Der Schweineexpress | Extrem schnelle Charges | Pig | Pig |
-| Sheep | Der Wollkoloss | Stampfen und Knockback | Sheep | – |
-| Cow | Kuhzilla | Stampfen und Schockwellen | Cow | – |
-| Goat | Der Rammbock | Aggressive Charges | Goat | Goat |
-| Rabbit | Der Todeshüpfer | Riesensprünge und Landungen | Rabbit | – |
-| Bee | Die Bienenkönigin | Fliegender Boss und Luftangriffe | Bee | Bee |
-| Fox | Der Taschendieb | Stehlen und Flucht | Fox | – |
-| Turtle | Die lebende Festung | Defensive Panzerphase | Turtle | Turtle |
-| Panda | Der Wut-Panda | Roll-/Knockback-Angriff | Panda | – |
-| Frog | Der Froschkönig | Riesensprung und Schockwelle | Frog | Frog |
-| Zombie | Der Untote | Verstärkung bei HP-Schwellen | Zombie | – |
-| Husk | Der Wüstenkönig | Wüsten-/Sandmechaniken | Husk | – |
-| Skeleton | Der Scharfschütze | Reiter auf Skelettpferd | Skeleton | Skeleton Horse |
-| Stray | Der Frostschütze | Frostpfeile und Verlangsamung | Stray | – |
-| Bogged | Der Sumpfschütze | Giftpfeile und Giftzonen | Bogged | – |
-| Slime | Der Schleimkoloss | Mehrere Split-Phasen | Slime | – |
-| Squid | Das Tintenmonster | Tintenwolken und Unsichtbarkeit | Squid | – |
+Der erneute Ruf nach Login muss zuverlässig funktionieren.
 
-### Nether
-
-| Entity | Boss | Kernidee | Companion | Mount |
-|---|---|---|---|---|
-| Blaze | Der Feuersturm | Flug und Feuerkugel-Muster | Blaze | – |
-| Ghast | Der Himmelsbrecher | Feuerball-Salven | Ghast | – |
-| Hoglin | Der Netherbulle | Brutale Charges | Hoglin | – |
-| Zoglin | Die rasende Bestie | Permanenter aggressiver Nahkampf | Zoglin | – |
-| Piglin Brute | Der Goldene Henker | Schwerer Nahkampf und Kombos | Piglin Brute | – |
-| Wither Skeleton | Der Schwarze Ritter | Schwerer Nahkampf | Wither Skeleton | – |
-| Magma Cube | Der Magmakern | Split- und Feuerphasen | Magma Cube | – |
-| Strider | Der Lavawanderer | Lava-Boss | Strider | Strider |
-
-### The End
-
-| Entity | Boss | Kernidee | Companion | Mount |
-|---|---|---|---|---|
-| Enderman | Der Leerenspringer | Teleports und Hinterhalte | Enderman | – |
-| Shulker | Der Schwerkraftmeister | Levitation und Bewegungsstörung | Shulker | – |
-| Endermite | Der Leerenwurm | Überraschungs-/Teleportmechaniken | Endermite | – |
-| Ender Dragon | Vanilla-Sonderfall | Bestehender Vanilla-Boss | – | – |
-
-## Companion-Kandidaten und geplante Seltenheiten
-
-| Companion | Seltenheit | Geplante Richtung |
-|---|---|---|
-| Chicken | Common | gelegentliche Eier |
-| Pig | Epic | Reittier-/Charge-Bezug |
-| Sheep | Common | defensive passive Unterstützung |
-| Cow | Uncommon | kleine Schockwelle |
-| Goat | Uncommon | kleiner Charge |
-| Rabbit | Uncommon | hoher Sprung |
-| Bee | Common | kleiner Bienenangriff |
-| Fox | Rare | Utility-/Steal-Mechanik |
-| Turtle | Epic | defensive Fähigkeit + Reittier |
-| Panda | Rare | Roll-/Knockback-Angriff |
-| Frog | Rare | Sprungfähigkeit + Reittier |
-| Zombie | Rare | abgeschwächte Unterstützung |
-| Husk | Rare | Schwächungs-/Sandmechanik |
-| Skeleton | Rare | abgeschwächter Fernkampfangriff |
-| Stray | Epic | Frostangriff |
-| Bogged | Epic | Giftangriff |
-| Slime | Epic | kleine Split-/Bounce-Mechanik |
-| Squid | Uncommon | Tintenwolke |
-| Blaze | Legendary | Feuerprojektile |
-| Ghast | Legendary | kleiner Feuerball |
-| Hoglin | Epic | Charge |
-| Zoglin | Legendary | aggressiver Charge |
-| Piglin Brute | Legendary | Nahkampfunterstützung |
-| Wither Skeleton | Legendary | Schwertangriff |
-| Magma Cube | Legendary | Feuer-/Bounce-Mechanik |
-| Enderman | Legendary | kurzer Teleport |
-| Shulker | Legendary | abgeschwächte Levitation |
-| Endermite | Rare | kleine Teleport-/Burrow-Mechanik |
-
-## Companion-Seltenheiten
-
-Geplante Kategorien:
+## Companion-Raritäten
 
 - Common
 - Uncommon
@@ -125,48 +53,11 @@ Geplante Kategorien:
 - Legendary
 - Unique
 
-Die genaue Stat-Skalierung, XP-Kurve und Stärke jeder Seltenheit wird separat als Balance-System definiert. Ziel ist, dass Companions sinnvoll mit Spielerlevel, Gegnern und Bossen harmonieren, ohne den Spieler zu ersetzen.
+Unique-Companions bleiben Admin-vergeben und können feste Namen/Skins besitzen.
 
-## Companion- und Boss-Beziehung
+## Companion-Design
 
-Boss-Fähigkeiten dürfen deutlich spektakulärer sein als die Fähigkeiten des daraus erhaltenen Companions. Ein Boss kann beispielsweise mehrere Eier gleichzeitig verschießen, während der entsprechende Chicken-Companion nur gelegentlich ein Ei erzeugt. Dadurch bleibt der Companion hilfreich, ohne den Bosskampf zu reproduzieren.
-
-Nicht jeder Boss muss einen Companion oder ein Reittier vergeben. Dadurch bleiben besondere Belohnungen selten und wertvoll.
-
-## Boss-Design-Checkliste
-
-Für jeden Boss müssen später festgelegt werden:
-
-- Entity/Variante
-- Dimension
-- Seltenheit bzw. Boss-Tier
-- Spawnchance
-- Spawnbedingungen
-- Größe/Scale
-- Basiswerte
-- Lebenspunkte
-- Schaden
-- Verteidigung
-- Bewegung
-- Angriffe
-- Angriffsmuster
-- Phasen
-- HP-Schwellen
-- Cooldowns
-- Reichweiten
-- besondere Mechaniken
-- Knockback
-- Status-Effekte
-- `block_break`
-- Umgebungseinfluss
-- Loot
-- Companion-Belohnung
-- Reittier-Belohnung
-- Teststatus
-
-## Companion-Design-Checkliste
-
-Für jeden Companion müssen später festgelegt werden:
+Für jeden Companion müssen langfristig definiert sein:
 
 - Entity
 - Seltenheit
@@ -174,50 +65,75 @@ Für jeden Companion müssen später festgelegt werden:
 - Level 1–99
 - eigene XP
 - XP-Kurve
-- Skalierung pro Level
+- Skalierung
 - passive Fähigkeiten
-- interne Cooldowns
+- Cooldowns
 - Reichweite
-- Schaden/Unterstützung
 - Verhalten
 - Follow-Distanz
 - Größe/Scale
 - Spawn-/Despawn-Verhalten
-- benötigte Freischaltung
-- mögliche Questbelohnung
-- mögliche Bossbelohnung
-- JSON/YAML-Konfiguration
-- Teststatus
-
-## Reittier-Design-Checkliste
-
-Für jedes Reittier müssen später festgelegt werden:
-
-- Entity
-- Bewegungsgeschwindigkeit
-- Sprungkraft
-- Flug/Lava/Wasser-Verhalten
-- Größe/Scale
-- Mount-Sitzposition
-- Kollisionsverhalten
-- besondere Bewegungseigenschaften
 - Freischaltung
-- Boss-/Quest-/sonstige Quelle
+- Quest-/Bossquelle
+- Datenkonfiguration
 - Teststatus
 
-## Geplante spätere Erweiterungen
+Aktive Companion-Fähigkeiten werden erst nach Stabilisierung des passiven Basissystems betrachtet.
 
-- Weitere Mobs aus dem Minecraft-Mob-Spektrum prüfen.
-- Auch ungewöhnliche bzw. historisch vorhandene April-Fools-/Test-Entities nur dann berücksichtigen, wenn sie technisch in der Zielplattform verfügbar und sinnvoll verwendbar sind.
-- Variantensystem für unterschiedliche Zombie-, Skeleton-, Slime- und andere Mob-Varianten.
-- Größenanpassung pro Entity, um große oder bewusst kleinere Companions zu ermöglichen.
-- Questbelohnungen können bestimmte Companions freischalten.
-- Bossbelohnungen können seltene Companions oder Reittiere enthalten.
-- Unique-Companions werden ausschließlich durch Admin-Freischaltung vergeben.
-- Aktive Companion-Fähigkeiten erst nach Fertigstellung und Stabilisierung des passiven Basissystems.
+## Reittiere
 
-## Status
+Erste Designziele:
 
-**Designphase:** Basis-Pool definiert.
+1. Pig – Boden
+2. Bee – Flug
+3. Skeleton Horse – Boden
+4. Strider – Nether/Lava
+5. Goat – Charge
+6. Frog – Sprung
+7. Turtle – langsam/defensiv
 
-**Als nächstes:** Bossangriffe, Werte, Belohnungen, Companion-Passivfähigkeiten und Reittierverhalten einzeln spezifizieren und anschließend in die konfigurierbaren Dateien überführen.
+Das Mount-System ist noch nicht als fertig zu betrachten.
+
+## Boss-System
+
+Das Boss-System besitzt bereits Definitionen, aktive Bosse, Phasen, Loot, Contribution, Angriffsmuster und Spawnlogik.
+
+Für jeden Boss müssen später geprüft werden:
+
+- Entity/Variante
+- Dimension
+- Tier
+- Spawnbedingungen
+- Größe/Scale
+- Werte
+- Bewegung
+- Angriffe
+- Phasen
+- HP-Schwellen
+- Cooldowns
+- Reichweiten
+- Status-Effekte
+- `block_break`
+- Umgebungseinfluss
+- Loot
+- Companion-Belohnung
+- Mount-Belohnung
+- Teststatus
+
+Vanilla-Sonderbosse wie der Ender Dragon bleiben zunächst vom normalen Boss-Pool getrennt.
+
+## Grundpool
+
+Die vorhandenen Boss-/Companion-Kandidaten und Reittierideen bleiben als Designpool bestehen. Einzelne Werte und Fähigkeiten werden erst bei der tatsächlichen Implementierung bzw. Balancevalidierung verbindlich.
+
+## Nächste Arbeiten
+
+Die Reihenfolge wird nicht mehr hier verwaltet. Offene Aufgaben stehen in `audit.md`.
+
+Insbesondere:
+
+1. Companion-Ruf nach Login testen.
+2. Spawn/Skin/Equipment/Follow/Despawn testen.
+3. Companion-Daten gegen Runtime-Verwendung prüfen.
+4. Boss-Lifecycle end-to-end testen.
+5. Mount-System erst nach Bedarf weiter ausbauen.
