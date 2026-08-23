@@ -7,19 +7,23 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.plugin.Plugin;
 
 public final class NpcChunkListener implements Listener {
 
     private final NpcManager npcManager;
+    private final Plugin plugin;
 
     public NpcChunkListener(NpcManager npcManager) {
         this.npcManager = npcManager;
+        this.plugin = Bukkit.getPluginManager().getPlugin("PixelRPG");
     }
 
     // Re-synchronizes NPC entities for a player after the client has finished joining.
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Bukkit.getScheduler().runTaskLater(npcManager.getPlugin(), () -> npcManager.resyncPlayer(event.getPlayer()), 2L);
+        if (plugin == null) return;
+        Bukkit.getScheduler().runTaskLater(plugin, () -> npcManager.resyncPlayer(event.getPlayer()), 2L);
     }
 
     // Restores NPCs when their chunk becomes loaded again.
