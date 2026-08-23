@@ -78,12 +78,19 @@ public final class CompanionDialog {
                         }));
             }
 
-            // Equip ist eine feste Eigenschaft des Mannequin-Companions und unabhängig vom Active-State.
-            if (companion.entityType() == EntityType.MANNEQUIN) {
-                actions.add(ActionButton.builder(Component.text("Equip", NamedTextColor.AQUA))
-                        .action(DialogAction.customClick(Key.key(EQUIP_ACTION_PREFIX + companion.id()), null))
-                        .width(220)
-                        .build());
+            // Normale Companions können umbenannt werden; Unique-Companions haben einen festen Namen.
+            if (companion.rarity().isUnique()) {
+                // Equip ist eine feste Eigenschaft des Mannequin-Companions und unabhängig vom Active-State.
+                if (companion.entityType() == EntityType.MANNEQUIN) {
+                    actions.add(ActionButton.builder(Component.text("Equip", NamedTextColor.AQUA))
+                            .action(DialogAction.customClick(Key.key(EQUIP_ACTION_PREFIX + companion.id()), null))
+                            .width(220)
+                            .build());
+                }
+            } else {
+                actions.add(dialogueEngine.actionButton(
+                        Component.text("Umbenennen"), NamedTextColor.YELLOW,
+                        target -> openRename(target, companion)));
             }
         }
 
