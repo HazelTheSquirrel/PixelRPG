@@ -18,6 +18,14 @@ public final class CompanionCombatController {
     public LivingEntity tick(Player owner, LivingEntity companion, CompanionDefinition definition, long gameTime) {
         CompanionDefinition.CompanionCombatDefinition combat = definition.combat();
         if (!combat.enabled()) return null;
+
+        double maxOwnerDistance = combat.maxOwnerCombatDistance();
+        if (Double.isFinite(maxOwnerDistance)
+                && companion.getLocation().distanceSquared(owner.getLocation()) > maxOwnerDistance * maxOwnerDistance) {
+            currentTargets.remove(companion.getUniqueId());
+            return null;
+        }
+
         LivingEntity target = resolveTarget(owner, companion, combat);
         if (target == null) {
             currentTargets.remove(companion.getUniqueId());
