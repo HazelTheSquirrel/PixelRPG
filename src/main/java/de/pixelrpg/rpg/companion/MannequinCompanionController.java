@@ -13,7 +13,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.persistence.PersistentDataType;
@@ -61,17 +60,19 @@ public final class MannequinCompanionController {
             return;
         }
 
-        Monster target = findTarget(mannequin, owner);
-        if (target != null) {
-            double attackRange = Math.max(2.0D, loadDouble(mannequin, "attackRange", ATTACK_RANGE));
-            if (mannequin.getLocation().distanceSquared(target.getLocation()) > attackRange * attackRange) {
-                moveTowards(mannequin, target.getLocation(), owner.isSprinting() ? SPRINT_SPEED : NORMAL_SPEED);
-            } else {
-                stop(mannequin);
-                face(mannequin, target.getLocation());
-                attack(mannequin, target);
+        if (isCombatEnabled(mannequin)) {
+            Monster target = findTarget(mannequin, owner);
+            if (target != null) {
+                double attackRange = Math.max(2.0D, loadDouble(mannequin, "attackRange", ATTACK_RANGE));
+                if (mannequin.getLocation().distanceSquared(target.getLocation()) > attackRange * attackRange) {
+                    moveTowards(mannequin, target.getLocation(), owner.isSprinting() ? SPRINT_SPEED : NORMAL_SPEED);
+                } else {
+                    stop(mannequin);
+                    face(mannequin, target.getLocation());
+                    attack(mannequin, target);
+                }
+                return;
             }
-            return;
         }
 
         if (distanceSquared > FOLLOW_START * FOLLOW_START) {
@@ -84,6 +85,10 @@ public final class MannequinCompanionController {
         } else if (distanceSquared < FOLLOW_STOP * FOLLOW_STOP) {
             stop(mannequin);
         }
+    }
+
+    private boolean isCombatEnabled(Mannequin mannequin) {
+        return loadBoolean(mannequin, "combat", false);
     }
 
     private void applyPresentation(Mannequin mannequin) {
@@ -203,6 +208,23 @@ public final class MannequinCompanionController {
                 if (!element.isJsonObject()) continue;
                 JsonObject json = element.getAsJsonObject();
                 if (id.equals(string(json, "id", "")) && json.has(key) && json.get(key).isJsonPrimitive()) return json.get(key).getAsDouble();
+            }
+        } catch (RuntimeException ignored) {
+        }
+        return fallback;
+    }
+
+    private boolean loadBoolean(Mannequin mannequin, String key, boolean fallback) {
+        String id = companionId(mannequin);
+        if (id == null) return fallback;
+        try {
+            JsonObject root = new JsonDataManager(plugin).load("companions.json");
+            JsonArray definitions = root.getAsJsonArray("definitions");
+            if (definitions == null) return fallback;
+            for (var element : definitions) {
+                if (!element.isJsonObject()) continue;
+                JsonObject json = element.getAsJsonObject();
+                if (id.equals(string(json, "id", "")) && json.has(key) && json.get(key).isJsonPrimitive()) return json.get(key).getAsBoolean();
             }
         } catch (RuntimeException ignored) {
         }
