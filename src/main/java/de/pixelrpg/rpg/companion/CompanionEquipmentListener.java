@@ -53,7 +53,6 @@ public final class CompanionEquipmentListener implements Listener {
         inventory.setItem(BOOTS, equipment.boots());
         inventory.setItem(OFF_HAND, equipment.offHand());
         inventory.setItem(MAIN_HAND, equipment.mainHand());
-    
         player.openInventory(inventory);
     }
 
@@ -82,17 +81,23 @@ public final class CompanionEquipmentListener implements Listener {
 
         if (event.isShiftClick()) {
             ItemStack clicked = event.getCurrentItem();
-            if (clicked == null || clicked.getType().isAir() || findEquipmentSlot(clicked) < 0) {
+            if (clicked == null || clicked.getType().isAir()) {
+                event.setCancelled(true);
+                return;
+            }
+
+            int targetSlot = findEmptyCompatibleEquipmentSlot(event.getView().getTopInventory(), clicked);
+            if (targetSlot < 0) {
                 event.setCancelled(true);
                 return;
             }
 
             event.setCancelled(true);
-            int targetSlot = findEmptyCompatibleEquipmentSlot(event.getView().getTopInventory(), clicked);
-            if (targetSlot < 0) return;
-
-            event.getView().getTopInventory().setItem(targetSlot, clicked.clone());
-            event.setCurrentItem(null);
+            ItemStack equipped = clicked.clone();
+            equipped.setAmount(1);
+            event.getView().getTopInventory().setItem(targetSlot, equipped);
+            if (clicked.getAmount() <= 1) event.setCurrentItem(null);
+            else event.setCurrentItem(clicked.asQuantity(clicked.getAmount() - 1));
             schedulePersist(event.getView().getTopInventory());
         }
     }
@@ -169,14 +174,14 @@ public final class CompanionEquipmentListener implements Listener {
 
     private static int findEquipmentSlot(ItemStack item) {
         if (item == null || item.getType().isAir()) return -1;
-        for (int slot : new int[]{HELMET, CHESTPLATE, LEGGINGS, BOOTS, OFF_HAND, MAIN_HAND) {
+        for (int slot : new int[]{HELMET, CHESTPLATE, LEGGINGS, BOOTS, OFF_HAND, MAIN_HAND}) {
             if (accepts(slot, item)) return slot;
         }
         return -1;
     }
 
     private static int findEmptyCompatibleEquipmentSlot(Inventory inventory, ItemStack item) {
-        for (int slot : new int[]{HELMET, CHESTPLATE, LEGGINGS, BOOTS, OFF_HAND, MAIN_HAND) {
+        for (int slot : new int[]{HELMET, CHESTPLATE, LEGGINGS, BOOTS, OFF_HAND, MAIN_HAND}) {
             if (inventory.getItem(slot) == null && accepts(slot, item)) return slot;
         }
         return -1;
