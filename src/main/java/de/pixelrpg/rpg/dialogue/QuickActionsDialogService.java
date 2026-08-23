@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.dialogue;
 
+import de.pixelrpg.rpg.item.SoulboundService;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.QuestManager;
@@ -19,6 +20,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,9 +50,22 @@ public final class QuickActionsDialogService {
         player.showDialog(dialog);
     }
 
-    /** Opens the character profile; this view only exposes a back button to the G quick-actions menu. */
+    /** Opens the character profile; this view also exposes the explicit soulbind action for the held item. */
     public void openCharacterProfile(Player player, CompanionDialog companionDialog, ProfessionDialog professionDialog) {
         if (!isAvailable(player)) return;
+
+        ActionButton soulbind = ActionButton.builder(Component.text("Gegenstand binden", NamedTextColor.LIGHT_PURPLE))
+                .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick(
+                        (response, audience) -> {
+                            if (audience instanceof Player target) {
+                                soulbindHeldItem(target);
+                                openCharacterProfile(target, companionDialog, professionDialog);
+                            }
+                        },
+                        net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
+                .width(220)
+                .build();
+
         ActionButton back = ActionButton.builder(Component.text("Zurück", NamedTextColor.WHITE))
                 .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick(
                         (response, audience) -> { if (audience instanceof Player target) openQuickActions(target); },
@@ -60,12 +75,31 @@ public final class QuickActionsDialogService {
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(Component.text("PixelRPG – Charakterprofil", NamedTextColor.GOLD))
-                    .body(List.of(DialogBody.plainMessage(characterCard(player))))
+                    .body(List.of(
+                            DialogBody.plainMessage(characterCard(player)),
+                            DialogBody.plainMessage(Component.text("Gegenstand binden: Lege einen identifizierten Gegenstand in die Haupthand und bestätige die Aktion.", NamedTextColor.GRAY))
+                    ))
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .build());
-            builder.type(DialogType.multiAction(List.of(back), DialogueEngineCloseButton.create(), 1));
+            builder.type(DialogType.multiAction(List.of(soulbind, back), DialogueEngineCloseButton.create(), 1));
         }));
+    }
+
+    /** Applies Soulbound to the identified item currently held in the main hand. */
+    private void soulbindHeldItem(Player player) {
+        ItemStack held = player.getInventory().getItemInMainHand();
+        if (held.isEmpty()) {
+            player.sendMessage(Component.text("Du hältst keinen Gegenstand in der Haupthand.", NamedTextColor.RED));
+            return;
+        }
+
+        SoulboundService.Result result = SoulboundService.apply(held);
+        switch (result) {
+            case SUCCESS -> player.sendMessage(Component.text("Der Gegenstand ist jetzt seelengebunden.", NamedTextColor.LIGHT_PURPLE));
+            case ALREADY_SOULBOUND -> player.sendMessage(Component.text("Der Gegenstand ist bereits seelengebunden.", NamedTextColor.YELLOW));
+            case NOT_IDENTIFIED -> player.sendMessage(Component.text("Der Gegenstand muss zuerst identifiziert werden.", NamedTextColor.RED));
+        }
     }
 
     /** Opens the active-quest view from the G quick-actions menu. */
