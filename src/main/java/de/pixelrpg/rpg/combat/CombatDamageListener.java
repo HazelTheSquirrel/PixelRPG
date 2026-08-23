@@ -9,6 +9,7 @@ import de.pixelrpg.rpg.player.ClassBalance;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
@@ -36,6 +37,9 @@ public final class CombatDamageListener implements Listener {
     private final MobScalingConfig scalingConfig;
     private final LanguageManager lang;
     private final double bossMaxHitPercentOfMaxHp;
+    private final NamespacedKey companionCritChanceKey;
+    private final NamespacedKey companionCritDamageKey;
+    private final NamespacedKey companionLifestealKey;
 
     public CombatDamageListener(GuildAPI guildAPI, PlayerProfileManager profileManager, StatEngine statEngine, MobScalingConfig scalingConfig) {
         this.guildAPI = guildAPI;
@@ -44,6 +48,9 @@ public final class CombatDamageListener implements Listener {
         this.scalingConfig = scalingConfig;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
         this.bossMaxHitPercentOfMaxHp = PixelRPGPlugin.getInstance().getConfig().getDouble("combat.boss-max-hit-percent-of-max-hp", 0.12);
+        this.companionCritChanceKey = new NamespacedKey(PixelRPGPlugin.getInstance(), "companion_crit_chance");
+        this.companionCritDamageKey = new NamespacedKey(PixelRPGPlugin.getInstance(), "companion_crit_damage");
+        this.companionLifestealKey = new NamespacedKey(PixelRPGPlugin.getInstance(), "companion_lifesteal");
     }
 
     // Zuständig für die vollständige RPG-Schadensberechnung gegen Nicht-Spieler-Ziele.
@@ -70,9 +77,14 @@ public final class CombatDamageListener implements Listener {
         if (profile == null) return;
 
         StatEngine.CachedStats stats = statEngine.getCachedStats(attacker.getUniqueId());
+        var attackerData = attacker.getPersistentDataContainer();
+        double companionCritChance = attackerData.getOrDefault(companionCritChanceKey, PersistentDataType.DOUBLE, 0.0D);
+        double companionCritDamage = attackerData.getOrDefault(companionCritDamageKey, PersistentDataType.DOUBLE, 0.0D);
+        double companionLifesteal = attackerData.getOrDefault(companionLifestealKey, PersistentDataType.DOUBLE, 0.0D);
+
         double damage = event.getDamage() + stats.bonusDamage();
         ItemStack weapon = attacker.getInventory().getItemInMainHand();
-        double weaponLifesteal = stats.lifestealBonus();
+        double weaponLifesteal = stats.lifestealBonus() + companionLifesteal;
         if (weapon.hasItemMeta()) {
             var pdc = weapon.getItemMeta().getPersistentDataContainer();
             Integer itemLevel = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
@@ -83,10 +95,10 @@ public final class CombatDamageListener implements Listener {
             }
         }
 
-        double totalCritChance = Math.min(MAX_CRIT_CHANCE, Math.max(0.0D, stats.critChance()));
+        double totalCritChance = Math.min(MAX_CRIT_CHANCE, Math.max(0.0D, stats.critChance() + companionCritChance));
         boolean isCrit = ThreadLocalRandom.current().nextDouble(100.0) < totalCritChance;
         if (isCrit) {
-            damage *= stats.critDamageMultiplier();
+            damage *= Math.max(1.0D, stats.critDamageMultiplier() + companionCritDamage);
             attacker.sendActionBar(lang.get("combat.critical-hit"));
             target.getWorld().spawnParticle(Particle.CRIT, target.getLocation().add(0, 1, 0), 12, 0.3, 0.3, 0.3);
             attacker.playSound(attacker.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.6f, 1.4f);
