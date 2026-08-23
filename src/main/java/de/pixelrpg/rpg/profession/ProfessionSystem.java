@@ -1,8 +1,6 @@
 package de.pixelrpg.rpg.profession;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.command.PaperBasicCommandAdapter;
-import de.pixelrpg.rpg.command.impl.CraftingCommand;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 
 import java.util.Objects;
@@ -24,9 +22,6 @@ public final class ProfessionSystem {
     public void register() {
         plugin.getServer().getPluginManager().registerEvents(
                 new ProfessionGatheringListener(professionService), plugin);
-
-        CraftingCommand command = new CraftingCommand(craftingService);
-        plugin.registerCommand("rpgcraft", new PaperBasicCommandAdapter("rpgcraft", command, command, "rpg.member"));
     }
 
     public ProfessionService professionService() {
