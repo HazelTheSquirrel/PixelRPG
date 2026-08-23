@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -45,7 +46,8 @@ public final class CompanionSubCommand implements SubCommand {
             return true;
         }
 
-        if (!companionService.unlockUniqueHazel(target.getUniqueId())) {
+        // Hazel is a fixed Unique definition; no command argument can override its name or entity type.
+        if (!companionService.unlockUnique(target.getUniqueId(), HAZEL_ID, HAZEL_NAME, EntityType.MANNEQUIN)) {
             sender.sendMessage(Component.text(
                     "Hazel konnte nicht freigeschaltet werden.", NamedTextColor.RED));
             return true;
