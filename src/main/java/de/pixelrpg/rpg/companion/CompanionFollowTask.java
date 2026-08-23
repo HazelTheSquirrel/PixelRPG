@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.companion;
 
+import com.destroystokyo.paper.entity.Pathfinder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import de.pixelrpg.rpg.config.JsonDataManager;
@@ -9,18 +10,23 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** Keeps active passive companions near their owning player without enabling combat AI. */
+/** Keeps active companions near their owning player using normal movement/pathfinding instead of teleporting. */
 public final class CompanionFollowTask implements Runnable {
     private static final double FOLLOW_DISTANCE_SQUARED = 9.0D;
     private static final double FOLLOW_OFFSET = 2.0D;
+    private static final double TELEPORT_RECOVERY_DISTANCE_SQUARED = 576.0D;
+    private static final double FOLLOW_SPEED = 1.15D;
+    private static final double MANNEQUIN_FOLLOW_SPEED = 0.14D;
 
     private final Plugin plugin;
     private final Map<UUID, UUID> activeEntities;
@@ -55,16 +61,54 @@ public final class CompanionFollowTask implements Runnable {
                 continue;
             }
 
-            if (companion.getLocation().distanceSquared(playerLocation) <= FOLLOW_DISTANCE_SQUARED) continue;
+            double distanceSquared = companion.getLocation().distanceSquared(playerLocation);
+            if (distanceSquared <= FOLLOW_DISTANCE_SQUARED) {
+                companion.setVelocity(companion.getVelocity().multiply(0.35D));
+                continue;
+            }
 
-            var direction = playerLocation.getDirection();
+            if (distanceSquared > TELEPORT_RECOVERY_DISTANCE_SQUARED) {
+                companion.teleport(playerLocation.clone().add(1.0D, 0.0D, 1.0D));
+                companion.setVelocity(new Vector());
+                continue;
+            }
+
+            var direction = playerLocation.getDirection().clone();
             if (direction.lengthSquared() < 0.001D) direction.setZ(1.0D);
             direction.normalize().multiply(FOLLOW_OFFSET);
-
             Location target = playerLocation.clone().subtract(direction);
             target.setY(playerLocation.getY());
-            companion.teleport(target);
+
+            if (companion instanceof Mob mob) {
+                moveMob(mob, target);
+            } else {
+                moveEntity(companion, target, MANNEQUIN_FOLLOW_SPEED);
+            }
         }
+    }
+
+    private static void moveMob(Mob mob, Location target) {
+        mob.setAware(true);
+        Pathfinder pathfinder = mob.getPathfinder();
+        Pathfinder.PathResult path = pathfinder.findPath(target);
+        if (path != null) {
+            pathfinder.moveTo(path, FOLLOW_SPEED);
+        } else {
+            moveEntity(mob, target, MANNEQUIN_FOLLOW_SPEED);
+        }
+    }
+
+    private static void moveEntity(Entity entity, Location target, double speed) {
+        Vector delta = target.toVector().subtract(entity.getLocation().toVector());
+        delta.setY(0.0D);
+        if (delta.lengthSquared() < 0.04D) {
+            entity.setVelocity(entity.getVelocity().multiply(0.35D));
+            return;
+        }
+        delta.normalize().multiply(speed);
+        entity.setVelocity(delta);
+        float yaw = (float) Math.toDegrees(Math.atan2(-delta.getX(), delta.getZ()));
+        entity.setRotation(yaw, entity.getPitch());
     }
 
     private void applyConfiguredAttributes(LivingEntity entity) {
