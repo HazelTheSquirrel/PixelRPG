@@ -19,10 +19,10 @@ public final class MannequinCompanionController {
     private final CompanionRegistry registry;
     private final Map<UUID, String> appliedSkins = new HashMap<>();
 
-    public MannequinCompanionController(Plugin plugin, CompanionService companionService) {
+    public MannequinCompanionController(Plugin plugin, CompanionService companionService, CompanionRegistry registry) {
         this.plugin = plugin;
         this.companionService = companionService;
-        this.registry = CompanionRegistry.load(plugin);
+        this.registry = registry;
     }
 
     public void tick(Player owner, Mannequin mannequin) {
