@@ -37,16 +37,12 @@ public final class RPGKeys {
         public static NamespacedKey guildItem() { return of("item_guild_marker"); }
         public static NamespacedKey shopPriceTag() { return of("item_shop_price_tag"); }
         public static NamespacedKey instanceId() { return of("item_instance_id"); }
-        public static NamespacedKey attackDamageModifier(String instanceId) { return of("item_mod_attack_damage_" + instanceId); }
-        public static NamespacedKey armorModifier(String instanceId) { return of("item_mod_armor_" + instanceId); }
-        public static NamespacedKey healthModifier(String instanceId) { return of("item_mod_health_" + instanceId); }
     }
 
     public static final class Combat {
         private Combat() { }
 
         public static NamespacedKey mobLevel() { return of("combat_mob_level"); }
-        public static NamespacedKey mobBarExpiry() { return of("combat_mob_bar_expiry"); }
         public static NamespacedKey originalMaxHealth() { return of("combat_original_max_health"); }
         public static NamespacedKey originalAttackDamage() { return of("combat_original_attack_damage"); }
     }
