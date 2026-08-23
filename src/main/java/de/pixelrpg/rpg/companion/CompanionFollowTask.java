@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** Runs the single central companion runtime tick for follow, stats and generic combat. */
+/** Runs the single central companion runtime tick for follow, stats, mounts and generic combat. */
 public final class CompanionFollowTask implements Runnable {
     private final Plugin plugin;
     private final CompanionService companionService;
@@ -25,6 +25,7 @@ public final class CompanionFollowTask implements Runnable {
     private final CompanionStatsCalculator statsCalculator = new CompanionStatsCalculator();
     private final CompanionCombatController combatController = new CompanionCombatController();
     private final CompanionRuntimeRegistry runtimeRegistry = new CompanionRuntimeRegistry();
+    private final CompanionMountController mountController = new CompanionMountController();
     private final MannequinCompanionController mannequinController;
     private final Map<UUID, AppliedState> appliedStates = new HashMap<>();
 
@@ -35,6 +36,8 @@ public final class CompanionFollowTask implements Runnable {
         this.registry = CompanionRegistry.load(plugin);
         this.mannequinController = new MannequinCompanionController(plugin, companionService, registry);
     }
+
+    public CompanionMountController mountController() { return mountController; }
 
     @Override
     public void run() {
@@ -60,6 +63,11 @@ public final class CompanionFollowTask implements Runnable {
             runtimeRegistry.register(new CompanionRuntimeRegistry.CompanionRuntime(owner.getUniqueId(), entity.getUniqueId(), companionId));
             if (living instanceof Mannequin mannequin) mannequinController.tick(owner, mannequin);
             updateRuntimeState(owner, living, definition);
+
+            if (definition.mount().enabled() && mountController.isMounted(owner, living)) {
+                mountController.tick(owner, living, definition.mount());
+                continue;
+            }
 
             if (definition.combat().enabled()) {
                 combatController.tick(owner, living, definition, living.getWorld().getGameTime());
