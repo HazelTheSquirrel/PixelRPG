@@ -96,8 +96,14 @@ public final class CompanionEquipmentListener implements Listener {
             ItemStack equipped = clicked.clone();
             equipped.setAmount(1);
             event.getView().getTopInventory().setItem(targetSlot, equipped);
-            if (clicked.getAmount() <= 1) event.setCurrentItem(null);
-            else event.setCurrentItem(clicked.asQuantity(clicked.getAmount() - 1));
+
+            if (clicked.getAmount() <= 1) {
+                event.setCurrentItem(null);
+            } else {
+                ItemStack remaining = clicked.clone();
+                remaining.setAmount(clicked.getAmount() - 1);
+                event.setCurrentItem(remaining);
+            }
             schedulePersist(event.getView().getTopInventory());
         }
     }
@@ -170,14 +176,6 @@ public final class CompanionEquipmentListener implements Listener {
             }
             default -> null;
         };
-    }
-
-    private static int findEquipmentSlot(ItemStack item) {
-        if (item == null || item.getType().isAir()) return -1;
-        for (int slot : new int[]{HELMET, CHESTPLATE, LEGGINGS, BOOTS, OFF_HAND, MAIN_HAND}) {
-            if (accepts(slot, item)) return slot;
-        }
-        return -1;
     }
 
     private static int findEmptyCompatibleEquipmentSlot(Inventory inventory, ItemStack item) {
