@@ -86,6 +86,25 @@ Spieler ruft ihn erneut
 
 Zu prüfen ist deshalb ausschließlich, ob das erneute Rufen nach Login zuverlässig funktioniert.
 
+## Dialoge / Quick Actions – feste Scope-Regel
+
+Bestehende Dialogsysteme werden **nicht eigenständig verändert**.
+
+Das gilt insbesondere für:
+
+- bestehende NPC-Dialoge
+- bestehende native Dialoge
+- bestehende `minecraft:quick_actions`
+- bereits vorhandene Buttons/Actions innerhalb dieser Systeme
+
+**Es werden keine bestehenden Buttons hinzugefügt, entfernt oder umsortiert, nur weil bei einer Analyse weitere sinnvolle Möglichkeiten auffallen.**
+
+Die einzige reguläre Ausnahme ist der Bereich `minecraft:quick_actions` über die G-Interaktion für **neu hinzukommende Companions**. Dort darf für einen neuen Companion die dafür notwendige Aktion ergänzt werden.
+
+Eine Änderung an einem bestehenden Dialog, bestehenden Button oder bestehenden Quick-Action-Bereich erfolgt **nur dann, wenn Hazel dies ausdrücklich und gezielt verlangt**.
+
+Analyseergebnisse zu bestehenden Dialogen dürfen dokumentiert werden, führen aber ohne ausdrückliche Anweisung **nicht automatisch zu einer Umsetzung**.
+
 ## Vanilla-/PixelRPG-Isolation
 
 Ein Spieler ist zunächst Vanilla. Erst nach PixelRPG-Registrierung dürfen RPG-Systeme greifen.
@@ -157,6 +176,8 @@ Mob Scaling ist strukturell vorhanden; der reale Vanilla-/PixelRPG-Mischbetrieb 
 Native Dialoge sind der primäre Interaktionsweg. Vorhanden sind u. a. Registrierung, Empfang, Schmied, Quest, Shop, Travel, Story, Bank, Companion und Berufe.
 
 Inventory-GUIs bleiben dort bestehen, wo ein Dialog nicht ausreicht. Sie werden nicht pauschal entfernt.
+
+Bestehende Dialoge und bestehende Buttons bleiben grundsätzlich unverändert. Änderungen daran erfolgen nur auf ausdrückliche, gezielte Anweisung von Hazel.
 
 ## Quests
 
@@ -231,6 +252,22 @@ Das Resourcepack ist vom Plugin-Code getrennt. Vorhandene Assets müssen gegen d
 ```text
 Analyse → Problem eindeutig feststellen → gezielt beheben → Build → Server-Test → Audit aktualisieren
 ```
+
+Zusätzlich gilt:
+
+```text
+Analyse eines bestehenden Systems
+        ↓
+Änderung notwendig?
+        ↓
+Nein → nur dokumentieren
+        ↓
+Ja
+        ↓
+Keine Umsetzung ohne ausdrückliche, gezielte Anweisung von Hazel
+```
+
+Insbesondere bei bestehenden Dialogen, Buttons und `minecraft:quick_actions` wird nichts eigenständig verändert.
 
 Keine erfundenen APIs, keine alten Minecraft-/Paper-Versionen und keine unnötigen Komplett-Refactorings.
 
