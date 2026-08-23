@@ -16,8 +16,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
-import java.util.List;
-
 /** Handles the player-facing equipment inventory for Mannequin companions. */
 public final class CompanionEquipmentListener implements Listener {
     private static final int SIZE = 27;
@@ -55,8 +53,8 @@ public final class CompanionEquipmentListener implements Listener {
     // Zuständig für sichere Klicks im Companion-Equipment-Inventar.
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
-        if (!(event.getView().getTopInventory().getHolder() instanceof CompanionEquipmentHolder holder)) return;
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        if (!(event.getView().getTopInventory().getHolder() instanceof CompanionEquipmentHolder)) return;
         int rawSlot = event.getRawSlot();
         if (rawSlot >= 0 && rawSlot < SIZE) {
             if (!isEquipmentSlot(rawSlot)) event.setCancelled(true);
@@ -87,9 +85,17 @@ public final class CompanionEquipmentListener implements Listener {
                 item(inventory, MAIN_HAND),
                 item(inventory, OFF_HAND)
         ));
-        if (player.isOnline()) {
-            plugin.getServer().getScheduler().runTask(plugin, () -> companionService.refreshActiveCompanion(player));
-        }
+
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            Companion active = companionService.getActive(holder.playerId());
+            if (active == null || !active.id().equals(holder.companionId())) return;
+            var entityId = companionService.getActiveEntity(holder.playerId());
+            if (entityId == null) return;
+            var entity = plugin.getServer().getEntity(entityId);
+            if (entity instanceof org.bukkit.entity.LivingEntity living) {
+                companionService.applyEquipmentToEntity(holder.playerId(), holder.companionId(), living);
+            }
+        });
     }
 
     private static boolean isEquipmentSlot(int slot) {
