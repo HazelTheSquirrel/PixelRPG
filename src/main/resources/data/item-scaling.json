@@ -3,6 +3,7 @@
   "baseStats": {
     "weaponDamage": 3.0,
     "weaponCritChance": 0.5,
+    "weaponLifesteal": 0.25,
     "armor": 0.7,
     "health": 1.2,
     "toolEfficiency": 1.0
