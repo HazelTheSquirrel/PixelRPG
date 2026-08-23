@@ -14,19 +14,9 @@ import java.util.List;
 public final class CompanionSubCommand implements SubCommand {
     private final CompanionService companionService;
 
-    public CompanionSubCommand(CompanionService companionService) {
-        this.companionService = companionService;
-    }
-
-    @Override
-    public String name() {
-        return "companion";
-    }
-
-    @Override
-    public String permission() {
-        return "rpg.admin";
-    }
+    public CompanionSubCommand(CompanionService companionService) { this.companionService = companionService; }
+    @Override public String name() { return "companion"; }
+    @Override public String permission() { return "rpg.admin"; }
 
     @Override
     public boolean execute(CommandSender sender, String[] args) {
@@ -34,21 +24,14 @@ public final class CompanionSubCommand implements SubCommand {
             sender.sendMessage(Component.text("Usage: /rpgadmin companion grant <player> <companion-id>", NamedTextColor.YELLOW));
             return true;
         }
-
         Player target = Bukkit.getPlayerExact(args[1]);
-        if (target == null) {
-            sender.sendMessage(Component.text("Spieler ist nicht online.", NamedTextColor.RED));
-            return true;
-        }
-
+        if (target == null) { sender.sendMessage(Component.text("Spieler ist nicht online.", NamedTextColor.RED)); return true; }
         String companionId = args[2].strip();
-        boolean granted = companionService.unlockDefinition(target.getUniqueId(), companionId)
-                || companionService.unlockUnique(target.getUniqueId(), companionId, null, null);
+        boolean granted = companionService.adminGrant(target.getUniqueId(), companionId);
         if (!granted) {
-            sender.sendMessage(Component.text("Companion konnte nicht freigeschaltet werden. Prüfe ID und Unlock-Regeln.", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Companion konnte nicht freigeschaltet werden. Prüfe ID und Definition.", NamedTextColor.RED));
             return true;
         }
-
         sender.sendMessage(Component.text("Companion freigeschaltet: " + companionId + " für " + target.getName(), NamedTextColor.GREEN));
         return true;
     }
