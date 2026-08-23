@@ -2,7 +2,6 @@ package de.pixelrpg.rpg.companion;
 
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
 import de.pixelrpg.rpg.core.RPGKeys;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Enemy;
@@ -13,11 +12,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
-
-import java.util.Locale;
 
 /** Awards companion progression and drives the combat behaviour of the Hazel Unique companion. */
 public final class CompanionExperienceListener implements Listener {
@@ -31,12 +30,9 @@ public final class CompanionExperienceListener implements Listener {
 
     public CompanionExperienceListener(CompanionService companionService) {
         this.companionService = companionService;
-        this.combatTask = Bukkit.getScheduler().runTaskTimer(
-                companionService.getPlugin(),
-                this::tickHazelCombat,
-                10L,
-                20L
-        );
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("PixelRPG");
+        if (plugin == null) throw new IllegalStateException("PixelRPG plugin is not loaded.");
+        this.combatTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tickHazelCombat, 10L, 20L);
     }
 
     // Awards rarity-scaled companion XP when the player defeats a mob while a companion is active.
@@ -62,7 +58,7 @@ public final class CompanionExperienceListener implements Listener {
 
     // Removes the active companion entity when its owner leaves the server.
     @EventHandler
-    public void onPlayerQuit(org.bukkit.event.player.PlayerQuitEvent event) {
+    public void onPlayerQuit(PlayerQuitEvent event) {
         companionService.clearActive(event.getPlayer().getUniqueId());
     }
 
@@ -83,7 +79,6 @@ public final class CompanionExperienceListener implements Listener {
     }
 
     private void equipHazel(Mannequin mannequin) {
-        if (mannequin.getEquipment() == null) return;
         if (mannequin.getEquipment().getItemInMainHand().getType() != Material.NETHERITE_SWORD) {
             mannequin.getEquipment().setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD), true);
             mannequin.getEquipment().setItemInMainHandDropChance(0.0F);
@@ -91,7 +86,7 @@ public final class CompanionExperienceListener implements Listener {
     }
 
     private LivingEntity findNearestEnemy(Mannequin mannequin) {
-        Entity nearest = null;
+        LivingEntity nearest = null;
         double nearestDistance = HAZEL_ATTACK_RANGE * HAZEL_ATTACK_RANGE;
 
         for (Entity nearby : mannequin.getNearbyEntities(HAZEL_ATTACK_RANGE, HAZEL_ATTACK_RANGE, HAZEL_ATTACK_RANGE)) {
@@ -103,7 +98,7 @@ public final class CompanionExperienceListener implements Listener {
             }
         }
 
-        return nearest instanceof LivingEntity living ? living : null;
+        return nearest;
     }
 
     private static long scaledExperience(long base, CompanionRarity rarity) {
