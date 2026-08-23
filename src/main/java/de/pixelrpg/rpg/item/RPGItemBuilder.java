@@ -22,6 +22,7 @@ public final class RPGItemBuilder {
     private static double growthMultiplier = 10.0D;
     private static double weaponBaseDamage = 3.0D;
     private static double weaponBaseCritChance = 0.5D;
+    private static double weaponBaseLifesteal = 0.25D;
     private static double armorBase = 0.7D;
     private static double healthBase = 1.2D;
     private static double toolBaseEfficiency = 1.0D;
@@ -37,6 +38,7 @@ public final class RPGItemBuilder {
             var baseStats = root.getAsJsonObject("baseStats");
             weaponBaseDamage = positive(baseStats, "weaponDamage", weaponBaseDamage);
             weaponBaseCritChance = positive(baseStats, "weaponCritChance", weaponBaseCritChance);
+            weaponBaseLifesteal = positive(baseStats, "weaponLifesteal", weaponBaseLifesteal);
             armorBase = positive(baseStats, "armor", armorBase);
             healthBase = positive(baseStats, "health", healthBase);
             toolBaseEfficiency = positive(baseStats, "toolEfficiency", toolBaseEfficiency);
@@ -45,7 +47,7 @@ public final class RPGItemBuilder {
         }
     }
 
-    /** Creates a fully identified PixelRPG item with deterministic core stats for its level and rarity. */
+    /** Creates a generated PixelRPG item whose identity is derived from material, rarity and level. */
     public static java.util.Optional<ItemStack> createItem(Material material, ItemRarity rarity, int itemLevel) {
         if (material == null || rarity == null || !Level.isValidNormalLevel(itemLevel)) return java.util.Optional.empty();
 
@@ -53,17 +55,42 @@ public final class RPGItemBuilder {
         if (categoryOpt.isEmpty()) return java.util.Optional.empty();
 
         ItemCategory category = categoryOpt.get();
+        String itemId = generatedItemId(material, category, rarity, itemLevel);
+        String displayName = generatedDisplayName(material, category, rarity, itemLevel);
+        return createItem(itemId, displayName, material, rarity, itemLevel, true);
+    }
+
+    /** Creates a fully identified PixelRPG item with a caller-defined stable ID and visible name. */
+    public static java.util.Optional<ItemStack> createItem(String itemId, String displayName,
+                                                            Material material, ItemRarity rarity, int itemLevel) {
+        if (itemId == null || itemId.isBlank() || displayName == null || displayName.isBlank()) {
+            return java.util.Optional.empty();
+        }
+        if (material == null || rarity == null || !Level.isValidNormalLevel(itemLevel)) return java.util.Optional.empty();
+
+        var categoryOpt = GearCategoryRegistry.resolve(material);
+        if (categoryOpt.isEmpty()) return java.util.Optional.empty();
+        return createItem(itemId, displayName, material, rarity, itemLevel, true);
+    }
+
+    private static java.util.Optional<ItemStack> createItem(String itemId, String displayName,
+                                                             Material material, ItemRarity rarity,
+                                                             int itemLevel, boolean guildItem) {
+        var categoryOpt = GearCategoryRegistry.resolve(material);
+        if (categoryOpt.isEmpty()) return java.util.Optional.empty();
+        ItemCategory category = categoryOpt.get();
+
         ItemStack item = ItemStack.of(material);
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
 
         pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, true);
-        pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, createItemId(material, category));
+        pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, normalizeItemId(itemId));
         pdc.set(RPGKeys.Item.instanceId(), PersistentDataType.STRING, UUID.randomUUID().toString());
         pdc.set(RPGKeys.Item.rarity(), PersistentDataType.STRING, rarity.name());
         pdc.set(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER, itemLevel);
         pdc.set(RPGKeys.Item.category(), PersistentDataType.STRING, category.name());
-        pdc.set(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN, true);
+        pdc.set(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN, guildItem);
 
         double multiplier = rarity.getStatMultiplier();
         double levelFactor = levelScaling(itemLevel);
@@ -80,9 +107,7 @@ public final class RPGItemBuilder {
             case TOOL -> addToolStats(lore, pdc, multiplier, levelFactor);
         }
 
-        meta.displayName(rarity.displayName()
-                .append(Component.text(" ", NamedTextColor.WHITE))
-                .append(Component.text(prettyMaterial(material), NamedTextColor.WHITE))
+        meta.displayName(Component.text(displayName, NamedTextColor.WHITE)
                 .decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
@@ -113,10 +138,13 @@ public final class RPGItemBuilder {
                                        double multiplier, double levelFactor) {
         double damage = round(weaponBaseDamage * levelFactor * multiplier);
         double critChance = round(weaponBaseCritChance * levelFactor * multiplier);
+        double lifesteal = round(weaponBaseLifesteal * levelFactor * multiplier);
         pdc.set(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, damage);
         pdc.set(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, critChance);
+        pdc.set(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, lifesteal);
         lore.add(line(Component.text("+" + format(damage) + " Attack Power", NamedTextColor.RED)));
         lore.add(line(Component.text("+" + format(critChance) + "% Critical Strike", NamedTextColor.LIGHT_PURPLE)));
+        lore.add(line(Component.text("+" + format(lifesteal) + "% Lifesteal", NamedTextColor.DARK_RED)));
     }
 
     private static void addArmorStats(List<Component> lore, PersistentDataContainer pdc, ItemCategory category,
@@ -154,6 +182,42 @@ public final class RPGItemBuilder {
         return component.decoration(TextDecoration.ITALIC, false);
     }
 
+    private static String generatedItemId(Material material, ItemCategory category, ItemRarity rarity, int itemLevel) {
+        return "pixelrpg:item/" + category.name().toLowerCase(Locale.ROOT)
+                + "/" + material.name().toLowerCase(Locale.ROOT)
+                + "/" + rarity.name().toLowerCase(Locale.ROOT)
+                + "/lvl_" + itemLevel;
+    }
+
+    private static String generatedDisplayName(Material material, ItemCategory category,
+                                                ItemRarity rarity, int itemLevel) {
+        String base = prettyMaterial(material);
+        String prefix = switch (rarity) {
+            case COMMON -> "Abgenutzte";
+            case UNCOMMON -> "Veredelte";
+            case RARE -> "Meisterhafte";
+            case EPIC -> "Epische";
+            case LEGENDARY -> "Legendäre";
+            case UNIQUE -> "Einzigartige";
+        };
+        String noun = switch (category.getProfile()) {
+            case WEAPON -> switch (material) {
+                case IRON_SWORD, GOLDEN_SWORD, DIAMOND_SWORD, NETHERITE_SWORD, WOODEN_SWORD, STONE_SWORD, COPPER_SWORD -> "Klinge";
+                case IRON_AXE, GOLDEN_AXE, DIAMOND_AXE, NETHERITE_AXE, WOODEN_AXE, STONE_AXE, COPPER_AXE -> "Streitaxt";
+                default -> base;
+            };
+            case ARMOR -> base;
+            case SHIELD -> "Schild";
+            case TOOL -> base;
+        };
+        return prefix + " " + noun + " " + itemLevel;
+    }
+
+    private static String normalizeItemId(String itemId) {
+        String normalized = itemId.trim().toLowerCase(Locale.ROOT);
+        return normalized.startsWith("pixelrpg:") ? normalized : "pixelrpg:" + normalized;
+    }
+
     private static String prettyMaterial(Material material) {
         String raw = material.name().replace('_', ' ').toLowerCase(Locale.ROOT);
         StringBuilder result = new StringBuilder(raw.length());
@@ -168,10 +232,6 @@ public final class RPGItemBuilder {
             if (character == ' ') capitalize = true;
         }
         return result.toString();
-    }
-
-    private static String createItemId(Material material, ItemCategory category) {
-        return "pixelrpg:" + category.name().toLowerCase(Locale.ROOT) + "/" + material.name().toLowerCase(Locale.ROOT);
     }
 
     private static String format(double value) {
