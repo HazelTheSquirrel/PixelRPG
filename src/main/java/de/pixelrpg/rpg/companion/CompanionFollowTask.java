@@ -33,7 +33,7 @@ public final class CompanionFollowTask implements Runnable {
         this.companionService = companionService;
         this.activeEntities = activeEntities;
         this.registry = CompanionRegistry.load(plugin);
-        this.mannequinController = new MannequinCompanionController(plugin, companionService);
+        this.mannequinController = new MannequinCompanionController(plugin, companionService, registry);
     }
 
     @Override
