@@ -4,14 +4,10 @@
     "level100Mode": "GRIND",
     "xp": { "base": 100, "perLevel": 8, "mobKill": 50, "questCompletion": 500 }
   },
-  "defaults": { "activeXpOnly": true, "maxNameLength": 24, "passive": true },
-  "rarities": {
-    "COMMON": { "powerMultiplier": 1.00, "xpMultiplier": 1.00 },
-    "UNCOMMON": { "powerMultiplier": 1.10, "xpMultiplier": 1.15 },
-    "RARE": { "powerMultiplier": 1.22, "xpMultiplier": 1.35 },
-    "EPIC": { "powerMultiplier": 1.38, "xpMultiplier": 1.60 },
-    "LEGENDARY": { "powerMultiplier": 1.58, "xpMultiplier": 2.00 },
-    "UNIQUE": { "powerMultiplier": 1.50, "xpMultiplier": 2.00 }
+  "defaults": {
+    "activeXpOnly": true,
+    "maxNameLength": 24,
+    "passive": true
   },
   "definitions": [
     { "id": "test-bee", "name": "PixelRPG Bee", "entityType": "BEE", "rarity": "COMMON", "renameable": true, "adminOnly": false, "scale": 1.00, "passive": true },
@@ -44,6 +40,32 @@
     { "id": "test-warden", "name": "PixelRPG Warden", "entityType": "WARDEN", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.50, "passive": true },
     { "id": "legendary-ravager", "name": "PixelRPG Ravager", "entityType": "RAVAGER", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.55, "passive": true },
     { "id": "test-sulfur-cube", "name": "PixelRPG Sulfur Cube", "entityType": "SULFUR_CUBE", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.55, "passive": true },
-    { "id": "unique-hazel", "name": "Hazel", "entityType": "MANNEQUIN", "rarity": "UNIQUE", "renameable": false, "adminOnly": true, "scale": 0.50, "passive": false, "skinSource": "HazelTheSquirrel", "combat": true, "attackRange": 3.5, "attackIntervalTicks": 20, "equipment": { "mainHand": "NETHERITE_SWORD" } }
+    {
+      "id": "unique-hazel",
+      "name": "Hazel",
+      "description": "Der einzigartige PixelRPG-Begleiter.",
+      "entityType": "MANNEQUIN",
+      "rarity": "UNIQUE",
+      "renameable": false,
+      "adminOnly": true,
+      "scale": 0.50,
+      "passive": false,
+      "skinSource": "HazelTheSquirrel",
+      "visual": { "type": "MANNEQUIN", "scale": 0.50, "skinSource": "HazelTheSquirrel" },
+      "combat": {
+        "enabled": true,
+        "attackRange": 3.5,
+        "aggroRange": 12.0,
+        "attackIntervalTicks": 20,
+        "hostileTargets": true,
+        "playerTargets": false,
+        "friendlyTargets": false,
+        "protectOwner": true
+      },
+      "follow": { "enabled": true, "startDistance": 3.0, "stopDistance": 1.5, "teleportDistance": 30.0, "movementSpeed": 0.34 },
+      "progression": { "maxLevel": 99, "healthPerLevel": 0.008, "damagePerLevel": 0.006, "speedPerLevel": 0.0015, "healthCap": 1.80, "damageCap": 1.60, "speedCap": 1.15 },
+      "equipment": { "mainHand": "NETHERITE_SWORD" },
+      "unlock": { "type": "ADMIN" }
+    }
   ]
 }
