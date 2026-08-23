@@ -23,20 +23,24 @@ Stand: 2026-08-23
 
 PixelRPG ist kein reiner Prototyp mehr. Die Kernsysteme sind vorhanden.
 
-**Aktuelle Phase: systematischer Voll-Audit, Validation, Polish und gezielte Bugfixes.**
+**Aktuelle Phase: alle weiterhin im Scope befindlichen implementierten Systeme konsequent auf 100 % bringen.**
 
-Wir konzentrieren uns aktuell auf **Aufräumen und Altlastenbereinigung**.
-
-Arbeitsregel für Altlasten:
+100 % bedeutet dabei nicht nur „Klasse vorhanden“, sondern:
 
 ```text
-nicht verwendet → entfernen
-verwendet, aber veraltete Abhängigkeit → aufräumen / auf aktuellen Pfad bringen
-verwendet und aktuell → bestehen lassen
-unklar → erst Verwendung nachweisen, dann entscheiden
+implementiert
+→ vollständig integriert
+→ sinnvoll spielbar
+→ Edge Cases behandelt
+→ Persistenz korrekt
+→ Content ausreichend vorhanden
+→ Build sauber
+→ Server-/Runtime-Test bestanden
+→ Dokumentation synchron
+→ danach ✅
 ```
 
-Companions befinden sich vollständig in der Testphase und werden bei diesem Cleanup **nicht als Altlasten bewertet**.
+Content darf und soll erweitert werden, wenn ein vorhandenes System für einen vollständigen Gameplay-Loop noch zu dünn ist. Dazu gehören insbesondere Crafting-Rezepte, Loot, Quest-/Boss-Rewards, Item-Progression und die tatsächliche Einbindung von Soulbound.
 
 ## Verworfen / dauerhaft außerhalb des Scopes
 
@@ -97,6 +101,29 @@ Die dazugehörigen `RPGKeys.Item.classSetClass()` und `RPGKeys.Item.classSetSlot
 
 Nicht alles mit alten Begriffen ist automatisch ungenutzt. Beispielsweise existieren `GuildAPI`, `EconomyAPI`, `GuildCurrencyItemFactory` und `GuildCompassListener` weiterhin in aktiven Pfaden. Diese werden nicht gelöscht, sondern separat darauf geprüft, ob ihre Benennung/Abstraktion noch zum aktuellen System passt.
 
+## Bereits gestartete 100-%-Arbeiten
+
+### Soulbound
+
+Soulbound ist nicht mehr nur eine isolierte Service-Klasse. Es gibt jetzt eine explizite native Charakterprofil-Dialog-Aktion zum Binden des identifizierten Gegenstands in der Haupthand.
+
+Der bestehende Death-/Respawn-Pfad schützt soulbound Gegenstände weiterhin vor dem normalen Drop beim Tod registrierter PixelRPG-Spieler.
+
+Noch zu validieren:
+
+- Identified → Soulbound
+- bereits Soulbound
+- nicht identifiziert
+- Tod → Respawn
+- voller Inventar-Slot nach Respawn
+- Vanilla-Spieler-Isolation
+
+### Crafting
+
+Die Crafting-Registry wurde um zusätzliche Progressionsstufen und Rezepte erweitert. Alle vier vorhandenen Berufe besitzen jetzt eine deutlich breitere Level-/Rarity-Spanne bis Level 99.
+
+Die zusätzlichen Rezepte sind noch Bestandteil der Runtime-/Balance-Abnahme und gelten erst nach erfolgreichem Build und Server-Test als abgeschlossen.
+
 ## Wichtige Lifecycle-Regeln
 
 ### Persistente NPC-Mannequins
@@ -137,18 +164,7 @@ Zu prüfen ist ausschließlich, ob das erneute Rufen nach Login zuverlässig fun
 
 Bestehende Dialogsysteme werden **nicht eigenständig verändert**.
 
-Das gilt insbesondere für:
-
-- bestehende NPC-Dialoge
-- bestehende native Dialoge
-- bestehende `minecraft:quick_actions`
-- bereits vorhandene Buttons/Actions innerhalb dieser Systeme
-
-**Es werden keine bestehenden Buttons hinzugefügt, entfernt oder umsortiert, nur weil bei einer Analyse weitere sinnvolle Möglichkeiten auffallen.**
-
-Die einzige reguläre Ausnahme ist der Bereich `minecraft:quick_actions` über die G-Interaktion für **neu hinzukommende Companions**. Dort darf für einen neuen Companion die dafür notwendige Aktion ergänzt werden.
-
-Eine Änderung an einem bestehenden Dialog, bestehenden Button oder bestehenden Quick-Action-Bereich erfolgt **nur dann, wenn Hazel dies ausdrücklich und gezielt verlangt**.
+Eine Änderung an einem bestehenden Dialog, bestehenden Button oder bestehenden Quick-Action-Bereich erfolgt nur dann, wenn Hazel dies ausdrücklich und gezielt verlangt. Die Soulbound-Aktion ist eine solche ausdrücklich gewünschte Gameplay-Erweiterung.
 
 ## Vanilla-/PixelRPG-Isolation
 
@@ -189,7 +205,9 @@ Raritäten:
 - Legendary
 - Unique
 
-## Combat / Scaling
+Soulbound muss als echte Gameplay-Eigenschaft behandelt werden und darf nicht auf einen ungenutzten PDC-Key reduziert bleiben.
+
+## Combat / Scaling / Loot
 
 Vorhanden:
 
@@ -199,10 +217,13 @@ Vorhanden:
 - Loot
 - Boss-Damage
 - Class/Stat-Einfluss
+- Soulbound Death Protection
 
 Weapon-Abilities verwenden Rechtsklick und waffenbezogene Cooldowns. Es gibt keine Mana-Kosten.
 
 Mob Scaling ist strukturell vorhanden; der reale Vanilla-/PixelRPG-Mischbetrieb muss noch getestet werden.
+
+Loot wird weiter auf vollständige Level-/Rarity-/Boss-/Reward-Einbindung geprüft.
 
 ## Dialoge / NPC-Interaktion
 
@@ -214,9 +235,13 @@ Inventory-GUIs bleiben dort, wo ein Dialog nicht ausreicht. Sie werden nicht pau
 
 Das Quest-System besitzt Repository, Manager, Progress, Navigation, globale Events, passive Checks, Mob-Kills und XP-/Progressionslogik.
 
+Für 100 % müssen vorhandene Questtypen tatsächlich durchgespielt und ihre Rewards/Companion-Unlocks validiert werden.
+
 ## Companions / Bosse / Mounts
 
-Companion-Grundsystem und Boss-System sind vorhanden. Companion-Testdaten werden während dieses Cleanups bewusst nicht bewertet.
+Companion-Grundsystem und Boss-System sind vorhanden.
+
+Companions werden bis zum vollständigen Runtime-Abschluss gebracht. Mounts bleiben außerhalb des aktuellen implementierten Scopes und sind ein späteres Feature.
 
 ## Balancing
 
@@ -232,63 +257,80 @@ Aktive Grundsätze:
 - keine Gems/Runes/Sockets
 - keine alten F–S-Ranks
 
-# Offene Cleanup-/Audit-Aufgaben
+# Offene 100-%-Completion-Aufgaben
 
-## P0
+## P0 – Build / Runtime
 
 1. Build gegen Paper 26.2 erfolgreich durchführen.
 2. Vanilla-/PixelRPG-Mischtest für Mob Scaling durchführen.
 3. YAML- und bestehende MySQL-Persistenz nach dem Cleanup testen.
+4. Soulbound E2E testen.
+5. Neue Crafting-Rezepte E2E testen.
 
-## P1
+## P1 – Systeme vollständig machen
 
-4. Language-Dateien vollständig gegen tatsächlich verwendete Keys prüfen.
-5. Alte Rank-/Gem-/Rune-/Socket-/HUD-Texte aus Language-Dateien entfernen, sobald die Nichtverwendung bzw. der veraltete Pfad bestätigt ist.
-6. Inventory-GUIs einzeln als Runtime/Admin/Inventaroperation/Legacy klassifizieren.
-7. PDC-Keys und historische Datenpfade auf tote Einträge prüfen.
-8. Config-Keys systematisch gegen den aktuellen Code abgleichen.
-9. API-Schicht prüfen: verwendete APIs behalten, veraltete/inkonsistente APIs aufräumen.
-10. Quest-/Companion-Daten gegen die tatsächliche Runtime-Verwendung prüfen; Companion-Testdaten dabei ausdrücklich ausnehmen.
-11. Weitere Java-Orphan-Kandidaten aus Command/GUI/Service/Factory-Schichten gegen den tatsächlichen Dependency-Graph prüfen.
+6. Language-Dateien vollständig gegen tatsächlich verwendete Keys prüfen.
+7. Alte Rank-/Gem-/Rune-/Socket-/HUD-Texte aus Language-Dateien entfernen, sobald die Nichtverwendung bestätigt ist.
+8. Inventory-GUIs einzeln als Runtime/Admin/Inventaroperation/Legacy klassifizieren.
+9. PDC-Keys und historische Datenpfade auf tote Einträge prüfen.
+10. Config-Keys systematisch gegen den aktuellen Code abgleichen.
+11. API-Schicht prüfen: verwendete APIs behalten, veraltete/inkonsistente APIs aufräumen.
+12. Quest-/Companion-Daten gegen die tatsächliche Runtime-Verwendung prüfen; Companion-Testdaten dabei ausdrücklich ausnehmen.
+13. Weitere Java-Orphan-Kandidaten aus Command/GUI/Service/Factory-Schichten gegen den tatsächlichen Dependency-Graph prüfen.
+14. Loot-Tabellen und Rewards ausbauen, bis jeder aktive Content-Pfad einen sinnvollen Reward-Loop besitzt.
+15. Crafting-Progression auf vollständige Level-/Rarity-Stufen prüfen und Rezepte bei Bedarf erweitern.
+16. Items/Equipment/Rarities in Combat, Loot, Crafting und Shop konsistent integrieren.
+17. Bosses inklusive Phasen, Damage Contribution, Death, Loot und Companion Rewards vollständig validieren.
+18. Companions inklusive Unlock, Besitz, Auswahl, Follow, Progression, Equipment, Combat und erneutem Rufen vollständig validieren.
 
-## P2
+## P2 – Abschlussprüfung
 
-12. End-to-End: Registrierung → NPC → Dialog → Quest → Combat → XP → Loot/Reward.
-13. Persistenztest über Server-Neustart.
-14. Level-/Scaling-Testmatrix.
-15. Abschließender Voll-Audit nach den Cleanup-Schritten.
+19. End-to-End: Registrierung → NPC → Dialog → Quest → Combat → XP → Loot/Reward.
+20. Persistenztest über Server-Neustart.
+21. Level-/Scaling-Testmatrix.
+22. Party-/Shop-/Bank-/Travel-End-to-End.
+23. Story-End-to-End.
+24. Language-/UI-End-to-End.
+25. Abschließender Voll-Audit nach allen Completion-Arbeiten.
+
+## Definition von 100 %
+
+Ein System erhält erst **✅**, wenn alle für dieses System relevanten Punkte erfüllt sind:
+
+```text
+Code vorhanden
++ Runtime integriert
++ Content ausreichend
++ Persistenz korrekt
++ Fehlerfälle behandelt
++ Vanilla-Isolation korrekt
++ Build erfolgreich
++ Server-Test erfolgreich
++ Dokumentation aktuell
+= 100 % / ✅
+```
 
 ## Arbeitsregel
 
 ```text
-Analyse → Verwendung nachweisen → nicht verwendet = entfernen
-                         ↓
-              verwendet + veraltet = aufräumen
-                         ↓
-              verwendet + aktuell = bestehen lassen
-                         ↓
-                       Build
-                         ↓
-                    Server-Test
-                         ↓
-                   Audit aktualisieren
+Analyse
+   ↓
+Implementierungslücke feststellen
+   ↓
+Code / Daten / Content ergänzen
+   ↓
+Build
+   ↓
+Server-Test
+   ↓
+Fehler beheben
+   ↓
+erneut testen
+   ↓
+Dokumentation aktualisieren
+   ↓
+System = ✅ 100 %
 ```
-
-Zusätzlich gilt:
-
-```text
-Analyse eines bestehenden Systems
-        ↓
-Änderung notwendig?
-        ↓
-Nein → nur dokumentieren
-        ↓
-Ja
-        ↓
-Keine Umsetzung ohne ausdrückliche, gezielte Anweisung von Hazel
-```
-
-Insbesondere bei bestehenden Dialogen, Buttons und `minecraft:quick_actions` wird nichts eigenständig verändert.
 
 Keine erfundenen APIs, keine alten Minecraft-/Paper-Versionen und keine unnötigen Komplett-Refactorings.
 
