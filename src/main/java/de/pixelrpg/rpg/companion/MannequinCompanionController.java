@@ -12,16 +12,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** Controls only Mannequin-specific presentation; follow and combat are handled by the shared runtime engine. */
+/** Controls only Mannequin-specific presentation; follow, stats and combat are shared runtime systems. */
 public final class MannequinCompanionController {
     private final Plugin plugin;
-    private final CompanionService companionService;
     private final CompanionRegistry registry;
     private final Map<UUID, String> appliedSkins = new HashMap<>();
 
-    public MannequinCompanionController(Plugin plugin, CompanionService companionService, CompanionRegistry registry) {
+    public MannequinCompanionController(Plugin plugin, CompanionService ignoredCompanionService, CompanionRegistry registry) {
         this.plugin = plugin;
-        this.companionService = companionService;
         this.registry = registry;
     }
 
@@ -40,8 +38,6 @@ public final class MannequinCompanionController {
             appliedSkins.put(mannequin.getUniqueId(), skin);
             MannequinSkinResolver.apply(mannequin, skin, plugin.getLogger());
         }
-
-        companionService.applyEquipmentToEntity(owner.getUniqueId(), id, mannequin);
         mannequin.setImmovable(false);
     }
 }
