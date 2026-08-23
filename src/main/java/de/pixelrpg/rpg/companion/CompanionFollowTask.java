@@ -6,6 +6,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
@@ -24,6 +25,7 @@ public final class CompanionFollowTask implements Runnable {
     private final CompanionStatsCalculator statsCalculator = new CompanionStatsCalculator();
     private final CompanionCombatController combatController = new CompanionCombatController();
     private final CompanionRuntimeRegistry runtimeRegistry = new CompanionRuntimeRegistry();
+    private final MannequinCompanionController mannequinController;
     private final Map<UUID, AppliedState> appliedStates = new HashMap<>();
 
     public CompanionFollowTask(Plugin plugin, Map<UUID, UUID> activeEntities, CompanionService companionService) {
@@ -31,6 +33,7 @@ public final class CompanionFollowTask implements Runnable {
         this.companionService = companionService;
         this.activeEntities = activeEntities;
         this.registry = CompanionRegistry.load(plugin);
+        this.mannequinController = new MannequinCompanionController(plugin, companionService);
     }
 
     @Override
@@ -55,6 +58,7 @@ public final class CompanionFollowTask implements Runnable {
             }
 
             runtimeRegistry.register(new CompanionRuntimeRegistry.CompanionRuntime(owner.getUniqueId(), entity.getUniqueId(), companionId));
+            if (living instanceof Mannequin mannequin) mannequinController.tick(owner, mannequin);
             updateRuntimeState(owner, living, definition);
 
             if (definition.combat().enabled()) {
@@ -75,16 +79,12 @@ public final class CompanionFollowTask implements Runnable {
         if (current == null) current = AppliedState.capture(entity);
         else current.restore(entity);
         AppliedState base = current;
-        applyEquipment(owner, definition.id(), entity);
+        companionService.applyEquipmentToEntity(owner.getUniqueId(), definition.id(), entity);
         CompanionInstance instance = new CompanionInstance(owner.getUniqueId(), definition.id(), level, 0L, true, true, CompanionEquipment.empty());
         CompanionStats stats = statsCalculator.calculate(definition, instance, entity);
         statsCalculator.apply(stats, entity);
         applyScale(entity, definition.visual().scale());
         appliedStates.put(entity.getUniqueId(), new AppliedState(level, rarity, equipmentHash, base.baseHealth(), base.baseDamage(), base.baseSpeed()));
-    }
-
-    private void applyEquipment(Player owner, String companionId, LivingEntity entity) {
-        companionService.applyEquipmentToEntity(owner.getUniqueId(), companionId, entity);
     }
 
     private int equipmentHash(UUID ownerUuid, String companionId) {
