@@ -1,94 +1,104 @@
-# PixelRPG – System-Audit / Cleanup-Stand
+# PixelRPG – Aktueller Projektstand / Master-Audit
 
-Stand: 2026-08-22
+Stand: 2026-08-23
 
-Dieser Audit betrachtet den aktuellen `main`-Stand nach dem Cleanup-Durchlauf. Es wurden keine neuen Gameplay-Systeme eingeführt.
+> **Dieses Dokument ist die zentrale aktuelle Referenz für den technischen Projektstand.**
+> Nach jeder größeren Analyse, Bereinigung oder Testphase wird diese Datei aktualisiert.
+> Spezifische Markdown-Dateien (`balancing.md`, `Compboss.md`, `Roadmap_Quests.md`, `resourcepack/README.md`) bleiben als Fach-/Arbeitsdokumente bestehen. Bei Widersprüchen gilt dieses Audit.
 
-## Erledigt
+## Technische Basis
 
-### Entfernte Alt-Systeme
+- Java 25
+- Paper 26.x, verbindlich Paper 26.2
+- Paperweight `2.0.0-beta.21`
+- `paperweight.paperDevBundle("26.2.build.+")`
+- Mojang-Mappings
+- `paper-plugin.yml`
+- native Minecraft/Paper-26.2-Dialogsystem
+- Adventure Components
+- kein `ChatColor`
+- keine alten 1.21.x-APIs/Dialogimplementierungen
 
-- Blessings vollständig entfernt.
-- Curses vollständig entfernt.
-- Blessing-/Curse-Typen und PDC-Felder entfernt.
-- Blessing-/Curse-Loot-Chancen aus dem Item-System entfernt.
-- Mana vollständig aus dem Gameplay-Code entfernt.
-- Mana aus `PlayerProfile` entfernt.
-- Mana aus `StatEngine` entfernt.
-- Mana aus Weapon-Abilities entfernt.
-- Mana-PDC-Key entfernt.
-- Mana aus YAML-Persistenz entfernt.
-- Mana aus MySQL-Persistenz und dem neuen Schema entfernt.
-- Mana-Regenerations-Task entfernt.
-- Mana-Lifecycle aus dem Plugin entfernt.
-- Alte Rank-/Gem-/Rune-/Socket-Pfade sind im aktuellen Repository-Suchstand nicht mehr vorhanden.
+## Aktuelle Phase
 
-### Weapon-Abilities
+PixelRPG ist kein reiner Prototyp mehr. Die Kernsysteme sind vorhanden.
 
-- Aktivierung ist jetzt tatsächlich **Rechtsklick**.
-- Shift ist nicht mehr Voraussetzung.
-- Item-Lore und Listener entsprechen demselben Design.
-- Cooldown bleibt waffenbezogen.
-- Keine Mana-Kosten.
+**Aktuelle Phase: systematischer Voll-Audit, Validation, Polish und gezielte Bugfixes.**
 
-### Balance-Datenquellen
+Keine neuen großen Gameplay-Systeme, solange offene P0/P1-Punkte nicht geprüft sind.
 
-`attributes.json` ist die aktive Attribut-Baseline. Die Java-Fallbackwerte wurden auf dieselben Werte synchronisiert.
-
-`class-balance.json` ist die aktive Klassen-Baseline. Die Java-Fallbackformeln wurden auf denselben Stand synchronisiert.
-
-`item-scaling.json` ist die aktive Item-Wachstumskurve:
-
-- Growth multiplier: `10.0`
-- Weapon damage base: `3.0`
-- Weapon crit base: `0.5`
-- Armor base: `0.7`
-- Health base: `1.2`
-- Tool efficiency base: `1.0`
-
-Die Item-Rarity-Multiplikatoren sind:
-
-- Common `1.00`
-- Uncommon `1.10`
-- Rare `1.22`
-- Epic `1.38`
-- Legendary `1.60`
-- Unique `1.60`
-
-## Architektur-Befund
-
-PixelRPG ist inzwischen kein reiner Feature-Prototyp mehr. Vorhanden sind unter anderem:
+Vorhandene Kernbereiche:
 
 - Player/Profile/Persistenz
-- Guild-Registrierung
+- Registrierung und Vanilla-/PixelRPG-Isolation
 - Level/XP
-- Attribute
-- Klassen
-- Items/Rarity/Item-Level
-- Combat
-- Mob-Level-Scaling
-- Loot
+- Attribute/Klassen
+- Items/Rarity/Item-Level/Equipment
+- Combat/Mob Scaling/Loot
 - Weapon-Abilities
-- NPCs
+- NPC-Mannequins
 - native Dialoge
 - Quests
 - Berufe/Crafting
-- Economy
-- Party
-- Story
-- Travel
+- Economy/Party
+- Story/Travel
 - Companions
 - Bosse/World-Bosse
 - Statistics/Scoreboard
+- Resourcepack
 - API/Event-Schicht
 
-Die nächste Phase ist deshalb weiterhin **Validierung und Polish**, nicht Feature-Ausbau.
+## Wichtige Lifecycle-Regeln
 
-## Vanilla-/PixelRPG-Koexistenz
+### Persistente NPC-Mannequins
 
-Die Registrierung eines Spielers ist die zentrale Grenze für RPG-Systeme. Viele relevante Systeme prüfen bereits den registrierten PixelRPG-Zustand.
+NPCs sind dauerhafte PixelRPG-Weltschnittstellen. Sie müssen nach Login und relevantem Chunk-Lifecycle wieder sichtbar sein.
 
-Der wichtigste noch zu testende Mischfall bleibt Mob Scaling:
+```text
+NPC-Definition → NpcManager → Entity → Chunk-/Login-Resync
+```
+
+### Companions
+
+Companions sind **keine persistenten Welt-NPCs**.
+
+Das gewünschte Verhalten ist:
+
+```text
+Spieler besitzt Companion
+        ↓
+Spieler ruft Companion
+        ↓
+Companion wird gespawnt
+        ↓
+Logout
+        ↓
+Companion verschwindet
+        ↓
+Login
+        ↓
+Companion bleibt weg
+        ↓
+Spieler ruft ihn erneut
+```
+
+**Kein automatischer Companion-Restore beim Login.**
+
+Zu prüfen ist deshalb ausschließlich, ob das erneute Rufen nach Login zuverlässig funktioniert.
+
+## Vanilla-/PixelRPG-Isolation
+
+Ein Spieler ist zunächst Vanilla. Erst nach PixelRPG-Registrierung dürfen RPG-Systeme greifen.
+
+Besonders kritisch zu validieren:
+
+- Mob Spawn/Damage/Health/Targeting/Death
+- Loot und XP
+- Item Events
+- Crafting und Inventory
+- Combat
+
+Wichtigster Mischfall:
 
 ```text
 Vanilla-Spieler
@@ -98,64 +108,130 @@ selbe Welt / selbe Entity
 PixelRPG-Spieler
 ```
 
-Das Scaling verändert eine Entity für einen RPG-Kampf. Das ist konzeptionell zulässig, muss aber im echten Serverbetrieb geprüft werden, damit Vanilla-Spieler nicht unerwartet in RPG-Mechaniken hineingezogen werden.
-
-## Native Dialoge
-
-Native Minecraft-/Paper-Dialoge sind inzwischen ein echter Bestandteil der NPC-Architektur. NPC-Verhalten wie Empfang, Schmied, Quest, Shop, Travel, Story und Bank greifen darauf zurück.
-
-Inventory-GUIs existieren weiterhin und dürfen nicht pauschal gelöscht werden. Sie müssen einzeln als Runtime, Admin-Tool, Inventaroperation oder Legacy klassifiziert werden.
+Mob Scaling darf Vanilla-Spieler nicht unbeabsichtigt in RPG-Mechaniken ziehen.
 
 ## Persistenz
 
-YAML und MySQL bilden weiterhin zwei Repository-Implementierungen für PlayerProfile. Die bestehende Async-Save-/Load-Struktur bleibt erhalten.
+YAML und MySQL bleiben die beiden PlayerProfile-Repositories.
 
-Alte MySQL-Datenbanken können noch historische Mana-Spalten besitzen. Der aktuelle Code liest und schreibt diese Felder nicht mehr. Das automatische Löschen alter Produktionsspalten ist bewusst nicht Teil des Cleanup-Schrittes, um bestehende Datenbanken nicht destruktiv zu verändern.
+Noch zu validieren:
 
-## Dokumentation
+- YAML laden/speichern
+- bestehende MySQL-Datenbank laden/speichern
+- Server-Neustart
+- persistente Registrierung
+- Verhalten bei historischen Mana-Spalten
 
-`balancing.md` enthält weiterhin historische Analyse und muss noch als aktuelle Master-Baseline bereinigt werden. Die tatsächlichen aktuellen Werte stehen inzwischen konsistent in den JSON-Daten und den synchronisierten Java-Fallbacks.
+Alte Produktionsspalten werden nicht automatisch destruktiv gelöscht.
 
-Die Roadmap bleibt die funktionale Referenz. Es werden in dieser Phase keine neuen Roadmap-Features hinzugefügt.
+## Items / Equipment
 
-## Technischer Plattformstand
+PixelRPG-Metadaten/PDC sind die primäre Item-Identität. Vanilla-Material allein ist keine PixelRPG-Identität.
 
-Der Repository-Stand muss weiterhin gegen die verbindliche Zielplattform geprüft werden:
+Raritäten:
 
-- Java 25
-- Paperweight `2.0.0-beta.21`
-- Paper 26.x
-- Zielplattform: Paper 26.2
-- Mojang-Mappings
-- `paper-plugin.yml`
+- Common
+- Uncommon
+- Rare
+- Epic
+- Legendary
+- Unique
 
-Ein tatsächlicher Build gegen Paper 26.2 muss noch separat validiert werden.
+## Combat / Scaling
 
-## Noch offen – ausschließlich Cleanup / Validation
+Vorhanden:
 
-### P0
+- zentrale Damage-Logik
+- Weapon-Abilities
+- Mob Scaling
+- Loot
+- Boss-Damage
+- Class/Stat-Einfluss
+
+Weapon-Abilities verwenden Rechtsklick und waffenbezogene Cooldowns. Es gibt keine Mana-Kosten.
+
+Mob Scaling ist strukturell vorhanden; der reale Vanilla-/PixelRPG-Mischbetrieb muss noch getestet werden.
+
+## Dialoge / NPC-Interaktion
+
+Native Dialoge sind der primäre Interaktionsweg. Vorhanden sind u. a. Registrierung, Empfang, Schmied, Quest, Shop, Travel, Story, Bank, Companion und Berufe.
+
+Inventory-GUIs bleiben dort bestehen, wo ein Dialog nicht ausreicht. Sie werden nicht pauschal entfernt.
+
+## Quests
+
+Das Quest-System besitzt Repository, Manager, Progress, Navigation, globale Events, passive Checks, Mob-Kills und XP-/Progressionslogik.
+
+Die Quest-Roadmap bleibt Designreferenz. Jetzt wird die Runtime gegen reale Questdefinitionen und End-to-End-Abläufe validiert.
+
+## Companions / Bosse / Mounts
+
+Companion-Grundsystem und Boss-System sind vorhanden.
+
+Companion-Kampflogik bleibt bis zur Stabilisierung des Basissystems zurückgestellt.
+
+Zu prüfen:
+
+- Companion erneut rufen nach Login
+- Spawn/Despawn
+- Skin
+- Equipment
+- Follow
+- Datenpersistenz
+- Entity-Verlust
+- Boss Spawn/Phasen/Damage/Death/Contribution/Loot
+
+## Balancing
+
+`balancing.md` ist die Fachreferenz für aktuelle Balancing-Werte.
+
+Aktive Grundsätze:
+
+- Level 1–99 reguläre Progression
+- Level 100 reserviert/Endgame
+- deterministische Progression
+- keine Mana-Ressource
+- keine Blessings/Curses
+- keine Gems/Runes/Sockets
+- keine alten F–S-Ranks
+
+Das Balancing ist strukturell definiert, aber noch nicht final servervalidiert. Keine Einzelwerte auf Verdacht ändern.
+
+## Resourcepack
+
+Das Resourcepack ist vom Plugin-Code getrennt. Vorhandene Assets müssen gegen die aktuellen Gameplay-Systeme geprüft werden. Nach dem Mana-Cleanup sind insbesondere mögliche verwaiste Mana-Assets zu klassifizieren.
+
+# Offene Aufgaben
+
+## P0
 
 1. Build gegen Paper 26.2 erfolgreich durchführen.
-2. Vanilla-/PixelRPG-Mischtests für Mob Scaling durchführen.
-3. Persistenz nach Entfernen von Mana mit YAML und bestehender MySQL-Datenbank testen.
+2. Vanilla-/PixelRPG-Mischtest für Mob Scaling durchführen.
+3. YAML- und bestehende MySQL-Persistenz nach dem Cleanup testen.
 
-### P1
+## P1
 
-4. `balancing.md` auf den tatsächlichen aktuellen Stand synchronisieren.
-5. Inventory-GUIs einzeln klassifizieren.
-6. PDC-Keys auf weitere tote/historische Felder prüfen.
-7. Quest-/Companion-Daten gegen die tatsächliche Runtime-Verwendung prüfen.
-8. Datenquellen weiterhin auf genau eine aktuelle Wahrheit pro System reduzieren.
+4. Companion-Ruf nach Logout/Login vollständig testen.
+5. Companion Spawn → Skin → Equipment → Follow → Despawn → erneuter Spawn testen.
+6. `balancing.md` mit den tatsächlichen aktiven Daten synchron halten.
+7. Inventory-GUIs einzeln als Runtime/Admin/Inventaroperation/Legacy klassifizieren.
+8. PDC-Keys und historische Datenpfade auf tote Einträge prüfen.
+9. Quest-/Companion-Daten gegen die tatsächliche Runtime-Verwendung prüfen.
+10. Resourcepack auf verwaiste/historische Gameplay-Assets prüfen.
 
-### P2
+## P2
 
-9. End-to-End-Test: Registrierung → NPC → Dialog → Quest → Combat → XP → Loot/Reward.
-10. Persistenztest über Server-Neustart.
-11. Level-/Scaling-Testmatrix für die relevanten Levelstufen.
-12. Abschließender Voll-Audit nach den Tests.
+11. End-to-End: Registrierung → NPC → Dialog → Quest → Combat → XP → Loot/Reward.
+12. Persistenztest über Server-Neustart.
+13. Level-/Scaling-Testmatrix.
+14. Abschließender Voll-Audit nach den Tests.
 
-## Grundsatz für die weitere Arbeit
+## Arbeitsregel
 
-Keine neuen Features, solange diese Cleanup- und Validierungsphase nicht abgeschlossen ist.
+```text
+Analyse → Problem eindeutig feststellen → gezielt beheben → Build → Server-Test → Audit aktualisieren
+```
 
-PixelRPG soll Minecraft erweitern, nicht Minecraft ersetzen. Jede Bereinigung muss deshalb die Vanilla-/PixelRPG-Koexistenz und die native Minecraft-/Paper-Mechanik als oberste Leitlinie behalten.
+Keine erfundenen APIs, keine alten Minecraft-/Paper-Versionen und keine unnötigen Komplett-Refactorings.
+
+**Dieses Dokument ist ab jetzt die Master-Referenz für den aktuellen Projektstand.**
