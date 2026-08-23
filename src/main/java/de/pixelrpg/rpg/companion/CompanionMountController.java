@@ -2,8 +2,6 @@ package de.pixelrpg.rpg.companion;
 
 import org.bukkit.Input;
 import org.bukkit.Material;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.AbstractNautilus;
 import org.bukkit.entity.Entity;
@@ -71,9 +69,6 @@ public final class CompanionMountController {
         mount.setVelocity(direction);
         mount.setRotation(owner.getYaw(), 0.0F);
         mount.setFallDistance(0.0F);
-
-        AttributeInstance movement = mount.getAttribute(Attribute.MOVEMENT_SPEED);
-        if (movement != null && Double.isFinite(speed)) movement.setBaseValue(Math.max(0.05D, speed));
     }
 
     public boolean tryMount(Player player, LivingEntity entity, CompanionDefinition definition) {
