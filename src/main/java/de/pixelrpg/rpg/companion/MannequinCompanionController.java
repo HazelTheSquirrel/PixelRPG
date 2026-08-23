@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** Controls only Mannequin-specific presentation; follow, stats and combat are shared runtime systems. */
+/** Controls only Unique Mannequin Companion presentation, including its configured NPC skin source. */
 public final class MannequinCompanionController {
     private final Plugin plugin;
     private final CompanionRegistry registry;
@@ -27,17 +27,24 @@ public final class MannequinCompanionController {
         if (!mannequin.isValid() || !owner.isOnline()) return;
         String id = mannequin.getPersistentDataContainer().get(RPGKeys.Companion.id(), PersistentDataType.STRING);
         if (id == null || id.isBlank()) return;
+
         CompanionDefinition definition = registry.find(id).orElse(null);
-        if (definition == null) return;
+        if (definition == null || !definition.rarity().isUnique()
+                || definition.visual().type() != CompanionDefinition.CompanionVisualDefinition.VisualType.MANNEQUIN) {
+            return;
+        }
 
         var scale = mannequin.getAttribute(Attribute.SCALE);
-        if (scale != null && definition.visual().scale() > 0.0D) scale.setBaseValue(definition.visual().scale());
+        if (scale != null && definition.visual().scale() > 0.0D) {
+            scale.setBaseValue(definition.visual().scale());
+        }
 
         String skin = definition.visual().skinSource();
         if (!skin.isBlank() && !skin.equals(appliedSkins.get(mannequin.getUniqueId()))) {
             appliedSkins.put(mannequin.getUniqueId(), skin);
             MannequinSkinResolver.apply(mannequin, skin, plugin.getLogger());
         }
+
         mannequin.setImmovable(false);
     }
 }
