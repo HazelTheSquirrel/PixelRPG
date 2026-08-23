@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.companion;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
 import de.pixelrpg.rpg.core.RPGKeys;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -69,8 +70,8 @@ public final class CompanionExperienceListener implements Listener {
     // Removes the active companion entity when its owner leaves the server.
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        nextAttackTick.removeIf((entityId, ignored) -> Bukkit.getEntity(entityId) == null);
         companionService.clearActive(event.getPlayer().getUniqueId());
+        nextAttackTick.entrySet().removeIf(entry -> Bukkit.getEntity(entry.getKey()) == null);
     }
 
     private void tickHazelCombat() {
@@ -93,12 +94,12 @@ public final class CompanionExperienceListener implements Listener {
 
                 double distanceSquared = mannequin.getLocation().distanceSquared(target.getLocation());
                 if (distanceSquared > HAZEL_ATTACK_RANGE * HAZEL_ATTACK_RANGE) {
-                    moveTowards(mannequin, target, HAZEL_COMBAT_SPEED);
+                    moveTowards(mannequin, target.getLocation(), HAZEL_COMBAT_SPEED);
                     continue;
                 }
 
                 mannequin.setVelocity(mannequin.getVelocity().multiply(0.2D));
-                mannequin.setRotation(yawTowards(mannequin, target), mannequin.getPitch());
+                mannequin.setRotation(yawTowards(mannequin, target.getLocation()), mannequin.getPitch());
 
                 long nextAttack = nextAttackTick.getOrDefault(mannequin.getUniqueId(), 0L);
                 if (currentTick < nextAttack) continue;
@@ -124,41 +125,25 @@ public final class CompanionExperienceListener implements Listener {
     }
 
     private void returnToOwner(Mannequin mannequin) {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            Companion active = companionService.getActive(player.getUniqueId());
-            if (active == null || !HAZEL_ID.equals(active.id())) continue;
-            UUID entityId = findActiveEntity(player.getUniqueId());
-            if (!mannequin.getUniqueId().equals(entityId)) continue;
-            if (mannequin.getWorld() != player.getWorld()) {
-                mannequin.teleport(player.getLocation());
-                return;
-            }
-            double distanceSquared = mannequin.getLocation().distanceSquared(player.getLocation());
-            if (distanceSquared > 576.0D) {
-                mannequin.teleport(player.getLocation().clone().add(1.0D, 0.0D, 1.0D));
-                mannequin.setVelocity(new Vector());
-            } else if (distanceSquared > 9.0D) {
-                LocationTarget target = new LocationTarget(player.getLocation().clone().add(0.0D, 0.0D, 1.5D));
-                moveTowards(mannequin, target.location(), HAZEL_COMBAT_SPEED);
-            } else {
-                mannequin.setVelocity(mannequin.getVelocity().multiply(0.25D));
-            }
+        UUID ownerId = companionService.getOwnerOfEntity(mannequin.getUniqueId());
+        if (ownerId == null) return;
+        Player player = Bukkit.getPlayer(ownerId);
+        if (player == null) return;
+
+        if (mannequin.getWorld() != player.getWorld()) {
+            mannequin.teleport(player.getLocation());
             return;
         }
-    }
 
-    private UUID findActiveEntity(UUID playerId) {
-        Companion active = companionService.getActive(playerId);
-        if (active == null) return null;
-        // The service owns the active entity mapping; use the entity currently associated with the player.
-        for (Entity entity : Bukkit.getWorlds().stream().flatMap(world -> world.getEntitiesByClass(Mannequin.class).stream()).toList()) {
-            String id = entity.getPersistentDataContainer().get(RPGKeys.Companion.id(), PersistentDataType.STRING);
-            if (HAZEL_ID.equals(id)) {
-                // The active companion is uniquely identified by its runtime entity; ownership is verified by proximity below.
-                if (entity.getLocation().distanceSquared(Bukkit.getPlayer(playerId).getLocation()) < 576.0D) return entity.getUniqueId();
-            }
+        double distanceSquared = mannequin.getLocation().distanceSquared(player.getLocation());
+        if (distanceSquared > 576.0D) {
+            mannequin.teleport(player.getLocation().clone().add(1.0D, 0.0D, 1.0D));
+            mannequin.setVelocity(new Vector());
+        } else if (distanceSquared > 9.0D) {
+            moveTowards(mannequin, player.getLocation().clone().add(0.0D, 0.0D, 1.5D), HAZEL_COMBAT_SPEED);
+        } else {
+            mannequin.setVelocity(mannequin.getVelocity().multiply(0.25D));
         }
-        return null;
     }
 
     private LivingEntity findNearestEnemy(Mannequin mannequin) {
@@ -177,32 +162,21 @@ public final class CompanionExperienceListener implements Listener {
         return nearest;
     }
 
-    private static void moveTowards(Entity entity, LocationTarget target, double speed) {
-        Vector delta = target.location().toVector().subtract(entity.getLocation().toVector());
+    private static void moveTowards(Entity entity, Location target, double speed) {
+        Vector delta = target.toVector().subtract(entity.getLocation().toVector());
         delta.setY(0.0D);
         if (delta.lengthSquared() < 0.04D) return;
         delta.normalize().multiply(speed);
         entity.setVelocity(delta);
-        entity.setRotation(yawTowards(entity, target.location()), entity.getPitch());
+        entity.setRotation(yawTowards(entity, target), entity.getPitch());
     }
 
-    private static void moveTowards(Entity entity, LivingEntity target, double speed) {
-        moveTowards(entity, new LocationTarget(target.getLocation()), speed);
-    }
-
-    private static float yawTowards(Entity entity, LivingEntity target) {
-        return yawTowards(entity, target.getLocation());
-    }
-
-    private static float yawTowards(Entity entity, org.bukkit.Location target) {
+    private static float yawTowards(Entity entity, Location target) {
         Vector delta = target.toVector().subtract(entity.getLocation().toVector());
         return (float) Math.toDegrees(Math.atan2(-delta.getX(), delta.getZ()));
     }
 
     private static long scaledExperience(long base, CompanionRarity rarity) {
         return Math.max(1L, Math.round(base * rarity.experienceMultiplier()));
-    }
-
-    private record LocationTarget(org.bukkit.Location location) {
     }
 }
