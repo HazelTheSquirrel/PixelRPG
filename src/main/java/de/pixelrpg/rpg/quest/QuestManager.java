@@ -2,6 +2,8 @@ package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
+import de.pixelrpg.rpg.item.ItemRarity;
+import de.pixelrpg.rpg.item.RPGItemBuilder;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfile;
@@ -116,7 +118,6 @@ public final class QuestManager {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         Quest quest = questRepository.getQuest(questId);
         if (profile == null || !profile.isRegisteredInGuild() || quest == null || !profile.hasActiveQuest(questId)) return false;
-
         QuestProgress progress = profile.getActiveQuests().get(questId);
         if (progress.getCurrentAmount() < quest.requiredAmount()) {
             lang.send(player, "quest.requirements-not-met");
@@ -130,13 +131,7 @@ public final class QuestManager {
         if (quest.rewardMoney() > 0) profile.addMoney(quest.rewardMoney());
         if (quest.rewardExp() > 0) profileManager.addExperience(player.getUniqueId(), quest.rewardExp());
 
-        for (String materialName : quest.rewardItemMaterials()) {
-            try {
-                Material material = Material.valueOf(materialName.toUpperCase());
-                player.getInventory().addItem(new ItemStack(material));
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
+        for (String rewardDefinition : quest.rewardItemMaterials()) giveRewardItem(player, rewardDefinition, quest.requiredLevel());
 
         if (quest.rewardsCompanion()) {
             var companionService = PixelRPGPlugin.getInstance().getCompanionService();
@@ -150,12 +145,26 @@ public final class QuestManager {
 
         lang.send(player, "quest.completed", "title", quest.title());
         player.showTitle(Title.title(
-                Component.text(quest.title(), NamedTextColor.YELLOW),
-                Component.text(" "),
-                Title.Times.times(Duration.ofMillis(300), Duration.ofMillis(1800), Duration.ofMillis(300))
-        ));
+                Component.text(quest.title(), NamedTextColor.YELLOW), Component.text(" "),
+                Title.Times.times(Duration.ofMillis(300), Duration.ofMillis(1800), Duration.ofMillis(300))));
         Bukkit.getPluginManager().callEvent(new QuestCompletedEvent(player, questId));
         return true;
+    }
+
+    private void giveRewardItem(Player player, String definition, int fallbackLevel) {
+        String[] parts = definition.split("\\|", -1);
+        try {
+            Material material = Material.valueOf(parts[0].trim().toUpperCase());
+            if (parts.length == 1) {
+                player.getInventory().addItem(new ItemStack(material));
+                return;
+            }
+            ItemRarity rarity = ItemRarity.valueOf(parts[1].trim().toUpperCase());
+            int itemLevel = parts.length >= 3 ? Integer.parseInt(parts[2].trim()) : fallbackLevel;
+            RPGItemBuilder.createItem(material, rarity, Math.max(1, itemLevel)).ifPresent(item -> player.getInventory().addItem(item));
+        } catch (IllegalArgumentException exception) {
+            plugin.getLogger().warning("Invalid quest reward item '" + definition + "'. Use MATERIAL or MATERIAL|RARITY|ITEM_LEVEL.");
+        }
     }
 
     public void progressHuntQuests(Player killer, String mobTypeKey) {
@@ -181,12 +190,9 @@ public final class QuestManager {
             try {
                 Material material = Material.valueOf(quest.targetKey().toUpperCase());
                 int amount = 0;
-                for (ItemStack item : player.getInventory().getContents()) {
-                    if (item != null && item.getType() == material) amount += item.getAmount();
-                }
+                for (ItemStack item : player.getInventory().getContents()) if (item != null && item.getType() == material) amount += item.getAmount();
                 entry.getValue().setCurrentAmount(Math.min(quest.requiredAmount(), amount));
-            } catch (IllegalArgumentException ignored) {
-            }
+            } catch (IllegalArgumentException ignored) { }
         }
     }
 
@@ -198,13 +204,8 @@ public final class QuestManager {
             if (quest == null || quest.type() != QuestType.REACH_LOCATION) continue;
             Location target = resolveQuestLocation(quest);
             if (target == null || entry.getValue().getCurrentAmount() >= quest.requiredAmount()) continue;
-            boolean reached = quest.reachRadius() <= 0.0
-                    ? isExactBlock(player.getLocation(), target)
-                    : isWithinRadius(player.getLocation(), target, quest.reachRadius());
-            if (reached) {
-                entry.getValue().setCurrentAmount(quest.requiredAmount());
-                lang.send(player, "quest.location-reached", "title", quest.title());
-            }
+            boolean reached = quest.reachRadius() <= 0.0 ? isExactBlock(player.getLocation(), target) : isWithinRadius(player.getLocation(), target, quest.reachRadius());
+            if (reached) { entry.getValue().setCurrentAmount(quest.requiredAmount()); lang.send(player, "quest.location-reached", "title", quest.title()); }
         }
     }
 
@@ -216,10 +217,7 @@ public final class QuestManager {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.ESCORT || entry.getValue().getCurrentAmount() >= quest.requiredAmount()) continue;
             Location destination = resolveQuestLocation(quest);
-            if (destination != null && isWithinRadius(player.getLocation(), destination, Math.max(3.0D, quest.reachRadius()))) {
-                entry.getValue().setCurrentAmount(quest.requiredAmount());
-                lang.send(player, "quest.escort-delivered");
-            }
+            if (destination != null && isWithinRadius(player.getLocation(), destination, Math.max(3.0D, quest.reachRadius()))) { entry.getValue().setCurrentAmount(quest.requiredAmount()); lang.send(player, "quest.escort-delivered"); }
         }
     }
 
@@ -229,17 +227,13 @@ public final class QuestManager {
         if (profile == null || !profile.isRegisteredInGuild() || npcId == null || npcId.isBlank()) return;
         for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
-            if (quest == null || quest.type() != QuestType.TALK_TO_NPC) continue;
-            if (!quest.targetKey().equalsIgnoreCase(npcId)) continue;
+            if (quest == null || quest.type() != QuestType.TALK_TO_NPC || !quest.targetKey().equalsIgnoreCase(npcId)) continue;
             if (entry.getValue().getCurrentAmount() >= quest.requiredAmount()) continue;
-            entry.getValue().setCurrentAmount(quest.requiredAmount());
-            lang.send(player, "quest.location-reached", "title", quest.title());
+            entry.getValue().setCurrentAmount(quest.requiredAmount()); lang.send(player, "quest.location-reached", "title", quest.title());
         }
     }
 
-    public void progressEscortQuest(Player player, String escortKey) {
-        checkEscortQuests(player);
-    }
+    public void progressEscortQuest(Player player, String escortKey) { checkEscortQuests(player); }
 
     public void progressGlobalEvent(String targetKey) {
         for (Quest quest : questRepository.getQuestsByType(QuestType.GLOBAL_EVENT)) {
@@ -255,18 +249,9 @@ public final class QuestManager {
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (!guildAPI.isRegistered(online.getUniqueId())) continue;
             PlayerProfile profile = profileManager.getProfile(online.getUniqueId()).orElse(null);
-            if (profile != null && profile.hasActiveQuest(quest.id())) {
-                QuestProgress progress = profile.getActiveQuests().get(quest.id());
-                progress.setCurrentAmount(quest.requiredAmount());
-                completeQuest(online, quest.id());
-                continue;
-            }
+            if (profile != null && profile.hasActiveQuest(quest.id())) { QuestProgress progress = profile.getActiveQuests().get(quest.id()); progress.setCurrentAmount(quest.requiredAmount()); completeQuest(online, quest.id()); continue; }
             lang.send(online, "quest.completed", "title", quest.title());
-            online.showTitle(Title.title(
-                    Component.text(quest.title(), NamedTextColor.GOLD),
-                    Component.text(" "),
-                    Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(3000), Duration.ofMillis(500))
-            ));
+            online.showTitle(Title.title(Component.text(quest.title(), NamedTextColor.GOLD), Component.text(" "), Title.Times.times(Duration.ofMillis(500), Duration.ofMillis(3000), Duration.ofMillis(500))));
         }
     }
 
@@ -277,51 +262,31 @@ public final class QuestManager {
         if (quest.escortDestination() != null) return quest.escortDestination();
         String key = quest.targetKey();
         if (key == null || key.isBlank()) return null;
-        String id = key;
-        int separator = key.indexOf(':');
-        if (separator >= 0) id = key.substring(separator + 1);
+        String id = key; int separator = key.indexOf(':'); if (separator >= 0) id = key.substring(separator + 1);
         return PixelRPGPlugin.getInstance().getNpcManager().getById(id).map(RPGNpc::location).orElse(null);
     }
 
     private void incrementProgress(PlayerProfile profile, QuestProgress progress, Quest quest) {
         if (!profile.isRegisteredInGuild() || progress.getCurrentAmount() >= quest.requiredAmount()) return;
-        int next = Math.min(quest.requiredAmount(), progress.getCurrentAmount() + 1);
-        progress.setCurrentAmount(next);
+        int next = Math.min(quest.requiredAmount(), progress.getCurrentAmount() + 1); progress.setCurrentAmount(next);
         Player player = Bukkit.getPlayer(profile.getUuid());
-        if (player != null && player.isOnline()) {
-            player.sendActionBar(lang.get("quest.progress", "current", String.valueOf(next), "required", String.valueOf(quest.requiredAmount())));
-        }
+        if (player != null && player.isOnline()) player.sendActionBar(lang.get("quest.progress", "current", String.valueOf(next), "required", String.valueOf(quest.requiredAmount())));
     }
 
     private void propagateToParty(Player source, java.util.function.Consumer<PlayerProfile> action, Location referenceLocation) {
         if (!isRegistered(source.getUniqueId())) return;
         de.pixelrpg.rpg.api.PartyAPI partyAPI = Bukkit.getServicesManager().load(de.pixelrpg.rpg.api.PartyAPI.class);
-        if (partyAPI == null || !partyAPI.isInParty(source.getUniqueId())) {
-            profileManager.getProfile(source.getUniqueId()).filter(PlayerProfile::isRegisteredInGuild).ifPresent(action);
-            return;
-        }
+        if (partyAPI == null || !partyAPI.isInParty(source.getUniqueId())) { profileManager.getProfile(source.getUniqueId()).filter(PlayerProfile::isRegisteredInGuild).ifPresent(action); return; }
         Set<UUID> members = partyAPI.getPartyMembers(source.getUniqueId());
         for (UUID memberUuid : members) {
-            Player member = Bukkit.getPlayer(memberUuid);
-            if (member == null || !member.isOnline()) continue;
-            if (!member.getWorld().equals(referenceLocation.getWorld())) continue;
-            if (member.getLocation().distance(referenceLocation) > partyShareRange) continue;
+            Player member = Bukkit.getPlayer(memberUuid); if (member == null || !member.isOnline()) continue;
+            if (!member.getWorld().equals(referenceLocation.getWorld()) || member.getLocation().distance(referenceLocation) > partyShareRange) continue;
             profileManager.getProfile(memberUuid).filter(PlayerProfile::isRegisteredInGuild).ifPresent(action);
         }
     }
 
-    private boolean isRegistered(UUID uuid) {
-        return profileManager.getProfile(uuid).map(PlayerProfile::isRegisteredInGuild).orElse(false);
-    }
-
-    private boolean isExactBlock(Location a, Location b) {
-        return a.getWorld().equals(b.getWorld()) && a.getBlockX() == b.getBlockX()
-                && a.getBlockY() == b.getBlockY() && a.getBlockZ() == b.getBlockZ();
-    }
-
-    private boolean isWithinRadius(Location a, Location b, double radius) {
-        return a.getWorld().equals(b.getWorld()) && a.distance(b) <= radius;
-    }
-
+    private boolean isRegistered(UUID uuid) { return profileManager.getProfile(uuid).map(PlayerProfile::isRegisteredInGuild).orElse(false); }
+    private boolean isExactBlock(Location a, Location b) { return a.getWorld().equals(b.getWorld()) && a.getBlockX() == b.getBlockX() && a.getBlockY() == b.getBlockY() && a.getBlockZ() == b.getBlockZ(); }
+    private boolean isWithinRadius(Location a, Location b, double radius) { return a.getWorld().equals(b.getWorld()) && a.distance(b) <= radius; }
     public QuestRepository getRepository() { return questRepository; }
 }
