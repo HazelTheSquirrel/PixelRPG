@@ -16,6 +16,7 @@ public record CompanionDefinition(
         CompanionStats baseStats,
         CompanionFollowDefinition follow,
         CompanionCombatDefinition combat,
+        CompanionMountDefinition mount,
         CompanionEquipmentDefaults equipment,
         CompanionProgressionDefinition progression,
         Map<String, JsonObject> abilities,
@@ -32,6 +33,7 @@ public record CompanionDefinition(
         Objects.requireNonNull(baseStats, "baseStats");
         Objects.requireNonNull(follow, "follow");
         Objects.requireNonNull(combat, "combat");
+        Objects.requireNonNull(mount, "mount");
         Objects.requireNonNull(equipment, "equipment");
         Objects.requireNonNull(progression, "progression");
         Objects.requireNonNull(abilities, "abilities");
@@ -71,6 +73,19 @@ public record CompanionDefinition(
             boolean friendlyTargets,
             boolean protectOwner
     ) {}
+
+    public record CompanionMountDefinition(
+            boolean enabled,
+            Type type,
+            double movementSpeed,
+            boolean requiresSaddle
+    ) {
+        public enum Type {
+            GROUND,
+            UNDERWATER,
+            FLYING
+        }
+    }
 
     public record CompanionEquipmentDefaults(
             String helmet,
