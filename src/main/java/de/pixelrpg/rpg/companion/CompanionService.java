@@ -6,12 +6,14 @@ import de.pixelrpg.rpg.config.JsonDataManager;
 import de.pixelrpg.rpg.core.RPGKeys;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -24,13 +26,16 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Owns persistent companion definitions, progression and active entity state. */
+/** Owns persistent companion definitions, progression, equipment and active entity state. */
 public final class CompanionService {
     private static final String TEST_WOLF_ID = "test-wolf";
+
     private final Plugin plugin;
     private final File storageFolder;
     private final Map<UUID, List<Companion>> companions = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> activeEntities = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, CompanionEquipment>> equipment = new ConcurrentHashMap<>();
+    private final CompanionEquipmentStore equipmentStore;
     private final BukkitTask followTask;
     private int maxLevel = 99;
     private long experienceBase = 100L;
@@ -42,8 +47,11 @@ public final class CompanionService {
         this.plugin = plugin;
         this.storageFolder = new File(plugin.getDataFolder(), "companions");
         if (!storageFolder.exists()) storageFolder.mkdirs();
+        this.equipmentStore = new CompanionEquipmentStore(plugin.getDataFolder(), plugin.getLogger());
         loadJsonConfiguration();
-        this.followTask = plugin.getServer().getScheduler().runTaskTimer(plugin, new CompanionFollowTask(plugin, activeEntities), 1L, 5L);
+        this.followTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
+                new CompanionFollowTask(plugin, activeEntities, this), 1L, 2L);
+        plugin.getServer().getPluginManager().registerEvents(new CompanionEquipmentListener(plugin, this), plugin);
     }
 
     /** Loads user-editable companion progression and definitions from data/companions.json. */
@@ -101,15 +109,15 @@ public final class CompanionService {
         });
     }
 
-    /** Unlocks a fixed-name Unique companion. Only administrative code should call this method. */
-    public boolean unlockUnique(UUID playerId, String id, String fixedName, org.bukkit.entity.EntityType entityType) {
-        if (id == null || id.isBlank() || fixedName == null || fixedName.isBlank() || fixedName.length() > maxNameLength || entityType == null || !entityType.isSpawnable()) return false;
+    /** Grants a Unique companion strictly from its immutable JSON definition. */
+    public boolean unlockUnique(UUID playerId, String id, String ignoredName, org.bukkit.entity.EntityType ignoredEntityType) {
         JsonObject configured = readDefinitionJson(id);
-        if (configured != null) {
-            String rarity = string(configured, "rarity", "").toUpperCase();
-            if (!"UNIQUE".equals(rarity) || !bool(configured, "adminOnly", false) || bool(configured, "renameable", true)) return false;
-        }
-        unlock(playerId, new Companion(id, fixedName.strip(), 1, 0L, CompanionRarity.UNIQUE, entityType, false));
+        if (configured == null) return false;
+        String rarity = string(configured, "rarity", "").toUpperCase();
+        if (!"UNIQUE".equals(rarity) || !bool(configured, "adminOnly", false) || bool(configured, "renameable", true)) return false;
+        Companion companion = toCompanion(id, configured);
+        if (companion == null || companion.entityType() != org.bukkit.entity.EntityType.MANNEQUIN) return false;
+        unlock(playerId, companion);
         return true;
     }
 
@@ -164,8 +172,45 @@ public final class CompanionService {
     public UUID getActiveEntity(UUID playerId) { return activeEntities.get(playerId); }
 
     public UUID getOwnerOfEntity(UUID entityId) {
-        for (Map.Entry<UUID, UUID> entry : activeEntities.entrySet()) if (entry.getValue().equals(entityId)) return entry.getKey();
+        for (Map.Entry<UUID, UUID> entry : activeEntities.entrySet()) {
+            if (entry.getValue().equals(entityId)) return entry.getKey();
+        }
         return null;
+    }
+
+    public CompanionEquipment getEquipment(UUID playerId, String companionId) {
+        load(playerId);
+        Map<String, CompanionEquipment> playerEquipment = equipment.computeIfAbsent(playerId, ignored -> new ConcurrentHashMap<>());
+        CompanionEquipment cached = playerEquipment.get(companionId);
+        if (cached != null) return cached.copy();
+
+        CompanionEquipment loaded;
+        if (equipmentStore.hasEntry(playerId, companionId)) {
+            loaded = equipmentStore.load(playerId, companionId);
+        } else {
+            loaded = defaultEquipment(companionId);
+            equipmentStore.save(playerId, companionId, loaded);
+        }
+        playerEquipment.put(companionId, loaded.copy());
+        return loaded.copy();
+    }
+
+    public void setEquipment(UUID playerId, String companionId, CompanionEquipment value) {
+        CompanionEquipment copy = value == null ? CompanionEquipment.empty() : value.copy();
+        equipment.computeIfAbsent(playerId, ignored -> new ConcurrentHashMap<>()).put(companionId, copy.copy());
+        equipmentStore.save(playerId, companionId, copy);
+    }
+
+    public void applyEquipmentToEntity(UUID playerId, String companionId, LivingEntity entity) {
+        CompanionEquipment equipment = getEquipment(playerId, companionId);
+        var target = entity.getEquipment();
+        if (target == null) return;
+        target.setHelmet(equipment.helmet());
+        target.setChestplate(equipment.chestplate());
+        target.setLeggings(equipment.leggings());
+        target.setBoots(equipment.boots());
+        target.setItemInMainHand(equipment.mainHand());
+        target.setItemInOffHand(equipment.offHand());
     }
 
     public boolean rename(UUID playerId, String companionId, String newName) {
@@ -236,6 +281,7 @@ public final class CompanionService {
             if (current != null) save(playerId, current.stream().map(companion -> companion.withActive(false)).toList());
         }
         companions.clear();
+        equipment.clear();
     }
 
     private void spawnPassiveCompanion(Player player, Companion selected) {
@@ -252,9 +298,10 @@ public final class CompanionService {
             living.customName(Component.text(selected.name()));
             living.setCustomNameVisible(true);
             if (living instanceof Mob mob) {
-                mob.setAware(false);
+                mob.setAware(true);
                 mob.setTarget(null);
             }
+            applyEquipmentToEntity(player.getUniqueId(), selected.id(), living);
             activeEntities.put(player.getUniqueId(), entity.getUniqueId());
         } catch (RuntimeException exception) {
             plugin.getLogger().warning("Unable to spawn companion '" + selected.id() + "' as " + selected.entityType() + ": " + exception.getMessage());
@@ -269,6 +316,28 @@ public final class CompanionService {
         if (entity == null) return;
         entity.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, active.level());
         entity.getPersistentDataContainer().set(RPGKeys.Companion.rarity(), PersistentDataType.STRING, active.rarity().name());
+    }
+
+    private CompanionEquipment defaultEquipment(String id) {
+        JsonObject definition = readDefinitionJson(id);
+        if (definition == null) return CompanionEquipment.empty();
+        JsonObject configured = object(definition, "equipment");
+        if (configured == null) return CompanionEquipment.empty();
+        return new CompanionEquipment(
+                item(configured, "helmet"),
+                item(configured, "chestplate"),
+                item(configured, "leggings"),
+                item(configured, "boots"),
+                item(configured, "mainHand"),
+                item(configured, "offHand")
+        );
+    }
+
+    private static ItemStack item(JsonObject object, String key) {
+        String material = string(object, key, "");
+        if (material.isBlank()) return null;
+        Material matched = Material.matchMaterial(material);
+        return matched == null || matched.isAir() ? null : new ItemStack(matched);
     }
 
     private JsonObject readDefinitionJson(String id) {
