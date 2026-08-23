@@ -82,11 +82,12 @@ public final class ReceptionDialog {
                 continue;
             }
 
-            slots.add(slot);
+            final int itemSlot = slot;
+            slots.add(itemSlot);
             actions.add(dialogueEngine.actionButton(
-                    itemLabel(item, slot),
+                    itemLabel(item, itemSlot),
                     NamedTextColor.LIGHT_PURPLE,
-                    player -> openSoulbindConfirmation(player, slot)));
+                    player -> openSoulbindConfirmation(player, itemSlot)));
         }
 
         if (actions.isEmpty()) {
@@ -130,7 +131,7 @@ public final class ReceptionDialog {
         ActionButton no = dialogueEngine.actionButton(
                 lang.get("reception.no-cancel"),
                 NamedTextColor.GRAY,
-                player -> openSoulbindSelection(player));
+                this::openSoulbindSelection);
 
         dialogueEngine.openConfirmation(
                 target,
