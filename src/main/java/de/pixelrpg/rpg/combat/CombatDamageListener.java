@@ -6,7 +6,6 @@ import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.ClassBalance;
-import de.pixelrpg.rpg.player.PlayerClass;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
@@ -93,23 +92,13 @@ public final class CombatDamageListener implements Listener {
             attacker.playSound(attacker.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.6f, 1.4f);
         }
 
-        PlayerClass playerClass = profile.getPlayerClass();
         ClassBalance classBalance = ClassBalance.of(profile);
         damage *= isRanged ? classBalance.rangedDamageMultiplier() : classBalance.meleeDamageMultiplier();
-        ClassSetBonusService.SetBonus setBonus = ClassSetBonusService.computeBonus(attacker, playerClass);
-        damage *= setBonus.damageMultiplier();
         boolean targetIsBoss = target.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING);
         if (targetIsBoss) {
             var maxHealthAttribute = target.getAttribute(Attribute.MAX_HEALTH);
             double bossMaxHp = maxHealthAttribute != null ? maxHealthAttribute.getValue() : target.getHealth();
             damage = Math.min(damage, bossMaxHp * bossMaxHitPercentOfMaxHp);
-        }
-        if (!isRanged && ClassSetBonusService.rollProc(setBonus)) {
-            double procBurst = damage * 0.25;
-            damage += procBurst;
-            target.getWorld().spawnParticle(Particle.FLASH, target.getLocation().add(0, 1, 0), 1);
-            attacker.playSound(attacker.getLocation(), Sound.ITEM_TOTEM_USE, 0.7f, 1.6f);
-            attacker.sendActionBar(lang.get("combat.set-bonus-proc"));
         }
         event.setDamage(damage);
         if (weaponLifesteal > 0.0) {
