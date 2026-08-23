@@ -6,16 +6,12 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
-/** Administrative companion management with fixed Unique companion grants. */
+/** Provides data-driven administrative companion unlocks without companion-specific Java hardcodes. */
 public final class CompanionSubCommand implements SubCommand {
-    private static final String HAZEL_ID = "unique-hazel";
-    private static final String HAZEL_NAME = "Hazel";
-
     private final CompanionService companionService;
 
     public CompanionSubCommand(CompanionService companionService) {
@@ -34,9 +30,8 @@ public final class CompanionSubCommand implements SubCommand {
 
     @Override
     public boolean execute(CommandSender sender, String[] args) {
-        if (args.length != 3 || !args[0].equalsIgnoreCase("grant") || !args[2].equalsIgnoreCase(HAZEL_ID)) {
-            sender.sendMessage(Component.text(
-                    "Usage: /rpgadmin companion grant <player> unique-hazel", NamedTextColor.YELLOW));
+        if (args.length != 3 || !args[0].equalsIgnoreCase("grant")) {
+            sender.sendMessage(Component.text("Usage: /rpgadmin companion grant <player> <companion-id>", NamedTextColor.YELLOW));
             return true;
         }
 
@@ -46,16 +41,13 @@ public final class CompanionSubCommand implements SubCommand {
             return true;
         }
 
-        // Hazel is a fixed Unique definition; no command argument can override its name or entity type.
-        if (!companionService.unlockUnique(target.getUniqueId(), HAZEL_ID, HAZEL_NAME, EntityType.MANNEQUIN)) {
-            sender.sendMessage(Component.text(
-                    "Hazel konnte nicht freigeschaltet werden.", NamedTextColor.RED));
+        String companionId = args[2].strip();
+        if (!companionService.unlockDefinition(target.getUniqueId(), companionId)) {
+            sender.sendMessage(Component.text("Companion konnte nicht freigeschaltet werden. Prüfe ID und Unlock-Regeln.", NamedTextColor.RED));
             return true;
         }
 
-        sender.sendMessage(Component.text(
-                "Unique-Begleiter für " + target.getName() + " freigeschaltet: " + HAZEL_NAME,
-                NamedTextColor.GREEN));
+        sender.sendMessage(Component.text("Companion freigeschaltet: " + companionId + " für " + target.getName(), NamedTextColor.GREEN));
         return true;
     }
 
@@ -63,7 +55,7 @@ public final class CompanionSubCommand implements SubCommand {
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) return List.of("grant");
         if (args.length == 2) return Bukkit.getOnlinePlayers().stream().map(Player::getName).sorted().toList();
-        if (args.length == 3) return List.of(HAZEL_ID);
+        if (args.length == 3) return companionService.definitionIds();
         return List.of();
     }
 }
