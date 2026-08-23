@@ -69,6 +69,15 @@ public final class CompanionFollowTask implements Runnable {
                 continue;
             }
 
+            double ownerDistanceSquared = living.getLocation().distanceSquared(owner.getLocation());
+            double maxOwnerCombatDistance = definition.combat().maxOwnerCombatDistance();
+            if (definition.combat().enabled()
+                    && Double.isFinite(maxOwnerCombatDistance)
+                    && ownerDistanceSquared > maxOwnerCombatDistance * maxOwnerCombatDistance) {
+                follow(owner, living, definition.follow());
+                continue;
+            }
+
             if (definition.combat().enabled()) {
                 combatController.tick(owner, living, definition, living.getWorld().getGameTime());
                 if (living.getLocation().distanceSquared(owner.getLocation()) <= definition.follow().startDistance() * definition.follow().startDistance()) continue;
