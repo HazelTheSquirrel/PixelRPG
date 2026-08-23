@@ -6,12 +6,9 @@ import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.api.events.BossDefeatedEvent;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.core.RPGKeys;
-import de.pixelrpg.rpg.item.ClassSetItemFactory;
-import de.pixelrpg.rpg.item.ClassSetSlot;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
 import de.pixelrpg.rpg.lang.LanguageManager;
-import de.pixelrpg.rpg.player.PlayerClass;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -21,9 +18,7 @@ import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
@@ -48,7 +43,6 @@ public final class BossManager {
     private final int barUpdateIntervalTicks;
     private final int phaseCheckIntervalTicks;
     private final LanguageManager lang;
-    private final double classSetDropChance;
     private final Map<UUID, ActiveBoss> activeBosses = new ConcurrentHashMap<>();
 
     public BossManager(Plugin plugin, BossAttackPatternRegistry patternRegistry, GuildAPI guildAPI,
@@ -65,7 +59,6 @@ public final class BossManager {
         this.barUpdateIntervalTicks = Math.max(1, barUpdateIntervalTicks);
         this.phaseCheckIntervalTicks = Math.max(1, phaseCheckIntervalTicks);
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
-        this.classSetDropChance = PixelRPGPlugin.getInstance().getConfig().getDouble("bosses.class-set-drop-chance", 0.08);
     }
 
     public LivingEntity spawnWorldBoss(BossDefinition definition, Location location) {
@@ -212,7 +205,6 @@ public final class BossManager {
             Player player = Bukkit.getPlayer(participantUuid);
             if (player == null || !player.isOnline() || !guildAPI.isRegistered(participantUuid)) continue;
             participants.add(participantUuid);
-            rollClassSetDrop(player, participantUuid, activeBoss.getDefinition().getLevel(), random);
             if (lootConfig == null) continue;
             economyAPI.deposit(participantUuid, lootConfig.moneyReward());
             guildAPI.addExperience(participantUuid, lootConfig.expReward());
@@ -228,20 +220,6 @@ public final class BossManager {
             }
         }
         Bukkit.getPluginManager().callEvent(new BossDefeatedEvent(activeBoss.getDefinition().getId(), participants));
-    }
-
-    private void rollClassSetDrop(Player player, UUID uuid, int bossLevel, Random random) {
-        if (classSetDropChance <= 0.0 || random.nextDouble() >= classSetDropChance) return;
-        PlayerClass playerClass = guildAPI.getPlayerClass(uuid);
-        if (playerClass == PlayerClass.NONE) return;
-        ClassSetSlot[] slots = ClassSetSlot.values();
-        ClassSetSlot slot = slots[random.nextInt(slots.length)];
-        ItemStack setItem = ClassSetItemFactory.create(playerClass, slot, bossLevel);
-        player.getInventory().addItem(setItem).values()
-                .forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
-        lang.send(player, "boss.class-set-drop", "class",
-                net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(playerClass.displayName()),
-                "slot", slot.name());
     }
 
     private void cleanup(ActiveBoss activeBoss) {
