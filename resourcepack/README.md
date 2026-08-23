@@ -1,24 +1,57 @@
 # PixelRPG Resource Pack
 
-Medieval/fantasy visual layer for PixelRPG.
+Stand: 2026-08-23
 
-## Art direction
+> Aktuelle technische Dokumentation des Resourcepacks. Der Gesamtprojektstand steht in `../audit.md`.
 
-- Hand-painted pixel-art appearance
-- Medieval European fantasy
-- Dark oak, aged iron, leather, brass and stone as the core material language
-- Strong silhouettes and readable item icons
-- No sci-fi, modern or neon aesthetic
-- Rarity presentation is intentionally subtle and handled by the game UI/item presentation
+## Status
 
-## Structure
+Das Resourcepack ist ein laufender Arbeitsbereich und **nicht abgeschlossen**.
 
-`assets/minecraft/` contains only deliberate vanilla overrides when required by the visual direction.
+Es dient ausschließlich als visuelle Ebene für PixelRPG. Gameplay-Logik gehört nicht hier hinein.
 
-`assets/pixelrpg/` contains PixelRPG-owned assets and future custom-model textures.
+## Art Direction
 
-`source/` contains editable vector/pixel-art source material. Minecraft Java does not load SVG directly; final PNG exports belong in the corresponding `assets/*/textures/` directories.
+- Hand-painted Pixel-Art
+- Medieval European Fantasy
+- Dark Oak, aged iron, leather, brass and stone
+- klare Silhouetten und gut erkennbare Item-Icons
+- keine Sci-Fi-, modernen oder Neon-Optiken
+- Rarity-Darstellung bleibt bewusst dezent und wird primär über Spiel-/Item-UI vermittelt
 
-## Important
+## Struktur
 
-This pack is intentionally isolated from the plugin source. No Java, YAML gameplay configuration, database code, or server logic belongs in this directory.
+`assets/minecraft/` enthält nur bewusst gewählte Vanilla-Overrides.
+
+`assets/pixelrpg/` enthält PixelRPG-eigene Assets und Custom-Model-/Texture-Dateien.
+
+`source/` enthält editierbare Ausgangsdaten. Minecraft Java lädt SVG nicht direkt; finale PNG-Dateien gehören in die entsprechenden `assets/*/textures/` Verzeichnisse.
+
+## Aktueller Prüfpunkt
+
+Nach dem Gameplay-Cleanup müssen vorhandene Assets gegen die aktuelle Runtime geprüft werden.
+
+Insbesondere:
+
+- Mana-bezogene Assets klassifizieren.
+- keine verwaisten Gameplay-Referenzen behalten.
+- neue PixelRPG-Items nur zusammen mit ihrer tatsächlichen Gameplay-Identität dokumentieren.
+- Vanilla-Overrides nur bewusst und begründet hinzufügen.
+
+## Trennung
+
+```text
+resourcepack/
+    ↓
+Visuals / Models / Textures / Language
+
+src/
+    ↓
+Gameplay / Java / Daten / Serverlogik
+```
+
+Keine Java-, YAML-, Datenbank- oder Serverlogik in diesem Verzeichnis.
+
+## Arbeitsregel
+
+Neue Assets werden erst als Teil des aktuellen Systems betrachtet, wenn ihre Verwendung im Plugin nachvollziehbar ist.
