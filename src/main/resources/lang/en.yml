@@ -19,7 +19,7 @@ reception:
   status-not-registered: "Not Registered"
   class-label: "Class: "
   money-label: "Money: %amount% Gold"
-  title-label: "%title%"
+  title-label: "Title: %title%"
   membership-active: "Membership Active"
   register-button: "Register"
   resign-button: "Resign from the Guild"
