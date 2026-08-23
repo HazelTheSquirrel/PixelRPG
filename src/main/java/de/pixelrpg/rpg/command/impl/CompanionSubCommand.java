@@ -42,7 +42,9 @@ public final class CompanionSubCommand implements SubCommand {
         }
 
         String companionId = args[2].strip();
-        if (!companionService.unlockDefinition(target.getUniqueId(), companionId)) {
+        boolean granted = companionService.unlockDefinition(target.getUniqueId(), companionId)
+                || companionService.unlockUnique(target.getUniqueId(), companionId, null, null);
+        if (!granted) {
             sender.sendMessage(Component.text("Companion konnte nicht freigeschaltet werden. Prüfe ID und Unlock-Regeln.", NamedTextColor.RED));
             return true;
         }
