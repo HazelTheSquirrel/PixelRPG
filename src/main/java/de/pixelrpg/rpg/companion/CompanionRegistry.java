@@ -115,6 +115,13 @@ public final class CompanionRegistry {
                 bool(combat, "friendlyTargets", false),
                 bool(combat, "protectOwner", true));
 
+        JsonObject mount = object(json, "mount");
+        CompanionDefinition.CompanionMountDefinition mountDefinition = new CompanionDefinition.CompanionMountDefinition(
+                bool(mount, "enabled", false),
+                enumValue(CompanionDefinition.CompanionMountDefinition.Type.class, string(mount, "type", "GROUND"), CompanionDefinition.CompanionMountDefinition.Type.GROUND),
+                Math.max(0.05D, number(mount, "movementSpeed", 0.55D)),
+                bool(mount, "requiresSaddle", true));
+
         JsonObject equipment = object(json, "equipment");
         CompanionDefinition.CompanionEquipmentDefaults equipmentDefaults = new CompanionDefinition.CompanionEquipmentDefaults(
                 string(equipment, "helmet", ""), string(equipment, "chestplate", ""), string(equipment, "leggings", ""),
@@ -142,7 +149,7 @@ public final class CompanionRegistry {
 
         return new CompanionDefinition(id, displayName, description, rarity,
                 new CompanionDefinition.CompanionVisualDefinition(visualType, entityType, scale, skin), baseStats,
-                followDefinition, combatDefinition, equipmentDefaults, progressionDefinition, abilities, passives,
+                followDefinition, combatDefinition, mountDefinition, equipmentDefaults, progressionDefinition, abilities, passives,
                 unlockDefinition, flags, json.deepCopy());
     }
 
