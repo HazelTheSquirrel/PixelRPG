@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.dialogue;
 
 import de.pixelrpg.rpg.companion.Companion;
+import de.pixelrpg.rpg.companion.CompanionDefinition;
 import de.pixelrpg.rpg.companion.CompanionService;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.registry.data.dialog.ActionButton;
@@ -14,13 +15,12 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickCallback;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native dialog for viewing and managing the player's companions. */
+/** Native current Paper dialog for companion ownership, progression, activation and equipment. */
 public final class CompanionDialog {
     private static final String EQUIP_ACTION_PREFIX = "pixelrpg:companion_equip/";
 
@@ -37,18 +37,16 @@ public final class CompanionDialog {
         List<DialogBody> body = new ArrayList<>();
         List<ActionButton> actions = new ArrayList<>();
 
-        body.add(DialogBody.plainMessage(Component.text(
-                "Begleiter sammeln eigene Erfahrung und können bis Level 99 aufsteigen. Nur aktive Begleiter erhalten Erfahrung.",
-                NamedTextColor.WHITE)));
+        body.add(DialogBody.plainMessage(Component.text("Begleiter besitzen eigene Erfahrung und Progression. Nur der aktive Begleiter erhält aktuell Erfahrung.", NamedTextColor.WHITE)));
+        if (companions.isEmpty()) body.add(DialogBody.plainMessage(Component.text("Du besitzt noch keinen Begleiter.", NamedTextColor.GRAY)));
 
         for (Companion companion : companions) {
+            CompanionDefinition definition = companionService.definition(companion.id());
             long currentXp = companionService.experienceWithinLevel(companion);
             long nextXp = companionService.experienceNeededForCurrentLevel(companion);
-            Component status = companion.active()
-                    ? Component.text("Aktiv", NamedTextColor.GREEN)
-                    : Component.text("Inaktiv", NamedTextColor.GRAY);
+            Component status = companion.active() ? Component.text("Aktiv", NamedTextColor.GREEN) : Component.text("Inaktiv", NamedTextColor.GRAY);
 
-            body.add(DialogBody.plainMessage(Component.text()
+            Component line = Component.text()
                     .append(Component.text(companion.name(), companion.rarity().isUnique() ? NamedTextColor.GOLD : NamedTextColor.LIGHT_PURPLE))
                     .append(Component.text("  •  ", NamedTextColor.DARK_GRAY))
                     .append(Component.text(companion.rarity().name(), NamedTextColor.YELLOW))
@@ -58,48 +56,38 @@ public final class CompanionDialog {
                     .append(Component.text(currentXp + "/" + (nextXp == Long.MAX_VALUE ? "MAX" : nextXp), NamedTextColor.AQUA))
                     .append(Component.text("  •  ", NamedTextColor.DARK_GRAY))
                     .append(status)
-                    .build()));
+                    .build();
+            body.add(DialogBody.plainMessage(line));
+            if (!definition.description().isBlank()) body.add(DialogBody.plainMessage(Component.text(definition.description(), NamedTextColor.GRAY)));
 
-            // Der Active-State steuert ausschließlich Rufen/Wegschicken.
+            // Der Active-State steuert ausschließlich Rufen und Wegschicken.
             if (!companion.active()) {
-                actions.add(dialogueEngine.actionButton(
-                        Component.text("Rufen: ").append(Component.text(companion.name(), NamedTextColor.LIGHT_PURPLE)),
-                        NamedTextColor.GREEN,
-                        target -> {
-                            companionService.setActive(target, companion.id());
-                            open(target);
-                        }));
+                actions.add(dialogueEngine.actionButton(Component.text("Rufen: ").append(Component.text(companion.name(), NamedTextColor.LIGHT_PURPLE)), NamedTextColor.GREEN, target -> {
+                    companionService.setActive(target, companion.id());
+                    open(target);
+                }));
             } else {
-                actions.add(dialogueEngine.actionButton(
-                        Component.text("Wegschicken"), NamedTextColor.RED,
-                        target -> {
-                            companionService.clearActive(target);
-                            open(target);
-                        }));
+                actions.add(dialogueEngine.actionButton(Component.text("Wegschicken"), NamedTextColor.RED, target -> {
+                    companionService.clearActive(target);
+                    open(target);
+                }));
+            }
+
+            // Equipment ist eine Definitionseigenschaft und steht nicht nur Unique-Companions zur Verfügung.
+            if (definition.equipment().enabled()) {
+                actions.add(ActionButton.builder(Component.text("Ausrüstung", NamedTextColor.AQUA))
+                        .action(DialogAction.customClick(Key.key(EQUIP_ACTION_PREFIX + companion.id()), null))
+                        .width(220)
+                        .build());
             }
 
             // Normale Companions können umbenannt werden; Unique-Companions haben einen festen Namen.
-            if (companion.rarity().isUnique()) {
-                // Equip ist eine feste Eigenschaft des Mannequin-Companions und unabhängig vom Active-State.
-                if (companion.entityType() == EntityType.MANNEQUIN) {
-                    actions.add(ActionButton.builder(Component.text("Equip", NamedTextColor.AQUA))
-                            .action(DialogAction.customClick(Key.key(EQUIP_ACTION_PREFIX + companion.id()), null))
-                            .width(220)
-                            .build());
-                }
-            } else {
-                actions.add(dialogueEngine.actionButton(
-                        Component.text("Umbenennen"), NamedTextColor.YELLOW,
-                        target -> openRename(target, companion)));
+            if (definition.renameable() && !companion.rarity().isUnique()) {
+                actions.add(dialogueEngine.actionButton(Component.text("Umbenennen"), NamedTextColor.YELLOW, target -> openRename(target, companion)));
             }
         }
 
-        dialogueEngine.openMultiAction(
-                player,
-                Component.text("PixelRPG – Begleiter", NamedTextColor.GOLD),
-                body,
-                actions,
-                2);
+        dialogueEngine.openMultiAction(player, Component.text("PixelRPG – Begleiter", NamedTextColor.GOLD), body, actions, 2);
     }
 
     public static boolean isEquipAction(Key identifier) {
@@ -113,15 +101,7 @@ public final class CompanionDialog {
     }
 
     private void openRename(Player player, Companion companion) {
-        DialogInput input = DialogInput.text(
-                "name",
-                220,
-                Component.text("Neuer Name", NamedTextColor.WHITE),
-                true,
-                companion.name(),
-                24,
-                null);
-
+        DialogInput input = DialogInput.text("name", 220, Component.text("Neuer Name", NamedTextColor.WHITE), true, companion.name(), 24, null);
         DialogAction rename = DialogAction.customClick((response, audience) -> {
             if (!(audience instanceof Player target)) return;
             String name = response.getText("name");
@@ -133,18 +113,13 @@ public final class CompanionDialog {
             open(target);
         }, ClickCallback.Options.builder().uses(1).build());
 
-        ActionButton confirm = ActionButton.builder(Component.text("Umbenennen", NamedTextColor.GREEN))
-                .action(rename)
-                .width(220)
-                .build();
-        ActionButton cancel = dialogueEngine.actionButton(
-                Component.text("Abbrechen"), NamedTextColor.RED, this::open);
+        ActionButton confirm = ActionButton.builder(Component.text("Umbenennen", NamedTextColor.GREEN)).action(rename).width(220).build();
+        ActionButton cancel = dialogueEngine.actionButton(Component.text("Abbrechen"), NamedTextColor.RED, this::open);
 
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(Component.text("Begleiter umbenennen", NamedTextColor.GOLD))
-                    .body(List.of(DialogBody.plainMessage(Component.text(
-                            "Vergib einen Namen für deinen Begleiter.", NamedTextColor.WHITE))))
+                    .body(List.of(DialogBody.plainMessage(Component.text("Vergib einen Namen für deinen Begleiter.", NamedTextColor.WHITE))))
                     .inputs(List.of(input))
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
