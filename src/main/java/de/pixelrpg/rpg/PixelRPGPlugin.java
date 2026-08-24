@@ -8,31 +8,33 @@ import de.pixelrpg.rpg.boss.BossDamageContributionListener;
 import de.pixelrpg.rpg.boss.BossDeathListener;
 import de.pixelrpg.rpg.boss.BossManager;
 import de.pixelrpg.rpg.boss.BossRepository;
-import de.pixelrpg.rpg.boss.EnrageBuffPattern;
-import de.pixelrpg.rpg.boss.ProjectileVolleyPattern;
-import de.pixelrpg.rpg.boss.SlamAttackPattern;
-import de.pixelrpg.rpg.boss.SummonAddsPattern;
+import de.pixelrpg.rpg.boss.patterns.EnrageBuffPattern;
+import de.pixelrpg.rpg.boss.patterns.ProjectileVolleyPattern;
+import de.pixelrpg.rpg.boss.patterns.SlamAttackPattern;
+import de.pixelrpg.rpg.boss.patterns.SummonAddsPattern;
 import de.pixelrpg.rpg.command.PaperBasicCommandAdapter;
 import de.pixelrpg.rpg.command.RootCommand;
 import de.pixelrpg.rpg.command.impl.BlacksmithSubCommand;
 import de.pixelrpg.rpg.command.impl.BossSubCommand;
 import de.pixelrpg.rpg.command.impl.CompanionSubCommand;
-import de.pixelrpg.rpg.command.impl.DialogueCommand;
 import de.pixelrpg.rpg.command.impl.NpcSubCommand;
 import de.pixelrpg.rpg.command.impl.PartySubCommand;
 import de.pixelrpg.rpg.command.impl.QuestAdminSubCommand;
 import de.pixelrpg.rpg.command.impl.QuestLogCommand;
 import de.pixelrpg.rpg.command.impl.ShopSubCommand;
 import de.pixelrpg.rpg.combat.CombatDamageListener;
-import de.pixelrpg.rpg.combat.SkillInputListener;
-import de.pixelrpg.rpg.combat.WeaponAbilityEngine;
+import de.pixelrpg.rpg.combat.MobExperienceListener;
+import de.pixelrpg.rpg.combat.SoulboundDeathListener;
+import de.pixelrpg.rpg.combat.skill.SkillInputListener;
+import de.pixelrpg.rpg.combat.skill.WeaponAbilityEngine;
 import de.pixelrpg.rpg.combat.scaling.MobLevelScalingListener;
 import de.pixelrpg.rpg.combat.scaling.MobNameplateListener;
 import de.pixelrpg.rpg.combat.scaling.MobNameplateService;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.companion.CompanionExperienceListener;
 import de.pixelrpg.rpg.companion.CompanionService;
-import de.pixelrpg.rpg.crafting.CraftingGUI;
+import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.dialogue.DialogueCommand;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
@@ -41,13 +43,13 @@ import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.economy.GuildCurrencyPickupListener;
 import de.pixelrpg.rpg.equipment.EquipmentService;
 import de.pixelrpg.rpg.gui.BlacksmithGUI;
+import de.pixelrpg.rpg.gui.CraftingGUI;
 import de.pixelrpg.rpg.gui.GUIListener;
 import de.pixelrpg.rpg.gui.ShopEditorGUI;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.ItemService;
-import de.pixelrpg.rpg.item.LootDropListener;
+import de.pixelrpg.rpg.combat.loot.LootDropListener;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
-import de.pixelrpg.rpg.item.SoulboundDeathListener;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcBehaviorRegistry;
 import de.pixelrpg.rpg.npc.NpcChunkListener;
@@ -266,22 +268,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> event.registrar().register(name, adapter));
     }
 
-    public static PixelRPGPlugin getInstance() { return instance; }
-    public CompanionService getCompanionService() { return companionService; }
-    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
-    public StatEngine getStatEngine() { return statEngine; }
-    public ProfessionSystem getProfessionSystem() { return professionSystem; }
-    public ItemService getItemService() { return itemService; }
-    public EquipmentService getEquipmentService() { return equipmentService; }
-    public NpcManager getNpcManager() { return npcManager; }
-    public ShopManager getShopManager() { return shopManager; }
-    public StoryManager getStoryManager() { return storyManager; }
-    public PartyManager getPartyManager() { return partyManager; }
-    public QuestManager getQuestManager() { return questManager; }
-    public GlobalEventState getGlobalEventState() { return globalEventState; }
-    public BossManager getBossManager() { return bossManager; }
-    public StatisticsService getStatisticsService() { return statisticsService; }
-    public ScoreboardService getScoreboardService() { return scoreboardService; }
-    public PlaytimeTracker getPlaytimeTracker() { return playtimeTracker; }
-    public LanguageManager getLanguageManager() { return languageManager; }
+    public static PixelRPGPlugin getInstance() {
+        return instance;
+    }
 }
