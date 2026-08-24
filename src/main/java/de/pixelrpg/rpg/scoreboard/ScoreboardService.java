@@ -182,7 +182,7 @@ public final class ScoreboardService implements Listener {
     }
 
     private String entryFor(int index) {
-        return "pixelrpg_line_" + index;
+        return "\u200B".repeat(index + 1);
     }
 
     private List<Component> buildLines(Player player, PlayerProfile profile) {
