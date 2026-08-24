@@ -20,7 +20,9 @@ public record ItemDefinition(
         boolean unique,
         boolean adminOnly,
         String resourcepackId,
-        double gearscoreModifier
+        double gearscoreModifier,
+        String equipmentSlot,
+        String setId
 ) {
     public ItemDefinition {
         Objects.requireNonNull(id, "id");
@@ -29,6 +31,8 @@ public record ItemDefinition(
         Objects.requireNonNull(rarity, "rarity");
         Objects.requireNonNull(category, "category");
         id = normalize(id);
+        equipmentSlot = equipmentSlot == null ? "" : equipmentSlot.trim().toUpperCase(Locale.ROOT);
+        setId = setId == null ? "" : setId.trim().toLowerCase(Locale.ROOT);
         if (itemLevel < 1 || itemLevel > 99) throw new IllegalArgumentException("itemLevel must be between 1 and 99");
         if (requiredLevel < 1 || requiredLevel > 99) throw new IllegalArgumentException("requiredLevel must be between 1 and 99");
         if (requiredLevel > itemLevel) throw new IllegalArgumentException("requiredLevel must not exceed itemLevel");
