@@ -8,7 +8,8 @@ import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
-import org.bukkit.NamespacedKey;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
@@ -107,6 +108,14 @@ public final class CombatDamageListener implements Listener {
             attacker.setHealth(Math.min(maxHp, attacker.getHealth() + heal));
         }
 
+        Component feedback = Component.text(
+                (critical ? "CRIT! -" : "-") + formatFeedback(finalDamage),
+                critical ? NamedTextColor.RED : NamedTextColor.WHITE);
+        if (heal > 0.0D) {
+            feedback = feedback.append(Component.text("  +" + formatFeedback(heal), NamedTextColor.GREEN));
+        }
+        attacker.sendActionBar(feedback);
+
         if (critical) {
             attacker.sendActionBar(languageManager.get("combat.critical-hit"));
             target.getWorld().spawnParticle(Particle.CRIT, target.getLocation().add(0.0D, 1.0D, 0.0D), 12, 0.3D, 0.3D, 0.3D);
@@ -128,6 +137,7 @@ public final class CombatDamageListener implements Listener {
         double replacementRawDamage = CombatDamageCalculator.customDamageBeforeVanillaMitigation(
                 finalDamage, event.getDamage(), event.getFinalDamage());
         event.setDamage(replacementRawDamage);
+        player.sendActionBar(Component.text("-" + formatFeedback(finalDamage), NamedTextColor.RED));
     }
 
     // Zuständig für den Schutz nicht registrierter Spieler vor RPG-Monstern.
@@ -164,6 +174,11 @@ public final class CombatDamageListener implements Listener {
     private double getArmor(LivingEntity entity) {
         AttributeInstance armor = entity.getAttribute(Attribute.ARMOR);
         return armor == null ? 0.0D : Math.max(0.0D, armor.getValue());
+    }
+
+    private String formatFeedback(double value) {
+        if (Math.abs(value - Math.rint(value)) < 0.05D) return Long.toString(Math.round(value));
+        return String.format(java.util.Locale.ROOT, "%.1f", value);
     }
 
     private boolean isRpgEntity(LivingEntity entity) {
