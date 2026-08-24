@@ -2,6 +2,7 @@
 package de.pixelrpg.rpg.gui;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -21,7 +22,7 @@ public abstract class AbstractGUI {
 
     protected AbstractGUI(int size, Component title) {
         this.size = size;
-        this.title = title;
+        this.title = title.color(NamedTextColor.BLACK);
     }
 
     public final Inventory build() {
