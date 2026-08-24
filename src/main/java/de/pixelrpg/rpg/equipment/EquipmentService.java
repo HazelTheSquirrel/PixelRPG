@@ -105,21 +105,23 @@ public final class EquipmentService implements Listener {
 
     private ItemStack copy(ItemStack item) { return item == null ? null : item.clone(); }
 
-    private Optional<EquipmentSlot> slotForInventory(PlayerInventory inventory, int rawSlot) {
-        if (rawSlot == 5) return Optional.of(EquipmentSlot.HELMET);
-        if (rawSlot == 6) return Optional.of(EquipmentSlot.CHEST);
-        if (rawSlot == 7) return Optional.of(EquipmentSlot.LEGS);
-        if (rawSlot == 8) return Optional.of(EquipmentSlot.FEET);
-        if (rawSlot == 45) return Optional.of(EquipmentSlot.OFFHAND);
-        return Optional.empty();
+    private Optional<EquipmentSlot> slotForPlayerInventory(int slot) {
+        return switch (slot) {
+            case 36 -> Optional.of(EquipmentSlot.FEET);
+            case 37 -> Optional.of(EquipmentSlot.LEGS);
+            case 38 -> Optional.of(EquipmentSlot.CHEST);
+            case 39 -> Optional.of(EquipmentSlot.HELMET);
+            case 40 -> Optional.of(EquipmentSlot.OFFHAND);
+            default -> Optional.empty();
+        };
     }
 
     /** Revalidates PixelRPG items placed into armor/offhand slots and refreshes stats after inventory changes. */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        if (!(event.getClickedInventory() instanceof PlayerInventory inventory)) return;
-        slotForInventory(inventory, event.getSlot()).ifPresent(slot -> {
+        if (!(event.getClickedInventory() instanceof PlayerInventory)) return;
+        slotForPlayerInventory(event.getSlot()).ifPresent(slot -> {
             ItemStack candidate = event.getCursor();
             if (candidate == null || candidate.isEmpty()) candidate = event.getCurrentItem();
             if (!canUseSlot(candidate, slot)) event.setCancelled(true);
@@ -131,21 +133,6 @@ public final class EquipmentService implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onInventoryDrag(InventoryDragEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        for (int rawSlot : event.getRawSlots()) {
-            if (rawSlot < 0 || rawSlot >= player.getInventory().getSize()) continue;
-            EquipmentSlot slot = switch (rawSlot) {
-                case 5 -> EquipmentSlot.HELMET;
-                case 6 -> EquipmentSlot.CHEST;
-                case 7 -> EquipmentSlot.LEGS;
-                case 8 -> EquipmentSlot.FEET;
-                case 45 -> EquipmentSlot.OFFHAND;
-                default -> null;
-            };
-            if (slot != null && !canUseSlot(event.getOldCursor(), slot)) {
-                event.setCancelled(true);
-                return;
-            }
-        }
         player.getScheduler().runDelayed(de.pixelrpg.rpg.PixelRPGPlugin.getInstance(), task -> refresh(player), null, 1L);
     }
 
