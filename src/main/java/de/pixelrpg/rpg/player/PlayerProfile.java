@@ -52,6 +52,12 @@ public final class PlayerProfile {
     public UUID getUuid() { return uuid; }
     public synchronized boolean isRegistered() { return registered; }
     public synchronized void setRegistered(boolean value) { registered = value; dirty = true; }
+    /** Legacy naming retained temporarily for non-guild systems already compiled against the old profile API. */
+    @Deprecated(forRemoval = true)
+    public synchronized boolean isRegisteredInGuild() { return isRegistered(); }
+    /** Legacy naming retained temporarily; this does not represent guild membership. */
+    @Deprecated(forRemoval = true)
+    public synchronized void setRegisteredInGuild(boolean value) { setRegistered(value); }
     public synchronized long getExperience() { return experience; }
     public synchronized void setExperience(long value) { experience = Math.max(0L, value); dirty = true; }
     public synchronized void addExperience(long amount) { if (amount > 0L) { experience += amount; dirty = true; } }
