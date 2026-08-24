@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.stats;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.api.CharacterStatType;
 import de.pixelrpg.rpg.companion.Companion;
 import de.pixelrpg.rpg.companion.CompanionDefinition;
 import de.pixelrpg.rpg.companion.CompanionPassiveStats;
