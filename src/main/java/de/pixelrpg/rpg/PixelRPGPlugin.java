@@ -174,8 +174,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         new WorldBossSpawnTask(this, bossRepository, bossManager, playerProfileManager, getConfig().getBoolean("bosses.auto-spawn.enabled", true), getConfig().getInt("bosses.auto-spawn.interval-minutes", 45), getConfig().getDouble("bosses.auto-spawn.spawn-radius", 80.0), getConfig().getInt("bosses.auto-spawn.max-concurrent", 2)).start();
         statisticsService = new StatisticsService(playerProfileManager);
         Bukkit.getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
-        companionService = new CompanionService(this);
-        scoreboardService = new ScoreboardService(this, playerProfileManager, companionService, getConfig().getInt("scoreboard.update-interval-ticks", 20));
+        scoreboardService = new ScoreboardService(this, playerProfileManager, getConfig().getInt("scoreboard.update-interval-ticks", 20));
         scoreboardService.startTask();
         playtimeTracker = new PlaytimeTracker(this, playerProfileManager);
         playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
@@ -186,6 +185,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         DialogueEngine dialogueEngine = new DialogueEngine();
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine);
+        companionService = new CompanionService(this);
         npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine, partyManager));
         npcBehaviorRegistry.register(new BlacksmithBehavior(blacksmithGUI, craftingGUI, playerProfileManager, dialogueEngine));
@@ -261,6 +261,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     public static PixelRPGPlugin getInstance() {
         return instance;
+    }
+
+    public CompanionService getCompanionService() {
+        return companionService;
     }
 
     public PlayerProfileManager getPlayerProfileManager() {
