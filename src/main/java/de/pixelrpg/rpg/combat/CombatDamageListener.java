@@ -5,7 +5,6 @@ import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.lang.LanguageManager;
-import de.pixelrpg.rpg.player.ClassBalance;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
@@ -29,7 +28,7 @@ import org.bukkit.projectiles.ProjectileSource;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class CombatDamageListener implements Listener {
-    private static final double MAX_CRIT_CHANCE = 50.0D;
+    private static final double MAX_CRIT_CHANCE = 100.0D;
 
     private final GuildAPI guildAPI;
     private final PlayerProfileManager profileManager;
@@ -58,11 +57,10 @@ public final class CombatDamageListener implements Listener {
     public void onCombatDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity target)) return;
         Player attacker = null;
-        boolean isRanged = false;
         if (event.getDamager() instanceof Player player) attacker = player;
         else if (event.getDamager() instanceof Projectile projectile) {
             ProjectileSource shooter = projectile.getShooter();
-            if (shooter instanceof Player player) { attacker = player; isRanged = true; }
+            if (shooter instanceof Player player) attacker = player;
         }
         if (attacker == null) return;
 
@@ -71,7 +69,10 @@ public final class CombatDamageListener implements Listener {
             return;
         }
         if (!guildAPI.isRegistered(attacker.getUniqueId())) return;
-        if (target instanceof Player targetPlayer && !guildAPI.isRegistered(targetPlayer.getUniqueId())) return;
+        if (target instanceof Player targetPlayer && !guildAPI.isRegistered(targetPlayer.getUniqueId())) {
+            event.setCancelled(true);
+            return;
+        }
         if (target instanceof Player) return;
         PlayerProfile profile = profileManager.getProfile(attacker.getUniqueId()).orElse(null);
         if (profile == null) return;
@@ -104,8 +105,6 @@ public final class CombatDamageListener implements Listener {
             attacker.playSound(attacker.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.6f, 1.4f);
         }
 
-        ClassBalance classBalance = ClassBalance.of(profile);
-        damage *= isRanged ? classBalance.rangedDamageMultiplier() : classBalance.meleeDamageMultiplier();
         boolean targetIsBoss = target.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING);
         if (targetIsBoss) {
             var maxHealthAttribute = target.getAttribute(Attribute.MAX_HEALTH);
