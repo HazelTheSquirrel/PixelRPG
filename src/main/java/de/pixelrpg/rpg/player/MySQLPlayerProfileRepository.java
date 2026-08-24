@@ -1,14 +1,19 @@
 package de.pixelrpg.rpg.player;
 
+import de.pixelrpg.rpg.equipment.EquipmentSlot;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.quest.QuestProgress;
 import de.pixelrpg.rpg.storage.DatabaseManager;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -22,9 +27,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
     private final DatabaseManager databaseManager;
 
     public MySQLPlayerProfileRepository(DatabaseManager databaseManager) { this.databaseManager = databaseManager; }
-
-    @Override
-    public void init() throws SQLException { databaseManager.createTables(); }
+    @Override public void init() throws SQLException { databaseManager.createTables(); }
 
     @Override
     public Optional<PlayerProfile> load(UUID uuid) throws SQLException {
@@ -33,6 +36,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
             if (profile == null) return Optional.empty();
             loadActiveQuests(connection, uuid, profile);
             loadStatistics(connection, uuid, profile);
+            loadEquipment(connection, uuid, profile);
             profile.markClean();
             return Optional.of(profile);
         }
@@ -85,22 +89,36 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                     String key = resultSet.getString("stat_key");
                     long value = resultSet.getLong("value");
                     if (key.startsWith(PROFESSION_XP_PREFIX)) {
-                        try { profile.setProfessionExperience(Profession.valueOf(key.substring(PROFESSION_XP_PREFIX.length()).toUpperCase()), value); }
-                        catch (IllegalArgumentException ignored) { }
+                        try { profile.setProfessionExperience(Profession.valueOf(key.substring(PROFESSION_XP_PREFIX.length()).toUpperCase()), value); } catch (IllegalArgumentException ignored) { }
                     } else if (key.startsWith(PROFESSION_LEARNED_PREFIX)) {
-                        try { if (value > 0L) profile.learnProfession(Profession.valueOf(key.substring(PROFESSION_LEARNED_PREFIX.length()).toUpperCase())); }
-                        catch (IllegalArgumentException ignored) { }
+                        try { if (value > 0L) profile.learnProfession(Profession.valueOf(key.substring(PROFESSION_LEARNED_PREFIX.length()).toUpperCase())); } catch (IllegalArgumentException ignored) { }
                     } else if (key.startsWith(PROFESSION_LEVEL_PREFIX)) {
-                        try { profile.setProfessionLevel(Profession.valueOf(key.substring(PROFESSION_LEVEL_PREFIX.length()).toUpperCase()), (int) value); }
-                        catch (IllegalArgumentException ignored) { }
+                        try { profile.setProfessionLevel(Profession.valueOf(key.substring(PROFESSION_LEVEL_PREFIX.length()).toUpperCase()), (int) value); } catch (IllegalArgumentException ignored) { }
                     } else if (key.startsWith(RECIPE_UNLOCK_PREFIX)) {
                         if (value > 0L) profile.unlockRecipe(key.substring(RECIPE_UNLOCK_PREFIX.length()));
-                    } else {
-                        profile.setStatistic(key, value);
-                    }
+                    } else profile.setStatistic(key, value);
                 }
             }
         }
+    }
+
+    private void loadEquipment(Connection connection, UUID uuid, PlayerProfile profile) throws SQLException {
+        MapBuilder equipment = new MapBuilder();
+        String sql = "SELECT slot, item_yaml FROM pixelrpg_player_equipment WHERE uuid = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, uuid.toString());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    try {
+                        EquipmentSlot slot = EquipmentSlot.valueOf(resultSet.getString("slot"));
+                        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(new StringReader(resultSet.getString("item_yaml")));
+                        ItemStack item = yaml.getItemStack("item");
+                        if (item != null && !item.isEmpty()) equipment.put(slot, item);
+                    } catch (IllegalArgumentException ignored) { }
+                }
+            }
+        }
+        profile.setEquipment(equipment.values());
     }
 
     @Override
@@ -118,6 +136,8 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 """;
         String deleteQuestsSql = "DELETE FROM pixelrpg_active_quests WHERE uuid = ?";
         String insertQuestSql = "INSERT INTO pixelrpg_active_quests (uuid, quest_id, amount, expiry) VALUES (?, ?, ?, ?)";
+        String deleteEquipmentSql = "DELETE FROM pixelrpg_player_equipment WHERE uuid = ?";
+        String insertEquipmentSql = "INSERT INTO pixelrpg_player_equipment (uuid, slot, item_yaml) VALUES (?, ?, ?)";
         String upsertStatSql = """
                 INSERT INTO pixelrpg_player_stats (uuid, stat_key, value) VALUES (?, ?, ?)
                 ON DUPLICATE KEY UPDATE value = VALUES(value)
@@ -140,48 +160,57 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                     statement.setLong(11, profile.getPlaytimeMillis());
                     statement.executeUpdate();
                 }
-                try (PreparedStatement deleteStatement = connection.prepareStatement(deleteQuestsSql)) {
-                    deleteStatement.setString(1, profile.getUuid().toString());
-                    deleteStatement.executeUpdate();
+                try (PreparedStatement statement = connection.prepareStatement(deleteQuestsSql)) {
+                    statement.setString(1, profile.getUuid().toString());
+                    statement.executeUpdate();
                 }
-                if (!profile.getActiveQuests().isEmpty()) {
-                    try (PreparedStatement insertStatement = connection.prepareStatement(insertQuestSql)) {
-                        for (QuestProgress progress : profile.getActiveQuests().values()) {
-                            insertStatement.setString(1, profile.getUuid().toString());
-                            insertStatement.setString(2, progress.getQuestId());
-                            insertStatement.setInt(3, progress.getCurrentAmount());
-                            insertStatement.setLong(4, progress.getExpiryTimestampMillis());
-                            insertStatement.addBatch();
-                        }
-                        insertStatement.executeBatch();
+                if (!profile.getActiveQuests().isEmpty()) try (PreparedStatement statement = connection.prepareStatement(insertQuestSql)) {
+                    for (QuestProgress progress : profile.getActiveQuests().values()) {
+                        statement.setString(1, profile.getUuid().toString());
+                        statement.setString(2, progress.getQuestId());
+                        statement.setInt(3, progress.getCurrentAmount());
+                        statement.setLong(4, progress.getExpiryTimestampMillis());
+                        statement.addBatch();
                     }
+                    statement.executeBatch();
                 }
-                try (PreparedStatement statStatement = connection.prepareStatement(upsertStatSql)) {
+                try (PreparedStatement statement = connection.prepareStatement(deleteEquipmentSql)) {
+                    statement.setString(1, profile.getUuid().toString());
+                    statement.executeUpdate();
+                }
+                if (!profile.getEquipment().isEmpty()) try (PreparedStatement statement = connection.prepareStatement(insertEquipmentSql)) {
+                    for (var entry : profile.getEquipment().entrySet()) {
+                        YamlConfiguration yaml = new YamlConfiguration();
+                        yaml.set("item", entry.getValue());
+                        statement.setString(1, profile.getUuid().toString());
+                        statement.setString(2, entry.getKey().name());
+                        statement.setString(3, yaml.saveToString());
+                        statement.addBatch();
+                    }
+                    statement.executeBatch();
+                }
+                try (PreparedStatement statement = connection.prepareStatement(upsertStatSql)) {
                     for (var entry : profile.getAllStatistics().entrySet()) {
-                        statStatement.setString(1, profile.getUuid().toString());
-                        statStatement.setString(2, entry.getKey());
-                        statStatement.setLong(3, entry.getValue());
-                        statStatement.addBatch();
+                        statement.setString(1, profile.getUuid().toString());
+                        statement.setString(2, entry.getKey());
+                        statement.setLong(3, entry.getValue());
+                        statement.addBatch();
                     }
                     for (Profession profession : Profession.values()) {
-                        statStatement.setString(1, profile.getUuid().toString());
-                        statStatement.setString(2, PROFESSION_LEVEL_PREFIX + profession.name().toLowerCase());
-                        statStatement.setLong(3, profile.getProfessionLevel(profession));
-                        statStatement.addBatch();
-                        statStatement.setString(2, PROFESSION_XP_PREFIX + profession.name().toLowerCase());
-                        statStatement.setLong(3, profile.getProfessionExperience(profession));
-                        statStatement.addBatch();
-                        statStatement.setString(2, PROFESSION_LEARNED_PREFIX + profession.name().toLowerCase());
-                        statStatement.setLong(3, profile.hasLearnedProfession(profession) ? 1L : 0L);
-                        statStatement.addBatch();
+                        statement.setString(1, profile.getUuid().toString());
+                        statement.setString(2, PROFESSION_LEVEL_PREFIX + profession.name().toLowerCase());
+                        statement.setLong(3, profile.getProfessionLevel(profession)); statement.addBatch();
+                        statement.setString(2, PROFESSION_XP_PREFIX + profession.name().toLowerCase());
+                        statement.setLong(3, profile.getProfessionExperience(profession)); statement.addBatch();
+                        statement.setString(2, PROFESSION_LEARNED_PREFIX + profession.name().toLowerCase());
+                        statement.setLong(3, profile.hasLearnedProfession(profession) ? 1L : 0L); statement.addBatch();
                     }
                     for (String recipeId : profile.getUnlockedRecipes()) {
-                        statStatement.setString(1, profile.getUuid().toString());
-                        statStatement.setString(2, RECIPE_UNLOCK_PREFIX + recipeId);
-                        statStatement.setLong(3, 1L);
-                        statStatement.addBatch();
+                        statement.setString(1, profile.getUuid().toString());
+                        statement.setString(2, RECIPE_UNLOCK_PREFIX + recipeId);
+                        statement.setLong(3, 1L); statement.addBatch();
                     }
-                    statStatement.executeBatch();
+                    statement.executeBatch();
                 }
                 connection.commit();
             } catch (SQLException e) {
@@ -191,6 +220,12 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 connection.setAutoCommit(true);
             }
         }
+    }
+
+    private static final class MapBuilder {
+        private final java.util.Map<EquipmentSlot, ItemStack> values = new EnumMap<>(EquipmentSlot.class);
+        void put(EquipmentSlot slot, ItemStack item) { values.put(slot, item); }
+        java.util.Map<EquipmentSlot, ItemStack> values() { return values; }
     }
 
     @Override public void shutdown() { databaseManager.shutdown(); }
