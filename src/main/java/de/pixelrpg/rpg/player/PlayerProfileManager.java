@@ -2,9 +2,9 @@ package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.api.EconomyAPI;
 import de.pixelrpg.rpg.api.GuildAPI;
-import de.pixelrpg.rpg.api.events.PlayerJoinGuildEvent;
-import de.pixelrpg.rpg.api.events.PlayerLeaveGuildEvent;
 import de.pixelrpg.rpg.api.events.PlayerLevelUpEvent;
+import de.pixelrpg.rpg.api.events.PlayerRegistrationEvent;
+import de.pixelrpg.rpg.api.events.PlayerUnregistrationEvent;
 import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.storage.DatabaseManager;
 import de.pixelrpg.rpg.storage.StorageType;
@@ -125,20 +125,20 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
 
     public Optional<PlayerProfile> getProfile(UUID uuid) { return Optional.ofNullable(activeProfiles.get(uuid)); }
 
-    public void registerToGuild(Player player) {
+    public void registerPlayer(Player player) {
         PlayerProfile profile = activeProfiles.computeIfAbsent(player.getUniqueId(), PlayerProfile::new);
-        if (profile.isRegisteredInGuild()) return;
-        profile.setRegisteredInGuild(true);
+        if (profile.isRegistered()) return;
+        profile.setRegistered(true);
         persistAsync(profile);
-        Bukkit.getPluginManager().callEvent(new PlayerJoinGuildEvent(player));
+        Bukkit.getPluginManager().callEvent(new PlayerRegistrationEvent(player));
     }
 
-    public void leaveGuild(Player player) {
+    public void unregisterPlayer(Player player) {
         PlayerProfile profile = activeProfiles.get(player.getUniqueId());
-        if (profile == null || !profile.isRegisteredInGuild()) return;
+        if (profile == null || !profile.isRegistered()) return;
         profile.resetProgress();
         persistAsync(profile);
-        Bukkit.getPluginManager().callEvent(new PlayerLeaveGuildEvent(player));
+        Bukkit.getPluginManager().callEvent(new PlayerUnregistrationEvent(player));
     }
 
     public void unlockWaypoint(UUID uuid, String waypointId) {
@@ -201,12 +201,12 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
 
     private CompletableFuture<Void> enqueueVoid(UUID uuid, Runnable task) { return enqueue(uuid, () -> { task.run(); return null; }); }
 
-    @Override public boolean isRegistered(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null && p.isRegisteredInGuild(); }
+    @Override public boolean isRegistered(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null && p.isRegistered(); }
     @Override public int getLevel(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null ? p.getLevel() : Level.MIN_LEVEL; }
     @Override public long getExperience(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null ? p.getExperience() : 0L; }
     @Override public void addExperience(UUID uuid, long amount) {
         PlayerProfile profile = activeProfiles.get(uuid);
-        if (profile == null || !profile.isRegisteredInGuild()) return;
+        if (profile == null || !profile.isRegistered()) return;
         int before = profile.getLevel();
         profile.addExperience(amount);
         int after = profile.getLevel();
@@ -217,6 +217,6 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         }
     }
     @Override public double getBalance(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null ? p.getMoney() : 0.0; }
-    @Override public void deposit(UUID uuid, double amount) { PlayerProfile p = activeProfiles.get(uuid); if (p != null && p.isRegisteredInGuild()) { p.addMoney(amount); persistAsync(p); } }
-    @Override public boolean withdraw(UUID uuid, double amount) { PlayerProfile p = activeProfiles.get(uuid); if (p == null || !p.isRegisteredInGuild()) return false; boolean success = p.removeMoney(amount); if (success) persistAsync(p); return success; }
+    @Override public void deposit(UUID uuid, double amount) { PlayerProfile p = activeProfiles.get(uuid); if (p != null && p.isRegistered()) { p.addMoney(amount); persistAsync(p); } }
+    @Override public boolean withdraw(UUID uuid, double amount) { PlayerProfile p = activeProfiles.get(uuid); if (p == null || !p.isRegistered()) return false; boolean success = p.removeMoney(amount); if (success) persistAsync(p); return success; }
 }
