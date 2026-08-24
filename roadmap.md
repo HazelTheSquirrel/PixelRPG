@@ -23,7 +23,6 @@ Stand: 2026-08-24 – abgeglichen mit dem aktuellen `main`-Stand
 ```
 
 ## Verbindliche technische Basis
-
 - Java 25
 - Paper 26.x, aktuell verbindliches Ziel: Paper 26.2
 - paperweight-userdev 2.0.0-beta.21
@@ -36,7 +35,6 @@ Stand: 2026-08-24 – abgeglichen mit dem aktuellen `main`-Stand
 - keine alten 1.21.x-APIs oder Dialogimplementierungen
 
 ## Verbindliche Designentscheidungen
-
 - PixelRPG hat keine Klassen.
 - PixelRPG hat keine frei verteilbaren Player-Attribute.
 - Ein neu registrierter Spieler erhält keinen Startbonus.
@@ -70,8 +68,6 @@ Stand: 2026-08-24 – abgeglichen mit dem aktuellen `main`-Stand
 ---
 
 # 01 – Player — 🟢 98 % ABGESCHLOSSEN
-
-## Profil & Lifecycle
 - [x] PlayerProfile / Grunddaten
 - [x] PlayerProfileManager
 - [x] PlayerProfileRepository
@@ -85,8 +81,6 @@ Stand: 2026-08-24 – abgeglichen mit dem aktuellen `main`-Stand
 - [x] Kein Startbonus / kein Startbonus-State
 - [x] Dirty-State / Save Queue
 - [x] Emergency YAML Backup bei MySQL-Fehler
-
-## Level & XP
 - [x] Level 1–99
 - [x] Level-100-Grenze / reservierter Zustand
 - [x] XP-Tabelle / Progressionskurve
@@ -95,28 +89,13 @@ Stand: 2026-08-24 – abgeglichen mit dem aktuellen `main`-Stand
 - [x] Level-Up Event
 - [x] Player-Level API
 - [x] Level → Balancing-Grundlage für Gear/Companions
-
-## Klassen & alte Player-Attribute
 - [x] Klassen vollständig entfernt
-- [x] Warrior / Ranger / Rogue / Healer / Mage entfernt
-- [x] Klassenwahl entfernt
-- [x] Klassenwechsel / Respec entfernt
-- [x] Respec-Level-Grenze entfernt
-- [x] Respec-Kosten entfernt
-- [x] ClassBalance entfernt
-- [x] PlayerClassChangeEvent entfernt
-- [x] Vitality / Agility / Precision / Range / Toughness / Soulview entfernt
-- [x] Elytra Permit als Player-Attribut entfernt
-- [x] Attributpunkte / Attributkosten / Klassenrabatte entfernt
-- [x] alte Attribute → Stats Pipeline entfernt
-- [x] Attribut-Persistenz entfernt
+- [x] alte Player-Attribute vollständig entfernt
 - [ ] veraltete `isRegisteredInGuild()`-Kompatibilitätsalias vollständig aus allen Consumer-Klassen entfernen
 
 ---
 
 # 02 – Combat — 🟢 98 % ABGESCHLOSSEN
-
-## Kern
 - [x] zentrale Damage-Logik
 - [x] Player Combat
 - [x] Mob Combat
@@ -133,90 +112,36 @@ Stand: 2026-08-24 – abgeglichen mit dem aktuellen `main`-Stand
 - [x] Combat Events
 - [x] Vanilla-/PixelRPG-Mischbetrieb sauber abgegrenzt
 - [x] PvP nutzt bei tatsächlicher Aktivierung normales PixelRPG-Combat-Verhalten
-
-## Weapon Skills
-- [x] Rechtsklick-Erkennung
-- [x] WeaponAbilityEngine auf neues Combat-Modell ausgerichtet
-- [x] Weapon Ability Metadata / explizite Ability Overrides
-- [x] Waffen-Cooldowns
-- [x] Ability Level Requirement
+- [x] Weapon Skills / Cooldowns / Level Requirements
 - [x] materialbasierte Weapon Skills
-- [x] Holz, Stein, Kupfer, Eisen, Gold, Diamant, Netherite mit unterschiedlichen Skills
-- [x] Bogen- und Armbrust-Skillpfad
-- [x] Shift+Rechtsklick für Bogen/Armbrust
-- [x] Player-Quit-Cooldown-Cleanup
-- [x] Weapon Skill Damage Context verhindert doppelte Weapon-Power-Anwendung
-
-## Mob Scaling
+- [x] Bogen-/Armbrust-Skillpfad mit Shift+Rechtsklick
 - [x] Mob-Level = aktives Spielerlevel
-- [x] HP Scaling
-- [x] Damage Scaling
-- [x] Spieler-Parity
-- [x] Ausrüstung beeinflusst die Mob-Stärke
-- [x] mehrere aktive Spieler werden berücksichtigt
-- [x] Original-Mob-Attribute Tracking
-- [x] Combat-Timeout und Wiederherstellung der Vanilla-Mobwerte
+- [x] HP/Damage Scaling und Spieler-Parity
+- [x] Original-Mob-Attribute Tracking und Wiederherstellung
 - [x] Region/Danger Scaling entfernt
-- [x] RegionDangerProvider entfernt
-- [x] keine künstlichen Region-/Dimensions-Level mehr
-- [x] XP aus Mob-Health vorhanden
-
-## Loot / Death
-- [x] Mob Experience
-- [x] Loot Drop Chance
-- [x] Random Item Rarity Roll
-- [x] Unique wird niemals zufällig gerollt
-- [x] Item Drop Pool
-- [x] Physische Goldtaler-Drops
-- [x] Soulbound Death Protection
-- [x] Death-/Respawn-Integration
-- [x] Mob Nameplates
+- [x] Mob Experience / Loot / Gold / Death Integration
 
 ---
 
 # 03 – Progression / Stats — 🟢 98 % ABGESCHLOSSEN
-
-> Der aktuelle `main` enthält die Progressions-/Stats-Implementierung. Offene Punkte sind ausschließlich Validierung, Runtime-Bugs oder bewusstes Balancing.
-
-## Progression
 - [x] Level 1–99 normale Progression
 - [x] Level 99 → 100 astronomischer Transzendenz-Grind
-- [x] XP für Mobs bleibt fest und unabhängig von Spieler-/Gear-Scaling
-- [x] Quest-XP definition-driven über `rewardExp`
+- [x] feste Mob-XP unabhängig von Spieler-/Gear-Scaling
+- [x] Quest-XP definition-driven
 - [x] XP Clamp / Overflow-Sicherheit
 - [x] deterministische Progression
-- [x] Player-Level API
-- [x] Level-Up Events
-
-## Character Stats
-- [x] deterministische Stat-Berechnung
-- [x] Cached Player Stats
-- [x] HP
-- [x] Armor
-- [x] Movement Speed
-- [x] Reach
-- [x] Damage
-- [x] Crit
-- [x] Crit Damage
-- [x] Lifesteal
-- [x] Attack Power
+- [x] Player-Level API / Level-Up Events
+- [x] deterministische Stat-Berechnung / Cached Player Stats
+- [x] HP / Armor / Movement Speed / Reach / Damage
+- [x] Crit / Crit Damage / Lifesteal / Attack Power
 - [x] Equipment → Stats → Combat Pipeline
-- [x] StatisticsService um Character Stats erweitert
-- [x] StatisticsAPI um Character Stats erweitert
-- [x] aktive Companion-Passivstats in Character-Stat-Pfad integriert
-- [x] Companion-Boni nur solange Companion tatsächlich gespawnt/aktiv ist
+- [x] aktive Companion-Passivstats in Character-Stat-Pfad
+- [x] Companion-Boni nur solange aktiv/gespawnt
 - [x] Despawn entfernt Companion-Boni automatisch
-- [x] normale Companions erhalten genau einen passiven Stat
-- [x] Companion-Passivstärke über Rarity-Budgetierung
-- [x] Unique Companions aus der normalen Passiv-Budgetierung ausgenommen
-- [x] alte Strength / Agility / Stamina / Intellect / Spell-Power-Pfade aus der StatEngine entfernt
-- [x] alte Player-Attribute-Pfade aus der finalen Stats-Pipeline entfernt
+- [x] alte Player-Attribute- und alte Stat-Pfade entfernt
 - [x] berechnete Stats werden nicht persistiert
-- [x] Combat verwendet zentrale Character Stats für Crit, Crit Damage und Lifesteal
-- [x] Mob-XP greift auf ursprüngliche Mob-Werte zurück
 
 ## Finaler Character-Stat-Satz
-
 ```text
 HP
 Armor
@@ -232,14 +157,7 @@ Attack Power
 ---
 
 # 04 – Companions — 🟢 98 % CORE ABGESCHLOSSEN
-
-> Neue Companion-Inhalte sind vorerst nicht geplant. Änderungen nur bei Bugs oder bewusst beschlossenen Systemänderungen.
-
-## Core
-- [x] Registry
-- [x] Definitions
-- [x] Ownership
-- [x] Unlocks
+- [x] Registry / Definitions / Ownership / Unlocks
 - [x] Unique Unlocks
 - [x] Aktivieren / Deaktivieren
 - [x] Spawn / Despawn
@@ -247,7 +165,6 @@ Attack Power
 - [x] Login = kein automatisches Wiederbeschwören
 - [x] Follow / Movement
 - [x] Passive Stats nur bei aktivem Companion
-- [x] Companion Stats Runtime-Anbindung
 - [x] Leveling / XP
 - [x] normale Companion-Level an Spielerlevel gekoppelt
 - [x] Unique Companion eigenes Level
@@ -255,27 +172,9 @@ Attack Power
 - [x] Companion Equipment / Persistence
 - [x] Runtime Registry / Cleanup
 - [x] Boss → Companion Unlock
-
-## Passive Companion-Boni
-- [x] HP
-- [x] Armor
-- [x] Movement Speed
-- [x] Reach
-- [x] Damage
-- [x] Crit
-- [x] Crit-Schaden
-- [x] Lifesteal
-- [x] Attack Power
-- [x] Bonus nur bei tatsächlich aktivem/gespawntem Companion
-- [x] Bonus wird bei Despawn entfernt
-- [x] Logout entfernt Runtime-Companion und dessen aktive Boni
-
-> Unique Companions behalten ihre eigene Sonderregelung.
-
-## Companion Abilities
-- [x] CompanionAbilityEngine-Grundstruktur
-- [x] generische Cooldown-Verwaltung
-- [x] Ability Definitions als Datenbasis
+- [x] passive Boni für alle Character Stats
+- [x] Bonus wird bei Despawn/Logout entfernt
+- [x] CompanionAbilityEngine-Grundstruktur / Cooldowns / Definitions
 - [ ] aktive Companion-Abilities mit tatsächlichen Gameplay-Effekten
 - [ ] passive Ability Definitions mit tatsächlichen Gameplay-Effekten
 - [ ] vollständige Runtime-Integration der Abilities
@@ -283,372 +182,92 @@ Attack Power
 ---
 
 # 05 – Quests — 🟡 90 % IN ARBEIT
-
-> Der Quest-Core ist im aktuellen `main` technisch weitgehend implementiert. Der Build ist grün. Offen sind primär produktiver Quest-Content in `quests_v2.json`, Runtime-Validierung sowie einzelne noch nicht vollständig abgeschlossene Erweiterungen.
-
-## Verbindliche Questtypen
-- [x] HUNT – implementiert, inklusive Mob-Kill-Tracking und Party-Propagation
-- [x] COLLECT – implementiert, inklusive Inventarprüfung
-- [x] TALK_TO_NPC – implementiert, NPC-Interaktion setzt das Ziel auf abgeschlossen
-- [x] REACH_LOCATION – implementiert, inklusive Struktur-/Biome-Navigation bzw. Reach-Location
-- [x] GLOBAL_EVENT – implementiert, inklusive globalem Progress-State
-
-> ESCORT ist ausdrücklich nicht Teil des finalen Questtypen-Pools. Der alte Escort-Pfad ist bewusst leer/kein aktiver Content.
-
-## Quest Definition & Repository
-- [x] Quest Definition / Datenmodell
-- [x] QuestType
-- [x] JSON-basierte Questdefinitionen
-- [x] Quest Repository
-- [x] Quest-ID / Titel / Beschreibung
-- [x] Zieltyp / Target Key
-- [x] Required Amount
-- [x] Required Level / Category Level
-- [x] Quest Giver NPC
-- [x] Reward Money / XP / Items / Companion
-- [x] Time Limit / Quest Expiry
-- [x] Navigation: Structure / Biome / Radius
-- [x] Prerequisites / Previous Quest
-- [x] Follow-Up Quest IDs im Datenmodell
-- [x] Validierung von Questdefinitionen und Referenzen
-- [ ] produktive Questdefinitionen final befüllen – `quests_v2.json` enthält aktuell `definitions: []`
-
-## Quest Core
-- [x] Quest Manager
-- [x] Quest Progress
-- [x] Quest Completion
-- [x] Quest Rewards
-- [x] Quest XP
+- [x] HUNT
+- [x] COLLECT
+- [x] TALK_TO_NPC
+- [x] REACH_LOCATION
+- [x] GLOBAL_EVENT
+- [x] Quest Definition / JSON Repository / Validierung
+- [x] Quest-ID / Titel / Beschreibung / Ziele / Rewards
+- [x] Navigation / Prerequisites / Follow-Up IDs
+- [x] Quest Manager / Progress / Completion / Rewards / XP
 - [x] maximal 5 aktive Quests
-- [x] Quest-Annahme mit Level-/Prerequisite-Prüfung
-- [x] Quest-Abbruch
-- [x] Quest-Zeitlimits / Expiry
+- [x] Quest-Annahme / Abbruch / Expiry
 - [x] QuestCompletedEvent
 - [x] Abschluss nur bei erfülltem Ziel und Rückkehr zum Quest-Giver
-- [x] Quest-Rewards für Geld, XP, Items und Companion-Unlock
-- [x] Quest Progress Actionbar
-- [ ] vollständige Runtime-Validierung aller Core-Flows
-
-## Quest-Ziele & Spielerinformation
-- [x] konkretes Questziel in Questlog sichtbar
-- [x] aktueller Fortschritt in „Aktive Quests“ sichtbar
-- [x] Questziel und Fortschritt in Quest-Detailansicht sichtbar
-- [x] QuestText erzeugt konkrete Zielbeschreibung je Questtyp
-- [x] aktive Quests werden über die native Locator-Bar navigierbar gemacht
-- [x] bis zu 5 aktive Quest-Marker werden verwaltet
-- [x] Marker werden bei Abschluss/Abbruch/Logout-Cleanup entfernt
-
-## Tracking
-- [x] HUNT / Mob-Kill-Tracking
-- [x] COLLECT / Inventar-Tracking
-- [x] TALK_TO_NPC / NPC-Zielprüfung
-- [x] REACH_LOCATION / Standortprüfung
-- [x] GLOBAL_EVENT / globaler Queststatus
-- [x] Party-Propagation für HUNT über PartyAPI und Distanz/World-Prüfung
-- [ ] vollständiger Runtime-Test aller fünf Trackingpfade
-
-## Quest XP / Scaling
-- [x] Quest-XP wird aus `reward.experience` / `rewardExp` der Questdefinition verwendet
-- [x] XP wird beim Abschluss vergeben
-- [x] `QuestExperienceScalingListener` existiert als Hook für Quest-XP-Scaling
-- [ ] separates/ausbalanciertes Quest-XP-Scaling noch nicht final definiert und validiert
-
-## Quest Persistence
-- [x] aktive Quests werden im PlayerProfile gehalten
-- [x] abgeschlossene Quests werden im PlayerProfile gehalten
-- [x] YAML lädt/speichert aktive Quests inklusive Amount und Expiry
-- [x] MySQL lädt/speichert aktive Quests inklusive Amount und Expiry
-- [x] PlayerProfile dirty-State wird bei Queständerungen berücksichtigt
-- [ ] Logout/Login Runtime-Test der Quest-Persistence
-
-## Questketten
-- [x] Prerequisites können im Datenmodell definiert werden
-- [x] `previousQuest` wird als Prerequisite übernommen
-- [x] Follow-Up Quest IDs werden im Repository geladen
-- [x] Referenzen werden validiert und bei unbekannten IDs geloggt
-- [ ] vollständige automatische Questketten-/Follow-Up-Logik im Gameplay
-
-## Party Quest Share
-- [x] PartyAPI wird für Quest-Fortschritt verwendet
-- [x] Party-Mitglieder werden auf Welt und Share-Distanz geprüft
-- [x] HUNT-Fortschritt kann an Party-Mitglieder propagiert werden
-- [ ] COLLECT / TALK_TO_NPC / REACH_LOCATION / GLOBAL_EVENT Party-Verhalten vollständig vereinheitlichen und testen
-- [ ] vollständiger Runtime-Test des Party Quest Share
-
-## Abschlusskriterien für 05
-- [ ] produktive `quests_v2.json`-Definitionen vollständig befüllen und validieren
-- [ ] alle fünf Questtypen im laufenden Server testen
-- [ ] Persistence nach Logout/Login testen
-- [ ] Questketten vollständig testen
-- [ ] Party Quest Share vollständig testen
-- [ ] danach 05 auf 🟢 95–98 % setzen und abhaken
+- [x] Questziel und Fortschritt sichtbar
+- [x] Locator-Bar / Quest-Marker
+- [x] Tracking aller fünf Questtypen
+- [x] Party-Propagation für HUNT
+- [x] Quest Persistence YAML/MySQL
+- [x] Questketten-Datenmodell
+- [x] Party Quest Share Grundintegration
+- [ ] produktive `quests_v2.json`-Definitionen vollständig befüllen
+- [ ] vollständige Runtime-Validierung
+- [ ] Quest-XP-Scaling final definieren
+- [ ] vollständige Questketten-/Follow-Up-Logik
+- [ ] Party-Verhalten für alle Questtypen vollständig vereinheitlichen und testen
 
 ---
 
 # 06 – NPC / Dialogue — 🟢 98 % ABGESCHLOSSEN
-
-> Der NPC-/Dialogue-Core ist im aktuellen `main` umgesetzt und der CI-Build ist grün. NPCs bleiben manuell durch Admins gespawnt; bestehende NPC-Erstellung, Name/Titel und Skin-System bleiben erhalten. Die native Minecraft/Paper-26.2-Dialog-API bleibt die Dialogoberfläche.
-
-## NPC-Core
-- [x] bestehendes NPC-Erstellungs-/Spawn-System beibehalten
-- [x] NPCs werden manuell durch Admins gespawnt
-- [x] keine automatische NPC-Generierung durch das System
-- [x] bestehende NPC-Namen / Titel / Rollen beibehalten
-- [x] bestehendes NPC-Skin-System beibehalten
-- [x] NPCs sind für alle Spieler dauerhaft sichtbar
+- [x] bestehendes NPC-Erstellungs-/Spawn-System
+- [x] NPCs manuell durch Admins gespawnt
+- [x] bestehende NPC-Namen / Titel / Rollen / Skins
+- [x] NPCs dauerhaft sichtbar
 - [x] normale Minecraft-NPC-Interaktion als einziger Interaktionsweg
 - [x] G-Taste bleibt ausschließlich Spieler-Interaktion
 - [x] definierte NPC-Typen/Funktionen
-- [x] mehrere passende Funktionen pro NPC möglich
-- [x] Funktionen werden typbezogen eingeschränkt
-- [x] Beispiel: Blacksmith → Schmiedequests + Schmied erlernen + Rezepte kaufen
-
-## Native Dialogue
+- [x] mehrere passende Funktionen pro NPC
 - [x] native Minecraft/Paper-26.2 Dialogsystem als Basis
-- [x] Vanilla-nahe und schlichte Dialogdarstellung
-- [x] verzweigte Dialoge
-- [x] mehrere Antwortmöglichkeiten
-- [x] Dialogoptionen können Folge-Dialoge öffnen
-- [x] Dialogoptionen können direkte Gameplay-Aktionen auslösen
-- [x] Quest-Aktionen über Dialogoptionen
-- [x] Profession-Aktionen über Dialogoptionen
-- [x] Shop-Aktionen über Dialogoptionen
-- [x] Bank-Aktionen über Dialogoptionen
-- [x] Travel-Aktionen über Dialogoptionen
-- [x] Reception-/Quick-Action-Aktionen über Dialogoptionen
-
-## Dialogue Conditions & Progression
-- [x] Dialogbedingungen
-- [x] spielerabhängige Dialogoptionen
-- [x] Queststatus als Bedingung
-- [x] Level-/Progressionsbedingungen
-- [x] Profession-/Gameplay-Bedingungen
-- [x] spielerbezogener Dialog-/Story-Fortschritt
-- [x] gesehene Dialogschritte werden gespeichert
-- [x] abgeschlossene Dialog-/Storyschritte werden gespeichert
+- [x] Vanilla-nahe Dialogdarstellung
+- [x] verzweigte Dialoge / Antwortmöglichkeiten
+- [x] Folge-Dialoge / direkte Gameplay-Aktionen
+- [x] Quest / Profession / Shop / Bank / Travel / Story / Companion / Reception / Quick Actions
+- [x] Dialog Conditions & Progression
+- [x] gesehene und abgeschlossene Dialogschritte persistent
 - [x] einmalige Dialoge/Dialogschritte
-
-## System-Integration
-- [x] Quest Dialogue als zentrale Quest-Oberfläche
-- [x] Quest-Annahme über Dialog
-- [x] Quest-Abgabe über Dialog
-- [x] Profession Dialogue
-- [x] Shop Dialogue
-- [x] Bank Dialogue
-- [x] Travel Dialogue
-- [x] Story Dialogue
-- [x] Companion Dialogue
-- [x] Reception Dialogue
-- [x] Quick Actions
-- [x] Filler-NPCs für `Talk to Filler(id)` / `Bring X to Filler(id)` vorbereitbar
-
-## Mehrsprachigkeit
-- [x] Dialogue-Content mehrsprachig vorbereitbar
-- [x] Deutsch
-- [x] Englisch
-- [x] Spanisch
-- [x] Französisch
-- [x] Texte nicht auf eine einzelne Sprache als Systemvoraussetzung festgelegt
-
-## Abschlusskriterien für 06
-- [x] NPC-/Dialogue-Core umgesetzt
-- [x] vereinbarte NPC-Funktionslogik umgesetzt
-- [x] native Dialogoberfläche umgesetzt
-- [x] Dialog-Verzweigungen / Conditions / Actions umgesetzt
-- [x] Dialog-Fortschritt / Once-only umgesetzt
-- [x] Quest-/Profession-/Shop-/Bank-/Travel-/Story-Integration umgesetzt
-- [x] Mehrsprachigkeitsgrundlage umgesetzt
+- [x] Mehrsprachigkeit Deutsch / Englisch / Spanisch / Französisch
 - [x] CI-Build grün
 
 ---
 
 # 07 – Items — 🟢 98 % ABGESCHLOSSEN
-
-> Das Item-System ist im aktuellen `main` entsprechend der festgelegten Item-Regeln umgesetzt. PixelRPG-Items basieren standardmäßig auf Vanilla-Materialien, besitzen aber eine eigene stabile PixelRPG-Definition/ID. Normale Vanilla-Items bleiben davon getrennt und unangetastet.
-
-## Item Core
-- [x] feste Item IDs / Item Definitions
+- [x] stabile Item IDs / Item Definitions
 - [x] datengetriebene Item-Definitionen
-- [x] Vanilla-Material als Standardbasis eines PixelRPG-Items
-- [x] PixelRPG-ID, Vanilla-Material und Resourcepack-Identifier getrennt
-- [x] Item-Kategorien: Melee Weapon, Ranged Weapon, Helmet, Chestplate, Leggings, Boots, Shield, Tool
-- [x] Gear-Kategorien: Helm, Brust, Hose, Schuhe, Waffe, Nebenhand
-- [x] Melee / Ranged getrennt vom Equipment-Slot
-- [x] Item-Definitionen werden validiert
-- [x] normale Vanilla-Items bleiben normale Vanilla-Items
-- [x] PixelRPG-Erkennung über stabile Item-Metadaten/ID
-
-## Rarität & Item Level
-- [x] Common
-- [x] Uncommon
-- [x] Rare
-- [x] Epic
-- [x] Legendary
-- [x] Unique
+- [x] Vanilla-Material als Standardbasis
+- [x] PixelRPG-ID / Vanilla-Material / Resourcepack-Identifier getrennt
+- [x] finale Item-/Gear-Kategorien
+- [x] Common / Uncommon / Rare / Epic / Legendary / Unique
 - [x] Item Level 1–99
 - [x] Required Level unabhängig vom Item Level
-- [x] Items können unter dem Spielerlevel liegen
-- [x] Items können über dem Spielerlevel liegen und erst ab dem definierten Required Level nutzbar sein
-
-## Unique Items
-- [x] Unique bedeutet exakt ein konkretes Exemplar serverweit
-- [x] Unique wird niemals zufällig generiert oder gerollt
-- [x] Unique kann ausschließlich durch Admin-Vergabe erhalten werden
-- [x] Unique-Vergabe ist serverweit eindeutig
-- [x] Unique-Crafting / normale Generierung ist ausgeschlossen
-
-## Item Stats
-- [x] Rüstung: HP
-- [x] Rüstung: Armor
-- [x] Rüstung: Movement Speed
-- [x] Rüstung: Crit Chance
-- [x] Waffen: Reach
-- [x] Waffen: Damage
-- [x] Waffen: Crit Chance
-- [x] Waffen: Crit-Schaden
-- [x] Waffen: Lifesteal
-- [x] Waffen: Attack Power
-- [x] Item Stats werden in die zentrale Player-Stats-Pipeline eingespeist
-
-## Gearscore & Balancing
-- [x] Gearscore
-- [x] Gearscore basiert auf Item-Level + Rarity + Item-Definition/Balancing
-- [x] Spielerlevel dient als Grundlage für die erreichbare Gear-Stärke
-- [x] Item-Level und Required Level sind getrennte Werte
-- [x] Gear kann bewusst unterhalb des Spielerlevels liegen
-
-## Soulbound
-- [x] Soulbound verhindert Handel/Übertragung auf andere Spieler
-- [x] Soulbound bleibt vom Besitzer nutzbar
-- [x] Soulbound kann vom Besitzer gelagert und zerstört werden
-- [x] Soulbound wird beim Tod nicht gedroppt
-- [x] Soulbound wird beim Tod direkt im Inventar des Besitzers gehalten
-
-## Weapon Skills
-- [x] Weapon Skill gehört zum konkreten Item / zur konkreten Waffendefinition
-- [x] materialbasierte Waffen können unterschiedliche Weapon Skills besitzen
-- [x] Holz, Stein, Kupfer, Eisen, Gold, Diamant und Netherite können unterschiedliche Skills besitzen
-- [x] Bogen-/Armbrust-Skillpfad bleibt mit Vanilla-Spannen/Laden kompatibel
-
-## Shop & Resourcepack
-- [x] bestehendes Admin-Shop-NPC-System bleibt die Shop-Grundlage
-- [x] Item-Definitionen können feste Shoppreise führen
-- [x] keine automatische Preisberechnung aus Item-Level + Rarity + Typ
-- [x] Resourcepack-Identifier ist Bestandteil der Item-Definition
-- [x] Resourcepack-Darstellung ist unabhängig von der Vanilla-Materialbasis
-- [x] Item-Definitionen bilden die technische Liste der tatsächlich existierenden PixelRPG-Items
-
-## Admin / API
-- [x] ItemAPI
-- [x] ItemService
-- [x] ItemDefinition Registry
-- [x] RPGItemBuilder
-- [x] Admin-Item-Liste
-- [x] Admin-Item-Vergabe
-- [x] Unique-Item-Vergabe über Admin-Funktionen
-
-## Abschlusskriterien für 07
-- [x] stabile Item-IDs / Definitionen
-- [x] finale Item-Kategorien
-- [x] finale Raritäten
-- [x] Item-Level 1–99
-- [x] unabhängige Required Levels
+- [x] Unique serverweit exakt ein konkretes Exemplar
+- [x] Unique nur über Admin-Vergabe
 - [x] Item Stats
 - [x] Gearscore
-- [x] Soulbound Death Protection
+- [x] Soulbound
 - [x] Weapon Skill Mapping
-- [x] Admin-Shop-Anbindung
+- [x] bestehendes Admin-Shop-NPC-System
 - [x] Resourcepack-Trennung
-- [x] datengetriebene Item-Definitionen
-- [x] Vanilla-/PixelRPG-Items sauber getrennt
+- [x] ItemAPI / ItemService / Registry / RPGItemBuilder
 - [x] CI-Build grün
 
 ---
 
 # 08 – Equipment — 🟢 98 % ABGESCHLOSSEN
-
-> Das Equipment-System ist im aktuellen `main` entsprechend der vereinbarten Regeln umgesetzt. Das Vanilla-Inventar bleibt die Benutzeroberfläche; PixelRPG aggregiert ausgerüstete Item-Stats und integriert sie direkt in die bestehende Character-Stats-Pipeline.
-
-## Equipment Slots
-- [x] Helm
-- [x] Brust
-- [x] Hose
-- [x] Schuhe
-- [x] Waffe / Mainhand
-- [x] Nebenhand / Offhand
+- [x] Helm / Brust / Hose / Schuhe / Waffe / Nebenhand
 - [x] finaler Slot-Pool
-- [x] Nebenhand für Shields und andere sinnvolle PixelRPG-Items offen
-- [x] keine normale Dual-Wield-Waffenlogik
 - [x] Vanilla-Inventar bleibt erhalten
-
-## Equipment Stats
-- [x] ausgerüstete Item-Stats werden aggregiert
-- [x] HP
-- [x] Armor
-- [x] Movement Speed
-- [x] Crit Chance auf Rüstung
-- [x] Waffenstats werden aus dem konkreten Item übernommen
-- [x] gesamte ausgerüstete Armor wird addiert
+- [x] ausgerüstete Item-Stats aggregiert
 - [x] Equipment → Player Stats → Combat Pipeline
-- [x] Stats werden bei Equipment-Änderungen sofort aktualisiert
-
-## Level / Required Level
-- [x] Required Level wird beim Ausrüsten berücksichtigt
-- [x] höherlevelige Items dürfen getragen werden
-- [x] Stats höherleveliger Items bleiben bis zum Required Level deaktiviert
-- [x] Item-Level bleibt unverändert
-- [x] unterlevelige Items bleiben vollständig nutzbar, sofern Required Level erfüllt ist
-- [x] Equipment wird beim Verlassen der PixelRPG-Registrierung ohne aktive RPG-Stats als Vanilla-Item behandelt
-
-## Rarity
-- [x] Equipment übernimmt die Rarity des konkreten Items
-- [x] keine separate Equipment-Rarity
-- [x] Common
-- [x] Uncommon
-- [x] Rare
-- [x] Epic
-- [x] Legendary
-- [x] Unique
-
-## Persistence & Lifecycle
-- [x] ausgerüstetes Equipment ist Bestandteil des persistenten PlayerProfile-Zustands
-- [x] Equipment-Persistence über die vorhandene Player-Persistence-Infrastruktur
-- [x] Equipment wird beim Join wiederhergestellt
-- [x] Equipment wird beim Quit gespeichert
-- [x] Equipment-Stat-Zustand wird nicht separat als berechneter Wert persistiert
-- [x] Registrierung/Unregistrierung berücksichtigt
-- [x] Soulbound-Items werden beim Tod zurück ins Inventar des Besitzers gelegt
-- [x] nicht-Soulbound-Equipment folgt den normalen Vanilla-Todesregeln
-
-## Equipment Sets
-- [x] Equipment-Sets als Systemgrundlage
-- [x] Set-Boni laufen durch die Character-Stats-Pipeline
-- [x] Set-Boni werden nur bei erfüllten Setbedingungen aktiviert
-- [x] Setteile können Armor Trims besitzen
-- [x] Armor Trim wird abhängig vom Set-Bonus/Bonus-Typ festgelegt
-- [x] Stat-/Bonus-Typ → Trim-Zuordnung ist datengetrieben
-- [x] Trim-Pattern und Trim-Material sind Teil der Zuordnung
-- [x] Trim-Farben können dem jeweiligen Stat-/Bonus-Typ zugeordnet werden
-- [x] visuelles Set-Feedback über Armor Trims vorbereitet
-- [x] Trim wird bei Equipment-Refresh, Join und Respawn berücksichtigt
-- [x] inaktiver Set-Bonus entfernt die zugehörige Set-Trim-Darstellung
-
-## Datengetriebene Definitionen
-- [x] Equipment-Slots werden technisch getrennt vom konkreten Item definiert
-- [x] Set-Definitionen sind datengetrieben
-- [x] Armor-Trim-Mappings sind datengetrieben
-- [x] Setbonus → Trim → Material/Farbe kann ohne Java-Codeänderung erweitert werden
-
-## Abschlusskriterien für 08
-- [x] finaler Equipment-Slot-Pool
-- [x] Vanilla-Inventar
-- [x] Equipment-Stat-Aggregation
-- [x] Required-Level-Verhalten
-- [x] Rarity-Verhalten
+- [x] Required Level
+- [x] Rarity vom konkreten Item
 - [x] PlayerProfile-Persistence
+- [x] Join / Quit / Registrierung berücksichtigt
 - [x] Soulbound Death Protection
+- [x] nicht-Soulbound-Equipment folgt Vanilla-Todesregeln
 - [x] Equipment-Sets
-- [x] Set-Bonus-Integration in Stats
+- [x] Set-Boni in Character-Stats-Pipeline
 - [x] Armor-Trim-System für Setteile
 - [x] datengetriebene Trim-Zuordnung
 - [x] CI-Build grün
@@ -656,199 +275,131 @@ Attack Power
 ---
 
 # 09 – Crafting — 🟢 98 % ABGESCHLOSSEN
-
-> Das Crafting-System ist im aktuellen `main` entsprechend der gemeinsam festgelegten Regeln umgesetzt. Vanilla-Rezepte haben Vorrang; PixelRPG ergänzt fehlende Herstellungsrezepte über eigene Definitionen. Das bestehende Crafting-/Dialogue-System wurde erweitert statt durch ein paralleles System ersetzt. Der CI-Build ist grün.
-
-## Rezeptmodell
 - [x] Recipe Registry
 - [x] eindeutige Recipe IDs
 - [x] Vanilla-Rezepte werden übernommen statt unnötig dupliziert
-- [x] PixelRPG-eigene Rezepte für Herstellungsfälle ohne passendes Vanilla-Rezept
+- [x] PixelRPG-eigene Rezepte für fehlende Herstellungsfälle
 - [x] Crafting Definitions
 - [x] Zutaten-/Mengenprüfung
 - [x] frei definierbares Ergebnis-Item
-- [x] Ergebnis kann ein bestehendes Vanilla-Item oder PixelRPG-Item sein
-
-## Crafting Core
-- [x] Crafting Service
-- [x] Crafted Item Factory
-- [x] zentrale Zutatenprüfung
-- [x] Zutaten werden erst bei erfolgreichem Crafting abgezogen
+- [x] Crafting Service / Crafted Item Factory
+- [x] Zutaten erst bei erfolgreichem Crafting abgezogen
 - [x] Ergebnis wird nach erfolgreicher Prüfung vergeben
-- [x] Crafting-Fehler lassen Zutaten unangetastet
-- [x] bestehende Item-Definitionen werden für PixelRPG-Ergebnisse verwendet
-
-## Professionen & Freischaltungen
 - [x] Berufsanforderungen
-- [x] Rezepte sind sinnvoll den vier Professionen zugeordnet
-- [x] BLACKSMITH
-- [x] PROVISIONER
-- [x] ALCHEMIST
-- [x] SCHOLAR
 - [x] Rezeptfreischaltungen über Quest und/oder Gold
-- [x] nicht freigeschaltete Rezepte können nicht hergestellt werden
-- [x] Berufszugang und Rezeptzugang werden getrennt behandelt
-
-## Dialogue & Zugriff
 - [x] Dialogue-Crafting
-- [x] NPC-Dialog bleibt ein Hauptzugang zum Crafting
-- [x] Crafting kann zusätzlich über bestehende Quick Actions (`G`) erreicht werden
-- [x] kein zwingender NPC-Dialog für jeden Crafting-Vorgang
-
-## Crafting GUI
-- [x] bestehendes Crafting-GUI-System beibehalten
-- [x] bestehendes System erweitert statt ersetzt
-- [x] Rezeptauswahl
-- [x] Zutatenanzeige
-- [x] Ergebnisanzeige
-- [x] Berufsanforderungen/Freischaltungsstatus werden berücksichtigt
-- [x] nach erfolgreichem „Herstellen“ bleibt die Crafting-GUI geöffnet
-- [x] direktes Weiter-Crafting ohne erneutes Öffnen möglich
+- [x] Crafting über NPC und Quick Actions (`G`)
+- [x] bestehendes Crafting-GUI-System beibehalten und erweitert
+- [x] nach „Herstellen“ bleibt die GUI geöffnet
+- [x] direktes Weiter-Crafting ohne erneutes Öffnen
 - [x] GUI-Zustand wird nach jedem Crafting aktualisiert
-- [x] Spieler verlässt die GUI nur über den vorgesehenen Zurück-/Schließen-Weg oder eine andere externe Interaktion
-
-## Blacksmith
-- [x] Blacksmith GUI
-- [x] bestehendes Blacksmith-/Profession-GUI-System erweitert
-- [x] Blacksmith-Rezepte werden innerhalb des bestehenden Systems angezeigt
-- [x] keine parallele Spezial-GUI-Architektur
-
-## Minecraft-Herstellungsarten
-- [x] möglichst breite Abdeckung sinnvoller Vanilla-Herstellungsarten
-- [x] Vanilla Crafting
-- [x] Smelting
-- [x] Blasting
-- [x] Smoking
-- [x] Campfire Cooking
-- [x] Stonecutting
-- [x] Herstellungsarten werden sinnvoll auf die vier Professionen verteilt
-- [x] keine blinde 1:1-Kopie aller Vanilla-Rezepte als PixelRPG-Content
-
-## Abschlusskriterien für 09
-- [x] Recipe Registry
-- [x] Crafting Service
-- [x] Crafting Definitions
-- [x] Crafted Item Factory
-- [x] Berufsanforderungen
-- [x] Rezeptfreischaltungen
-- [x] Dialogue-Crafting
-- [x] Crafting GUI
-- [x] Blacksmith GUI
-- [x] sinnvolle Abdeckung der Minecraft-Herstellungsarten
-- [x] Vanilla-/PixelRPG-Rezeptmodell
-- [x] Crafting bleibt nach erfolgreicher Herstellung geöffnet
+- [x] Blacksmith GUI im bestehenden System
+- [x] Vanilla Crafting / Smelting / Blasting / Smoking / Campfire / Stonecutting
+- [x] sinnvolle Verteilung auf die vier Professionen
 - [x] CI-Build grün
 
 ---
 
 # 10 – Professions — 🟢 98 % ABGESCHLOSSEN
-
-> Das Profession-System ist im aktuellen `main` entsprechend der verbindlich festgelegten Regeln umgesetzt. Alle vier Berufe können parallel entwickelt werden. Profession XP ist vom normalen Player-Level getrennt und kann aus mehreren berufsbezogenen Aktivitäten stammen. Der CI-Build ist grün.
-
-## Verbindliche Berufe
 - [x] BLACKSMITH
 - [x] PROVISIONER
 - [x] ALCHEMIST
 - [x] SCHOLAR
 - [x] exakt vier Berufe, keine weiteren Professionen
 - [x] keine Spezialisierungen
-
-## Profession Core
-- [x] Profession Registry
 - [x] Profession Level 1–100
-- [x] Profession XP
-- [x] getrennte Profession Progression unabhängig vom Player-Level
+- [x] getrennte Profession-XP unabhängig vom Player-Level
 - [x] alle vier Professionen parallel erlernbar und levelbar
 - [x] Profession Recipes / Crafting-Anbindung
 - [x] Profession Trainer
-- [x] Profession Persistence
 - [x] YAML-/MySQL-Persistenz
 - [x] Profession API / Service-Anbindung
-
-## Profession XP
-- [x] Crafting als Profession-XP-Quelle
-- [x] berufsbezogenes Sammeln / Gathering als Profession-XP-Quelle
-- [x] Erz- und Ressourcenabbau kann Profession-XP vergeben
-- [x] Landwirtschaft / Fischerei / passende Ressourcenaktivitäten können Profession-XP vergeben
-- [x] Reparatur-/Anvil-Aktivitäten können passend Profession-XP vergeben
-- [x] Verzaubern / Alchemie-Aktivitäten werden passend berücksichtigt
-- [x] Quest-basierte Profession-XP
-- [x] NPC-Aufträge können Profession-XP vergeben
-- [x] XP-Balancing abhängig von Aktivität bzw. Rezept-/Item-Schwierigkeit
-- [x] XP Clamp / Level-100-Cap
-
-## Profession & Crafting
-- [x] Crafting-Rezepte besitzen passende Profession-Anforderungen
-- [x] Rezepte werden fachlich sinnvoll auf die vier Professionen verteilt
-- [x] Profession Level kann als Rezeptvoraussetzung verwendet werden
-- [x] freigeschaltete Rezepte werden über das Crafting-System verwendet
-- [x] nicht passende Profession kann ein Rezept nicht herstellen
-- [x] keine starre Verteilung nach Material, sondern sinnvolle fachliche Zuordnung
-
-## Rezept-Freischaltung
-- [x] Quest kann ein Rezept freischalten
-- [x] Gold kann ein Rezept freischalten
-- [x] Quest- und Gold-Freischaltungen können unabhängig voneinander behandelt werden
-- [x] Quest-exklusive Rezepte können existieren und sind nicht zwingend für Gold kaufbar
-- [x] Profession Level kann zusätzliche Voraussetzung sein
-- [x] Freischaltungsstatus wird persistent gespeichert
-
-## Profession Trainer & Interaktion
-- [x] Profession Trainer über bestehendes NPC-/Dialog-System
-- [x] Profession-Aktionen über native Dialoge
-- [x] keine Spieler-Commands für Professionen
-- [x] bestehende Quick-Action-/Dialog-Struktur bleibt erhalten
-- [x] mehrere Profession-Funktionen können über passende NPCs angeboten werden
-
-## GUI / Spielerinteraktion
-- [x] bestehendes GUI-System beibehalten
-- [x] bestehende Crafting-/Profession-Oberfläche erweitert statt ersetzt
-- [x] keine separate zentrale Profession-Übersicht erforderlich
-- [x] Profession-Informationen dort anzeigen, wo sie für die jeweilige Funktion benötigt werden
-
-## Persistence & Lifecycle
-- [x] Profession-Level persistent
-- [x] Profession-XP persistent
-- [x] erlernte Professionen persistent
-- [x] freigeschaltete Profession-Rezepte persistent
-- [x] YAML Repository
-- [x] MySQL Repository
-- [x] Join-/Quit-Lifecycle berücksichtigt
-- [x] Dirty-State / Save-Integration berücksichtigt
-
-## Abschlusskriterien für 10
-- [x] vier verbindliche Professionen
-- [x] Level 1–100
-- [x] getrennte Profession-XP
-- [x] alle vier Professionen parallel nutzbar
-- [x] keine Spezialisierungen
-- [x] mehrere Profession-XP-Quellen
-- [x] XP-Balancing nach Aktivität/Schwierigkeit
-- [x] Crafting-Integration
-- [x] Quest-/Gold-Rezeptfreischaltungen
+- [x] XP durch Crafting / Gathering / Erz / Ressourcen / Landwirtschaft / Fischerei
+- [x] XP durch Reparatur / Anvil / Verzaubern / Alchemie
+- [x] XP durch Quests / NPC-Aufträge
+- [x] XP-Balancing nach Aktivität / Schwierigkeit
+- [x] Quest- oder Gold-Rezeptfreischaltungen
 - [x] Quest-exklusive Rezepte möglich
-- [x] Profession Trainer / Dialog-Integration
 - [x] bestehendes GUI-System beibehalten
-- [x] Profession Persistence
+- [x] keine zentrale Profession-Übersicht
 - [x] keine Spieler-Commands
 - [x] CI-Build grün
 
 ---
 
-# 11 – Economy / Gold — 🟡 IN ARBEIT
+# 11 – Economy / Gold — 🟢 98 % ABGESCHLOSSEN
 
-- [ ] Goldtaler Kontostand
-- [ ] Sonnenblume als physischer Goldtaler
-- [ ] Goldtaler Pickup
-- [ ] Wallet API
-- [ ] Economy Persistence
-- [ ] Shoppreise
-- [ ] Auktionshaus
+> Das Economy-/Gold-System ist im aktuellen `main` entsprechend der verbindlich festgelegten Regeln umgesetzt. Wallet-Gold bleibt virtuell; die speziell markierte Sonnenblume dient als physischer Goldtaler. Das Handelsdepot ersetzt das klassische Auktionshaus-Konzept durch Festpreis-Angebote. Der CI-Build ist grün.
+
+## Gold / Wallet
+- [x] Goldtaler-Kontostand
+- [x] virtuelles Wallet-Guthaben
+- [x] Wallet API / Economy API
+- [x] Economy Persistence
+- [x] Gold kann von anderen Systemen unabhängig vergeben und abgezogen werden
+- [x] keine zusätzliche Währung
+- [x] Wallet-Gold bleibt beim Tod erhalten
+
+## Physischer Goldtaler
+- [x] speziell markierte PixelRPG-Sonnenblume als physischer Goldtaler
+- [x] normale Vanilla-Sonnenblumen sind keine Goldtaler
+- [x] Goldtaler können ins Wallet eingezahlt werden
+- [x] Wallet-Gold kann als physischer Goldtaler ausgezahlt werden
+- [x] physisches Gold folgt den normalen Item-/Inventarregeln
+- [x] physisches Gold droppt beim Tod wie ein normales Item
+- [x] bestehende Goldtaler-Drops aus Mob-/Boss-Loot angebunden
+
+## Einnahmequellen
+- [x] Quests können Gold vergeben
+- [x] NPC-Aufträge können Gold vergeben
+- [x] Mobs können Gold vergeben
+- [x] Bosse können Gold vergeben
+- [x] Shops können Gold als Gegenleistung vergeben
+- [x] Economy-API bleibt unabhängig von der konkreten Einnahmequelle
+
+## Adminshop
+- [x] Adminshop als zentrale NPC-Shop-Grundlage
+- [x] Kaufen
+- [x] Verkaufen
+- [x] Preise werden durch den Adminshop vorgegeben
+- [x] keine automatischen Item-Buy-/Sell-Preisfelder als allgemeine Item-System-Regel
+- [x] bestehendes Shop-/Dialog-System weiterverwendet
+
+## Handelsdepot
+- [x] klassisches Auktionshaus-Konzept durch Handelsdepot ersetzt
+- [x] ausschließlich PixelRPG-Items handelbar
+- [x] Festpreis-Angebote statt Bietauktionen
+- [x] Verkäufer legt den gewünschten Verkaufspreis selbst fest
+- [x] Angebot kann vom Verkäufer zurückgenommen werden
+- [x] Laufzeit eines Angebots: 7 Tage
+- [x] erfolgreiche Verkäufe zahlen 95 % an den Verkäufer aus
+- [x] 5 % Verkaufsgebühr werden direkt von den Einnahmen abgezogen
+- [x] nicht verkaufte Items laufen nach 7 Tagen automatisch ab
+- [x] abgelaufene Items werden nicht gelöscht
+- [x] abgelaufene Items landen automatisch im Bankfach `Handelsware`
+- [x] Handelsware ist über das bestehende Bank-/Dialog-System abholbar
+- [x] persistente offene Angebote und ausstehende Verkaufserlöse
+- [x] offline Verkäufer verlieren weder Item noch Verkaufserlös
+
+## Abschlusskriterien für 11
+- [x] Goldtaler-Kontostand
+- [x] Sonnenblume als physischer Goldtaler
+- [x] Goldtaler Pickup / physische Goldintegration
+- [x] Wallet API
+- [x] Economy Persistence
+- [x] Adminshop
+- [x] Shop Kaufen / Verkaufen
+- [x] Handelsdepot
+- [x] PixelRPG-Items im Handelsdepot
+- [x] Festpreis-Angebote
+- [x] 5 % Verkaufsgebühr
+- [x] 7-Tage-Expiration
+- [x] Rückgabe abgelaufener Items über Bankfach `Handelsware`
+- [x] CI-Build grün
 
 ---
 
 # 12 – Party — 🟡 IN ARBEIT
-
 - [ ] Party Core
 - [ ] Party Invite
 - [ ] Party Leave / Kick
@@ -861,7 +412,6 @@ Attack Power
 ---
 
 # 13 – Travel / Waypoints — 🟡 IN ARBEIT
-
 - [ ] Travel NPC
 - [ ] Waypoint Registry
 - [ ] Waypoint Unlock
@@ -873,7 +423,6 @@ Attack Power
 ---
 
 # 14 – Shops / Auction House — 🟡 IN ARBEIT
-
 - [ ] Shop Core
 - [ ] Shop Definitions
 - [ ] Buy / Sell
@@ -887,7 +436,6 @@ Attack Power
 ---
 
 # 15 – UI / HUD — 🟡 IN ARBEIT
-
 - [ ] Vanilla HUD-Kompatibilität
 - [ ] HP Anzeige
 - [ ] Armor Anzeige
@@ -901,7 +449,6 @@ Attack Power
 ---
 
 # 16 – Resource Pack / Custom Items — 🟡 IN ARBEIT
-
 - [ ] Resourcepack-Struktur
 - [ ] Custom Item Mapping
 - [ ] Item Models
@@ -914,7 +461,6 @@ Attack Power
 ---
 
 # 17 – Persistence / Database — 🟡 IN ARBEIT
-
 - [x] Player Persistence Grundsystem
 - [x] YAML Fallback
 - [x] MySQL Repository
@@ -929,7 +475,6 @@ Attack Power
 ---
 
 # 18 – Admin / Debug — 🟡 IN ARBEIT
-
 - [ ] Admin Command Framework
 - [ ] Player Debug
 - [ ] Stats Debug
@@ -943,7 +488,6 @@ Attack Power
 ---
 
 # 19 – Content / World — 🔴 OFFEN
-
 - [ ] World-Struktur
 - [ ] Gebiete
 - [ ] Dungeons
@@ -962,7 +506,6 @@ Attack Power
 ---
 
 # 20 – Final Validation — 🔴 OFFEN
-
 - [ ] kompletter Clean Build
 - [ ] Runtime Smoke Test
 - [ ] Player Lifecycle Test
