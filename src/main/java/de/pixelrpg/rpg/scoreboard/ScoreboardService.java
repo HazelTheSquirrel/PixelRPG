@@ -37,7 +37,6 @@ public final class ScoreboardService implements Listener {
     private static final int MAX_TRACKED_QUESTS = 2;
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
-    private final CompanionService companionService;
     private final int updateIntervalTicks;
     private final Map<UUID, PlayerScoreboardState> stateByPlayer = new ConcurrentHashMap<>();
     private BukkitTask task;
@@ -55,10 +54,9 @@ public final class ScoreboardService implements Listener {
         }
     }
 
-    public ScoreboardService(Plugin plugin, PlayerProfileManager profileManager, CompanionService companionService, int updateIntervalTicks) {
+    public ScoreboardService(Plugin plugin, PlayerProfileManager profileManager, int updateIntervalTicks) {
         this.plugin = plugin;
         this.profileManager = profileManager;
-        this.companionService = companionService;
         this.updateIntervalTicks = Math.max(1, updateIntervalTicks);
     }
 
@@ -176,7 +174,8 @@ public final class ScoreboardService implements Listener {
         lines.add(Component.text("Level: ", NamedTextColor.GRAY).append(Component.text(profile.getLevel(), NamedTextColor.GOLD)));
         lines.add(Component.text(" "));
 
-        Companion activeCompanion = companionService.getActive(player.getUniqueId());
+        CompanionService companionService = PixelRPGPlugin.getInstance().getCompanionService();
+        Companion activeCompanion = companionService == null ? null : companionService.getActive(player.getUniqueId());
         lines.add(Component.text("Companion:", NamedTextColor.GRAY));
         lines.add(Component.text(activeCompanion == null ? "Keiner" : activeCompanion.name(), activeCompanion == null ? NamedTextColor.DARK_GRAY : NamedTextColor.AQUA));
         lines.add(Component.text(" "));
