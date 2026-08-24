@@ -399,15 +399,33 @@ Attack Power
 
 ---
 
-# 12 – Party — 🟡 IN ARBEIT
-- [ ] Party Core
-- [ ] Party Invite
-- [ ] Party Leave / Kick
-- [ ] gemeinsame XP
-- [ ] Loot-Verteilung
-- [ ] Party-Buffs
-- [ ] gemeinsamer Questfortschritt
-- [ ] Party Persistence / Cleanup
+# 12 – Party — 🟢 98 % ABGESCHLOSSEN
+- [x] Party Core
+- [x] maximale Partygröße: 5 Spieler
+- [x] Party Invite
+- [x] Einladungen laufen nach 60 Sekunden ab
+- [x] Party Leave / Kick
+- [x] Leader kann Leadership übertragen
+- [x] Leader verlässt Party → nächstes Mitglied wird Leader
+- [x] kein Kick-Cooldown
+- [x] `/rpgparty` bleibt erhalten
+- [x] Party separat in der Reception erreichbar
+- [x] gemeinsame XP
+- [x] Party-XP-Bonus
+- [x] XP-Reichweite: 50 Blöcke
+- [x] Loot-Verteilung: Free-for-all
+- [x] Loot wird nur innerhalb der gültigen Party-Reichweite berücksichtigt
+- [x] Party-Buffs: passive kleine XP-/Regenerations-/Utility-Boni
+- [x] gemeinsamer Questfortschritt innerhalb von 50 Blöcken
+- [x] Quests bleiben individuell angenommen
+- [x] Questbelohnungen bleiben individuell
+- [x] kein Party-Chat
+- [x] Offline-Mitglieder bleiben in der Party
+- [x] Party Persistence
+- [x] Cleanup 30 Minuten nach dem letzten aktiven Mitglied
+- [x] Disconnect-/Cleanup-Verhalten
+- [x] Party API / Service-Anbindung
+- [x] CI-Build grün
 
 ---
 
