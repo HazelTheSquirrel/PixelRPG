@@ -35,8 +35,7 @@ public final class ItemDefinitionRegistry {
         if (items == null) throw new IllegalStateException("item-definitions.json requires an 'items' array");
 
         for (var element : items) {
-            JsonObject json = element.getAsJsonObject();
-            ItemDefinition definition = parse(json);
+            ItemDefinition definition = parse(element.getAsJsonObject());
             if (definitions.put(definition.id(), definition) != null) {
                 throw new IllegalStateException("Duplicate PixelRPG item definition: " + definition.id());
             }
@@ -62,9 +61,11 @@ public final class ItemDefinitionRegistry {
         boolean adminOnly = booleanValue(json, "adminOnly", unique);
         String resourcepackId = json.has("resourcepackId") ? json.get("resourcepackId").getAsString() : id;
         double modifier = json.has("gearscoreModifier") ? json.get("gearscoreModifier").getAsDouble() : 1.0D;
+        String equipmentSlot = json.has("equipmentSlot") ? json.get("equipmentSlot").getAsString() : "";
+        String setId = json.has("setId") ? json.get("setId").getAsString() : "";
 
         return new ItemDefinition(id, name, material, rarity, category, itemLevel, requiredLevel,
-                ability, cooldown, soulbound, unique, adminOnly, resourcepackId, modifier);
+                ability, cooldown, soulbound, unique, adminOnly, resourcepackId, modifier, equipmentSlot, setId);
     }
 
     private static String required(JsonObject json, String key) {
