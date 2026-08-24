@@ -462,28 +462,106 @@ Attack Power
 
 ---
 
-# 07 – Items — 🟡 IN ARBEIT
+# 07 – Items — 🟢 98 % ABGESCHLOSSEN
 
-- [ ] Item IDs
-- [ ] Unique Item IDs
-- [ ] Item Kategorien
-- [ ] Gear Kategorien
-- [ ] Validierung
-- [x] Raritäten: Common, Uncommon, Rare, Epic, Legendary, Unique
-- [ ] Item Level
-- [ ] Levelanforderungen
-- [x] Item Stats für aktuelle Weapon-/Armor-Berechnung vorhanden
-- [ ] Gearscore
-- [x] Soulbound
+> Das Item-System ist im aktuellen `main` entsprechend der festgelegten Item-Regeln umgesetzt. PixelRPG-Items basieren standardmäßig auf Vanilla-Materialien, besitzen aber eine eigene stabile PixelRPG-Definition/ID. Normale Vanilla-Items bleiben davon getrennt und unangetastet.
+
+## Item Core
+- [x] feste Item IDs / Item Definitions
+- [x] datengetriebene Item-Definitionen
+- [x] Vanilla-Material als Standardbasis eines PixelRPG-Items
+- [x] PixelRPG-ID, Vanilla-Material und Resourcepack-Identifier getrennt
+- [x] Item-Kategorien: Melee Weapon, Ranged Weapon, Helmet, Chestplate, Leggings, Boots, Shield, Tool
+- [x] Gear-Kategorien: Helm, Brust, Hose, Schuhe, Waffe, Nebenhand
+- [x] Melee / Ranged getrennt vom Equipment-Slot
+- [x] Item-Definitionen werden validiert
+- [x] normale Vanilla-Items bleiben normale Vanilla-Items
+- [x] PixelRPG-Erkennung über stabile Item-Metadaten/ID
+
+## Rarität & Item Level
+- [x] Common
+- [x] Uncommon
+- [x] Rare
+- [x] Epic
+- [x] Legendary
+- [x] Unique
+- [x] Item Level 1–99
+- [x] Required Level unabhängig vom Item Level
+- [x] Items können unter dem Spielerlevel liegen
+- [x] Items können über dem Spielerlevel liegen und erst ab dem definierten Required Level nutzbar sein
+
+## Unique Items
+- [x] Unique bedeutet exakt ein konkretes Exemplar serverweit
+- [x] Unique wird niemals zufällig generiert oder gerollt
+- [x] Unique kann ausschließlich durch Admin-Vergabe erhalten werden
+- [x] Unique-Vergabe ist serverweit eindeutig
+- [x] Unique-Crafting / normale Generierung ist ausgeschlossen
+
+## Item Stats
+- [x] Rüstung: HP
+- [x] Rüstung: Armor
+- [x] Rüstung: Movement Speed
+- [x] Rüstung: Crit Chance
+- [x] Waffen: Reach
+- [x] Waffen: Damage
+- [x] Waffen: Crit Chance
+- [x] Waffen: Crit-Schaden
+- [x] Waffen: Lifesteal
+- [x] Waffen: Attack Power
+- [x] Item Stats werden in die zentrale Player-Stats-Pipeline eingespeist
+
+## Gearscore & Balancing
+- [x] Gearscore
+- [x] Gearscore basiert auf Item-Level + Rarity + Item-Definition/Balancing
+- [x] Spielerlevel dient als Grundlage für die erreichbare Gear-Stärke
+- [x] Item-Level und Required Level sind getrennte Werte
+- [x] Gear kann bewusst unterhalb des Spielerlevels liegen
+
+## Soulbound
+- [x] Soulbound verhindert Handel/Übertragung auf andere Spieler
+- [x] Soulbound bleibt vom Besitzer nutzbar
+- [x] Soulbound kann vom Besitzer gelagert und zerstört werden
+- [x] Soulbound wird beim Tod nicht gedroppt
+- [x] Soulbound wird beim Tod direkt im Inventar des Besitzers gehalten
+
+## Weapon Skills
+- [x] Weapon Skill gehört zum konkreten Item / zur konkreten Waffendefinition
+- [x] materialbasierte Waffen können unterschiedliche Weapon Skills besitzen
+- [x] Holz, Stein, Kupfer, Eisen, Gold, Diamant und Netherite können unterschiedliche Skills besitzen
+- [x] Bogen-/Armbrust-Skillpfad bleibt mit Vanilla-Spannen/Laden kompatibel
+
+## Shop & Resourcepack
+- [x] bestehendes Admin-Shop-NPC-System bleibt die Shop-Grundlage
+- [x] Item-Definitionen können feste Shoppreise führen
+- [x] keine automatische Preisberechnung aus Item-Level + Rarity + Typ
+- [x] Resourcepack-Identifier ist Bestandteil der Item-Definition
+- [x] Resourcepack-Darstellung ist unabhängig von der Vanilla-Materialbasis
+- [x] Item-Definitionen bilden die technische Liste der tatsächlich existierenden PixelRPG-Items
+
+## Admin / API
+- [x] ItemAPI
+- [x] ItemService
+- [x] ItemDefinition Registry
+- [x] RPGItemBuilder
+- [x] Admin-Item-Liste
+- [x] Admin-Item-Vergabe
+- [x] Unique-Item-Vergabe über Admin-Funktionen
+
+## Abschlusskriterien für 07
+- [x] stabile Item-IDs / Definitionen
+- [x] finale Item-Kategorien
+- [x] finale Raritäten
+- [x] Item-Level 1–99
+- [x] unabhängige Required Levels
+- [x] Item Stats
+- [x] Gearscore
+- [x] Soulbound Death Protection
 - [x] Weapon Skill Mapping
-- [ ] Shoppreise
-- [ ] Resourcepack Integration
-
-## Gear-Balancing
-- [x] Rüstung: HP, Armor, Movement Speed
-- [x] Waffen: Reach, Damage, Crit, Crit-Schaden, Lifesteal, Attack Power
-- [ ] Gearscore aus Item-Level + Item-Definition/Balancing
-- [x] Spielerlevel bestimmt über Balancing die erreichbare Gear-Stärke
+- [x] Admin-Shop-Anbindung
+- [x] Resourcepack-Trennung
+- [x] datengetriebene Item-Definitionen
+- [x] Vanilla-/PixelRPG-Items sauber getrennt
+- [x] CI-Build grün
 
 ---
 
