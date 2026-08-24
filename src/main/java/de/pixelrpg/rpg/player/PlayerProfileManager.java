@@ -2,7 +2,6 @@ package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.api.EconomyAPI;
 import de.pixelrpg.rpg.api.GuildAPI;
-import de.pixelrpg.rpg.api.events.PlayerClassChangeEvent;
 import de.pixelrpg.rpg.api.events.PlayerJoinGuildEvent;
 import de.pixelrpg.rpg.api.events.PlayerLeaveGuildEvent;
 import de.pixelrpg.rpg.api.events.PlayerLevelUpEvent;
@@ -38,15 +37,11 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     private StorageType storageType;
     private ExecutorService saveExecutor;
     private int loadTimeoutSeconds = 8;
-    private double respecCost = 300.0;
-    private int respecMinLevel = 40;
 
     public PlayerProfileManager(Plugin plugin) { this.plugin = plugin; }
 
     public void initialize(FileConfiguration config) {
         storageType = StorageType.fromString(config.getString("storage.type", "YAML"));
-        respecCost = config.getDouble("classes.respec-cost", 300.0);
-        respecMinLevel = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, config.getInt("classes.respec-min-level", 40)));
         loadTimeoutSeconds = Math.max(1, config.getInt("storage.load-timeout-seconds", 8));
         int threads = Math.max(1, config.getInt("storage.save-executor-threads", 4));
         saveExecutor = Executors.newFixedThreadPool(threads, runnable -> {
@@ -135,7 +130,6 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         if (profile.isRegisteredInGuild()) return;
         profile.setRegisteredInGuild(true);
         persistAsync(profile);
-        player.playSound(player.getLocation(), org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
         Bukkit.getPluginManager().callEvent(new PlayerJoinGuildEvent(player));
     }
 
@@ -145,48 +139,6 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         profile.resetProgress();
         persistAsync(profile);
         Bukkit.getPluginManager().callEvent(new PlayerLeaveGuildEvent(player));
-    }
-
-    public boolean selectClass(Player player, PlayerClass newClass) {
-        PlayerProfile profile = activeProfiles.get(player.getUniqueId());
-        if (profile == null || !profile.isRegisteredInGuild() || profile.getPlayerClass() != PlayerClass.NONE) return false;
-        if (profile.getLevel() < 30 || newClass == PlayerClass.NONE) return false;
-        PlayerClass oldClass = profile.getPlayerClass();
-        profile.setPlayerClass(newClass);
-        persistAsync(profile);
-        Bukkit.getPluginManager().callEvent(new PlayerClassChangeEvent(player, oldClass, newClass));
-        return true;
-    }
-
-    public enum RespecResult { SUCCESS, NOT_REGISTERED, LEVEL_TOO_LOW, INSUFFICIENT_FUNDS, SAME_CLASS }
-
-    public RespecResult respecClass(Player player, PlayerClass newClass) {
-        PlayerProfile profile = activeProfiles.get(player.getUniqueId());
-        if (profile == null || !profile.isRegisteredInGuild()) return RespecResult.NOT_REGISTERED;
-        if (profile.getPlayerClass() == newClass) return RespecResult.SAME_CLASS;
-        if (profile.getLevel() < respecMinLevel) return RespecResult.LEVEL_TOO_LOW;
-        if (!profile.removeMoney(respecCost)) return RespecResult.INSUFFICIENT_FUNDS;
-        PlayerClass oldClass = profile.getPlayerClass();
-        profile.setPlayerClass(newClass);
-        persistAsync(profile);
-        Bukkit.getPluginManager().callEvent(new PlayerClassChangeEvent(player, oldClass, newClass));
-        return RespecResult.SUCCESS;
-    }
-
-    public double getRespecCost() { return respecCost; }
-    public int getRespecMinLevel() { return respecMinLevel; }
-
-    public AttributePurchaseResult purchaseAttribute(Player player, PlayerAttribute attribute) {
-        PlayerProfile profile = activeProfiles.get(player.getUniqueId());
-        if (profile == null || !profile.isRegisteredInGuild()) return AttributePurchaseResult.NOT_REGISTERED;
-        int current = profile.getAttributePoints(attribute);
-        if (current >= attribute.getMaxPoints()) return AttributePurchaseResult.MAX_REACHED;
-        if (profile.getLevel() < AttributeConfig.levelRequirementForPoint(attribute, current)) return AttributePurchaseResult.LEVEL_TOO_LOW;
-        double cost = AttributeConfig.costFor(attribute, current, profile.getPlayerClass());
-        if (!profile.removeMoney(cost)) return AttributePurchaseResult.INSUFFICIENT_FUNDS;
-        profile.addAttributePoint(attribute);
-        persistAsync(profile);
-        return AttributePurchaseResult.SUCCESS;
     }
 
     public void unlockWaypoint(UUID uuid, String waypointId) {
@@ -205,7 +157,6 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     private void persistAsync(PlayerProfile profile) {
         UUID uuid = profile.getUuid();
         if (!saveRequested.add(uuid)) return;
-
         CompletableFuture<Void> future = enqueueVoid(uuid, () -> persistSync(profile));
         future.whenComplete((ignored, throwable) -> {
             saveRequested.remove(uuid);
@@ -240,11 +191,8 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         CompletableFuture<Void> chain = saveChain.compute(uuid, (id, previous) -> {
             CompletableFuture<Void> base = previous != null ? previous : CompletableFuture.completedFuture(null);
             return base.exceptionally(ignored -> null).thenRunAsync(() -> {
-                try {
-                    result.complete(task.get());
-                } catch (Throwable throwable) {
-                    result.completeExceptionally(throwable);
-                }
+                try { result.complete(task.get()); }
+                catch (Throwable throwable) { result.completeExceptionally(throwable); }
             }, saveExecutor);
         });
         chain.whenComplete((ignored, throwable) -> saveChain.remove(uuid, chain));
@@ -255,8 +203,6 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
 
     @Override public boolean isRegistered(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null && p.isRegisteredInGuild(); }
     @Override public int getLevel(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null ? p.getLevel() : Level.MIN_LEVEL; }
-    @Override public PlayerClass getPlayerClass(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null ? p.getPlayerClass() : PlayerClass.NONE; }
-    @Override public boolean hasSelectedClass(UUID uuid) { return getPlayerClass(uuid) != PlayerClass.NONE; }
     @Override public long getExperience(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null ? p.getExperience() : 0L; }
     @Override public void addExperience(UUID uuid, long amount) {
         PlayerProfile profile = activeProfiles.get(uuid);
@@ -270,9 +216,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
             if (player != null) Bukkit.getPluginManager().callEvent(new PlayerLevelUpEvent(player, before, after));
         }
     }
-    @Override public int getAttributePoints(UUID uuid, PlayerAttribute attribute) { PlayerProfile p = activeProfiles.get(uuid); return p != null ? p.getAttributePoints(attribute) : 0; }
     @Override public double getBalance(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null ? p.getMoney() : 0.0; }
     @Override public void deposit(UUID uuid, double amount) { PlayerProfile p = activeProfiles.get(uuid); if (p != null && p.isRegisteredInGuild()) { p.addMoney(amount); persistAsync(p); } }
     @Override public boolean withdraw(UUID uuid, double amount) { PlayerProfile p = activeProfiles.get(uuid); if (p == null || !p.isRegisteredInGuild()) return false; boolean success = p.removeMoney(amount); if (success) persistAsync(p); return success; }
-    public enum AttributePurchaseResult { SUCCESS, NOT_REGISTERED, MAX_REACHED, LEVEL_TOO_LOW, INSUFFICIENT_FUNDS }
 }
