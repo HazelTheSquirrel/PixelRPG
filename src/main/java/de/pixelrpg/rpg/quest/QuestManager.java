@@ -17,6 +17,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Biome;
+import org.bukkit.entity.Player;
 import org.bukkit.generator.structure.Structure;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -63,8 +64,7 @@ public final class QuestManager {
                     if (now < questEntry.getValue()) continue;
                     playerEntry.getValue().remove(questEntry.getKey());
                     Bukkit.getScheduler().runTask(plugin, () -> {
-                        profileManager.getProfile(uuid).filter(PlayerProfile::isRegisteredInGuild)
-                                .ifPresent(profile -> profile.removeActiveQuest(questEntry.getKey()));
+                        profileManager.getProfile(uuid).ifPresent(profile -> profile.removeActiveQuest(questEntry.getKey()));
                         Player player = Bukkit.getPlayer(uuid);
                         if (player != null && player.isOnline()) lang.send(player, "quest.expired");
                     });
@@ -92,7 +92,7 @@ public final class QuestManager {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegisteredInGuild() || !canAccept(profile, quest) || profile.hasActiveQuest(quest.id())) return false;
         if (profile.getActiveQuests().size() >= MAX_ACTIVE_QUESTS) {
-            lang.send(player, "quest.max-active");
+            player.sendMessage(Component.text("Du kannst maximal 5 Quests gleichzeitig aktiv haben.", NamedTextColor.RED));
             return false;
         }
 
@@ -104,7 +104,6 @@ public final class QuestManager {
         }
 
         lang.send(player, "quest.accepted", "title", quest.title());
-
         if (quest.type() == QuestType.GLOBAL_EVENT && globalEventState.getProgress(quest.id()) >= quest.requiredAmount()) {
             profile.getActiveQuests().get(quest.id()).setCurrentAmount(quest.requiredAmount());
             grantCompletion(player, profile, quest);
@@ -125,17 +124,12 @@ public final class QuestManager {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         Quest quest = questRepository.getQuest(questId);
         if (profile == null || !profile.isRegisteredInGuild() || quest == null || !profile.hasActiveQuest(questId)) return false;
-
         QuestProgress progress = profile.getActiveQuests().get(questId);
         if (progress.getCurrentAmount() < quest.requiredAmount()) {
             lang.send(player, "quest.requirements-not-met");
             return false;
         }
-
-        if (quest.type() == QuestType.GLOBAL_EVENT) {
-            return grantCompletion(player, profile, quest);
-        }
-
+        if (quest.type() == QuestType.GLOBAL_EVENT) return grantCompletion(player, profile, quest);
         if (!isAtQuestGiver(player, quest)) {
             lang.send(player, "quest.requirements-not-met");
             return false;
@@ -156,11 +150,9 @@ public final class QuestManager {
         profile.removeActiveQuest(quest.id());
         profile.markQuestCompleted(quest.id());
         removeTimer(player.getUniqueId(), quest.id());
-
         if (quest.rewardMoney() > 0.0D) profile.addMoney(quest.rewardMoney());
         if (quest.rewardExp() > 0L) profileManager.addExperience(player.getUniqueId(), quest.rewardExp());
         for (String rewardDefinition : quest.rewardItemMaterials()) giveRewardItem(player, rewardDefinition, quest.requiredLevel());
-
         if (quest.rewardsCompanion()) {
             var companionService = PixelRPGPlugin.getInstance().getCompanionService();
             if (companionService != null && companionService.unlockDefinition(player.getUniqueId(), quest.rewardCompanionId())) {
@@ -168,7 +160,6 @@ public final class QuestManager {
                         .append(Component.text(quest.rewardCompanionId(), NamedTextColor.YELLOW)));
             }
         }
-
         lang.send(player, "quest.completed", "title", quest.title());
         player.showTitle(Title.title(
                 Component.text(quest.title(), NamedTextColor.YELLOW),
@@ -188,8 +179,7 @@ public final class QuestManager {
             }
             ItemRarity rarity = ItemRarity.valueOf(parts[1].trim().toUpperCase());
             int itemLevel = parts.length >= 3 ? Integer.parseInt(parts[2].trim()) : fallbackLevel;
-            RPGItemBuilder.createItem(material, rarity, Math.max(1, itemLevel))
-                    .ifPresent(item -> player.getInventory().addItem(item));
+            RPGItemBuilder.createItem(material, rarity, Math.max(1, itemLevel)).ifPresent(item -> player.getInventory().addItem(item));
         } catch (IllegalArgumentException exception) {
             plugin.getLogger().warning("Invalid quest reward item '" + definition + "'. Use MATERIAL or MATERIAL|RARITY|ITEM_LEVEL.");
         }
@@ -217,9 +207,7 @@ public final class QuestManager {
             Material material = Material.matchMaterial(quest.targetKey());
             if (material == null || !material.isItem()) continue;
             int amount = 0;
-            for (ItemStack item : player.getInventory().getContents()) {
-                if (item != null && item.getType() == material) amount += item.getAmount();
-            }
+            for (ItemStack item : player.getInventory().getContents()) if (item != null && item.getType() == material) amount += item.getAmount();
             entry.getValue().setCurrentAmount(Math.min(quest.requiredAmount(), amount));
         }
     }
@@ -227,23 +215,21 @@ public final class QuestManager {
     public void checkReachLocationQuests(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegisteredInGuild()) return;
-
         for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.REACH_LOCATION || entry.getValue().getCurrentAmount() >= quest.requiredAmount()) continue;
             Location target = resolveNavigationLocation(player.getLocation(), quest);
             if (target == null || !player.getWorld().equals(target.getWorld())) continue;
-            double radius = 8.0D;
-            if (player.getLocation().distanceSquared(target) <= radius * radius) {
+            if (player.getLocation().distanceSquared(target) <= 64.0D) {
                 entry.getValue().setCurrentAmount(quest.requiredAmount());
                 lang.send(player, "quest.location-reached", "title", quest.title());
             }
         }
     }
 
-    /** Checks the current player position for the supported quest location type. */
+    /** Escort quests are intentionally not part of the final quest type pool. */
     public void checkEscortQuests(Player player) {
-        // Escort quests are intentionally not part of the final quest type pool.
+        // Intentionally empty: ESCORT is not an active quest type.
     }
 
     /** Updates TALK_TO_NPC quests when the configured NPC is interacted with. */
@@ -276,9 +262,7 @@ public final class QuestManager {
         }
     }
 
-    public int getGlobalEventProgress(String questId) {
-        return globalEventState.getProgress(questId);
-    }
+    public int getGlobalEventProgress(String questId) { return globalEventState.getProgress(questId); }
 
     private Location resolveNavigationLocation(Location origin, Quest quest) {
         if (quest.targetStructureKey() != null && !quest.targetStructureKey().isBlank()) {
@@ -292,7 +276,6 @@ public final class QuestManager {
                 }
             }
         }
-
         if (!quest.targetBiomeKeys().isEmpty()) {
             var biomeRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME);
             Biome[] biomes = quest.targetBiomeKeys().stream()
@@ -314,9 +297,7 @@ public final class QuestManager {
         int next = Math.min(quest.requiredAmount(), progress.getCurrentAmount() + 1);
         progress.setCurrentAmount(next);
         Player player = Bukkit.getPlayer(profile.getUuid());
-        if (player != null && player.isOnline()) {
-            player.sendActionBar(lang.get("quest.progress", "current", String.valueOf(next), "required", String.valueOf(quest.requiredAmount())));
-        }
+        if (player != null && player.isOnline()) player.sendActionBar(lang.get("quest.progress", "current", String.valueOf(next), "required", String.valueOf(quest.requiredAmount())));
     }
 
     private void propagateToParty(Player source, java.util.function.Consumer<PlayerProfile> action, Location referenceLocation) {
@@ -326,7 +307,6 @@ public final class QuestManager {
             profileManager.getProfile(source.getUniqueId()).filter(PlayerProfile::isRegisteredInGuild).ifPresent(action);
             return;
         }
-
         Set<UUID> members = partyAPI.getPartyMembers(source.getUniqueId());
         for (UUID memberUuid : members) {
             Player member = Bukkit.getPlayer(memberUuid);
@@ -345,7 +325,5 @@ public final class QuestManager {
         return profileManager.getProfile(uuid).map(PlayerProfile::isRegisteredInGuild).orElse(false);
     }
 
-    public QuestRepository getRepository() {
-        return questRepository;
-    }
+    public QuestRepository getRepository() { return questRepository; }
 }
