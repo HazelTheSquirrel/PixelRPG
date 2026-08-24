@@ -77,7 +77,6 @@ public final class CombatDamageListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        if (target instanceof Player && !targetRegistered) return;
 
         PlayerProfile profile = profileManager.getProfile(attacker.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) return;
@@ -88,10 +87,13 @@ public final class CombatDamageListener implements Listener {
         double companionCritDamage = attackerData.getOrDefault(companionCritDamageKey, PersistentDataType.DOUBLE, 0.0D);
         double companionLifesteal = attackerData.getOrDefault(companionLifestealKey, PersistentDataType.DOUBLE, 0.0D);
 
-        double rawDamage = CombatDamageCalculator.rawPlayerDamage(event.getDamage(), stats);
+        double rawDamage = CombatDamageContext.isWeaponSkill()
+                ? Math.max(0.1D, event.getDamage())
+                : CombatDamageCalculator.rawPlayerDamage(event.getDamage(), stats);
         double totalCritChance = Math.clamp(stats.critChance() + companionCritChance, 0.0D, MAX_CRIT_CHANCE);
         boolean critical = ThreadLocalRandom.current().nextDouble(100.0D) < totalCritChance;
-        double damage = CombatDamageCalculator.crit(rawDamage, critical);
+        double damage = CombatDamageCalculator.crit(rawDamage, critical + companionCritDamage > 0.0D && critical);
+        if (critical && companionCritDamage > 0.0D) damage += rawDamage * companionCritDamage;
 
         double targetArmor = getArmor(target);
         double finalDamage = CombatDamageCalculator.mitigate(damage, targetArmor);
