@@ -1,19 +1,23 @@
 package de.pixelrpg.rpg.companion;
 
+import de.pixelrpg.rpg.core.RPGKeys;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Generic companion combat controller shared by normal entities and Mannequins. */
+/** Generic companion combat controller shared by normal entities and Unique Mannequin companions. */
 public final class CompanionCombatController {
     private final Map<UUID, Long> nextAttackTick = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> currentTargets = new ConcurrentHashMap<>();
+    private final CompanionStatsCalculator statsCalculator = new CompanionStatsCalculator();
 
     public LivingEntity tick(Player owner, LivingEntity companion, CompanionDefinition definition, long gameTime) {
         CompanionDefinition.CompanionCombatDefinition combat = definition.combat();
@@ -31,14 +35,16 @@ public final class CompanionCombatController {
             currentTargets.remove(companion.getUniqueId());
             return null;
         }
+
         double range = Math.max(1.0D, combat.attackRange());
         if (companion.getLocation().distanceSquared(target.getLocation()) > range * range) {
             moveTowards(companion, target, definition.follow().movementSpeed());
             return target;
         }
+
         stop(companion);
         face(companion, target);
-        attack(companion, target, combat.attackIntervalTicks(), gameTime);
+        attack(owner, companion, target, definition, combat.attackIntervalTicks(), gameTime);
         return target;
     }
 
@@ -51,8 +57,11 @@ public final class CompanionCombatController {
         UUID currentId = currentTargets.get(companion.getUniqueId());
         if (currentId != null) {
             Entity current = companion.getServer().getEntity(currentId);
-            if (current instanceof LivingEntity living && isValidTarget(owner, companion, living, combat)
-                    && companion.getLocation().distanceSquared(living.getLocation()) <= combat.aggroRange() * combat.aggroRange()) return living;
+            if (current instanceof LivingEntity living
+                    && isValidTarget(owner, companion, living, combat)
+                    && companion.getLocation().distanceSquared(living.getLocation()) <= combat.aggroRange() * combat.aggroRange()) {
+                return living;
+            }
             currentTargets.remove(companion.getUniqueId(), currentId);
         }
 
@@ -71,19 +80,46 @@ public final class CompanionCombatController {
         return best;
     }
 
-    private static boolean isValidTarget(Player owner, LivingEntity companion, LivingEntity target, CompanionDefinition.CompanionCombatDefinition combat) {
+    private static boolean isValidTarget(Player owner, LivingEntity companion, LivingEntity target,
+                                         CompanionDefinition.CompanionCombatDefinition combat) {
         if (!target.isValid() || target.isDead() || target.equals(owner) || target.equals(companion)) return false;
         if (target instanceof Player) return combat.playerTargets();
         if (target instanceof Monster) return combat.hostileTargets();
         return combat.friendlyTargets();
     }
 
-    private void attack(LivingEntity attacker, LivingEntity target, int interval, long gameTime) {
+    private void attack(Player owner, LivingEntity attacker, LivingEntity target, CompanionDefinition definition,
+                        int interval, long gameTime) {
         long next = nextAttackTick.getOrDefault(attacker.getUniqueId(), 0L);
         if (gameTime < next || target.isDead() || !target.isValid()) return;
-        attacker.attack(target);
-        attacker.swingMainHand();
+
+        if (attacker instanceof Mannequin) {
+            attackMannequin(owner, attacker, target, definition);
+        } else {
+            attacker.attack(target);
+            attacker.swingMainHand();
+        }
+
         nextAttackTick.put(attacker.getUniqueId(), gameTime + Math.max(1, interval));
+    }
+
+    private void attackMannequin(Player owner, LivingEntity attacker, LivingEntity target, CompanionDefinition definition) {
+        int level = Math.max(1, attacker.getPersistentDataContainer()
+                .getOrDefault(RPGKeys.Companion.level(), PersistentDataType.INTEGER, 1));
+        CompanionInstance instance = new CompanionInstance(
+                owner.getUniqueId(),
+                definition.id(),
+                level,
+                0L,
+                true,
+                true,
+                CompanionEquipment.empty());
+        CompanionStats stats = statsCalculator.calculate(definition, instance, attacker);
+        double damage = Math.max(0.0D, stats.damage());
+        if (damage <= 0.0D) return;
+
+        target.damage(damage, attacker);
+        attacker.swingMainHand();
     }
 
     private static void moveTowards(LivingEntity entity, Entity target, double speed) {
