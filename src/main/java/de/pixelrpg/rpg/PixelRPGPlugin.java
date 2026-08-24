@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg;
 
+import de.pixelrpg.rpg.api.StatisticsAPI;
 import de.pixelrpg.rpg.boss.BiomeBossSpawnTask;
 import de.pixelrpg.rpg.boss.BossAttackPatternRegistry;
 import de.pixelrpg.rpg.boss.BossCombustListener;
@@ -11,7 +12,17 @@ import de.pixelrpg.rpg.boss.EnrageBuffPattern;
 import de.pixelrpg.rpg.boss.ProjectileVolleyPattern;
 import de.pixelrpg.rpg.boss.SlamAttackPattern;
 import de.pixelrpg.rpg.boss.SummonAddsPattern;
-import de.pixelrpg.rpg.api.StatisticsAPI;
+import de.pixelrpg.rpg.command.PaperBasicCommandAdapter;
+import de.pixelrpg.rpg.command.RootCommand;
+import de.pixelrpg.rpg.command.impl.BlacksmithSubCommand;
+import de.pixelrpg.rpg.command.impl.BossSubCommand;
+import de.pixelrpg.rpg.command.impl.CompanionSubCommand;
+import de.pixelrpg.rpg.command.impl.DialogueCommand;
+import de.pixelrpg.rpg.command.impl.NpcSubCommand;
+import de.pixelrpg.rpg.command.impl.PartySubCommand;
+import de.pixelrpg.rpg.command.impl.QuestAdminSubCommand;
+import de.pixelrpg.rpg.command.impl.QuestLogCommand;
+import de.pixelrpg.rpg.command.impl.ShopSubCommand;
 import de.pixelrpg.rpg.combat.CombatDamageListener;
 import de.pixelrpg.rpg.combat.SkillInputListener;
 import de.pixelrpg.rpg.combat.WeaponAbilityEngine;
@@ -27,6 +38,7 @@ import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
+import de.pixelrpg.rpg.economy.GuildCurrencyPickupListener;
 import de.pixelrpg.rpg.equipment.EquipmentService;
 import de.pixelrpg.rpg.gui.BlacksmithGUI;
 import de.pixelrpg.rpg.gui.GUIListener;
@@ -35,6 +47,7 @@ import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.LootDropListener;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
+import de.pixelrpg.rpg.item.SoulboundDeathListener;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcBehaviorRegistry;
 import de.pixelrpg.rpg.npc.NpcChunkListener;
@@ -43,7 +56,6 @@ import de.pixelrpg.rpg.npc.NpcLookTask;
 import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.npc.behavior.BankerBehavior;
 import de.pixelrpg.rpg.npc.behavior.BlacksmithBehavior;
-import de.pixelrpg.rpg.npc.behavior.NpcBehaviorRegistryPlaceholder;
 import de.pixelrpg.rpg.npc.behavior.QuestBehavior;
 import de.pixelrpg.rpg.npc.behavior.ReceptionBehavior;
 import de.pixelrpg.rpg.npc.behavior.ShopBehavior;
@@ -145,9 +157,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         questRepository.load();
         globalEventState = new GlobalEventState(this);
         globalEventState.load();
-        double partyShareRange = partyManager.getShareRange();
-        questManager = new QuestManager(this, questRepository, playerProfileManager, playerProfileManager, globalEventState, partyShareRange);
+        questManager = new QuestManager(this, questRepository, playerProfileManager, playerProfileManager, globalEventState, partyManager.getShareRange());
         questManager.startTimerCheckTask();
+
         BossAttackPatternRegistry patternRegistry = new BossAttackPatternRegistry();
         patternRegistry.register(new SlamAttackPattern());
         patternRegistry.register(new SummonAddsPattern());
@@ -155,16 +167,16 @@ public final class PixelRPGPlugin extends JavaPlugin {
         patternRegistry.register(new EnrageBuffPattern());
         bossRepository = new BossRepository(this);
         bossRepository.load();
-        double barRadius = getConfig().getDouble("bosses.bar-radius", 60.0);
-        int barUpdateInterval = getConfig().getInt("bosses.bar-update-interval-ticks", 20);
-        int phaseCheckInterval = getConfig().getInt("bosses.phase-check-interval-ticks", 10);
         bossManager = new BossManager(this, patternRegistry, playerProfileManager, partyManager, playerProfileManager,
-                itemEconomyConfig, mobScalingConfig, barRadius, barUpdateInterval, phaseCheckInterval);
+                itemEconomyConfig, mobScalingConfig, getConfig().getDouble("bosses.bar-radius", 60.0D),
+                getConfig().getInt("bosses.bar-update-interval-ticks", 20),
+                getConfig().getInt("bosses.phase-check-interval-ticks", 10));
         biomeBossSpawnTask = new BiomeBossSpawnTask(this, bossRepository, bossManager,
                 getConfig().getDouble("bosses.biome-spawn.spawn-radius", 80.0D),
                 getConfig().getInt("bosses.biome-spawn.check-interval-seconds", 60),
                 getConfig().getInt("bosses.biome-spawn.max-concurrent", 4));
         biomeBossSpawnTask.start();
+
         statisticsService = new StatisticsService(playerProfileManager);
         Bukkit.getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
         scoreboardService = new ScoreboardService(this, playerProfileManager, getConfig().getInt("scoreboard.update-interval-ticks", 20));
@@ -187,6 +199,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new TravelBehavior(npcManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogue, dialogueEngine, playerProfileManager));
         npcBehaviorRegistry.register(new BankerBehavior(playerProfileManager, dialogueEngine));
+
         getServer().getPluginManager().registerEvents(equipmentService, this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(craftingGUI, this);
@@ -216,8 +229,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SoulboundDeathListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(scoreboardService, this);
         getServer().getPluginManager().registerEvents(playtimeTracker, this);
-        QuickActionsDialogListener quickActionsListener = new QuickActionsDialogListener(quickActions, companionService);
-        getServer().getPluginManager().registerEvents(quickActionsListener, this);
+        getServer().getPluginManager().registerEvents(new QuickActionsDialogListener(quickActions, companionService), this);
         getServer().getPluginManager().registerEvents(new CompanionExperienceListener(companionService), this);
         new QuestPassiveCheckTask(this, questManager).start();
 
