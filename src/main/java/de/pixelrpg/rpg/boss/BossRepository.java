@@ -10,6 +10,7 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,11 +31,9 @@ public final class BossRepository {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection root = yaml.getConfigurationSection("bosses");
         if (root == null) return;
-
         for (String id : root.getKeys(false)) {
             ConfigurationSection section = root.getConfigurationSection(id);
             if (section == null) continue;
-
             BossDefinition definition = new BossDefinition(id, section.getString("name", id));
             definition.setKind(parseKind(section.getString("kind", "BIOME")));
             definition.setBaseEntityType(parseEntityType(section.getString("base-entity", "ZOMBIE")));
@@ -50,12 +49,10 @@ public final class BossRepository {
             for (Map<?, ?> phaseMap : section.getMapList("phases")) {
                 double threshold = toDouble(phaseMap.get("health-percent"));
                 int interval = toInt(phaseMap.get("attack-interval-ticks"), definition.getAttackIntervalTicks());
-                String announce = String.valueOf(phaseMap.getOrDefault("announcement", ""));
+                String announce = stringValue(phaseMap.get("announcement"));
                 List<String> patterns = new ArrayList<>();
                 Object patternsRaw = phaseMap.get("patterns");
-                if (patternsRaw instanceof List<?> rawList) {
-                    for (Object entry : rawList) patterns.add(String.valueOf(entry));
-                }
+                if (patternsRaw instanceof List<?> rawList) for (Object entry : rawList) patterns.add(String.valueOf(entry));
                 phases.add(new BossPhase(threshold, patterns, interval, announce));
             }
             phases.sort((a, b) -> Double.compare(b.healthPercentageThreshold(), a.healthPercentageThreshold()));
@@ -65,17 +62,12 @@ public final class BossRepository {
             if (lootSection != null) {
                 List<BossLootEntry> chanceDrops = new ArrayList<>();
                 for (Map<?, ?> entry : lootSection.getMapList("chance-drops")) {
-                    String material = String.valueOf(entry.getOrDefault("material", ""));
+                    String material = stringValue(entry.get("material"));
                     if (material.isBlank()) continue;
-                    double chance = toDouble(entry.get("chance-percent"));
-                    ItemRarity rarity = parseRarity(String.valueOf(entry.getOrDefault("rarity", "RARE")));
-                    chanceDrops.add(new BossLootEntry(material, chance, rarity));
+                    chanceDrops.add(new BossLootEntry(material, toDouble(entry.get("chance-percent")), parseRarity(stringValue(entry.get("rarity"), "RARE"))));
                 }
-                definition.setLootConfig(new BossLootConfig(
-                        lootSection.getStringList("guaranteed"),
-                        chanceDrops,
-                        lootSection.getDouble("money", 0.0D),
-                        lootSection.getLong("exp", 0L)));
+                definition.setLootConfig(new BossLootConfig(lootSection.getStringList("guaranteed"), chanceDrops,
+                        lootSection.getDouble("money", 0.0D), lootSection.getLong("exp", 0L)));
             }
 
             if (definition.getKind() == BossKind.BIOME && definition.getBiome() == null) {
@@ -89,31 +81,18 @@ public final class BossRepository {
             }
             definitionsById.put(id, definition);
         }
-
         validateBiomeUniqueness();
     }
 
-    public BossDefinition get(String id) {
-        return definitionsById.get(id);
-    }
-
-    public List<BossDefinition> getAll() {
-        return new ArrayList<>(definitionsById.values());
-    }
-
-    public List<BossDefinition> getWorldBosses() {
-        return definitionsById.values().stream().filter(definition -> definition.getKind() == BossKind.WORLD_EVENT).toList();
-    }
-
+    public BossDefinition get(String id) { return definitionsById.get(id); }
+    public List<BossDefinition> getAll() { return new ArrayList<>(definitionsById.values()); }
+    public List<BossDefinition> getWorldBosses() { return definitionsById.values().stream().filter(d -> d.getKind() == BossKind.WORLD_EVENT).toList(); }
     public BossDefinition getBiomeBoss(Biome biome) {
-        return definitionsById.values().stream()
-                .filter(definition -> definition.getKind() == BossKind.BIOME && definition.getBiome() == biome)
-                .findFirst()
-                .orElse(null);
+        return definitionsById.values().stream().filter(d -> d.getKind() == BossKind.BIOME && d.getBiome() == biome).findFirst().orElse(null);
     }
 
     private void validateBiomeUniqueness() {
-        Map<Biome, String> seen = new java.util.EnumMap<>(Biome.class);
+        Map<Biome, String> seen = new EnumMap<>(Biome.class);
         for (BossDefinition definition : new ArrayList<>(definitionsById.values())) {
             if (definition.getKind() != BossKind.BIOME || definition.getBiome() == null) continue;
             String previous = seen.putIfAbsent(definition.getBiome(), definition.getId());
@@ -126,27 +105,20 @@ public final class BossRepository {
 
     private void createDefaultBosses() {
         YamlConfiguration yaml = new YamlConfiguration();
-
         setBase(yaml, "grove_warden", "Grove Warden", "BIOME", "ZOMBIE", "PLAINS", 18, 5.0, 1.8, 1.25, 110, List.of("SLAM"));
         yaml.set("bosses.grove_warden.loot.guaranteed", List.of("IRON_INGOT"));
-        yaml.set("bosses.grove_warden.loot.chance-drops", List.of(
-                Map.of("material", "DIAMOND", "chance-percent", 8.0, "rarity", "RARE")));
-        yaml.set("bosses.grove_warden.loot.money", 150.0);
-        yaml.set("bosses.grove_warden.loot.exp", 350L);
+        yaml.set("bosses.grove_warden.loot.chance-drops", List.of(Map.of("material", "DIAMOND", "chance-percent", 8.0, "rarity", "RARE")));
+        yaml.set("bosses.grove_warden.loot.money", 150.0); yaml.set("bosses.grove_warden.loot.exp", 350L);
 
         setBase(yaml, "dune_stalker", "Dune Stalker", "BIOME", "HUSK", "DESERT", 28, 7.0, 2.0, 1.30, 100, List.of("PROJECTILE_VOLLEY", "SLAM"));
         yaml.set("bosses.dune_stalker.loot.guaranteed", List.of("GOLD_INGOT"));
-        yaml.set("bosses.dune_stalker.loot.chance-drops", List.of(
-                Map.of("material", "DIAMOND", "chance-percent", 10.0, "rarity", "EPIC")));
-        yaml.set("bosses.dune_stalker.loot.money", 300.0);
-        yaml.set("bosses.dune_stalker.loot.exp", 650L);
+        yaml.set("bosses.dune_stalker.loot.chance-drops", List.of(Map.of("material", "DIAMOND", "chance-percent", 10.0, "rarity", "EPIC")));
+        yaml.set("bosses.dune_stalker.loot.money", 300.0); yaml.set("bosses.dune_stalker.loot.exp", 650L);
 
         setBase(yaml, "frostfang", "Frostfang", "BIOME", "STRAY", "SNOWY_PLAINS", 42, 10.0, 2.2, 1.35, 90, List.of("PROJECTILE_VOLLEY", "SLAM"));
         yaml.set("bosses.frostfang.loot.guaranteed", List.of("DIAMOND"));
-        yaml.set("bosses.frostfang.loot.chance-drops", List.of(
-                Map.of("material", "NETHERITE_SCRAP", "chance-percent", 6.0, "rarity", "LEGENDARY")));
-        yaml.set("bosses.frostfang.loot.money", 600.0);
-        yaml.set("bosses.frostfang.loot.exp", 1200L);
+        yaml.set("bosses.frostfang.loot.chance-drops", List.of(Map.of("material", "NETHERITE_SCRAP", "chance-percent", 6.0, "rarity", "LEGENDARY")));
+        yaml.set("bosses.frostfang.loot.money", 600.0); yaml.set("bosses.frostfang.loot.exp", 1200L);
 
         setBase(yaml, "rift_colossus", "Rift Colossus", "WORLD_EVENT", "RAVAGER", null, 80, 35.0, 5.0, 1.75, 100, List.of());
         yaml.set("bosses.rift_colossus.phases", List.of(
@@ -157,71 +129,27 @@ public final class BossRepository {
         yaml.set("bosses.rift_colossus.loot.chance-drops", List.of(
                 Map.of("material", "NETHERITE_INGOT", "chance-percent", 15.0, "rarity", "LEGENDARY"),
                 Map.of("material", "DIAMOND_BLOCK", "chance-percent", 25.0, "rarity", "EPIC")));
-        yaml.set("bosses.rift_colossus.loot.money", 2500.0);
-        yaml.set("bosses.rift_colossus.loot.exp", 6000L);
+        yaml.set("bosses.rift_colossus.loot.money", 2500.0); yaml.set("bosses.rift_colossus.loot.exp", 6000L);
 
-        try {
-            file.getParentFile().mkdirs();
-            yaml.save(file);
-        } catch (IOException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to create default bosses.yml", e);
-        }
+        try { file.getParentFile().mkdirs(); yaml.save(file); }
+        catch (IOException e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to create default bosses.yml", e); }
     }
 
     private void setBase(YamlConfiguration yaml, String id, String name, String kind, String entity, String biome,
                          int level, double hp, double damage, double scale, int attackInterval, List<String> patterns) {
         String path = "bosses." + id;
-        yaml.set(path + ".name", name);
-        yaml.set(path + ".kind", kind);
-        yaml.set(path + ".base-entity", entity);
+        yaml.set(path + ".name", name); yaml.set(path + ".kind", kind); yaml.set(path + ".base-entity", entity);
         if (biome != null) yaml.set(path + ".biome", biome);
-        yaml.set(path + ".level", level);
-        yaml.set(path + ".health-multiplier", hp);
-        yaml.set(path + ".damage-multiplier", damage);
-        yaml.set(path + ".scale-multiplier", scale);
-        yaml.set(path + ".attack-interval-ticks", attackInterval);
-        yaml.set(path + ".attack-patterns", patterns);
+        yaml.set(path + ".level", level); yaml.set(path + ".health-multiplier", hp); yaml.set(path + ".damage-multiplier", damage);
+        yaml.set(path + ".scale-multiplier", scale); yaml.set(path + ".attack-interval-ticks", attackInterval); yaml.set(path + ".attack-patterns", patterns);
     }
 
-    private double toDouble(Object value) {
-        return value instanceof Number number ? number.doubleValue() : 0.0D;
-    }
-
-    private int toInt(Object value, int fallback) {
-        return value instanceof Number number ? number.intValue() : fallback;
-    }
-
-    private EntityType parseEntityType(String raw) {
-        try {
-            return EntityType.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return EntityType.ZOMBIE;
-        }
-    }
-
-    private BossKind parseKind(String raw) {
-        try {
-            return BossKind.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return BossKind.BIOME;
-        }
-    }
-
-    private Biome parseBiome(String raw) {
-        if (raw == null || raw.isBlank()) return null;
-        try {
-            return Biome.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException ignored) {
-            plugin.getLogger().warning("Unknown boss biome: " + raw);
-            return null;
-        }
-    }
-
-    private ItemRarity parseRarity(String raw) {
-        try {
-            return ItemRarity.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return ItemRarity.RARE;
-        }
-    }
+    private double toDouble(Object value) { return value instanceof Number number ? number.doubleValue() : 0.0D; }
+    private int toInt(Object value, int fallback) { return value instanceof Number number ? number.intValue() : fallback; }
+    private String stringValue(Object value) { return stringValue(value, ""); }
+    private String stringValue(Object value, String fallback) { return value == null ? fallback : String.valueOf(value); }
+    private EntityType parseEntityType(String raw) { try { return EntityType.valueOf(raw.trim().toUpperCase()); } catch (IllegalArgumentException | NullPointerException e) { return EntityType.ZOMBIE; } }
+    private BossKind parseKind(String raw) { try { return BossKind.valueOf(raw.trim().toUpperCase()); } catch (IllegalArgumentException | NullPointerException e) { return BossKind.BIOME; } }
+    private Biome parseBiome(String raw) { if (raw == null || raw.isBlank()) return null; try { return Biome.valueOf(raw.trim().toUpperCase()); } catch (IllegalArgumentException ignored) { plugin.getLogger().warning("Unknown boss biome: " + raw); return null; } }
+    private ItemRarity parseRarity(String raw) { try { return ItemRarity.valueOf(raw.trim().toUpperCase()); } catch (IllegalArgumentException | NullPointerException e) { return ItemRarity.RARE; } }
 }
