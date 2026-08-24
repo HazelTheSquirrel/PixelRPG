@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.dialogue;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.item.SoulboundService;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.party.PartyManager;
@@ -19,24 +20,30 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native reception dialog used to register a player and expose the separate party entry. */
+/** Native reception dialog used to register a player and expose guild and party entries. */
 public final class ReceptionDialog {
     private final Player player;
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
     private final LanguageManager lang;
     private final PartyManager partyManager;
+    private final GuildManager guildManager;
 
     public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
-        this(player, profileManager, dialogueEngine, null);
+        this(player, profileManager, dialogueEngine, null, null);
     }
 
     public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine, PartyManager partyManager) {
+        this(player, profileManager, dialogueEngine, partyManager, null);
+    }
+
+    public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine, PartyManager partyManager, GuildManager guildManager) {
         this.player = player;
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
         this.partyManager = partyManager;
+        this.guildManager = guildManager;
     }
 
     public void open() {
@@ -51,16 +58,19 @@ public final class ReceptionDialog {
         if (!registered) {
             actions.add(dialogueEngine.actionButton(lang.get("reception.register-button"), NamedTextColor.GREEN, target -> {
                 profileManager.registerPlayer(target);
-                new ReceptionDialog(target, profileManager, dialogueEngine, partyManager).open();
+                new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager).open();
             }));
         } else {
             actions.add(dialogueEngine.actionButton(
                     Component.text(profile.isScoreboardEnabled() ? "Scoreboard ausschalten" : "Scoreboard einschalten", NamedTextColor.GOLD),
-                    NamedTextColor.GOLD,
-                    this::toggleScoreboard));
+                    NamedTextColor.GOLD, this::toggleScoreboard));
             if (partyManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Party", NamedTextColor.AQUA), NamedTextColor.AQUA,
                         target -> new PartyGUI(target, partyManager, profileManager).open(target)));
+            }
+            if (guildManager != null) {
+                actions.add(dialogueEngine.actionButton(Component.text("Gilde", NamedTextColor.GOLD), NamedTextColor.GOLD,
+                        target -> new GuildDialog(guildManager, profileManager, dialogueEngine).open(target)));
             }
             actions.add(dialogueEngine.actionButton(lang.get("reception.resign-button"), NamedTextColor.RED, this::openLeaveConfirmation));
             actions.add(dialogueEngine.actionButton(lang.get("blacksmith.soulbind-button"), NamedTextColor.LIGHT_PURPLE, this::openSoulbindSelection));
@@ -71,11 +81,11 @@ public final class ReceptionDialog {
     private void toggleScoreboard(Player target) {
         var scoreboardService = PixelRPGPlugin.getInstance().getScoreboardService();
         if (scoreboardService == null) {
-            new ReceptionDialog(target, profileManager, dialogueEngine, partyManager).open();
+            new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager).open();
             return;
         }
         scoreboardService.setEnabled(target, !scoreboardService.isEnabled(target));
-        new ReceptionDialog(target, profileManager, dialogueEngine, partyManager).open();
+        new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager).open();
     }
 
     private void openSoulbindSelection(Player target) {
@@ -96,7 +106,7 @@ public final class ReceptionDialog {
                 DialogBody.plainMessage(Component.text("Wähle ein identifiziertes PixelRPG-Item aus deinem Inventar. Bereits seelengebundene Items werden nicht angezeigt.", NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text("Verfügbare Items: " + slots.size(), NamedTextColor.GRAY)));
         dialogueEngine.openMultiAction(target, lang.get("blacksmith.soulbind-button"), body, actions, 1,
-                player -> new ReceptionDialog(player, profileManager, dialogueEngine, partyManager).open());
+                player -> new ReceptionDialog(player, profileManager, dialogueEngine, partyManager, guildManager).open());
     }
 
     private void openSoulbindConfirmation(Player target, int slot) {
@@ -141,7 +151,7 @@ public final class ReceptionDialog {
             lang.send(player, "reception.left-guild");
         });
         ActionButton no = dialogueEngine.actionButton(lang.get("reception.no-cancel"), NamedTextColor.GREEN,
-                player -> new ReceptionDialog(player, profileManager, dialogueEngine, partyManager).open());
+                player -> new ReceptionDialog(player, profileManager, dialogueEngine, partyManager, guildManager).open());
         dialogueEngine.openConfirmation(target, lang.get("reception.resign-title"),
                 List.of(DialogBody.plainMessage(lang.get("reception.resign-warning").color(NamedTextColor.WHITE))), yes, no);
     }
