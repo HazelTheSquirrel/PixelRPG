@@ -25,6 +25,10 @@ public final class RPGKeys {
         public static NamespacedKey rarity() { return of("item_rarity"); }
         public static NamespacedKey category() { return of("item_category"); }
         public static NamespacedKey itemLevel() { return of("item_level"); }
+        public static NamespacedKey requiredLevel() { return of("item_required_level"); }
+        public static NamespacedKey gearscore() { return of("item_gearscore"); }
+        public static NamespacedKey resourcepackId() { return of("item_resourcepack_id"); }
+        public static NamespacedKey unique() { return of("item_unique"); }
         public static NamespacedKey bonusDamage() { return of("item_bonus_damage"); }
         public static NamespacedKey critChance() { return of("item_crit_chance"); }
         public static NamespacedKey critDamage() { return of("item_crit_damage"); }
