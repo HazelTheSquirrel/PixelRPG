@@ -22,7 +22,6 @@ import de.pixelrpg.rpg.command.impl.QuestAdminSubCommand;
 import de.pixelrpg.rpg.command.impl.QuestLogCommand;
 import de.pixelrpg.rpg.command.impl.ShopSubCommand;
 import de.pixelrpg.rpg.combat.CombatDamageListener;
-import de.pixelrpg.rpg.combat.ElytraPermissionListener;
 import de.pixelrpg.rpg.combat.MobExperienceListener;
 import de.pixelrpg.rpg.combat.MobNameplateListener;
 import de.pixelrpg.rpg.combat.MobNameplateService;
@@ -62,8 +61,6 @@ import de.pixelrpg.rpg.npc.behavior.StoryBehavior;
 import de.pixelrpg.rpg.npc.behavior.TravelBehavior;
 import de.pixelrpg.rpg.party.PartyDisconnectListener;
 import de.pixelrpg.rpg.party.PartyManager;
-import de.pixelrpg.rpg.player.AttributeConfig;
-import de.pixelrpg.rpg.player.ClassBalance;
 import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.ProfessionSystem;
@@ -127,8 +124,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         RPGKeys.init(this);
         languageManager = new LanguageManager(this);
         languageManager.load(getConfig().getString("language.default", "en"));
-        AttributeConfig.load(getConfig());
-        ClassBalance.load(getConfig());
         StoryBookFactory.load(getConfig());
         GuildCurrencyItemFactory.configureMaxStackSize(getConfig().getInt("economy.currency.max-stack-size", 64));
         playerProfileManager = new PlayerProfileManager(this);
@@ -180,7 +175,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         scoreboardService.startTask();
         playtimeTracker = new PlaytimeTracker(this, playerProfileManager);
         playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
-        AttributeConfig.configureElytraCost(getConfig().getDouble("elytra.permit-cost", 750.0));
         npcManager = new NpcManager(this);
         npcManager.loadAll();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
@@ -222,7 +216,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GuildCurrencyPickupListener(playerProfileManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new GuildCompassListener(npcManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new SoulboundDeathListener(playerProfileManager), this);
-        getServer().getPluginManager().registerEvents(new ElytraPermissionListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(scoreboardService, this);
         getServer().getPluginManager().registerEvents(playtimeTracker, this);
         QuickActionsDialogListener quickActionsListener = new QuickActionsDialogListener(quickActions, companionService);
@@ -258,18 +251,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         instance = null;
     }
 
-    private void registerCommand(String name, PaperBasicCommandAdapter adapter) {
-        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> event.registrar().register(name, adapter));
-    }
-
     public static PixelRPGPlugin getInstance() { return instance; }
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
     public StatEngine getStatEngine() { return statEngine; }
-    public ProfessionSystem getProfessionSystem() { return professionSystem; }
     public LanguageManager getLanguageManager() { return languageManager; }
-    public ItemService getItemService() { return itemService; }
-    public NpcManager getNpcManager() { return npcManager; }
-    public QuestManager getQuestManager() { return questManager; }
-    public BossManager getBossManager() { return bossManager; }
-    public CompanionService getCompanionService() { return companionService; }
 }
