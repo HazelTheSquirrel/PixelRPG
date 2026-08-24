@@ -25,12 +25,12 @@ import java.util.List;
 import java.util.UUID;
 
 public final class MobExperienceListener implements Listener {
+    private static final double PARTY_XP_BONUS = 0.20D;
 
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
     private final LanguageManager lang;
     private final PartyAPI partyAPI;
-    private final double partyShareRange;
 
     public MobExperienceListener(GuildAPI guildAPI, MobScalingConfig scalingConfig) {
         this.guildAPI = guildAPI;
@@ -38,10 +38,9 @@ public final class MobExperienceListener implements Listener {
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
         RegisteredServiceProvider<PartyAPI> provider = Bukkit.getServicesManager().getRegistration(PartyAPI.class);
         this.partyAPI = provider != null ? provider.getProvider() : null;
-        this.partyShareRange = Math.max(0.0, PixelRPGPlugin.getInstance().getConfig().getDouble("quests.party-share-range", 24.0));
     }
 
-    // Zuständig für die Vergabe eines festen, vom Monstertyp abgeleiteten XP-Wertes; Spieler-/Gear-Skalierung beeinflusst die Belohnung nicht.
+    // Zuständig für die Vergabe von Monster-XP inklusive des kontrollierten Party-Bonus und der 50-Block-Reichweite.
     @EventHandler(priority = EventPriority.HIGH)
     public void onMonsterDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
@@ -53,13 +52,12 @@ public final class MobExperienceListener implements Listener {
         var pdc = entity.getPersistentDataContainer();
         Double originalMaxHealth = pdc.get(RPGKeys.Combat.originalMaxHealth(), PersistentDataType.DOUBLE);
         AttributeInstance maxHealthAttribute = entity.getAttribute(Attribute.MAX_HEALTH);
-        double fixedMaxHealth = originalMaxHealth != null
-                ? originalMaxHealth
-                : (maxHealthAttribute != null ? maxHealthAttribute.getBaseValue() : 20.0D);
+        double fixedMaxHealth = originalMaxHealth != null ? originalMaxHealth : (maxHealthAttribute != null ? maxHealthAttribute.getBaseValue() : 20.0D);
         long xpReward = Math.max(1L, Math.round(fixedMaxHealth * scalingConfig.getXpPerMaxHealth()));
 
         List<Player> recipients = resolveRecipients(killer);
         if (recipients.isEmpty()) return;
+        if (partyAPI != null && partyAPI.isInParty(killer.getUniqueId())) xpReward = Math.max(xpReward, Math.round(xpReward * (1.0D + PARTY_XP_BONUS)));
 
         long sharedXp = xpReward / recipients.size();
         long remainder = xpReward % recipients.size();
@@ -75,10 +73,10 @@ public final class MobExperienceListener implements Listener {
     private List<Player> resolveRecipients(Player killer) {
         if (partyAPI == null || !partyAPI.isInParty(killer.getUniqueId())) return List.of(killer);
 
-        double maxDistanceSquared = partyShareRange * partyShareRange;
+        double range = partyAPI.getShareRange();
+        double maxDistanceSquared = range * range;
         UUID killerUuid = killer.getUniqueId();
         List<Player> recipients = new ArrayList<>();
-
         for (UUID memberUuid : partyAPI.getPartyMembers(killerUuid)) {
             if (!guildAPI.isRegistered(memberUuid)) continue;
             Player member = Bukkit.getPlayer(memberUuid);
@@ -87,7 +85,6 @@ public final class MobExperienceListener implements Listener {
             if (member.getLocation().distanceSquared(killer.getLocation()) > maxDistanceSquared) continue;
             recipients.add(member);
         }
-
         if (recipients.stream().noneMatch(player -> player.getUniqueId().equals(killerUuid))) recipients.add(killer);
         recipients.sort(Comparator.comparing(player -> !player.getUniqueId().equals(killerUuid)));
         return recipients;
