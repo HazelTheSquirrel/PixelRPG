@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public final class PlayerProfile {
     private final UUID uuid;
-    private boolean registeredInGuild;
+    private boolean registered;
     private long experience;
     private double money;
     private final Map<Profession, Integer> professionLevels = new EnumMap<>(Profession.class);
@@ -34,7 +34,7 @@ public final class PlayerProfile {
 
     public PlayerProfile(UUID uuid) {
         this.uuid = uuid;
-        this.registeredInGuild = false;
+        this.registered = false;
         this.experience = 0L;
         this.money = 0.0;
         this.storyChapterIndex = -1;
@@ -50,8 +50,8 @@ public final class PlayerProfile {
     }
 
     public UUID getUuid() { return uuid; }
-    public synchronized boolean isRegisteredInGuild() { return registeredInGuild; }
-    public synchronized void setRegisteredInGuild(boolean value) { registeredInGuild = value; dirty = true; }
+    public synchronized boolean isRegistered() { return registered; }
+    public synchronized void setRegistered(boolean value) { registered = value; dirty = true; }
     public synchronized long getExperience() { return experience; }
     public synchronized void setExperience(long value) { experience = Math.max(0L, value); dirty = true; }
     public synchronized void addExperience(long amount) { if (amount > 0L) { experience += amount; dirty = true; } }
@@ -107,7 +107,7 @@ public final class PlayerProfile {
     public synchronized void markClean() { dirty = false; }
 
     public synchronized void resetProgress() {
-        registeredInGuild = false;
+        registered = false;
         experience = 0L;
         money = 0.0;
         storyChapterIndex = -1;
