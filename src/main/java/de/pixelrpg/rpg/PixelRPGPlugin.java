@@ -151,13 +151,13 @@ public final class PixelRPGPlugin extends JavaPlugin {
         shopEditorGUI = new ShopEditorGUI(shopManager);
         storyManager = new StoryManager(this, playerProfileManager);
         storyManager.load();
-        partyManager = new PartyManager();
+        partyManager = new PartyManager(this);
         Bukkit.getServicesManager().register(de.pixelrpg.rpg.api.PartyAPI.class, partyManager, this, ServicePriority.Normal);
         questRepository = new QuestRepository(this);
         questRepository.load();
         globalEventState = new GlobalEventState(this);
         globalEventState.load();
-        double partyShareRange = getConfig().getDouble("quests.party-share-range", 24.0);
+        double partyShareRange = partyManager.getShareRange();
         questManager = new QuestManager(this, questRepository, playerProfileManager, playerProfileManager, globalEventState, partyShareRange);
         questManager.startTimerCheckTask();
         BossAttackPatternRegistry patternRegistry = new BossAttackPatternRegistry();
@@ -187,7 +187,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine);
         companionService = new CompanionService(this);
         npcBehaviorRegistry = new NpcBehaviorRegistry();
-        npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine));
+        npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine, partyManager));
         npcBehaviorRegistry.register(new BlacksmithBehavior(blacksmithGUI, craftingGUI, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new QuestBehavior(questManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new ShopBehavior(shopManager, playerProfileManager, dialogueEngine));
@@ -260,14 +260,5 @@ public final class PixelRPGPlugin extends JavaPlugin {
     }
 
     public static PixelRPGPlugin getInstance() { return instance; }
-    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
-    public StatEngine getStatEngine() { return statEngine; }
-    public ProfessionSystem getProfessionSystem() { return professionSystem; }
     public LanguageManager getLanguageManager() { return languageManager; }
-    public ItemService getItemService() { return itemService; }
-    public EquipmentService getEquipmentService() { return equipmentService; }
-    public NpcManager getNpcManager() { return npcManager; }
-    public QuestManager getQuestManager() { return questManager; }
-    public BossManager getBossManager() { return bossManager; }
-    public CompanionService getCompanionService() { return companionService; }
 }
