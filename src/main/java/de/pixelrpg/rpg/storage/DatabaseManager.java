@@ -30,7 +30,6 @@ public final class DatabaseManager {
         hikariConfig.setConnectionTimeout(connectionTimeoutMs);
         hikariConfig.setPoolName("PixelRPG-Hikari");
         hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
-
         hikariConfig.setMinimumIdle(Math.max(2, poolSize / 4));
         hikariConfig.setIdleTimeout(300_000L);
         hikariConfig.setMaxLifetime(1_800_000L);
@@ -46,16 +45,7 @@ public final class DatabaseManager {
                     uuid CHAR(36) PRIMARY KEY,
                     registered BOOLEAN NOT NULL DEFAULT FALSE,
                     experience BIGINT NOT NULL DEFAULT 0,
-                    player_class VARCHAR(32) NOT NULL DEFAULT 'NONE',
                     money DOUBLE NOT NULL DEFAULT 0,
-                    start_bonus BOOLEAN NOT NULL DEFAULT FALSE,
-                    attr_vitality INT NOT NULL DEFAULT 0,
-                    attr_agility INT NOT NULL DEFAULT 0,
-                    attr_precision INT NOT NULL DEFAULT 0,
-                    attr_range INT NOT NULL DEFAULT 0,
-                    attr_toughness INT NOT NULL DEFAULT 0,
-                    attr_soulview INT NOT NULL DEFAULT 0,
-                    attr_elytra INT NOT NULL DEFAULT 0,
                     waypoints TEXT,
                     story_chapter INT NOT NULL DEFAULT -1,
                     completed_quests TEXT,
@@ -65,7 +55,6 @@ public final class DatabaseManager {
                     playtime_millis BIGINT NOT NULL DEFAULT 0
                 )
                 """;
-
         String activeQuestsSql = """
                 CREATE TABLE IF NOT EXISTS pixelrpg_active_quests (
                     uuid CHAR(36) NOT NULL,
@@ -75,7 +64,6 @@ public final class DatabaseManager {
                     PRIMARY KEY (uuid, quest_id)
                 )
                 """;
-
         String statsSql = """
                 CREATE TABLE IF NOT EXISTS pixelrpg_player_stats (
                     uuid CHAR(36) NOT NULL,
@@ -85,17 +73,29 @@ public final class DatabaseManager {
                 )
                 """;
 
-        try (Connection connection = dataSource.getConnection();
-             Statement statement = connection.createStatement()) {
+        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
             statement.executeUpdate(playersSql);
+            migrateLegacyPlayerColumns(statement);
             statement.executeUpdate(activeQuestsSql);
             statement.executeUpdate(statsSql);
         }
     }
 
-    public DataSource getDataSource() {
-        return dataSource;
+    private void migrateLegacyPlayerColumns(Statement statement) throws SQLException {
+        String[] legacyColumns = {
+                "player_class", "start_bonus", "attr_vitality", "attr_agility", "attr_precision",
+                "attr_range", "attr_toughness", "attr_soulview", "attr_elytra"
+        };
+        for (String column : legacyColumns) {
+            try {
+                statement.executeUpdate("ALTER TABLE pixelrpg_players DROP COLUMN IF EXISTS " + column);
+            } catch (SQLException ignored) {
+                // Existing MySQL/MariaDB variants may not support IF EXISTS; the live schema remains usable.
+            }
+        }
     }
+
+    public DataSource getDataSource() { return dataSource; }
 
     public void shutdown() {
         if (dataSource != null && !dataSource.isClosed()) dataSource.close();
