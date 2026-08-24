@@ -12,6 +12,10 @@ public final class StatisticsService implements StatisticsAPI {
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
 
+    public StatisticsService(PlayerProfileManager profileManager) {
+        this(profileManager, null);
+    }
+
     public StatisticsService(PlayerProfileManager profileManager, StatEngine statEngine) {
         this.profileManager = profileManager;
         this.statEngine = statEngine;
@@ -42,6 +46,6 @@ public final class StatisticsService implements StatisticsAPI {
 
     @Override
     public double getCharacterStat(UUID uuid, CharacterStatType type) {
-        return statEngine.getCharacterStat(uuid, type);
+        return statEngine == null ? 0.0D : statEngine.getCharacterStat(uuid, type);
     }
 }
