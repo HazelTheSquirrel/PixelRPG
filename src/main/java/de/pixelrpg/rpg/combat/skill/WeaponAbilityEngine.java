@@ -31,37 +31,35 @@ public final class WeaponAbilityEngine {
         this.statEngine = statEngine;
     }
 
-    public void cast(Player player) {
+    public boolean cast(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegistered()) return;
+        if (profile == null || !profile.isRegistered()) return false;
 
         ItemStack weapon = player.getInventory().getItemInMainHand();
-        if (!weapon.hasItemMeta()) return;
+        if (!weapon.hasItemMeta()) return false;
         var pdc = weapon.getItemMeta().getPersistentDataContainer();
         Integer itemLevel = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
         if (itemLevel != null && profile.getLevel() < itemLevel) {
             player.sendActionBar(Component.text("Benötigt Level " + itemLevel, NamedTextColor.RED));
-            return;
+            return true;
         }
 
         Material material = weapon.getType();
         SkillDefinition skill = SkillDefinition.forMaterial(material);
-        if (skill == null) return;
-
-        if (skill.ranged() && !player.isSneaking()) {
-            return;
-        }
+        if (skill == null) return false;
+        if (skill.ranged() && !player.isSneaking()) return false;
 
         long now = System.currentTimeMillis();
         long expiry = cooldownExpiry.getOrDefault(player.getUniqueId(), 0L);
         if (now < expiry) {
             long seconds = (expiry - now + 999L) / 1000L;
             player.sendActionBar(Component.text("Ability cooldown: " + seconds + "s", NamedTextColor.GRAY));
-            return;
+            return true;
         }
 
         boolean executed = skill.execute(player, statEngine.getCachedStats(player.getUniqueId()).attackPower());
         if (executed) cooldownExpiry.put(player.getUniqueId(), now + skill.cooldownMillis());
+        return executed;
     }
 
     public void clearCooldown(UUID uuid) {
