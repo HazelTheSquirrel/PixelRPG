@@ -2,7 +2,6 @@
 package de.pixelrpg.rpg.api;
 
 import de.pixelrpg.rpg.core.StatisticType;
-import de.pixelrpg.rpg.stats.CharacterStatType;
 
 import java.util.UUID;
 
