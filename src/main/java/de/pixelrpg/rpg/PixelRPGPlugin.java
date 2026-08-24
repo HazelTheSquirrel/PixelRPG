@@ -261,4 +261,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     public static PixelRPGPlugin getInstance() { return instance; }
     public LanguageManager getLanguageManager() { return languageManager; }
+    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
+    public StatEngine getStatEngine() { return statEngine; }
+    public ProfessionSystem getProfessionSystem() { return professionSystem; }
+    public NpcManager getNpcManager() { return npcManager; }
+    public QuestManager getQuestManager() { return questManager; }
+    public CompanionService getCompanionService() { return companionService; }
 }
