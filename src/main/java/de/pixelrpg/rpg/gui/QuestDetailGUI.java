@@ -6,6 +6,7 @@ import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
 import de.pixelrpg.rpg.quest.QuestManager;
+import de.pixelrpg.rpg.quest.QuestText;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -14,10 +15,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class QuestDetailGUI extends AbstractGUI {
-
     private final Player viewer;
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
@@ -25,7 +26,7 @@ public final class QuestDetailGUI extends AbstractGUI {
     private final LanguageManager lang;
 
     public QuestDetailGUI(Player viewer, QuestManager questManager, PlayerProfileManager profileManager, Quest quest) {
-        super(54, Component.text(quest.title(), NamedTextColor.GOLD));
+        super(54, quest.title());
         this.viewer = viewer;
         this.questManager = questManager;
         this.profileManager = profileManager;
@@ -38,50 +39,39 @@ public final class QuestDetailGUI extends AbstractGUI {
         PlayerProfile profile = profileManager.getProfile(viewer.getUniqueId()).orElse(null);
         if (profile == null) return;
 
-        ItemStack info = new ItemStack(Material.BOOK);
-        ItemMeta infoMeta = info.getItemMeta();
-        infoMeta.displayName(Component.text(quest.title(), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
-        infoMeta.lore(List.of(
-                Component.text(quest.description(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
-                Component.text(" "),
-                Component.text("Benötigtes Level: " + quest.requiredLevel(), NamedTextColor.AQUA)
-                        .decoration(TextDecoration.ITALIC, false),
-                lang.get("quest.reward-label", "money", String.valueOf(quest.rewardMoney()), "exp", String.valueOf(quest.rewardExp()))
-                        .color(NamedTextColor.GOLD)
-                        .decoration(TextDecoration.ITALIC, false)
-        ));
-        info.setItemMeta(infoMeta);
+        ItemStack info = new ItemStack(Material.WRITTEN_BOOK);
+        ItemMeta meta = info.getItemMeta();
+        meta.displayName(Component.text(quest.title(), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+        List<Component> lore = new ArrayList<>();
+        lore.add(Component.text(quest.description(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text(" "));
+        lore.add(QuestText.objective(quest).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
+        if (profile.hasActiveQuest(quest.id())) {
+            var progress = profile.getActiveQuests().get(quest.id());
+            lore.add(lang.get("quest.progress", "current", String.valueOf(progress.getCurrentAmount()), "required", String.valueOf(quest.requiredAmount())).color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text(" "));
+            lore.add(Component.text("Questziel und aktueller Fortschritt sind jederzeit hier sichtbar.", NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+        }
+        meta.lore(lore);
+        info.setItemMeta(meta);
         setItem(22, info);
 
-        boolean hasActive = profile.hasActiveQuest(quest.id());
-        boolean canComplete = hasActive && profile.getActiveQuests().get(quest.id()).getCurrentAmount() >= quest.requiredAmount();
-
-        if (canComplete) {
-            setItem(20, buildButton(Material.LIME_DYE, "quest.hand-in", NamedTextColor.GREEN), event -> {
-                questManager.completeQuest(viewer, quest.id());
-                viewer.closeInventory();
-            });
-        } else if (hasActive) {
-            setItem(20, buildButton(Material.ORANGE_DYE, "quest.abandon", NamedTextColor.GOLD), event -> {
+        if (profile.hasActiveQuest(quest.id())) {
+            ItemStack abandon = new ItemStack(Material.BARRIER);
+            ItemMeta abandonMeta = abandon.getItemMeta();
+            abandonMeta.displayName(Component.text("Quest abbrechen", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+            abandonMeta.lore(List.of(Component.text("Der aktuelle Fortschritt geht verloren.", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+            abandon.setItemMeta(abandonMeta);
+            setItem(31, abandon, event -> {
                 questManager.abandonQuest(viewer, quest.id());
-                viewer.closeInventory();
-            });
-        } else {
-            setItem(20, buildButton(Material.LIME_DYE, "quest.accept", NamedTextColor.GREEN), event -> {
-                boolean accepted = questManager.acceptQuest(viewer, quest);
-                if (accepted) viewer.closeInventory();
-                else open(viewer);
+                open(viewer);
             });
         }
 
-        setItem(49, buildButton(Material.ARROW, "common.back", NamedTextColor.RED), event -> viewer.closeInventory());
-    }
-
-    private ItemStack buildButton(Material material, String labelKey, NamedTextColor color) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        meta.displayName(lang.get(labelKey).color(color).decoration(TextDecoration.ITALIC, false));
-        item.setItemMeta(meta);
-        return item;
+        ItemStack back = new ItemStack(Material.ARROW);
+        ItemMeta backMeta = back.getItemMeta();
+        backMeta.displayName(lang.get("common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        back.setItemMeta(backMeta);
+        setItem(49, back, event -> new QuestLogGUI(viewer, questManager, profileManager).open(viewer));
     }
 }
