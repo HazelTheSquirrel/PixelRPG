@@ -18,6 +18,9 @@ import java.util.UUID;
 
 /** Runs the single central companion runtime tick for follow, stats, mounts and generic combat. */
 public final class CompanionFollowTask implements Runnable {
+    private static final double STEP_HEIGHT = 1.05D;
+    private static final double JUMP_VELOCITY = 0.42D;
+
     private final Plugin plugin;
     private final CompanionService companionService;
     private final Map<UUID, UUID> activeEntities;
@@ -143,15 +146,49 @@ public final class CompanionFollowTask implements Runnable {
     }
 
     private static void moveTowards(LivingEntity entity, Location target, double speed) {
-        Vector delta = target.toVector().subtract(entity.getLocation().toVector());
+        Location current = entity.getLocation();
+        Vector delta = target.toVector().subtract(current.toVector());
         delta.setY(Math.max(-0.35D, Math.min(0.35D, delta.getY())));
         if (delta.lengthSquared() < 0.04D) {
             slow(entity);
             return;
         }
+
+        Vector horizontal = delta.clone().setY(0.0D);
+        boolean stepUp = shouldStepUp(entity, horizontal);
+        boolean fallingBehind = target.getY() > current.getY() + 0.35D;
+        boolean falling = entity.getVelocity().getY() < -0.08D;
+
+        if (stepUp && entity.isOnGround()) {
+            delta.setY(JUMP_VELOCITY);
+        } else if (fallingBehind && entity.isOnGround() && !falling) {
+            delta.setY(JUMP_VELOCITY);
+        } else {
+            delta.setY(Math.max(-0.35D, Math.min(0.35D, delta.getY())));
+        }
+
+        delta.setX(horizontal.getX());
+        delta.setZ(horizontal.getZ());
         delta.normalize().multiply(Math.max(0.05D, speed));
+        if (stepUp || fallingBehind) delta.setY(JUMP_VELOCITY);
         entity.setVelocity(delta);
         entity.setRotation((float) Math.toDegrees(Math.atan2(-delta.getX(), delta.getZ())), entity.getPitch());
+    }
+
+    private static boolean shouldStepUp(LivingEntity entity, Vector horizontal) {
+        if (horizontal.lengthSquared() < 0.01D) return false;
+        Vector direction = horizontal.clone().normalize();
+        Location current = entity.getLocation();
+        Location oneBlockAhead = current.clone().add(direction.getX() * 0.65D, 0.0D, direction.getZ() * 0.65D);
+        Location feet = oneBlockAhead.clone();
+        Location head = feet.clone().add(0.0D, STEP_HEIGHT, 0.0D);
+        Location landing = feet.clone().add(0.0D, 1.0D, 0.0D);
+
+        return isSolid(feet) && !isSolid(head) && !isSolid(landing);
+    }
+
+    private static boolean isSolid(Location location) {
+        return location.getBlock().getType().isSolid();
     }
 
     private static void slow(LivingEntity entity) {
