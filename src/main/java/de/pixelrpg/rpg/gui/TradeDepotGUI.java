@@ -1,8 +1,5 @@
 package de.pixelrpg.rpg.gui;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.lang.LanguageManager;
-import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.trade.TradeDepotListing;
 import de.pixelrpg.rpg.trade.TradeDepotManager;
 import net.kyori.adventure.text.Component;
@@ -20,15 +17,11 @@ import java.util.List;
 public final class TradeDepotGUI extends AbstractGUI {
     private final Player viewer;
     private final TradeDepotManager manager;
-    private final PlayerProfileManager profileManager;
-    private final LanguageManager lang;
 
-    public TradeDepotGUI(Player viewer, TradeDepotManager manager, PlayerProfileManager profileManager) {
+    public TradeDepotGUI(Player viewer, TradeDepotManager manager, de.pixelrpg.rpg.player.PlayerProfileManager ignoredProfileManager) {
         super(54, Component.text("Handelsdepot", NamedTextColor.GOLD));
         this.viewer = viewer;
         this.manager = manager;
-        this.profileManager = profileManager;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -45,15 +38,16 @@ public final class TradeDepotGUI extends AbstractGUI {
                     .decoration(TextDecoration.ITALIC, false));
             lore.add(Component.text("Verbleibend: " + remaining(listing.expiresAtMillis()), NamedTextColor.GRAY)
                     .decoration(TextDecoration.ITALIC, false));
-            lore.add(Component.text("Klicken zum Kaufen", NamedTextColor.YELLOW)
+            boolean own = listing.sellerId().equals(viewer.getUniqueId());
+            lore.add(Component.text(own ? "Klicken zum Zurücknehmen" : "Klicken zum Kaufen", NamedTextColor.YELLOW)
                     .decoration(TextDecoration.ITALIC, false));
             meta.lore(lore);
             display.setItemMeta(meta);
-            final int targetSlot = slot;
-            setItem(targetSlot, display, event -> {
-                if (manager.purchase(viewer, listing.id())) {
-                    open(viewer);
-                }
+            setItem(slot, display, event -> {
+                boolean success = own
+                        ? manager.cancel(viewer, listing.id())
+                        : manager.purchase(viewer, listing.id());
+                if (success) open(viewer);
             });
             slot++;
         }
