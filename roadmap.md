@@ -452,16 +452,30 @@ Attack Power
 
 ---
 
-# 14 – Shops / Auction House — 🟡 IN ARBEIT
-- [ ] Shop Core
-- [ ] Shop Definitions
-- [ ] Buy / Sell
-- [ ] NPC Shop Dialogue
-- [ ] Auktionshaus Core
-- [ ] Listings
-- [ ] Kaufen / Verkaufen
-- [ ] Gebühren
-- [ ] Expiration
+# 14 – Shops / Auction House — 🟢 98 % ABGESCHLOSSEN
+
+> Dieser Bereich wurde bereits im Rahmen von **11 – Economy / Gold** vollständig umgesetzt. Es wird kein zweites Shop- oder Auktionshaus-System aufgebaut. Das frühere Auktionshaus-Konzept ist als **Handelsdepot** umgesetzt.
+
+## Adminshop
+- [x] Shop Core
+- [x] bestehende Shop-Definitions-/Datenstruktur
+- [x] Kaufen
+- [x] Verkaufen
+- [x] NPC-Shop-Dialog
+- [x] Adminshop-Preise werden zentral vorgegeben
+
+## Handelsdepot
+- [x] Auktionshaus Core / Handelsdepot
+- [x] Listings
+- [x] ausschließlich PixelRPG-Items
+- [x] Festpreis-Angebote
+- [x] Kaufen / Verkaufen
+- [x] 5 % Verkaufsgebühr
+- [x] 7-Tage-Expiration
+- [x] abgelaufene Items gehen in das Bankfach `Handelsware`
+- [x] persistente Angebote / ausstehende Verkaufserlöse
+- [x] offline Verkäufer verlieren weder Item noch Verkaufserlös
+- [x] CI-Build grün
 
 ---
 
