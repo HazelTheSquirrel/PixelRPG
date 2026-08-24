@@ -37,45 +37,33 @@ public final class CompanionDialog {
         List<DialogBody> body = new ArrayList<>();
         List<ActionButton> actions = new ArrayList<>();
 
-        body.add(DialogBody.plainMessage(Component.text("Begleiter besitzen eigene Erfahrung und Progression. Nur der aktive Begleiter erhält aktuell Erfahrung.", NamedTextColor.WHITE)));
-        if (companions.isEmpty()) body.add(DialogBody.plainMessage(Component.text("Du besitzt noch keinen Begleiter.", NamedTextColor.GRAY)));
-
         for (Companion companion : companions) {
             CompanionDefinition definition = companionService.definition(companion.id());
-            long currentXp = companionService.experienceWithinLevel(companion);
-            long nextXp = companionService.experienceNeededForCurrentLevel(companion);
-            Component status = companion.active() ? Component.text("Aktiv", NamedTextColor.GREEN) : Component.text("Inaktiv", NamedTextColor.GRAY);
-
-            Component line = Component.text()
-                    .append(Component.text(companion.name(), companion.rarity().isUnique() ? NamedTextColor.GOLD : NamedTextColor.LIGHT_PURPLE))
-                    .append(Component.text("  •  ", NamedTextColor.DARK_GRAY))
-                    .append(Component.text(companion.rarity().name(), NamedTextColor.YELLOW))
-                    .append(Component.text("  •  Level ", NamedTextColor.WHITE))
-                    .append(Component.text(companion.level(), NamedTextColor.AQUA))
-                    .append(Component.text("  •  XP ", NamedTextColor.WHITE))
-                    .append(Component.text(currentXp + "/" + (nextXp == Long.MAX_VALUE ? "MAX" : nextXp), NamedTextColor.AQUA))
-                    .append(Component.text("  •  ", NamedTextColor.DARK_GRAY))
-                    .append(status)
-                    .build();
-            body.add(DialogBody.plainMessage(line));
-            if (!definition.description().isBlank()) body.add(DialogBody.plainMessage(Component.text(definition.description(), NamedTextColor.GRAY)));
 
             // Der Active-State steuert ausschließlich Rufen und Wegschicken.
             if (!companion.active()) {
-                actions.add(dialogueEngine.actionButton(Component.text("Rufen: ").append(Component.text(companion.name(), NamedTextColor.LIGHT_PURPLE)), NamedTextColor.GREEN, target -> {
-                    companionService.setActive(target, companion.id());
-                    open(target);
-                }));
+                actions.add(dialogueEngine.actionButton(
+                        Component.text("Rufen: ").append(Component.text(companion.name(), companion.rarity().isUnique() ? NamedTextColor.GOLD : NamedTextColor.LIGHT_PURPLE)),
+                        NamedTextColor.GREEN,
+                        target -> {
+                            companionService.setActive(target, companion.id());
+                            open(target);
+                        }
+                ));
             } else {
-                actions.add(dialogueEngine.actionButton(Component.text("Wegschicken"), NamedTextColor.RED, target -> {
-                    companionService.clearActive(target);
-                    open(target);
-                }));
+                actions.add(dialogueEngine.actionButton(
+                        Component.text("Wegschicken: ").append(Component.text(companion.name(), companion.rarity().isUnique() ? NamedTextColor.GOLD : NamedTextColor.LIGHT_PURPLE)),
+                        NamedTextColor.RED,
+                        target -> {
+                            companionService.clearActive(target);
+                            open(target);
+                        }
+                ));
             }
 
             // Equipment ist eine Definitionseigenschaft und steht nicht nur Unique-Companions zur Verfügung.
             if (definition.equipment().enabled()) {
-                actions.add(ActionButton.builder(Component.text("Ausrüstung", NamedTextColor.AQUA))
+                actions.add(ActionButton.builder(Component.text("Ausrüstung: ").append(Component.text(companion.name(), NamedTextColor.LIGHT_PURPLE)))
                         .action(DialogAction.customClick(Key.key(EQUIP_ACTION_PREFIX + companion.id()), null))
                         .width(220)
                         .build());
@@ -83,7 +71,11 @@ public final class CompanionDialog {
 
             // Normale Companions können umbenannt werden; Unique-Companions haben einen festen Namen.
             if (definition.renameable() && !companion.rarity().isUnique()) {
-                actions.add(dialogueEngine.actionButton(Component.text("Umbenennen"), NamedTextColor.YELLOW, target -> openRename(target, companion)));
+                actions.add(dialogueEngine.actionButton(
+                        Component.text("Umbenennen: ").append(Component.text(companion.name(), NamedTextColor.LIGHT_PURPLE)),
+                        NamedTextColor.YELLOW,
+                        target -> openRename(target, companion)
+                ));
             }
         }
 
