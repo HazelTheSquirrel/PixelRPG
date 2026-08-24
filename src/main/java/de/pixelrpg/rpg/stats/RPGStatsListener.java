@@ -5,19 +5,27 @@ import de.pixelrpg.rpg.api.events.PlayerRegistrationEvent;
 import de.pixelrpg.rpg.api.events.PlayerUnregistrationEvent;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.scheduler.BukkitTask;
 
 public final class RPGStatsListener implements Listener {
     private final StatEngine statEngine;
     private final PlayerProfileManager profileManager;
+    private final BukkitTask companionSyncTask;
 
     public RPGStatsListener(StatEngine statEngine, PlayerProfileManager profileManager) {
         this.statEngine = statEngine;
         this.profileManager = profileManager;
+        this.companionSyncTask = Bukkit.getScheduler().runTaskTimer(
+                de.pixelrpg.rpg.PixelRPGPlugin.getInstance(),
+                this::refreshOnlineStats,
+                5L,
+                5L);
     }
 
     // Aktualisiert die berechneten RPG-Werte beim Betreten des Servers nur für registrierte Spieler.
@@ -51,5 +59,11 @@ public final class RPGStatsListener implements Listener {
         if (!(event.getEntity() instanceof Player player)) return;
         if (!profileManager.isRegistered(player.getUniqueId())) return;
         statEngine.recalculate(player);
+    }
+
+    private void refreshOnlineStats() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (profileManager.isRegistered(player.getUniqueId())) statEngine.recalculate(player);
+        }
     }
 }
