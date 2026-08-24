@@ -31,15 +31,11 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         PlayerProfile profile = new PlayerProfile(uuid);
         profile.setRegisteredInGuild(yaml.getBoolean("registered", false));
         profile.setExperience(yaml.getLong("experience", 0L));
-        profile.setPlayerClass(parseClass(yaml.getString("player-class", "NONE")));
         profile.setMoney(yaml.getDouble("money", 0.0));
-        profile.setReceivedStartBonus(yaml.getBoolean("start-bonus", false));
-        for (PlayerAttribute attribute : PlayerAttribute.values()) profile.setAttributePoints(attribute, yaml.getInt("attributes." + attribute.name().toLowerCase(), 0));
 
         ConfigurationSection professionSection = yaml.getConfigurationSection("professions");
         if (professionSection != null) loadProfessions(profile, professionSection);
         profile.setUnlockedRecipes(new HashSet<>(yaml.getStringList("unlocked-recipes")));
-
         profile.setUnlockedWaypoints(new HashSet<>(yaml.getStringList("unlocked-waypoints")));
         profile.setStoryChapterIndex(yaml.getInt("story-chapter-index", -1));
         profile.setCompletedQuests(new HashSet<>(yaml.getStringList("completed-quests")));
@@ -95,10 +91,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("registered", profile.isRegisteredInGuild());
         yaml.set("experience", profile.getExperience());
-        yaml.set("player-class", profile.getPlayerClass().name());
         yaml.set("money", profile.getMoney());
-        yaml.set("start-bonus", profile.hasReceivedStartBonus());
-        for (PlayerAttribute attribute : PlayerAttribute.values()) yaml.set("attributes." + attribute.name().toLowerCase(), profile.getAttributePoints(attribute));
         for (Profession profession : Profession.values()) {
             String key = profession.name().toLowerCase();
             yaml.set("professions." + key + ".level", profile.getProfessionLevel(profession));
@@ -128,9 +121,4 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
     }
 
     @Override public void shutdown() { }
-
-    private PlayerClass parseClass(String raw) {
-        try { return PlayerClass.valueOf(raw.trim().toUpperCase()); }
-        catch (IllegalArgumentException | NullPointerException e) { return PlayerClass.NONE; }
-    }
 }
