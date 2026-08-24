@@ -2,6 +2,7 @@
 package de.pixelrpg.rpg.api;
 
 import de.pixelrpg.rpg.core.StatisticType;
+import de.pixelrpg.rpg.stats.CharacterStatType;
 
 import java.util.UUID;
 
@@ -14,4 +15,7 @@ public interface StatisticsAPI {
     long getCustomStatistic(UUID uuid, String key);
 
     void recordCustomStatistic(UUID uuid, String key, long amount);
+
+    /** Returns the current calculated character stat; calculated stats are never persisted. */
+    double getCharacterStat(UUID uuid, CharacterStatType type);
 }
