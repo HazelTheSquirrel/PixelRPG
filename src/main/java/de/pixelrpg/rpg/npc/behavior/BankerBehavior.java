@@ -10,12 +10,14 @@ import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.trade.TradeDepotManager;
 import org.bukkit.entity.Player;
 
 public final class BankerBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
     private final BankStorageService bankStorage;
+    private final TradeDepotManager tradeDepot;
     private final LanguageManager lang;
 
     public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
@@ -24,6 +26,7 @@ public final class BankerBehavior implements NpcBehavior {
         this.bankStorage = new BankStorageService(PixelRPGPlugin.getInstance());
         PixelRPGPlugin.getInstance().getServer().getPluginManager()
                 .registerEvents(new BankInventoryListener(bankStorage), PixelRPGPlugin.getInstance());
+        this.tradeDepot = new TradeDepotManager(PixelRPGPlugin.getInstance(), profileManager, bankStorage, dialogueEngine);
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
@@ -39,6 +42,10 @@ public final class BankerBehavior implements NpcBehavior {
             return;
         }
 
-        new BankDialog(profileManager, dialogueEngine, bankStorage).open(player);
+        new BankDialog(profileManager, dialogueEngine, bankStorage, tradeDepot).open(player);
+    }
+
+    public void shutdown() {
+        tradeDepot.shutdown();
     }
 }
