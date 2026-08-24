@@ -5,6 +5,7 @@ import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import net.kyori.adventure.key.Key;
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
@@ -38,6 +39,7 @@ public final class QuestNavigationService {
 
     /** Refreshes every active quest's locator-bar target for one player. */
     public void refresh(Player player) {
+        cleanupOfflinePlayers();
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegisteredInGuild()) {
             clear(player);
@@ -65,7 +67,7 @@ public final class QuestNavigationService {
 
             QuestMarker marker = currentMarkers.get(entry.quest().id());
             if (marker == null || !marker.entity().isValid()) {
-                marker = createMarker(player, entry.quest().id(), index, target);
+                marker = createMarker(player, index, target);
                 if (marker == null) continue;
                 currentMarkers.put(entry.quest().id(), marker);
             } else if (!sameLocation(marker.entity().getLocation(), target)) {
@@ -83,6 +85,16 @@ public final class QuestNavigationService {
         });
     }
 
+    /** Removes marker state for players that are no longer online. */
+    public void cleanupOfflinePlayers() {
+        markersByPlayer.keySet().removeIf(uuid -> {
+            if (Bukkit.getPlayer(uuid) != null) return false;
+            Map<String, QuestMarker> markers = markersByPlayer.get(uuid);
+            if (markers != null) markers.values().forEach(marker -> marker.entity().remove());
+            return true;
+        });
+    }
+
     /** Removes all quest waypoints and any legacy PixelRPG quest compass from one player. */
     public void clear(Player player) {
         Map<String, QuestMarker> markers = markersByPlayer.remove(player.getUniqueId());
@@ -95,7 +107,7 @@ public final class QuestNavigationService {
         markersByPlayer.clear();
     }
 
-    private QuestMarker createMarker(Player player, String questId, int index, Location target) {
+    private QuestMarker createMarker(Player player, int index, Location target) {
         ArmorStand marker = target.getWorld().spawn(target, ArmorStand.class, stand -> {
             stand.setInvisible(true);
             stand.setMarker(true);
@@ -146,7 +158,7 @@ public final class QuestNavigationService {
         }
 
         if (!quest.targetBiomeKeys().isEmpty()) {
-            var registry = io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(io.papermc.paper.registry.RegistryKey.BIOME);
+            var registry = io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(io.papmc.paper.registry.RegistryKey.BIOME);
             var biomes = quest.targetBiomeKeys().stream()
                     .map(org.bukkit.NamespacedKey::fromString)
                     .filter(java.util.Objects::nonNull)
