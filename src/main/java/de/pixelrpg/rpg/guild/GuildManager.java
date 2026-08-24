@@ -1,10 +1,18 @@
 package de.pixelrpg.rpg.guild;
 
 import de.pixelrpg.rpg.api.GuildAPI;
+import de.pixelrpg.rpg.command.GuildAcceptCommand;
+import de.pixelrpg.rpg.command.GuildInfoCommand;
+import de.pixelrpg.rpg.command.GuildInviteCommand;
+import de.pixelrpg.rpg.command.GuildLeaveCommand;
+import de.pixelrpg.rpg.command.PaperBasicCommandAdapter;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -33,6 +41,8 @@ public final class GuildManager implements GuildAPI {
         if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
         this.file = new File(plugin.getDataFolder(), "guilds.yml");
         load();
+        Bukkit.getServicesManager().register(GuildAPI.class, this, plugin, ServicePriority.Normal);
+        registerCommands();
         instance = this;
     }
 
@@ -46,6 +56,19 @@ public final class GuildManager implements GuildAPI {
     }
 
     public static GuildManager getInstance() { return Objects.requireNonNull(instance, "GuildManager not initialized"); }
+
+    private void registerCommands() {
+        GuildInviteCommand invite = new GuildInviteCommand(this);
+        GuildAcceptCommand accept = new GuildAcceptCommand(this);
+        GuildLeaveCommand leave = new GuildLeaveCommand(this);
+        GuildInfoCommand info = new GuildInfoCommand(this);
+        plugin.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+            event.registrar().register("gildeneinladen", new PaperBasicCommandAdapter("gildeneinladen", invite, invite, "rpg.member"));
+            event.registrar().register("gildeannehmen", new PaperBasicCommandAdapter("gildeannehmen", accept, null, "rpg.member"));
+            event.registrar().register("gildeverlassen", new PaperBasicCommandAdapter("gildeverlassen", leave, null, "rpg.member"));
+            event.registrar().register("gildeinfo", new PaperBasicCommandAdapter("gildeinfo", info, null, "rpg.member"));
+        });
+    }
 
     public synchronized Result createGuild(Player player, String name) {
         if (player == null || !profiles.isRegistered(player.getUniqueId())) return Result.NOT_REGISTERED;
@@ -90,10 +113,7 @@ public final class GuildManager implements GuildAPI {
         guild.members().remove(player.getUniqueId()); memberGuilds.remove(player.getUniqueId()); save(); return Result.SUCCESS;
     }
 
-    public Optional<Guild> getGuild(UUID playerId) {
-        GuildData data = guilds.get(memberGuilds.get(playerId));
-        return data == null ? Optional.empty() : Optional.of(data.snapshot());
-    }
+    public Optional<Guild> getGuild(UUID playerId) { GuildData data = guilds.get(memberGuilds.get(playerId)); return data == null ? Optional.empty() : Optional.of(data.snapshot()); }
     public Optional<Guild> getGuildByName(String name) { return guilds.values().stream().filter(g -> g.name().equalsIgnoreCase(name)).findFirst().map(GuildData::snapshot); }
     public Set<UUID> getMembers(UUID guildId) { GuildData guild = guilds.get(guildId); return guild == null ? Set.of() : Set.copyOf(guild.members()); }
     public boolean isMember(UUID guildId, UUID playerId) { GuildData guild = guilds.get(guildId); return guild != null && guild.members().contains(playerId); }
