@@ -1,8 +1,10 @@
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.core.Level;
+import de.pixelrpg.rpg.equipment.EquipmentSlot;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.quest.QuestProgress;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -26,6 +28,7 @@ public final class PlayerProfile {
     private final Map<String, QuestProgress> activeQuests = new HashMap<>();
     private final Set<String> completedQuests = new HashSet<>();
     private final Map<String, Long> statistics = new HashMap<>();
+    private final Map<EquipmentSlot, ItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
     private boolean scoreboardEnabled;
     private boolean partyHudEnabled;
     private boolean questTrackerEnabled;
@@ -102,6 +105,21 @@ public final class PlayerProfile {
     public synchronized void setStatistic(String key, long value) { statistics.put(key, value); dirty = true; }
     public synchronized void incrementStatistic(String key, long amount) { statistics.merge(key, amount, Long::sum); dirty = true; }
     public synchronized Map<String, Long> getAllStatistics() { return Collections.unmodifiableMap(new HashMap<>(statistics)); }
+
+    public synchronized Map<EquipmentSlot, ItemStack> getEquipment() {
+        Map<EquipmentSlot, ItemStack> copy = new EnumMap<>(EquipmentSlot.class);
+        equipment.forEach((slot, item) -> copy.put(slot, item.clone()));
+        return Collections.unmodifiableMap(copy);
+    }
+
+    public synchronized void setEquipment(Map<EquipmentSlot, ItemStack> values) {
+        equipment.clear();
+        if (values != null) values.forEach((slot, item) -> {
+            if (slot != null && item != null && !item.isEmpty()) equipment.put(slot, item.clone());
+        });
+        dirty = true;
+    }
+
     public synchronized boolean isScoreboardEnabled() { return scoreboardEnabled; }
     public synchronized void setScoreboardEnabled(boolean value) { scoreboardEnabled = value; dirty = true; }
     public synchronized boolean isPartyHudEnabled() { return partyHudEnabled; }
@@ -126,6 +144,7 @@ public final class PlayerProfile {
         unlockedWaypoints.clear();
         activeQuests.clear();
         completedQuests.clear();
+        equipment.clear();
         for (Profession profession : Profession.values()) {
             professionLevels.put(profession, Profession.MIN_LEVEL);
             professionExperience.put(profession, 0L);
