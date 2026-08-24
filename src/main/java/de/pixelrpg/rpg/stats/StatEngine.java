@@ -16,7 +16,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class StatEngine {
-    private static final double BASE_CRIT_CHANCE = 5.0D;
+    private static final double BASE_CRIT_CHANCE = 0.0D;
     private static final double BASE_CRIT_DAMAGE_MULTIPLIER = 2.0D;
     private static final double MAX_CRIT_CHANCE = 100.0D;
     private static final double MAX_CRIT_DAMAGE_MULTIPLIER = 10.0D;
@@ -34,8 +34,13 @@ public final class StatEngine {
     private final PlayerProfileManager profileManager;
     private final Map<UUID, CachedStats> cache = new ConcurrentHashMap<>();
 
-    public StatEngine(PlayerProfileManager profileManager) { this.profileManager = profileManager; }
-    public CachedStats getCachedStats(UUID uuid) { return cache.getOrDefault(uuid, CachedStats.EMPTY); }
+    public StatEngine(PlayerProfileManager profileManager) {
+        this.profileManager = profileManager;
+    }
+
+    public CachedStats getCachedStats(UUID uuid) {
+        return cache.getOrDefault(uuid, CachedStats.EMPTY);
+    }
 
     public void recalculate(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
@@ -51,13 +56,13 @@ public final class StatEngine {
         double itemDamage = getEquippedItemDamage(player, playerLevel);
         double itemLifesteal = getEquippedItemLifesteal(player, playerLevel);
 
-        double maxHealth = 20.0 + itemHealth;
+        double maxHealth = 20.0D + itemHealth;
         double armor = itemArmor;
-        double movementSpeedBonus = 0.0;
-        double blockReach = 0.0;
-        double entityReach = 0.0;
+        double movementSpeedBonus = 0.0D;
+        double blockReach = 0.0D;
+        double entityReach = 0.0D;
         double bonusDamage = itemDamage;
-        double critChance = BASE_CRIT_CHANCE + itemCritChance;
+        double critChance = itemCritChance;
         double critDamageMultiplier = BASE_CRIT_DAMAGE_MULTIPLIER;
         double lifestealBonus = itemLifesteal;
         double attackPower = itemDamage;
@@ -65,10 +70,10 @@ public final class StatEngine {
         CachedStats stats = new CachedStats(maxHealth, armor, movementSpeedBonus, blockReach, entityReach,
                 bonusDamage, Math.min(MAX_CRIT_CHANCE, Math.max(0.0D, critChance)),
                 Math.min(MAX_CRIT_DAMAGE_MULTIPLIER, Math.max(1.0D, critDamageMultiplier)),
-                Math.max(0.0D, lifestealBonus), 0.0, 0.0, 0.0, 0.0, attackPower, 0.0);
+                Math.max(0.0D, lifestealBonus), 0.0D, 0.0D, 0.0D, 0.0D, attackPower, 0.0D);
         cache.put(player.getUniqueId(), stats);
 
-        applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), maxHealth - 20.0);
+        applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), maxHealth - 20.0D);
         applyModifier(player, Attribute.ARMOR, RPGKeys.Stats.armor(), armor);
         applyModifier(player, Attribute.MOVEMENT_SPEED, RPGKeys.Stats.movementSpeed(), movementSpeedBonus);
         applyModifier(player, Attribute.BLOCK_INTERACTION_RANGE, RPGKeys.Stats.blockRange(), blockReach);
@@ -78,7 +83,7 @@ public final class StatEngine {
         if (healthInstance != null) {
             double max = healthInstance.getValue();
             player.setHealthScaled(true);
-            player.setHealthScale(Math.min(40.0, max));
+            player.setHealthScale(Math.min(40.0D, max));
             if (player.getHealth() > max) player.setHealth(max);
         }
     }
@@ -94,46 +99,46 @@ public final class StatEngine {
     }
 
     private double getEquippedItemArmor(Player player, int playerLevel) {
-        double total = 0.0;
+        double total = 0.0D;
         for (ItemStack item : equippedItems(player)) {
             if (!isUsable(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, 0.0);
+            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, 0.0D);
         }
         return total;
     }
 
     private double getEquippedItemHealth(Player player, int playerLevel) {
-        double total = 0.0;
+        double total = 0.0D;
         for (ItemStack item : equippedItems(player)) {
             if (!isUsable(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, 0.0);
+            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, 0.0D);
         }
         return total;
     }
 
     private double getEquippedItemCritChance(Player player, int playerLevel) {
-        double total = 0.0;
+        double total = 0.0D;
         for (ItemStack item : equippedItems(player)) {
             if (!isUsable(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, 0.0);
+            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, 0.0D);
         }
         return total;
     }
 
     private double getEquippedItemDamage(Player player, int playerLevel) {
-        double total = 0.0;
+        double total = 0.0D;
         for (ItemStack item : equippedItems(player)) {
             if (!isUsable(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, 0.0);
+            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, 0.0D);
         }
         return total;
     }
 
     private double getEquippedItemLifesteal(Player player, int playerLevel) {
-        double total = 0.0;
+        double total = 0.0D;
         for (ItemStack item : equippedItems(player)) {
             if (!isUsable(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, 0.0);
+            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, 0.0D);
         }
         return total;
     }
@@ -158,7 +163,7 @@ public final class StatEngine {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance == null) return;
         removeModifier(player, attribute, key);
-        if (value != 0.0) instance.addModifier(new AttributeModifier(key, value, AttributeModifier.Operation.ADD_NUMBER));
+        if (value != 0.0D) instance.addModifier(new AttributeModifier(key, value, AttributeModifier.Operation.ADD_NUMBER));
     }
 
     private void removeModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key) {
