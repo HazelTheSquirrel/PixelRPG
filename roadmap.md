@@ -490,13 +490,29 @@ Attack Power
 
 ---
 
-# 16 – Resource Pack / Custom Items — 🟡 IN ARBEIT
+# 16 – Resource Pack / Custom Items — 🔵 VORBEREITET / ZUKUNFT
+
+> Dieser Punkt wird aktuell bewusst **nicht aktiv entwickelt**. Die technische Item-Grundlage ist vorhanden und Resourcepack-Identifier sind bereits vom eigentlichen Item-System getrennt. Das System funktioniert vollständig ohne Resourcepack.
+>
+> Die eigentliche Gestaltung wird erst umgesetzt, wenn sich jemand bereit erklärt, das Resourcepack zu erstellen bzw. zu pflegen. Dadurch wird jetzt kein Entwicklungsaufwand in Content investiert, der später ohnehin mit dem tatsächlichen Resourcepack-Ersteller abgestimmt werden müsste.
+
+## Technische Grundlage
+- [x] Resourcepack-Kompatibilität der Item-Architektur
+- [x] PixelRPG-Item-ID getrennt vom Vanilla-Material
+- [x] Resourcepack-Identifier vom Item-System getrennt
+- [x] Vanilla-Item-Reuse möglich
+- [x] Items funktionieren ohne Resourcepack
+
+## Zukunft / Content
 - [ ] Resourcepack-Struktur
 - [ ] Custom Item Models
 - [ ] Custom Textures
 - [ ] Item Model Data
-- [ ] Minecraft Vanilla Item Reuse
 - [ ] PixelRPG Item Visuals
+- [ ] Custom Armor Visuals
+- [ ] weitere Resourcepack-spezifische UI-/Visual-Elemente nach Bedarf
+
+**Status:** Vorbereitet, aber bewusst zurückgestellt, bis ein Resourcepack-Ersteller vorhanden ist.
 
 ---
 
