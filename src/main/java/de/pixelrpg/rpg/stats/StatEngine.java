@@ -83,7 +83,7 @@ public final class StatEngine {
                 BASE_CRIT_DAMAGE_MULTIPLIER + itemCritDamage + companion.critDamage(),
                 1.0D, MAX_CRIT_DAMAGE_MULTIPLIER);
         double lifestealBonus = Math.max(0.0D, itemLifesteal + companion.lifesteal());
-        double attackPower = Math.max(0.0D, itemDamage + companion.attackPower());
+        double attackPower = Math.max(0.0D, itemDamage + companion.damage() + companion.attackPower());
 
         CachedStats stats = new CachedStats(maxHealth, armor, movementSpeedBonus, blockReach, entityReach,
                 bonusDamage, critChance, critDamageMultiplier, lifestealBonus, attackPower);
