@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.profession;
 
 import de.pixelrpg.rpg.item.CraftedItemFactory;
+import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -13,37 +14,37 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/** Executes validated profession crafting recipes for registered PixelRPG players. */
+/** Executes validated profession crafting recipes and keeps the crafting session reusable. */
 public final class CraftingService {
     private final ProfessionService professionService;
     private final PlayerProfileManager profileManager;
+    private final ItemService itemService;
+    private final CraftingRecipeRegistry registry;
 
-    public CraftingService(ProfessionService professionService, PlayerProfileManager profileManager) {
+    public CraftingService(ProfessionService professionService, PlayerProfileManager profileManager, ItemService itemService, CraftingRecipeRegistry registry) {
         this.professionService = Objects.requireNonNull(professionService);
         this.profileManager = Objects.requireNonNull(profileManager);
+        this.itemService = Objects.requireNonNull(itemService);
+        this.registry = Objects.requireNonNull(registry);
     }
 
-    public Optional<CraftRecipe> find(String recipeId) {
-        return CraftingRecipeRegistry.find(recipeId);
-    }
-
-    public List<CraftRecipe> recipes(Profession profession) {
-        return CraftingRecipeRegistry.getRecipes(profession);
-    }
+    public Optional<CraftRecipe> find(String recipeId) { return registry.find(recipeId); }
+    public List<CraftRecipe> recipes(Profession profession) { return registry.getRecipes(profession); }
+    public ProfessionService.UnlockResult unlockRecipe(Player player, CraftRecipe recipe) { return professionService.unlockRecipe(player, recipe); }
 
     public CraftResult craft(Player player, String recipeId) {
         Objects.requireNonNull(player, "player");
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegisteredInGuild()) return CraftResult.failure("PixelRPG registration required");
+        if (profile == null || !profile.isRegistered()) return CraftResult.failure("PixelRPG registration required");
 
         CraftRecipe recipe = find(recipeId).orElse(null);
         if (recipe == null) return CraftResult.failure("Unknown recipe");
-        if (recipe.rarity() == ItemRarity.UNIQUE) return CraftResult.failure("UNIQUE items can only be granted by an administrator");
         if (!profile.hasLearnedProfession(recipe.profession())) return CraftResult.failure("Profession not learned");
-        if (!profile.hasUnlockedRecipe(recipe.id())) return CraftResult.failure("Recipe not learned");
 
         int level = professionService.getLevel(player.getUniqueId(), recipe.profession());
         if (level < recipe.requiredProfessionLevel()) return CraftResult.failure("Profession level too low");
+        if (!recipe.unlockedByDefault() && !profile.hasUnlockedRecipe(recipe.id())) return CraftResult.failure("Recipe not unlocked");
+        if (recipe.rarity() == ItemRarity.UNIQUE) return CraftResult.failure("UNIQUE items cannot be crafted");
 
         for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) {
             if (!player.getInventory().contains(cost.getKey(), cost.getValue())) return CraftResult.failure("Missing materials");
@@ -53,8 +54,7 @@ public final class CraftingService {
             player.getInventory().removeItem(new ItemStack(cost.getKey(), cost.getValue()));
         }
 
-        ItemStack result = CraftedItemFactory.create(
-                recipe.id(), recipe.displayName(), recipe.resultMaterial(), recipe.rarity(), profile.getLevel());
+        ItemStack result = createResult(recipe, profile.getLevel());
         player.getInventory().addItem(result).values()
                 .forEach(stack -> player.getWorld().dropItemNaturally(player.getLocation(), stack));
 
@@ -63,8 +63,20 @@ public final class CraftingService {
         return CraftResult.success(result, experience);
     }
 
+    private ItemStack createResult(CraftRecipe recipe, int playerLevel) {
+        if (recipe.vanillaRecipe()) return new ItemStack(recipe.resultMaterial(), recipe.resultAmount());
+        if (!recipe.resultItemId().isBlank()) {
+            return itemService.createItem(recipe.resultItemId())
+                    .orElseThrow(() -> new IllegalStateException("Unable to create crafting result item: " + recipe.resultItemId()));
+        }
+        ItemStack item = CraftedItemFactory.create(recipe.id(), recipe.displayName(), recipe.resultMaterial(), recipe.rarity(), playerLevel);
+        if (recipe.resultAmount() == 1) return item;
+        item.setAmount(recipe.resultAmount());
+        return item;
+    }
+
     private long craftExperience(CraftRecipe recipe) {
-        return Math.max(20L, recipe.requiredProfessionLevel() * 6L + recipe.craftSeconds() * 20L);
+        return Math.max(20L, recipe.requiredProfessionLevel() * 6L + recipe.costs().values().stream().mapToLong(Integer::longValue).sum() * 5L);
     }
 
     public record CraftResult(boolean success, String message, ItemStack result, long experience) {
