@@ -6,7 +6,7 @@ import de.pixelrpg.rpg.player.PlayerProfileManager;
 
 import java.util.Objects;
 
-/** Wires profession progression, gathering and the complete crafting registry into PixelRPG. */
+/** Wires profession progression and the complete crafting registry into PixelRPG. */
 public final class ProfessionSystem {
     private final PixelRPGPlugin plugin;
     private final PlayerProfileManager profileManager;
@@ -28,7 +28,7 @@ public final class ProfessionSystem {
     }
 
     public void register() {
-        plugin.getServer().getPluginManager().registerEvents(new ProfessionGatheringListener(professionService), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new ProfessionActivityListener(professionService), plugin);
     }
 
     public ProfessionService professionService() { return professionService; }
