@@ -14,7 +14,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.UUID;
 
-/** Handles navigation and persistence for the two-page personal bank inventory. */
+/** Handles navigation and persistence for the personal bank and Handelsware inventory. */
 public final class BankInventoryListener implements Listener {
     private static final int BACK_SLOT = 45;
     private static final int NEXT_SLOT = 53;
@@ -25,7 +25,7 @@ public final class BankInventoryListener implements Listener {
         this.storage = storage;
     }
 
-    /** Handles bank navigation buttons and prevents players from moving them. */
+    // Zuständig für Bankseiten-Navigation und dafür, dass Navigations-Buttons nicht verschoben werden.
     @EventHandler
     public void onBankInventoryClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof BankInventoryHolder holder)) return;
@@ -34,19 +34,19 @@ public final class BankInventoryListener implements Listener {
         int rawSlot = event.getRawSlot();
         if (rawSlot < 0 || rawSlot >= event.getView().getTopInventory().getSize()) return;
 
-        if (rawSlot == BACK_SLOT && holder.page() == 1) {
+        if (rawSlot == BACK_SLOT && holder.page() > 0) {
             event.setCancelled(true);
-            openPage(player, holder.playerId(), 0);
+            openPage(player, holder.playerId(), holder.page() - 1);
             return;
         }
 
-        if (rawSlot == NEXT_SLOT && holder.page() == 0) {
+        if (rawSlot == NEXT_SLOT && holder.page() < BankStorageService.PAGE_COUNT - 1) {
             event.setCancelled(true);
-            openPage(player, holder.playerId(), 1);
+            openPage(player, holder.playerId(), holder.page() + 1);
         }
     }
 
-    /** Saves the player's bank contents when the custom bank inventory closes. */
+    // Zuständig für das Speichern der Bankseite beim Schließen des benutzerdefinierten Bankinventars.
     @EventHandler
     public void onBankInventoryClose(InventoryCloseEvent event) {
         if (!(event.getInventory().getHolder() instanceof BankInventoryHolder holder)) return;
@@ -56,8 +56,11 @@ public final class BankInventoryListener implements Listener {
     private void openPage(Player player, UUID playerId, int page) {
         ItemStack[] contents = storage.load(playerId);
         BankInventoryHolder holder = new BankInventoryHolder(playerId, page);
+        String title = page == BankStorageService.TRADE_GOODS_PAGE
+                ? "Bankfach – Handelsware"
+                : "Bankfach – Seite " + (page + 1);
         var inventory = Bukkit.createInventory(holder, BankStorageService.PAGE_SIZE,
-                Component.text("Bankfach – Seite " + (page + 1), NamedTextColor.GOLD));
+                Component.text(title, NamedTextColor.GOLD));
         holder.inventory(inventory);
 
         int offset = page * BankStorageService.PAGE_SIZE;
@@ -65,8 +68,8 @@ public final class BankInventoryListener implements Listener {
             inventory.setItem(slot, contents[offset + slot]);
         }
 
-        if (page == 1) inventory.setItem(BACK_SLOT, navigationHead("MHF_ArrowLeft", "Zurück"));
-        if (page == 0) inventory.setItem(NEXT_SLOT, navigationHead("MHF_ArrowRight", "Weiter"));
+        if (page > 0) inventory.setItem(BACK_SLOT, navigationHead("MHF_ArrowLeft", "Zurück"));
+        if (page < BankStorageService.PAGE_COUNT - 1) inventory.setItem(NEXT_SLOT, navigationHead("MHF_ArrowRight", "Weiter"));
 
         player.openInventory(inventory);
     }
@@ -75,8 +78,8 @@ public final class BankInventoryListener implements Listener {
         ItemStack[] contents = storage.load(playerId);
         int offset = page * BankStorageService.PAGE_SIZE;
         for (int slot = 0; slot < BankStorageService.PAGE_SIZE; slot++) {
-            if (page == 0 && slot == NEXT_SLOT) continue;
-            if (page == 1 && slot == BACK_SLOT) continue;
+            if (slot == NEXT_SLOT && page < BankStorageService.PAGE_COUNT - 1) continue;
+            if (slot == BACK_SLOT && page > 0) continue;
             contents[offset + slot] = inventory.getItem(slot);
         }
         return contents;
