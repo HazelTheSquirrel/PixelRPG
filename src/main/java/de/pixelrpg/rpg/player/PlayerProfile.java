@@ -41,7 +41,7 @@ public final class PlayerProfile {
         this.experience = 0L;
         this.money = 0.0;
         this.storyChapterIndex = -1;
-        this.scoreboardEnabled = false;
+        this.scoreboardEnabled = true;
         this.partyHudEnabled = false;
         this.questTrackerEnabled = false;
         this.playtimeMillis = 0L;
@@ -139,6 +139,9 @@ public final class PlayerProfile {
         experience = 0L;
         money = 0.0;
         storyChapterIndex = -1;
+        scoreboardEnabled = true;
+        partyHudEnabled = false;
+        questTrackerEnabled = false;
         learnedProfessions.clear();
         unlockedRecipes.clear();
         unlockedWaypoints.clear();
