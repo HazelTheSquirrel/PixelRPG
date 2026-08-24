@@ -24,34 +24,25 @@ public final class BankerBehavior implements NpcBehavior {
     private final LanguageManager lang;
     private final GuildBankAccessDialog guildBankAccess;
 
-    public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, GuildManager guildManager) {
+    public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.bankStorage = new BankStorageService(PixelRPGPlugin.getInstance());
-        PixelRPGPlugin.getInstance().getServer().getPluginManager()
-                .registerEvents(new BankInventoryListener(bankStorage), PixelRPGPlugin.getInstance());
+        PixelRPGPlugin.getInstance().getServer().getPluginManager().registerEvents(new BankInventoryListener(bankStorage), PixelRPGPlugin.getInstance());
         this.tradeDepot = new TradeDepotManager(PixelRPGPlugin.getInstance(), profileManager, bankStorage, dialogueEngine);
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
+        GuildManager guildManager = GuildManager.getInstance(PixelRPGPlugin.getInstance(), profileManager);
         GuildBankService guildBankService = new GuildBankService(PixelRPGPlugin.getInstance(), guildManager);
         BankDialog personalBank = new BankDialog(profileManager, dialogueEngine, bankStorage, tradeDepot);
         this.guildBankAccess = new GuildBankAccessDialog(guildManager, guildBankService, dialogueEngine, personalBank);
     }
 
-    @Override
-    public NpcType type() {
-        return NpcType.BANKER;
-    }
+    @Override public NpcType type() { return NpcType.BANKER; }
 
-    @Override
-    public void onInteract(Player player, RPGNpc npc) {
-        if (!profileManager.isRegistered(player.getUniqueId())) {
-            lang.send(player, "npc.not-registered");
-            return;
-        }
+    @Override public void onInteract(Player player, RPGNpc npc) {
+        if (!profileManager.isRegistered(player.getUniqueId())) { lang.send(player, "npc.not-registered"); return; }
         guildBankAccess.open(player);
     }
 
-    public void shutdown() {
-        tradeDepot.shutdown();
-    }
+    public void shutdown() { tradeDepot.shutdown(); }
 }
