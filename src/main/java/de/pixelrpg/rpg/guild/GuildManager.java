@@ -113,7 +113,13 @@ public final class GuildManager implements GuildAPI {
         guild.members().remove(player.getUniqueId()); memberGuilds.remove(player.getUniqueId()); save(); return Result.SUCCESS;
     }
 
-    public Optional<Guild> getGuild(UUID playerId) { GuildData data = guilds.get(memberGuilds.get(playerId)); return data == null ? Optional.empty() : Optional.of(data.snapshot()); }
+    public Optional<Guild> getGuild(UUID playerId) {
+        if (playerId == null) return Optional.empty();
+        UUID guildId = memberGuilds.get(playerId);
+        if (guildId == null) return Optional.empty();
+        GuildData data = guilds.get(guildId);
+        return data == null ? Optional.empty() : Optional.of(data.snapshot());
+    }
     public Optional<Guild> getGuildByName(String name) { return guilds.values().stream().filter(g -> g.name().equalsIgnoreCase(name)).findFirst().map(GuildData::snapshot); }
     public Set<UUID> getMembers(UUID guildId) { GuildData guild = guilds.get(guildId); return guild == null ? Set.of() : Set.copyOf(guild.members()); }
     public boolean isMember(UUID guildId, UUID playerId) { GuildData guild = guilds.get(guildId); return guild != null && guild.members().contains(playerId); }
