@@ -1,10 +1,11 @@
 # PixelRPG – Feature Roadmap
 
-Stand: 2026-08-24 – nach aktuellem Repository-Abgleich und erfolgreichem Gradle-Build
+Stand: 2026-08-24 – abgeglichen mit dem aktuellen `main`-Stand
 
 > Diese Datei ist die verbindliche Arbeits-Roadmap. Die Reihenfolge ist von oben nach unten.
 > Prozentwerte beschreiben funktionale Reife des aktuell vorhandenen Codes, nicht die Menge an Code.
 > 🟢 95–98 % = abgeschlossen, 🟡 50–94 % = in Arbeit, 🔴 0–49 % = offen.
+> Ein grüner Status bedeutet nicht automatisch, dass der aktuelle CI-Build oder ein Runtime-Test erfolgreich bestätigt wurde.
 
 ## Arbeitsregel
 
@@ -109,6 +110,7 @@ Stand: 2026-08-24 – nach aktuellem Repository-Abgleich und erfolgreichem Gradl
 - [x] Attributpunkte / Attributkosten / Klassenrabatte entfernt
 - [x] alte Attribute → Stats Pipeline entfernt
 - [x] Attribut-Persistenz entfernt
+- [ ] veraltete `isRegisteredInGuild()`-Kompatibilitätsalias vollständig aus allen Consumer-Klassen entfernen
 
 ---
 
@@ -174,7 +176,7 @@ Stand: 2026-08-24 – nach aktuellem Repository-Abgleich und erfolgreichem Gradl
 
 # 03 – Progression / Stats — 🟢 98 % ABGESCHLOSSEN
 
-> Punkt 03 ist technisch umgesetzt. Der aktuelle Repository-Stand wurde erfolgreich gebaut. Weitere Änderungen an diesem Punkt erfolgen nur noch bei Runtime-Bugs, Balancing-Entscheidungen oder bewusst beschlossenen Erweiterungen.
+> Der aktuelle `main` enthält die Progressions-/Stats-Implementierung. Offene Punkte sind ausschließlich Validierung, Runtime-Bugs oder bewusstes Balancing.
 
 ## Progression
 - [x] Level 1–99 normale Progression
@@ -255,7 +257,6 @@ Attack Power
 - [x] Boss → Companion Unlock
 
 ## Passive Companion-Boni
-
 - [x] HP
 - [x] Armor
 - [x] Movement Speed
@@ -272,7 +273,6 @@ Attack Power
 > Unique Companions behalten ihre eigene Sonderregelung.
 
 ## Companion Abilities
-
 - [x] CompanionAbilityEngine-Grundstruktur
 - [x] generische Cooldown-Verwaltung
 - [x] Ability Definitions als Datenbasis
@@ -360,7 +360,6 @@ Attack Power
 - [ ] Resourcepack Integration
 
 ## Gear-Balancing
-
 - [x] Rüstung: HP, Armor, Movement Speed
 - [x] Waffen: Reach, Damage, Crit, Crit-Schaden, Lifesteal, Attack Power
 - [ ] Gearscore aus Item-Level + Item-Definition/Balancing
