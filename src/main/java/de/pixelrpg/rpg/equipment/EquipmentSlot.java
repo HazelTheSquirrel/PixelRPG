@@ -1,22 +1,20 @@
 package de.pixelrpg.rpg.equipment;
 
-import org.bukkit.inventory.EquipmentSlot;
-
 public enum EquipmentSlot {
-    HELMET(EquipmentSlot.HEAD),
-    CHEST(EquipmentSlot.CHEST),
-    LEGS(EquipmentSlot.LEGS),
-    FEET(EquipmentSlot.FEET),
-    MAINHAND(EquipmentSlot.HAND),
-    OFFHAND(EquipmentSlot.OFF_HAND);
+    HELMET(org.bukkit.inventory.EquipmentSlot.HEAD),
+    CHEST(org.bukkit.inventory.EquipmentSlot.CHEST),
+    LEGS(org.bukkit.inventory.EquipmentSlot.LEGS),
+    FEET(org.bukkit.inventory.EquipmentSlot.FEET),
+    MAINHAND(org.bukkit.inventory.EquipmentSlot.HAND),
+    OFFHAND(org.bukkit.inventory.EquipmentSlot.OFF_HAND);
 
-    private final EquipmentSlot bukkitSlot;
+    private final org.bukkit.inventory.EquipmentSlot bukkitSlot;
 
-    EquipmentSlot(EquipmentSlot bukkitSlot) {
+    EquipmentSlot(org.bukkit.inventory.EquipmentSlot bukkitSlot) {
         this.bukkitSlot = bukkitSlot;
     }
 
-    public EquipmentSlot bukkitSlot() {
+    public org.bukkit.inventory.EquipmentSlot bukkitSlot() {
         return bukkitSlot;
     }
 }
