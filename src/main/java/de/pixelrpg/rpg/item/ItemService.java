@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/item/ItemService.java
 package de.pixelrpg.rpg.item;
 
 import de.pixelrpg.rpg.api.ItemAPI;
@@ -135,15 +134,14 @@ public final class ItemService implements ItemAPI {
         pdc.set(RPGKeys.Item.resourcepackId(), PersistentDataType.STRING, definition.resourcepackId());
         pdc.set(RPGKeys.Item.unique(), PersistentDataType.BOOLEAN, definition.unique());
         pdc.set(RPGKeys.Item.instanceId(), PersistentDataType.STRING, UUID.randomUUID().toString());
+        if (!definition.equipmentSlot().isBlank()) pdc.set(RPGKeys.Item.equipmentSlot(), PersistentDataType.STRING, definition.equipmentSlot());
+        if (!definition.setId().isBlank()) pdc.set(RPGKeys.Item.setId(), PersistentDataType.STRING, definition.setId());
 
         double gearscore = Math.round(definition.itemLevel() * definition.rarity().getStatMultiplier()
                 * definition.gearscoreModifier() * 10.0D) / 10.0D;
         pdc.set(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE, gearscore);
 
-        if (definition.soulbound()) {
-            pdc.set(RPGKeys.Item.soulbound(), PersistentDataType.BOOLEAN, true);
-        }
-
+        if (definition.soulbound()) pdc.set(RPGKeys.Item.soulbound(), PersistentDataType.BOOLEAN, true);
         if (!definition.weaponAbility().isBlank()) {
             pdc.set(RPGKeys.Item.weaponAbility(), PersistentDataType.STRING, definition.weaponAbility());
             pdc.set(RPGKeys.Item.weaponAbilityCooldownMillis(), PersistentDataType.LONG, definition.weaponAbilityCooldownMillis());
@@ -155,24 +153,16 @@ public final class ItemService implements ItemAPI {
                 .decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("Gearscore " + format(gearscore), NamedTextColor.YELLOW)
                 .decoration(TextDecoration.ITALIC, false));
-        if (definition.soulbound()) {
-            lore.add(0, Component.text("⚡ Soulbound", NamedTextColor.LIGHT_PURPLE)
-                    .decoration(TextDecoration.ITALIC, false));
-        }
-        if (definition.unique()) {
-            lore.add(0, Component.text("UNIQUE • 1/1", NamedTextColor.GOLD)
-                    .decoration(TextDecoration.ITALIC, false));
-        }
+        if (definition.soulbound()) lore.add(0, Component.text("⚡ Soulbound", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        if (definition.unique()) lore.add(0, Component.text("UNIQUE • 1/1", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
 
         if (definition.category().getProfile() == ItemStatProfile.ARMOR) {
             double critChance = Math.round(definition.itemLevel() * definition.rarity().getStatMultiplier() * 0.05D * 10.0D) / 10.0D;
             pdc.set(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, critChance);
-            lore.add(Component.text("+" + format(critChance) + "% Crit", NamedTextColor.LIGHT_PURPLE)
-                    .decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("+" + format(critChance) + "% Crit", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
         }
 
-        meta.displayName(Component.text(definition.name(), NamedTextColor.WHITE)
-                .decoration(TextDecoration.ITALIC, false));
+        meta.displayName(Component.text(definition.name(), NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
         return Optional.of(item);
