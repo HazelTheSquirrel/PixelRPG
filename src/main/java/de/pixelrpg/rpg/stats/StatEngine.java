@@ -8,9 +8,11 @@ import de.pixelrpg.rpg.companion.CompanionService;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -132,9 +134,14 @@ public final class StatEngine {
         if (plugin == null) return CompanionPassiveStats.EMPTY;
         CompanionService service = plugin.getCompanionService();
         if (service == null) return CompanionPassiveStats.EMPTY;
+
+        UUID activeEntityId = service.getActiveEntity(playerId);
+        if (activeEntityId == null) return CompanionPassiveStats.EMPTY;
+        Entity activeEntity = Bukkit.getEntity(activeEntityId);
+        if (activeEntity == null || activeEntity.isDead()) return CompanionPassiveStats.EMPTY;
+
         Companion active = service.getActive(playerId);
         if (active == null || active.rarity().isUnique()) return CompanionPassiveStats.EMPTY;
-
         CompanionDefinition definition = service.definition(active.id());
         if (!definition.passive()) return CompanionPassiveStats.EMPTY;
 
