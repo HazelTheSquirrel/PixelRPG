@@ -22,10 +22,8 @@ public final class DatabaseManager {
         String password = config.getString("storage.mysql.password", "");
         int poolSize = config.getInt("storage.mysql.pool-size", 10);
         long connectionTimeoutMs = config.getLong("storage.mysql.connection-timeout-ms", 8000L);
-
         HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database
-                + "?useSSL=false&autoReconnect=true&characterEncoding=utf8");
+        hikariConfig.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=false&autoReconnect=true&characterEncoding=utf8");
         hikariConfig.setUsername(username);
         hikariConfig.setPassword(password);
         hikariConfig.setMaximumPoolSize(poolSize);
@@ -74,36 +72,34 @@ public final class DatabaseManager {
                     PRIMARY KEY (uuid, stat_key)
                 )
                 """;
-
-        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+        String equipmentSql = """
+                CREATE TABLE IF NOT EXISTS pixelrpg_player_equipment (
+                    uuid CHAR(36) NOT NULL,
+                    slot VARCHAR(16) NOT NULL,
+                    item_yaml TEXT NOT NULL,
+                    PRIMARY KEY (uuid, slot)
+                )
+                """;
+        try (Connection connection = dataSource.getDataSource().getConnection(); Statement statement = connection.createStatement()) {
             statement.executeUpdate(playersSql);
             migrateLegacyPlayerColumns(connection);
             statement.executeUpdate(activeQuestsSql);
             statement.executeUpdate(statsSql);
+            statement.executeUpdate(equipmentSql);
         }
     }
 
     private void migrateLegacyPlayerColumns(Connection connection) throws SQLException {
-        String[] legacyColumns = {
-                "player_class", "start_bonus", "attr_vitality", "attr_agility", "attr_precision",
-                "attr_range", "attr_toughness", "attr_soulview", "attr_elytra"
-        };
+        String[] legacyColumns = {"player_class", "start_bonus", "attr_vitality", "attr_agility", "attr_precision", "attr_range", "attr_toughness", "attr_soulview", "attr_elytra"};
         DatabaseMetaData metadata = connection.getMetaData();
         for (String column : legacyColumns) {
             boolean exists;
-            try (var result = metadata.getColumns(connection.getCatalog(), null, "pixelrpg_players", column)) {
-                exists = result.next();
-            }
+            try (var result = metadata.getColumns(connection.getCatalog(), null, "pixelrpg_players", column)) { exists = result.next(); }
             if (!exists) continue;
-            try (Statement statement = connection.createStatement()) {
-                statement.executeUpdate("ALTER TABLE pixelrpg_players DROP COLUMN `" + column + "`");
-            }
+            try (Statement statement = connection.createStatement()) { statement.executeUpdate("ALTER TABLE pixelrpg_players DROP COLUMN `" + column + "`"); }
         }
     }
 
     public DataSource getDataSource() { return dataSource; }
-
-    public void shutdown() {
-        if (dataSource != null && !dataSource.isClosed()) dataSource.close();
-    }
+    public void shutdown() { if (dataSource != null && !dataSource.isClosed()) dataSource.close(); }
 }
