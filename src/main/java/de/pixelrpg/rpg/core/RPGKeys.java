@@ -8,9 +8,7 @@ public final class RPGKeys {
 
     private RPGKeys() { }
 
-    public static void init(Plugin owningPlugin) {
-        plugin = owningPlugin;
-    }
+    public static void init(Plugin owningPlugin) { plugin = owningPlugin; }
 
     private static NamespacedKey of(String value) {
         if (plugin == null) throw new IllegalStateException("RPGKeys.init() was not called before first use.");
@@ -19,7 +17,6 @@ public final class RPGKeys {
 
     public static final class Item {
         private Item() { }
-
         public static NamespacedKey identified() { return of("item_identified"); }
         public static NamespacedKey itemId() { return of("item_id"); }
         public static NamespacedKey rarity() { return of("item_rarity"); }
@@ -29,6 +26,8 @@ public final class RPGKeys {
         public static NamespacedKey gearscore() { return of("item_gearscore"); }
         public static NamespacedKey resourcepackId() { return of("item_resourcepack_id"); }
         public static NamespacedKey unique() { return of("item_unique"); }
+        public static NamespacedKey equipmentSlot() { return of("item_equipment_slot"); }
+        public static NamespacedKey setId() { return of("item_set_id"); }
         public static NamespacedKey bonusDamage() { return of("item_bonus_damage"); }
         public static NamespacedKey critChance() { return of("item_crit_chance"); }
         public static NamespacedKey critDamage() { return of("item_crit_damage"); }
@@ -48,7 +47,6 @@ public final class RPGKeys {
 
     public static final class Combat {
         private Combat() { }
-
         public static NamespacedKey mobLevel() { return of("combat_mob_level"); }
         public static NamespacedKey originalMaxHealth() { return of("combat_original_max_health"); }
         public static NamespacedKey originalAttackDamage() { return of("combat_original_attack_damage"); }
@@ -56,7 +54,6 @@ public final class RPGKeys {
 
     public static final class Stats {
         private Stats() { }
-
         public static NamespacedKey maxHealth() { return of("stat_max_health"); }
         public static NamespacedKey armor() { return of("stat_armor"); }
         public static NamespacedKey movementSpeed() { return of("stat_movement_speed"); }
@@ -66,20 +63,17 @@ public final class RPGKeys {
 
     public static final class Npc {
         private Npc() { }
-
         public static NamespacedKey npcType() { return of("npc_type"); }
         public static NamespacedKey npcId() { return of("npc_id"); }
     }
 
     public static final class Quest {
         private Quest() { }
-
         public static NamespacedKey navigationCompass() { return of("quest_navigation_compass"); }
     }
 
     public static final class Companion {
         private Companion() { }
-
         public static NamespacedKey id() { return of("companion_id"); }
         public static NamespacedKey level() { return of("companion_level"); }
         public static NamespacedKey rarity() { return of("companion_rarity"); }
@@ -87,20 +81,17 @@ public final class RPGKeys {
 
     public static final class Economy {
         private Economy() { }
-
         public static NamespacedKey guildGold() { return of("economy_guild_gold"); }
     }
 
     public static final class Boss {
         private Boss() { }
-
         public static NamespacedKey bossId() { return of("boss_id"); }
         public static NamespacedKey worldBossMarker() { return of("boss_world_marker"); }
     }
 
     public static final class Special {
         private Special() { }
-
         public static NamespacedKey guildCompassMarker() { return of("special_guild_compass"); }
     }
 }
