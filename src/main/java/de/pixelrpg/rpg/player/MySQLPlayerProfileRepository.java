@@ -39,7 +39,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
     }
 
     private PlayerProfile loadPlayerRow(Connection connection, UUID uuid) throws SQLException {
-        String sql = "SELECT * FROM pixelrpg_players WHERE uuid = ?";
+        String sql = "SELECT uuid, registered, experience, money, waypoints, story_chapter, completed_quests, scoreboard_enabled, party_hud_enabled, quest_tracker_enabled, playtime_millis FROM pixelrpg_players WHERE uuid = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, uuid.toString());
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -47,16 +47,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 PlayerProfile profile = new PlayerProfile(uuid);
                 profile.setRegisteredInGuild(resultSet.getBoolean("registered"));
                 profile.setExperience(resultSet.getLong("experience"));
-                profile.setPlayerClass(parseClass(resultSet.getString("player_class")));
                 profile.setMoney(resultSet.getDouble("money"));
-                profile.setReceivedStartBonus(resultSet.getBoolean("start_bonus"));
-                profile.setAttributePoints(PlayerAttribute.VITALITY, resultSet.getInt("attr_vitality"));
-                profile.setAttributePoints(PlayerAttribute.AGILITY, resultSet.getInt("attr_agility"));
-                profile.setAttributePoints(PlayerAttribute.PRECISION, resultSet.getInt("attr_precision"));
-                profile.setAttributePoints(PlayerAttribute.RANGE, resultSet.getInt("attr_range"));
-                profile.setAttributePoints(PlayerAttribute.TOUGHNESS, resultSet.getInt("attr_toughness"));
-                profile.setAttributePoints(PlayerAttribute.SOULVIEW, resultSet.getInt("attr_soulview"));
-                profile.setAttributePoints(PlayerAttribute.ELYTRA_PERMIT, resultSet.getInt("attr_elytra"));
                 profile.setUnlockedWaypoints(splitCsv(resultSet.getString("waypoints")));
                 profile.setStoryChapterIndex(resultSet.getInt("story_chapter"));
                 profile.setCompletedQuests(splitCsv(resultSet.getString("completed_quests")));
@@ -116,16 +107,11 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
     public void save(PlayerProfile profile) throws SQLException {
         String upsertPlayerSql = """
                 INSERT INTO pixelrpg_players
-                    (uuid, registered, experience, player_class, money, start_bonus,
-                     attr_vitality, attr_agility, attr_precision, attr_range, attr_toughness, attr_soulview, attr_elytra,
-                     waypoints, story_chapter, completed_quests,
+                    (uuid, registered, experience, money, waypoints, story_chapter, completed_quests,
                      scoreboard_enabled, party_hud_enabled, quest_tracker_enabled, playtime_millis)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
-                    registered = VALUES(registered), experience = VALUES(experience), player_class = VALUES(player_class),
-                    money = VALUES(money), start_bonus = VALUES(start_bonus), attr_vitality = VALUES(attr_vitality),
-                    attr_agility = VALUES(attr_agility), attr_precision = VALUES(attr_precision), attr_range = VALUES(attr_range),
-                    attr_toughness = VALUES(attr_toughness), attr_soulview = VALUES(attr_soulview), attr_elytra = VALUES(attr_elytra),
+                    registered = VALUES(registered), experience = VALUES(experience), money = VALUES(money),
                     waypoints = VALUES(waypoints), story_chapter = VALUES(story_chapter), completed_quests = VALUES(completed_quests),
                     scoreboard_enabled = VALUES(scoreboard_enabled), party_hud_enabled = VALUES(party_hud_enabled),
                     quest_tracker_enabled = VALUES(quest_tracker_enabled), playtime_millis = VALUES(playtime_millis)
@@ -144,23 +130,14 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                     statement.setString(1, profile.getUuid().toString());
                     statement.setBoolean(2, profile.isRegisteredInGuild());
                     statement.setLong(3, profile.getExperience());
-                    statement.setString(4, profile.getPlayerClass().name());
-                    statement.setDouble(5, profile.getMoney());
-                    statement.setBoolean(6, profile.hasReceivedStartBonus());
-                    statement.setInt(7, profile.getAttributePoints(PlayerAttribute.VITALITY));
-                    statement.setInt(8, profile.getAttributePoints(PlayerAttribute.AGILITY));
-                    statement.setInt(9, profile.getAttributePoints(PlayerAttribute.PRECISION));
-                    statement.setInt(10, profile.getAttributePoints(PlayerAttribute.RANGE));
-                    statement.setInt(11, profile.getAttributePoints(PlayerAttribute.TOUGHNESS));
-                    statement.setInt(12, profile.getAttributePoints(PlayerAttribute.SOULVIEW));
-                    statement.setInt(13, profile.getAttributePoints(PlayerAttribute.ELYTRA_PERMIT));
-                    statement.setString(14, String.join(",", profile.getUnlockedWaypoints()));
-                    statement.setInt(15, profile.getStoryChapterIndex());
-                    statement.setString(16, String.join(",", profile.getCompletedQuests()));
-                    statement.setBoolean(17, profile.isScoreboardEnabled());
-                    statement.setBoolean(18, profile.isPartyHudEnabled());
-                    statement.setBoolean(19, profile.isQuestTrackerEnabled());
-                    statement.setLong(20, profile.getPlaytimeMillis());
+                    statement.setDouble(4, profile.getMoney());
+                    statement.setString(5, String.join(",", profile.getUnlockedWaypoints()));
+                    statement.setInt(6, profile.getStoryChapterIndex());
+                    statement.setString(7, String.join(",", profile.getCompletedQuests()));
+                    statement.setBoolean(8, profile.isScoreboardEnabled());
+                    statement.setBoolean(9, profile.isPartyHudEnabled());
+                    statement.setBoolean(10, profile.isQuestTrackerEnabled());
+                    statement.setLong(11, profile.getPlaytimeMillis());
                     statement.executeUpdate();
                 }
                 try (PreparedStatement deleteStatement = connection.prepareStatement(deleteQuestsSql)) {
@@ -217,9 +194,4 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
     }
 
     @Override public void shutdown() { databaseManager.shutdown(); }
-
-    private PlayerClass parseClass(String raw) {
-        try { return PlayerClass.valueOf(raw.trim().toUpperCase()); }
-        catch (IllegalArgumentException | NullPointerException e) { return PlayerClass.NONE; }
-    }
 }
