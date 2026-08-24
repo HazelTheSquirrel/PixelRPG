@@ -92,15 +92,16 @@ public final class MobLevelScalingListener implements Listener {
                 .max()
                 .orElse(1);
         playerLevel = Math.clamp(playerLevel, 1, 99);
+        final int scalingPlayerLevel = playerLevel;
 
         double gearMultiplier = participants.keySet().stream()
                 .map(this::findPlayer)
                 .filter(player -> player != null)
-                .mapToDouble(player -> gearLevelMultiplier(player, playerLevel))
+                .mapToDouble(player -> gearLevelMultiplier(player, scalingPlayerLevel))
                 .max()
                 .orElse(1.0D);
 
-        MobScalingConfig.LevelBaseStats baseStats = scalingConfig.getBaseStats(playerLevel);
+        MobScalingConfig.LevelBaseStats baseStats = scalingConfig.getBaseStats(scalingPlayerLevel);
         double maxHealth = baseStats.hp() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
         double attackDamage = baseStats.damage() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
 
@@ -114,7 +115,7 @@ public final class MobLevelScalingListener implements Listener {
 
         AttributeInstance attack = monster.getAttribute(Attribute.ATTACK_DAMAGE);
         if (attack != null) attack.setBaseValue(attackDamage);
-        monster.getPersistentDataContainer().set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, playerLevel);
+        monster.getPersistentDataContainer().set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, scalingPlayerLevel);
     }
 
     private double gearLevelMultiplier(Player player, int playerLevel) {
