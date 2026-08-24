@@ -3,7 +3,6 @@ package de.pixelrpg.rpg.equipment;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.ItemCategory;
 import de.pixelrpg.rpg.item.ItemService;
-import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
 import org.bukkit.entity.Player;
@@ -48,7 +47,12 @@ public final class EquipmentService implements Listener {
     }
 
     public boolean canUseSlot(ItemStack item, EquipmentSlot slot) {
-        if (item == null || item.isEmpty() || !itemService.isRPGItem(item)) return true;
+        if (item == null || item.isEmpty() || !itemService.isRPGItem(item) || !item.hasItemMeta()) return true;
+        String explicitSlot = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.equipmentSlot(), PersistentDataType.STRING);
+        if (explicitSlot != null && !explicitSlot.isBlank()) {
+            try { return EquipmentSlot.valueOf(explicitSlot.toUpperCase()) == slot; }
+            catch (IllegalArgumentException ignored) { }
+        }
         ItemCategory category = itemService.getCategory(item).orElse(null);
         if (category == null) return true;
         return switch (slot) {
@@ -68,10 +72,7 @@ public final class EquipmentService implements Listener {
     }
 
     public void syncToProfile(Player player) {
-        profileManager.getProfile(player.getUniqueId()).ifPresent(profile -> {
-            profile.setEquipment(snapshot(player));
-            profile.markDirty();
-        });
+        profileManager.getProfile(player.getUniqueId()).ifPresent(profile -> profile.setEquipment(snapshot(player)));
     }
 
     public void restoreFromProfile(Player player) {
@@ -102,9 +103,7 @@ public final class EquipmentService implements Listener {
         if (item != null && !item.isEmpty()) map.put(slot, item.clone());
     }
 
-    private ItemStack copy(ItemStack item) {
-        return item == null ? null : item.clone();
-    }
+    private ItemStack copy(ItemStack item) { return item == null ? null : item.clone(); }
 
     private Optional<EquipmentSlot> slotForInventory(PlayerInventory inventory, int rawSlot) {
         if (rawSlot == 5) return Optional.of(EquipmentSlot.HELMET);
