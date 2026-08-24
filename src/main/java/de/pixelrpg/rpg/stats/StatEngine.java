@@ -7,6 +7,7 @@ import de.pixelrpg.rpg.companion.CompanionDefinition;
 import de.pixelrpg.rpg.companion.CompanionPassiveStats;
 import de.pixelrpg.rpg.companion.CompanionService;
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.equipment.EquipmentSetService;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.Bukkit;
@@ -34,32 +35,26 @@ public final class StatEngine {
     public record CachedStats(double maxHealth, double armor, double movementSpeedBonus, double blockReach,
                               double entityReach, double bonusDamage, double critChance,
                               double critDamageMultiplier, double lifestealBonus, double attackPower) {
-        public static final CachedStats EMPTY = new CachedStats(
-                BASE_HEALTH, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D,
+        public static final CachedStats EMPTY = new CachedStats(BASE_HEALTH, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D,
                 BASE_CRIT_CHANCE, BASE_CRIT_DAMAGE_MULTIPLIER, 0.0D, 0.0D);
-
-        public double reach() {
-            return Math.max(blockReach, entityReach);
-        }
+        public double reach() { return Math.max(blockReach, entityReach); }
     }
 
     private final PlayerProfileManager profileManager;
+    private final EquipmentSetService equipmentSets;
     private final Map<UUID, CachedStats> cache = new ConcurrentHashMap<>();
 
     public StatEngine(PlayerProfileManager profileManager) {
         this.profileManager = profileManager;
+        PixelRPGPlugin plugin = PixelRPGPlugin.getInstance();
+        this.equipmentSets = plugin == null ? null : new EquipmentSetService(plugin);
     }
 
-    public CachedStats getCachedStats(UUID uuid) {
-        return cache.getOrDefault(uuid, CachedStats.EMPTY);
-    }
+    public CachedStats getCachedStats(UUID uuid) { return cache.getOrDefault(uuid, CachedStats.EMPTY); }
 
     public void recalculate(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegistered()) {
-            clear(player);
-            return;
-        }
+        if (profile == null || !profile.isRegistered()) { clear(player); return; }
 
         int playerLevel = Math.clamp(profile.getLevel(), 1, 99);
         double itemArmor = sum(player, playerLevel, RPGKeys.Item.armorValue());
@@ -71,8 +66,18 @@ public final class StatEngine {
         double itemReach = sum(player, playerLevel, RPGKeys.Item.reachBonus());
         double itemMovementSpeed = sum(player, playerLevel, RPGKeys.Item.movementSpeed());
 
-        CompanionPassiveStats companion = activeCompanionPassiveStats(player.getUniqueId());
+        Map<String, Double> setBonus = equipmentSets == null ? Map.of() : equipmentSets.bonuses(player, playerLevel);
+        itemHealth += setBonus.getOrDefault("HP", 0.0D);
+        itemArmor += setBonus.getOrDefault("ARMOR", 0.0D);
+        itemMovementSpeed += setBonus.getOrDefault("MOVEMENT_SPEED", 0.0D);
+        itemReach += setBonus.getOrDefault("REACH", 0.0D);
+        itemDamage += setBonus.getOrDefault("DAMAGE", 0.0D);
+        itemCritChance += setBonus.getOrDefault("CRIT", 0.0D) + setBonus.getOrDefault("CRIT_CHANCE", 0.0D);
+        itemCritDamage += setBonus.getOrDefault("CRIT_DAMAGE", 0.0D);
+        itemLifesteal += setBonus.getOrDefault("LIFESTEAL", 0.0D);
+        double setAttackPower = setBonus.getOrDefault("ATTACK_POWER", 0.0D);
 
+        CompanionPassiveStats companion = activeCompanionPassiveStats(player.getUniqueId());
         double maxHealth = Math.max(BASE_HEALTH, BASE_HEALTH + itemHealth + companion.hp());
         double armor = Math.max(0.0D, itemArmor + companion.armor());
         double movementSpeedBonus = itemMovementSpeed + companion.movementSpeed();
@@ -80,16 +85,13 @@ public final class StatEngine {
         double entityReach = itemReach + companion.reach();
         double bonusDamage = Math.max(0.0D, itemDamage + companion.damage());
         double critChance = Math.clamp(itemCritChance + companion.crit(), 0.0D, MAX_CRIT_CHANCE);
-        double critDamageMultiplier = Math.clamp(
-                BASE_CRIT_DAMAGE_MULTIPLIER + itemCritDamage + companion.critDamage(),
-                1.0D, MAX_CRIT_DAMAGE_MULTIPLIER);
+        double critDamageMultiplier = Math.clamp(BASE_CRIT_DAMAGE_MULTIPLIER + itemCritDamage + companion.critDamage(), 1.0D, MAX_CRIT_DAMAGE_MULTIPLIER);
         double lifestealBonus = Math.max(0.0D, itemLifesteal + companion.lifesteal());
-        double attackPower = Math.max(0.0D, itemDamage + companion.damage() + companion.attackPower());
+        double attackPower = Math.max(0.0D, itemDamage + setAttackPower + companion.damage() + companion.attackPower());
 
         CachedStats stats = new CachedStats(maxHealth, armor, movementSpeedBonus, blockReach, entityReach,
                 bonusDamage, critChance, critDamageMultiplier, lifestealBonus, attackPower);
         cache.put(player.getUniqueId(), stats);
-
         applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), maxHealth - BASE_HEALTH);
         applyModifier(player, Attribute.ARMOR, RPGKeys.Stats.armor(), armor);
         applyModifier(player, Attribute.MOVEMENT_SPEED, RPGKeys.Stats.movementSpeed(), movementSpeedBonus);
@@ -135,17 +137,14 @@ public final class StatEngine {
         if (plugin == null) return CompanionPassiveStats.EMPTY;
         CompanionService service = plugin.getCompanionService();
         if (service == null) return CompanionPassiveStats.EMPTY;
-
         UUID activeEntityId = service.getActiveEntity(playerId);
         if (activeEntityId == null) return CompanionPassiveStats.EMPTY;
         Entity activeEntity = Bukkit.getEntity(activeEntityId);
         if (activeEntity == null || activeEntity.isDead()) return CompanionPassiveStats.EMPTY;
-
         Companion active = service.getActive(playerId);
         if (active == null || active.rarity().isUnique()) return CompanionPassiveStats.EMPTY;
         CompanionDefinition definition = service.definition(active.id());
         if (!definition.passive()) return CompanionPassiveStats.EMPTY;
-
         if (!definition.passives().isEmpty()) {
             var configured = definition.passives().values().iterator().next();
             if (configured.has("stat") && configured.has("amount")) {
@@ -154,7 +153,6 @@ public final class StatEngine {
                 return fromConfiguredStat(stat, amount);
             }
         }
-
         return fallbackPassiveStats(active);
     }
 
@@ -202,17 +200,15 @@ public final class StatEngine {
         double total = 0.0D;
         for (ItemStack item : equippedItems(player)) {
             if (!isUsable(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer()
-                    .getOrDefault(key, PersistentDataType.DOUBLE, 0.0D);
+            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(key, PersistentDataType.DOUBLE, 0.0D);
         }
         return total;
     }
 
     private boolean isUsable(ItemStack item, int playerLevel) {
         if (item == null || !item.hasItemMeta()) return false;
-        Integer itemLevel = item.getItemMeta().getPersistentDataContainer()
-                .get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
-        return itemLevel == null || playerLevel >= itemLevel;
+        Integer requiredLevel = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
+        return requiredLevel == null || playerLevel >= requiredLevel;
     }
 
     private ItemStack[] equippedItems(Player player) {
