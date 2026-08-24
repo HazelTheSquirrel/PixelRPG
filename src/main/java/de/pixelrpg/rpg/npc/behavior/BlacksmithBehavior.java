@@ -14,6 +14,7 @@ import de.pixelrpg.rpg.profession.CraftingRecipeRegistry;
 import de.pixelrpg.rpg.profession.CraftingService;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.profession.ProfessionService;
+import de.pixelrpg.rpg.quest.QuestManager;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
@@ -23,21 +24,24 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native-dialog blacksmith NPC using the unified PixelRPG Blacksmith profession. */
+/** Native-dialog blacksmith NPC with profession, crafting and blacksmith quest access. */
 public final class BlacksmithBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final ProfessionService professionService;
     private final DialogueEngine dialogueEngine;
     private final ProfessionDialog professionDialog;
+    private final QuestManager questManager;
 
     public BlacksmithBehavior(PlayerProfileManager profileManager,
                               ProfessionService professionService,
                               CraftingService craftingService,
+                              QuestManager questManager,
                               DialogueEngine dialogueEngine) {
         this.profileManager = profileManager;
         this.professionService = professionService;
         this.dialogueEngine = dialogueEngine;
         this.professionDialog = new ProfessionDialog(profileManager, dialogueEngine);
+        this.questManager = questManager;
     }
 
     /** Compatibility constructor for the existing plugin bootstrap; legacy GUIs are intentionally not used. */
@@ -46,6 +50,7 @@ public final class BlacksmithBehavior implements NpcBehavior {
         this(profileManager,
                 PixelRPGPlugin.getInstance().getProfessionSystem().professionService(),
                 PixelRPGPlugin.getInstance().getProfessionSystem().craftingService(),
+                PixelRPGPlugin.getInstance().getQuestManager(),
                 dialogueEngine);
     }
 
@@ -73,17 +78,22 @@ public final class BlacksmithBehavior implements NpcBehavior {
                         ? "Schmied Level " + Profession.MAX_LEVEL + " – Meister"
                         : "Schmied Level " + level + "/" + Profession.MAX_LEVEL + " • " + experience + "/" + next + " EP",
                 level >= Profession.MAX_LEVEL ? NamedTextColor.GREEN : NamedTextColor.YELLOW)));
-        body.add(DialogBody.plainMessage(Component.text(
-                "Wähle ein Rezept für Zutaten, Herstellungszeit, Seltenheit und Levelanforderung.",
-                NamedTextColor.DARK_GRAY)));
 
         List<ActionButton> actions = new ArrayList<>();
+        if (questManager != null) {
+            actions.add(dialogueEngine.actionButton(Component.text("Schmiedequests"), NamedTextColor.YELLOW,
+                    target -> new QuestBehavior(questManager, profileManager, dialogueEngine).onInteract(target, npc)));
+        }
+        actions.add(dialogueEngine.actionButton(Component.text("Schmied lernen / verwalten"), NamedTextColor.BLUE,
+                target -> professionDialog.openProfession(target, Profession.BLACKSMITH)));
+
         for (CraftRecipe recipe : CraftingRecipeRegistry.getRecipes(Profession.BLACKSMITH)) {
             actions.add(dialogueEngine.actionButton(
                     Component.text(recipe.displayName()),
                     level >= recipe.requiredProfessionLevel() ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
                     target -> professionDialog.openRecipeDetails(target, recipe, false)));
         }
+
         actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
 
         dialogueEngine.openMultiAction(
