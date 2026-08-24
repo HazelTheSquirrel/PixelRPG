@@ -385,33 +385,80 @@ Attack Power
 
 ---
 
-# 06 – NPC / Dialogue — 🟡 IN ARBEIT
+# 06 – NPC / Dialogue — 🟢 98 % ABGESCHLOSSEN
 
-## NPC-Typen
-- [ ] Banker
-- [ ] Blacksmith
-- [ ] Filler
-- [ ] Profession Trainer
-- [ ] Quest NPC
-- [ ] Reception
-- [ ] Shop
-- [ ] Story
-- [ ] Travel
+> Der NPC-/Dialogue-Core ist im aktuellen `main` umgesetzt und der CI-Build ist grün. NPCs bleiben manuell durch Admins gespawnt; bestehende NPC-Erstellung, Name/Titel und Skin-System bleiben erhalten. Die native Minecraft/Paper-26.2-Dialog-API bleibt die Dialogoberfläche.
 
-## Dialogue
-- [x] Native Minecraft/Paper Dialog Framework als Basis
-- [ ] NPC → Dialogue vollständig validieren
-- [ ] Quest Dialogue
-- [ ] Profession Dialogue
-- [ ] Shop Dialogue
-- [ ] Bank Dialogue
-- [ ] Travel Dialogue
-- [ ] Story Dialogue
-- [ ] Companion Dialogue
-- [ ] Quick Actions
-- [ ] Reception Dialogue
+## NPC-Core
+- [x] bestehendes NPC-Erstellungs-/Spawn-System beibehalten
+- [x] NPCs werden manuell durch Admins gespawnt
+- [x] keine automatische NPC-Generierung durch das System
+- [x] bestehende NPC-Namen / Titel / Rollen beibehalten
+- [x] bestehendes NPC-Skin-System beibehalten
+- [x] NPCs sind für alle Spieler dauerhaft sichtbar
+- [x] normale Minecraft-NPC-Interaktion als einziger Interaktionsweg
+- [x] G-Taste bleibt ausschließlich Spieler-Interaktion
+- [x] definierte NPC-Typen/Funktionen
+- [x] mehrere passende Funktionen pro NPC möglich
+- [x] Funktionen werden typbezogen eingeschränkt
+- [x] Beispiel: Blacksmith → Schmiedequests + Schmied erlernen + Rezepte kaufen
 
-> Filler-NPCs müssen später für `Talk to Filler(id)` und `Bring X to Filler(id)`-Questlogik verwendbar sein.
+## Native Dialogue
+- [x] native Minecraft/Paper-26.2 Dialogsystem als Basis
+- [x] Vanilla-nahe und schlichte Dialogdarstellung
+- [x] verzweigte Dialoge
+- [x] mehrere Antwortmöglichkeiten
+- [x] Dialogoptionen können Folge-Dialoge öffnen
+- [x] Dialogoptionen können direkte Gameplay-Aktionen auslösen
+- [x] Quest-Aktionen über Dialogoptionen
+- [x] Profession-Aktionen über Dialogoptionen
+- [x] Shop-Aktionen über Dialogoptionen
+- [x] Bank-Aktionen über Dialogoptionen
+- [x] Travel-Aktionen über Dialogoptionen
+- [x] Reception-/Quick-Action-Aktionen über Dialogoptionen
+
+## Dialogue Conditions & Progression
+- [x] Dialogbedingungen
+- [x] spielerabhängige Dialogoptionen
+- [x] Queststatus als Bedingung
+- [x] Level-/Progressionsbedingungen
+- [x] Profession-/Gameplay-Bedingungen
+- [x] spielerbezogener Dialog-/Story-Fortschritt
+- [x] gesehene Dialogschritte werden gespeichert
+- [x] abgeschlossene Dialog-/Storyschritte werden gespeichert
+- [x] einmalige Dialoge/Dialogschritte
+
+## System-Integration
+- [x] Quest Dialogue als zentrale Quest-Oberfläche
+- [x] Quest-Annahme über Dialog
+- [x] Quest-Abgabe über Dialog
+- [x] Profession Dialogue
+- [x] Shop Dialogue
+- [x] Bank Dialogue
+- [x] Travel Dialogue
+- [x] Story Dialogue
+- [x] Companion Dialogue
+- [x] Reception Dialogue
+- [x] Quick Actions
+- [x] Filler-NPCs für `Talk to Filler(id)` / `Bring X to Filler(id)` vorbereitbar
+
+## Mehrsprachigkeit
+- [x] Dialogue-Content mehrsprachig vorbereitbar
+- [x] Deutsch
+- [x] Englisch
+- [x] Spanisch
+- [x] Französisch
+- [x] Texte nicht auf eine einzelne Sprache als Systemvoraussetzung festgelegt
+
+## Abschlusskriterien für 06
+- [x] NPC-/Dialogue-Core umgesetzt
+- [x] vereinbarte NPC-Funktionslogik umgesetzt
+- [x] native Dialogoberfläche umgesetzt
+- [x] Dialog-Verzweigungen / Conditions / Actions umgesetzt
+- [x] Dialog-Fortschritt / Once-only umgesetzt
+- [x] Quest-/Profession-/Shop-/Bank-/Travel-/Story-Integration umgesetzt
+- [x] Mehrsprachigkeitsgrundlage umgesetzt
+- [x] CI-Build grün
 
 ---
 
