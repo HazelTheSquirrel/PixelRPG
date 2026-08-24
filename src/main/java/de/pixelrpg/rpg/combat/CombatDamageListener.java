@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.combat;
 
 import de.pixelrpg.rpg.api.GuildAPI;
+import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
@@ -38,7 +39,7 @@ public final class CombatDamageListener implements Listener {
     private final NamespacedKey companionCritDamageKey;
     private final NamespacedKey companionLifestealKey;
 
-    public CombatDamageListener(GuildAPI guildAPI, PlayerProfileManager profileManager, StatEngine statEngine, Object ignoredScalingConfig) {
+    public CombatDamageListener(GuildAPI guildAPI, PlayerProfileManager profileManager, StatEngine statEngine, MobScalingConfig ignoredScalingConfig) {
         this.guildAPI = guildAPI;
         this.profileManager = profileManager;
         this.statEngine = statEngine;
@@ -93,7 +94,8 @@ public final class CombatDamageListener implements Listener {
                 : CombatDamageCalculator.rawPlayerDamage(event.getDamage(), stats);
         double totalCritChance = Math.clamp(stats.critChance() + companionCritChance, 0.0D, MAX_CRIT_CHANCE);
         boolean critical = ThreadLocalRandom.current().nextDouble(100.0D) < totalCritChance;
-        double damage = critical ? rawDamage * (BASE_CRIT_DAMAGE + Math.max(0.0D, companionCritDamage)) : rawDamage;
+        double critMultiplier = Math.max(1.0D, BASE_CRIT_DAMAGE + stats.critDamageMultiplier() - 2.0D + Math.max(0.0D, companionCritDamage));
+        double damage = critical ? rawDamage * critMultiplier : rawDamage;
 
         double targetArmor = getArmor(target);
         double finalDamage = CombatDamageCalculator.mitigate(damage, targetArmor);
