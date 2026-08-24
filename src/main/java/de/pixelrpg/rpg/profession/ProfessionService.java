@@ -39,10 +39,13 @@ public final class ProfessionService {
         if (profile.getProfessionLevel(recipe.profession()) < recipe.requiredProfessionLevel()) return UnlockResult.failure("Dein Berufslevel ist noch nicht hoch genug.");
         if (recipe.unlockedByDefault() || profile.hasUnlockedRecipe(recipe.id())) return UnlockResult.success(0L);
 
-        if (!recipe.requiredQuestId().isBlank() && profile.hasCompletedQuest(recipe.requiredQuestId())) {
-            profile.unlockRecipe(recipe.id());
-            profileManager.saveProfileAsync(player.getUniqueId());
-            return UnlockResult.success(0L);
+        if (!recipe.requiredQuestId().isBlank()) {
+            if (profile.hasCompletedQuest(recipe.requiredQuestId())) {
+                profile.unlockRecipe(recipe.id());
+                profileManager.saveProfileAsync(player.getUniqueId());
+                return UnlockResult.success(0L);
+            }
+            if (recipe.unlockPrice() <= 0L) return UnlockResult.failure("Benötigt Quest: " + recipe.requiredQuestId());
         }
         if (recipe.unlockPrice() > 0L && profile.removeMoney(recipe.unlockPrice())) {
             profile.unlockRecipe(recipe.id());
@@ -65,18 +68,22 @@ public final class ProfessionService {
         if (optional.isEmpty()) return;
         PlayerProfile profile = optional.get();
         if (!profile.isRegistered() || !profile.hasLearnedProfession(profession)) return;
+
         int before = profile.getProfessionLevel(profession);
         long oldExperience = profile.getProfessionExperience(profession);
-        profile.addProfessionExperience(profession, amount);
-        long newExperience = profile.getProfessionExperience(profession);
-        int after = professionLevelForExperience(newExperience);
+        long current = Math.min(oldExperience, experienceForLevel(Profession.MAX_LEVEL));
+        long gained = Math.min(amount, experienceForLevel(Profession.MAX_LEVEL) - current);
+        if (gained <= 0L) return;
+
+        profile.setProfessionExperience(profession, current + gained);
+        int after = professionLevelForExperience(current + gained);
         if (after != before) {
             profile.setProfessionLevel(profession, after);
             player.sendMessage(Component.text("Beruf ", NamedTextColor.GRAY)
                     .append(profession.displayComponent())
                     .append(Component.text(" erreicht Level " + after + "!", NamedTextColor.YELLOW)));
         }
-        if (oldExperience != newExperience) profileManager.saveProfileAsync(player.getUniqueId());
+        profileManager.saveProfileAsync(player.getUniqueId());
     }
 
     public static long experienceForLevel(int level) {
