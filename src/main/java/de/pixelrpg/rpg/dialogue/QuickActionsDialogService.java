@@ -50,7 +50,7 @@ public final class QuickActionsDialogService {
         player.showDialog(dialog);
     }
 
-    /** Opens the character profile; this view also exposes the explicit soulbind action for the held item. */
+    /** Opens the character profile and exposes the explicit soulbind action for the held item. */
     public void openCharacterProfile(Player player, CompanionDialog companionDialog, ProfessionDialog professionDialog) {
         if (!isAvailable(player)) return;
 
@@ -93,7 +93,6 @@ public final class QuickActionsDialogService {
             player.sendMessage(Component.text("Du hältst keinen Gegenstand in der Haupthand.", NamedTextColor.RED));
             return;
         }
-
         SoulboundService.Result result = SoulboundService.apply(held);
         switch (result) {
             case SUCCESS -> player.sendMessage(Component.text("Der Gegenstand ist jetzt seelengebunden.", NamedTextColor.LIGHT_PURPLE));
@@ -166,26 +165,23 @@ public final class QuickActionsDialogService {
         Component identity = Component.text()
                 .append(Component.text("Name: ", NamedTextColor.WHITE)).append(Component.text(player.getName(), NamedTextColor.AQUA)).append(Component.newline())
                 .append(Component.text("Level: ", NamedTextColor.WHITE)).append(Component.text(profile.getLevel(), NamedTextColor.AQUA)).append(Component.newline())
-                .append(Component.text("Klasse: ", NamedTextColor.WHITE)).append(profile.getPlayerClass().displayName().color(NamedTextColor.LIGHT_PURPLE)).build();
-        Component resources = Component.text()
-                .append(Component.text("Leben: ", NamedTextColor.WHITE)).append(Component.text(format(player.getHealth()) + "/" + format(maxHealth), NamedTextColor.RED)).append(Component.newline())
-                .append(Component.text("Rüstung: ", NamedTextColor.WHITE)).append(Component.text(format(armor), NamedTextColor.GRAY)).build();
-        Component attributes = Component.text()
-                .append(Component.text("Stärke: ", NamedTextColor.WHITE)).append(Component.text(format(stats.strength()), NamedTextColor.AQUA)).append(Component.newline())
-                .append(Component.text("Beweglichkeit: ", NamedTextColor.WHITE)).append(Component.text(format(stats.agility()), NamedTextColor.AQUA)).append(Component.newline())
-                .append(Component.text("Ausdauer: ", NamedTextColor.WHITE)).append(Component.text(format(stats.stamina()), NamedTextColor.AQUA)).append(Component.newline())
-                .append(Component.text("Intelligenz: ", NamedTextColor.WHITE)).append(Component.text(format(stats.intellect()), NamedTextColor.AQUA)).build();
-        Component combat = Component.text()
-                .append(Component.text("Angriffskraft: ", NamedTextColor.WHITE)).append(Component.text(format(stats.attackPower()), NamedTextColor.YELLOW)).append(Component.newline())
-                .append(Component.text("Zauberkraft: ", NamedTextColor.WHITE)).append(Component.text(format(stats.spellPower()), NamedTextColor.LIGHT_PURPLE)).append(Component.newline())
-                .append(Component.text("Kritische Trefferchance: ", NamedTextColor.WHITE)).append(Component.text(format(stats.critChance()) + "%", NamedTextColor.YELLOW)).build();
+                .append(Component.text("EXP: ", NamedTextColor.WHITE)).append(Component.text(profile.getExperience(), NamedTextColor.AQUA)).build();
+        Component statsComponent = Component.text()
+                .append(Component.text("HP: ", NamedTextColor.WHITE)).append(Component.text(format(player.getHealth()) + "/" + format(maxHealth), NamedTextColor.RED)).append(Component.newline())
+                .append(Component.text("Armor: ", NamedTextColor.WHITE)).append(Component.text(format(armor), NamedTextColor.GRAY)).append(Component.newline())
+                .append(Component.text("Movement Speed: ", NamedTextColor.WHITE)).append(Component.text(format(stats.movementSpeedBonus()), NamedTextColor.AQUA)).append(Component.newline())
+                .append(Component.text("Reach: ", NamedTextColor.WHITE)).append(Component.text(format(stats.entityReach()), NamedTextColor.AQUA)).append(Component.newline())
+                .append(Component.text("Damage: ", NamedTextColor.WHITE)).append(Component.text(format(stats.bonusDamage()), NamedTextColor.YELLOW)).append(Component.newline())
+                .append(Component.text("Crit: ", NamedTextColor.WHITE)).append(Component.text(format(stats.critChance()) + "%", NamedTextColor.YELLOW)).append(Component.newline())
+                .append(Component.text("Crit-Schaden: ", NamedTextColor.WHITE)).append(Component.text(format(stats.critDamageMultiplier()), NamedTextColor.YELLOW)).append(Component.newline())
+                .append(Component.text("Lifesteal: ", NamedTextColor.WHITE)).append(Component.text(format(stats.lifestealBonus()) + "%", NamedTextColor.LIGHT_PURPLE)).append(Component.newline())
+                .append(Component.text("Attack Power: ", NamedTextColor.WHITE)).append(Component.text(format(stats.attackPower()), NamedTextColor.GOLD)).build();
 
         return Component.text()
                 .append(header).append(Component.newline()).append(section).append(Component.newline())
                 .append(identity).append(Component.newline()).append(Component.newline())
-                .append(Component.text("RESSOURCEN", NamedTextColor.WHITE).decorate(TextDecoration.BOLD)).append(Component.newline()).append(resources).append(Component.newline()).append(Component.newline())
-                .append(Component.text("ATTRIBUTE", NamedTextColor.WHITE).decorate(TextDecoration.BOLD)).append(Component.newline()).append(attributes).append(Component.newline()).append(Component.newline())
-                .append(Component.text("KAMPF", NamedTextColor.WHITE).decorate(TextDecoration.BOLD)).append(Component.newline()).append(combat).build();
+                .append(Component.text("STATS", NamedTextColor.WHITE).decorate(TextDecoration.BOLD)).append(Component.newline())
+                .append(statsComponent).build();
     }
 
     private String format(double value) { return String.format(java.util.Locale.ROOT, "%.1f", value); }
