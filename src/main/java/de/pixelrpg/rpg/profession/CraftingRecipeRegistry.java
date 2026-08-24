@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import de.pixelrpg.rpg.config.JsonDataManager;
 import de.pixelrpg.rpg.item.ItemRarity;
+import org.bukkit.Keyed;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -54,7 +55,9 @@ public final class CraftingRecipeRegistry {
             Material result = recipe.getResult().getType();
             Profession profession = classify(result);
             if (profession == null) continue;
-            String id = "vanilla:" + stableId(result, costs);
+
+            String vanillaKey = recipe instanceof Keyed keyed ? keyed.getKey().asString() : stableId(result, costs);
+            String id = "vanilla:" + vanillaKey.toLowerCase(Locale.ROOT);
             ItemStack output = recipe.getResult();
             recipes.putIfAbsent(id, new CraftRecipe(profession, id, pretty(result), result, output.getAmount(), ItemRarity.COMMON,
                     costs, 1, 0L, "", true, true, ""));
