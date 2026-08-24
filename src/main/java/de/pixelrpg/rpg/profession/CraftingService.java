@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.profession;
 
 import de.pixelrpg.rpg.item.CraftedItemFactory;
+import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.Material;
@@ -37,6 +38,7 @@ public final class CraftingService {
 
         CraftRecipe recipe = find(recipeId).orElse(null);
         if (recipe == null) return CraftResult.failure("Unknown recipe");
+        if (recipe.rarity() == ItemRarity.UNIQUE) return CraftResult.failure("UNIQUE items can only be granted by an administrator");
         if (!profile.hasLearnedProfession(recipe.profession())) return CraftResult.failure("Profession not learned");
         if (!profile.hasUnlockedRecipe(recipe.id())) return CraftResult.failure("Recipe not learned");
 
