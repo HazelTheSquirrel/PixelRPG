@@ -282,33 +282,106 @@ Attack Power
 
 ---
 
-# 05 – Quests — 🟡 IN ARBEIT
+# 05 – Quests — 🟡 90 % IN ARBEIT
+
+> Der Quest-Core ist im aktuellen `main` technisch weitgehend implementiert. Der Build ist grün. Offen sind primär produktiver Quest-Content in `quests_v2.json`, Runtime-Validierung sowie einzelne noch nicht vollständig abgeschlossene Erweiterungen.
 
 ## Verbindliche Questtypen
-- [ ] HUNT
-- [ ] COLLECT
-- [ ] TALK_TO_NPC – technisch implementieren, zunächst kein Content
-- [ ] REACH_LOCATION – zunächst nur vorhandene Minecraft-Strukturen
-- [ ] GLOBAL_EVENT – technisch implementieren, zunächst kein Content
+- [x] HUNT – implementiert, inklusive Mob-Kill-Tracking und Party-Propagation
+- [x] COLLECT – implementiert, inklusive Inventarprüfung
+- [x] TALK_TO_NPC – implementiert, NPC-Interaktion setzt das Ziel auf abgeschlossen
+- [x] REACH_LOCATION – implementiert, inklusive Struktur-/Biome-Navigation bzw. Reach-Location
+- [x] GLOBAL_EVENT – implementiert, inklusive globalem Progress-State
 
-> ESCORT wird aktuell nicht als aktiver Content-Typ priorisiert.
+> ESCORT ist ausdrücklich nicht Teil des finalen Questtypen-Pools. Der alte Escort-Pfad ist bewusst leer/kein aktiver Content.
 
-## Core
-- [ ] Quest Definition finalisieren
-- [ ] Quest Repository
-- [ ] Quest Manager
-- [ ] Quest Progress
-- [ ] Quest Completion
-- [ ] Quest Rewards
-- [ ] Quest XP
-- [ ] Quest XP Scaling
-- [ ] maximal 5 aktive Quests
-- [ ] Quest Persistence vollständig validieren
-- [x] QuestCompletedEvent vorhanden
-- [ ] Mob-Kill-Tracking vollständig validieren
-- [ ] Quest Navigation
-- [ ] Questketten
-- [ ] Party Quest Share
+## Quest Definition & Repository
+- [x] Quest Definition / Datenmodell
+- [x] QuestType
+- [x] JSON-basierte Questdefinitionen
+- [x] Quest Repository
+- [x] Quest-ID / Titel / Beschreibung
+- [x] Zieltyp / Target Key
+- [x] Required Amount
+- [x] Required Level / Category Level
+- [x] Quest Giver NPC
+- [x] Reward Money / XP / Items / Companion
+- [x] Time Limit / Quest Expiry
+- [x] Navigation: Structure / Biome / Radius
+- [x] Prerequisites / Previous Quest
+- [x] Follow-Up Quest IDs im Datenmodell
+- [x] Validierung von Questdefinitionen und Referenzen
+- [ ] produktive Questdefinitionen final befüllen – `quests_v2.json` enthält aktuell `definitions: []`
+
+## Quest Core
+- [x] Quest Manager
+- [x] Quest Progress
+- [x] Quest Completion
+- [x] Quest Rewards
+- [x] Quest XP
+- [x] maximal 5 aktive Quests
+- [x] Quest-Annahme mit Level-/Prerequisite-Prüfung
+- [x] Quest-Abbruch
+- [x] Quest-Zeitlimits / Expiry
+- [x] QuestCompletedEvent
+- [x] Abschluss nur bei erfülltem Ziel und Rückkehr zum Quest-Giver
+- [x] Quest-Rewards für Geld, XP, Items und Companion-Unlock
+- [x] Quest Progress Actionbar
+- [ ] vollständige Runtime-Validierung aller Core-Flows
+
+## Quest-Ziele & Spielerinformation
+- [x] konkretes Questziel in Questlog sichtbar
+- [x] aktueller Fortschritt in „Aktive Quests“ sichtbar
+- [x] Questziel und Fortschritt in Quest-Detailansicht sichtbar
+- [x] QuestText erzeugt konkrete Zielbeschreibung je Questtyp
+- [x] aktive Quests werden über die native Locator-Bar navigierbar gemacht
+- [x] bis zu 5 aktive Quest-Marker werden verwaltet
+- [x] Marker werden bei Abschluss/Abbruch/Logout-Cleanup entfernt
+
+## Tracking
+- [x] HUNT / Mob-Kill-Tracking
+- [x] COLLECT / Inventar-Tracking
+- [x] TALK_TO_NPC / NPC-Zielprüfung
+- [x] REACH_LOCATION / Standortprüfung
+- [x] GLOBAL_EVENT / globaler Queststatus
+- [x] Party-Propagation für HUNT über PartyAPI und Distanz/World-Prüfung
+- [ ] vollständiger Runtime-Test aller fünf Trackingpfade
+
+## Quest XP / Scaling
+- [x] Quest-XP wird aus `reward.experience` / `rewardExp` der Questdefinition verwendet
+- [x] XP wird beim Abschluss vergeben
+- [x] `QuestExperienceScalingListener` existiert als Hook für Quest-XP-Scaling
+- [ ] separates/ausbalanciertes Quest-XP-Scaling noch nicht final definiert und validiert
+
+## Quest Persistence
+- [x] aktive Quests werden im PlayerProfile gehalten
+- [x] abgeschlossene Quests werden im PlayerProfile gehalten
+- [x] YAML lädt/speichert aktive Quests inklusive Amount und Expiry
+- [x] MySQL lädt/speichert aktive Quests inklusive Amount und Expiry
+- [x] PlayerProfile dirty-State wird bei Queständerungen berücksichtigt
+- [ ] Logout/Login Runtime-Test der Quest-Persistence
+
+## Questketten
+- [x] Prerequisites können im Datenmodell definiert werden
+- [x] `previousQuest` wird als Prerequisite übernommen
+- [x] Follow-Up Quest IDs werden im Repository geladen
+- [x] Referenzen werden validiert und bei unbekannten IDs geloggt
+- [ ] vollständige automatische Questketten-/Follow-Up-Logik im Gameplay
+
+## Party Quest Share
+- [x] PartyAPI wird für Quest-Fortschritt verwendet
+- [x] Party-Mitglieder werden auf Welt und Share-Distanz geprüft
+- [x] HUNT-Fortschritt kann an Party-Mitglieder propagiert werden
+- [ ] COLLECT / TALK_TO_NPC / REACH_LOCATION / GLOBAL_EVENT Party-Verhalten vollständig vereinheitlichen und testen
+- [ ] vollständiger Runtime-Test des Party Quest Share
+
+## Abschlusskriterien für 05
+- [ ] produktive `quests_v2.json`-Definitionen vollständig befüllen und validieren
+- [ ] alle fünf Questtypen im laufenden Server testen
+- [ ] Persistence nach Logout/Login testen
+- [ ] Questketten vollständig testen
+- [ ] Party Quest Share vollständig testen
+- [ ] danach 05 auf 🟢 95–98 % setzen und abhaken
 
 ---
 
