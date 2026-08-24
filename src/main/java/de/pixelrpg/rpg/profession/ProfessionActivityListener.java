@@ -20,22 +20,38 @@ public final class ProfessionActivityListener implements Listener {
         this.professionService = professionService;
     }
 
-    // Vergibt Berufs-XP für relevante Ressourcen und reagiert nicht auf bereits abgebrochene Blockabbauten.
+    // Vergibt Berufs-XP für relevante Ressourcen, passend zum fachlichen Beruf des Materials.
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         if (event.isCancelled()) return;
         Player player = event.getPlayer();
         Material material = event.getBlock().getType();
         Profession profession = switch (material) {
-            case NETHER_WART, RED_MUSHROOM, BROWN_MUSHROOM, CRIMSON_FUNGUS, WARPED_FUNGUS,
+            case COAL_ORE, DEEPSLATE_COAL_ORE, IRON_ORE, DEEPSLATE_IRON_ORE,
+                 COPPER_ORE, DEEPSLATE_COPPER_ORE, GOLD_ORE, DEEPSLATE_GOLD_ORE,
+                 REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE, LAPIS_ORE, DEEPSLATE_LAPIS_ORE,
+                 DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE, EMERALD_ORE, DEEPSLATE_EMERALD_ORE,
+                 NETHER_GOLD_ORE, NETHER_QUARTZ_ORE, ANCIENT_DEBRIS,
+                 RAW_IRON_BLOCK, RAW_COPPER_BLOCK, RAW_GOLD_BLOCK,
+                 IRON_BLOCK, COPPER_BLOCK, GOLD_BLOCK -> Profession.BLACKSMITH;
+            case WHEAT, CARROTS, POTATOES, BEETROOTS, NETHER_WART, COCOA, SWEET_BERRY_BUSH,
+                 GLOW_BERRIES, KELP, SEAGRASS, TALL_SEAGRASS, SUGAR_CANE, CACTUS, BAMBOO,
+                 VINE, GLOW_LICHEN, MOSS_BLOCK -> Profession.PROVISIONER;
+            case RED_MUSHROOM, BROWN_MUSHROOM, CRIMSON_FUNGUS, WARPED_FUNGUS,
                  FLOWERING_AZALEA, AZALEA, DANDELION, POPPY, BLUE_ORCHID, ALLIUM, AZURE_BLUET,
                  RED_TULIP, ORANGE_TULIP, WHITE_TULIP, PINK_TULIP, OXEYE_DAISY, CORNFLOWER,
                  LILY_OF_THE_VALLEY, WITHER_ROSE, SUNFLOWER, LILAC, ROSE_BUSH, PEONY -> Profession.ALCHEMIST;
-            case BOOKSHELF, CHISELED_BOOKSHELF, SUGAR_CANE -> Profession.SCHOLAR;
+            case BOOKSHELF, CHISELED_BOOKSHELF -> Profession.SCHOLAR;
             default -> null;
         };
         if (profession == null) return;
-        long experience = profession == Profession.ALCHEMIST ? 8L : 5L;
+
+        long experience = switch (profession) {
+            case BLACKSMITH -> miningXp(material);
+            case PROVISIONER -> 8L;
+            case ALCHEMIST -> 8L;
+            case SCHOLAR -> 5L;
+        };
         professionService.addExperience(player, profession, experience);
     }
 
@@ -76,8 +92,17 @@ public final class ProfessionActivityListener implements Listener {
     // Vergibt berufsbezogene XP für abgeschlossene Quests anhand des stabilen Quest-ID-Präfixes.
     @EventHandler
     public void onQuestCompleted(QuestCompletedEvent event) {
-        Profession profession = professionForQuest(event.getQuestId());
-        professionService.addExperience(event.getPlayer(), profession, 40L);
+        professionService.addExperience(event.getPlayer(), professionForQuest(event.getQuestId()), 40L);
+    }
+
+    private long miningXp(Material material) {
+        return switch (material) {
+            case DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE, EMERALD_ORE, DEEPSLATE_EMERALD_ORE, ANCIENT_DEBRIS -> 35L;
+            case GOLD_ORE, DEEPSLATE_GOLD_ORE, NETHER_GOLD_ORE, REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE,
+                 LAPIS_ORE, DEEPSLATE_LAPIS_ORE -> 20L;
+            case IRON_ORE, DEEPSLATE_IRON_ORE, COPPER_ORE, DEEPSLATE_COPPER_ORE -> 12L;
+            default -> 8L;
+        };
     }
 
     private Profession professionForQuest(String questId) {
