@@ -8,6 +8,7 @@ import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
@@ -51,7 +52,7 @@ public final class MobExperienceListener implements Listener {
 
         var pdc = entity.getPersistentDataContainer();
         Double originalMaxHealth = pdc.get(RPGKeys.Combat.originalMaxHealth(), PersistentDataType.DOUBLE);
-        Attribute maxHealthAttribute = entity.getAttribute(Attribute.MAX_HEALTH);
+        AttributeInstance maxHealthAttribute = entity.getAttribute(Attribute.MAX_HEALTH);
         double fixedMaxHealth = originalMaxHealth != null
                 ? originalMaxHealth
                 : (maxHealthAttribute != null ? maxHealthAttribute.getBaseValue() : 20.0D);
