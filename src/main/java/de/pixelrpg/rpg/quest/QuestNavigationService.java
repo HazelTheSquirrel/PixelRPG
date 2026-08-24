@@ -1,13 +1,10 @@
 package de.pixelrpg.rpg.quest;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
@@ -23,13 +20,7 @@ import java.util.UUID;
 
 /** Maintains one native Minecraft locator-bar waypoint per active quest. */
 public final class QuestNavigationService {
-    private static final List<Color> QUEST_COLORS = List.of(
-            Color.RED,
-            Color.BLUE,
-            Color.GREEN,
-            Color.YELLOW,
-            Color.FUCHSIA
-    );
+    private static final List<Color> QUEST_COLORS = List.of(Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, Color.FUCHSIA);
 
     private final Plugin plugin;
     private final QuestRepository questRepository;
@@ -61,6 +52,9 @@ public final class QuestNavigationService {
         }
         entries.sort(java.util.Comparator.comparing(entry -> entry.quest().id()));
 
+        Map<String, Integer> visibleQuestIndexes = new HashMap<>();
+        for (int index = 0; index < entries.size() && index < 5; index++) visibleQuestIndexes.put(entries.get(index).quest().id(), index);
+
         for (int index = 0; index < entries.size() && index < 5; index++) {
             QuestProgressEntry entry = entries.get(index);
             Location target = resolveTarget(player.getLocation(), entry.quest(), entry.progress());
@@ -81,7 +75,12 @@ public final class QuestNavigationService {
             marker.entity().setWaypointStyle(Key.key("minecraft:default"));
         }
 
-        currentMarkers.keySet().removeIf(id -> entries.stream().noneMatch(entry -> entry.quest().id().equals(id)) || entries.stream().map(QuestProgressEntry::quest).limit(5).noneMatch(quest -> quest.id().equals(id)));
+        currentMarkers.keySet().removeIf(id -> {
+            if (visibleQuestIndexes.containsKey(id)) return false;
+            QuestMarker marker = currentMarkers.get(id);
+            if (marker != null) marker.entity().remove();
+            return true;
+        });
     }
 
     /** Removes all quest waypoints and any legacy PixelRPG quest compass from one player. */
@@ -115,7 +114,6 @@ public final class QuestNavigationService {
 
     private Location resolveTarget(Location origin, Quest quest, QuestProgress progress) {
         if (progress.getCurrentAmount() >= quest.requiredAmount()) return resolveQuestGiver(quest);
-
         return switch (quest.type()) {
             case TALK_TO_NPC -> resolveNpc(quest.targetKey());
             case HUNT, COLLECT, REACH_LOCATION -> resolveWorldTarget(origin, quest);
