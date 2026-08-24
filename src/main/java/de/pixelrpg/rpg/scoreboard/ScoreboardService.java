@@ -1,7 +1,9 @@
 package de.pixelrpg.rpg.scoreboard;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.api.PartyAPI;
+import de.pixelrpg.rpg.companion.Companion;
+import de.pixelrpg.rpg.companion.CompanionService;
+import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
@@ -10,7 +12,6 @@ import de.pixelrpg.rpg.quest.QuestProgress;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -33,9 +34,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class ScoreboardService implements Listener {
     private static final int MAX_LINES = 15;
-    private static final int MAX_TRACKED_QUESTS = 3;
+    private static final int MAX_TRACKED_QUESTS = 2;
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
+    private final CompanionService companionService;
     private final int updateIntervalTicks;
     private final Map<UUID, PlayerScoreboardState> stateByPlayer = new ConcurrentHashMap<>();
     private BukkitTask task;
@@ -46,13 +48,18 @@ public final class ScoreboardService implements Listener {
         final Team[] teams = new Team[MAX_LINES];
         final Component[] lastPrefixes = new Component[MAX_LINES];
         final boolean[] activeLine = new boolean[MAX_LINES];
-        PlayerScoreboardState(Scoreboard board, Objective objective) { this.board = board; this.objective = objective; }
+
+        PlayerScoreboardState(Scoreboard board, Objective objective) {
+            this.board = board;
+            this.objective = objective;
+        }
     }
 
-    public ScoreboardService(Plugin plugin, PlayerProfileManager profileManager, int updateIntervalTicks) {
+    public ScoreboardService(Plugin plugin, PlayerProfileManager profileManager, CompanionService companionService, int updateIntervalTicks) {
         this.plugin = plugin;
         this.profileManager = profileManager;
-        this.updateIntervalTicks = updateIntervalTicks;
+        this.companionService = companionService;
+        this.updateIntervalTicks = Math.max(1, updateIntervalTicks);
     }
 
     public void startTask() {
@@ -60,8 +67,8 @@ public final class ScoreboardService implements Listener {
         task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 profileManager.getProfile(player.getUniqueId()).ifPresent(profile -> {
-                    if (profile.isRegistered() && profile.isScoreboardEnabled()) apply(player, profile);
-                    else if (!profile.isRegistered()) clear(player);
+                    if (profile.isRegistered()) apply(player, profile);
+                    else clear(player);
                 });
             }
         }, updateIntervalTicks, updateIntervalTicks);
@@ -76,56 +83,75 @@ public final class ScoreboardService implements Listener {
         stateByPlayer.clear();
     }
 
-    // Zuständig für den initialen Scoreboard-Aufbau beim Login.
+    // Zuständig für den initialen PixelRPG-HUD-Aufbau beim Login.
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         profileManager.getProfile(event.getPlayer().getUniqueId()).ifPresent(profile -> {
-            if (profile.isRegistered() && profile.isScoreboardEnabled()) apply(event.getPlayer(), profile);
+            if (profile.isRegistered()) apply(event.getPlayer(), profile);
         });
     }
 
-    // Zuständig für das Entfernen des zwischengespeicherten Scoreboard-Zustands beim Logout.
+    // Zuständig für das Entfernen des zwischengespeicherten HUD-Zustands beim Logout.
     @EventHandler
-    public void onQuit(PlayerQuitEvent event) { stateByPlayer.remove(event.getPlayer().getUniqueId()); }
-
-    public void toggle(Player player) {
-        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegistered()) return;
-        boolean newState = !profile.isScoreboardEnabled();
-        profile.setScoreboardEnabled(newState);
-        profileManager.saveProfileAsync(player.getUniqueId());
-        if (newState) apply(player, profile); else clear(player);
+    public void onQuit(PlayerQuitEvent event) {
+        stateByPlayer.remove(event.getPlayer().getUniqueId());
     }
 
     private void clear(Player player) {
         PlayerScoreboardState state = stateByPlayer.remove(player.getUniqueId());
         if (state == null) return;
-        if (player.getScoreboard() == state.board) {
-            ScoreboardManager manager = Bukkit.getScoreboardManager();
-            if (manager != null) player.setScoreboard(manager.getMainScoreboard());
-        }
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        if (manager != null && player.getScoreboard() == state.board) player.setScoreboard(manager.getMainScoreboard());
+        player.setExp(0.0F);
+        player.setLevel(0);
     }
 
     private void apply(Player player, PlayerProfile profile) {
+        updateExperienceBar(player, profile);
         List<Component> lines = buildLines(player, profile);
         int size = Math.min(lines.size(), MAX_LINES);
-        PlayerScoreboardState state = stateByPlayer.computeIfAbsent(player.getUniqueId(), uuid -> createState(player));
+        PlayerScoreboardState state = stateByPlayer.computeIfAbsent(player.getUniqueId(), ignored -> createState(player));
+
         for (int i = 0; i < size; i++) {
             Component line = lines.get(i);
             Team team = state.teams[i];
             if (team == null) team = registerLineTeam(state, i);
-            if (!line.equals(state.lastPrefixes[i])) { team.prefix(line); state.lastPrefixes[i] = line; }
-            if (!state.activeLine[i]) { state.objective.getScore(entryFor(i)).setScore(MAX_LINES - i); state.activeLine[i] = true; }
+            if (!line.equals(state.lastPrefixes[i])) {
+                team.prefix(line);
+                state.lastPrefixes[i] = line;
+            }
+            if (!state.activeLine[i]) {
+                state.objective.getScore(entryFor(i)).setScore(MAX_LINES - i);
+                state.activeLine[i] = true;
+            }
         }
+
         for (int i = size; i < MAX_LINES; i++) {
-            if (state.activeLine[i]) { state.board.resetScores(entryFor(i)); state.activeLine[i] = false; state.lastPrefixes[i] = null; }
+            if (state.activeLine[i]) {
+                state.board.resetScores(entryFor(i));
+                state.activeLine[i] = false;
+                state.lastPrefixes[i] = null;
+            }
         }
+    }
+
+    private void updateExperienceBar(Player player, PlayerProfile profile) {
+        long totalExperience = profile.getExperience();
+        int level = profile.getLevel();
+        long currentLevelStart = Level.getExperienceForCurrentLevel(level);
+        long nextLevel = Level.getExperienceForNextLevel(level);
+        long intoLevel = Math.max(0L, totalExperience - currentLevelStart);
+        long required = Math.max(1L, nextLevel - currentLevelStart);
+        float progress = Math.clamp((float) intoLevel / (float) required, 0.0F, 1.0F);
+        player.setLevel(level);
+        player.setExp(progress);
     }
 
     private PlayerScoreboardState createState(Player player) {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
+        if (manager == null) throw new IllegalStateException("Bukkit scoreboard manager is unavailable.");
         Scoreboard board = manager.getNewScoreboard();
-        Objective objective = board.registerNewObjective("pixelrpg", Criteria.DUMMY, Component.text("PixelRPG", NamedTextColor.GOLD));
+        Objective objective = board.registerNewObjective("pixelrpg", Criteria.DUMMY, Component.text("PIXELRPG", NamedTextColor.GOLD));
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         PlayerScoreboardState state = new PlayerScoreboardState(board, objective);
         player.setScoreboard(board);
@@ -139,47 +165,45 @@ public final class ScoreboardService implements Listener {
         return team;
     }
 
-    private String entryFor(int index) { return "pixelrpg_line_" + index; }
+    private String entryFor(int index) {
+        return "pixelrpg_line_" + index;
+    }
 
     private List<Component> buildLines(Player player, PlayerProfile profile) {
         List<Component> lines = new ArrayList<>();
+        lines.add(Component.text(player.getName(), NamedTextColor.WHITE));
         lines.add(Component.text("Level: ", NamedTextColor.GRAY).append(Component.text(profile.getLevel(), NamedTextColor.GOLD)));
-        lines.add(Component.text("Gold: ", NamedTextColor.GRAY).append(Component.text(String.format("%.2f", profile.getMoney()), NamedTextColor.YELLOW)));
-        lines.add(Component.text("Kills: ", NamedTextColor.GRAY).append(Component.text(profile.getStatistic("MOBS_KILLED"), NamedTextColor.RED)));
-        lines.add(Component.text("Deaths: ", NamedTextColor.GRAY).append(Component.text(profile.getStatistic("DEATHS"), NamedTextColor.DARK_RED)));
-        if (profile.isQuestTrackerEnabled() && !profile.getActiveQuests().isEmpty() && lines.size() < MAX_LINES) appendQuestTrackerLines(lines, profile);
-        if (profile.isPartyHudEnabled()) {
-            PartyAPI partyAPI = Bukkit.getServicesManager().load(PartyAPI.class);
-            if (partyAPI != null && partyAPI.isInParty(player.getUniqueId())) {
-                if (lines.size() < MAX_LINES) lines.add(Component.text(" "));
-                if (lines.size() < MAX_LINES) lines.add(Component.text("-- Party --", NamedTextColor.LIGHT_PURPLE));
-                for (UUID memberUuid : partyAPI.getPartyMembers(player.getUniqueId())) {
-                    if (lines.size() >= MAX_LINES) break;
-                    Player member = Bukkit.getPlayer(memberUuid);
-                    if (member == null || !member.isOnline()) continue;
-                    var healthAttribute = member.getAttribute(Attribute.MAX_HEALTH);
-                    double maxHealth = healthAttribute != null ? healthAttribute.getValue() : member.getHealth();
-                    NamedTextColor nameColor = memberUuid.equals(player.getUniqueId()) ? NamedTextColor.GOLD : NamedTextColor.WHITE;
-                    lines.add(Component.text(member.getName() + ": ", nameColor).append(Component.text((int) member.getHealth() + "/" + (int) maxHealth + "❤", NamedTextColor.RED)));
-                }
-            }
-        }
+        lines.add(Component.text(" "));
+
+        Companion activeCompanion = companionService.getActive(player.getUniqueId());
+        lines.add(Component.text("Companion:", NamedTextColor.GRAY));
+        lines.add(Component.text(activeCompanion == null ? "Keiner" : activeCompanion.name(), activeCompanion == null ? NamedTextColor.DARK_GRAY : NamedTextColor.AQUA));
+        lines.add(Component.text(" "));
+
+        appendQuestTrackerLines(lines, profile);
+        lines.add(Component.text(" "));
+        lines.add(Component.text("Tode: ", NamedTextColor.GRAY).append(Component.text(profile.getStatistic("DEATHS"), NamedTextColor.DARK_RED)));
         return lines;
     }
 
-    // Fügt bis zu MAX_TRACKED_QUESTS aktive Quests mit Fortschritt zur Sidebar hinzu.
+    // Fügt die aktiven Quests mit Ziel und Fortschritt in den rechten PixelRPG-HUD ein.
     private void appendQuestTrackerLines(List<Component> lines, PlayerProfile profile) {
+        lines.add(Component.text("Quests:", NamedTextColor.YELLOW));
         QuestManager questManager = PixelRPGPlugin.getInstance().getQuestManager();
-        if (questManager == null) return;
-        lines.add(Component.text(" "));
-        if (lines.size() >= MAX_LINES) return;
-        lines.add(Component.text("-- Quests --", NamedTextColor.YELLOW));
+        if (questManager == null || profile.getActiveQuests().isEmpty()) {
+            lines.add(Component.text("Keine", NamedTextColor.DARK_GRAY));
+            return;
+        }
+
         int shown = 0;
         for (QuestProgress progress : profile.getActiveQuests().values()) {
-            if (shown >= MAX_TRACKED_QUESTS || lines.size() >= MAX_LINES) break;
+            if (shown >= MAX_TRACKED_QUESTS || lines.size() >= MAX_LINES - 3) break;
             Quest quest = questManager.getRepository().getQuest(progress.getQuestId());
             if (quest == null) continue;
-            lines.add(Component.text(quest.title() + ": ", NamedTextColor.GRAY).append(Component.text(progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.GREEN)));
+            String title = quest.title();
+            if (title.length() > 28) title = title.substring(0, 28) + "…";
+            lines.add(Component.text(title, NamedTextColor.WHITE));
+            lines.add(Component.text(progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.GREEN));
             shown++;
         }
     }
