@@ -22,9 +22,12 @@ public final class RPGItemBuilder {
     private static double growthMultiplier = 10.0D;
     private static double weaponBaseDamage = 3.0D;
     private static double weaponBaseCritChance = 0.5D;
+    private static double weaponBaseCritDamage = 0.05D;
+    private static double weaponBaseReach = 0.10D;
     private static double weaponBaseLifesteal = 0.25D;
     private static double armorBase = 0.7D;
     private static double healthBase = 1.2D;
+    private static double movementSpeedBase = 0.001D;
     private static double toolBaseEfficiency = 1.0D;
 
     private RPGItemBuilder() {
@@ -38,9 +41,12 @@ public final class RPGItemBuilder {
             var baseStats = root.getAsJsonObject("baseStats");
             weaponBaseDamage = positive(baseStats, "weaponDamage", weaponBaseDamage);
             weaponBaseCritChance = positive(baseStats, "weaponCritChance", weaponBaseCritChance);
+            weaponBaseCritDamage = positive(baseStats, "weaponCritDamage", weaponBaseCritDamage);
+            weaponBaseReach = positive(baseStats, "weaponReach", weaponBaseReach);
             weaponBaseLifesteal = positive(baseStats, "weaponLifesteal", weaponBaseLifesteal);
             armorBase = positive(baseStats, "armor", armorBase);
             healthBase = positive(baseStats, "health", healthBase);
+            movementSpeedBase = positive(baseStats, "movementSpeed", movementSpeedBase);
             toolBaseEfficiency = positive(baseStats, "toolEfficiency", toolBaseEfficiency);
         } catch (RuntimeException exception) {
             plugin.getLogger().warning("Unable to load item-scaling.json; using safe deterministic item defaults: " + exception.getMessage());
@@ -50,10 +56,8 @@ public final class RPGItemBuilder {
     /** Creates a generated PixelRPG item whose identity is derived from material, rarity and level. */
     public static java.util.Optional<ItemStack> createItem(Material material, ItemRarity rarity, int itemLevel) {
         if (material == null || rarity == null || !Level.isValidNormalLevel(itemLevel)) return java.util.Optional.empty();
-
         var categoryOpt = GearCategoryRegistry.resolve(material);
         if (categoryOpt.isEmpty()) return java.util.Optional.empty();
-
         ItemCategory category = categoryOpt.get();
         String itemId = generatedItemId(material, category, rarity, itemLevel);
         String displayName = generatedDisplayName(material, category, rarity, itemLevel);
@@ -63,11 +67,8 @@ public final class RPGItemBuilder {
     /** Creates a fully identified PixelRPG item with a caller-defined stable ID and visible name. */
     public static java.util.Optional<ItemStack> createItem(String itemId, String displayName,
                                                             Material material, ItemRarity rarity, int itemLevel) {
-        if (itemId == null || itemId.isBlank() || displayName == null || displayName.isBlank()) {
-            return java.util.Optional.empty();
-        }
+        if (itemId == null || itemId.isBlank() || displayName == null || displayName.isBlank()) return java.util.Optional.empty();
         if (material == null || rarity == null || !Level.isValidNormalLevel(itemLevel)) return java.util.Optional.empty();
-
         var categoryOpt = GearCategoryRegistry.resolve(material);
         if (categoryOpt.isEmpty()) return java.util.Optional.empty();
         return createItem(itemId, displayName, material, rarity, itemLevel, true);
@@ -107,23 +108,20 @@ public final class RPGItemBuilder {
             case TOOL -> addToolStats(lore, pdc, multiplier, levelFactor);
         }
 
-        meta.displayName(Component.text(displayName, NamedTextColor.WHITE)
-                .decoration(TextDecoration.ITALIC, false));
+        meta.displayName(Component.text(displayName, NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
         return java.util.Optional.of(item);
     }
 
-    /** Assigns a named ability directly to a weapon item. */
+    /** Assigns an explicit ability override to a weapon item. */
     public static ItemStack withWeaponAbility(ItemStack item, String abilityId, long cooldownMillis) {
         if (abilityId == null || abilityId.isBlank()) throw new IllegalArgumentException("abilityId must not be blank");
-
         ItemStack result = item.clone();
         ItemMeta meta = result.getItemMeta();
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         pdc.set(RPGKeys.Item.weaponAbility(), PersistentDataType.STRING, abilityId);
         pdc.set(RPGKeys.Item.weaponAbilityCooldownMillis(), PersistentDataType.LONG, Math.max(0L, cooldownMillis));
-
         List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
         if (!lore.isEmpty() && !lore.getLast().equals(Component.text(" "))) lore.add(Component.text(" "));
         lore.add(Component.text("Ability", NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
@@ -138,25 +136,33 @@ public final class RPGItemBuilder {
                                        double multiplier, double levelFactor) {
         double damage = round(weaponBaseDamage * levelFactor * multiplier);
         double critChance = round(weaponBaseCritChance * levelFactor * multiplier);
+        double critDamage = round(weaponBaseCritDamage * levelFactor * multiplier);
+        double reach = round(weaponBaseReach * levelFactor * multiplier);
         double lifesteal = round(weaponBaseLifesteal * levelFactor * multiplier);
         pdc.set(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, damage);
         pdc.set(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, critChance);
+        pdc.set(RPGKeys.Item.critDamage(), PersistentDataType.DOUBLE, critDamage);
+        pdc.set(RPGKeys.Item.reachBonus(), PersistentDataType.DOUBLE, reach);
         pdc.set(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, lifesteal);
-        lore.add(line(Component.text("+" + format(damage) + " Attack Power", NamedTextColor.RED)));
-        lore.add(line(Component.text("+" + format(critChance) + "% Critical Strike", NamedTextColor.LIGHT_PURPLE)));
+        lore.add(line(Component.text("+" + format(damage) + " Damage", NamedTextColor.RED)));
+        lore.add(line(Component.text("+" + format(damage) + " Attack Power", NamedTextColor.GOLD)));
+        lore.add(line(Component.text("+" + format(critChance) + "% Crit", NamedTextColor.LIGHT_PURPLE)));
+        lore.add(line(Component.text("+" + format(critDamage * 100.0D) + "% Crit-Schaden", NamedTextColor.LIGHT_PURPLE)));
+        lore.add(line(Component.text("+" + format(reach) + " Reach", NamedTextColor.AQUA)));
         lore.add(line(Component.text("+" + format(lifesteal) + "% Lifesteal", NamedTextColor.DARK_RED)));
     }
 
     private static void addArmorStats(List<Component> lore, PersistentDataContainer pdc, ItemCategory category,
                                       double multiplier, double levelFactor) {
         double armor = round(armorBase * levelFactor * multiplier);
-        double health = category.getProfile() == ItemStatProfile.SHIELD
-                ? 0.0D
-                : round(healthBase * levelFactor * multiplier);
+        double health = category.getProfile() == ItemStatProfile.SHIELD ? 0.0D : round(healthBase * levelFactor * multiplier);
+        double movementSpeed = category.getProfile() == ItemStatProfile.SHIELD ? 0.0D : round(movementSpeedBase * levelFactor * multiplier);
         pdc.set(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, armor);
         pdc.set(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, health);
+        pdc.set(RPGKeys.Item.movementSpeed(), PersistentDataType.DOUBLE, movementSpeed);
         lore.add(line(Component.text("+" + format(armor) + " Armor", NamedTextColor.BLUE)));
-        if (health > 0.0) lore.add(line(Component.text("+" + format(health) + " Stamina", NamedTextColor.GREEN)));
+        if (health > 0.0D) lore.add(line(Component.text("+" + format(health) + " HP", NamedTextColor.GREEN)));
+        if (movementSpeed > 0.0D) lore.add(line(Component.text("+" + format(movementSpeed * 100.0D) + "% Movement Speed", NamedTextColor.WHITE)));
     }
 
     private static void addToolStats(List<Component> lore, PersistentDataContainer pdc,
@@ -183,14 +189,11 @@ public final class RPGItemBuilder {
     }
 
     private static String generatedItemId(Material material, ItemCategory category, ItemRarity rarity, int itemLevel) {
-        return "pixelrpg:item/" + category.name().toLowerCase(Locale.ROOT)
-                + "/" + material.name().toLowerCase(Locale.ROOT)
-                + "/" + rarity.name().toLowerCase(Locale.ROOT)
-                + "/lvl_" + itemLevel;
+        return "pixelrpg:item/" + category.name().toLowerCase(Locale.ROOT) + "/" + material.name().toLowerCase(Locale.ROOT)
+                + "/" + rarity.name().toLowerCase(Locale.ROOT) + "/lvl_" + itemLevel;
     }
 
-    private static String generatedDisplayName(Material material, ItemCategory category,
-                                                ItemRarity rarity, int itemLevel) {
+    private static String generatedDisplayName(Material material, ItemCategory category, ItemRarity rarity, int itemLevel) {
         String base = prettyMaterial(material);
         String prefix = switch (rarity) {
             case COMMON -> "Abgenutzte";
@@ -226,9 +229,7 @@ public final class RPGItemBuilder {
             if (capitalize && Character.isLetter(character)) {
                 result.append(Character.toUpperCase(character));
                 capitalize = false;
-            } else {
-                result.append(character);
-            }
+            } else result.append(character);
             if (character == ' ') capitalize = true;
         }
         return result.toString();
@@ -240,6 +241,6 @@ public final class RPGItemBuilder {
     }
 
     private static double round(double value) {
-        return Math.round(value * 10.0) / 10.0;
+        return Math.round(value * 10.0D) / 10.0D;
     }
 }
