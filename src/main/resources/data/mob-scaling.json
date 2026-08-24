@@ -3,10 +3,7 @@
   "xpPerMaxHealth": 4.0,
   "hpPerLevel": 5.0,
   "damagePerLevel": 0.30,
-  "playerParityMultiplier": 1.05,
-  "dimensions": {
-    "overworld": { "hpMultiplier": 1.00, "damageMultiplier": 1.00, "levelOffset": 0, "baseLevel": 1 },
-    "nether": { "hpMultiplier": 1.15, "damageMultiplier": 1.10, "levelOffset": 0, "baseLevel": 50 },
-    "the_end": { "hpMultiplier": 1.30, "damageMultiplier": 1.20, "levelOffset": 0, "baseLevel": 75 }
-  }
+  "playerParityMultiplier": 1.00,
+  "minimumGearMultiplier": 0.75,
+  "maximumGearMultiplier": 1.25
 }
