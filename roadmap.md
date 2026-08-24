@@ -1,6 +1,6 @@
 # PixelRPG – Feature Roadmap
 
-Stand: 2026-08-24 – nach vollständigem Abgleich von 01 – Player und 02 – Combat
+Stand: 2026-08-24 – nach aktuellem Repository-Abgleich und erfolgreichem Gradle-Build
 
 > Diese Datei ist die verbindliche Arbeits-Roadmap. Die Reihenfolge ist von oben nach unten.
 > Prozentwerte beschreiben funktionale Reife des aktuell vorhandenen Codes, nicht die Menge an Code.
@@ -21,6 +21,19 @@ Stand: 2026-08-24 – nach vollständigem Abgleich von 01 – Player und 02 – 
 10. bei 95–98 % abhaken
 ```
 
+## Verbindliche technische Basis
+
+- Java 25
+- Paper 26.x, aktuell verbindliches Ziel: Paper 26.2
+- paperweight-userdev 2.0.0-beta.21
+- paperweight.paperDevBundle("26.2.build.+")
+- Mojang-Mappings
+- paper-plugin.yml
+- native Minecraft/Paper-26.2 Dialogsystem
+- Adventure Components
+- kein ChatColor
+- keine alten 1.21.x-APIs oder Dialogimplementierungen
+
 ## Verbindliche Designentscheidungen
 
 - PixelRPG hat keine Klassen.
@@ -39,15 +52,15 @@ Stand: 2026-08-24 – nach vollständigem Abgleich von 01 – Player und 02 – 
 - Waffen: Reach, Damage, Crit, Crit-Schaden, Lifesteal, Attack Power.
 - Equipment: Helm, Brust, Hose, Schuhe, Waffe, Nebenhand.
 - Gearscore wird aus Item-Level und Item-Definition/Balancing bestimmt.
-- Companions geben passive Stat-Boni ausschließlich solange sie aktiv gerufen und draußen sind. Despawn entfernt den Bonus sofort. Unique Companions sind davon ausgenommen und erhalten ein eigenes System.
+- Companions geben passive Stat-Boni ausschließlich solange sie aktiv gerufen und draußen sind. Despawn entfernt den Bonus sofort. Unique Companions sind davon ausgenommen.
 - Weapon Skills gehören zur jeweiligen Waffe und können aktiv ausgelöst werden. Materialbasierte Waffen erhalten unterschiedliche Skills; Bogen/Armbrust verwenden für Skills Shift+Rechtsklick, damit Vanilla-Spannen/Laden erhalten bleibt.
-- PvP ist kein eigenes Gameplay-System. Falls PvP trotzdem stattfindet, wird es mit dem normalen PixelRPG-Combat-Verhalten berechnet.
+- PvP ist kein eigenes Gameplay-System. Falls PvP stattfindet, wird normales PixelRPG-Combat-Verhalten verwendet.
 - Währung: Goldtaler. Virtuell als Kontostand und physisch als Sonnenblume. Keine weitere Währung.
-- Spielerhandel erfolgt über ein Auktionshaus. Items werden gelistet; Geld wird beim Kauf virtuell transferiert.
+- Spielerhandel erfolgt über ein Auktionshaus; vollständiger Player-Trade ist nicht priorisiert.
 - Vier Professionen bleiben: BLACKSMITH, PROVISIONER, ALCHEMIST, SCHOLAR.
 - Gilden werden nicht als vollständiges Gameplay-System umgesetzt.
 - Partys unterstützen gemeinsame XP, Loot-Verteilung, Party-Buffs und gemeinsamen Questfortschritt.
-- Alte Default-Bosse Forest Tyrant, Frost Sovereign und Void Reaper werden nicht als finales Bosskonzept fortgeführt. Neue Bosse sollen eigene Attack-Patterns, eigene Größe/Präsenz und Companion-Unlocks besitzen.
+- Alte Default-Bosse Forest Tyrant, Frost Sovereign und Void Reaper werden nicht als finales Bosskonzept fortgeführt.
 - Aktuell existiert keine verbindliche Lore.
 - Spieler benötigen keine Gameplay-Commands; Interaktion erfolgt über NPCs/Dialoge. Commands bleiben primär Admin-Funktionen.
 - Sprachen: Deutsch, Englisch, Spanisch, Französisch; nur dort einsetzen, wo Mehrsprachigkeit sinnvoll ist.
@@ -58,56 +71,43 @@ Stand: 2026-08-24 – nach vollständigem Abgleich von 01 – Player und 02 – 
 # 01 – Player — 🟢 98 % ABGESCHLOSSEN
 
 ## Profil & Lifecycle
-- [x] PlayerProfile / Grunddaten – 98 %
-- [x] PlayerProfileManager – 98 %
-- [x] PlayerProfileRepository – 98 %
-- [x] YAML Player Repository – 98 %
-- [x] MySQL Player Repository – 98 %
-- [x] Async Pre-Login Load – 98 %
-- [x] Join Activation – 98 %
-- [x] Quit Deactivation + Save – 98 %
-- [x] Registrierungsstatus – 98 %
-- [x] Vanilla-/PixelRPG-Spieler-Isolation – 98 %
-- [x] Kein Startbonus / kein Startbonus-State – 98 %
-- [x] Dirty-State / Save Queue – 98 %
-- [x] Emergency YAML Backup bei MySQL-Fehler – 98 %
+- [x] PlayerProfile / Grunddaten
+- [x] PlayerProfileManager
+- [x] PlayerProfileRepository
+- [x] YAML Player Repository
+- [x] MySQL Player Repository
+- [x] Async Pre-Login Load
+- [x] Join Activation
+- [x] Quit Deactivation + Save
+- [x] Registrierungsstatus
+- [x] Vanilla-/PixelRPG-Spieler-Isolation
+- [x] Kein Startbonus / kein Startbonus-State
+- [x] Dirty-State / Save Queue
+- [x] Emergency YAML Backup bei MySQL-Fehler
 
 ## Level & XP
-- [x] Level 1–99 – 98 %
-- [x] Level-100-Grenze / reservierter Zustand – 98 %
-- [x] XP-Tabelle / Progressionskurve – 98 %
-- [x] Level-99-Transzendenz-Grind – 98 %
-- [x] XP Clamp / Overflow-Sicherheit – 98 %
-- [x] Level-Up Event – 98 %
-- [x] Player-Level API – 98 %
-- [x] Level → Balancing-Grundlage für Gear/Companions – 98 %
+- [x] Level 1–99
+- [x] Level-100-Grenze / reservierter Zustand
+- [x] XP-Tabelle / Progressionskurve
+- [x] Level-99-Transzendenz-Grind
+- [x] XP Clamp / Overflow-Sicherheit
+- [x] Level-Up Event
+- [x] Player-Level API
+- [x] Level → Balancing-Grundlage für Gear/Companions
 
-## Klassen
+## Klassen & alte Player-Attribute
 - [x] Klassen vollständig entfernt
-- [x] Warrior entfernt
-- [x] Ranger entfernt
-- [x] Rogue entfernt
-- [x] Healer entfernt
-- [x] Mage entfernt
+- [x] Warrior / Ranger / Rogue / Healer / Mage entfernt
 - [x] Klassenwahl entfernt
 - [x] Klassenwechsel / Respec entfernt
 - [x] Respec-Level-Grenze entfernt
 - [x] Respec-Kosten entfernt
 - [x] ClassBalance entfernt
 - [x] PlayerClassChangeEvent entfernt
-
-## Attribute
-- [x] Vitality entfernt
-- [x] Agility entfernt
-- [x] Precision entfernt
-- [x] Range entfernt
-- [x] Toughness entfernt
-- [x] Soulview entfernt
+- [x] Vitality / Agility / Precision / Range / Toughness / Soulview entfernt
 - [x] Elytra Permit als Player-Attribut entfernt
-- [x] Attributpunkte entfernt
-- [x] Attributkosten entfernt
-- [x] Klassenrabatte entfernt
-- [x] Attribute → Stats Pipeline entfernt
+- [x] Attributpunkte / Attributkosten / Klassenrabatte entfernt
+- [x] alte Attribute → Stats Pipeline entfernt
 - [x] Attribut-Persistenz entfernt
 
 ---
@@ -129,8 +129,8 @@ Stand: 2026-08-24 – nach vollständigem Abgleich von 01 – Player und 02 – 
 - [x] Combat State / Target State
 - [x] Combat Cleanup
 - [x] Combat Events
-- [x] Vanilla-/PixelRPG-Mischbetrieb sauber abgrenzen
-- [x] PvP nutzt bei tatsächlicher Aktivierung das normale PixelRPG-Combat-Verhalten
+- [x] Vanilla-/PixelRPG-Mischbetrieb sauber abgegrenzt
+- [x] PvP nutzt bei tatsächlicher Aktivierung normales PixelRPG-Combat-Verhalten
 
 ## Weapon Skills
 - [x] Rechtsklick-Erkennung
@@ -141,7 +141,7 @@ Stand: 2026-08-24 – nach vollständigem Abgleich von 01 – Player und 02 – 
 - [x] materialbasierte Weapon Skills
 - [x] Holz, Stein, Kupfer, Eisen, Gold, Diamant, Netherite mit unterschiedlichen Skills
 - [x] Bogen- und Armbrust-Skillpfad
-- [x] Shift+Rechtsklick für Bogen/Armbrust, um Vanilla-Interaktion nicht zu zerstören
+- [x] Shift+Rechtsklick für Bogen/Armbrust
 - [x] Player-Quit-Cooldown-Cleanup
 - [x] Weapon Skill Damage Context verhindert doppelte Weapon-Power-Anwendung
 
@@ -174,10 +174,17 @@ Stand: 2026-08-24 – nach vollständigem Abgleich von 01 – Player und 02 – 
 
 # 03 – Progression / Stats — 🟡 IN ARBEIT
 
-- [ ] Level 1–99 End-to-End
-- [ ] XP Scaling
-- [ ] deterministische Progression
-- [x] StatEngine vorhanden und auf neue Gear-Stats ausgerichtet
+> Nächster Hauptarbeitsabschnitt.
+
+## Progression
+- [ ] Level 1–99 End-to-End gegen finale Stat-/Gear-Pipeline validieren
+- [ ] XP Scaling final validieren
+- [ ] deterministische Progression final validieren
+- [x] Player-Level API
+- [x] Level-Up Events
+
+## Character Stats
+- [x] StatEngine vorhanden
 - [x] Cached Player Stats
 - [x] Max Health
 - [x] Armor
@@ -189,12 +196,12 @@ Stand: 2026-08-24 – nach vollständigem Abgleich von 01 – Player und 02 – 
 - [x] Lifesteal
 - [x] Attack Power
 - [x] Equipment → Stats → Combat Grundpfad
-- [ ] Companion → Stats → Combat vollständig integrieren
-- [ ] StatisticsService
-- [ ] StatisticsAPI
-- [ ] Stat-Persistenz, soweit für Stats überhaupt erforderlich
-- [ ] alte Strength/Agility/Stamina/Intellect-/Spell-Power-Pfade vollständig entfernen
-- [ ] alte Player-Attribute-Pfade vollständig entfernen
+- [x] StatisticsAPI vorhanden
+- [ ] Companion → Stats → Combat vollständig validieren
+- [ ] StatisticsService vollständig gegen finale Runtime validieren
+- [ ] Stat-Persistenz nur dort ergänzen, wo fachlich erforderlich
+- [ ] alle verbliebenen alten Strength/Agility/Stamina/Intellect-/Spell-Power-Pfade vollständig entfernen
+- [ ] alle verbliebenen alten Player-Attribute-Pfade vollständig entfernen
 
 ## Finaler Character-Stat-Satz
 
@@ -212,7 +219,7 @@ Attack Power
 
 ---
 
-# 04 – Companions — 🟢 95–98 % CORE ABGESCHLOSSEN
+# 04 – Companions — 🟢 98 % CORE ABGESCHLOSSEN
 
 > Neue Companion-Inhalte sind vorerst nicht geplant. Änderungen nur bei Bugs oder bewusst beschlossenen Systemänderungen.
 
@@ -228,7 +235,7 @@ Attack Power
 - [x] Login = kein automatisches Wiederbeschwören
 - [x] Follow / Movement
 - [x] Passive Stats nur bei aktivem Companion
-- [x] Companion Stats Calculator
+- [x] Companion Stats Runtime-Anbindung
 - [x] Leveling / XP
 - [x] normale Companion-Level an Spielerlevel gekoppelt
 - [x] Unique Companion eigenes Level
@@ -239,26 +246,29 @@ Attack Power
 
 ## Passive Companion-Boni
 
-- [ ] HP
-- [ ] Armor
-- [ ] Movement Speed
-- [ ] Reach
-- [ ] Damage
-- [ ] Crit
-- [ ] Crit-Schaden
-- [ ] Lifesteal
-- [ ] Attack Power
+- [x] HP
+- [x] Armor
+- [x] Movement Speed
+- [x] Reach
+- [x] Damage
+- [x] Crit
+- [x] Crit-Schaden
+- [x] Lifesteal
+- [x] Attack Power
+- [x] Bonus nur bei tatsächlich aktivem/gespawntem Companion
+- [x] Bonus wird bei Despawn entfernt
+- [x] Logout entfernt Runtime-Companion und dessen aktive Boni
 
-> Diese Boni dürfen ausschließlich aktiv sein, solange der jeweilige Companion tatsächlich gerufen und draußen ist. Unique Companions erhalten eine eigene Regelung.
+> Unique Companions behalten ihre eigene Sonderregelung.
 
 ## Companion Abilities
 
-- [ ] CompanionAbilityEngine
-- [ ] Ability Definitions
-- [ ] aktive Companion-Abilities
-- [ ] passive Ability Definitions
-- [ ] Cooldowns
-- [ ] Runtime Integration
+- [x] CompanionAbilityEngine-Grundstruktur
+- [x] generische Cooldown-Verwaltung
+- [x] Ability Definitions als Datenbasis
+- [ ] aktive Companion-Abilities mit tatsächlichen Gameplay-Effekten
+- [ ] passive Ability Definitions mit tatsächlichen Gameplay-Effekten
+- [ ] vollständige Runtime-Integration der Abilities
 
 ---
 
@@ -271,10 +281,10 @@ Attack Power
 - [ ] REACH_LOCATION – zunächst nur vorhandene Minecraft-Strukturen
 - [ ] GLOBAL_EVENT – technisch implementieren, zunächst kein Content
 
-> ESCORT ist aktuell nicht Bestandteil des gewünschten Questumfangs und wird nicht als aktiver Content-Typ priorisiert.
+> ESCORT wird aktuell nicht als aktiver Content-Typ priorisiert.
 
 ## Core
-- [ ] Quest Definition
+- [ ] Quest Definition finalisieren
 - [ ] Quest Repository
 - [ ] Quest Manager
 - [ ] Quest Progress
@@ -283,9 +293,9 @@ Attack Power
 - [ ] Quest XP
 - [ ] Quest XP Scaling
 - [ ] maximal 5 aktive Quests
-- [ ] Quest Persistence
-- [ ] QuestCompletedEvent
-- [ ] Mob-Kill-Tracking
+- [ ] Quest Persistence vollständig validieren
+- [x] QuestCompletedEvent vorhanden
+- [ ] Mob-Kill-Tracking vollständig validieren
 - [ ] Quest Navigation
 - [ ] Questketten
 - [ ] Party Quest Share
@@ -306,14 +316,15 @@ Attack Power
 - [ ] Travel
 
 ## Dialogue
-- [ ] Native Minecraft/Paper Dialog Framework
-- [ ] NPC → Dialogue
+- [x] Native Minecraft/Paper Dialog Framework als Basis
+- [ ] NPC → Dialogue vollständig validieren
 - [ ] Quest Dialogue
 - [ ] Profession Dialogue
 - [ ] Shop Dialogue
 - [ ] Bank Dialogue
 - [ ] Travel Dialogue
 - [ ] Story Dialogue
+- [ ] Companion Dialogue
 - [ ] Quick Actions
 - [ ] Reception Dialogue
 
@@ -328,12 +339,12 @@ Attack Power
 - [ ] Item Kategorien
 - [ ] Gear Kategorien
 - [ ] Validierung
-- [ ] Raritäten: Common, Uncommon, Rare, Epic, Legendary, Unique
+- [x] Raritäten: Common, Uncommon, Rare, Epic, Legendary, Unique
 - [ ] Item Level
 - [ ] Levelanforderungen
 - [x] Item Stats für aktuelle Weapon-/Armor-Berechnung vorhanden
 - [ ] Gearscore
-- [ ] Soulbound
+- [x] Soulbound
 - [x] Weapon Skill Mapping
 - [ ] Shoppreise
 - [ ] Resourcepack Integration
@@ -343,7 +354,7 @@ Attack Power
 - [x] Rüstung: HP, Armor, Movement Speed
 - [x] Waffen: Reach, Damage, Crit, Crit-Schaden, Lifesteal, Attack Power
 - [ ] Gearscore aus Item-Level + Item-Definition/Balancing
-- [x] Level des Spielers bestimmt über Balancing die erreichbare Gear-Stärke
+- [x] Spielerlevel bestimmt über Balancing die erreichbare Gear-Stärke
 
 ---
 
@@ -355,11 +366,11 @@ Attack Power
 - [ ] Schuhe
 - [ ] Waffe
 - [ ] Nebenhand
-- [ ] Equipment Stats
+- [x] Equipment Stats
 - [ ] Level Requirements
 - [ ] Rarity
 - [x] Equipment → Player Stats Grundpfad
-- [ ] Persistence
+- [ ] Persistence vollständig validieren
 - [ ] Equipment GUI
 
 ---
@@ -387,345 +398,198 @@ Attack Power
 - [ ] ALCHEMIST
 - [ ] SCHOLAR
 
-- [ ] Level-System 1–100 prüfen/umsetzen
+- [ ] Level-System 1–100 finalisieren
 - [ ] Profession XP
 - [ ] Rezepte / Freischaltungen
-- [ ] Trainer-Integration
-- [ ] Crafting-Integration
-- [ ] Persistence
+- [ ] Profession Persistence
+- [ ] Profession Dialogue
+- [ ] Profession GUI, wo notwendig
+- [ ] Balancing / Level-Gates
 
 ---
 
-# 11 – Economy / Shop / Bank — 🟡 IN ARBEIT
+# 11 – Economy / Trading — 🟡 IN ARBEIT
 
-## Währung
-- [ ] Goldtaler als einzige Währung
-- [ ] virtueller Kontostand
-- [ ] physischer Goldtaler als Sonnenblume
-- [ ] keine weiteren Währungen
+## Economy
+- [ ] Goldtaler-Kontostand
+- [ ] physische Goldtaler als Sonnenblume
+- [ ] Bank
+- [ ] Shop
+- [ ] Reward-Integration
+- [ ] Economy Persistence vollständig validieren
 
-## Shop
-- [ ] ShopManager
-- [ ] ShopEntries
-- [ ] NPC-Shops
-- [ ] Persistence
-- [ ] Shop GUI
-- [ ] Shop Editor
-- [ ] Admin Commands
-
-## Bank
-- [ ] persönlicher Bank-Speicher
-- [ ] 2 Seiten × 54 Slots
-- [ ] unabhängig von Vanilla-Endertruhe
-- [ ] Persistence
+## Trading
+- [ ] Auktionshaus
+- [ ] Item Listing
+- [ ] Kaufabwicklung
+- [ ] virtueller Geldtransfer
+- [ ] sichere Transaktionsabwicklung
+- [ ] Player Trading nur umsetzen, falls später ausdrücklich wieder priorisiert
 
 ---
 
-# 12 – Auction House — 🔴 OFFEN
+# 12 – Party — 🟡 IN ARBEIT
 
-> Direktes Spieler-zu-Spieler-Trading wird nicht umgesetzt.
-
-- [ ] Items einstellen
-- [ ] Items suchen / kaufen
-- [ ] virtuelle Zahlung beim Kauf
-- [ ] Verkäufer erhält Gold virtuell
-- [ ] Listing Persistence
-- [ ] Ablauf / Entfernung von Listings
-- [ ] Item Validation
-- [ ] Anti-Duplication
-- [ ] Disconnect-/Recovery-Sicherheit
-- [ ] GUI
-
----
-
-# 13 – Party — 🟡 IN ARBEIT
-
-- [ ] Party erstellen
-- [ ] Leader
-- [ ] Mitglieder
-- [ ] Invite
-- [ ] Leave
-- [ ] Leader Promotion
-- [ ] Disconnect Cleanup
+- [x] Party API
+- [x] Party Creation
+- [x] Members
+- [x] Invites
+- [x] Leave
+- [x] Events
 - [ ] gemeinsame XP
 - [ ] Loot-Verteilung
 - [ ] Party-Buffs
 - [ ] gemeinsamer Questfortschritt
-- [ ] Party GUI
-- [ ] Party HUD
+- [ ] Persistence / Lifecycle vollständig validieren
 
 ---
 
-# 14 – Guilds — 🔴 NICHT GEPLANT
+# 13 – Bosses — 🟡 IN ARBEIT
 
-> Es wird kein vollständiges Guild-Gameplay-System geben.
->
-> Bestehende technische Guild-/Currency-Altpfade werden bei den jeweiligen Systemarbeiten entfernt oder entkoppelt, sobald sie nicht mehr benötigt werden.
-
----
-
-# 15 – Bosses — 🔴 NEUES SYSTEM ERFORDERLICH
-
-> Forest Tyrant, Frost Sovereign und Void Reaper stammen aus dem alten System und sind kein verbindlicher finaler Boss-Content.
-
-- [ ] neue Boss Definition
-- [ ] neue Boss Registry
-- [ ] neue Spawn-Logik
-- [ ] deutlich größere Boss-Präsenz als normale Monster
-- [ ] eigene Attack Patterns
-- [ ] Boss Phasen
-- [ ] Enrage / Spezialmechaniken
-- [ ] Adds, sofern sinnvoll
-- [ ] Boss Loot
-- [ ] Boss XP
-- [ ] Companion Unlocks über Bosse
-- [ ] neue Companion-Bosse, z. B. Chicken Boss → Chicken Companion
-- [ ] Boss Statistics
+- [x] Active Boss
+- [x] Boss Attack Patterns
+- [x] Pattern Registry
+- [x] Boss Combat Grundsystem
+- [x] Boss Events
+- [x] Companion-Unlock-Anbindung
+- [ ] vollständige Phasenlogik
+- [ ] Damage Contribution
+- [ ] Death / Cleanup
+- [ ] Loot
+- [ ] vollständiger Boss-Gameplay-Loop
+- [ ] neue finale Bosse mit eigenen Attack-Patterns und eigener Präsenz
 
 ---
 
-# 16 – Story — 🔴 CONTENT OFFEN
+# 14 – Mounts — 🟡 IN ARBEIT
 
-> Aktuell existiert keine verbindliche Lore.
+## Vorgesehene Mounts
+- [ ] Pig – Boden-Mount
+- [ ] Horse – Boden-Mount
+- [ ] Zombie Horse – Boden-Mount
+- [ ] Skeleton Horse – Boden-Mount
+- [ ] Nautilus – Unterwasser-Mount
+- [ ] Bee – Spezial-Flugmount
 
-## Technik
-- [x] Story Manager Grundstruktur
-- [x] Story Chapter Grundstruktur
-- [x] Story Persistence Grundstruktur
-- [ ] vollständige Story E2E
-- [ ] Story Books
-- [ ] Story NPC Dialogue
-- [ ] Story Quest Integration
+## Bee
+- [ ] Scale 1.60
+- [ ] Fluggeschwindigkeit 1.05 Blöcke/Tick
+- [ ] Paper-26.x-Input-Steuerung
+- [ ] Jump steigt
+- [ ] Sneak sinkt
+- [ ] keine Vanilla-Bienen-Kampfmechanik
+- [ ] unbesiegbar / passiv
 
-## Content
-- [ ] Welt/Lore definieren
-- [ ] Hauptgeschichte definieren
-- [ ] Kapitel definieren
-- [ ] zentrale Charaktere definieren
-- [ ] Story-NPCs definieren
-- [ ] Story-Quests definieren
+## Unique Hazel
+- [x] separates MANNEQUIN-Konzept
+- [x] eigener Combat-Controller / Skin-Resolver vorhanden
+- [ ] vollständiger Gameplay-Loop final validieren
 
 ---
 
-# 17 – GUI / UI — 🟡 IN ARBEIT
+# 15 – GUI / UI — 🟡 IN ARBEIT
 
-- [ ] Crafting GUI
-- [ ] Blacksmith GUI
-- [ ] Party GUI
-- [ ] Quest Log
-- [ ] Quest Details
-- [ ] Shop GUI
-- [ ] Shop Editor
+- [ ] aktive GUIs gegen tatsächliche Runtime-Verwendung prüfen
+- [ ] nicht erreichbare Legacy-GUIs weiter entfernen
+- [ ] native Dialoge als bevorzugten Interaktionsweg beibehalten
+- [ ] Inventory-GUIs nur dort einsetzen, wo funktional sinnvoll
+- [ ] Character-/Stats-UI
 - [ ] Companion UI
-- [ ] Bank GUI
-- [ ] Native Dialog UI
-- [ ] Character Card
-- [ ] Scoreboard
-
-## Character Card
-
-```text
-Level
-EXP
-HP
-Armor
-Movement Speed
-Reach
-Damage
-Crit
-Crit-Schaden
-Lifesteal
-Attack Power
-```
+- [ ] Quest UI
+- [ ] Equipment UI
+- [ ] Crafting UI
 
 ---
 
-# 18 – Database / Persistence / Storage — 🟡 IN ARBEIT
+# 16 – Persistence / Database — 🟡 IN ARBEIT
 
-- [x] YAML Storage
-- [x] MySQL Storage
+- [x] YAML Player Repository
+- [x] MySQL Player Repository
 - [x] HikariCP
-- [x] Async Persistence Grundstruktur
-- [x] Save Queue Grundstruktur
-- [x] Shutdown Save
-- [x] Emergency Backup
-- [ ] vollständiger Persistenz-Audit für alle späteren Systeme
-- [ ] Migrationen
-- [ ] Recovery / Corruption Handling
-- [ ] Storage Performance Audit
+- [x] MySQL Connector
+- [x] Player-Persistenzpfade
+- [x] Companion-Persistenzpfade
+- [x] Quest-Persistenzpfade
+- [ ] Server-Neustart für alle relevanten Systeme vollständig validieren
+- [ ] Fehler-/Recovery-Pfade vollständig validieren
+- [ ] keine destruktive automatische Entfernung historischer Produktionsspalten
 
 ---
 
-# 19 – Commands / Permissions — 🟡 IN ARBEIT
-
-> Spieler benötigen keine Gameplay-Commands. Interaktion erfolgt über NPCs/Dialoge.
-
-## Admin
-- [ ] `/rpgadmin`
-- [ ] Companion Admin
-- [ ] NPC Admin
-- [ ] Boss Admin
-- [ ] Quest Admin
-- [ ] Shop Admin
-- [ ] Crafting Admin
-
-## Permissions
-- [ ] `rpg.admin`
-- [ ] `rpg.member`
-- [ ] Admin-Schutz für alle administrativen Systeme
-
----
-
-# 20 – API / Events — 🟡 IN ARBEIT
-
-## Player
-- [x] PlayerLevelUpEvent
-- [x] PlayerRegistrationEvent
-- [x] PlayerUnregistrationEvent
-
-## Combat
-- [x] PlayerCombatEnterEvent
-- [x] PlayerCombatExitEvent
-- [ ] weitere Combat Events nur bei tatsächlichem Bedarf
-
-## Quests / Bosses
-- [x] QuestCompletedEvent
-- [x] BossDefeatedEvent
+# 17 – API / Commands / Permissions — 🟡 IN ARBEIT
 
 ## API
-- [ ] stabile öffentliche API prüfen
-- [ ] API-Versionierung
-- [ ] Event Contracts dokumentieren
-- [ ] keine unnötigen APIs veröffentlichen
+- [x] PixelRPG Provider
+- [x] Economy API
+- [x] Item API
+- [x] Party API
+- [x] Statistics API
+- [x] Character Stat API
+- [x] relevante Events
+- [ ] API Runtime-Verträge vollständig validieren
+
+## Commands
+- [ ] Commands gegen tatsächliche Registrierung prüfen
+- [ ] Commands auf Admin-Funktionen begrenzen
+- [ ] keine Gameplay-Abhängigkeit von Player-Commands
+
+## Permissions
+- [ ] tatsächliche Registrierung und Runtime-Verwendung vollständig validieren
 
 ---
 
-# 21 – Configuration / Language / Data — 🟡 IN ARBEIT
+# 18 – Cleanup / Release Quality — 🟡 IN ARBEIT
 
-- [x] config.yml Grundstruktur
-- [x] JSON Data Manager
-- [x] Item Scaling Data
-- [x] Mob Scaling Data
-- [x] Companion Data
-- [x] Quest Data
-- [x] Deutsch
-- [x] Englisch
-- [x] Spanisch
-- [x] Französisch
-- [ ] vollständige Übersetzungsabdeckung
-- [ ] fehlende Keys automatisch erkennen
-- [ ] Fallback-Verhalten prüfen
-- [ ] Konfigurationsvalidierung
-
----
-
-# 22 – Scoreboard / Playtime — 🟡 IN ARBEIT
-
-## Scoreboard
-- [ ] Level
-- [ ] Quest-/Progressionsinformationen
-- [ ] Partymitglieder
-- [ ] Geld
-- [ ] getötete Gegner
-- [ ] Tode
-
-## Playtime
-- [ ] Playtime Tracking
-- [ ] Persistence
-- [ ] Disconnect Cleanup
-- [ ] Anzeige nur bei registrierten PixelRPG-Spielern
-
----
-
-# 23 – Travel — 🟡 IN ARBEIT
-
-- [x] NPC-basiertes Travel-Grundprinzip
-- [x] Waypoint Unlock
-- [x] NPC erneut ansprechen → verfügbare Reiseziele
-- [x] Teleport zu freigeschalteten Zielen
-- [ ] vollständige Travel-Persistence prüfen
-- [ ] Travel Permissions
-- [ ] Distanz-/Cooldown-Regeln prüfen
-- [ ] Dialog-Integration vollständig prüfen
-
----
-
-# 24 – Runtime / Events / Tasks / Cleanup — 🟡 IN ARBEIT
-
-- [x] Plugin Initialisierung
-- [x] Service Lifecycle Grundstruktur
-- [x] Listener Registration
-- [x] Scheduled Tasks
-- [x] Companion Runtime
-- [x] Mob Scaling Runtime Cleanup
-- [x] Combat State Cleanup
-- [ ] vollständiger Shutdown Audit
-- [ ] Task Leak Audit
-- [ ] Listener Leak Audit
-- [ ] Memory Safety Audit
-- [ ] Runtime Performance Audit
-
----
-
-# 25 – Build / CI / Testing — 🟡 IN ARBEIT
-
-## Verbindliche Plattform
-- [x] Java 25
-- [x] Paper 26.2
-- [x] Paperweight Userdev 2.0.0-beta.21
-- [x] Mojang-Mappings
-- [x] paper-plugin.yml
-- [x] ShadowJar
-
-## CI
-- [x] GitHub Build Workflow Grundstruktur
-- [ ] Produktions-Buildprüfung
-- [ ] Artifact Verification
-- [ ] reproduzierbarer Build
-
-## Tests
-- [ ] Unit Tests
-- [ ] Integration Tests
-- [ ] Gameplay Tests
-- [ ] Combat Regression Tests
-- [ ] Persistence Tests
-- [ ] Multiplayer / Party Tests
-- [ ] Companion Regression Tests
-- [ ] Boss Tests
-- [ ] Performance Tests
-- [ ] Edge-Case Tests
-- [ ] Level-1-bis-99 Scaling Tests
+- [x] mehrere nachweislich ungenutzte Legacy-GUIs entfernt
+- [x] nicht registrierter CraftingCommand entfernt
+- [x] ungenutzte Class-Set-Service-/Factory-Klassen entfernt
+- [x] veraltete Companion-Stat-Datei entfernt
+- [x] alter Equipment-Aura-Config-Key entfernt
+- [x] altes Resourcepack-Verzeichnis entfernt
+- [x] aktueller Compile-Fehler im PixelRPGPlugin behoben
+- [x] aktueller Gradle-Build erfolgreich
+- [ ] verbleibende historische Reste per Dependency-Prüfung bewerten
+- [ ] Runtime-Test nach jedem größeren Feature
+- [ ] finale Dokumentation synchron halten
 
 ---
 
 # Aktueller Arbeitsstand
 
 ```text
-01 – Player       🟢 98 %
-02 – Combat       🟢 98 %
-03 – Progression / Stats   🟡
-04 – Companions   🟢 95–98 % Core
-05 – Quests       🟡
-06 – NPC/Dialog   🟡
-07 – Items        🟡
-08 – Equipment    🟡
-09 – Crafting     🟡
-10 – Professions  🟡
-11 – Economy      🟡
-12 – Auction House 🔴
-13 – Party        🟡
-14 – Guilds       🔴 nicht geplant
-15 – Bosses       🔴
-16 – Story        🔴
-17 – GUI/UI       🟡
-18 – Storage      🟡
-19 – Commands     🟡
-20 – API/Events   🟡
-21 – Config       🟡
-22 – Scoreboard   🟡
-23 – Travel       🟡
-24 – Runtime      🟡
-25 – Build/Test   🟡
+01 Player        🟢 98 %
+02 Combat        🟢 98 %
+03 Progression   🟡 IN ARBEIT  ← NÄCHSTER ABSCHNITT
+04 Companions    🟢 98 % Core
+05 Quests        🟡 IN ARBEIT
+06 NPC/Dialogue  🟡 IN ARBEIT
+07 Items         🟡 IN ARBEIT
+08 Equipment     🟡 IN ARBEIT
+09 Crafting      🟡 IN ARBEIT
+10 Professions   🟡 IN ARBEIT
+11 Economy       🟡 IN ARBEIT
+12 Party         🟡 IN ARBEIT
+13 Bosses        🟡 IN ARBEIT
+14 Mounts        🟡 IN ARBEIT
+15 GUI/UI        🟡 IN ARBEIT
+16 Persistence   🟡 IN ARBEIT
+17 API/Commands  🟡 IN ARBEIT
+18 Cleanup       🟡 IN ARBEIT
 ```
 
-> Nächster verbindlicher Arbeitsblock: **03 – Progression / Stats**.
+## Definition of Done
+
+```text
+Code vorhanden
++ Runtime integriert
++ Content ausreichend
++ Persistenz korrekt
++ Fehlerfälle behandelt
++ Vanilla-Isolation korrekt
++ Build erfolgreich
++ Server-Test erfolgreich
++ Dokumentation aktuell
+= Feature bei 95–98 % abgeschlossen
+```
+
+Absolute 100 % werden nicht als dauerhafter Zustand betrachtet. Ziel ist ein stabiler, getesteter Stand von 95–98 % je Feature.
