@@ -74,10 +74,7 @@ public final class QuestManager {
     }
 
     public void shutdown() {
-        if (timerTask != null) {
-            timerTask.cancel();
-            timerTask = null;
-        }
+        if (timerTask != null) { timerTask.cancel(); timerTask = null; }
         questTimers.clear();
     }
 
@@ -95,18 +92,16 @@ public final class QuestManager {
             player.sendMessage(Component.text("Du kannst maximal 5 Quests gleichzeitig aktiv haben.", NamedTextColor.RED));
             return false;
         }
-
         long expiry = quest.hasTimeLimit() ? System.currentTimeMillis() + quest.durationMinutes() * 60_000L : 0L;
         profile.startQuest(new QuestProgress(quest.id(), 0, expiry));
         if (quest.hasTimeLimit()) {
             questTimers.computeIfAbsent(player.getUniqueId(), ignored -> new ConcurrentHashMap<>()).put(quest.id(), expiry);
             lang.send(player, "quest.time-limit", "minutes", String.valueOf(quest.durationMinutes()));
         }
-
         lang.send(player, "quest.accepted", "title", quest.title());
         if (quest.type() == QuestType.GLOBAL_EVENT && globalEventState.getProgress(quest.id()) >= quest.requiredAmount()) {
             profile.getActiveQuests().get(quest.id()).setCurrentAmount(quest.requiredAmount());
-            grantCompletion(player, profile, quest);
+            lang.send(player, "quest.progress", "current", String.valueOf(quest.requiredAmount()), "required", String.valueOf(quest.requiredAmount()));
         }
         return true;
     }
@@ -129,7 +124,6 @@ public final class QuestManager {
             lang.send(player, "quest.requirements-not-met");
             return false;
         }
-        if (quest.type() == QuestType.GLOBAL_EVENT) return grantCompletion(player, profile, quest);
         if (!isAtQuestGiver(player, quest)) {
             lang.send(player, "quest.requirements-not-met");
             return false;
@@ -138,7 +132,6 @@ public final class QuestManager {
     }
 
     private boolean isAtQuestGiver(Player player, Quest quest) {
-        if (quest.questGiverNpcId() == null || quest.questGiverNpcId().isBlank()) return false;
         return PixelRPGPlugin.getInstance().getNpcManager().getById(quest.questGiverNpcId())
                 .map(RPGNpc::location)
                 .filter(location -> location.getWorld() != null && player.getWorld().equals(location.getWorld()))
@@ -156,14 +149,11 @@ public final class QuestManager {
         if (quest.rewardsCompanion()) {
             var companionService = PixelRPGPlugin.getInstance().getCompanionService();
             if (companionService != null && companionService.unlockDefinition(player.getUniqueId(), quest.rewardCompanionId())) {
-                player.sendMessage(Component.text("Begleiter freigeschaltet: ", NamedTextColor.WHITE)
-                        .append(Component.text(quest.rewardCompanionId(), NamedTextColor.YELLOW)));
+                player.sendMessage(Component.text("Begleiter freigeschaltet: ", NamedTextColor.WHITE).append(Component.text(quest.rewardCompanionId(), NamedTextColor.YELLOW)));
             }
         }
         lang.send(player, "quest.completed", "title", quest.title());
-        player.showTitle(Title.title(
-                Component.text(quest.title(), NamedTextColor.YELLOW),
-                Component.text(" "),
+        player.showTitle(Title.title(Component.text(quest.title(), NamedTextColor.YELLOW), Component.text(" "),
                 Title.Times.times(Duration.ofMillis(300), Duration.ofMillis(1800), Duration.ofMillis(300))));
         Bukkit.getPluginManager().callEvent(new QuestCompletedEvent(player, quest.id()));
         return true;
@@ -173,10 +163,7 @@ public final class QuestManager {
         String[] parts = definition.split("\\|", -1);
         try {
             Material material = Material.valueOf(parts[0].trim().toUpperCase());
-            if (parts.length == 1) {
-                player.getInventory().addItem(new ItemStack(material));
-                return;
-            }
+            if (parts.length == 1) { player.getInventory().addItem(new ItemStack(material)); return; }
             ItemRarity rarity = ItemRarity.valueOf(parts[1].trim().toUpperCase());
             int itemLevel = parts.length >= 3 ? Integer.parseInt(parts[2].trim()) : fallbackLevel;
             RPGItemBuilder.createItem(material, rarity, Math.max(1, itemLevel)).ifPresent(item -> player.getInventory().addItem(item));
@@ -228,9 +215,7 @@ public final class QuestManager {
     }
 
     /** Escort quests are intentionally not part of the final quest type pool. */
-    public void checkEscortQuests(Player player) {
-        // Intentionally empty: ESCORT is not an active quest type.
-    }
+    public void checkEscortQuests(Player player) { }
 
     /** Updates TALK_TO_NPC quests when the configured NPC is interacted with. */
     public void progressTalkToNpc(Player player, String npcId) {
@@ -249,16 +234,16 @@ public final class QuestManager {
             int current = globalEventState.getProgress(quest.id());
             if (current >= quest.requiredAmount()) continue;
             int updated = globalEventState.addProgress(quest.id(), 1);
-            if (updated >= quest.requiredAmount()) completeGlobalEvent(quest);
+            if (updated >= quest.requiredAmount()) notifyGlobalEventCompleted(quest);
         }
     }
 
-    private void completeGlobalEvent(Quest quest) {
+    private void notifyGlobalEventCompleted(Quest quest) {
         for (Player online : Bukkit.getOnlinePlayers()) {
             PlayerProfile profile = profileManager.getProfile(online.getUniqueId()).orElse(null);
             if (profile == null || !profile.isRegisteredInGuild() || !profile.hasActiveQuest(quest.id())) continue;
             profile.getActiveQuests().get(quest.id()).setCurrentAmount(quest.requiredAmount());
-            grantCompletion(online, profile, quest);
+            lang.send(online, "quest.progress", "current", String.valueOf(quest.requiredAmount()), "required", String.valueOf(quest.requiredAmount()));
         }
     }
 
@@ -278,12 +263,8 @@ public final class QuestManager {
         }
         if (!quest.targetBiomeKeys().isEmpty()) {
             var biomeRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME);
-            Biome[] biomes = quest.targetBiomeKeys().stream()
-                    .map(org.bukkit.NamespacedKey::fromString)
-                    .filter(java.util.Objects::nonNull)
-                    .map(biomeRegistry::get)
-                    .filter(java.util.Objects::nonNull)
-                    .toArray(Biome[]::new);
+            Biome[] biomes = quest.targetBiomeKeys().stream().map(org.bukkit.NamespacedKey::fromString)
+                    .filter(java.util.Objects::nonNull).map(biomeRegistry::get).filter(java.util.Objects::nonNull).toArray(Biome[]::new);
             if (biomes.length > 0) {
                 var result = origin.getWorld().locateNearestBiome(origin, quest.navigationRadius(), biomes);
                 if (result != null) return result.getLocation();
@@ -321,9 +302,6 @@ public final class QuestManager {
         if (timers != null) timers.remove(questId);
     }
 
-    private boolean isRegistered(UUID uuid) {
-        return profileManager.getProfile(uuid).map(PlayerProfile::isRegisteredInGuild).orElse(false);
-    }
-
+    private boolean isRegistered(UUID uuid) { return profileManager.getProfile(uuid).map(PlayerProfile::isRegisteredInGuild).orElse(false); }
     public QuestRepository getRepository() { return questRepository; }
 }
