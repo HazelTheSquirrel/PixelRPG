@@ -39,6 +39,7 @@ import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.economy.GuildCurrencyPickupListener;
+import de.pixelrpg.rpg.equipment.EquipmentService;
 import de.pixelrpg.rpg.gui.BlacksmithGUI;
 import de.pixelrpg.rpg.gui.CraftingGUI;
 import de.pixelrpg.rpg.gui.GUIListener;
@@ -96,6 +97,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ProfessionSystem professionSystem;
     private ItemEconomyConfig itemEconomyConfig;
     private ItemService itemService;
+    private EquipmentService equipmentService;
     private BlacksmithGUI blacksmithGUI;
     private CraftingGUI craftingGUI;
     private MobScalingConfig mobScalingConfig;
@@ -137,6 +139,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         itemEconomyConfig.load(getConfig());
         RPGItemBuilder.configureScaling(this);
         itemService = new ItemService();
+        equipmentService = new EquipmentService(playerProfileManager, statEngine, itemService);
         Bukkit.getServicesManager().register(de.pixelrpg.rpg.api.ItemAPI.class, itemService, this, ServicePriority.Normal);
         blacksmithGUI = new BlacksmithGUI(playerProfileManager, itemEconomyConfig);
         craftingGUI = new CraftingGUI(professionSystem.craftingService(), playerProfileManager);
@@ -191,6 +194,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new TravelBehavior(npcManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogue, dialogueEngine, playerProfileManager));
         npcBehaviorRegistry.register(new BankerBehavior(playerProfileManager, dialogueEngine));
+        getServer().getPluginManager().registerEvents(equipmentService, this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(craftingGUI, this);
         getServer().getPluginManager().registerEvents(new RPGStatsListener(statEngine, playerProfileManager), this);
@@ -261,6 +265,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public ProfessionSystem getProfessionSystem() { return professionSystem; }
     public LanguageManager getLanguageManager() { return languageManager; }
     public ItemService getItemService() { return itemService; }
+    public EquipmentService getEquipmentService() { return equipmentService; }
     public NpcManager getNpcManager() { return npcManager; }
     public QuestManager getQuestManager() { return questManager; }
     public BossManager getBossManager() { return bossManager; }
