@@ -26,7 +26,7 @@ public final class QuestDetailGUI extends AbstractGUI {
     private final LanguageManager lang;
 
     public QuestDetailGUI(Player viewer, QuestManager questManager, PlayerProfileManager profileManager, Quest quest) {
-        super(54, quest.title());
+        super(54, Component.text(quest.title()));
         this.viewer = viewer;
         this.questManager = questManager;
         this.profileManager = profileManager;
