@@ -1,5 +1,7 @@
 package de.pixelrpg.rpg.command;
 
+import de.pixelrpg.rpg.command.impl.ItemSubCommand;
+import de.pixelrpg.rpg.item.ItemService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
@@ -15,6 +17,10 @@ import java.util.Map;
 
 public final class RootCommand implements CommandExecutor, TabCompleter {
     private final Map<String, SubCommand> subCommands = new LinkedHashMap<>();
+
+    public RootCommand() {
+        register(new ItemSubCommand(new ItemService()));
+    }
 
     public void register(SubCommand subCommand) {
         subCommands.put(subCommand.name().toLowerCase(Locale.ROOT), subCommand);
@@ -50,7 +56,6 @@ public final class RootCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        // Paper 26.2 may request root suggestions with an empty argument array.
         if (args.length == 0) {
             return subCommands.entrySet().stream()
                     .filter(entry -> hasPermission(sender, entry.getValue()))
