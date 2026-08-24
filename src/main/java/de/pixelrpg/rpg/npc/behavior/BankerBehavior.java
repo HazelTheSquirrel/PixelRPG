@@ -5,6 +5,9 @@ import de.pixelrpg.rpg.dialogue.BankDialog;
 import de.pixelrpg.rpg.dialogue.BankInventoryListener;
 import de.pixelrpg.rpg.dialogue.BankStorageService;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.GuildBankAccessDialog;
+import de.pixelrpg.rpg.guild.GuildBankService;
+import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
@@ -19,8 +22,9 @@ public final class BankerBehavior implements NpcBehavior {
     private final BankStorageService bankStorage;
     private final TradeDepotManager tradeDepot;
     private final LanguageManager lang;
+    private final GuildBankAccessDialog guildBankAccess;
 
-    public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
+    public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, GuildManager guildManager) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.bankStorage = new BankStorageService(PixelRPGPlugin.getInstance());
@@ -28,6 +32,9 @@ public final class BankerBehavior implements NpcBehavior {
                 .registerEvents(new BankInventoryListener(bankStorage), PixelRPGPlugin.getInstance());
         this.tradeDepot = new TradeDepotManager(PixelRPGPlugin.getInstance(), profileManager, bankStorage, dialogueEngine);
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
+        GuildBankService guildBankService = new GuildBankService(PixelRPGPlugin.getInstance(), guildManager);
+        BankDialog personalBank = new BankDialog(profileManager, dialogueEngine, bankStorage, tradeDepot);
+        this.guildBankAccess = new GuildBankAccessDialog(guildManager, guildBankService, dialogueEngine, personalBank);
     }
 
     @Override
@@ -41,8 +48,7 @@ public final class BankerBehavior implements NpcBehavior {
             lang.send(player, "npc.not-registered");
             return;
         }
-
-        new BankDialog(profileManager, dialogueEngine, bankStorage, tradeDepot).open(player);
+        guildBankAccess.open(player);
     }
 
     public void shutdown() {
