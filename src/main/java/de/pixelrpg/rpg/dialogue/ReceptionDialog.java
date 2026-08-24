@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.dialogue;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.SoulboundService;
 import de.pixelrpg.rpg.lang.LanguageManager;
@@ -34,7 +35,7 @@ public final class ReceptionDialog {
         this.player = player;
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
-        this.lang = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getLanguageManager();
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
         this.partyManager = partyManager;
     }
 
@@ -53,6 +54,10 @@ public final class ReceptionDialog {
                 new ReceptionDialog(target, profileManager, dialogueEngine, partyManager).open();
             }));
         } else {
+            actions.add(dialogueEngine.actionButton(
+                    Component.text(profile.isScoreboardEnabled() ? "Scoreboard ausschalten" : "Scoreboard einschalten", NamedTextColor.GOLD),
+                    NamedTextColor.GOLD,
+                    this::toggleScoreboard));
             if (partyManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Party", NamedTextColor.AQUA), NamedTextColor.AQUA,
                         target -> new PartyGUI(target, partyManager, profileManager).open(target)));
@@ -61,6 +66,16 @@ public final class ReceptionDialog {
             actions.add(dialogueEngine.actionButton(lang.get("blacksmith.soulbind-button"), NamedTextColor.LIGHT_PURPLE, this::openSoulbindSelection));
         }
         dialogueEngine.openMultiAction(player, lang.get("reception.guild-reception-title"), body, actions, 1);
+    }
+
+    private void toggleScoreboard(Player target) {
+        var scoreboardService = PixelRPGPlugin.getInstance().getScoreboardService();
+        if (scoreboardService == null) {
+            new ReceptionDialog(target, profileManager, dialogueEngine, partyManager).open();
+            return;
+        }
+        scoreboardService.setEnabled(target, !scoreboardService.isEnabled(target));
+        new ReceptionDialog(target, profileManager, dialogueEngine, partyManager).open();
     }
 
     private void openSoulbindSelection(Player target) {
