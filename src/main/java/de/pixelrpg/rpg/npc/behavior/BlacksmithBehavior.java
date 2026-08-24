@@ -8,9 +8,8 @@ import de.pixelrpg.rpg.gui.CraftingGUI;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
+import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import de.pixelrpg.rpg.profession.CraftRecipe;
-import de.pixelrpg.rpg.profession.CraftingRecipeRegistry;
 import de.pixelrpg.rpg.profession.CraftingService;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.profession.ProfessionService;
@@ -24,7 +23,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native-dialog blacksmith NPC with profession, crafting and blacksmith quest access. */
+/** Native-dialog blacksmith NPC with blacksmith quests, profession learning and recipe access. */
 public final class BlacksmithBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final ProfessionService professionService;
@@ -44,7 +43,7 @@ public final class BlacksmithBehavior implements NpcBehavior {
         this.questManager = questManager;
     }
 
-    /** Compatibility constructor for the existing plugin bootstrap; legacy GUIs are intentionally not used. */
+    /** Compatibility constructor for the existing plugin bootstrap; legacy GUI parameters remain accepted. */
     public BlacksmithBehavior(BlacksmithGUI ignoredBlacksmithGUI, CraftingGUI ignoredCraftingGUI,
                               PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
         this(profileManager,
@@ -66,32 +65,40 @@ public final class BlacksmithBehavior implements NpcBehavior {
             return;
         }
 
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null) return;
+
         int level = professionService.getLevel(player.getUniqueId(), Profession.BLACKSMITH);
         long experience = professionService.getExperience(player.getUniqueId(), Profession.BLACKSMITH);
-        long next = level >= Profession.MAX_LEVEL ? experience : ProfessionService.experienceForLevel(level + 1);
+        long next = level >= Profession.MAX_LEVEL ? 0L : ProfessionService.experienceForLevel(level + 1);
+        boolean learned = profile.hasLearnedProfession(Profession.BLACKSMITH);
 
         List<DialogBody> body = new ArrayList<>();
         body.add(DialogBody.plainMessage(Component.text(
                 "Waffen, Rüstung und Werkzeuge aus Meisterhand.", NamedTextColor.GRAY)));
         body.add(DialogBody.plainMessage(Component.text(
-                level >= Profession.MAX_LEVEL
-                        ? "Schmied Level " + Profession.MAX_LEVEL + " – Meister"
-                        : "Schmied Level " + level + "/" + Profession.MAX_LEVEL + " • " + experience + "/" + next + " EP",
-                level >= Profession.MAX_LEVEL ? NamedTextColor.GREEN : NamedTextColor.YELLOW)));
+                learned
+                        ? level >= Profession.MAX_LEVEL
+                            ? "Schmied Level " + Profession.MAX_LEVEL + " – Meister"
+                            : "Schmied Level " + level + "/" + Profession.MAX_LEVEL + " • " + experience + "/" + next + " EP"
+                        : "Du hast den Beruf Schmied noch nicht erlernt.",
+                learned ? NamedTextColor.YELLOW : NamedTextColor.RED)));
 
         List<ActionButton> actions = new ArrayList<>();
         if (questManager != null) {
             actions.add(dialogueEngine.actionButton(Component.text("Schmiedequests"), NamedTextColor.YELLOW,
                     target -> new QuestBehavior(questManager, profileManager, dialogueEngine).onInteract(target, npc)));
         }
-        actions.add(dialogueEngine.actionButton(Component.text("Schmied lernen / verwalten"), NamedTextColor.BLUE,
-                target -> professionDialog.openProfession(target, Profession.BLACKSMITH)));
 
-        for (CraftRecipe recipe : CraftingRecipeRegistry.getRecipes(Profession.BLACKSMITH)) {
-            actions.add(dialogueEngine.actionButton(
-                    Component.text(recipe.displayName()),
-                    level >= recipe.requiredProfessionLevel() ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
-                    target -> professionDialog.openRecipeDetails(target, recipe, false)));
+        if (!learned) {
+            actions.add(dialogueEngine.actionButton(Component.text("Schmied erlernen"), NamedTextColor.GREEN,
+                    target -> {
+                        professionService.learn(target, Profession.BLACKSMITH);
+                        onInteract(target, npc);
+                    }));
+        } else {
+            actions.add(dialogueEngine.actionButton(Component.text("Rezepte kaufen / verwalten"), NamedTextColor.BLUE,
+                    target -> professionDialog.openTrainerRecipes(target, Profession.BLACKSMITH)));
         }
 
         actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
