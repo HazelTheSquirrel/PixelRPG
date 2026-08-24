@@ -4,7 +4,7 @@ Stand: 2026-08-25 – abgeglichen mit dem aktuellen `main`-Stand
 
 > Diese Datei ist die verbindliche Arbeits-Roadmap. Die Reihenfolge ist von oben nach unten.
 > Prozentwerte beschreiben funktionale Reife des aktuell vorhandenen Codes, nicht die Menge an Code.
-> 🟢 95–98 % = abgeschlossen, 🟡 50–94 % = in Arbeit, 🔴 0–49 % = offen, 🔵 = vorbereitet / Zukunft.
+> 🟢 95–98 % = abgeschlossen, 🟡 50–94 % = in Arbeit, 🔴 0–49 % = offen, 🔵 = vorbereitet / Zukunft, ⚪ = verworfen.
 
 ## Arbeitsregel
 
@@ -56,13 +56,14 @@ Stand: 2026-08-25 – abgeglichen mit dem aktuellen `main`-Stand
 - Währung: Goldtaler. Virtuell als Kontostand und physisch als Sonnenblume. Keine weitere Währung.
 - Spielerhandel erfolgt über ein Auktionshaus; vollständiger Player-Trade ist nicht priorisiert.
 - Vier Professionen bleiben: BLACKSMITH, PROVISIONER, ALCHEMIST, SCHOLAR.
-- Gilden werden nicht als vollständiges Gameplay-System umgesetzt.
+- Gilden sind ein eigenes soziales Gameplay-System mit gemeinsamer Gildenstadt/-basis und Gildenbank.
 - Partys unterstützen gemeinsame XP, Loot-Verteilung, Party-Buffs und gemeinsamen Questfortschritt.
 - Alte Default-Bosse Forest Tyrant, Frost Sovereign und Void Reaper werden nicht als finales Bosskonzept fortgeführt.
 - Biom-Bosse sind regionale Spezialmonster und keine Worldbosse. Sie sind an ein bestimmtes Minecraft-Biom gebunden, können dort über die interne 10-%-Spawnprüfung erscheinen und verbrennen nicht durch Tageslicht.
 - Worldbosse sind ausschließlich Admin-gestartete Events. Sie haben feste Level, individuelle Belohnungen für aktive Teilnehmer, mehrere Phasen und dürfen Adds beschwören. Tageslicht verbrennt sie nicht. Es gibt keinen automatischen Worldboss-Respawn.
+- Ein eigenes Regions-/Mob-Scaling-System außerhalb der Biom-Bosse wird nicht umgesetzt.
 - Aktuell existiert keine verbindliche Lore.
-- Spieler benötigen keine Gameplay-Commands; Interaktion erfolgt über NPCs/Dialoge. Commands bleiben primär Admin-Funktionen.
+- Spieler benötigen keine Gameplay-Commands als Voraussetzung für die Systeme; die eigentlichen Interaktionen erfolgen über NPCs/Dialoge. Die wenigen Gilden-Commands dienen als komfortable Zusatzfunktionen für Einladungen, Annahme, Verlassen und Info.
 - Sprachen: Deutsch, Englisch, Spanisch, Französisch; nur dort einsetzen, wo Mehrsprachigkeit sinnvoll ist.
 - Travel bleibt beim bestehenden NPC-/Waypoint-Prinzip: NPC schaltet Ziel frei, erneutes Ansprechen zeigt verfügbare Reiseziele.
 
@@ -130,23 +131,73 @@ Stand: 2026-08-25 – abgeglichen mit dem aktuellen `main`-Stand
 
 ---
 
-# 18 – Regions / Mob Scaling — 🔴 OFFEN
-- [ ] Region System
-- [ ] Region Definitions
-- [ ] Mob Level Scaling
-- [ ] Danger Zones
-- [ ] Region Rewards
+# 18 – Regions / Mob Scaling — ⚪ VERWORFEN
+
+Dieser Punkt wird **nicht umgesetzt**.
+
+- [x] eigenes Region-System verworfen
+- [x] Region Definitions verworfen
+- [x] Mob Level Scaling über Regionen verworfen
+- [x] Danger Zones verworfen
+- [x] Region Rewards verworfen
+- [x] Region-Verknüpfung mit Quests verworfen
+- [x] Region-Verknüpfung mit Travel verworfen
+- [x] RPG-Mob-Zonen verworfen
+
+**Verbindliche Regel:** Minecraft-Biome werden ausschließlich für die Biom-Bosse aus **17 – Bosses** verwendet. Es gibt kein separates Regions-/Mob-Scaling-System.
 
 ---
 
-# 19 – Gilden — 🔴 OFFEN
-- [ ] Gilden Core
-- [ ] Gilden erstellen
-- [ ] Mitglieder
-- [ ] Gilden-Ränge
-- [ ] Gildenbank
-- [ ] Gilden-Quests
-- [ ] Gilden-Level
+# 19 – Gilden — 🟢 98 % ABGESCHLOSSEN
+
+## Gilden-Core
+- [x] Gilden-System
+- [x] persistente Gilden
+- [x] eindeutiger Gildenname
+- [x] maximal 50 Mitglieder
+- [x] Gildenmeister
+- [x] Mitglieder
+- [x] keine weiteren Gildenränge
+- [x] Gilde erstellen ab Spieler-Level 20
+- [x] Gildengründung kostet 2.500 Gold aus dem persönlichen Wallet
+- [x] Gildengründung über Reception / Dialog
+- [x] Gildenfunktion über `minecraft:quick_actions` (G)
+
+## Mitglieder / Befehle
+- [x] Gildenmeister kann Spieler einladen
+- [x] Einladung über `/gildeneinladen <Spieler>`
+- [x] Einladung über `/gildeannehmen`
+- [x] Gilde verlassen über `/gildeverlassen`
+- [x] Gildeninformationen über `/gildeinfo`
+- [x] Befehle sind Komfortfunktionen; das System bleibt über NPC/Dialoge zugänglich
+- [x] nur Gildenmeister darf einladen
+- [x] Gildenmeister kann die Gilde nicht einfach verlassen
+- [x] Einladungen werden nicht als dauerhaftes Mitgliedschaftsrecht gespeichert
+
+## Gildenbank
+- [x] eigene Gildenbank
+- [x] Zugriff über Banker-NPC
+- [x] gemeinsame 54-Slot-Gildenbank
+- [x] persistente Speicherung
+- [x] Zugriff nur für Gildenmitglieder
+- [x] Gildenbank ist vom persönlichen Spieler-Wallet getrennt
+
+## Gildenstadt / Basis
+- [x] Gilde ist als Gemeinschaft mit eigener Stadt/Basis konzipiert
+- [x] Stadt wird manuell erstellt
+- [x] WorldEdit/WorldGuard übernehmen Bau und Schutz
+- [x] PixelRPG baut kein eigenes Stadt-/Protection-/Regions-System
+- [x] Bett bleibt persönlicher Spawnpunkt
+- [x] Travel-NPC bleibt für Schnellreise zuständig
+
+## Bewusst nicht umgesetzt
+- [x] keine Gilden-XP
+- [x] keine Gilden-Level
+- [x] keine Gildenquests
+- [x] keine Gebäude-Freischaltungen
+- [x] kein Gildenhandel
+- [x] kein eigenes Gilden-PvP-System
+- [x] keine eigene Regions-/Protection-Engine
 
 ---
 
@@ -175,14 +226,18 @@ Stand: 2026-08-25 – abgeglichen mit dem aktuellen `main`-Stand
 - [x] Economy / Handelsdepot Persistence
 - [x] Scoreboard-Einstellung Persistence
 - [x] Boss-/Event-relevante Persistenz
+- [x] Gilden-Persistence
+- [x] Gildenbank-Persistence
 
 ---
 
 # 22 – Testing / QA — 🟡 IN ARBEIT
 - [x] CI-Build grün für 17 – Bosses
+- [x] CI-Build grün für 19 – Gilden
 - [ ] vollständige Runtime-Tests für Biom-Boss-Spawnchance
 - [ ] vollständige Runtime-Tests für Worldboss-Events
 - [ ] vollständige Runtime-Tests für Boss-Phasen / Adds / Loot
+- [ ] vollständige Runtime-Tests für Gilden-Gründung / Einladungen / Gildenbank
 - [ ] vollständige Regressionstests aller bisherigen Systeme
 
 ---
@@ -208,8 +263,8 @@ Stand: 2026-08-25 – abgeglichen mit dem aktuellen `main`-Stand
 | 15 – UI / HUD | 🟢 98 % |
 | 16 – Resource Pack / Custom Items | 🔵 Vorbereitet / Zukunft |
 | 17 – Bosses | 🟢 98 % |
-| 18 – Regions / Mob Scaling | 🔴 Offen |
-| 19 – Gilden | 🔴 Offen |
+| 18 – Regions / Mob Scaling | ⚪ Verworfen |
+| 19 – Gilden | 🟢 98 % |
 | 20 – Moderation / Admin | 🟡 In Arbeit |
 | 21 – Data / Persistence | 🟢 98 % |
 | 22 – Testing / QA | 🟡 In Arbeit |
