@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class BiomeBossSpawnTask {
@@ -46,8 +45,7 @@ public final class BiomeBossSpawnTask {
     private void checkPlayers() {
         if (bossManager.getActiveBossCount() >= maxConcurrentBosses) return;
 
-        List<Player> players = Bukkit.getOnlinePlayers().stream().toList();
-        for (Player player : players) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
             if (!player.isOnline() || !player.isValid()) continue;
             Biome biome = player.getLocation().getBlock().getBiome();
             BossDefinition definition = bossRepository.getBiomeBoss(biome);
