@@ -54,9 +54,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
                 databaseManager = new DatabaseManager();
                 databaseManager.connect(config);
                 repository = new MySQLPlayerProfileRepository(databaseManager);
-            } else {
-                repository = new YamlPlayerProfileRepository(plugin.getDataFolder());
-            }
+            } else repository = new YamlPlayerProfileRepository(plugin.getDataFolder());
             repository.init();
         } catch (Exception e) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to initialize storage, falling back to YAML.", e);
@@ -69,14 +67,9 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     }
 
     public void shutdown() {
-        List<CompletableFuture<Void>> pending = activeProfiles.values().stream()
-                .map(profile -> enqueueVoid(profile.getUuid(), () -> persistSync(profile)))
-                .toList();
-        try {
-            CompletableFuture.allOf(pending.toArray(new CompletableFuture[0])).get(30, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Not all player profiles could be flushed cleanly on shutdown.", e);
-        }
+        List<CompletableFuture<Void>> pending = activeProfiles.values().stream().map(profile -> enqueueVoid(profile.getUuid(), () -> persistSync(profile))).toList();
+        try { CompletableFuture.allOf(pending.toArray(new CompletableFuture[0])).get(30, TimeUnit.SECONDS); }
+        catch (Exception e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Not all player profiles could be flushed cleanly on shutdown.", e); }
         if (saveExecutor != null) {
             saveExecutor.shutdown();
             try {
@@ -141,6 +134,11 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         Bukkit.getPluginManager().callEvent(new PlayerUnregistrationEvent(player));
     }
 
+    @Deprecated(forRemoval = true)
+    public void registerToGuild(Player player) { registerPlayer(player); }
+    @Deprecated(forRemoval = true)
+    public void leaveGuild(Player player) { unregisterPlayer(player); }
+
     public void unlockWaypoint(UUID uuid, String waypointId) {
         PlayerProfile profile = activeProfiles.get(uuid);
         if (profile != null) {
@@ -166,9 +164,8 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
 
     private void persistSync(PlayerProfile profile) {
         if (!profile.beginSave()) return;
-        try {
-            repository.save(profile);
-        } catch (Exception e) {
+        try { repository.save(profile); }
+        catch (Exception e) {
             profile.markDirty();
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to save profile for " + profile.getUuid(), e);
             if (storageType == StorageType.MYSQL) writeEmergencyBackup(profile);
@@ -181,9 +178,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
             YamlPlayerProfileRepository emergency = new YamlPlayerProfileRepository(folder);
             emergency.init();
             emergency.save(profile);
-        } catch (Exception e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Emergency backup failed for " + profile.getUuid(), e);
-        }
+        } catch (Exception e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Emergency backup failed for " + profile.getUuid(), e); }
     }
 
     private <T> CompletableFuture<T> enqueue(UUID uuid, Supplier<T> task) {
