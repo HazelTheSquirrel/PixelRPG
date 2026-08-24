@@ -1,13 +1,11 @@
 package de.pixelrpg.rpg.trade;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.ItemAPI;
 import de.pixelrpg.rpg.dialogue.BankStorageService;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
-import de.pixelrpg.rpg.lang.LanguageManager;
+import de.pixelrpg.rpg.gui.TradeDepotGUI;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import de.pixelrpg.rpg.gui.TradeDepotGUI;
 import io.papermc.paper.dialog.DialogResponseView;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import io.papermc.paper.registry.data.dialog.input.DialogInput;
@@ -15,10 +13,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +36,6 @@ public final class TradeDepotManager {
     private final PlayerProfileManager profileManager;
     private final BankStorageService bankStorage;
     private final DialogueEngine dialogueEngine;
-    private final LanguageManager lang;
     private final ItemAPI itemAPI;
     private final File file;
     private final Map<UUID, TradeDepotListing> listings = new ConcurrentHashMap<>();
@@ -49,7 +46,6 @@ public final class TradeDepotManager {
         this.profileManager = profileManager;
         this.bankStorage = bankStorage;
         this.dialogueEngine = dialogueEngine;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
         this.itemAPI = Bukkit.getServicesManager().load(ItemAPI.class);
         this.file = new File(plugin.getDataFolder(), "trade-depot.yml");
         load();
@@ -71,12 +67,11 @@ public final class TradeDepotManager {
 
     public void openSellDialog(Player player) {
         ItemStack held = player.getInventory().getItemInMainHand();
-        if (held.isEmpty() || itemAPI == null || !itemAPI.isRPGItem(held)) {
-            lang.send(player, "trade.invalid-item");
+        if (!isTradeableRpgItem(held)) {
+            player.sendMessage(Component.text("Nur PixelRPG-Items können im Handelsdepot angeboten werden.", NamedTextColor.RED));
             return;
         }
 
-        long now = System.currentTimeMillis();
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text("Das Item aus deiner Haupthand wird als Handelsware eingestellt.", NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text("Laufzeit: 7 Tage · Verkaufsgebühr: 5 %", NamedTextColor.GRAY))
@@ -86,16 +81,16 @@ public final class TradeDepotManager {
                 "%s Gold", 1.0f, Float.MAX_VALUE, 1.0f, 1.0f);
         dialogueEngine.openNumberRangeAction(player, Component.text("Handelsware einstellen", NamedTextColor.GOLD),
                 body, input, Component.text("Einstellen"), NamedTextColor.GREEN,
-                (target, response) -> createListingFromResponse(target, response, now));
+                this::createListingFromResponse);
     }
 
-    private void createListingFromResponse(Player player, DialogResponseView response, long ignoredNow) {
+    private void createListingFromResponse(Player player, DialogResponseView response) {
         Float value = response.getFloat("price");
         if (value == null || !Float.isFinite(value) || value <= 0.0f) return;
 
         ItemStack held = player.getInventory().getItemInMainHand();
-        if (held.isEmpty() || itemAPI == null || !itemAPI.isRPGItem(held)) {
-            lang.send(player, "trade.invalid-item");
+        if (!isTradeableRpgItem(held)) {
+            player.sendMessage(Component.text("Nur PixelRPG-Items können im Handelsdepot angeboten werden.", NamedTextColor.RED));
             return;
         }
 
@@ -106,7 +101,7 @@ public final class TradeDepotManager {
                 System.currentTimeMillis() + LISTING_DURATION_MILLIS);
         listings.put(listing.id(), listing);
         save();
-        lang.send(player, "trade.listed", "price", format(price));
+        player.sendMessage(Component.text("Handelsware für " + format(price) + " Gold eingestellt.", NamedTextColor.GREEN));
         player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 1.0f);
         open(player);
     }
@@ -115,26 +110,26 @@ public final class TradeDepotManager {
         TradeDepotListing listing = listings.get(listingId);
         if (listing == null || listing.expired(System.currentTimeMillis())) {
             expireListings();
-            lang.send(buyer, "trade.unavailable");
+            buyer.sendMessage(Component.text("Dieses Handelsangebot ist nicht mehr verfügbar.", NamedTextColor.RED));
             return false;
         }
         if (listing.sellerId().equals(buyer.getUniqueId())) {
-            lang.send(buyer, "trade.own-listing");
+            buyer.sendMessage(Component.text("Du kannst dein eigenes Angebot nicht kaufen.", NamedTextColor.RED));
             return false;
         }
 
         PlayerProfile buyerProfile = profileManager.getProfile(buyer.getUniqueId()).orElse(null);
         PlayerProfile sellerProfile = profileManager.getProfile(listing.sellerId()).orElse(null);
         if (buyerProfile == null || sellerProfile == null) {
-            lang.send(buyer, "trade.unavailable");
+            buyer.sendMessage(Component.text("Das Angebot kann momentan nicht abgeschlossen werden.", NamedTextColor.RED));
             return false;
         }
         if (!canFit(buyer, listing.item())) {
-            lang.send(buyer, "trade.inventory-full");
+            buyer.sendMessage(Component.text("Dein Inventar ist voll.", NamedTextColor.RED));
             return false;
         }
         if (!buyerProfile.removeMoney(listing.price())) {
-            lang.send(buyer, "trade.insufficient-gold");
+            buyer.sendMessage(Component.text("Du hast nicht genug Gold.", NamedTextColor.RED));
             return false;
         }
 
@@ -143,7 +138,7 @@ public final class TradeDepotManager {
         sellerProfile.addMoney(sellerAmount);
         buyer.getInventory().addItem(listing.itemCopy());
         save();
-        lang.send(buyer, "trade.purchased", "price", format(listing.price()));
+        buyer.sendMessage(Component.text("Gekauft für " + format(listing.price()) + " Gold.", NamedTextColor.GREEN));
         buyer.playSound(buyer.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 1.0f);
         return true;
     }
@@ -152,13 +147,13 @@ public final class TradeDepotManager {
         TradeDepotListing listing = listings.get(listingId);
         if (listing == null || !listing.sellerId().equals(seller.getUniqueId())) return false;
         if (!canFit(seller, listing.item())) {
-            lang.send(seller, "trade.inventory-full");
+            seller.sendMessage(Component.text("Dein Inventar ist voll.", NamedTextColor.RED));
             return false;
         }
         listings.remove(listingId);
         seller.getInventory().addItem(listing.itemCopy());
         save();
-        lang.send(seller, "trade.cancelled");
+        seller.sendMessage(Component.text("Handelsangebot zurückgenommen.", NamedTextColor.GREEN));
         return true;
     }
 
@@ -178,9 +173,16 @@ public final class TradeDepotManager {
         if (changed) save();
     }
 
+    private boolean isTradeableRpgItem(ItemStack item) {
+        return item != null && !item.isEmpty() && itemAPI != null && itemAPI.isRPGItem(item);
+    }
+
     private boolean canFit(Player player, ItemStack item) {
-        var test = Bukkit.createInventory(null, player.getInventory().getSize());
-        test.setContents(player.getInventory().getContents());
+        var test = Bukkit.createInventory(null, 45);
+        ItemStack[] source = player.getInventory().getStorageContents();
+        for (int slot = 0; slot < source.length && slot < test.getSize(); slot++) {
+            test.setItem(slot, source[slot] == null ? null : source[slot].clone());
+        }
         return test.addItem(item.clone()).isEmpty();
     }
 
@@ -199,7 +201,9 @@ public final class TradeDepotManager {
                 String encoded = root.getString(key + ".item");
                 if (encoded == null) continue;
                 ItemStack item = ItemStack.deserializeBytes(Base64.getDecoder().decode(encoded));
-                if (!item.isEmpty()) listings.put(id, new TradeDepotListing(id, seller, item, price, expires));
+                if (!item.isEmpty() && isTradeableRpgItem(item)) {
+                    listings.put(id, new TradeDepotListing(id, seller, item, price, expires));
+                }
             } catch (Exception exception) {
                 plugin.getLogger().log(Level.WARNING, "Ignoring invalid trade depot listing " + key, exception);
             }
