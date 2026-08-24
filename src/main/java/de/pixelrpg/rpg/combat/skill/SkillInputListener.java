@@ -15,13 +15,13 @@ public final class SkillInputListener implements Listener {
         this.abilityEngine = abilityEngine;
     }
 
-    // Zuständig für die Aktivierung einer Waffenfähigkeit per Rechtsklick.
+    // Zuständig für die Aktivierung einer Waffenfähigkeit per Rechtsklick und verhindert bei aktivierter Fähigkeit die Vanilla-Nutzung.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onWeaponAbility(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (!event.getPlayer().getInventory().getItemInMainHand().hasItemMeta()) return;
-        abilityEngine.cast(event.getPlayer());
+        if (abilityEngine.cast(event.getPlayer())) event.setCancelled(true);
     }
 
     // Zuständig für die Freigabe temporärer Waffenfähigkeitsdaten beim Verlassen des Servers.
