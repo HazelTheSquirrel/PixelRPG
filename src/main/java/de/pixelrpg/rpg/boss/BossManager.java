@@ -82,9 +82,9 @@ public final class BossManager {
 
     private void applyBaseStats(LivingEntity entity, BossDefinition definition) {
         MobScalingConfig.LevelBaseStats levelStats = mobScalingConfig.getBaseStats(definition.getLevel());
-        MobScalingConfig.DimensionModifier dimension = mobScalingConfig.getDimensionModifier(entity.getWorld().getEnvironment());
-        double newHp = levelStats.hp() * dimension.hpMultiplier() * mobScalingConfig.getPlayerParityMultiplier() * definition.getHealthMultiplier();
-        double newDamage = levelStats.damage() * dimension.damageMultiplier() * mobScalingConfig.getPlayerParityMultiplier() * definition.getDamageMultiplier();
+        double parityMultiplier = mobScalingConfig.getPlayerParityMultiplier();
+        double newHp = levelStats.hp() * parityMultiplier * definition.getHealthMultiplier();
+        double newDamage = levelStats.damage() * parityMultiplier * definition.getDamageMultiplier();
 
         AttributeInstance hpAttribute = entity.getAttribute(Attribute.MAX_HEALTH);
         if (hpAttribute != null) {
