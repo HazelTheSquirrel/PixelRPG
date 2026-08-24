@@ -171,6 +171,7 @@ public final class ScoreboardService implements Listener {
 
     private List<Component> buildLines(Player player, PlayerProfile profile) {
         List<Component> lines = new ArrayList<>();
+        lines.add(Component.text(" "));
         lines.add(Component.text(player.getName(), NamedTextColor.WHITE));
         lines.add(Component.text("Level: ", NamedTextColor.GRAY).append(Component.text(profile.getLevel(), NamedTextColor.GOLD)));
         lines.add(Component.text(" "));
