@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.stats;
 
-import de.pixelrpg.rpg.api.events.PlayerClassChangeEvent;
 import de.pixelrpg.rpg.api.events.PlayerJoinGuildEvent;
 import de.pixelrpg.rpg.api.events.PlayerLeaveGuildEvent;
 import de.pixelrpg.rpg.api.events.PlayerLevelUpEvent;
@@ -43,12 +42,6 @@ public final class RPGStatsListener implements Listener {
     // Aktualisiert die berechneten Werte nach einem normalen Levelaufstieg.
     @EventHandler
     public void onLevelUp(PlayerLevelUpEvent event) {
-        statEngine.recalculate(event.getPlayer());
-    }
-
-    // Aktualisiert die berechneten Werte nach einem Klassenwechsel.
-    @EventHandler
-    public void onClassChange(PlayerClassChangeEvent event) {
         statEngine.recalculate(event.getPlayer());
     }
 
