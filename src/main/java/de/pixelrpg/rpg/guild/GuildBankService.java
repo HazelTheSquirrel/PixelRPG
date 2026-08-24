@@ -27,7 +27,7 @@ public final class GuildBankService {
         }
         GuildBankHolder holder = new GuildBankHolder(guild.id());
         Inventory inventory = Bukkit.createInventory(holder, GuildBankStorageService.SIZE,
-                Component.text("Gildenbank – " + guild.name(), NamedTextColor.GOLD));
+                Component.text("Gildenbank – " + guild.name(), NamedTextColor.BLACK));
         holder.inventory(inventory);
         ItemStack[] contents = storage.load(guild.id());
         for (int slot = 0; slot < contents.length; slot++) inventory.setItem(slot, contents[slot]);
