@@ -16,10 +16,7 @@ public final class PlayerProfile {
     private final UUID uuid;
     private boolean registeredInGuild;
     private long experience;
-    private PlayerClass playerClass;
     private double money;
-    private boolean receivedStartBonus;
-    private final Map<PlayerAttribute, Integer> attributePoints = new EnumMap<>(PlayerAttribute.class);
     private final Map<Profession, Integer> professionLevels = new EnumMap<>(Profession.class);
     private final Map<Profession, Long> professionExperience = new EnumMap<>(Profession.class);
     private final Set<Profession> learnedProfessions = new HashSet<>();
@@ -39,16 +36,13 @@ public final class PlayerProfile {
         this.uuid = uuid;
         this.registeredInGuild = false;
         this.experience = 0L;
-        this.playerClass = PlayerClass.NONE;
         this.money = 0.0;
-        this.receivedStartBonus = false;
         this.storyChapterIndex = -1;
         this.scoreboardEnabled = false;
         this.partyHudEnabled = false;
         this.questTrackerEnabled = false;
         this.playtimeMillis = 0L;
         this.dirty = false;
-        for (PlayerAttribute attribute : PlayerAttribute.values()) attributePoints.put(attribute, 0);
         for (Profession profession : Profession.values()) {
             professionLevels.put(profession, Profession.MIN_LEVEL);
             professionExperience.put(profession, 0L);
@@ -62,17 +56,10 @@ public final class PlayerProfile {
     public synchronized void setExperience(long value) { experience = Math.max(0L, value); dirty = true; }
     public synchronized void addExperience(long amount) { if (amount > 0L) { experience += amount; dirty = true; } }
     public synchronized int getLevel() { return Level.fromExperience(experience); }
-    public synchronized PlayerClass getPlayerClass() { return playerClass; }
-    public synchronized void setPlayerClass(PlayerClass value) { playerClass = value; dirty = true; }
     public synchronized double getMoney() { return money; }
     public synchronized void setMoney(double value) { money = Math.max(0.0, value); dirty = true; }
     public synchronized void addMoney(double amount) { if (amount > 0.0) { money += amount; dirty = true; } }
     public synchronized boolean removeMoney(double amount) { if (amount <= 0.0 || money < amount) return false; money -= amount; dirty = true; return true; }
-    public synchronized boolean hasReceivedStartBonus() { return receivedStartBonus; }
-    public synchronized void setReceivedStartBonus(boolean value) { receivedStartBonus = value; dirty = true; }
-    public synchronized int getAttributePoints(PlayerAttribute attribute) { return attributePoints.getOrDefault(attribute, 0); }
-    public synchronized void setAttributePoints(PlayerAttribute attribute, int value) { attributePoints.put(attribute, Math.max(0, value)); dirty = true; }
-    public synchronized void addAttributePoint(PlayerAttribute attribute) { attributePoints.merge(attribute, 1, Integer::sum); dirty = true; }
     public synchronized int getProfessionLevel(Profession profession) { return professionLevels.getOrDefault(profession, Profession.MIN_LEVEL); }
     public synchronized void setProfessionLevel(Profession profession, int level) { int clamped = Math.max(Profession.MIN_LEVEL, Math.min(Profession.MAX_LEVEL, level)); professionLevels.put(profession, clamped); dirty = true; }
     public synchronized Map<Profession, Integer> getProfessionLevels() { return Collections.unmodifiableMap(new EnumMap<>(professionLevels)); }
@@ -122,7 +109,6 @@ public final class PlayerProfile {
     public synchronized void resetProgress() {
         registeredInGuild = false;
         experience = 0L;
-        playerClass = PlayerClass.NONE;
         money = 0.0;
         storyChapterIndex = -1;
         learnedProfessions.clear();
@@ -130,8 +116,10 @@ public final class PlayerProfile {
         unlockedWaypoints.clear();
         activeQuests.clear();
         completedQuests.clear();
-        for (PlayerAttribute attribute : PlayerAttribute.values()) attributePoints.put(attribute, 0);
-        for (Profession profession : Profession.values()) { professionLevels.put(profession, Profession.MIN_LEVEL); professionExperience.put(profession, 0L); }
+        for (Profession profession : Profession.values()) {
+            professionLevels.put(profession, Profession.MIN_LEVEL);
+            professionExperience.put(profession, 0L);
+        }
         dirty = true;
     }
 }
