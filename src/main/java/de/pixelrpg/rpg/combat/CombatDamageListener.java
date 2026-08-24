@@ -29,7 +29,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class CombatDamageListener implements Listener {
     private static final double MAX_CRIT_CHANCE = 100.0D;
-    private static final double BASE_CRIT_DAMAGE = 2.0D;
 
     private final GuildAPI guildAPI;
     private final PlayerProfileManager profileManager;
@@ -37,9 +36,6 @@ public final class CombatDamageListener implements Listener {
     private final LanguageManager languageManager;
     private final CombatStateService combatStateService;
     private final double bossMaxHitPercentOfMaxHp;
-    private final NamespacedKey companionCritChanceKey;
-    private final NamespacedKey companionCritDamageKey;
-    private final NamespacedKey companionLifestealKey;
 
     public CombatDamageListener(GuildAPI guildAPI, PlayerProfileManager profileManager, StatEngine statEngine, MobScalingConfig ignoredScalingConfig) {
         this.guildAPI = guildAPI;
@@ -49,9 +45,6 @@ public final class CombatDamageListener implements Listener {
         this.combatStateService = new CombatStateService(PixelRPGPlugin.getInstance(), guildAPI);
         this.bossMaxHitPercentOfMaxHp = PixelRPGPlugin.getInstance().getConfig()
                 .getDouble("combat.boss-max-hit-percent-of-max-hp", 0.12D);
-        this.companionCritChanceKey = new NamespacedKey(PixelRPGPlugin.getInstance(), "companion_crit_chance");
-        this.companionCritDamageKey = new NamespacedKey(PixelRPGPlugin.getInstance(), "companion_crit_damage");
-        this.companionLifestealKey = new NamespacedKey(PixelRPGPlugin.getInstance(), "companion_lifesteal");
     }
 
     // Zuständig für die zentrale MMORPG-Schadensberechnung inklusive Vanilla-Basisschaden, Crit, Lifesteal und eigener Armor-Mitigation.
@@ -87,18 +80,12 @@ public final class CombatDamageListener implements Listener {
         if (profile == null || !profile.isRegistered()) return;
 
         StatEngine.CachedStats stats = statEngine.getCachedStats(attacker.getUniqueId());
-        var attackerData = attacker.getPersistentDataContainer();
-        double companionCritChance = attackerData.getOrDefault(companionCritChanceKey, PersistentDataType.DOUBLE, 0.0D);
-        double companionCritDamage = attackerData.getOrDefault(companionCritDamageKey, PersistentDataType.DOUBLE, 0.0D);
-        double companionLifesteal = attackerData.getOrDefault(companionLifestealKey, PersistentDataType.DOUBLE, 0.0D);
-
         double rawDamage = CombatDamageContext.isWeaponSkill()
                 ? Math.max(0.1D, event.getDamage())
                 : CombatDamageCalculator.rawPlayerDamage(event.getDamage(), stats);
-        double totalCritChance = Math.clamp(stats.critChance() + companionCritChance, 0.0D, MAX_CRIT_CHANCE);
+        double totalCritChance = Math.clamp(stats.critChance(), 0.0D, MAX_CRIT_CHANCE);
         boolean critical = ThreadLocalRandom.current().nextDouble(100.0D) < totalCritChance;
-        double critMultiplier = Math.max(1.0D, BASE_CRIT_DAMAGE + stats.critDamageMultiplier() - 2.0D + Math.max(0.0D, companionCritDamage));
-        double damage = critical ? rawDamage * critMultiplier : rawDamage;
+        double damage = critical ? rawDamage * stats.critDamageMultiplier() : rawDamage;
 
         double targetArmor = getArmor(target);
         double finalDamage = CombatDamageCalculator.mitigate(damage, targetArmor);
@@ -113,8 +100,7 @@ public final class CombatDamageListener implements Listener {
                 finalDamage, event.getDamage(), event.getFinalDamage());
         event.setDamage(replacementRawDamage);
 
-        double lifestealPercent = Math.max(0.0D, stats.lifestealBonus() + companionLifesteal);
-        double heal = CombatDamageCalculator.lifesteal(finalDamage, lifestealPercent);
+        double heal = CombatDamageCalculator.lifesteal(finalDamage, stats.lifestealBonus());
         if (heal > 0.0D) {
             AttributeInstance maxHealth = attacker.getAttribute(Attribute.MAX_HEALTH);
             double maxHp = maxHealth != null ? maxHealth.getValue() : attacker.getHealth();
