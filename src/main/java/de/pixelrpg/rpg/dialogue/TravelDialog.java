@@ -158,16 +158,14 @@ public final class TravelDialog {
         if (!ground.getType().isSolid()) return false;
         if (!feet.isPassable() || !head.isPassable()) return false;
         if (isDangerous(ground.getType()) || isDangerous(feet.getType()) || isDangerous(head.getType())) return false;
-        if (ground.getType() == Material.LAVA || feet.getType() == Material.LAVA || head.getType() == Material.LAVA) return false;
 
         return location.getBlockY() > world.getMinHeight() + 1;
     }
 
     private boolean isDangerous(Material material) {
         return switch (material) {
-            case FIRE, SOUL_FIRE, CAMPFIRE, SOUL_CAMPFIRE, MAGMA_BLOCK,
-                 CACTUS, SWEET_BERRY_BUSH, POWDER_SNOW, POINTED_DRIPSTONE,
-                 WITHER_ROSE, SWEET_BERRY_BUSH -> true;
+            case LAVA, FIRE, SOUL_FIRE, CAMPFIRE, SOUL_CAMPFIRE, MAGMA_BLOCK,
+                 CACTUS, SWEET_BERRY_BUSH, POWDER_SNOW, POINTED_DRIPSTONE, WITHER_ROSE -> true;
             default -> false;
         };
     }
