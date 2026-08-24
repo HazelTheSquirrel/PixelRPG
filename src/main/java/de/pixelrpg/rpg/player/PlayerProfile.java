@@ -60,7 +60,11 @@ public final class PlayerProfile {
     public synchronized void setRegisteredInGuild(boolean value) { setRegistered(value); }
     public synchronized long getExperience() { return experience; }
     public synchronized void setExperience(long value) { experience = Math.max(0L, value); dirty = true; }
-    public synchronized void addExperience(long amount) { if (amount > 0L) { experience += amount; dirty = true; } }
+    public synchronized void addExperience(long amount) {
+        if (amount <= 0L) return;
+        experience = amount > Long.MAX_VALUE - experience ? Long.MAX_VALUE : experience + amount;
+        dirty = true;
+    }
     public synchronized int getLevel() { return Level.fromExperience(experience); }
     public synchronized double getMoney() { return money; }
     public synchronized void setMoney(double value) { money = Math.max(0.0, value); dirty = true; }
