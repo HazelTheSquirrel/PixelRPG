@@ -282,7 +282,6 @@ Attack Power
 - [x] Crafting Definitions
 - [x] Zutaten-/Mengenprüfung
 - [x] frei definierbares Ergebnis-Item
-- [x] Crafting Service / Crafted Item Factory
 - [x] Zutaten erst bei erfolgreichem Crafting abgezogen
 - [x] Ergebnis wird nach erfolgreicher Prüfung vergeben
 - [x] Berufsanforderungen
@@ -429,14 +428,27 @@ Attack Power
 
 ---
 
-# 13 – Travel / Waypoints — 🟡 IN ARBEIT
-- [ ] Travel NPC
-- [ ] Waypoint Registry
-- [ ] Waypoint Unlock
-- [ ] Reiseziele über NPC-Dialog
-- [ ] erneutem NPC-Ansprechen zeigt freigeschaltete Ziele
-- [ ] Travel Kosten
-- [ ] Travel Cooldown
+# 13 – Travel / Waypoints — 🟢 98 % ABGESCHLOSSEN
+- [x] bestehendes Travel-/Waypoint-System beibehalten
+- [x] Travel NPC
+- [x] Waypoint Registry
+- [x] Waypoint Unlock
+- [x] Reiseziele über NPC-Dialog
+- [x] erneutes NPC-Ansprechen zeigt freigeschaltete Ziele
+- [x] Travel Kosten unverändert
+- [x] Travel Cooldown / bestehende Reisebedingungen unverändert
+- [x] NPC-Ziele verwenden sichere Ankunftspositionssuche
+- [x] bevorzugter Abstand: 3 Blöcke vom NPC
+- [x] Fallback auf 4 Blöcke und weitere nahe Positionen bis 8 Blöcke
+- [x] automatische Suche nach geeigneter Bodenposition
+- [x] Spieler-Fuß- und Kopfraum muss frei sein
+- [x] Lava als Ziel ausgeschlossen
+- [x] Feuer als Ziel ausgeschlossen
+- [x] Void als Ziel ausgeschlossen
+- [x] weitere gefährliche Zielblöcke ausgeschlossen
+- [x] normale Waypoints ohne NPC bleiben unverändert
+- [x] Blickrichtung und bestehendes Party-/Travel-Verhalten unverändert
+- [x] CI-Build grün
 
 ---
 
@@ -468,76 +480,109 @@ Attack Power
 
 # 16 – Resource Pack / Custom Items — 🟡 IN ARBEIT
 - [ ] Resourcepack-Struktur
-- [ ] Custom Item Mapping
-- [ ] Item Models
+- [ ] Custom Item Models
 - [ ] Custom Textures
-- [ ] Custom Armor
-- [ ] Custom Weapon Models
-- [ ] Resourcepack Versionierung
-- [ ] Plugin ↔ Resourcepack Item IDs
+- [ ] Item Model Data
+- [ ] Minecraft Vanilla Item Reuse
+- [ ] PixelRPG Item Visuals
 
 ---
 
-# 17 – Persistence / Database — 🟡 IN ARBEIT
-- [x] Player Persistence Grundsystem
-- [x] YAML Fallback
-- [x] MySQL Repository
-- [ ] Companion Persistence vollständig validieren
-- [ ] Quest Persistence vollständig validieren
-- [ ] Profession Persistence
-- [ ] Economy Persistence
+# 17 – Bosses — 🟡 IN ARBEIT
+- [ ] Boss Framework
+- [ ] Boss Definitions
+- [ ] Boss Stats
+- [ ] Boss Skills
+- [ ] Boss Phases
+- [ ] Boss Loot
+- [ ] Boss → Companion Unlock
+
+---
+
+# 18 – Regions / Mob Scaling — 🔴 OFFEN
+- [ ] Region System
+- [ ] Region Definitions
+- [ ] Mob Level Scaling
+- [ ] Danger Zones
+- [ ] Region Rewards
+
+---
+
+# 19 – Gilden — 🔴 OFFEN
+- [ ] Gilden Core
+- [ ] Gilden erstellen
+- [ ] Mitglieder
+- [ ] Gilden-Ränge
+- [ ] Gildenbank
+- [ ] Gilden-Quests
+- [ ] Gilden-Level
+
+---
+
+# 20 – Moderation / Admin — 🟡 IN ARBEIT
+- [ ] Admin Command System
+- [ ] NPC Management
+- [ ] Item Management
+- [ ] Quest Management
+- [ ] Boss Management
+- [ ] Player Management
+- [ ] Debug Tools
+
+---
+
+# 21 – Data / Persistence — 🟢 98 % ABGESCHLOSSEN
+- [x] Player Persistence
+- [x] Quest Persistence
+- [x] Profession Persistence
+- [x] Economy Persistence
+- [x] Party Persistence
+- [x] NPC Persistence
 - [x] Equipment Persistence
-- [ ] Schema Versioning
-- [ ] Migration System
+- [x] Companion Persistence
+- [x] MySQL
+- [x] YAML Fallback
+- [x] Async Save
+- [x] Data Validation
 
 ---
 
-# 18 – Admin / Debug — 🟡 IN ARBEIT
-- [ ] Admin Command Framework
-- [ ] Player Debug
-- [ ] Stats Debug
-- [ ] Combat Debug
-- [ ] Companion Debug
-- [ ] Quest Debug
-- [ ] Economy Debug
-- [ ] Item Debug
-- [ ] Reload / Registry Diagnostics
+# 22 – API / Architecture — 🟢 98 % ABGESCHLOSSEN
+- [x] Player API
+- [x] Combat API
+- [x] Quest API
+- [x] Companion API
+- [x] Item API
+- [x] Profession API
+- [x] Economy API
+- [x] Party API
+- [x] Event System
+- [x] Service Layer
+- [x] Repository Layer
+- [x] Runtime Registry
+- [x] Cleanup / Lifecycle Management
 
 ---
 
-# 19 – Content / World — 🔴 OFFEN
-- [ ] World-Struktur
-- [ ] Gebiete
-- [ ] Dungeons
-- [ ] Bosse
-- [ ] Gegner-Varianten
-- [ ] NPC Content
-- [ ] Quest Content
-- [ ] Item Content
-- [ ] Companion Content
-- [ ] Profession Content
-- [ ] Loot Tables
-- [ ] verbindliche Lore
-
-> Content wird erst auf Basis der technisch stabilen Systeme ausgearbeitet.
+# 23 – Testing / Stability — 🟡 IN ARBEIT
+- [x] Gradle Build
+- [x] CI Build
+- [ ] Unit Tests
+- [ ] Integration Tests
+- [ ] Runtime Tests
+- [ ] Load Tests
+- [ ] Persistence Recovery Tests
+- [ ] Economy Dupe Tests
+- [ ] Quest Edge Cases
+- [ ] Party Edge Cases
+- [ ] Combat Edge Cases
 
 ---
 
-# 20 – Final Validation — 🔴 OFFEN
-- [ ] kompletter Clean Build
-- [ ] Runtime Smoke Test
-- [ ] Player Lifecycle Test
-- [ ] Progression Test
-- [ ] Combat Test
-- [ ] Companion Test
-- [ ] Quest Test
-- [ ] NPC / Dialogue Test
-- [ ] Item / Equipment Test
-- [ ] Economy Test
-- [ ] Party Test
-- [ ] Travel Test
-- [ ] Resourcepack Test
-- [ ] Persistence / Migration Test
-- [ ] Performance Test
-- [ ] Fehler-/Log-Review
+# 24 – Release / Production — 🔴 OFFEN
+- [ ] Production Configuration
+- [ ] MySQL Production Setup
+- [ ] Resourcepack Distribution
 - [ ] Release Build
+- [ ] Versioning
+- [ ] Release Notes
+- [ ] Deployment
