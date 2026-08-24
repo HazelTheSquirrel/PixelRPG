@@ -61,9 +61,8 @@ public final class ReceptionDialog {
                 new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager).open();
             }));
         } else {
-            actions.add(dialogueEngine.actionButton(
-                    Component.text(profile.isScoreboardEnabled() ? "Scoreboard ausschalten" : "Scoreboard einschalten", NamedTextColor.GOLD),
-                    NamedTextColor.GOLD, this::toggleScoreboard));
+            // Reception order: Registrieren/Austreten, Party, Gilde, Seelenbindung, Scoreboard.
+            actions.add(dialogueEngine.actionButton(lang.get("reception.resign-button"), NamedTextColor.RED, this::openLeaveConfirmation));
             if (partyManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Party", NamedTextColor.AQUA), NamedTextColor.AQUA,
                         target -> new PartyGUI(target, partyManager, profileManager).open(target)));
@@ -72,8 +71,10 @@ public final class ReceptionDialog {
                 actions.add(dialogueEngine.actionButton(Component.text("Gilde", NamedTextColor.GOLD), NamedTextColor.GOLD,
                         target -> new GuildDialog(guildManager, profileManager, dialogueEngine).open(target)));
             }
-            actions.add(dialogueEngine.actionButton(lang.get("reception.resign-button"), NamedTextColor.RED, this::openLeaveConfirmation));
             actions.add(dialogueEngine.actionButton(lang.get("blacksmith.soulbind-button"), NamedTextColor.LIGHT_PURPLE, this::openSoulbindSelection));
+            actions.add(dialogueEngine.actionButton(
+                    Component.text(profile.isScoreboardEnabled() ? "Scoreboard ausschalten" : "Scoreboard einschalten", NamedTextColor.GOLD),
+                    NamedTextColor.GOLD, this::toggleScoreboard));
         }
         dialogueEngine.openMultiAction(player, lang.get("reception.guild-reception-title"), body, actions, 1);
     }
