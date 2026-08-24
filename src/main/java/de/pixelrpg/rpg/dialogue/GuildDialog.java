@@ -4,11 +4,17 @@ import de.pixelrpg.rpg.guild.Guild;
 import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.dialog.DialogResponseView;
 import io.papermc.paper.registry.data.dialog.ActionButton;
+import io.papermc.paper.registry.data.dialog.DialogBase;
+import io.papermc.paper.registry.data.dialog.DialogRegistryEntry;
+import io.papermc.paper.registry.data.dialog.action.DialogAction;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import io.papermc.paper.registry.data.dialog.input.DialogInput;
+import io.papermc.paper.registry.data.dialog.type.DialogType;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickCallback;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
@@ -45,20 +51,28 @@ public final class GuildDialog {
                 DialogBody.plainMessage(Component.text("Voraussetzung: Level " + Guild.MIN_CREATION_LEVEL + " und " + Guild.CREATION_COST_GOLD + " Gold im Wallet.", NamedTextColor.GOLD)),
                 DialogBody.plainMessage(Component.text("Dein aktuelles Level: " + profile.getLevel() + " • Gold: " + (long) profile.getMoney(), NamedTextColor.GRAY))
         );
-        DialogInput name = DialogInput.text("guild_name", 320, Component.text("Gildenname", NamedTextColor.WHITE), "Name", true, 3, 24, false);
-        dialogue.openTextInputAction(player, Component.text("Gilde gründen", NamedTextColor.GOLD), body, name,
-                Component.text("Gilde gründen – 2.500 Gold", NamedTextColor.GREEN), NamedTextColor.GREEN,
-                (target, response) -> createFromResponse(target, response));
+        DialogInput name = DialogInput.text("guild_name", 320, Component.text("Gildenname", NamedTextColor.WHITE), true, "", 24, null);
+        ActionButton create = ActionButton.builder(Component.text("Gilde gründen – 2.500 Gold", NamedTextColor.GREEN))
+                .action(DialogAction.customClick((response, audience) -> {
+                    if (audience instanceof Player target) createFromResponse(target, response);
+                }, ClickCallback.Options.builder().uses(1).build()))
+                .width(220).build();
+        ActionButton cancel = ActionButton.builder(Component.text("Abbrechen", NamedTextColor.RED))
+                .action(DialogAction.customClick((response, audience) -> { if (audience instanceof Player target) target.closeDialog(); }, ClickCallback.Options.builder().uses(1).build()))
+                .width(220).build();
+        player.showDialog(Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Gilde gründen", NamedTextColor.GOLD)).body(body).inputs(List.of(name)).canCloseWithEscape(true).afterAction(DialogBase.DialogAfterAction.CLOSE).build());
+            builder.type(DialogType.multiAction(List.of(create, cancel), null, 2));
+        }));
     }
 
     private void createFromResponse(Player player, DialogResponseView response) {
         String name = response.getText("guild_name");
+        if (name == null) return;
         GuildManager.Result result = guilds.createGuild(player, name);
         switch (result) {
-            case SUCCESS -> {
-                player.sendMessage(Component.text("Gilde „" + name.trim() + "“ wurde gegründet. Du bist jetzt Gildenmeister.", NamedTextColor.GREEN));
-                open(player);
-            }
+            case SUCCESS -> { player.sendMessage(Component.text("Gilde „" + name.trim() + "“ wurde gegründet. Du bist jetzt Gildenmeister.", NamedTextColor.GREEN)); open(player); }
             case LEVEL_TOO_LOW -> player.sendMessage(Component.text("Du musst mindestens Level 20 sein, um eine Gilde zu gründen.", NamedTextColor.RED));
             case INSUFFICIENT_GOLD -> player.sendMessage(Component.text("Du benötigst 2.500 Gold im Wallet.", NamedTextColor.RED));
             case NAME_TAKEN -> player.sendMessage(Component.text("Dieser Gildenname ist bereits vergeben.", NamedTextColor.RED));
