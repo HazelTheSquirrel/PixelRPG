@@ -1,9 +1,11 @@
 package de.pixelrpg.rpg.player;
 
+import de.pixelrpg.rpg.equipment.EquipmentSlot;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.quest.QuestProgress;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +13,9 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,9 +23,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
     private final File playersFolder;
 
     public YamlPlayerProfileRepository(File dataFolder) { this.playersFolder = new File(dataFolder, "players"); }
-
-    @Override
-    public void init() { if (!playersFolder.exists()) playersFolder.mkdirs(); }
+    @Override public void init() { if (!playersFolder.exists()) playersFolder.mkdirs(); }
 
     @Override
     public Optional<PlayerProfile> load(UUID uuid) {
@@ -32,7 +34,6 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         profile.setRegistered(yaml.getBoolean("registered", false));
         profile.setExperience(yaml.getLong("experience", 0L));
         profile.setMoney(yaml.getDouble("money", 0.0));
-
         ConfigurationSection professionSection = yaml.getConfigurationSection("professions");
         if (professionSection != null) loadProfessions(profile, professionSection);
         profile.setUnlockedRecipes(new HashSet<>(yaml.getStringList("unlocked-recipes")));
@@ -43,6 +44,13 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         if (activeSection != null) for (String questId : activeSection.getKeys(false)) profile.startQuest(new QuestProgress(questId, activeSection.getInt(questId + ".amount", 0), activeSection.getLong(questId + ".expiry", 0L)));
         ConfigurationSection statsSection = yaml.getConfigurationSection("statistics");
         if (statsSection != null) for (String key : statsSection.getKeys(false)) profile.setStatistic(key, statsSection.getLong(key));
+        Map<EquipmentSlot, ItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
+        ConfigurationSection equipmentSection = yaml.getConfigurationSection("equipment");
+        if (equipmentSection != null) for (EquipmentSlot slot : EquipmentSlot.values()) {
+            ItemStack item = equipmentSection.getItemStack(slot.name().toLowerCase());
+            if (item != null && !item.isEmpty()) equipment.put(slot, item);
+        }
+        profile.setEquipment(equipment);
         profile.setScoreboardEnabled(yaml.getBoolean("scoreboard-enabled", false));
         profile.setPartyHudEnabled(yaml.getBoolean("party-hud-enabled", false));
         profile.setQuestTrackerEnabled(yaml.getBoolean("quest-tracker-enabled", false));
@@ -108,6 +116,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
             yaml.set(path + ".expiry", progress.getExpiryTimestampMillis());
         }
         for (var entry : profile.getAllStatistics().entrySet()) yaml.set("statistics." + entry.getKey(), entry.getValue());
+        for (var entry : profile.getEquipment().entrySet()) yaml.set("equipment." + entry.getKey().name().toLowerCase(), entry.getValue());
         yaml.set("scoreboard-enabled", profile.isScoreboardEnabled());
         yaml.set("party-hud-enabled", profile.isPartyHudEnabled());
         yaml.set("quest-tracker-enabled", profile.isQuestTrackerEnabled());
