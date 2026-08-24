@@ -1,5 +1,8 @@
 package de.pixelrpg.rpg.stats;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.companion.Companion;
+import de.pixelrpg.rpg.companion.CompanionDefinition;
 import de.pixelrpg.rpg.companion.CompanionPassiveStats;
 import de.pixelrpg.rpg.companion.CompanionService;
 import de.pixelrpg.rpg.core.RPGKeys;
@@ -39,14 +42,9 @@ public final class StatEngine {
 
     private final PlayerProfileManager profileManager;
     private final Map<UUID, CachedStats> cache = new ConcurrentHashMap<>();
-    private volatile CompanionService companionService;
 
     public StatEngine(PlayerProfileManager profileManager) {
         this.profileManager = profileManager;
-    }
-
-    public void attachCompanionService(CompanionService companionService) {
-        this.companionService = companionService;
     }
 
     public CachedStats getCachedStats(UUID uuid) {
@@ -70,9 +68,7 @@ public final class StatEngine {
         double itemReach = sum(player, playerLevel, RPGKeys.Item.reachBonus());
         double itemMovementSpeed = sum(player, playerLevel, RPGKeys.Item.movementSpeed());
 
-        CompanionPassiveStats companion = companionService == null
-                ? CompanionPassiveStats.EMPTY
-                : companionService.getActivePassiveStats(player.getUniqueId());
+        CompanionPassiveStats companion = activeCompanionPassiveStats(player.getUniqueId());
 
         double maxHealth = Math.max(BASE_HEALTH, BASE_HEALTH + itemHealth + companion.hp());
         double armor = Math.max(0.0D, itemArmor + companion.armor());
@@ -131,6 +127,69 @@ public final class StatEngine {
         };
     }
 
+    private CompanionPassiveStats activeCompanionPassiveStats(UUID playerId) {
+        PixelRPGPlugin plugin = PixelRPGPlugin.getInstance();
+        if (plugin == null) return CompanionPassiveStats.EMPTY;
+        CompanionService service = plugin.getCompanionService();
+        if (service == null) return CompanionPassiveStats.EMPTY;
+        Companion active = service.getActive(playerId);
+        if (active == null || active.rarity().isUnique()) return CompanionPassiveStats.EMPTY;
+
+        CompanionDefinition definition = service.definition(active.id());
+        if (!definition.passive()) return CompanionPassiveStats.EMPTY;
+
+        if (!definition.passives().isEmpty()) {
+            var configured = definition.passives().values().iterator().next();
+            if (configured.has("stat") && configured.has("amount")) {
+                String stat = configured.get("stat").getAsString().trim().toUpperCase();
+                double amount = Math.max(0.0D, configured.get("amount").getAsDouble());
+                return fromConfiguredStat(stat, amount);
+            }
+        }
+
+        return fallbackPassiveStats(active);
+    }
+
+    private CompanionPassiveStats fromConfiguredStat(String stat, double amount) {
+        return switch (stat) {
+            case "HP", "HEALTH", "MAX_HEALTH" -> new CompanionPassiveStats(amount, 0, 0, 0, 0, 0, 0, 0, 0);
+            case "ARMOR" -> new CompanionPassiveStats(0, amount, 0, 0, 0, 0, 0, 0, 0);
+            case "MOVEMENT_SPEED", "SPEED" -> new CompanionPassiveStats(0, 0, amount, 0, 0, 0, 0, 0, 0);
+            case "REACH" -> new CompanionPassiveStats(0, 0, 0, amount, 0, 0, 0, 0, 0);
+            case "DAMAGE" -> new CompanionPassiveStats(0, 0, 0, 0, amount, 0, 0, 0, 0);
+            case "CRIT", "CRIT_CHANCE" -> new CompanionPassiveStats(0, 0, 0, 0, 0, amount, 0, 0, 0);
+            case "CRIT_DAMAGE" -> new CompanionPassiveStats(0, 0, 0, 0, 0, 0, amount, 0, 0);
+            case "LIFESTEAL" -> new CompanionPassiveStats(0, 0, 0, 0, 0, 0, 0, amount, 0);
+            case "ATTACK_POWER" -> new CompanionPassiveStats(0, 0, 0, 0, 0, 0, 0, 0, amount);
+            default -> CompanionPassiveStats.EMPTY;
+        };
+    }
+
+    private CompanionPassiveStats fallbackPassiveStats(Companion companion) {
+        int index = Math.floorMod(companion.id().hashCode(), 9);
+        double rarity = companion.rarity().statMultiplier();
+        double budget = switch (companion.rarity()) {
+            case COMMON -> 1.0D;
+            case UNCOMMON -> 1.5D;
+            case RARE -> 2.25D;
+            case EPIC -> 3.25D;
+            case LEGENDARY -> 4.5D;
+            case UNIQUE -> 0.0D;
+        };
+        double power = budget * rarity;
+        return switch (index) {
+            case 0 -> new CompanionPassiveStats(power * 5.0D, 0, 0, 0, 0, 0, 0, 0, 0);
+            case 1 -> new CompanionPassiveStats(0, power, 0, 0, 0, 0, 0, 0, 0);
+            case 2 -> new CompanionPassiveStats(0, 0, power * 0.01D, 0, 0, 0, 0, 0, 0);
+            case 3 -> new CompanionPassiveStats(0, 0, 0, power * 0.05D, 0, 0, 0, 0, 0);
+            case 4 -> new CompanionPassiveStats(0, 0, 0, 0, power, 0, 0, 0, 0);
+            case 5 -> new CompanionPassiveStats(0, 0, 0, 0, 0, power, 0, 0, 0);
+            case 6 -> new CompanionPassiveStats(0, 0, 0, 0, 0, 0, power * 0.05D, 0, 0);
+            case 7 -> new CompanionPassiveStats(0, 0, 0, 0, 0, 0, 0, power * 0.5D, 0);
+            default -> new CompanionPassiveStats(0, 0, 0, 0, 0, 0, 0, 0, power);
+        };
+    }
+
     private double sum(Player player, int playerLevel, org.bukkit.NamespacedKey key) {
         double total = 0.0D;
         for (ItemStack item : equippedItems(player)) {
@@ -162,9 +221,7 @@ public final class StatEngine {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance == null) return;
         removeModifier(player, attribute, key);
-        if (value != 0.0D) {
-            instance.addModifier(new AttributeModifier(key, value, AttributeModifier.Operation.ADD_NUMBER));
-        }
+        if (value != 0.0D) instance.addModifier(new AttributeModifier(key, value, AttributeModifier.Operation.ADD_NUMBER));
     }
 
     private void removeModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key) {
