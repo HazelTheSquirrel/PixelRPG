@@ -65,11 +65,31 @@ public final class ScoreboardService implements Listener {
         task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 profileManager.getProfile(player.getUniqueId()).ifPresent(profile -> {
-                    if (profile.isRegistered()) apply(player, profile);
-                    else clear(player);
+                    if (!profile.isRegistered()) {
+                        clearScoreboard(player);
+                        player.setExp(0.0F);
+                        player.setLevel(0);
+                    } else if (profile.isScoreboardEnabled()) {
+                        apply(player, profile);
+                    } else {
+                        clearScoreboard(player);
+                        updateExperienceBar(player, profile);
+                    }
                 });
             }
         }, updateIntervalTicks, updateIntervalTicks);
+    }
+
+    public void setEnabled(Player player, boolean enabled) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered()) return;
+        profile.setScoreboardEnabled(enabled);
+        if (enabled) apply(player, profile);
+        else clearScoreboard(player);
+    }
+
+    public boolean isEnabled(Player player) {
+        return profileManager.getProfile(player.getUniqueId()).map(PlayerProfile::isScoreboardEnabled).orElse(false);
     }
 
     public void shutdown() {
@@ -77,7 +97,7 @@ public final class ScoreboardService implements Listener {
             task.cancel();
             task = null;
         }
-        for (Player player : Bukkit.getOnlinePlayers()) clear(player);
+        for (Player player : Bukkit.getOnlinePlayers()) clearScoreboard(player);
         stateByPlayer.clear();
     }
 
@@ -85,7 +105,7 @@ public final class ScoreboardService implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         profileManager.getProfile(event.getPlayer().getUniqueId()).ifPresent(profile -> {
-            if (profile.isRegistered()) apply(event.getPlayer(), profile);
+            if (profile.isRegistered() && profile.isScoreboardEnabled()) apply(event.getPlayer(), profile);
         });
     }
 
@@ -95,13 +115,11 @@ public final class ScoreboardService implements Listener {
         stateByPlayer.remove(event.getPlayer().getUniqueId());
     }
 
-    private void clear(Player player) {
+    private void clearScoreboard(Player player) {
         PlayerScoreboardState state = stateByPlayer.remove(player.getUniqueId());
         if (state == null) return;
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager != null && player.getScoreboard() == state.board) player.setScoreboard(manager.getMainScoreboard());
-        player.setExp(0.0F);
-        player.setLevel(0);
     }
 
     private void apply(Player player, PlayerProfile profile) {
