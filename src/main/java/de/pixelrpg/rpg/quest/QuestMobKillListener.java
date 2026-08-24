@@ -1,8 +1,6 @@
-// src/main/java/de/pixelrpg/rpg/quest/QuestMobKillListener.java
 package de.pixelrpg.rpg.quest;
 
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,20 +15,15 @@ public final class QuestMobKillListener implements Listener {
         this.questManager = questManager;
     }
 
+    // Zuständig für HUNT-Quests und globale Kill-Events auf Basis echter Vanilla-Lebewesen.
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onMonsterDeath(EntityDeathEvent event) {
+    public void onLivingEntityDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
-        if (!(entity instanceof Monster)) {
-            return;
-        }
-
         Player killer = entity.getKiller();
-        if (killer == null) {
-            return;
-        }
+        if (killer == null) return;
 
-        String mobKey = entity.getType().name();
-        questManager.progressHuntQuests(killer, mobKey);
-        questManager.progressGlobalEvent(mobKey);
+        String entityKey = entity.getType().name();
+        questManager.progressHuntQuests(killer, entityKey);
+        questManager.progressGlobalEvent(entityKey);
     }
 }
