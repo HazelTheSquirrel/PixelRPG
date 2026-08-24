@@ -741,22 +741,97 @@ Attack Power
 
 ---
 
-# 10 – Professions — 🟡 IN ARBEIT
+# 10 – Professions — 🟢 98 % ABGESCHLOSSEN
+
+> Das Profession-System ist im aktuellen `main` entsprechend der verbindlich festgelegten Regeln umgesetzt. Alle vier Berufe können parallel entwickelt werden. Profession XP ist vom normalen Player-Level getrennt und kann aus mehreren berufsbezogenen Aktivitäten stammen. Der CI-Build ist grün.
 
 ## Verbindliche Berufe
-- [ ] BLACKSMITH
-- [ ] PROVISIONER
-- [ ] ALCHEMIST
-- [ ] SCHOLAR
+- [x] BLACKSMITH
+- [x] PROVISIONER
+- [x] ALCHEMIST
+- [x] SCHOLAR
+- [x] exakt vier Berufe, keine weiteren Professionen
+- [x] keine Spezialisierungen
 
-## Core
-- [ ] Profession Registry
-- [ ] Profession Level 1–100
-- [ ] Profession XP
-- [ ] Profession Progression
-- [ ] Profession Recipes
-- [ ] Profession Trainer
-- [ ] Profession Persistence
+## Profession Core
+- [x] Profession Registry
+- [x] Profession Level 1–100
+- [x] Profession XP
+- [x] getrennte Profession Progression unabhängig vom Player-Level
+- [x] alle vier Professionen parallel erlernbar und levelbar
+- [x] Profession Recipes / Crafting-Anbindung
+- [x] Profession Trainer
+- [x] Profession Persistence
+- [x] YAML-/MySQL-Persistenz
+- [x] Profession API / Service-Anbindung
+
+## Profession XP
+- [x] Crafting als Profession-XP-Quelle
+- [x] berufsbezogenes Sammeln / Gathering als Profession-XP-Quelle
+- [x] Erz- und Ressourcenabbau kann Profession-XP vergeben
+- [x] Landwirtschaft / Fischerei / passende Ressourcenaktivitäten können Profession-XP vergeben
+- [x] Reparatur-/Anvil-Aktivitäten können passend Profession-XP vergeben
+- [x] Verzaubern / Alchemie-Aktivitäten werden passend berücksichtigt
+- [x] Quest-basierte Profession-XP
+- [x] NPC-Aufträge können Profession-XP vergeben
+- [x] XP-Balancing abhängig von Aktivität bzw. Rezept-/Item-Schwierigkeit
+- [x] XP Clamp / Level-100-Cap
+
+## Profession & Crafting
+- [x] Crafting-Rezepte besitzen passende Profession-Anforderungen
+- [x] Rezepte werden fachlich sinnvoll auf die vier Professionen verteilt
+- [x] Profession Level kann als Rezeptvoraussetzung verwendet werden
+- [x] freigeschaltete Rezepte werden über das Crafting-System verwendet
+- [x] nicht passende Profession kann ein Rezept nicht herstellen
+- [x] keine starre Verteilung nach Material, sondern sinnvolle fachliche Zuordnung
+
+## Rezept-Freischaltung
+- [x] Quest kann ein Rezept freischalten
+- [x] Gold kann ein Rezept freischalten
+- [x] Quest- und Gold-Freischaltungen können unabhängig voneinander behandelt werden
+- [x] Quest-exklusive Rezepte können existieren und sind nicht zwingend für Gold kaufbar
+- [x] Profession Level kann zusätzliche Voraussetzung sein
+- [x] Freischaltungsstatus wird persistent gespeichert
+
+## Profession Trainer & Interaktion
+- [x] Profession Trainer über bestehendes NPC-/Dialog-System
+- [x] Profession-Aktionen über native Dialoge
+- [x] keine Spieler-Commands für Professionen
+- [x] bestehende Quick-Action-/Dialog-Struktur bleibt erhalten
+- [x] mehrere Profession-Funktionen können über passende NPCs angeboten werden
+
+## GUI / Spielerinteraktion
+- [x] bestehendes GUI-System beibehalten
+- [x] bestehende Crafting-/Profession-Oberfläche erweitert statt ersetzt
+- [x] keine separate zentrale Profession-Übersicht erforderlich
+- [x] Profession-Informationen dort anzeigen, wo sie für die jeweilige Funktion benötigt werden
+
+## Persistence & Lifecycle
+- [x] Profession-Level persistent
+- [x] Profession-XP persistent
+- [x] erlernte Professionen persistent
+- [x] freigeschaltete Profession-Rezepte persistent
+- [x] YAML Repository
+- [x] MySQL Repository
+- [x] Join-/Quit-Lifecycle berücksichtigt
+- [x] Dirty-State / Save-Integration berücksichtigt
+
+## Abschlusskriterien für 10
+- [x] vier verbindliche Professionen
+- [x] Level 1–100
+- [x] getrennte Profession-XP
+- [x] alle vier Professionen parallel nutzbar
+- [x] keine Spezialisierungen
+- [x] mehrere Profession-XP-Quellen
+- [x] XP-Balancing nach Aktivität/Schwierigkeit
+- [x] Crafting-Integration
+- [x] Quest-/Gold-Rezeptfreischaltungen
+- [x] Quest-exklusive Rezepte möglich
+- [x] Profession Trainer / Dialog-Integration
+- [x] bestehendes GUI-System beibehalten
+- [x] Profession Persistence
+- [x] keine Spieler-Commands
+- [x] CI-Build grün
 
 ---
 
