@@ -26,18 +26,21 @@ public final class CompanionFollowTask implements Runnable {
     private final CompanionService companionService;
     private final Map<UUID, UUID> activeEntities;
     private final CompanionRegistry registry;
+    private final GuildAPI guildApi;
     private final CompanionStatsCalculator statsCalculator = new CompanionStatsCalculator();
     private final CompanionCombatController combatController = new CompanionCombatController();
     private final CompanionRuntimeRegistry runtimeRegistry = new CompanionRuntimeRegistry();
     private final CompanionMountController mountController = new CompanionMountController();
     private final MannequinCompanionController mannequinController;
     private final Map<UUID, AppliedState> appliedStates = new HashMap<>();
+    private final Map<UUID, String> registeredRuntimeCompanions = new HashMap<>();
 
     public CompanionFollowTask(Plugin plugin, Map<UUID, UUID> activeEntities, CompanionService companionService) {
         this.plugin = plugin;
         this.companionService = companionService;
         this.activeEntities = activeEntities;
         this.registry = CompanionRegistry.load(plugin);
+        this.guildApi = plugin.getServer().getServicesManager().load(GuildAPI.class);
         this.mannequinController = new MannequinCompanionController(plugin, companionService, registry);
     }
 
@@ -45,7 +48,7 @@ public final class CompanionFollowTask implements Runnable {
 
     @Override
     public void run() {
-        for (Map.Entry<UUID, UUID> entry : Map.copyOf(activeEntities).entrySet()) {
+        for (Map.Entry<UUID, UUID> entry : activeEntities.entrySet()) {
             Player owner = plugin.getServer().getPlayer(entry.getKey());
             Entity entity = plugin.getServer().getEntity(entry.getValue());
             if (owner == null || entity == null || !entity.isValid() || !(entity instanceof LivingEntity living)) {
@@ -64,7 +67,13 @@ public final class CompanionFollowTask implements Runnable {
                 continue;
             }
 
-            runtimeRegistry.register(new CompanionRuntimeRegistry.CompanionRuntime(owner.getUniqueId(), entity.getUniqueId(), companionId));
+            UUID ownerId = owner.getUniqueId();
+            String registeredCompanionId = registeredRuntimeCompanions.get(ownerId);
+            if (!companionId.equals(registeredCompanionId)) {
+                runtimeRegistry.register(new CompanionRuntimeRegistry.CompanionRuntime(ownerId, entity.getUniqueId(), companionId));
+                registeredRuntimeCompanions.put(ownerId, companionId);
+            }
+
             if (living instanceof Mannequin mannequin) mannequinController.tick(owner, mannequin);
             updateRuntimeState(owner, living, definition);
 
@@ -114,7 +123,6 @@ public final class CompanionFollowTask implements Runnable {
                     .getOrDefault(RPGKeys.Companion.level(), PersistentDataType.INTEGER, 1)));
         }
 
-        GuildAPI guildApi = plugin.getServer().getServicesManager().load(GuildAPI.class);
         int ownerLevel = guildApi == null ? 1 : guildApi.getLevel(owner.getUniqueId());
         int level = Math.max(1, Math.min(99, ownerLevel));
         entity.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, level);
@@ -213,6 +221,7 @@ public final class CompanionFollowTask implements Runnable {
     private void removeRuntime(UUID ownerUuid, UUID entityUuid) {
         activeEntities.remove(ownerUuid, entityUuid);
         runtimeRegistry.unregisterOwner(ownerUuid);
+        registeredRuntimeCompanions.remove(ownerUuid);
         Entity entity = plugin.getServer().getEntity(entityUuid);
         if (entity instanceof LivingEntity living) combatController.clear(living);
         appliedStates.remove(entityUuid);
