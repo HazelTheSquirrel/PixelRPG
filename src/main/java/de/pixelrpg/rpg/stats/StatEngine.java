@@ -27,8 +27,8 @@ public final class StatEngine {
                               double strength, double agility, double stamina, double intellect,
                               double attackPower, double spellPower) {
         public static final CachedStats EMPTY = new CachedStats(
-                20.0, 0.0, 0.0, 0.0, 0.0, 0.0, BASE_CRIT_CHANCE, BASE_CRIT_DAMAGE_MULTIPLIER,
-                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+                20.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, BASE_CRIT_CHANCE, BASE_CRIT_DAMAGE_MULTIPLIER,
+                0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
     }
 
     private final PlayerProfileManager profileManager;
@@ -53,17 +53,20 @@ public final class StatEngine {
         double itemArmor = getEquippedItemArmor(player, playerLevel);
         double itemHealth = getEquippedItemHealth(player, playerLevel);
         double itemCritChance = getEquippedItemCritChance(player, playerLevel);
+        double itemCritDamage = getEquippedItemCritDamage(player, playerLevel);
         double itemDamage = getEquippedItemDamage(player, playerLevel);
         double itemLifesteal = getEquippedItemLifesteal(player, playerLevel);
+        double itemReach = getEquippedItemReach(player, playerLevel);
+        double itemMovementSpeed = getEquippedItemMovementSpeed(player, playerLevel);
 
         double maxHealth = 20.0D + itemHealth;
         double armor = itemArmor;
-        double movementSpeedBonus = 0.0D;
-        double blockReach = 0.0D;
-        double entityReach = 0.0D;
+        double movementSpeedBonus = itemMovementSpeed;
+        double blockReach = itemReach;
+        double entityReach = itemReach;
         double bonusDamage = itemDamage;
         double critChance = itemCritChance;
-        double critDamageMultiplier = BASE_CRIT_DAMAGE_MULTIPLIER;
+        double critDamageMultiplier = BASE_CRIT_DAMAGE_MULTIPLIER + itemCritDamage;
         double lifestealBonus = itemLifesteal;
         double attackPower = itemDamage;
 
@@ -99,46 +102,42 @@ public final class StatEngine {
     }
 
     private double getEquippedItemArmor(Player player, int playerLevel) {
-        double total = 0.0D;
-        for (ItemStack item : equippedItems(player)) {
-            if (!isUsable(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, 0.0D);
-        }
-        return total;
+        return sum(player, playerLevel, RPGKeys.Item.armorValue());
     }
 
     private double getEquippedItemHealth(Player player, int playerLevel) {
-        double total = 0.0D;
-        for (ItemStack item : equippedItems(player)) {
-            if (!isUsable(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, 0.0D);
-        }
-        return total;
+        return sum(player, playerLevel, RPGKeys.Item.healthBonus());
     }
 
     private double getEquippedItemCritChance(Player player, int playerLevel) {
-        double total = 0.0D;
-        for (ItemStack item : equippedItems(player)) {
-            if (!isUsable(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, 0.0D);
-        }
-        return total;
+        return sum(player, playerLevel, RPGKeys.Item.critChance());
+    }
+
+    private double getEquippedItemCritDamage(Player player, int playerLevel) {
+        return sum(player, playerLevel, RPGKeys.Item.critDamage());
     }
 
     private double getEquippedItemDamage(Player player, int playerLevel) {
-        double total = 0.0D;
-        for (ItemStack item : equippedItems(player)) {
-            if (!isUsable(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, 0.0D);
-        }
-        return total;
+        return sum(player, playerLevel, RPGKeys.Item.bonusDamage());
     }
 
     private double getEquippedItemLifesteal(Player player, int playerLevel) {
+        return sum(player, playerLevel, RPGKeys.Item.lifestealPercent());
+    }
+
+    private double getEquippedItemReach(Player player, int playerLevel) {
+        return sum(player, playerLevel, RPGKeys.Item.reachBonus());
+    }
+
+    private double getEquippedItemMovementSpeed(Player player, int playerLevel) {
+        return sum(player, playerLevel, RPGKeys.Item.movementSpeed());
+    }
+
+    private double sum(Player player, int playerLevel, org.bukkit.NamespacedKey key) {
         double total = 0.0D;
         for (ItemStack item : equippedItems(player)) {
             if (!isUsable(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, 0.0D);
+            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(key, PersistentDataType.DOUBLE, 0.0D);
         }
         return total;
     }
