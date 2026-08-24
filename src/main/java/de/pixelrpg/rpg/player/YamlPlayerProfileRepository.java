@@ -51,7 +51,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
             if (item != null && !item.isEmpty()) equipment.put(slot, item);
         }
         profile.setEquipment(equipment);
-        profile.setScoreboardEnabled(yaml.getBoolean("scoreboard-enabled", false));
+        profile.setScoreboardEnabled(yaml.getBoolean("scoreboard-enabled", true));
         profile.setPartyHudEnabled(yaml.getBoolean("party-hud-enabled", false));
         profile.setQuestTrackerEnabled(yaml.getBoolean("quest-tracker-enabled", false));
         profile.setPlaytimeMillis(yaml.getLong("playtime-millis", 0L));
