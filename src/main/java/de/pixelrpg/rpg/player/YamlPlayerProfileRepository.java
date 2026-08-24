@@ -29,7 +29,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         if (!file.exists()) return Optional.empty();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         PlayerProfile profile = new PlayerProfile(uuid);
-        profile.setRegisteredInGuild(yaml.getBoolean("registered", false));
+        profile.setRegistered(yaml.getBoolean("registered", false));
         profile.setExperience(yaml.getLong("experience", 0L));
         profile.setMoney(yaml.getDouble("money", 0.0));
 
@@ -89,7 +89,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
     @Override
     public void save(PlayerProfile profile) throws IOException {
         YamlConfiguration yaml = new YamlConfiguration();
-        yaml.set("registered", profile.isRegisteredInGuild());
+        yaml.set("registered", profile.isRegistered());
         yaml.set("experience", profile.getExperience());
         yaml.set("money", profile.getMoney());
         for (Profession profession : Profession.values()) {
