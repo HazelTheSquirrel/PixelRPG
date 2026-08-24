@@ -59,12 +59,10 @@ bosses:
   bar-radius: 60.0
   bar-update-interval-ticks: 20
   phase-check-interval-ticks: 10
-  auto-spawn:
-    enabled: true
-    interval-minutes: 45
+  biome-spawn:
     spawn-radius: 80.0
-    max-concurrent: 2
-    spawn-chance-percent: 15.0
+    check-interval-seconds: 60
+    max-concurrent: 4
 
 statistics:
   autosave-interval-ticks: 6000
