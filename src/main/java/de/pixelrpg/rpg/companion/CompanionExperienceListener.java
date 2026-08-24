@@ -97,7 +97,7 @@ public final class CompanionExperienceListener implements Listener {
 
     private void refreshPlayer(Player player) {
         Companion active = companionService.getActive(player.getUniqueId());
-        if (active == null) {
+        if (active == null || !isSummoned(player, active)) {
             refreshPlayerWithoutCompanion(player);
             return;
         }
@@ -117,6 +117,17 @@ public final class CompanionExperienceListener implements Listener {
 
         AttributeInstance maxHealth = player.getAttribute(Attribute.MAX_HEALTH);
         if (maxHealth != null && player.getHealth() > maxHealth.getValue()) player.setHealth(maxHealth.getValue());
+    }
+
+    private boolean isSummoned(Player player, Companion active) {
+        java.util.UUID entityId = companionService.getActiveEntity(player.getUniqueId());
+        if (entityId == null) return false;
+
+        Entity entity = Bukkit.getEntity(entityId);
+        if (!(entity instanceof LivingEntity living) || !entity.isValid() || entity.isDead()) return false;
+
+        String runtimeId = living.getPersistentDataContainer().get(RPGKeys.Companion.id(), PersistentDataType.STRING);
+        return active.id().equals(runtimeId);
     }
 
     private CompanionStats passiveStats(CompanionDefinition definition) {
