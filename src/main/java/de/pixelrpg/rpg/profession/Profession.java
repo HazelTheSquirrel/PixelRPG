@@ -11,7 +11,7 @@ public enum Profession {
     SCHOLAR("Gelehrter", "Bücher, Karten, Verzauberungen und Wissensgegenstände", NamedTextColor.AQUA);
 
     public static final int MIN_LEVEL = 1;
-    public static final int MAX_LEVEL = 99;
+    public static final int MAX_LEVEL = 100;
 
     private final String displayName;
     private final String description;
