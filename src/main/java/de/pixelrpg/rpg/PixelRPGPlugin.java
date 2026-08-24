@@ -251,8 +251,18 @@ public final class PixelRPGPlugin extends JavaPlugin {
         instance = null;
     }
 
+    private void registerCommand(String name, PaperBasicCommandAdapter adapter) {
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> event.registrar().register(name, adapter));
+    }
+
     public static PixelRPGPlugin getInstance() { return instance; }
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
     public StatEngine getStatEngine() { return statEngine; }
+    public ProfessionSystem getProfessionSystem() { return professionSystem; }
     public LanguageManager getLanguageManager() { return languageManager; }
+    public ItemService getItemService() { return itemService; }
+    public NpcManager getNpcManager() { return npcManager; }
+    public QuestManager getQuestManager() { return questManager; }
+    public BossManager getBossManager() { return bossManager; }
+    public CompanionService getCompanionService() { return companionService; }
 }
