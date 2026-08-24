@@ -24,10 +24,11 @@ public final class CombatStateService implements Listener {
 
     private final GuildAPI guildAPI;
     private final Map<UUID, Long> combatUntil = new ConcurrentHashMap<>();
-    private BukkitTask cleanupTask;
+    private final BukkitTask cleanupTask;
 
     public CombatStateService(Plugin plugin, GuildAPI guildAPI) {
         this.guildAPI = guildAPI;
+        Bukkit.getPluginManager().registerEvents(this, plugin);
         this.cleanupTask = Bukkit.getScheduler().runTaskTimer(plugin, this::cleanup, 20L, 20L);
     }
 
@@ -47,7 +48,8 @@ public final class CombatStateService implements Listener {
     }
 
     public boolean isInCombat(UUID uuid) {
-        return combatUntil.containsKey(uuid) && combatUntil.get(uuid) > System.currentTimeMillis();
+        Long expiry = combatUntil.get(uuid);
+        return expiry != null && expiry > System.currentTimeMillis();
     }
 
     public void enter(Player player) {
@@ -64,10 +66,7 @@ public final class CombatStateService implements Listener {
     }
 
     public void shutdown() {
-        if (cleanupTask != null) {
-            cleanupTask.cancel();
-            cleanupTask = null;
-        }
+        cleanupTask.cancel();
         combatUntil.clear();
     }
 
