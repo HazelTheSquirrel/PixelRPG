@@ -1,7 +1,6 @@
 package de.pixelrpg.rpg.combat.scaling;
 
 import de.pixelrpg.rpg.api.GuildAPI;
-import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.core.RPGKeys;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
@@ -14,10 +13,11 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.Map;
 import java.util.UUID;
@@ -29,7 +29,6 @@ public final class MobLevelScalingListener implements Listener {
     private final Plugin plugin;
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
-    private final RegionDangerProvider regionDangerProvider;
     private final Map<UUID, Map<UUID, Long>> activeParticipants = new ConcurrentHashMap<>();
     private BukkitTask cleanupTask;
 
@@ -37,8 +36,6 @@ public final class MobLevelScalingListener implements Listener {
         this.plugin = plugin;
         this.guildAPI = guildAPI;
         this.scalingConfig = scalingConfig;
-        RegionDangerProvider provider = Bukkit.getServicesManager().load(RegionDangerProvider.class);
-        this.regionDangerProvider = provider != null ? provider : new DefaultRegionDangerProvider();
     }
 
     public void start() {
@@ -54,38 +51,34 @@ public final class MobLevelScalingListener implements Listener {
         activeParticipants.clear();
     }
 
-    // Zuständig dafür, dass die Skalierung beim tatsächlichen Zielwechsel auf einen registrierten Spieler aktiviert wird.
+    // Zuständig dafür, dass die Skalierung beim Zielwechsel auf einen registrierten Spieler aktiviert wird.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMonsterTarget(EntityTargetLivingEntityEvent event) {
         if (!(event.getEntity() instanceof Monster monster)) return;
         if (monster.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING)) return;
-
         if (event.getTarget() instanceof Player player && guildAPI.isRegistered(player.getUniqueId())) {
             markParticipant(monster, player);
         }
     }
 
-    // Zuständig dafür, dass jeder registrierte RPG-Angreifer als aktiver Teilnehmer der Mob-Skalierung erfasst wird.
+    // Zuständig dafür, dass jeder registrierte RPG-Angreifer als aktiver Teilnehmer der Monster-Skalierung erfasst wird.
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onRpgDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Monster monster)) return;
         if (monster.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING)) return;
 
         Player attacker = null;
-        if (event.getDamager() instanceof Player player) {
-            attacker = player;
-        } else if (event.getDamager() instanceof Projectile projectile) {
+        if (event.getDamager() instanceof Player player) attacker = player;
+        else if (event.getDamager() instanceof Projectile projectile) {
             ProjectileSource shooter = projectile.getShooter();
             if (shooter instanceof Player player) attacker = player;
         }
         if (attacker == null || !guildAPI.isRegistered(attacker.getUniqueId())) return;
-
         markParticipant(monster, attacker);
     }
 
     private void markParticipant(Monster monster, Player player) {
-        UUID mobUuid = monster.getUniqueId();
-        activeParticipants.computeIfAbsent(mobUuid, ignored -> new ConcurrentHashMap<>())
+        activeParticipants.computeIfAbsent(monster.getUniqueId(), ignored -> new ConcurrentHashMap<>())
                 .put(player.getUniqueId(), System.currentTimeMillis());
         applyScaling(monster);
     }
@@ -93,40 +86,65 @@ public final class MobLevelScalingListener implements Listener {
     private void applyScaling(Monster monster) {
         rememberOriginalAttributes(monster);
 
-        int participantLevel = activeParticipants.getOrDefault(monster.getUniqueId(), Map.of()).keySet().stream()
+        Map<UUID, Long> participants = activeParticipants.getOrDefault(monster.getUniqueId(), Map.of());
+        int playerLevel = participants.keySet().stream()
                 .mapToInt(guildAPI::getLevel)
-                .filter(level -> level >= Level.MIN_LEVEL)
                 .max()
-                .orElse(Level.MIN_LEVEL);
+                .orElse(1);
+        playerLevel = Math.clamp(playerLevel, 1, 99);
 
-        int regionMin = Math.max(Level.MIN_LEVEL, regionDangerProvider.getMinLevel(monster.getLocation()));
-        int regionMax = Math.min(Level.MAX_NORMAL_LEVEL, regionDangerProvider.getMaxLevel(monster.getLocation()));
-        if (regionMin > regionMax) {
-            int tmp = regionMin;
-            regionMin = regionMax;
-            regionMax = tmp;
-        }
+        double gearMultiplier = participants.keySet().stream()
+                .map(this::findPlayer)
+                .filter(player -> player != null)
+                .mapToDouble(player -> gearLevelMultiplier(player, playerLevel))
+                .max()
+                .orElse(1.0D);
 
-        MobScalingConfig.DimensionModifier dimension = scalingConfig.getDimensionModifier(monster.getWorld().getEnvironment());
-        int targetLevel = Math.max(participantLevel, dimension.baseLevel()) + dimension.levelOffset();
-        targetLevel = Math.max(regionMin, Math.min(targetLevel, regionMax));
-        targetLevel = Math.max(Level.MIN_LEVEL, Math.min(targetLevel, Level.MAX_NORMAL_LEVEL));
-
-        MobScalingConfig.LevelBaseStats stats = scalingConfig.getBaseStats(targetLevel);
-        double maxHp = stats.hp() * dimension.hpMultiplier() * scalingConfig.getPlayerParityMultiplier();
-        double damage = stats.damage() * dimension.damageMultiplier() * scalingConfig.getPlayerParityMultiplier();
+        MobScalingConfig.LevelBaseStats baseStats = scalingConfig.getBaseStats(playerLevel);
+        double maxHealth = baseStats.hp() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
+        double attackDamage = baseStats.damage() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
 
         AttributeInstance hp = monster.getAttribute(Attribute.MAX_HEALTH);
         if (hp != null) {
-            double oldMaxHp = Math.max(1.0, hp.getValue());
-            double healthRatio = Math.max(0.0, Math.min(1.0, monster.getHealth() / oldMaxHp));
-            hp.setBaseValue(maxHp);
-            monster.setHealth(Math.max(0.0, Math.min(maxHp, maxHp * healthRatio)));
+            double oldMaxHealth = Math.max(1.0D, hp.getValue());
+            double healthRatio = Math.clamp(monster.getHealth() / oldMaxHealth, 0.0D, 1.0D);
+            hp.setBaseValue(maxHealth);
+            monster.setHealth(Math.clamp(maxHealth * healthRatio, 0.0D, maxHealth));
         }
 
-        AttributeInstance attackDamage = monster.getAttribute(Attribute.ATTACK_DAMAGE);
-        if (attackDamage != null) attackDamage.setBaseValue(damage);
-        monster.getPersistentDataContainer().set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, targetLevel);
+        AttributeInstance attack = monster.getAttribute(Attribute.ATTACK_DAMAGE);
+        if (attack != null) attack.setBaseValue(attackDamage);
+        monster.getPersistentDataContainer().set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, playerLevel);
+    }
+
+    private double gearLevelMultiplier(Player player, int playerLevel) {
+        int counted = 0;
+        double totalLevel = 0.0D;
+        for (ItemStack item : equippedItems(player)) {
+            if (item == null || !item.hasItemMeta()) continue;
+            Integer itemLevel = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
+            if (itemLevel == null) continue;
+            totalLevel += Math.clamp(itemLevel, 1, 99);
+            counted++;
+        }
+        if (counted == 0) return 1.0D;
+        double averageItemLevel = totalLevel / counted;
+        double ratio = averageItemLevel / Math.max(1.0D, playerLevel);
+        return Math.clamp(ratio, scalingConfig.getMinimumGearMultiplier(), scalingConfig.getMaximumGearMultiplier());
+    }
+
+    private ItemStack[] equippedItems(Player player) {
+        ItemStack[] armor = player.getInventory().getArmorContents();
+        ItemStack[] equipped = new ItemStack[armor.length + 2];
+        System.arraycopy(armor, 0, equipped, 0, armor.length);
+        equipped[armor.length] = player.getInventory().getItemInMainHand();
+        equipped[armor.length + 1] = player.getInventory().getItemInOffHand();
+        return equipped;
+    }
+
+    private Player findPlayer(UUID uuid) {
+        Player player = Bukkit.getPlayer(uuid);
+        return player != null && player.isOnline() ? player : null;
     }
 
     private void rememberOriginalAttributes(Monster monster) {
@@ -135,10 +153,9 @@ public final class MobLevelScalingListener implements Listener {
         if (hp != null && !pdc.has(RPGKeys.Combat.originalMaxHealth(), PersistentDataType.DOUBLE)) {
             pdc.set(RPGKeys.Combat.originalMaxHealth(), PersistentDataType.DOUBLE, hp.getBaseValue());
         }
-
-        AttributeInstance attackDamage = monster.getAttribute(Attribute.ATTACK_DAMAGE);
-        if (attackDamage != null && !pdc.has(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE)) {
-            pdc.set(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE, attackDamage.getBaseValue());
+        AttributeInstance attack = monster.getAttribute(Attribute.ATTACK_DAMAGE);
+        if (attack != null && !pdc.has(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE)) {
+            pdc.set(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE, attack.getBaseValue());
         }
     }
 
@@ -147,14 +164,13 @@ public final class MobLevelScalingListener implements Listener {
         for (UUID mobUuid : activeParticipants.keySet()) {
             Map<UUID, Long> participants = activeParticipants.get(mobUuid);
             if (participants == null) continue;
-
             participants.entrySet().removeIf(entry -> now - entry.getValue() >= COMBAT_TIMEOUT_MILLIS || !guildAPI.isRegistered(entry.getKey()));
+
             var entity = Bukkit.getEntity(mobUuid);
             if (!(entity instanceof Monster monster)) {
                 activeParticipants.remove(mobUuid);
                 continue;
             }
-
             if (participants.isEmpty()) {
                 restoreVanillaScaling(monster);
                 activeParticipants.remove(mobUuid);
@@ -169,17 +185,17 @@ public final class MobLevelScalingListener implements Listener {
         if (!pdc.has(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER)) return;
 
         AttributeInstance hp = monster.getAttribute(Attribute.MAX_HEALTH);
-        Double originalMaxHp = pdc.get(RPGKeys.Combat.originalMaxHealth(), PersistentDataType.DOUBLE);
-        if (hp != null && originalMaxHp != null) {
-            double oldMaxHp = Math.max(1.0, hp.getValue());
-            double healthRatio = Math.max(0.0, Math.min(1.0, monster.getHealth() / oldMaxHp));
-            hp.setBaseValue(originalMaxHp);
-            monster.setHealth(Math.max(0.0, Math.min(originalMaxHp, originalMaxHp * healthRatio)));
+        Double originalMaxHealth = pdc.get(RPGKeys.Combat.originalMaxHealth(), PersistentDataType.DOUBLE);
+        if (hp != null && originalMaxHealth != null) {
+            double oldMaxHealth = Math.max(1.0D, hp.getValue());
+            double healthRatio = Math.clamp(monster.getHealth() / oldMaxHealth, 0.0D, 1.0D);
+            hp.setBaseValue(originalMaxHealth);
+            monster.setHealth(Math.clamp(originalMaxHealth * healthRatio, 0.0D, originalMaxHealth));
         }
 
-        AttributeInstance attackDamage = monster.getAttribute(Attribute.ATTACK_DAMAGE);
+        AttributeInstance attack = monster.getAttribute(Attribute.ATTACK_DAMAGE);
         Double originalAttackDamage = pdc.get(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE);
-        if (attackDamage != null && originalAttackDamage != null) attackDamage.setBaseValue(originalAttackDamage);
+        if (attack != null && originalAttackDamage != null) attack.setBaseValue(originalAttackDamage);
 
         pdc.remove(RPGKeys.Combat.mobLevel());
         pdc.remove(RPGKeys.Combat.originalMaxHealth());
