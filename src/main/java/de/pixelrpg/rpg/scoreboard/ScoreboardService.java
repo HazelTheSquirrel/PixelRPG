@@ -60,8 +60,8 @@ public final class ScoreboardService implements Listener {
         task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 profileManager.getProfile(player.getUniqueId()).ifPresent(profile -> {
-                    if (profile.isRegisteredInGuild() && profile.isScoreboardEnabled()) apply(player, profile);
-                    else if (!profile.isRegisteredInGuild()) clear(player);
+                    if (profile.isRegistered() && profile.isScoreboardEnabled()) apply(player, profile);
+                    else if (!profile.isRegistered()) clear(player);
                 });
             }
         }, updateIntervalTicks, updateIntervalTicks);
@@ -80,7 +80,7 @@ public final class ScoreboardService implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         profileManager.getProfile(event.getPlayer().getUniqueId()).ifPresent(profile -> {
-            if (profile.isRegisteredInGuild() && profile.isScoreboardEnabled()) apply(event.getPlayer(), profile);
+            if (profile.isRegistered() && profile.isScoreboardEnabled()) apply(event.getPlayer(), profile);
         });
     }
 
@@ -90,7 +90,7 @@ public final class ScoreboardService implements Listener {
 
     public void toggle(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegisteredInGuild()) return;
+        if (profile == null || !profile.isRegistered()) return;
         boolean newState = !profile.isScoreboardEnabled();
         profile.setScoreboardEnabled(newState);
         profileManager.saveProfileAsync(player.getUniqueId());
@@ -144,7 +144,6 @@ public final class ScoreboardService implements Listener {
     private List<Component> buildLines(Player player, PlayerProfile profile) {
         List<Component> lines = new ArrayList<>();
         lines.add(Component.text("Level: ", NamedTextColor.GRAY).append(Component.text(profile.getLevel(), NamedTextColor.GOLD)));
-        lines.add(Component.text("Class: ", NamedTextColor.GRAY).append(profile.getPlayerClass().displayName()));
         lines.add(Component.text("Gold: ", NamedTextColor.GRAY).append(Component.text(String.format("%.2f", profile.getMoney()), NamedTextColor.YELLOW)));
         lines.add(Component.text("Kills: ", NamedTextColor.GRAY).append(Component.text(profile.getStatistic("MOBS_KILLED"), NamedTextColor.RED)));
         lines.add(Component.text("Deaths: ", NamedTextColor.GRAY).append(Component.text(profile.getStatistic("DEATHS"), NamedTextColor.DARK_RED)));
