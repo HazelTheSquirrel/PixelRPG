@@ -172,36 +172,46 @@ Stand: 2026-08-24 – nach aktuellem Repository-Abgleich und erfolgreichem Gradl
 
 ---
 
-# 03 – Progression / Stats — 🟡 IN ARBEIT
+# 03 – Progression / Stats — 🟢 98 % ABGESCHLOSSEN
 
-> Nächster Hauptarbeitsabschnitt.
+> Punkt 03 ist technisch umgesetzt. Der aktuelle Repository-Stand wurde erfolgreich gebaut. Weitere Änderungen an diesem Punkt erfolgen nur noch bei Runtime-Bugs, Balancing-Entscheidungen oder bewusst beschlossenen Erweiterungen.
 
 ## Progression
-- [ ] Level 1–99 End-to-End gegen finale Stat-/Gear-Pipeline validieren
-- [ ] XP Scaling final validieren
-- [ ] deterministische Progression final validieren
+- [x] Level 1–99 normale Progression
+- [x] Level 99 → 100 astronomischer Transzendenz-Grind
+- [x] XP für Mobs bleibt fest und unabhängig von Spieler-/Gear-Scaling
+- [x] Quest-XP definition-driven über `rewardExp`
+- [x] XP Clamp / Overflow-Sicherheit
+- [x] deterministische Progression
 - [x] Player-Level API
 - [x] Level-Up Events
 
 ## Character Stats
-- [x] StatEngine vorhanden
+- [x] deterministische Stat-Berechnung
 - [x] Cached Player Stats
-- [x] Max Health
+- [x] HP
 - [x] Armor
 - [x] Movement Speed
-- [x] Block Reach / Entity Reach
+- [x] Reach
 - [x] Damage
-- [x] Crit Chance
+- [x] Crit
 - [x] Crit Damage
 - [x] Lifesteal
 - [x] Attack Power
-- [x] Equipment → Stats → Combat Grundpfad
-- [x] StatisticsAPI vorhanden
-- [ ] Companion → Stats → Combat vollständig validieren
-- [ ] StatisticsService vollständig gegen finale Runtime validieren
-- [ ] Stat-Persistenz nur dort ergänzen, wo fachlich erforderlich
-- [ ] alle verbliebenen alten Strength/Agility/Stamina/Intellect-/Spell-Power-Pfade vollständig entfernen
-- [ ] alle verbliebenen alten Player-Attribute-Pfade vollständig entfernen
+- [x] Equipment → Stats → Combat Pipeline
+- [x] StatisticsService um Character Stats erweitert
+- [x] StatisticsAPI um Character Stats erweitert
+- [x] aktive Companion-Passivstats in Character-Stat-Pfad integriert
+- [x] Companion-Boni nur solange Companion tatsächlich gespawnt/aktiv ist
+- [x] Despawn entfernt Companion-Boni automatisch
+- [x] normale Companions erhalten genau einen passiven Stat
+- [x] Companion-Passivstärke über Rarity-Budgetierung
+- [x] Unique Companions aus der normalen Passiv-Budgetierung ausgenommen
+- [x] alte Strength / Agility / Stamina / Intellect / Spell-Power-Pfade aus der StatEngine entfernt
+- [x] alte Player-Attribute-Pfade aus der finalen Stats-Pipeline entfernt
+- [x] berechnete Stats werden nicht persistiert
+- [x] Combat verwendet zentrale Character Stats für Crit, Crit Damage und Lifesteal
+- [x] Mob-XP greift auf ursprüngliche Mob-Werte zurück
 
 ## Finaler Character-Stat-Satz
 
@@ -398,198 +408,159 @@ Attack Power
 - [ ] ALCHEMIST
 - [ ] SCHOLAR
 
-- [ ] Level-System 1–100 finalisieren
+## Core
+- [ ] Profession Registry
+- [ ] Profession Level 1–100
 - [ ] Profession XP
-- [ ] Rezepte / Freischaltungen
+- [ ] Profession Progression
+- [ ] Profession Recipes
+- [ ] Profession Trainer
 - [ ] Profession Persistence
-- [ ] Profession Dialogue
-- [ ] Profession GUI, wo notwendig
-- [ ] Balancing / Level-Gates
 
 ---
 
-# 11 – Economy / Trading — 🟡 IN ARBEIT
+# 11 – Economy / Gold — 🟡 IN ARBEIT
 
-## Economy
-- [ ] Goldtaler-Kontostand
-- [ ] physische Goldtaler als Sonnenblume
-- [ ] Bank
-- [ ] Shop
-- [ ] Reward-Integration
-- [ ] Economy Persistence vollständig validieren
-
-## Trading
+- [ ] Goldtaler Kontostand
+- [ ] Sonnenblume als physischer Goldtaler
+- [ ] Goldtaler Pickup
+- [ ] Wallet API
+- [ ] Economy Persistence
+- [ ] Shoppreise
 - [ ] Auktionshaus
-- [ ] Item Listing
-- [ ] Kaufabwicklung
-- [ ] virtueller Geldtransfer
-- [ ] sichere Transaktionsabwicklung
-- [ ] Player Trading nur umsetzen, falls später ausdrücklich wieder priorisiert
 
 ---
 
 # 12 – Party — 🟡 IN ARBEIT
 
-- [x] Party API
-- [x] Party Creation
-- [x] Members
-- [x] Invites
-- [x] Leave
-- [x] Events
+- [ ] Party Core
+- [ ] Party Invite
+- [ ] Party Leave / Kick
 - [ ] gemeinsame XP
 - [ ] Loot-Verteilung
 - [ ] Party-Buffs
 - [ ] gemeinsamer Questfortschritt
-- [ ] Persistence / Lifecycle vollständig validieren
+- [ ] Party Persistence / Cleanup
 
 ---
 
-# 13 – Bosses — 🟡 IN ARBEIT
+# 13 – Travel / Waypoints — 🟡 IN ARBEIT
 
-- [x] Active Boss
-- [x] Boss Attack Patterns
-- [x] Pattern Registry
-- [x] Boss Combat Grundsystem
-- [x] Boss Events
-- [x] Companion-Unlock-Anbindung
-- [ ] vollständige Phasenlogik
-- [ ] Damage Contribution
-- [ ] Death / Cleanup
-- [ ] Loot
-- [ ] vollständiger Boss-Gameplay-Loop
-- [ ] neue finale Bosse mit eigenen Attack-Patterns und eigener Präsenz
+- [ ] Travel NPC
+- [ ] Waypoint Registry
+- [ ] Waypoint Unlock
+- [ ] Reiseziele über NPC-Dialog
+- [ ] erneutem NPC-Ansprechen zeigt freigeschaltete Ziele
+- [ ] Travel Kosten
+- [ ] Travel Cooldown
 
 ---
 
-# 14 – Mounts — 🟡 IN ARBEIT
+# 14 – Shops / Auction House — 🟡 IN ARBEIT
 
-## Vorgesehene Mounts
-- [ ] Pig – Boden-Mount
-- [ ] Horse – Boden-Mount
-- [ ] Zombie Horse – Boden-Mount
-- [ ] Skeleton Horse – Boden-Mount
-- [ ] Nautilus – Unterwasser-Mount
-- [ ] Bee – Spezial-Flugmount
-
-## Bee
-- [ ] Scale 1.60
-- [ ] Fluggeschwindigkeit 1.05 Blöcke/Tick
-- [ ] Paper-26.x-Input-Steuerung
-- [ ] Jump steigt
-- [ ] Sneak sinkt
-- [ ] keine Vanilla-Bienen-Kampfmechanik
-- [ ] unbesiegbar / passiv
-
-## Unique Hazel
-- [x] separates MANNEQUIN-Konzept
-- [x] eigener Combat-Controller / Skin-Resolver vorhanden
-- [ ] vollständiger Gameplay-Loop final validieren
+- [ ] Shop Core
+- [ ] Shop Definitions
+- [ ] Buy / Sell
+- [ ] NPC Shop Dialogue
+- [ ] Auktionshaus Core
+- [ ] Listings
+- [ ] Kaufen / Verkaufen
+- [ ] Gebühren
+- [ ] Expiration
 
 ---
 
-# 15 – GUI / UI — 🟡 IN ARBEIT
+# 15 – UI / HUD — 🟡 IN ARBEIT
 
-- [ ] aktive GUIs gegen tatsächliche Runtime-Verwendung prüfen
-- [ ] nicht erreichbare Legacy-GUIs weiter entfernen
-- [ ] native Dialoge als bevorzugten Interaktionsweg beibehalten
-- [ ] Inventory-GUIs nur dort einsetzen, wo funktional sinnvoll
-- [ ] Character-/Stats-UI
-- [ ] Companion UI
-- [ ] Quest UI
-- [ ] Equipment UI
-- [ ] Crafting UI
-
----
-
-# 16 – Persistence / Database — 🟡 IN ARBEIT
-
-- [x] YAML Player Repository
-- [x] MySQL Player Repository
-- [x] HikariCP
-- [x] MySQL Connector
-- [x] Player-Persistenzpfade
-- [x] Companion-Persistenzpfade
-- [x] Quest-Persistenzpfade
-- [ ] Server-Neustart für alle relevanten Systeme vollständig validieren
-- [ ] Fehler-/Recovery-Pfade vollständig validieren
-- [ ] keine destruktive automatische Entfernung historischer Produktionsspalten
+- [ ] Vanilla HUD-Kompatibilität
+- [ ] HP Anzeige
+- [ ] Armor Anzeige
+- [ ] Mana-Konzept
+- [ ] Level / XP Anzeige
+- [ ] Character Stats Anzeige
+- [ ] Companion Anzeige
+- [ ] Quest Anzeige
+- [ ] Combat Feedback
 
 ---
 
-# 17 – API / Commands / Permissions — 🟡 IN ARBEIT
+# 16 – Resource Pack / Custom Items — 🟡 IN ARBEIT
 
-## API
-- [x] PixelRPG Provider
-- [x] Economy API
-- [x] Item API
-- [x] Party API
-- [x] Statistics API
-- [x] Character Stat API
-- [x] relevante Events
-- [ ] API Runtime-Verträge vollständig validieren
-
-## Commands
-- [ ] Commands gegen tatsächliche Registrierung prüfen
-- [ ] Commands auf Admin-Funktionen begrenzen
-- [ ] keine Gameplay-Abhängigkeit von Player-Commands
-
-## Permissions
-- [ ] tatsächliche Registrierung und Runtime-Verwendung vollständig validieren
+- [ ] Resourcepack-Struktur
+- [ ] Custom Item Mapping
+- [ ] Item Models
+- [ ] Custom Textures
+- [ ] Custom Armor
+- [ ] Custom Weapon Models
+- [ ] Resourcepack Versionierung
+- [ ] Plugin ↔ Resourcepack Item IDs
 
 ---
 
-# 18 – Cleanup / Release Quality — 🟡 IN ARBEIT
+# 17 – Persistence / Database — 🟡 IN ARBEIT
 
-- [x] mehrere nachweislich ungenutzte Legacy-GUIs entfernt
-- [x] nicht registrierter CraftingCommand entfernt
-- [x] ungenutzte Class-Set-Service-/Factory-Klassen entfernt
-- [x] veraltete Companion-Stat-Datei entfernt
-- [x] alter Equipment-Aura-Config-Key entfernt
-- [x] altes Resourcepack-Verzeichnis entfernt
-- [x] aktueller Compile-Fehler im PixelRPGPlugin behoben
-- [x] aktueller Gradle-Build erfolgreich
-- [ ] verbleibende historische Reste per Dependency-Prüfung bewerten
-- [ ] Runtime-Test nach jedem größeren Feature
-- [ ] finale Dokumentation synchron halten
+- [x] Player Persistence Grundsystem
+- [x] YAML Fallback
+- [x] MySQL Repository
+- [ ] Companion Persistence vollständig validieren
+- [ ] Quest Persistence vollständig validieren
+- [ ] Profession Persistence
+- [ ] Economy Persistence
+- [ ] Equipment Persistence
+- [ ] Schema Versioning
+- [ ] Migration System
 
 ---
 
-# Aktueller Arbeitsstand
+# 18 – Admin / Debug — 🟡 IN ARBEIT
 
-```text
-01 Player        🟢 98 %
-02 Combat        🟢 98 %
-03 Progression   🟡 IN ARBEIT  ← NÄCHSTER ABSCHNITT
-04 Companions    🟢 98 % Core
-05 Quests        🟡 IN ARBEIT
-06 NPC/Dialogue  🟡 IN ARBEIT
-07 Items         🟡 IN ARBEIT
-08 Equipment     🟡 IN ARBEIT
-09 Crafting      🟡 IN ARBEIT
-10 Professions   🟡 IN ARBEIT
-11 Economy       🟡 IN ARBEIT
-12 Party         🟡 IN ARBEIT
-13 Bosses        🟡 IN ARBEIT
-14 Mounts        🟡 IN ARBEIT
-15 GUI/UI        🟡 IN ARBEIT
-16 Persistence   🟡 IN ARBEIT
-17 API/Commands  🟡 IN ARBEIT
-18 Cleanup       🟡 IN ARBEIT
-```
+- [ ] Admin Command Framework
+- [ ] Player Debug
+- [ ] Stats Debug
+- [ ] Combat Debug
+- [ ] Companion Debug
+- [ ] Quest Debug
+- [ ] Economy Debug
+- [ ] Item Debug
+- [ ] Reload / Registry Diagnostics
 
-## Definition of Done
+---
 
-```text
-Code vorhanden
-+ Runtime integriert
-+ Content ausreichend
-+ Persistenz korrekt
-+ Fehlerfälle behandelt
-+ Vanilla-Isolation korrekt
-+ Build erfolgreich
-+ Server-Test erfolgreich
-+ Dokumentation aktuell
-= Feature bei 95–98 % abgeschlossen
-```
+# 19 – Content / World — 🔴 OFFEN
 
-Absolute 100 % werden nicht als dauerhafter Zustand betrachtet. Ziel ist ein stabiler, getesteter Stand von 95–98 % je Feature.
+- [ ] World-Struktur
+- [ ] Gebiete
+- [ ] Dungeons
+- [ ] Bosse
+- [ ] Gegner-Varianten
+- [ ] NPC Content
+- [ ] Quest Content
+- [ ] Item Content
+- [ ] Companion Content
+- [ ] Profession Content
+- [ ] Loot Tables
+- [ ] verbindliche Lore
+
+> Content wird erst auf Basis der technisch stabilen Systeme ausgearbeitet.
+
+---
+
+# 20 – Final Validation — 🔴 OFFEN
+
+- [ ] kompletter Clean Build
+- [ ] Runtime Smoke Test
+- [ ] Player Lifecycle Test
+- [ ] Progression Test
+- [ ] Combat Test
+- [ ] Companion Test
+- [ ] Quest Test
+- [ ] NPC / Dialogue Test
+- [ ] Item / Equipment Test
+- [ ] Economy Test
+- [ ] Party Test
+- [ ] Travel Test
+- [ ] Resourcepack Test
+- [ ] Persistence / Migration Test
+- [ ] Performance Test
+- [ ] Fehler-/Log-Review
+- [ ] Release Build
