@@ -19,7 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native bank dialog with account management, personal storage and Handelsdepot access. */
+/** Native bank dialog with account management, personal storage and separate trade compartments. */
 public final class BankDialog {
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
@@ -47,7 +47,7 @@ public final class BankDialog {
                 DialogBody.plainMessage(Component.text("Kontostand: ", NamedTextColor.GRAY)
                         .append(Component.text(format(profile.getMoney()) + " Gold", NamedTextColor.GOLD))),
                 DialogBody.plainMessage(Component.text(
-                        "Dein persönliches Bankfach bleibt dauerhaft erhalten. Abgelaufene Handelsware landet im Fach Handelsware.",
+                        "Dein persönliches Bankfach bleibt dauerhaft erhalten. Abgelaufene Handelsware landet im separaten Handelsfach.",
                         NamedTextColor.WHITE))
         );
 
@@ -55,6 +55,7 @@ public final class BankDialog {
         actions.add(dialogueEngine.actionButton(Component.text("Einzahlen"), NamedTextColor.GREEN, this::openDepositSelector));
         actions.add(dialogueEngine.actionButton(Component.text("Auszahlen"), NamedTextColor.YELLOW, this::openWithdrawSelector));
         actions.add(dialogueEngine.actionButton(Component.text("Bankfach öffnen"), NamedTextColor.AQUA, this::openBankCompartment));
+        actions.add(dialogueEngine.actionButton(Component.text("Handelsfach"), NamedTextColor.GOLD, this::openTradeGoodsCompartment));
         actions.add(dialogueEngine.actionButton(Component.text("Handelsdepot"), NamedTextColor.GOLD, tradeDepot::open));
 
         dialogueEngine.openMultiAction(player, Component.text("Bank", NamedTextColor.GOLD), body, actions, 2);
@@ -180,14 +181,26 @@ public final class BankDialog {
     }
 
     private void openBankCompartment(Player player) {
+        openCompartment(player, 0, "Bankfach – Seite 1");
+    }
+
+    private void openTradeGoodsCompartment(Player player) {
+        openCompartment(player, BankStorageService.TRADE_GOODS_PAGE, "Handelsfach");
+    }
+
+    private void openCompartment(Player player, int page, String title) {
         player.closeDialog();
         ItemStack[] contents = bankStorage.load(player.getUniqueId());
-        BankInventoryHolder holder = new BankInventoryHolder(player.getUniqueId(), 0);
+        BankInventoryHolder holder = new BankInventoryHolder(player.getUniqueId(), page);
         var inventory = org.bukkit.Bukkit.createInventory(holder, BankStorageService.PAGE_SIZE,
-                Component.text("Bankfach – Seite 1", NamedTextColor.GOLD));
+                Component.text(title, NamedTextColor.BLACK));
         holder.inventory(inventory);
-        for (int slot = 0; slot < BankStorageService.PAGE_SIZE; slot++) inventory.setItem(slot, contents[slot]);
-        inventory.setItem(53, createNavigationHead("MHF_ArrowRight", "Weiter"));
+        int offset = page * BankStorageService.PAGE_SIZE;
+        for (int slot = 0; slot < BankStorageService.PAGE_SIZE; slot++) {
+            inventory.setItem(slot, contents[offset + slot]);
+        }
+        if (page > 0) inventory.setItem(45, createNavigationHead("MHF_ArrowLeft", "Zurück"));
+        if (page < BankStorageService.PAGE_COUNT - 1) inventory.setItem(53, createNavigationHead("MHF_ArrowRight", "Weiter"));
         player.openInventory(inventory);
     }
 
