@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.boss;
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.EconomyAPI;
 import de.pixelrpg.rpg.api.GuildAPI;
+import de.pixelrpg.rpg.api.PartyAPI;
 import de.pixelrpg.rpg.api.events.BossDefeatedEvent;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.core.RPGKeys;
@@ -36,6 +37,7 @@ public final class BossManager {
     private final Plugin plugin;
     private final BossAttackPatternRegistry patternRegistry;
     private final GuildAPI guildAPI;
+    private final PartyAPI partyAPI;
     private final EconomyAPI economyAPI;
     private final ItemEconomyConfig itemEconomyConfig;
     private final MobScalingConfig mobScalingConfig;
@@ -46,12 +48,13 @@ public final class BossManager {
     private final Map<UUID, ActiveBoss> activeBosses = new ConcurrentHashMap<>();
 
     public BossManager(Plugin plugin, BossAttackPatternRegistry patternRegistry, GuildAPI guildAPI,
-                       EconomyAPI economyAPI, ItemEconomyConfig itemEconomyConfig,
-                       MobScalingConfig mobScalingConfig,
-                       double barRadius, int barUpdateIntervalTicks, int phaseCheckIntervalTicks) {
+                       PartyAPI partyAPI, EconomyAPI economyAPI, ItemEconomyConfig itemEconomyConfig,
+                       MobScalingConfig mobScalingConfig, double barRadius, int barUpdateIntervalTicks,
+                       int phaseCheckIntervalTicks) {
         this.plugin = plugin;
         this.patternRegistry = patternRegistry;
         this.guildAPI = guildAPI;
+        this.partyAPI = partyAPI;
         this.economyAPI = economyAPI;
         this.itemEconomyConfig = itemEconomyConfig;
         this.mobScalingConfig = mobScalingConfig;
@@ -62,8 +65,24 @@ public final class BossManager {
     }
 
     public LivingEntity spawnWorldBoss(BossDefinition definition, Location location) {
+        if (definition.getKind() != BossKind.WORLD_EVENT) {
+            throw new IllegalArgumentException("Boss definition is not a world-event boss: " + definition.getId());
+        }
+        LivingEntity entity = spawn(definition, location, true);
+        return entity;
+    }
+
+    public LivingEntity spawnBiomeBoss(BossDefinition definition, Location location) {
+        if (definition.getKind() != BossKind.BIOME) {
+            throw new IllegalArgumentException("Boss definition is not a biome boss: " + definition.getId());
+        }
+        return spawn(definition, location, false);
+    }
+
+    private LivingEntity spawn(BossDefinition definition, Location location, boolean worldBoss) {
+        if (location.getWorld() == null) throw new IllegalArgumentException("Boss spawn location has no world");
         LivingEntity entity = (LivingEntity) location.getWorld().spawnEntity(location, definition.getBaseEntityType());
-        entity.getPersistentDataContainer().set(RPGKeys.Boss.worldBossMarker(), PersistentDataType.BOOLEAN, true);
+        entity.getPersistentDataContainer().set(RPGKeys.Boss.worldBossMarker(), PersistentDataType.BOOLEAN, worldBoss);
         attachPhaseController(entity, definition);
         return entity;
     }
@@ -74,6 +93,7 @@ public final class BossManager {
         entity.getPersistentDataContainer().set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, definition.getLevel());
         entity.customName(Component.text(definition.getDisplayName(), NamedTextColor.DARK_RED));
         entity.setCustomNameVisible(true);
+        entity.setRemoveWhenFarAway(false);
         BossBar bossBar = BossBar.bossBar(Component.text(definition.getDisplayName(), NamedTextColor.DARK_RED), 1.0f, BossBar.Color.RED, BossBar.Overlay.NOTCHED_10);
         ActiveBoss activeBoss = new ActiveBoss(entity.getUniqueId(), definition, bossBar);
         activeBosses.put(entity.getUniqueId(), activeBoss);
@@ -95,7 +115,6 @@ public final class BossManager {
         if (dmgAttribute != null) dmgAttribute.setBaseValue(newDamage);
         AttributeInstance scaleAttribute = entity.getAttribute(Attribute.SCALE);
         if (scaleAttribute != null) scaleAttribute.setBaseValue(scaleAttribute.getBaseValue() * definition.getScaleMultiplier());
-        entity.setRemoveWhenFarAway(false);
     }
 
     private void tick(ActiveBoss activeBoss) {
@@ -104,12 +123,16 @@ public final class BossManager {
             cleanup(activeBoss);
             return;
         }
+
         activeBoss.incrementBarUpdateTimer(phaseCheckIntervalTicks);
         if (activeBoss.getTicksSinceLastBarUpdate() >= barUpdateIntervalTicks) {
             activeBoss.resetBarUpdateTimer();
             updateBossBar(activeBoss, entity);
         }
-        checkPhaseTransition(activeBoss, entity);
+
+        if (activeBoss.getDefinition().getKind() == BossKind.WORLD_EVENT) {
+            checkPhaseTransition(activeBoss, entity);
+        }
         runAttackPatternIfDue(activeBoss, entity);
     }
 
@@ -145,33 +168,46 @@ public final class BossManager {
         AttributeInstance hpAttribute = entity.getAttribute(Attribute.MAX_HEALTH);
         double maxHp = hpAttribute != null ? hpAttribute.getValue() : 20.0;
         double healthPercent = entity.getHealth() / maxHp * 100.0;
-        var phases = activeBoss.getDefinition().getPhases();
+        List<BossPhase> phases = activeBoss.getDefinition().getPhases();
         if (phases.isEmpty()) return;
+
         int targetIndex = 0;
         for (int i = 0; i < phases.size(); i++) {
             if (healthPercent <= phases.get(i).healthPercentageThreshold()) targetIndex = i;
         }
-        if (targetIndex != activeBoss.getCurrentPhaseIndex()) {
-            activeBoss.setCurrentPhaseIndex(targetIndex);
-            BossPhase phase = phases.get(targetIndex);
-            if (!phase.announcementMessage().isBlank()) {
-                Component message = Component.text(phase.announcementMessage(), NamedTextColor.DARK_RED);
-                for (UUID viewerUuid : activeBoss.getViewers()) {
-                    Player viewer = Bukkit.getPlayer(viewerUuid);
-                    if (viewer != null && guildAPI.isRegistered(viewerUuid)) viewer.sendMessage(message);
-                }
+        if (targetIndex == activeBoss.getCurrentPhaseIndex()) return;
+
+        activeBoss.setCurrentPhaseIndex(targetIndex);
+        BossPhase phase = phases.get(targetIndex);
+        if (!phase.announcementMessage().isBlank()) {
+            Component message = Component.text(phase.announcementMessage(), NamedTextColor.DARK_RED);
+            for (UUID viewerUuid : activeBoss.getViewers()) {
+                Player viewer = Bukkit.getPlayer(viewerUuid);
+                if (viewer != null && guildAPI.isRegistered(viewerUuid)) viewer.sendMessage(message);
             }
         }
     }
 
     private void runAttackPatternIfDue(ActiveBoss activeBoss, LivingEntity entity) {
-        var phases = activeBoss.getDefinition().getPhases();
-        if (phases.isEmpty() || activeBoss.getCurrentPhaseIndex() < 0) return;
-        BossPhase phase = phases.get(activeBoss.getCurrentPhaseIndex());
+        BossDefinition definition = activeBoss.getDefinition();
+        List<String> patterns;
+        int interval;
+
+        if (definition.getKind() == BossKind.WORLD_EVENT) {
+            List<BossPhase> phases = definition.getPhases();
+            if (phases.isEmpty() || activeBoss.getCurrentPhaseIndex() < 0) return;
+            BossPhase phase = phases.get(activeBoss.getCurrentPhaseIndex());
+            patterns = phase.attackPatternIds();
+            interval = phase.attackIntervalTicks();
+        } else {
+            patterns = definition.getAttackPatternIds();
+            interval = definition.getAttackIntervalTicks();
+        }
+
+        if (patterns.isEmpty()) return;
         activeBoss.incrementAttackTimer(phaseCheckIntervalTicks);
-        if (activeBoss.getTicksSinceLastAttack() < phase.attackIntervalTicks()) return;
+        if (activeBoss.getTicksSinceLastAttack() < interval) return;
         activeBoss.resetAttackTimer();
-        if (phase.attackPatternIds().isEmpty()) return;
 
         List<Player> targets = new ArrayList<>();
         for (UUID viewerUuid : activeBoss.getViewers()) {
@@ -180,7 +216,7 @@ public final class BossManager {
         }
         if (targets.isEmpty()) return;
 
-        String patternId = phase.attackPatternIds().get(ThreadLocalRandom.current().nextInt(phase.attackPatternIds().size()));
+        String patternId = patterns.get(ThreadLocalRandom.current().nextInt(patterns.size()));
         patternRegistry.get(patternId).ifPresent(pattern -> pattern.execute(plugin, entity, targets));
     }
 
@@ -199,26 +235,81 @@ public final class BossManager {
 
     private void distributeRewards(ActiveBoss activeBoss) {
         BossLootConfig lootConfig = activeBoss.getDefinition().getLootConfig();
-        Random random = ThreadLocalRandom.current();
-        Set<UUID> participants = new HashSet<>();
-        for (UUID participantUuid : activeBoss.getDamageContribution().keySet()) {
-            Player player = Bukkit.getPlayer(participantUuid);
-            if (player == null || !player.isOnline() || !guildAPI.isRegistered(participantUuid)) continue;
-            participants.add(participantUuid);
-            if (lootConfig == null) continue;
-            economyAPI.deposit(participantUuid, lootConfig.moneyReward());
-            guildAPI.addExperience(participantUuid, lootConfig.expReward());
+        if (lootConfig == null) {
+            callDefeatedEvent(activeBoss, Set.of());
+            return;
+        }
+
+        Set<UUID> participants = new HashSet<>(activeBoss.getDamageContribution().keySet());
+        Set<UUID> recipients = activeBoss.getDefinition().getKind() == BossKind.WORLD_EVENT
+                ? onlineRegistered(participants)
+                : resolvePartyRecipients(participants);
+
+        for (UUID uuid : recipients) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player == null || !player.isOnline() || !guildAPI.isRegistered(uuid)) continue;
+
+            economyAPI.deposit(uuid, lootConfig.moneyReward());
+            guildAPI.addExperience(uuid, lootConfig.expReward());
+            giveGuaranteedLoot(player, lootConfig);
+            giveChanceLoot(player, lootConfig);
             player.sendMessage(lang.get("boss.defeated-reward", "money", String.valueOf(lootConfig.moneyReward()), "exp", String.valueOf(lootConfig.expReward())));
-            if (!lootConfig.materialPool().isEmpty()) {
-                String materialName = lootConfig.materialPool().get(random.nextInt(lootConfig.materialPool().size()));
-                try {
-                    Material material = Material.valueOf(materialName.toUpperCase());
-                    RPGItemBuilder.createItem(material, lootConfig.guaranteedRarity(), activeBoss.getDefinition().getLevel())
-                            .ifPresent(item -> player.getInventory().addItem(item).values()
-                                    .forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder)));
-                } catch (IllegalArgumentException ignored) { }
+        }
+
+        callDefeatedEvent(activeBoss, onlineRegistered(participants));
+    }
+
+    private Set<UUID> resolvePartyRecipients(Set<UUID> participants) {
+        Set<UUID> recipients = new HashSet<>();
+        for (UUID participant : participants) {
+            if (!partyAPI.isInParty(participant)) {
+                if (Bukkit.getPlayer(participant) != null) recipients.add(participant);
+                continue;
+            }
+            for (UUID member : partyAPI.getPartyMembers(participant)) {
+                if (!partyAPI.isWithinShareRange(participant, member)) continue;
+                Player player = Bukkit.getPlayer(member);
+                if (player != null && player.isOnline() && guildAPI.isRegistered(member)) recipients.add(member);
             }
         }
+        return recipients;
+    }
+
+    private Set<UUID> onlineRegistered(Set<UUID> uuids) {
+        Set<UUID> result = new HashSet<>();
+        for (UUID uuid : uuids) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null && player.isOnline() && guildAPI.isRegistered(uuid)) result.add(uuid);
+        }
+        return result;
+    }
+
+    private void giveGuaranteedLoot(Player player, BossLootConfig lootConfig) {
+        for (String materialName : lootConfig.guaranteedMaterials()) {
+            giveMaterial(player, materialName, de.pixelrpg.rpg.item.ItemRarity.RARE);
+        }
+    }
+
+    private void giveChanceLoot(Player player, BossLootConfig lootConfig) {
+        Random random = ThreadLocalRandom.current();
+        for (BossLootEntry entry : lootConfig.chanceDrops()) {
+            if (random.nextDouble(100.0D) >= entry.chancePercent()) continue;
+            giveMaterial(player, entry.material(), entry.rarity());
+        }
+    }
+
+    private void giveMaterial(Player player, String materialName, de.pixelrpg.rpg.item.ItemRarity rarity) {
+        try {
+            Material material = Material.valueOf(materialName.toUpperCase());
+            RPGItemBuilder.createItem(material, rarity, 0)
+                    .ifPresent(item -> player.getInventory().addItem(item).values()
+                            .forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder)));
+        } catch (IllegalArgumentException ignored) {
+            plugin.getLogger().warning("Invalid boss loot material: " + materialName);
+        }
+    }
+
+    private void callDefeatedEvent(ActiveBoss activeBoss, Set<UUID> participants) {
         Bukkit.getPluginManager().callEvent(new BossDefeatedEvent(activeBoss.getDefinition().getId(), participants));
     }
 
