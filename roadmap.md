@@ -565,20 +565,93 @@ Attack Power
 
 ---
 
-# 08 – Equipment — 🟡 IN ARBEIT
+# 08 – Equipment — 🟢 98 % ABGESCHLOSSEN
 
-- [ ] Helm
-- [ ] Brust
-- [ ] Hose
-- [ ] Schuhe
-- [ ] Waffe
-- [ ] Nebenhand
-- [x] Equipment Stats
-- [ ] Level Requirements
-- [ ] Rarity
-- [x] Equipment → Player Stats Grundpfad
-- [ ] Persistence vollständig validieren
-- [ ] Equipment GUI
+> Das Equipment-System ist im aktuellen `main` entsprechend der vereinbarten Regeln umgesetzt. Das Vanilla-Inventar bleibt die Benutzeroberfläche; PixelRPG aggregiert ausgerüstete Item-Stats und integriert sie direkt in die bestehende Character-Stats-Pipeline.
+
+## Equipment Slots
+- [x] Helm
+- [x] Brust
+- [x] Hose
+- [x] Schuhe
+- [x] Waffe / Mainhand
+- [x] Nebenhand / Offhand
+- [x] finaler Slot-Pool
+- [x] Nebenhand für Shields und andere sinnvolle PixelRPG-Items offen
+- [x] keine normale Dual-Wield-Waffenlogik
+- [x] Vanilla-Inventar bleibt erhalten
+
+## Equipment Stats
+- [x] ausgerüstete Item-Stats werden aggregiert
+- [x] HP
+- [x] Armor
+- [x] Movement Speed
+- [x] Crit Chance auf Rüstung
+- [x] Waffenstats werden aus dem konkreten Item übernommen
+- [x] gesamte ausgerüstete Armor wird addiert
+- [x] Equipment → Player Stats → Combat Pipeline
+- [x] Stats werden bei Equipment-Änderungen sofort aktualisiert
+
+## Level / Required Level
+- [x] Required Level wird beim Ausrüsten berücksichtigt
+- [x] höherlevelige Items dürfen getragen werden
+- [x] Stats höherleveliger Items bleiben bis zum Required Level deaktiviert
+- [x] Item-Level bleibt unverändert
+- [x] unterlevelige Items bleiben vollständig nutzbar, sofern Required Level erfüllt ist
+- [x] Equipment wird beim Verlassen der PixelRPG-Registrierung ohne aktive RPG-Stats als Vanilla-Item behandelt
+
+## Rarity
+- [x] Equipment übernimmt die Rarity des konkreten Items
+- [x] keine separate Equipment-Rarity
+- [x] Common
+- [x] Uncommon
+- [x] Rare
+- [x] Epic
+- [x] Legendary
+- [x] Unique
+
+## Persistence & Lifecycle
+- [x] ausgerüstetes Equipment ist Bestandteil des persistenten PlayerProfile-Zustands
+- [x] Equipment-Persistence über die vorhandene Player-Persistence-Infrastruktur
+- [x] Equipment wird beim Join wiederhergestellt
+- [x] Equipment wird beim Quit gespeichert
+- [x] Equipment-Stat-Zustand wird nicht separat als berechneter Wert persistiert
+- [x] Registrierung/Unregistrierung berücksichtigt
+- [x] Soulbound-Items werden beim Tod zurück ins Inventar des Besitzers gelegt
+- [x] nicht-Soulbound-Equipment folgt den normalen Vanilla-Todesregeln
+
+## Equipment Sets
+- [x] Equipment-Sets als Systemgrundlage
+- [x] Set-Boni laufen durch die Character-Stats-Pipeline
+- [x] Set-Boni werden nur bei erfüllten Setbedingungen aktiviert
+- [x] Setteile können Armor Trims besitzen
+- [x] Armor Trim wird abhängig vom Set-Bonus/Bonus-Typ festgelegt
+- [x] Stat-/Bonus-Typ → Trim-Zuordnung ist datengetrieben
+- [x] Trim-Pattern und Trim-Material sind Teil der Zuordnung
+- [x] Trim-Farben können dem jeweiligen Stat-/Bonus-Typ zugeordnet werden
+- [x] visuelles Set-Feedback über Armor Trims vorbereitet
+- [x] Trim wird bei Equipment-Refresh, Join und Respawn berücksichtigt
+- [x] inaktiver Set-Bonus entfernt die zugehörige Set-Trim-Darstellung
+
+## Datengetriebene Definitionen
+- [x] Equipment-Slots werden technisch getrennt vom konkreten Item definiert
+- [x] Set-Definitionen sind datengetrieben
+- [x] Armor-Trim-Mappings sind datengetrieben
+- [x] Setbonus → Trim → Material/Farbe kann ohne Java-Codeänderung erweitert werden
+
+## Abschlusskriterien für 08
+- [x] finaler Equipment-Slot-Pool
+- [x] Vanilla-Inventar
+- [x] Equipment-Stat-Aggregation
+- [x] Required-Level-Verhalten
+- [x] Rarity-Verhalten
+- [x] PlayerProfile-Persistence
+- [x] Soulbound Death Protection
+- [x] Equipment-Sets
+- [x] Set-Bonus-Integration in Stats
+- [x] Armor-Trim-System für Setteile
+- [x] datengetriebene Trim-Zuordnung
+- [x] CI-Build grün
 
 ---
 
@@ -703,7 +776,7 @@ Attack Power
 - [ ] Quest Persistence vollständig validieren
 - [ ] Profession Persistence
 - [ ] Economy Persistence
-- [ ] Equipment Persistence
+- [x] Equipment Persistence
 - [ ] Schema Versioning
 - [ ] Migration System
 
