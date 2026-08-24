@@ -11,6 +11,10 @@ import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.StonecuttingRecipe;
+import org.bukkit.inventory.CampfireRecipe;
+import org.bukkit.inventory.FurnaceRecipe;
+import org.bukkit.inventory.BlastingRecipe;
+import org.bukkit.inventory.SmokingRecipe;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
@@ -45,31 +49,15 @@ public final class CraftingRecipeRegistry {
         while (iterator.hasNext()) {
             Recipe recipe = iterator.next();
             if (recipe == null || recipe.getResult() == null || recipe.getResult().getType().isAir()) continue;
-
             Map<Material, Integer> costs = ingredientCosts(recipe);
             if (costs.isEmpty()) continue;
-
             Material result = recipe.getResult().getType();
             Profession profession = classify(result);
             if (profession == null) continue;
-
             String id = "vanilla:" + stableId(result, costs);
             ItemStack output = recipe.getResult();
-            recipes.putIfAbsent(id, new CraftRecipe(
-                    profession,
-                    id,
-                    pretty(result),
-                    result,
-                    output.getAmount(),
-                    ItemRarity.COMMON,
-                    costs,
-                    1,
-                    0L,
-                    "",
-                    true,
-                    true,
-                    ""
-            ));
+            recipes.putIfAbsent(id, new CraftRecipe(profession, id, pretty(result), result, output.getAmount(), ItemRarity.COMMON,
+                    costs, 1, 0L, "", true, true, ""));
         }
     }
 
@@ -77,12 +65,10 @@ public final class CraftingRecipeRegistry {
         JsonObject root = new JsonDataManager(plugin).load("crafting-recipes.json");
         JsonArray definitions = root.getAsJsonArray("recipes");
         if (definitions == null) throw new IllegalStateException("crafting-recipes.json requires a 'recipes' array");
-
         for (var element : definitions) {
             JsonObject json = element.getAsJsonObject();
             String id = required(json, "id").toLowerCase(Locale.ROOT);
             if (recipes.containsKey(id)) throw new IllegalStateException("Duplicate crafting recipe: " + id);
-
             Profession profession = enumValue(Profession.class, json, "profession", id);
             Material result = Material.matchMaterial(required(json, "result"));
             if (result == null || result.isAir()) throw new IllegalStateException("Unknown crafting result for " + id);
@@ -95,7 +81,6 @@ public final class CraftingRecipeRegistry {
             boolean defaultUnlocked = json.has("unlockedByDefault") && json.get("unlockedByDefault").getAsBoolean();
             String label = json.has("label") ? json.get("label").getAsString() : pretty(result);
             String resultItemId = json.has("resultItemId") ? json.get("resultItemId").getAsString() : "";
-
             recipes.put(id, new CraftRecipe(profession, id, label, result, amount, rarity, costs, level, price, quest, defaultUnlocked, false, resultItemId));
         }
     }
@@ -107,12 +92,24 @@ public final class CraftingRecipeRegistry {
         } else if (recipe instanceof ShapelessRecipe shapeless) {
             for (ItemStack item : shapeless.getIngredientList()) if (item != null && !item.getType().isAir()) materials.add(item.getType());
         } else if (recipe instanceof StonecuttingRecipe stonecutting) {
-            List<Material> choices = choiceMaterials(stonecutting.getInputChoice());
-            if (choices.size() == 1) materials.add(choices.getFirst());
+            addSingleChoice(materials, stonecutting.getInputChoice());
+        } else if (recipe instanceof FurnaceRecipe furnace) {
+            addSingleChoice(materials, furnace.getInputChoice());
+        } else if (recipe instanceof BlastingRecipe blasting) {
+            addSingleChoice(materials, blasting.getInputChoice());
+        } else if (recipe instanceof SmokingRecipe smoking) {
+            addSingleChoice(materials, smoking.getInputChoice());
+        } else if (recipe instanceof CampfireRecipe campfire) {
+            addSingleChoice(materials, campfire.getInputChoice());
         }
         Map<Material, Integer> costs = new EnumMap<>(Material.class);
         for (Material material : materials) costs.merge(material, 1, Integer::sum);
         return costs;
+    }
+
+    private static void addSingleChoice(List<Material> materials, RecipeChoice choice) {
+        List<Material> choices = choiceMaterials(choice);
+        if (choices.size() == 1) materials.add(choices.getFirst());
     }
 
     private static List<Material> choiceMaterials(RecipeChoice choice) {
@@ -155,11 +152,8 @@ public final class CraftingRecipeRegistry {
     }
 
     private static <E extends Enum<E>> E enumValue(Class<E> type, JsonObject json, String key, String id) {
-        try {
-            return Enum.valueOf(type, required(json, key).toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalStateException("Invalid " + key + " for " + id, exception);
-        }
+        try { return Enum.valueOf(type, required(json, key).toUpperCase(Locale.ROOT)); }
+        catch (IllegalArgumentException exception) { throw new IllegalStateException("Invalid " + key + " for " + id, exception); }
     }
 
     private static String pretty(Material material) {
