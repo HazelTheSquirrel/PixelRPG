@@ -3,8 +3,10 @@ package de.pixelrpg.rpg.dialogue;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.SoulboundService;
 import de.pixelrpg.rpg.lang.LanguageManager;
+import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.gui.PartyGUI;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
@@ -16,18 +18,24 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native reception dialog used to register a player for PixelRPG and manage profile access. */
+/** Native reception dialog used to register a player and expose the separate party entry. */
 public final class ReceptionDialog {
     private final Player player;
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
     private final LanguageManager lang;
+    private final PartyManager partyManager;
 
     public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
+        this(player, profileManager, dialogueEngine, null);
+    }
+
+    public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine, PartyManager partyManager) {
         this.player = player;
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.lang = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getLanguageManager();
+        this.partyManager = partyManager;
     }
 
     public void open() {
@@ -42,9 +50,13 @@ public final class ReceptionDialog {
         if (!registered) {
             actions.add(dialogueEngine.actionButton(lang.get("reception.register-button"), NamedTextColor.GREEN, target -> {
                 profileManager.registerPlayer(target);
-                new ReceptionDialog(target, profileManager, dialogueEngine).open();
+                new ReceptionDialog(target, profileManager, dialogueEngine, partyManager).open();
             }));
         } else {
+            if (partyManager != null) {
+                actions.add(dialogueEngine.actionButton(Component.text("Party", NamedTextColor.AQUA), NamedTextColor.AQUA,
+                        target -> new PartyGUI(target, partyManager, profileManager).open(target)));
+            }
             actions.add(dialogueEngine.actionButton(lang.get("reception.resign-button"), NamedTextColor.RED, this::openLeaveConfirmation));
             actions.add(dialogueEngine.actionButton(lang.get("blacksmith.soulbind-button"), NamedTextColor.LIGHT_PURPLE, this::openSoulbindSelection));
         }
@@ -69,7 +81,7 @@ public final class ReceptionDialog {
                 DialogBody.plainMessage(Component.text("Wähle ein identifiziertes PixelRPG-Item aus deinem Inventar. Bereits seelengebundene Items werden nicht angezeigt.", NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text("Verfügbare Items: " + slots.size(), NamedTextColor.GRAY)));
         dialogueEngine.openMultiAction(target, lang.get("blacksmith.soulbind-button"), body, actions, 1,
-                player -> new ReceptionDialog(player, profileManager, dialogueEngine).open());
+                player -> new ReceptionDialog(player, profileManager, dialogueEngine, partyManager).open());
     }
 
     private void openSoulbindConfirmation(Player target, int slot) {
@@ -114,7 +126,7 @@ public final class ReceptionDialog {
             lang.send(player, "reception.left-guild");
         });
         ActionButton no = dialogueEngine.actionButton(lang.get("reception.no-cancel"), NamedTextColor.GREEN,
-                player -> new ReceptionDialog(player, profileManager, dialogueEngine).open());
+                player -> new ReceptionDialog(player, profileManager, dialogueEngine, partyManager).open());
         dialogueEngine.openConfirmation(target, lang.get("reception.resign-title"),
                 List.of(DialogBody.plainMessage(lang.get("reception.resign-warning").color(NamedTextColor.WHITE))), yes, no);
     }
