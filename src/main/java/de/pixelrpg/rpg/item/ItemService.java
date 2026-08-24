@@ -31,6 +31,7 @@ public final class ItemService implements ItemAPI {
 
     @Override
     public Optional<ItemStack> createItem(Material material, ItemRarity rarity, int itemLevel) {
+        if (rarity == ItemRarity.UNIQUE) return Optional.empty();
         return RPGItemBuilder.createItem(material, rarity, itemLevel);
     }
 
@@ -150,11 +151,9 @@ public final class ItemService implements ItemAPI {
 
         List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
         lore.removeIf(component -> component instanceof TextComponent text && text.content().startsWith("Requires Level "));
-        lore.add(2, Component.text("Requires Level " + definition.requiredLevel(), NamedTextColor.RED)
+        lore.add(Math.min(2, lore.size()), Component.text("Requires Level " + definition.requiredLevel(), NamedTextColor.RED)
                 .decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("Gearscore " + format(gearscore), NamedTextColor.YELLOW)
-                .decoration(TextDecoration.ITALIC, false));
-        lore.add(Component.text("Resourcepack: " + definition.resourcepackId(), NamedTextColor.DARK_GRAY)
                 .decoration(TextDecoration.ITALIC, false));
         if (definition.soulbound()) {
             lore.add(0, Component.text("⚡ Soulbound", NamedTextColor.LIGHT_PURPLE)
