@@ -1,7 +1,6 @@
 package de.pixelrpg.rpg.dialogue;
 
 import io.papermc.paper.registry.data.dialog.ActionButton;
-import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
@@ -43,9 +42,10 @@ public final class DialogueTreeService {
             dialogueEngine.openUnavailable(player, "Dialog", "Dieser Dialogschritt ist nicht verfügbar.");
             return;
         }
+
         String stateKey = stateKey(tree, node);
         if (node.once() && progressStore.hasSeen(player.getUniqueId(), stateKey)) {
-            dialogueEngine.openUnavailable(player, node.title(), "Diesen Dialog hast du bereits gesehen.");
+            dialogueEngine.openUnavailable(player, "Dialog", "Diesen Dialog hast du bereits gesehen.");
             return;
         }
 
@@ -55,11 +55,13 @@ public final class DialogueTreeService {
             if (!option.condition().test(player)) continue;
             actions.add(dialogueEngine.actionButton(option.label(), target -> select(target, tree, node, option)));
         }
+
         if (actions.isEmpty()) {
             dialogueEngine.openNotice(player, node.title(), Component.text("Dialog beendet."),
                     Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
+
         dialogueEngine.openMultiAction(player, node.title(), node.body(), actions,
                 Math.min(2, Math.max(1, actions.size())));
     }
