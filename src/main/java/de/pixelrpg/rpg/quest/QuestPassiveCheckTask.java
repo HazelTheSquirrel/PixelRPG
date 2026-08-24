@@ -33,16 +33,21 @@ public final class QuestPassiveCheckTask {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 questManager.checkInventoryQuests(player);
                 questManager.checkReachLocationQuests(player);
-                questManager.checkEscortQuests(player);
                 navigationService.refresh(player);
             }
         }, intervalTicks, intervalTicks);
     }
 
+    public void clear(Player player) {
+        if (navigationService != null) navigationService.clear(player);
+    }
+
     public void stop() {
-        if (task == null) return;
-        task.cancel();
-        task = null;
+        if (task != null) {
+            task.cancel();
+            task = null;
+        }
+        if (navigationService != null) navigationService.clearAll();
         navigationService = null;
     }
 }
