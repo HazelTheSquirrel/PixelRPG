@@ -174,7 +174,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         new WorldBossSpawnTask(this, bossRepository, bossManager, playerProfileManager, getConfig().getBoolean("bosses.auto-spawn.enabled", true), getConfig().getInt("bosses.auto-spawn.interval-minutes", 45), getConfig().getDouble("bosses.auto-spawn.spawn-radius", 80.0), getConfig().getInt("bosses.auto-spawn.max-concurrent", 2)).start();
         statisticsService = new StatisticsService(playerProfileManager);
         Bukkit.getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
-        scoreboardService = new ScoreboardService(this, playerProfileManager, getConfig().getInt("scoreboard.update-interval-ticks", 20));
+        companionService = new CompanionService(this);
+        scoreboardService = new ScoreboardService(this, playerProfileManager, companionService, getConfig().getInt("scoreboard.update-interval-ticks", 20));
         scoreboardService.startTask();
         playtimeTracker = new PlaytimeTracker(this, playerProfileManager);
         playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
@@ -185,7 +186,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         DialogueEngine dialogueEngine = new DialogueEngine();
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine);
-        companionService = new CompanionService(this);
         npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine, partyManager));
         npcBehaviorRegistry.register(new BlacksmithBehavior(blacksmithGUI, craftingGUI, playerProfileManager, dialogueEngine));
@@ -259,12 +259,71 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> event.registrar().register(name, adapter));
     }
 
-    public static PixelRPGPlugin getInstance() { return instance; }
-    public LanguageManager getLanguageManager() { return languageManager; }
-    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
-    public StatEngine getStatEngine() { return statEngine; }
-    public ProfessionSystem getProfessionSystem() { return professionSystem; }
-    public NpcManager getNpcManager() { return npcManager; }
-    public QuestManager getQuestManager() { return questManager; }
-    public CompanionService getCompanionService() { return companionService; }
+    public static PixelRPGPlugin getInstance() {
+        return instance;
+    }
+
+    public PlayerProfileManager getPlayerProfileManager() {
+        return playerProfileManager;
+    }
+
+    public StatEngine getStatEngine() {
+        return statEngine;
+    }
+
+    public ProfessionSystem getProfessionSystem() {
+        return professionSystem;
+    }
+
+    public ItemService getItemService() {
+        return itemService;
+    }
+
+    public EquipmentService getEquipmentService() {
+        return equipmentService;
+    }
+
+    public NpcManager getNpcManager() {
+        return npcManager;
+    }
+
+    public ShopManager getShopManager() {
+        return shopManager;
+    }
+
+    public StoryManager getStoryManager() {
+        return storyManager;
+    }
+
+    public PartyManager getPartyManager() {
+        return partyManager;
+    }
+
+    public QuestManager getQuestManager() {
+        return questManager;
+    }
+
+    public GlobalEventState getGlobalEventState() {
+        return globalEventState;
+    }
+
+    public BossManager getBossManager() {
+        return bossManager;
+    }
+
+    public StatisticsService getStatisticsService() {
+        return statisticsService;
+    }
+
+    public ScoreboardService getScoreboardService() {
+        return scoreboardService;
+    }
+
+    public PlaytimeTracker getPlaytimeTracker() {
+        return playtimeTracker;
+    }
+
+    public LanguageManager getLanguageManager() {
+        return languageManager;
+    }
 }
