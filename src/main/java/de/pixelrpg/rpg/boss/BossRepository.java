@@ -10,7 +10,7 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -92,7 +92,7 @@ public final class BossRepository {
     }
 
     private void validateBiomeUniqueness() {
-        Map<Biome, String> seen = new EnumMap<>(Biome.class);
+        Map<Biome, String> seen = new HashMap<>();
         for (BossDefinition definition : new ArrayList<>(definitionsById.values())) {
             if (definition.getKind() != BossKind.BIOME || definition.getBiome() == null) continue;
             String previous = seen.putIfAbsent(definition.getBiome(), definition.getId());
