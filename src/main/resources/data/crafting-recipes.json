@@ -1,0 +1,52 @@
+{
+  "recipes": [
+    {
+      "id": "blacksmith:iron_golem_spawn_egg",
+      "label": "Eisengolem-Spawnei",
+      "profession": "BLACKSMITH",
+      "result": "IRON_GOLEM_SPAWN_EGG",
+      "resultAmount": 1,
+      "rarity": "EPIC",
+      "costs": {
+        "STICK": 1,
+        "IRON_INGOT": 1,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2500,
+      "unlockedByDefault": false
+    },
+    {
+      "id": "alchemist:experimental_reagent",
+      "label": "Experimentelles Reagenz",
+      "profession": "ALCHEMIST",
+      "result": "GHAST_TEAR",
+      "resultAmount": 1,
+      "rarity": "EPIC",
+      "costs": {
+        "GLASS_BOTTLE": 1,
+        "BLAZE_POWDER": 2,
+        "GLOWSTONE_DUST": 4
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 1800,
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:knowledge_fragment",
+      "label": "Wissensfragment",
+      "profession": "SCHOLAR",
+      "result": "EXPERIENCE_BOTTLE",
+      "resultAmount": 1,
+      "rarity": "RARE",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 4,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 1500,
+      "unlockedByDefault": false
+    }
+  ]
+}
