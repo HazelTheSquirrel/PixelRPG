@@ -39,6 +39,7 @@ public final class TradeDepotManager {
     private final ItemAPI itemAPI;
     private final File file;
     private final Map<UUID, TradeDepotListing> listings = new ConcurrentHashMap<>();
+    private final Map<UUID, Double> pendingPayouts = new ConcurrentHashMap<>();
 
     public TradeDepotManager(JavaPlugin plugin, PlayerProfileManager profileManager, BankStorageService bankStorage,
                              DialogueEngine dialogueEngine) {
@@ -61,8 +62,23 @@ public final class TradeDepotManager {
     }
 
     public void open(Player player) {
+        claimPendingPayout(player);
         expireListings();
         new TradeDepotGUI(player, this, profileManager).open(player);
+    }
+
+    public void claimPendingPayout(Player player) {
+        UUID uuid = player.getUniqueId();
+        Double amount = pendingPayouts.remove(uuid);
+        if (amount == null || amount <= 0.0) return;
+        PlayerProfile profile = profileManager.getProfile(uuid).orElse(null);
+        if (profile == null) {
+            pendingPayouts.merge(uuid, amount, Double::sum);
+            return;
+        }
+        profile.addMoney(amount);
+        save();
+        player.sendMessage(Component.text("Dir wurden " + format(amount) + " Gold aus Verkäufen gutgeschrieben.", NamedTextColor.GOLD));
     }
 
     public void openSellDialog(Player player) {
@@ -119,9 +135,8 @@ public final class TradeDepotManager {
         }
 
         PlayerProfile buyerProfile = profileManager.getProfile(buyer.getUniqueId()).orElse(null);
-        PlayerProfile sellerProfile = profileManager.getProfile(listing.sellerId()).orElse(null);
-        if (buyerProfile == null || sellerProfile == null) {
-            buyer.sendMessage(Component.text("Das Angebot kann momentan nicht abgeschlossen werden.", NamedTextColor.RED));
+        if (buyerProfile == null) {
+            buyer.sendMessage(Component.text("Dein Spielerprofil konnte nicht geladen werden.", NamedTextColor.RED));
             return false;
         }
         if (!canFit(buyer, listing.item())) {
@@ -135,7 +150,10 @@ public final class TradeDepotManager {
 
         listings.remove(listingId);
         double sellerAmount = listing.price() * (1.0D - SALE_FEE);
-        sellerProfile.addMoney(sellerAmount);
+        PlayerProfile sellerProfile = profileManager.getProfile(listing.sellerId()).orElse(null);
+        if (sellerProfile != null) sellerProfile.addMoney(sellerAmount);
+        else pendingPayouts.merge(listing.sellerId(), sellerAmount, Double::sum);
+
         buyer.getInventory().addItem(listing.itemCopy());
         save();
         buyer.sendMessage(Component.text("Gekauft für " + format(listing.price()) + " Gold.", NamedTextColor.GREEN));
@@ -188,24 +206,37 @@ public final class TradeDepotManager {
 
     private void load() {
         listings.clear();
+        pendingPayouts.clear();
         if (!file.exists()) return;
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         var root = yaml.getConfigurationSection("listings");
-        if (root == null) return;
-        for (String key : root.getKeys(false)) {
-            try {
-                UUID id = UUID.fromString(key);
-                UUID seller = UUID.fromString(root.getString(key + ".seller"));
-                double price = root.getDouble(key + ".price");
-                long expires = root.getLong(key + ".expires");
-                String encoded = root.getString(key + ".item");
-                if (encoded == null) continue;
-                ItemStack item = ItemStack.deserializeBytes(Base64.getDecoder().decode(encoded));
-                if (!item.isEmpty() && isTradeableRpgItem(item)) {
-                    listings.put(id, new TradeDepotListing(id, seller, item, price, expires));
+        if (root != null) {
+            for (String key : root.getKeys(false)) {
+                try {
+                    UUID id = UUID.fromString(key);
+                    UUID seller = UUID.fromString(root.getString(key + ".seller"));
+                    double price = root.getDouble(key + ".price");
+                    long expires = root.getLong(key + ".expires");
+                    String encoded = root.getString(key + ".item");
+                    if (encoded == null) continue;
+                    ItemStack item = ItemStack.deserializeBytes(Base64.getDecoder().decode(encoded));
+                    if (!item.isEmpty() && isTradeableRpgItem(item)) {
+                        listings.put(id, new TradeDepotListing(id, seller, item, price, expires));
+                    }
+                } catch (Exception exception) {
+                    plugin.getLogger().log(Level.WARNING, "Ignoring invalid trade depot listing " + key, exception);
                 }
-            } catch (Exception exception) {
-                plugin.getLogger().log(Level.WARNING, "Ignoring invalid trade depot listing " + key, exception);
+            }
+        }
+        var payouts = yaml.getConfigurationSection("pending-payouts");
+        if (payouts != null) {
+            for (String key : payouts.getKeys(false)) {
+                try {
+                    double amount = payouts.getDouble(key, 0.0);
+                    if (amount > 0.0) pendingPayouts.put(UUID.fromString(key), amount);
+                } catch (IllegalArgumentException ignored) {
+                    plugin.getLogger().warning("Ignoring invalid pending trade payout " + key);
+                }
             }
         }
     }
@@ -218,6 +249,9 @@ public final class TradeDepotManager {
             yaml.set(path + ".price", listing.price());
             yaml.set(path + ".expires", listing.expiresAtMillis());
             yaml.set(path + ".item", Base64.getEncoder().encodeToString(listing.item().serializeAsBytes()));
+        }
+        for (Map.Entry<UUID, Double> payout : pendingPayouts.entrySet()) {
+            yaml.set("pending-payouts." + payout.getKey(), payout.getValue());
         }
         try {
             yaml.save(file);
