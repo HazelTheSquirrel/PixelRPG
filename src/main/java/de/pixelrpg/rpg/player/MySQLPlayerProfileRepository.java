@@ -45,7 +45,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) return null;
                 PlayerProfile profile = new PlayerProfile(uuid);
-                profile.setRegisteredInGuild(resultSet.getBoolean("registered"));
+                profile.setRegistered(resultSet.getBoolean("registered"));
                 profile.setExperience(resultSet.getLong("experience"));
                 profile.setMoney(resultSet.getDouble("money"));
                 profile.setUnlockedWaypoints(splitCsv(resultSet.getString("waypoints")));
@@ -128,7 +128,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
             try {
                 try (PreparedStatement statement = connection.prepareStatement(upsertPlayerSql)) {
                     statement.setString(1, profile.getUuid().toString());
-                    statement.setBoolean(2, profile.isRegisteredInGuild());
+                    statement.setBoolean(2, profile.isRegistered());
                     statement.setLong(3, profile.getExperience());
                     statement.setDouble(4, profile.getMoney());
                     statement.setString(5, String.join(",", profile.getUnlockedWaypoints()));
