@@ -8,7 +8,6 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import javax.sql.DataSource;
 
 public final class DatabaseManager {
@@ -80,7 +79,7 @@ public final class DatabaseManager {
                     PRIMARY KEY (uuid, slot)
                 )
                 """;
-        try (Connection connection = dataSource.getDataSource().getConnection(); Statement statement = connection.createStatement()) {
+        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
             statement.executeUpdate(playersSql);
             migrateLegacyPlayerColumns(connection);
             statement.executeUpdate(activeQuestsSql);
