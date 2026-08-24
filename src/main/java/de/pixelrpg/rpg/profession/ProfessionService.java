@@ -9,37 +9,20 @@ import org.bukkit.entity.Player;
 import java.util.Optional;
 import java.util.UUID;
 
-/** Handles profession learning, recipe purchases, XP and level progression. */
+/** Handles profession learning, recipe unlocking, XP and level progression. */
 public final class ProfessionService {
     private final PlayerProfileManager profileManager;
 
-    public ProfessionService(PlayerProfileManager profileManager) {
-        this.profileManager = profileManager;
-    }
+    public ProfessionService(PlayerProfileManager profileManager) { this.profileManager = profileManager; }
 
-    public long getExperience(UUID uuid, Profession profession) {
-        return profileManager.getProfile(uuid).map(profile -> profile.getProfessionExperience(profession)).orElse(0L);
-    }
-
-    public int getLevel(UUID uuid, Profession profession) {
-        return profileManager.getProfile(uuid).map(profile -> profile.getProfessionLevel(profession)).orElse(Profession.MIN_LEVEL);
-    }
-
-    public boolean hasLearned(UUID uuid, Profession profession) {
-        return profileManager.getProfile(uuid).map(profile -> profile.hasLearnedProfession(profession)).orElse(false);
-    }
-
-    public boolean hasRecipe(UUID uuid, String recipeId) {
-        return profileManager.getProfile(uuid).map(profile -> profile.hasUnlockedRecipe(recipeId)).orElse(false);
-    }
-
-    public long recipePrice(CraftRecipe recipe) {
-        return Math.max(25L, recipe.requiredProfessionLevel() * 20L + recipe.craftSeconds() * 10L);
-    }
+    public long getExperience(UUID uuid, Profession profession) { return profileManager.getProfile(uuid).map(profile -> profile.getProfessionExperience(profession)).orElse(0L); }
+    public int getLevel(UUID uuid, Profession profession) { return profileManager.getProfile(uuid).map(profile -> profile.getProfessionLevel(profession)).orElse(Profession.MIN_LEVEL); }
+    public boolean hasLearned(UUID uuid, Profession profession) { return profileManager.getProfile(uuid).map(profile -> profile.hasLearnedProfession(profession)).orElse(false); }
+    public boolean hasRecipe(UUID uuid, String recipeId) { return profileManager.getProfile(uuid).map(profile -> profile.hasUnlockedRecipe(recipeId)).orElse(false); }
 
     public boolean learn(Player player, Profession profession) {
         Optional<PlayerProfile> optional = profileManager.getProfile(player.getUniqueId());
-        if (optional.isEmpty() || !optional.get().isRegisteredInGuild()) return false;
+        if (optional.isEmpty() || !optional.get().isRegistered()) return false;
         PlayerProfile profile = optional.get();
         if (profile.hasLearnedProfession(profession)) return false;
         profile.learnProfession(profession);
@@ -48,18 +31,26 @@ public final class ProfessionService {
         return true;
     }
 
-    public PurchaseResult buyRecipe(Player player, CraftRecipe recipe) {
+    public UnlockResult unlockRecipe(Player player, CraftRecipe recipe) {
         Optional<PlayerProfile> optional = profileManager.getProfile(player.getUniqueId());
-        if (optional.isEmpty() || !optional.get().isRegisteredInGuild()) return PurchaseResult.failure("Du bist noch nicht registriert.");
+        if (optional.isEmpty() || !optional.get().isRegistered()) return UnlockResult.failure("Du bist noch nicht registriert.");
         PlayerProfile profile = optional.get();
-        if (!profile.hasLearnedProfession(recipe.profession())) return PurchaseResult.failure("Du musst diesen Beruf zuerst erlernen.");
-        if (profile.hasUnlockedRecipe(recipe.id())) return PurchaseResult.failure("Rezept bereits erlernt.");
-        if (profile.getProfessionLevel(recipe.profession()) < recipe.requiredProfessionLevel()) return PurchaseResult.failure("Dein Berufslevel ist noch nicht hoch genug.");
-        long price = recipePrice(recipe);
-        if (!profile.removeMoney(price)) return PurchaseResult.failure("Du hast nicht genug Gold. Benötigt: " + price + " Gold.");
-        profile.unlockRecipe(recipe.id());
-        profileManager.saveProfileAsync(player.getUniqueId());
-        return PurchaseResult.success(price);
+        if (!profile.hasLearnedProfession(recipe.profession())) return UnlockResult.failure("Du musst diesen Beruf zuerst erlernen.");
+        if (profile.getProfessionLevel(recipe.profession()) < recipe.requiredProfessionLevel()) return UnlockResult.failure("Dein Berufslevel ist noch nicht hoch genug.");
+        if (recipe.unlockedByDefault() || profile.hasUnlockedRecipe(recipe.id())) return UnlockResult.success(0L);
+
+        if (!recipe.requiredQuestId().isBlank() && profile.hasCompletedQuest(recipe.requiredQuestId())) {
+            profile.unlockRecipe(recipe.id());
+            profileManager.saveProfileAsync(player.getUniqueId());
+            return UnlockResult.success(0L);
+        }
+        if (recipe.unlockPrice() > 0L && profile.removeMoney(recipe.unlockPrice())) {
+            profile.unlockRecipe(recipe.id());
+            profileManager.saveProfileAsync(player.getUniqueId());
+            return UnlockResult.success(recipe.unlockPrice());
+        }
+        if (!recipe.requiredQuestId().isBlank()) return UnlockResult.failure("Benötigt Quest: " + recipe.requiredQuestId());
+        return UnlockResult.failure("Benötigt: " + recipe.unlockPrice() + " Gold.");
     }
 
     public long experienceToNextLevel(UUID uuid, Profession profession) {
@@ -73,8 +64,7 @@ public final class ProfessionService {
         Optional<PlayerProfile> optional = profileManager.getProfile(player.getUniqueId());
         if (optional.isEmpty()) return;
         PlayerProfile profile = optional.get();
-        if (!profile.isRegisteredInGuild() || !profile.hasLearnedProfession(profession)) return;
-
+        if (!profile.isRegistered() || !profile.hasLearnedProfession(profession)) return;
         int before = profile.getProfessionLevel(profession);
         long oldExperience = profile.getProfessionExperience(profession);
         profile.addProfessionExperience(profession, amount);
@@ -108,8 +98,8 @@ public final class ProfessionService {
         return low;
     }
 
-    public record PurchaseResult(boolean success, String message, long price) {
-        public static PurchaseResult success(long price) { return new PurchaseResult(true, "Rezept gekauft.", price); }
-        public static PurchaseResult failure(String message) { return new PurchaseResult(false, message, 0L); }
+    public record UnlockResult(boolean success, String message, long pricePaid) {
+        public static UnlockResult success(long pricePaid) { return new UnlockResult(true, "Rezept freigeschaltet.", pricePaid); }
+        public static UnlockResult failure(String message) { return new UnlockResult(false, message, 0L); }
     }
 }
