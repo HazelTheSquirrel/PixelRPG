@@ -12,7 +12,6 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,7 +39,7 @@ public final class StatEngine {
 
     public void recalculate(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegisteredInGuild()) {
+        if (profile == null || !profile.isRegistered()) {
             clear(player);
             return;
         }
@@ -63,23 +62,10 @@ public final class StatEngine {
         double lifestealBonus = itemLifesteal;
         double attackPower = itemDamage;
 
-        CachedStats stats = new CachedStats(
-                maxHealth,
-                armor,
-                movementSpeedBonus,
-                blockReach,
-                entityReach,
-                bonusDamage,
-                Math.min(MAX_CRIT_CHANCE, Math.max(0.0D, critChance)),
+        CachedStats stats = new CachedStats(maxHealth, armor, movementSpeedBonus, blockReach, entityReach,
+                bonusDamage, Math.min(MAX_CRIT_CHANCE, Math.max(0.0D, critChance)),
                 Math.min(MAX_CRIT_DAMAGE_MULTIPLIER, Math.max(1.0D, critDamageMultiplier)),
-                Math.max(0.0D, lifestealBonus),
-                0.0,
-                0.0,
-                0.0,
-                0.0,
-                attackPower,
-                0.0
-        );
+                Math.max(0.0D, lifestealBonus), 0.0, 0.0, 0.0, 0.0, attackPower, 0.0);
         cache.put(player.getUniqueId(), stats);
 
         applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), maxHealth - 20.0);
