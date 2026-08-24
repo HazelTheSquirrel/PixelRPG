@@ -655,18 +655,89 @@ Attack Power
 
 ---
 
-# 09 – Crafting — 🟡 IN ARBEIT
+# 09 – Crafting — 🟢 98 % ABGESCHLOSSEN
 
-- [ ] Recipe Registry
-- [ ] Crafting Service
-- [ ] Crafting Definitions
-- [ ] Crafted Item Factory
-- [ ] Berufsanforderungen
-- [ ] Rezeptfreischaltungen
-- [ ] Dialogue-Crafting
-- [ ] Crafting GUI
-- [ ] Blacksmith GUI
-- [ ] möglichst breite Abdeckung der Minecraft-Herstellungsarten, sinnvoll auf die vier Berufe verteilt
+> Das Crafting-System ist im aktuellen `main` entsprechend der gemeinsam festgelegten Regeln umgesetzt. Vanilla-Rezepte haben Vorrang; PixelRPG ergänzt fehlende Herstellungsrezepte über eigene Definitionen. Das bestehende Crafting-/Dialogue-System wurde erweitert statt durch ein paralleles System ersetzt. Der CI-Build ist grün.
+
+## Rezeptmodell
+- [x] Recipe Registry
+- [x] eindeutige Recipe IDs
+- [x] Vanilla-Rezepte werden übernommen statt unnötig dupliziert
+- [x] PixelRPG-eigene Rezepte für Herstellungsfälle ohne passendes Vanilla-Rezept
+- [x] Crafting Definitions
+- [x] Zutaten-/Mengenprüfung
+- [x] frei definierbares Ergebnis-Item
+- [x] Ergebnis kann ein bestehendes Vanilla-Item oder PixelRPG-Item sein
+
+## Crafting Core
+- [x] Crafting Service
+- [x] Crafted Item Factory
+- [x] zentrale Zutatenprüfung
+- [x] Zutaten werden erst bei erfolgreichem Crafting abgezogen
+- [x] Ergebnis wird nach erfolgreicher Prüfung vergeben
+- [x] Crafting-Fehler lassen Zutaten unangetastet
+- [x] bestehende Item-Definitionen werden für PixelRPG-Ergebnisse verwendet
+
+## Professionen & Freischaltungen
+- [x] Berufsanforderungen
+- [x] Rezepte sind sinnvoll den vier Professionen zugeordnet
+- [x] BLACKSMITH
+- [x] PROVISIONER
+- [x] ALCHEMIST
+- [x] SCHOLAR
+- [x] Rezeptfreischaltungen über Quest und/oder Gold
+- [x] nicht freigeschaltete Rezepte können nicht hergestellt werden
+- [x] Berufszugang und Rezeptzugang werden getrennt behandelt
+
+## Dialogue & Zugriff
+- [x] Dialogue-Crafting
+- [x] NPC-Dialog bleibt ein Hauptzugang zum Crafting
+- [x] Crafting kann zusätzlich über bestehende Quick Actions (`G`) erreicht werden
+- [x] kein zwingender NPC-Dialog für jeden Crafting-Vorgang
+
+## Crafting GUI
+- [x] bestehendes Crafting-GUI-System beibehalten
+- [x] bestehendes System erweitert statt ersetzt
+- [x] Rezeptauswahl
+- [x] Zutatenanzeige
+- [x] Ergebnisanzeige
+- [x] Berufsanforderungen/Freischaltungsstatus werden berücksichtigt
+- [x] nach erfolgreichem „Herstellen“ bleibt die Crafting-GUI geöffnet
+- [x] direktes Weiter-Crafting ohne erneutes Öffnen möglich
+- [x] GUI-Zustand wird nach jedem Crafting aktualisiert
+- [x] Spieler verlässt die GUI nur über den vorgesehenen Zurück-/Schließen-Weg oder eine andere externe Interaktion
+
+## Blacksmith
+- [x] Blacksmith GUI
+- [x] bestehendes Blacksmith-/Profession-GUI-System erweitert
+- [x] Blacksmith-Rezepte werden innerhalb des bestehenden Systems angezeigt
+- [x] keine parallele Spezial-GUI-Architektur
+
+## Minecraft-Herstellungsarten
+- [x] möglichst breite Abdeckung sinnvoller Vanilla-Herstellungsarten
+- [x] Vanilla Crafting
+- [x] Smelting
+- [x] Blasting
+- [x] Smoking
+- [x] Campfire Cooking
+- [x] Stonecutting
+- [x] Herstellungsarten werden sinnvoll auf die vier Professionen verteilt
+- [x] keine blinde 1:1-Kopie aller Vanilla-Rezepte als PixelRPG-Content
+
+## Abschlusskriterien für 09
+- [x] Recipe Registry
+- [x] Crafting Service
+- [x] Crafting Definitions
+- [x] Crafted Item Factory
+- [x] Berufsanforderungen
+- [x] Rezeptfreischaltungen
+- [x] Dialogue-Crafting
+- [x] Crafting GUI
+- [x] Blacksmith GUI
+- [x] sinnvolle Abdeckung der Minecraft-Herstellungsarten
+- [x] Vanilla-/PixelRPG-Rezeptmodell
+- [x] Crafting bleibt nach erfolgreicher Herstellung geöffnet
+- [x] CI-Build grün
 
 ---
 
