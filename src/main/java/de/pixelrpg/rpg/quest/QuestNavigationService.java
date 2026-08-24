@@ -1,31 +1,41 @@
 package de.pixelrpg.rpg.quest;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Color;
 import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.CompassMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/** Maintains one Recovery Compass as the player's current quest direction helper. */
+/** Maintains one native Minecraft locator-bar waypoint per active quest. */
 public final class QuestNavigationService {
+    private static final List<Color> QUEST_COLORS = List.of(
+            Color.RED,
+            Color.BLUE,
+            Color.GREEN,
+            Color.YELLOW,
+            Color.FUCHSIA
+    );
+
     private final Plugin plugin;
     private final QuestRepository questRepository;
     private final PlayerProfileManager profileManager;
     private final NpcManager npcManager;
-    private final Map<UUID, String> currentTargets = new HashMap<>();
+    private final Map<UUID, Map<String, QuestMarker>> markersByPlayer = new HashMap<>();
 
     public QuestNavigationService(Plugin plugin, QuestRepository questRepository,
                                   PlayerProfileManager profileManager, NpcManager npcManager) {
@@ -35,120 +45,145 @@ public final class QuestNavigationService {
         this.npcManager = npcManager;
     }
 
-    /** Refreshes the single navigable quest target for one player. */
+    /** Refreshes every active quest's locator-bar target for one player. */
     public void refresh(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegisteredInGuild()) {
-            removeCompass(player);
+            clear(player);
             return;
         }
 
-        QuestTarget target = findFirstNavigableTarget(profile);
-        if (target == null) {
-            currentTargets.remove(player.getUniqueId());
-            removeCompass(player);
-            return;
-        }
-
-        String targetKey = target.quest().id() + "@" + locationKey(target.location());
-        if (!targetKey.equals(currentTargets.get(player.getUniqueId()))) {
-            currentTargets.put(player.getUniqueId(), targetKey);
-            player.sendActionBar(Component.text("Navigation: ", NamedTextColor.WHITE)
-                    .append(Component.text(target.quest().title(), NamedTextColor.YELLOW)));
-        }
-        updateCompass(player, target.quest(), target.location());
-    }
-
-    public void clear(Player player) {
-        currentTargets.remove(player.getUniqueId());
-        removeCompass(player);
-    }
-
-    private QuestTarget findFirstNavigableTarget(PlayerProfile profile) {
+        Map<String, QuestMarker> currentMarkers = markersByPlayer.computeIfAbsent(player.getUniqueId(), ignored -> new HashMap<>());
+        List<QuestProgressEntry> entries = new ArrayList<>();
         for (QuestProgress progress : profile.getActiveQuests().values()) {
             Quest quest = questRepository.getQuest(progress.getQuestId());
-            if (quest == null || progress.getCurrentAmount() >= quest.requiredAmount()) continue;
-
-            Location location = switch (quest.type()) {
-                case REACH_LOCATION -> resolveReachLocation(quest);
-                case ESCORT -> resolveEscortLocation(quest);
-                case TALK_TO_NPC -> npcManager.getById(quest.targetKey()).map(npc -> npc.location()).orElse(null);
-                default -> null;
-            };
-            if (location != null && location.getWorld() != null) return new QuestTarget(quest, location);
+            if (quest != null) entries.add(new QuestProgressEntry(quest, progress));
         }
-        return null;
+        entries.sort(java.util.Comparator.comparing(entry -> entry.quest().id()));
+
+        for (int index = 0; index < entries.size() && index < 5; index++) {
+            QuestProgressEntry entry = entries.get(index);
+            Location target = resolveTarget(player.getLocation(), entry.quest(), entry.progress());
+            if (target == null || target.getWorld() == null) {
+                removeMarker(currentMarkers, entry.quest().id());
+                continue;
+            }
+
+            QuestMarker marker = currentMarkers.get(entry.quest().id());
+            if (marker == null || !marker.entity().isValid()) {
+                marker = createMarker(player, entry.quest().id(), index, target);
+                if (marker == null) continue;
+                currentMarkers.put(entry.quest().id(), marker);
+            } else if (!sameLocation(marker.entity().getLocation(), target)) {
+                marker.entity().teleport(target);
+            }
+            marker.entity().setWaypointColor(QUEST_COLORS.get(index));
+            marker.entity().setWaypointStyle(Key.key("minecraft:default"));
+        }
+
+        currentMarkers.keySet().removeIf(id -> entries.stream().noneMatch(entry -> entry.quest().id().equals(id)) || entries.stream().map(QuestProgressEntry::quest).limit(5).noneMatch(quest -> quest.id().equals(id)));
     }
 
-    private Location resolveReachLocation(Quest quest) {
-        if (quest.reachLocation() != null) return quest.reachLocation();
-        return resolveNpcTarget(quest.targetKey());
+    /** Removes all quest waypoints and any legacy PixelRPG quest compass from one player. */
+    public void clear(Player player) {
+        Map<String, QuestMarker> markers = markersByPlayer.remove(player.getUniqueId());
+        if (markers != null) markers.values().forEach(marker -> marker.entity().remove());
+        removeLegacyCompass(player);
     }
 
-    private Location resolveEscortLocation(Quest quest) {
-        if (quest.escortDestination() != null) return quest.escortDestination();
-        return resolveNpcTarget(quest.targetKey());
+    public void clearAll() {
+        for (Map<String, QuestMarker> markers : markersByPlayer.values()) markers.values().forEach(marker -> marker.entity().remove());
+        markersByPlayer.clear();
     }
 
-    private Location resolveNpcTarget(String targetKey) {
+    private QuestMarker createMarker(Player player, String questId, int index, Location target) {
+        ArmorStand marker = target.getWorld().spawn(target, ArmorStand.class, stand -> {
+            stand.setInvisible(true);
+            stand.setMarker(true);
+            stand.setGravity(false);
+            stand.setInvulnerable(true);
+            stand.setSilent(true);
+            stand.setPersistent(false);
+            stand.setVisibleByDefault(false);
+            stand.setWaypointColor(QUEST_COLORS.get(index));
+            stand.setWaypointStyle(Key.key("minecraft:default"));
+            stand.getPersistentDataContainer().set(RPGKeys.Quest.navigationCompass(), PersistentDataType.BYTE, (byte) 1);
+        });
+        player.showEntity(plugin, marker);
+        return new QuestMarker(marker);
+    }
+
+    private Location resolveTarget(Location origin, Quest quest, QuestProgress progress) {
+        if (progress.getCurrentAmount() >= quest.requiredAmount()) return resolveQuestGiver(quest);
+
+        return switch (quest.type()) {
+            case TALK_TO_NPC -> resolveNpc(quest.targetKey());
+            case HUNT, COLLECT, REACH_LOCATION -> resolveWorldTarget(origin, quest);
+            case GLOBAL_EVENT -> null;
+        };
+    }
+
+    private Location resolveQuestGiver(Quest quest) {
+        return quest.questGiverNpcId() == null || quest.questGiverNpcId().isBlank()
+                ? null
+                : npcManager.getById(quest.questGiverNpcId()).map(npc -> npc.location()).orElse(null);
+    }
+
+    private Location resolveNpc(String targetKey) {
         if (targetKey == null || targetKey.isBlank()) return null;
-        String id = targetKey;
-        if (targetKey.regionMatches(true, 0, "npc:", 0, 4) || targetKey.regionMatches(true, 0, "village:", 0, 8)) {
-            id = targetKey.substring(targetKey.indexOf(':') + 1);
-        }
-        return npcManager.getById(id).map(npc -> npc.location()).orElse(null);
+        return npcManager.getById(targetKey).map(npc -> npc.location()).orElse(null);
     }
 
-    private void updateCompass(Player player, Quest quest, Location target) {
-        ItemStack compass = findCompass(player);
-        if (compass == null) {
-            compass = new ItemStack(Material.RECOVERY_COMPASS);
-            Map<Integer, ItemStack> leftovers = player.getInventory().addItem(compass);
-            if (!leftovers.isEmpty()) {
-                player.sendActionBar(Component.text("Kein Platz für den Quest-Kompass.", NamedTextColor.RED));
-                return;
-            }
-            compass = findCompass(player);
-            if (compass == null) return;
-        }
-
-        ItemMeta rawMeta = compass.getItemMeta();
-        if (!(rawMeta instanceof CompassMeta meta)) return;
-        meta.setLodestone(target.clone());
-        meta.setLodestoneTracked(false);
-        meta.displayName(Component.text("Quest-Navigation", NamedTextColor.WHITE));
-        meta.lore(java.util.List.of(
-                Component.text(quest.title(), NamedTextColor.YELLOW),
-                Component.text("Richtung zum aktuellen Questziel", NamedTextColor.WHITE)
-        ));
-        meta.getPersistentDataContainer().set(RPGKeys.Quest.navigationCompass(), PersistentDataType.BYTE, (byte) 1);
-        compass.setItemMeta(meta);
-    }
-
-    private ItemStack findCompass(Player player) {
-        for (ItemStack item : player.getInventory().getContents()) {
-            if (item == null || item.getType() != Material.RECOVERY_COMPASS) continue;
-            ItemMeta meta = item.getItemMeta();
-            if (meta != null && meta.getPersistentDataContainer().has(RPGKeys.Quest.navigationCompass(), PersistentDataType.BYTE)) {
-                return item;
+    private Location resolveWorldTarget(Location origin, Quest quest) {
+        if (quest.targetStructureKey() != null && !quest.targetStructureKey().isBlank()) {
+            var registry = io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(io.papermc.paper.registry.RegistryKey.STRUCTURE);
+            var key = org.bukkit.NamespacedKey.fromString(quest.targetStructureKey());
+            if (key != null) {
+                var structure = registry.get(key);
+                if (structure != null) {
+                    var result = origin.getWorld().locateNearestStructure(origin, structure, quest.navigationRadius(), false);
+                    if (result != null) return result.getLocation();
+                }
             }
         }
-        return null;
+
+        if (!quest.targetBiomeKeys().isEmpty()) {
+            var registry = io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(io.papermc.paper.registry.RegistryKey.BIOME);
+            var biomes = quest.targetBiomeKeys().stream()
+                    .map(org.bukkit.NamespacedKey::fromString)
+                    .filter(java.util.Objects::nonNull)
+                    .map(registry::get)
+                    .filter(java.util.Objects::nonNull)
+                    .toArray(org.bukkit.block.Biome[]::new);
+            if (biomes.length > 0) {
+                var result = origin.getWorld().locateNearestBiome(origin, quest.navigationRadius(), biomes);
+                if (result != null) return result.getLocation();
+            }
+        }
+
+        return quest.reachLocation();
     }
 
-    private void removeCompass(Player player) {
-        for (ItemStack item : player.getInventory().getContents()) {
-            if (item == null || item.getType() != Material.RECOVERY_COMPASS) continue;
-            ItemMeta meta = item.getItemMeta();
-            if (meta == null || !meta.getPersistentDataContainer().has(RPGKeys.Quest.navigationCompass(), PersistentDataType.BYTE)) continue;
-            item.setAmount(0);
+    private void removeMarker(Map<String, QuestMarker> markers, String questId) {
+        QuestMarker marker = markers.remove(questId);
+        if (marker != null) marker.entity().remove();
+    }
+
+    private boolean sameLocation(Location first, Location second) {
+        return first.getWorld().equals(second.getWorld())
+                && first.getBlockX() == second.getBlockX()
+                && first.getBlockY() == second.getBlockY()
+                && first.getBlockZ() == second.getBlockZ();
+    }
+
+    private void removeLegacyCompass(Player player) {
+        for (var item : player.getInventory().getContents()) {
+            if (item == null || item.getType() != org.bukkit.Material.RECOVERY_COMPASS) continue;
+            var meta = item.getItemMeta();
+            if (meta != null && meta.getPersistentDataContainer().has(RPGKeys.Quest.navigationCompass(), PersistentDataType.BYTE)) item.setAmount(0);
         }
     }
 
-    private String locationKey(Location location) {
-        return location.getWorld().getName() + ":" + location.getBlockX() + ":" + location.getBlockY() + ":" + location.getBlockZ();
-    }
-
-    private record QuestTarget(Quest quest, Location location) {
-    }
+    private record QuestMarker(ArmorStand entity) { }
+    private record QuestProgressEntry(Quest quest, QuestProgress progress) { }
 }
