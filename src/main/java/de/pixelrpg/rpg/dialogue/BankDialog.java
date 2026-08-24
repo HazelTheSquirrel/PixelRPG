@@ -5,6 +5,7 @@ import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.trade.TradeDepotManager;
 import io.papermc.paper.dialog.DialogResponseView;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
@@ -18,17 +19,20 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native bank dialog with account management and a persistent personal bank compartment. */
+/** Native bank dialog with account management, personal storage and Handelsdepot access. */
 public final class BankDialog {
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
     private final BankStorageService bankStorage;
+    private final TradeDepotManager tradeDepot;
     private final LanguageManager lang;
 
-    public BankDialog(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, BankStorageService bankStorage) {
+    public BankDialog(PlayerProfileManager profileManager, DialogueEngine dialogueEngine,
+                      BankStorageService bankStorage, TradeDepotManager tradeDepot) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.bankStorage = bankStorage;
+        this.tradeDepot = tradeDepot;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
@@ -43,7 +47,7 @@ public final class BankDialog {
                 DialogBody.plainMessage(Component.text("Kontostand: ", NamedTextColor.GRAY)
                         .append(Component.text(format(profile.getMoney()) + " Gold", NamedTextColor.GOLD))),
                 DialogBody.plainMessage(Component.text(
-                        "Dein persönliches Bankfach besitzt zwei Seiten und bleibt dauerhaft erhalten.",
+                        "Dein persönliches Bankfach bleibt dauerhaft erhalten. Abgelaufene Handelsware landet im Fach Handelsware.",
                         NamedTextColor.WHITE))
         );
 
@@ -51,6 +55,7 @@ public final class BankDialog {
         actions.add(dialogueEngine.actionButton(Component.text("Einzahlen"), NamedTextColor.GREEN, this::openDepositSelector));
         actions.add(dialogueEngine.actionButton(Component.text("Auszahlen"), NamedTextColor.YELLOW, this::openWithdrawSelector));
         actions.add(dialogueEngine.actionButton(Component.text("Bankfach öffnen"), NamedTextColor.AQUA, this::openBankCompartment));
+        actions.add(dialogueEngine.actionButton(Component.text("Handelsdepot"), NamedTextColor.GOLD, tradeDepot::open));
 
         dialogueEngine.openMultiAction(player, Component.text("Bank", NamedTextColor.GOLD), body, actions, 2);
     }
