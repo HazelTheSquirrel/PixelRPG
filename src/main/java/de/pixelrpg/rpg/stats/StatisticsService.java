@@ -10,9 +10,11 @@ import java.util.UUID;
 public final class StatisticsService implements StatisticsAPI {
 
     private final PlayerProfileManager profileManager;
+    private final StatEngine statEngine;
 
-    public StatisticsService(PlayerProfileManager profileManager) {
+    public StatisticsService(PlayerProfileManager profileManager, StatEngine statEngine) {
         this.profileManager = profileManager;
+        this.statEngine = statEngine;
     }
 
     @Override
@@ -36,5 +38,10 @@ public final class StatisticsService implements StatisticsAPI {
             profile.incrementStatistic(key, amount);
             profileManager.saveProfileAsync(uuid);
         });
+    }
+
+    @Override
+    public double getCharacterStat(UUID uuid, CharacterStatType type) {
+        return statEngine.getCharacterStat(uuid, type);
     }
 }
