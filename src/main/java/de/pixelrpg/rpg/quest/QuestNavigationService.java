@@ -4,10 +4,10 @@ import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
@@ -22,6 +22,7 @@ import java.util.UUID;
 /** Maintains one native Minecraft locator-bar waypoint per active quest. */
 public final class QuestNavigationService {
     private static final List<Color> QUEST_COLORS = List.of(Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, Color.FUCHSIA);
+    private static final NamespacedKey DEFAULT_WAYPOINT_STYLE = NamespacedKey.minecraft("default");
 
     private final Plugin plugin;
     private final QuestRepository questRepository;
@@ -74,7 +75,7 @@ public final class QuestNavigationService {
                 marker.entity().teleport(target);
             }
             marker.entity().setWaypointColor(QUEST_COLORS.get(index));
-            marker.entity().setWaypointStyle(Key.key("minecraft:default"));
+            marker.entity().setWaypointStyle(DEFAULT_WAYPOINT_STYLE);
         }
 
         currentMarkers.keySet().removeIf(id -> {
@@ -117,7 +118,7 @@ public final class QuestNavigationService {
             stand.setPersistent(false);
             stand.setVisibleByDefault(false);
             stand.setWaypointColor(QUEST_COLORS.get(index));
-            stand.setWaypointStyle(Key.key("minecraft:default"));
+            stand.setWaypointStyle(DEFAULT_WAYPOINT_STYLE);
             stand.getPersistentDataContainer().set(RPGKeys.Quest.navigationCompass(), PersistentDataType.BYTE, (byte) 1);
         });
         player.showEntity(plugin, marker);
@@ -147,7 +148,7 @@ public final class QuestNavigationService {
     private Location resolveWorldTarget(Location origin, Quest quest) {
         if (quest.targetStructureKey() != null && !quest.targetStructureKey().isBlank()) {
             var registry = io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(io.papermc.paper.registry.RegistryKey.STRUCTURE);
-            var key = org.bukkit.NamespacedKey.fromString(quest.targetStructureKey());
+            var key = NamespacedKey.fromString(quest.targetStructureKey());
             if (key != null) {
                 var structure = registry.get(key);
                 if (structure != null) {
@@ -160,7 +161,7 @@ public final class QuestNavigationService {
         if (!quest.targetBiomeKeys().isEmpty()) {
             var registry = io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(io.papermc.paper.registry.RegistryKey.BIOME);
             var biomes = quest.targetBiomeKeys().stream()
-                    .map(org.bukkit.NamespacedKey::fromString)
+                    .map(NamespacedKey::fromString)
                     .filter(java.util.Objects::nonNull)
                     .map(registry::get)
                     .filter(java.util.Objects::nonNull)
@@ -170,7 +171,6 @@ public final class QuestNavigationService {
                 if (result != null) return result.getLocation();
             }
         }
-
         return quest.reachLocation();
     }
 
