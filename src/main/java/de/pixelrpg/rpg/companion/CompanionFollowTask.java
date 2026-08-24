@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.companion;
 
+import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.core.RPGKeys;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
@@ -90,7 +91,7 @@ public final class CompanionFollowTask implements Runnable {
     }
 
     private void updateRuntimeState(Player owner, LivingEntity entity, CompanionDefinition definition) {
-        int level = Math.max(1, entity.getPersistentDataContainer().getOrDefault(RPGKeys.Companion.level(), PersistentDataType.INTEGER, 1));
+        int level = resolveRuntimeLevel(owner, definition, entity);
         String rarity = entity.getPersistentDataContainer().getOrDefault(RPGKeys.Companion.rarity(), PersistentDataType.STRING, definition.rarity().name());
         int equipmentHash = equipmentHash(owner.getUniqueId(), definition.id());
         AppliedState current = appliedStates.get(entity.getUniqueId());
@@ -105,6 +106,19 @@ public final class CompanionFollowTask implements Runnable {
         statsCalculator.apply(stats, entity);
         applyScale(entity, definition.visual().scale());
         appliedStates.put(entity.getUniqueId(), new AppliedState(level, rarity, equipmentHash, base.baseHealth(), base.baseDamage(), base.baseSpeed()));
+    }
+
+    private int resolveRuntimeLevel(Player owner, CompanionDefinition definition, LivingEntity entity) {
+        if (definition.rarity().isUnique()) {
+            return Math.max(1, Math.min(definition.progression().maxLevel(), entity.getPersistentDataContainer()
+                    .getOrDefault(RPGKeys.Companion.level(), PersistentDataType.INTEGER, 1)));
+        }
+
+        GuildAPI guildApi = plugin.getServer().getServicesManager().load(GuildAPI.class);
+        int ownerLevel = guildApi == null ? 1 : guildApi.getLevel(owner.getUniqueId());
+        int level = Math.max(1, Math.min(99, ownerLevel));
+        entity.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, level);
+        return level;
     }
 
     private int equipmentHash(UUID ownerUuid, String companionId) {
