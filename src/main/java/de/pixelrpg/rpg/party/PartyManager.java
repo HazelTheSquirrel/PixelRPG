@@ -5,14 +5,15 @@ import de.pixelrpg.rpg.api.PartyAPI;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -20,6 +21,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class PartyManager implements PartyAPI {
+    public static final int MAX_MEMBERS = Party.MAX_MEMBERS;
     public static final long INVITE_TIMEOUT_MILLIS = 60_000L;
     public static final long EMPTY_CLEANUP_MILLIS = 30L * 60L * 1_000L;
     private static final double SHARE_RANGE = 50.0D;
@@ -57,8 +59,7 @@ public final class PartyManager implements PartyAPI {
 
     public boolean addInvite(UUID target, UUID leader) {
         Party party = getParty(leader).orElse(null);
-        if (party == null || !party.isLeader(leader) || party.isFull() || party.isMember(target)) return false;
-        if (getParty(target).isPresent()) return false;
+        if (party == null || !party.isLeader(leader) || party.isFull() || party.isMember(target) || getParty(target).isPresent()) return false;
         pendingInvites.put(target, new PendingInvite(leader, System.currentTimeMillis() + INVITE_TIMEOUT_MILLIS));
         return true;
     }
@@ -91,7 +92,7 @@ public final class PartyManager implements PartyAPI {
 
     public boolean transferLeadership(Player leader, UUID target) {
         Party party = getParty(leader.getUniqueId()).orElse(null);
-        if (party == null || !party.isLeader(leader.getUniqueId()) || !party.isMember(target)) return false;
+        if (party == null || !party.isLeader(leader.getUniqueId()) || !party.isMember(target) || leader.getUniqueId().equals(target)) return false;
         party.setLeader(target);
         save();
         Player targetPlayer = Bukkit.getPlayer(target);
@@ -144,18 +145,15 @@ public final class PartyManager implements PartyAPI {
         save();
     }
 
+    /** Handles a disconnect without removing the offline member from the persistent party. */
     public void handleDisconnect(UUID uuid) {
         pendingInvites.entrySet().removeIf(entry -> entry.getKey().equals(uuid) || entry.getValue().leader.equals(uuid));
         Party party = getParty(uuid).orElse(null);
-        if (party == null) return;
-        boolean wasLeader = party.isLeader(uuid);
-        party.removeMember(uuid);
-        partyIdByMember.remove(uuid);
-        if (party.isEmpty()) {
+        if (party != null && party.getMembers().stream().noneMatch(member -> {
+            Player player = Bukkit.getPlayer(member);
+            return player != null && player.isOnline();
+        })) {
             emptySince.putIfAbsent(party.getId(), System.currentTimeMillis());
-        } else if (wasLeader) {
-            UUID newLeader = party.promoteNextLeader();
-            if (newLeader != null) notifyLeader(newLeader);
         }
         save();
     }
@@ -211,9 +209,8 @@ public final class PartyManager implements PartyAPI {
                 UUID leader = UUID.fromString(config.getString("parties." + id + ".leader", ""));
                 Set<UUID> members = new java.util.LinkedHashSet<>();
                 for (String member : config.getStringList("parties." + id + ".members")) members.add(UUID.fromString(member));
-                if (members.isEmpty() || !members.contains(leader)) continue;
+                if (members.isEmpty() || !members.contains(leader) || members.size() > Party.MAX_MEMBERS) continue;
                 Party party = new Party(id, leader, members);
-                if (party.getMembers().size() > Party.MAX_MEMBERS) continue;
                 partiesById.put(id, party);
                 for (UUID member : party.getMembers()) partyIdByMember.put(member, id);
             } catch (IllegalArgumentException ignored) {
