@@ -27,8 +27,11 @@ public final class RPGKeys {
         public static NamespacedKey itemLevel() { return of("item_level"); }
         public static NamespacedKey bonusDamage() { return of("item_bonus_damage"); }
         public static NamespacedKey critChance() { return of("item_crit_chance"); }
+        public static NamespacedKey critDamage() { return of("item_crit_damage"); }
         public static NamespacedKey armorValue() { return of("item_armor_value"); }
         public static NamespacedKey healthBonus() { return of("item_health_bonus"); }
+        public static NamespacedKey movementSpeed() { return of("item_movement_speed"); }
+        public static NamespacedKey reachBonus() { return of("item_reach_bonus"); }
         public static NamespacedKey toolBonus() { return of("item_tool_bonus"); }
         public static NamespacedKey lifestealPercent() { return of("item_lifesteal_percent"); }
         public static NamespacedKey soulbound() { return of("item_soulbound"); }
