@@ -90,10 +90,7 @@ public final class CombatDamageListener implements Listener {
             var pdc = weapon.getItemMeta().getPersistentDataContainer();
             Integer itemLevel = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
             boolean levelRequirementMet = itemLevel == null || profile.getLevel() >= itemLevel;
-            if (levelRequirementMet) {
-                weaponLifesteal += pdc.getOrDefault(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, 0.0);
-                damage += pdc.getOrDefault(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, 0.0);
-            }
+            if (levelRequirementMet) weaponLifesteal += pdc.getOrDefault(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, 0.0);
         }
 
         double totalCritChance = Math.min(MAX_CRIT_CHANCE, Math.max(0.0D, stats.critChance() + companionCritChance));
@@ -139,7 +136,7 @@ public final class CombatDamageListener implements Listener {
         if (guildAPI.isRegistered(player.getUniqueId())) return;
         event.setCancelled(true);
         for (var nearby : monster.getNearbyEntities(16, 8, 16)) {
-            if (nearby instanceof Player guildPlayer && guildAPI.isRegistered(guildPlayer.getUniqueId())) { monster.setTarget(guildPlayer); break; }
+            if (nearby instanceof Player rpgPlayer && guildAPI.isRegistered(rpgPlayer.getUniqueId())) { monster.setTarget(rpgPlayer); break; }
         }
     }
 
