@@ -14,22 +14,19 @@ public final class ReceptionBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
     private final PartyManager partyManager;
-    private final GuildManager guildManager;
 
-    public ReceptionBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, PartyManager partyManager, GuildManager guildManager) {
+    public ReceptionBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, PartyManager partyManager) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.partyManager = partyManager;
-        this.guildManager = guildManager;
     }
 
     @Override
-    public NpcType type() {
-        return NpcType.RECEPTION;
-    }
+    public NpcType type() { return NpcType.RECEPTION; }
 
     @Override
     public void onInteract(Player player, RPGNpc npc) {
+        GuildManager guildManager = GuildManager.getInstance(de.pixelrpg.rpg.PixelRPGPlugin.getInstance(), profileManager);
         new ReceptionDialog(player, profileManager, dialogueEngine, partyManager, guildManager).open();
     }
 }
