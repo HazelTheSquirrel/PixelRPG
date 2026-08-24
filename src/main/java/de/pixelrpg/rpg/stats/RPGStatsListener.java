@@ -1,8 +1,8 @@
 package de.pixelrpg.rpg.stats;
 
-import de.pixelrpg.rpg.api.events.PlayerJoinGuildEvent;
-import de.pixelrpg.rpg.api.events.PlayerLeaveGuildEvent;
 import de.pixelrpg.rpg.api.events.PlayerLevelUpEvent;
+import de.pixelrpg.rpg.api.events.PlayerRegistrationEvent;
+import de.pixelrpg.rpg.api.events.PlayerUnregistrationEvent;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import org.bukkit.entity.Player;
@@ -29,13 +29,13 @@ public final class RPGStatsListener implements Listener {
 
     // Aktiviert die RPG-Stats unmittelbar nach erfolgreicher PixelRPG-Registrierung.
     @EventHandler
-    public void onGuildJoin(PlayerJoinGuildEvent event) {
+    public void onRegistration(PlayerRegistrationEvent event) {
         statEngine.recalculate(event.getPlayer());
     }
 
-    // Entfernt RPG-Stat-Modifikatoren unmittelbar nach dem Verlassen von PixelRPG.
+    // Entfernt RPG-Stat-Modifikatoren unmittelbar nach der Abmeldung von PixelRPG.
     @EventHandler
-    public void onGuildLeave(PlayerLeaveGuildEvent event) {
+    public void onUnregistration(PlayerUnregistrationEvent event) {
         statEngine.clear(event.getPlayer());
     }
 
