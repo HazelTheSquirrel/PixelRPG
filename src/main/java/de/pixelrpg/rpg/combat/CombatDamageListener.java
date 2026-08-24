@@ -4,7 +4,6 @@ import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.core.RPGKeys;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
@@ -34,7 +33,6 @@ public final class CombatDamageListener implements Listener {
     private final GuildAPI guildAPI;
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
-    private final LanguageManager languageManager;
     private final CombatStateService combatStateService;
     private final double bossMaxHitPercentOfMaxHp;
 
@@ -42,7 +40,6 @@ public final class CombatDamageListener implements Listener {
         this.guildAPI = guildAPI;
         this.profileManager = profileManager;
         this.statEngine = statEngine;
-        this.languageManager = PixelRPGPlugin.getInstance().getLanguageManager();
         this.combatStateService = new CombatStateService(PixelRPGPlugin.getInstance(), guildAPI);
         this.bossMaxHitPercentOfMaxHp = PixelRPGPlugin.getInstance().getConfig()
                 .getDouble("combat.boss-max-hit-percent-of-max-hp", 0.12D);
@@ -117,7 +114,6 @@ public final class CombatDamageListener implements Listener {
         attacker.sendActionBar(feedback);
 
         if (critical) {
-            attacker.sendActionBar(languageManager.get("combat.critical-hit"));
             target.getWorld().spawnParticle(Particle.CRIT, target.getLocation().add(0.0D, 1.0D, 0.0D), 12, 0.3D, 0.3D, 0.3D);
             attacker.playSound(attacker.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.6F, 1.4F);
         }
