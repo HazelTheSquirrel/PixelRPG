@@ -18,10 +18,18 @@ public record Quest(
         int durationMinutes,
         List<String> rewardItemMaterials,
         String rewardCompanionId,
-        Location escortDestination,
-        Location reachLocation,
-        double reachRadius
+        String questGiverNpcId,
+        String targetStructureKey,
+        List<String> targetBiomeKeys,
+        int navigationRadius,
+        boolean findUnexploredStructure,
+        Location reachLocation
 ) {
+
+    public Quest {
+        rewardItemMaterials = rewardItemMaterials == null ? List.of() : List.copyOf(rewardItemMaterials);
+        targetBiomeKeys = targetBiomeKeys == null ? List.of() : List.copyOf(targetBiomeKeys);
+    }
 
     public boolean hasTimeLimit() {
         return durationMinutes > 0;
@@ -29,5 +37,9 @@ public record Quest(
 
     public boolean rewardsCompanion() {
         return rewardCompanionId != null && !rewardCompanionId.isBlank();
+    }
+
+    public boolean hasNavigationTarget() {
+        return (targetStructureKey != null && !targetStructureKey.isBlank()) || !targetBiomeKeys.isEmpty() || reachLocation != null;
     }
 }
