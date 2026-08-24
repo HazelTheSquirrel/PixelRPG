@@ -14,7 +14,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.UUID;
 
-/** Handles navigation and persistence for the personal bank and Handelsware inventory. */
+/** Handles navigation and persistence for the personal bank and dedicated Handelsware inventory. */
 public final class BankInventoryListener implements Listener {
     private static final int BACK_SLOT = 45;
     private static final int NEXT_SLOT = 53;
@@ -57,10 +57,10 @@ public final class BankInventoryListener implements Listener {
         ItemStack[] contents = storage.load(playerId);
         BankInventoryHolder holder = new BankInventoryHolder(playerId, page);
         String title = page == BankStorageService.TRADE_GOODS_PAGE
-                ? "Bankfach – Handelsware"
+                ? "Handelsfach"
                 : "Bankfach – Seite " + (page + 1);
         var inventory = Bukkit.createInventory(holder, BankStorageService.PAGE_SIZE,
-                Component.text(title, NamedTextColor.GOLD));
+                Component.text(title, NamedTextColor.BLACK));
         holder.inventory(inventory);
 
         int offset = page * BankStorageService.PAGE_SIZE;
