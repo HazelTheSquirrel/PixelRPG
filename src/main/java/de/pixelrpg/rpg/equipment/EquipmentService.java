@@ -27,11 +27,13 @@ public final class EquipmentService implements Listener {
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
     private final ItemService itemService;
+    private final EquipmentSetService equipmentSetService;
 
     public EquipmentService(PlayerProfileManager profileManager, StatEngine statEngine, ItemService itemService) {
         this.profileManager = profileManager;
         this.statEngine = statEngine;
         this.itemService = itemService;
+        this.equipmentSetService = new EquipmentSetService(de.pixelrpg.rpg.PixelRPGPlugin.getInstance());
     }
 
     public Map<EquipmentSlot, ItemStack> snapshot(Player player) {
@@ -90,11 +92,15 @@ public final class EquipmentService implements Listener {
             inventory.setBoots(copy(stored.get(EquipmentSlot.FEET)));
             inventory.setItemInMainHand(copy(stored.get(EquipmentSlot.MAINHAND)));
             inventory.setItemInOffHand(copy(stored.get(EquipmentSlot.OFFHAND)));
-            statEngine.recalculate(player);
+            refresh(player);
         });
     }
 
     public void refresh(Player player) {
+        int playerLevel = profileManager.getProfile(player.getUniqueId())
+                .map(profile -> profile.getLevel())
+                .orElse(1);
+        equipmentSetService.applyArmorTrims(player, Math.clamp(playerLevel, 1, 99));
         statEngine.recalculate(player);
         syncToProfile(player);
     }
