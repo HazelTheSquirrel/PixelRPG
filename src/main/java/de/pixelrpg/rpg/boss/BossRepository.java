@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.boss;
 
 import de.pixelrpg.rpg.item.ItemRarity;
+import org.bukkit.block.Biome;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
@@ -29,22 +30,27 @@ public final class BossRepository {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection root = yaml.getConfigurationSection("bosses");
         if (root == null) return;
+
         for (String id : root.getKeys(false)) {
             ConfigurationSection section = root.getConfigurationSection(id);
             if (section == null) continue;
+
             BossDefinition definition = new BossDefinition(id, section.getString("name", id));
+            definition.setKind(parseKind(section.getString("kind", "BIOME")));
             definition.setBaseEntityType(parseEntityType(section.getString("base-entity", "ZOMBIE")));
+            definition.setBiome(parseBiome(section.getString("biome")));
             definition.setLevel(section.getInt("level", 30));
             definition.setHealthMultiplier(section.getDouble("health-multiplier", 4.0));
             definition.setDamageMultiplier(section.getDouble("damage-multiplier", 1.5));
             definition.setScaleMultiplier(section.getDouble("scale-multiplier", 1.35));
+            definition.setAttackIntervalTicks(section.getInt("attack-interval-ticks", 100));
+            definition.setAttackPatternIds(section.getStringList("attack-patterns"));
 
             List<BossPhase> phases = new ArrayList<>();
             for (Map<?, ?> phaseMap : section.getMapList("phases")) {
                 double threshold = toDouble(phaseMap.get("health-percent"));
-                int interval = toInt(phaseMap.get("attack-interval-ticks"));
-                Object announceRaw = phaseMap.get("announcement");
-                String announce = announceRaw != null ? String.valueOf(announceRaw) : "";
+                int interval = toInt(phaseMap.get("attack-interval-ticks"), definition.getAttackIntervalTicks());
+                String announce = String.valueOf(phaseMap.getOrDefault("announcement", ""));
                 List<String> patterns = new ArrayList<>();
                 Object patternsRaw = phaseMap.get("patterns");
                 if (patternsRaw instanceof List<?> rawList) {
@@ -57,14 +63,34 @@ public final class BossRepository {
 
             ConfigurationSection lootSection = section.getConfigurationSection("loot");
             if (lootSection != null) {
+                List<BossLootEntry> chanceDrops = new ArrayList<>();
+                for (Map<?, ?> entry : lootSection.getMapList("chance-drops")) {
+                    String material = String.valueOf(entry.getOrDefault("material", ""));
+                    if (material.isBlank()) continue;
+                    double chance = toDouble(entry.get("chance-percent"));
+                    ItemRarity rarity = parseRarity(String.valueOf(entry.getOrDefault("rarity", "RARE")));
+                    chanceDrops.add(new BossLootEntry(material, chance, rarity));
+                }
                 definition.setLootConfig(new BossLootConfig(
-                        lootSection.getStringList("materials"),
-                        parseRarity(lootSection.getString("guaranteed-rarity", "LEGENDARY")),
-                        lootSection.getDouble("money", 500.0),
-                        lootSection.getLong("exp", 1000L)));
+                        lootSection.getStringList("guaranteed"),
+                        chanceDrops,
+                        lootSection.getDouble("money", 0.0D),
+                        lootSection.getLong("exp", 0L)));
+            }
+
+            if (definition.getKind() == BossKind.BIOME && definition.getBiome() == null) {
+                plugin.getLogger().warning("Ignoring biome boss without biome: " + id);
+                continue;
+            }
+            if (definition.getKind() == BossKind.WORLD_EVENT) definition.setBiome(null);
+            if (definition.getKind() == BossKind.BIOME && !definition.getPhases().isEmpty()) {
+                plugin.getLogger().warning("Ignoring phases for biome boss: " + id);
+                definition.setPhases(List.of());
             }
             definitionsById.put(id, definition);
         }
+
+        validateBiomeUniqueness();
     }
 
     public BossDefinition get(String id) {
@@ -75,74 +101,94 @@ public final class BossRepository {
         return new ArrayList<>(definitionsById.values());
     }
 
-    public BossDefinition getForEntityType(EntityType entityType) {
+    public List<BossDefinition> getWorldBosses() {
+        return definitionsById.values().stream().filter(definition -> definition.getKind() == BossKind.WORLD_EVENT).toList();
+    }
+
+    public BossDefinition getBiomeBoss(Biome biome) {
         return definitionsById.values().stream()
-                .filter(definition -> definition.getBaseEntityType() == entityType)
+                .filter(definition -> definition.getKind() == BossKind.BIOME && definition.getBiome() == biome)
                 .findFirst()
                 .orElse(null);
+    }
+
+    private void validateBiomeUniqueness() {
+        Map<Biome, String> seen = new java.util.EnumMap<>(Biome.class);
+        for (BossDefinition definition : new ArrayList<>(definitionsById.values())) {
+            if (definition.getKind() != BossKind.BIOME || definition.getBiome() == null) continue;
+            String previous = seen.putIfAbsent(definition.getBiome(), definition.getId());
+            if (previous != null) {
+                definitionsById.remove(definition.getId());
+                plugin.getLogger().warning("Ignoring duplicate biome boss " + definition.getId() + " for biome " + definition.getBiome() + "; already used by " + previous + ".");
+            }
+        }
     }
 
     private void createDefaultBosses() {
         YamlConfiguration yaml = new YamlConfiguration();
 
-        yaml.set("bosses.forest_tyrant.name", "Forest Tyrant");
-        yaml.set("bosses.forest_tyrant.base-entity", "ZOMBIE");
-        yaml.set("bosses.forest_tyrant.level", 30);
-        yaml.set("bosses.forest_tyrant.health-multiplier", 4.0);
-        yaml.set("bosses.forest_tyrant.damage-multiplier", 1.5);
-        yaml.set("bosses.forest_tyrant.scale-multiplier", 1.35);
-        yaml.set("bosses.forest_tyrant.phases", List.of(
-                Map.of("health-percent", 100.0, "attack-interval-ticks", 140, "patterns", List.of("SLAM"), "announcement", ""),
-                Map.of("health-percent", 66.0, "attack-interval-ticks", 120, "patterns", List.of("SLAM", "SUMMON_ADDS"), "announcement", ""),
-                Map.of("health-percent", 33.0, "attack-interval-ticks", 100, "patterns", List.of("ENRAGE_BUFF", "PROJECTILE_VOLLEY"), "announcement", "")));
-        yaml.set("bosses.forest_tyrant.loot.materials", List.of("DIAMOND_SWORD", "DIAMOND_CHESTPLATE", "SHIELD"));
-        yaml.set("bosses.forest_tyrant.loot.guaranteed-rarity", "LEGENDARY");
-        yaml.set("bosses.forest_tyrant.loot.money", 500.0);
-        yaml.set("bosses.forest_tyrant.loot.exp", 1200);
+        setBase(yaml, "grove_warden", "Grove Warden", "BIOME", "ZOMBIE", "PLAINS", 18, 5.0, 1.8, 1.25, 110, List.of("SLAM"));
+        yaml.set("bosses.grove_warden.loot.guaranteed", List.of("IRON_INGOT"));
+        yaml.set("bosses.grove_warden.loot.chance-drops", List.of(
+                Map.of("material", "DIAMOND", "chance-percent", 8.0, "rarity", "RARE")));
+        yaml.set("bosses.grove_warden.loot.money", 150.0);
+        yaml.set("bosses.grove_warden.loot.exp", 350L);
 
-        yaml.set("bosses.frost_sovereign.name", "Frost Sovereign");
-        yaml.set("bosses.frost_sovereign.base-entity", "STRAY");
-        yaml.set("bosses.frost_sovereign.level", 60);
-        yaml.set("bosses.frost_sovereign.health-multiplier", 5.0);
-        yaml.set("bosses.frost_sovereign.damage-multiplier", 1.7);
-        yaml.set("bosses.frost_sovereign.scale-multiplier", 1.40);
-        yaml.set("bosses.frost_sovereign.phases", List.of(
-                Map.of("health-percent", 100.0, "attack-interval-ticks", 130, "patterns", List.of("PROJECTILE_VOLLEY"), "announcement", ""),
-                Map.of("health-percent", 50.0, "attack-interval-ticks", 110, "patterns", List.of("PROJECTILE_VOLLEY", "SUMMON_ADDS"), "announcement", ""),
-                Map.of("health-percent", 20.0, "attack-interval-ticks", 90, "patterns", List.of("ENRAGE_BUFF", "SLAM"), "announcement", "")));
-        yaml.set("bosses.frost_sovereign.loot.materials", List.of("NETHERITE_SWORD", "DIAMOND_HELMET", "BOW"));
-        yaml.set("bosses.frost_sovereign.loot.guaranteed-rarity", "LEGENDARY");
-        yaml.set("bosses.frost_sovereign.loot.money", 800.0);
-        yaml.set("bosses.frost_sovereign.loot.exp", 2000);
+        setBase(yaml, "dune_stalker", "Dune Stalker", "BIOME", "HUSK", "DESERT", 28, 7.0, 2.0, 1.30, 100, List.of("PROJECTILE_VOLLEY", "SLAM"));
+        yaml.set("bosses.dune_stalker.loot.guaranteed", List.of("GOLD_INGOT"));
+        yaml.set("bosses.dune_stalker.loot.chance-drops", List.of(
+                Map.of("material", "DIAMOND", "chance-percent", 10.0, "rarity", "EPIC")));
+        yaml.set("bosses.dune_stalker.loot.money", 300.0);
+        yaml.set("bosses.dune_stalker.loot.exp", 650L);
 
-        yaml.set("bosses.void_reaper.name", "Void Reaper");
-        yaml.set("bosses.void_reaper.base-entity", "WITHER_SKELETON");
-        yaml.set("bosses.void_reaper.level", 99);
-        yaml.set("bosses.void_reaper.health-multiplier", 6.0);
-        yaml.set("bosses.void_reaper.damage-multiplier", 2.0);
-        yaml.set("bosses.void_reaper.scale-multiplier", 1.45);
-        yaml.set("bosses.void_reaper.phases", List.of(
-                Map.of("health-percent", 100.0, "attack-interval-ticks", 120, "patterns", List.of("SLAM", "SUMMON_ADDS"), "announcement", ""),
-                Map.of("health-percent", 60.0, "attack-interval-ticks", 100, "patterns", List.of("PROJECTILE_VOLLEY", "SUMMON_ADDS"), "announcement", ""),
-                Map.of("health-percent", 25.0, "attack-interval-ticks", 80, "patterns", List.of("ENRAGE_BUFF", "SLAM", "PROJECTILE_VOLLEY"), "announcement", "")));
-        yaml.set("bosses.void_reaper.loot.materials", List.of("NETHERITE_SWORD", "NETHERITE_CHESTPLATE", "TRIDENT"));
-        yaml.set("bosses.void_reaper.loot.guaranteed-rarity", "LEGENDARY");
-        yaml.set("bosses.void_reaper.loot.money", 1500.0);
-        yaml.set("bosses.void_reaper.loot.exp", 4000);
+        setBase(yaml, "frostfang", "Frostfang", "BIOME", "STRAY", "SNOWY_PLAINS", 42, 10.0, 2.2, 1.35, 90, List.of("PROJECTILE_VOLLEY", "SLAM"));
+        yaml.set("bosses.frostfang.loot.guaranteed", List.of("DIAMOND"));
+        yaml.set("bosses.frostfang.loot.chance-drops", List.of(
+                Map.of("material", "NETHERITE_SCRAP", "chance-percent", 6.0, "rarity", "LEGENDARY")));
+        yaml.set("bosses.frostfang.loot.money", 600.0);
+        yaml.set("bosses.frostfang.loot.exp", 1200L);
+
+        setBase(yaml, "rift_colossus", "Rift Colossus", "WORLD_EVENT", "RAVAGER", null, 80, 35.0, 5.0, 1.75, 100, List.of());
+        yaml.set("bosses.rift_colossus.phases", List.of(
+                Map.of("health-percent", 100.0, "attack-interval-ticks", 120, "patterns", List.of("SLAM", "PROJECTILE_VOLLEY"), "announcement", "The Rift Colossus has awakened."),
+                Map.of("health-percent", 66.0, "attack-interval-ticks", 95, "patterns", List.of("SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "announcement", "The Rift tears open around the Colossus."),
+                Map.of("health-percent", 33.0, "attack-interval-ticks", 70, "patterns", List.of("ENRAGE_BUFF", "SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "announcement", "The Colossus enters its final rage.")));
+        yaml.set("bosses.rift_colossus.loot.guaranteed", List.of("NETHER_STAR"));
+        yaml.set("bosses.rift_colossus.loot.chance-drops", List.of(
+                Map.of("material", "NETHERITE_INGOT", "chance-percent", 15.0, "rarity", "LEGENDARY"),
+                Map.of("material", "DIAMOND_BLOCK", "chance-percent", 25.0, "rarity", "EPIC")));
+        yaml.set("bosses.rift_colossus.loot.money", 2500.0);
+        yaml.set("bosses.rift_colossus.loot.exp", 6000L);
 
         try {
+            file.getParentFile().mkdirs();
             yaml.save(file);
         } catch (IOException e) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to create default bosses.yml", e);
         }
     }
 
-    private double toDouble(Object value) {
-        return value instanceof Number number ? number.doubleValue() : 0.0;
+    private void setBase(YamlConfiguration yaml, String id, String name, String kind, String entity, String biome,
+                         int level, double hp, double damage, double scale, int attackInterval, List<String> patterns) {
+        String path = "bosses." + id;
+        yaml.set(path + ".name", name);
+        yaml.set(path + ".kind", kind);
+        yaml.set(path + ".base-entity", entity);
+        if (biome != null) yaml.set(path + ".biome", biome);
+        yaml.set(path + ".level", level);
+        yaml.set(path + ".health-multiplier", hp);
+        yaml.set(path + ".damage-multiplier", damage);
+        yaml.set(path + ".scale-multiplier", scale);
+        yaml.set(path + ".attack-interval-ticks", attackInterval);
+        yaml.set(path + ".attack-patterns", patterns);
     }
 
-    private int toInt(Object value) {
-        return value instanceof Number number ? number.intValue() : 100;
+    private double toDouble(Object value) {
+        return value instanceof Number number ? number.doubleValue() : 0.0D;
+    }
+
+    private int toInt(Object value, int fallback) {
+        return value instanceof Number number ? number.intValue() : fallback;
     }
 
     private EntityType parseEntityType(String raw) {
@@ -153,11 +199,29 @@ public final class BossRepository {
         }
     }
 
+    private BossKind parseKind(String raw) {
+        try {
+            return BossKind.valueOf(raw.trim().toUpperCase());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return BossKind.BIOME;
+        }
+    }
+
+    private Biome parseBiome(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        try {
+            return Biome.valueOf(raw.trim().toUpperCase());
+        } catch (IllegalArgumentException ignored) {
+            plugin.getLogger().warning("Unknown boss biome: " + raw);
+            return null;
+        }
+    }
+
     private ItemRarity parseRarity(String raw) {
         try {
             return ItemRarity.valueOf(raw.trim().toUpperCase());
         } catch (IllegalArgumentException | NullPointerException e) {
-            return ItemRarity.LEGENDARY;
+            return ItemRarity.RARE;
         }
     }
 }
