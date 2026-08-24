@@ -4,10 +4,12 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import javax.sql.DataSource;
 
 public final class DatabaseManager {
     private HikariDataSource dataSource;
@@ -75,22 +77,26 @@ public final class DatabaseManager {
 
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
             statement.executeUpdate(playersSql);
-            migrateLegacyPlayerColumns(statement);
+            migrateLegacyPlayerColumns(connection);
             statement.executeUpdate(activeQuestsSql);
             statement.executeUpdate(statsSql);
         }
     }
 
-    private void migrateLegacyPlayerColumns(Statement statement) throws SQLException {
+    private void migrateLegacyPlayerColumns(Connection connection) throws SQLException {
         String[] legacyColumns = {
                 "player_class", "start_bonus", "attr_vitality", "attr_agility", "attr_precision",
                 "attr_range", "attr_toughness", "attr_soulview", "attr_elytra"
         };
+        DatabaseMetaData metadata = connection.getMetaData();
         for (String column : legacyColumns) {
-            try {
-                statement.executeUpdate("ALTER TABLE pixelrpg_players DROP COLUMN IF EXISTS " + column);
-            } catch (SQLException ignored) {
-                // Existing MySQL/MariaDB variants may not support IF EXISTS; the live schema remains usable.
+            boolean exists;
+            try (var result = metadata.getColumns(connection.getCatalog(), null, "pixelrpg_players", column)) {
+                exists = result.next();
+            }
+            if (!exists) continue;
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate("ALTER TABLE pixelrpg_players DROP COLUMN `" + column + "`");
             }
         }
     }
