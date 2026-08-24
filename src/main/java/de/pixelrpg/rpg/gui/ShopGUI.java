@@ -68,13 +68,13 @@ public final class ShopGUI extends AbstractGUI {
 
         if (event.isRightClick()) {
             if (!removeOneMatchingItem(viewer, entry.item())) {
-                lang.send(viewer, "shop.no-item-to-sell");
+                viewer.sendMessage(Component.text("Du hast dieses Item nicht im Inventar.", NamedTextColor.RED));
                 return;
             }
             double payout = entry.price() * ADMIN_SELL_RATIO;
             profile.addMoney(payout);
             viewer.playSound(viewer.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 0.9f);
-            lang.send(viewer, "shop.sold", "price", format(payout));
+            viewer.sendMessage(Component.text("Item für " + format(payout) + " Gold verkauft.", NamedTextColor.GREEN));
             return;
         }
 
@@ -90,14 +90,15 @@ public final class ShopGUI extends AbstractGUI {
     }
 
     private boolean removeOneMatchingItem(Player player, ItemStack template) {
-        for (int slot = 0; slot < player.getInventory().getStorageContents().length; slot++) {
-            ItemStack current = player.getInventory().getStorageContents()[slot];
+        ItemStack[] contents = player.getInventory().getStorageContents();
+        for (int slot = 0; slot < contents.length; slot++) {
+            ItemStack current = contents[slot];
             if (current == null || current.isEmpty() || !current.isSimilar(template)) continue;
-            current = current.clone();
             if (current.getAmount() == 1) player.getInventory().setItem(slot, null);
             else {
-                current.setAmount(current.getAmount() - 1);
-                player.getInventory().setItem(slot, current);
+                ItemStack updated = current.clone();
+                updated.setAmount(updated.getAmount() - 1);
+                player.getInventory().setItem(slot, updated);
             }
             return true;
         }
