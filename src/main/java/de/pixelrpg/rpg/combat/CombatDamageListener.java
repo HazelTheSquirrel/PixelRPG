@@ -27,6 +27,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class CombatDamageListener implements Listener {
     private static final double MAX_CRIT_CHANCE = 100.0D;
+    private static final double BASE_CRIT_DAMAGE = 2.0D;
 
     private final GuildAPI guildAPI;
     private final PlayerProfileManager profileManager;
@@ -92,8 +93,7 @@ public final class CombatDamageListener implements Listener {
                 : CombatDamageCalculator.rawPlayerDamage(event.getDamage(), stats);
         double totalCritChance = Math.clamp(stats.critChance() + companionCritChance, 0.0D, MAX_CRIT_CHANCE);
         boolean critical = ThreadLocalRandom.current().nextDouble(100.0D) < totalCritChance;
-        double damage = CombatDamageCalculator.crit(rawDamage, critical + companionCritDamage > 0.0D && critical);
-        if (critical && companionCritDamage > 0.0D) damage += rawDamage * companionCritDamage;
+        double damage = critical ? rawDamage * (BASE_CRIT_DAMAGE + Math.max(0.0D, companionCritDamage)) : rawDamage;
 
         double targetArmor = getArmor(target);
         double finalDamage = CombatDamageCalculator.mitigate(damage, targetArmor);
