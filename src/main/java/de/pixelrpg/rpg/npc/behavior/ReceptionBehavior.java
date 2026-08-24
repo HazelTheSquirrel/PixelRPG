@@ -5,16 +5,19 @@ import de.pixelrpg.rpg.dialogue.ReceptionDialog;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
+import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.entity.Player;
 
 public final class ReceptionBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
+    private final PartyManager partyManager;
 
-    public ReceptionBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
+    public ReceptionBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, PartyManager partyManager) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
+        this.partyManager = partyManager;
     }
 
     @Override
@@ -24,6 +27,6 @@ public final class ReceptionBehavior implements NpcBehavior {
 
     @Override
     public void onInteract(Player player, RPGNpc npc) {
-        new ReceptionDialog(player, profileManager, dialogueEngine).open();
+        new ReceptionDialog(player, profileManager, dialogueEngine, partyManager).open();
     }
 }
