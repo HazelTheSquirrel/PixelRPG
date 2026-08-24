@@ -110,10 +110,18 @@ public final class QuestRepository {
                     plugin.getLogger().warning("Ignoring quest '" + id + "': HUNT target must be a valid vanilla entity type.");
                     return false;
                 }
+                if (!hasWorldNavigation(object(json, "navigation"))) {
+                    plugin.getLogger().warning("Ignoring quest '" + id + "': HUNT requires a vanilla biome or structure navigation target.");
+                    return false;
+                }
             }
             case COLLECT -> {
                 if (!isVanillaMaterial(string(json, "targetKey", ""))) {
                     plugin.getLogger().warning("Ignoring quest '" + id + "': COLLECT target must be a valid vanilla material.");
+                    return false;
+                }
+                if (!hasWorldNavigation(object(json, "navigation"))) {
+                    plugin.getLogger().warning("Ignoring quest '" + id + "': COLLECT requires a vanilla biome or structure navigation target.");
                     return false;
                 }
             }
@@ -121,8 +129,7 @@ public final class QuestRepository {
                 if (string(json, "targetKey", "").isBlank()) return false;
             }
             case REACH_LOCATION -> {
-                JsonObject navigation = object(json, "navigation");
-                if (navigation == null || (string(navigation, "structure", "").isBlank() && stringList(navigation, "biomes").isEmpty())) {
+                if (!hasWorldNavigation(object(json, "navigation"))) {
                     plugin.getLogger().warning("Ignoring quest '" + id + "': REACH_LOCATION requires a vanilla structure or biome navigation target.");
                     return false;
                 }
@@ -133,6 +140,11 @@ public final class QuestRepository {
         }
 
         return true;
+    }
+
+    private boolean hasWorldNavigation(JsonObject navigation) {
+        return navigation != null
+                && (!string(navigation, "structure", "").isBlank() || !stringList(navigation, "biomes").isEmpty());
     }
 
     private boolean isVanillaMaterial(String key) {
@@ -167,13 +179,11 @@ public final class QuestRepository {
 
     private void validateReferences() {
         for (Map.Entry<String, List<String>> entry : prerequisitesByQuest.entrySet()) {
-            entry.getValue().stream()
-                    .filter(id -> !questsById.containsKey(id))
+            entry.getValue().stream().filter(id -> !questsById.containsKey(id))
                     .forEach(id -> plugin.getLogger().warning("Quest '" + entry.getKey() + "' references unknown prerequisite '" + id + "'."));
         }
         for (Map.Entry<String, List<String>> entry : followUpsByQuest.entrySet()) {
-            entry.getValue().stream()
-                    .filter(id -> !questsById.containsKey(id))
+            entry.getValue().stream().filter(id -> !questsById.containsKey(id))
                     .forEach(id -> plugin.getLogger().warning("Quest '" + entry.getKey() + "' references unknown follow-up quest '" + id + "'."));
         }
     }
