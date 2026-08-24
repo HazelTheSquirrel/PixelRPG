@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class GuildCurrencyItemFactory {
-
     private static int maxStackSize = 64;
 
     private GuildCurrencyItemFactory() {
@@ -31,10 +30,10 @@ public final class GuildCurrencyItemFactory {
         ItemMeta meta = item.getItemMeta();
 
         LanguageManager lang = PixelRPGPlugin.getInstance().getLanguageManager();
-        meta.displayName(Component.text("Guild Coin", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(Component.text("Goldtaler", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(
-                Component.text("1 Coin = 1 Gold", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false),
-                Component.text("Pick up to deposit automatically.", NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false)
+                Component.text("1 Goldtaler = 1 Gold", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false),
+                Component.text("In der Bank einzahlen oder bei Tod verlieren.", NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false)
         ));
         meta.getPersistentDataContainer().set(RPGKeys.Economy.guildGold(), PersistentDataType.DOUBLE, 1.0);
         item.setItemMeta(meta);
@@ -53,16 +52,13 @@ public final class GuildCurrencyItemFactory {
     }
 
     public static boolean isCurrency(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) {
-            return false;
-        }
-        return item.getItemMeta().getPersistentDataContainer().has(RPGKeys.Economy.guildGold(), PersistentDataType.DOUBLE);
+        if (item == null || !item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer()
+                .has(RPGKeys.Economy.guildGold(), PersistentDataType.DOUBLE);
     }
 
     public static double readAmount(ItemStack item) {
-        if (!isCurrency(item)) {
-            return 0.0;
-        }
+        if (!isCurrency(item)) return 0.0;
         return item.getItemMeta().getPersistentDataContainer()
                 .getOrDefault(RPGKeys.Economy.guildGold(), PersistentDataType.DOUBLE, 1.0);
     }
