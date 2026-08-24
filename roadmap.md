@@ -327,56 +327,21 @@ Attack Power
 ---
 
 # 11 – Economy / Gold — 🟢 98 % ABGESCHLOSSEN
-
-> Das Economy-/Gold-System ist im aktuellen `main` entsprechend der verbindlich festgelegten Regeln umgesetzt. Wallet-Gold bleibt virtuell; die speziell markierte Sonnenblume dient als physischer Goldtaler. Das Handelsdepot ersetzt das klassische Auktionshaus-Konzept durch Festpreis-Angebote. Der CI-Build ist grün.
-
-## Gold / Wallet
 - [x] Goldtaler-Kontostand
-- [x] virtuelles Wallet-Guthaben
-- [x] Wallet API / Economy API
-- [x] Economy Persistence
-- [x] Gold kann von anderen Systemen unabhängig vergeben und abgezogen werden
-- [x] keine zusätzliche Währung
-- [x] Wallet-Gold bleibt beim Tod erhalten
-
-## Physischer Goldtaler
-- [x] speziell markierte PixelRPG-Sonnenblume als physischer Goldtaler
-- [x] normale Vanilla-Sonnenblumen sind keine Goldtaler
-- [x] Goldtaler können ins Wallet eingezahlt werden
-- [x] Wallet-Gold kann als physischer Goldtaler ausgezahlt werden
-- [x] physisches Gold folgt den normalen Item-/Inventarregeln
-- [x] physisches Gold droppt beim Tod wie ein normales Item
-- [x] bestehende Goldtaler-Drops aus Mob-/Boss-Loot angebunden
-
-## Einnahmequellen
-- [x] Quests können Gold vergeben
-- [x] NPC-Aufträge können Gold vergeben
-- [x] Mobs können Gold vergeben
-- [x] Bosse können Gold vergeben
-- [x] Shops können Gold als Gegenleistung vergeben
-- [x] Economy-API bleibt unabhängig von der konkreten Einnahmequelle
-
-## Adminshop
-- [x] Adminshop als zentrale NPC-Shop-Grundlage
-- [x] Kaufen
-- [x] Verkaufen
-- [x] Preise werden durch den Adminshop vorgegeben
-- [x] keine automatischen Item-Buy-/Sell-Preisfelder als allgemeine Item-System-Regel
-- [x] bestehendes Shop-/Dialog-System weiterverwendet
-
-## Handelsdepot
-- [x] klassisches Auktionshaus-Konzept durch Handelsdepot ersetzt
-- [x] ausschließlich PixelRPG-Items handelbar
-- [x] Festpreis-Angebote statt Bietauktionen
-- [x] Verkäufer legt den gewünschten Verkaufspreis selbst fest
-- [x] Angebot kann vom Verkäufer zurückgenommen werden
-- [x] Laufzeit eines Angebots: 7 Tage
-- [x] erfolgreiche Verkäufe zahlen 95 % an den Verkäufer aus
-- [x] 5 % Verkaufsgebühr werden direkt von den Einnahmen abgezogen
-- [x] nicht verkaufte Items laufen nach 7 Tagen automatisch ab
-- [x] abgelaufene Items werden nicht gelöscht
-- [x] abgelaufene Items landen automatisch im Bankfach `Handelsware`
-- [x] Handelsware ist über das bestehende Bank-/Dialog-System abholbar
+- [x] Sonnenblume als speziell markierter physischer Goldtaler
+- [x] Vanilla-Sonnenblumen sind kein Goldtaler
+- [x] physisches Gold kann ins Wallet eingezahlt werden
+- [x] physisches Gold bleibt ein normales Item und kann bei Tod gedroppt werden
+- [x] Economy API unabhängig von der konkreten Goldquelle
+- [x] Mob-/Boss-Gold als mögliche Einnahmequelle
+- [x] Adminshop Kaufen / Verkaufen
+- [x] Handelsdepot statt klassischem Auktionshaus-Namen
+- [x] Handelsdepot ausschließlich für PixelRPG-Items
+- [x] Soulbound ist im Handelsdepot nicht erlaubt
+- [x] Festpreis-Angebote
+- [x] 5 % Verkaufsgebühr
+- [x] Angebote laufen nach 7 Tagen ab
+- [x] abgelaufene Ware wird über das Bankfach `Handelsware` zurückgegeben
 - [x] persistente offene Angebote und ausstehende Verkaufserlöse
 - [x] offline Verkäufer verlieren weder Item noch Verkaufserlös
 
@@ -479,16 +444,49 @@ Attack Power
 
 ---
 
-# 15 – UI / HUD — 🟡 IN ARBEIT
-- [ ] Vanilla HUD-Kompatibilität
-- [ ] HP Anzeige
-- [ ] Armor Anzeige
-- [ ] Mana-Konzept
-- [ ] Level / XP Anzeige
-- [ ] Character Stats Anzeige
-- [ ] Companion Anzeige
-- [ ] Quest Anzeige
-- [ ] Combat Feedback
+# 15 – UI / HUD — 🟢 98 % ABGESCHLOSSEN
+
+> Das bestehende Vanilla-HUD bleibt erhalten. PixelRPG ergänzt nur die ausdrücklich gewünschten RPG-Informationen. Es wird keine neue allgemeine GUI eingeführt.
+
+## Vanilla-HUD
+- [x] Vanilla-Herz-/Lebensanzeige bleibt unverändert
+- [x] Vanilla-Rüstungsanzeige bleibt unverändert
+- [x] kein Mana-System
+- [x] Vanilla-XP-Leiste wird für Player-Level/XP-Fortschritt des RPG-Systems verwendet
+- [x] aktuelle RPG-Levelzahl wird über die Vanilla-Levelanzeige dargestellt
+
+## Rechtes Scoreboard
+- [x] Scoreboard als zentrale zusätzliche HUD-Fläche
+- [x] Titel `PIXELRPG`
+- [x] Spielername
+- [x] Level
+- [x] aktiver Companion
+- [x] aktive Quests
+- [x] Quest-Fortschritt
+- [x] Tode
+- [x] gewünschte Leerzeilen nur zwischen Titel/Spielername, Level/Companion, Companion/Quests und Quests/Tode
+- [x] Scoreboard wird regelmäßig aktualisiert
+- [x] Scoreboard wird beim Join aufgebaut
+- [x] Scoreboard wird beim Quit bereinigt
+- [x] Spieler können das Scoreboard individuell in der Reception ein-/ausschalten
+- [x] Scoreboard-Einstellung wird persistent im PlayerProfile gespeichert
+- [x] deaktiviertes Scoreboard wird sofort entfernt
+- [x] deaktiviertes Scoreboard lässt die RPG-XP-Leiste weiterhin aktiv
+
+## Combat Feedback
+- [x] Schadensanzeige, z. B. `-125`
+- [x] Heilungsanzeige, z. B. `+25`
+- [x] kritische Treffer, z. B. `CRIT! -250`
+
+## Weitere UI-Regeln
+- [x] keine separate Stats-GUI
+- [x] Stats bleiben über `minecraft:quick_actions` (`G`) erreichbar
+- [x] Companion-Anzeige ausschließlich im rechten Scoreboard
+- [x] Quest-Anzeige zusätzlich im rechten Scoreboard
+- [x] Vanilla-Oberfläche bleibt möglichst unangetastet
+- [x] ohne Resourcepack nutzbar
+- [x] keine neuen Spieler-Commands für UI/HUD
+- [x] CI-Build grün
 
 ---
 
@@ -557,6 +555,7 @@ Attack Power
 - [x] YAML Fallback
 - [x] Async Save
 - [x] Data Validation
+- [x] UI-/HUD-Spielerpräferenzen persistierbar (inkl. Scoreboard)
 
 ---
 
@@ -588,15 +587,5 @@ Attack Power
 - [ ] Economy Dupe Tests
 - [ ] Quest Edge Cases
 - [ ] Party Edge Cases
-- [ ] Combat Edge Cases
-
----
-
-# 24 – Release / Production — 🔴 OFFEN
-- [ ] Production Configuration
-- [ ] MySQL Production Setup
-- [ ] Resourcepack Distribution
-- [ ] Release Build
-- [ ] Versioning
-- [ ] Release Notes
-- [ ] Deployment
+- [ ] UI/HUD Edge Cases
+- [ ] Scoreboard Preference Persistence Test
