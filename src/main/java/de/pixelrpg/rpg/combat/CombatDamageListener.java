@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.combat;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.core.RPGKeys;
@@ -34,6 +35,7 @@ public final class CombatDamageListener implements Listener {
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
     private final LanguageManager languageManager;
+    private final CombatStateService combatStateService;
     private final double bossMaxHitPercentOfMaxHp;
     private final NamespacedKey companionCritChanceKey;
     private final NamespacedKey companionCritDamageKey;
@@ -43,12 +45,13 @@ public final class CombatDamageListener implements Listener {
         this.guildAPI = guildAPI;
         this.profileManager = profileManager;
         this.statEngine = statEngine;
-        this.languageManager = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getLanguageManager();
-        this.bossMaxHitPercentOfMaxHp = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getConfig()
+        this.languageManager = PixelRPGPlugin.getInstance().getLanguageManager();
+        this.combatStateService = new CombatStateService(PixelRPGPlugin.getInstance(), guildAPI);
+        this.bossMaxHitPercentOfMaxHp = PixelRPGPlugin.getInstance().getConfig()
                 .getDouble("combat.boss-max-hit-percent-of-max-hp", 0.12D);
-        this.companionCritChanceKey = new NamespacedKey(de.pixelrpg.rpg.PixelRPGPlugin.getInstance(), "companion_crit_chance");
-        this.companionCritDamageKey = new NamespacedKey(de.pixelrpg.rpg.PixelRPGPlugin.getInstance(), "companion_crit_damage");
-        this.companionLifestealKey = new NamespacedKey(de.pixelrpg.rpg.PixelRPGPlugin.getInstance(), "companion_lifesteal");
+        this.companionCritChanceKey = new NamespacedKey(PixelRPGPlugin.getInstance(), "companion_crit_chance");
+        this.companionCritDamageKey = new NamespacedKey(PixelRPGPlugin.getInstance(), "companion_crit_damage");
+        this.companionLifestealKey = new NamespacedKey(PixelRPGPlugin.getInstance(), "companion_lifesteal");
     }
 
     // Zuständig für die zentrale MMORPG-Schadensberechnung inklusive Vanilla-Basisschaden, Crit, Lifesteal und eigener Armor-Mitigation.
