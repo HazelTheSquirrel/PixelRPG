@@ -1,6 +1,6 @@
 package de.pixelrpg.rpg.gui;
 
-import de.pixelrpg.rpg.lang.LanguageManager;
+import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -51,11 +51,8 @@ public final class PartyGUI extends AbstractGUI {
             if (slot >= 5) break;
             ItemStack item = buildMemberItem(party, member);
             UUID target = member;
-            if (party.isLeader(viewer.getUniqueId()) && !target.equals(viewer.getUniqueId())) {
-                setItem(slot, item, event -> openMemberActions(target));
-            } else {
-                setItem(slot, item);
-            }
+            if (party.isLeader(viewer.getUniqueId()) && !target.equals(viewer.getUniqueId())) setItem(slot, item, event -> openMemberActions(target));
+            else setItem(slot, item);
             slot++;
         }
         setItem(40, buildActionItem(Material.RED_DYE, party.isLeader(viewer.getUniqueId()) ? "Party auflösen" : "Party verlassen", NamedTextColor.RED), event -> {
