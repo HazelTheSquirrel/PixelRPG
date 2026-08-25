@@ -37,18 +37,10 @@ public final class BossRepository {
             BossDefinition definition = new BossDefinition(id, section.getString("name", id));
             definition.setKind(parseKind(section.getString("kind", "BIOME")));
             definition.setBaseEntityType(parseEntityType(section.getString("base-entity", "ZOMBIE")));
-
             List<Biome> biomes = new ArrayList<>();
-            for (String raw : section.getStringList("biomes")) {
-                Biome parsed = parseBiome(raw);
-                if (parsed != null) biomes.add(parsed);
-            }
-            if (biomes.isEmpty()) {
-                Biome legacyBiome = parseBiome(section.getString("biome"));
-                if (legacyBiome != null) biomes.add(legacyBiome);
-            }
+            for (String raw : section.getStringList("biomes")) { Biome parsed = parseBiome(raw); if (parsed != null) biomes.add(parsed); }
+            if (biomes.isEmpty()) { Biome legacyBiome = parseBiome(section.getString("biome")); if (legacyBiome != null) biomes.add(legacyBiome); }
             definition.setBiomes(biomes);
-
             definition.setLevel(section.getInt("level", 30));
             definition.setHealthMultiplier(section.getDouble("health-multiplier", 4.0));
             definition.setDamageMultiplier(section.getDouble("damage-multiplier", 1.5));
@@ -117,18 +109,17 @@ public final class BossRepository {
 
     private void createDefaultBosses() {
         YamlConfiguration yaml = new YamlConfiguration();
-
-        boss(yaml, "plunderer", "Der Plünderer", "PILLAGER", 12, 4.0, 1.6, 1.15, 100, List.of("PROJECTILE_VOLLEY"), List.of("PLAINS", "SUNFLOWER_PLAINS", "WINDSWEPT_SAVANNA"), "pixelrpg:boss/pluenderer_siegel", 150, 300);
+        boss(yaml, "plunderer", "Der Plünderer", "PILLAGER", 12, 4.0, 1.6, 1.15, 100, List.of("PROJECTILE_VOLLEY"), List.of("PLAINS", "SUNFLOWER_PLAINS"), "pixelrpg:boss/pluenderer_siegel", 150, 300);
         boss(yaml, "bee_queen", "Die Bienenkönigin", "BEE", 16, 5.0, 1.5, 1.20, 80, List.of("SLAM"), List.of("FOREST", "FLOWER_FOREST", "BIRCH_FOREST", "OLD_GROWTH_BIRCH_FOREST"), "pixelrpg:boss/bienenkoenigin", 200, 400);
         boss(yaml, "forest_witch", "Die Hexe des Waldes", "WITCH", 22, 5.5, 1.7, 1.20, 90, List.of("PROJECTILE_VOLLEY"), List.of("DARK_FOREST"), "pixelrpg:boss/hexenkessel", 250, 500);
         boss(yaml, "creaking_heart", "Das Knarzende Herz", "CREAKING", 26, 6.0, 1.8, 1.25, 90, List.of("SLAM"), List.of("PALE_GARDEN"), "pixelrpg:boss/knarzendes_herzstueck", 300, 650);
         boss(yaml, "jungle_warden", "Der Dschungelwächter", "PANDA", 30, 7.0, 1.9, 1.30, 90, List.of("SLAM"), List.of("JUNGLE", "SPARSE_JUNGLE", "BAMBOO_JUNGLE"), "pixelrpg:boss/dschungel_amulett", 350, 800);
         boss(yaml, "swamp_witch", "Die Sumpfhexe", "WITCH", 32, 7.0, 1.9, 1.30, 85, List.of("PROJECTILE_VOLLEY"), List.of("SWAMP", "MANGROVE_SWAMP"), "pixelrpg:boss/sumpftrank", 400, 900);
         boss(yaml, "husk_king", "Der Husk-König", "HUSK", 34, 7.5, 2.0, 1.30, 90, List.of("SLAM"), List.of("DESERT"), "pixelrpg:boss/husk_siegel", 450, 1000);
-        boss(yaml, "ravager_chief", "Der Ravager-Häuptling", "RAVAGER", 38, 9.0, 2.2, 1.35, 85, List.of("SLAM"), List.of("SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA_PLATEAU"), "pixelrpg:boss/ravager_trophaee", 500, 1200);
+        boss(yaml, "ravager_chief", "Der Ravager-Häuptling", "RAVAGER", 38, 9.0, 2.2, 1.35, 85, List.of("SLAM"), List.of("SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA", "WINDSWEPT_SAVANNA_PLATEAU"), "pixelrpg:boss/ravager_trophaee", 500, 1200);
         boss(yaml, "sandstone_colossus", "Der Sandstein-Koloss", "HUSK", 40, 10.0, 2.2, 1.40, 95, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("BADLANDS", "WOODED_BADLANDS", "ERODED_BADLANDS"), "pixelrpg:boss/goldenes_fossil", 550, 1300);
         boss(yaml, "frostwolf", "Der Frostwolf", "WOLF", 42, 10.0, 2.3, 1.35, 75, List.of("SLAM"), List.of("TAIGA", "OLD_GROWTH_PINE_TAIGA", "OLD_GROWTH_SPRUCE_TAIGA", "SNOWY_TAIGA"), "pixelrpg:boss/frostwolf_fang", 600, 1400);
-        boss(yaml, "stray_warrior", "Der Streuner-Krieger", "STRAY", 45, 11.0, 2.4, 1.35, 80, List.of("PROJECTILE_VOLLEY"), List.of("SNOWY_PLAINS", "ICE_SPIKES", "SNOWY_TAIGA"), "pixelrpg:boss/frostpfeil_koecher", 650, 1600);
+        boss(yaml, "stray_warrior", "Der Streuner-Krieger", "STRAY", 45, 11.0, 2.4, 1.35, 80, List.of("PROJECTILE_VOLLEY"), List.of("SNOWY_PLAINS", "ICE_SPIKES"), "pixelrpg:boss/frostpfeil_koecher", 650, 1600);
         boss(yaml, "mountain_goat", "Der Bergbock", "GOAT", 48, 12.0, 2.5, 1.40, 75, List.of("SLAM"), List.of("JAGGED_PEAKS", "FROZEN_PEAKS", "STONY_PEAKS"), "pixelrpg:boss/horn_des_berges", 700, 1800);
         boss(yaml, "wild_goat", "Der wilde Bergbock", "GOAT", 44, 10.0, 2.3, 1.35, 75, List.of("SLAM"), List.of("MEADOW"), "pixelrpg:boss/wildhorn", 650, 1500);
         boss(yaml, "blossom_warden", "Der Blütenwächter", "BEE", 50, 12.0, 2.4, 1.35, 80, List.of("SLAM"), List.of("CHERRY_GROVE"), "pixelrpg:boss/bluetenhonig", 800, 2000);
@@ -144,6 +135,23 @@ public final class BossRepository {
         boss(yaml, "soul_lord", "Der Seelenfürst", "WITHER_SKELETON", 70, 19.0, 3.1, 1.45, 80, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("SOUL_SAND_VALLEY"), "pixelrpg:boss/seelenfragment", 1400, 3900);
         boss(yaml, "magma_colossus", "Der Magmakoloss", "MAGMA_CUBE", 66, 18.0, 2.8, 1.45, 70, List.of("SLAM"), List.of("BASALT_DELTAS"), "pixelrpg:boss/magmaherz", 1350, 3700);
         boss(yaml, "end_king", "Der Endkönig", "SHULKER", 78, 22.0, 3.2, 1.50, 85, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("THE_END", "END_HIGHLANDS", "END_MIDLANDS", "SMALL_END_ISLANDS", "END_BARRENS"), "pixelrpg:boss/shulkerkern", 1800, 5000);
+
+        String world = "bosses.rift_colossus";
+        yaml.set(world + ".name", "Rift Colossus");
+        yaml.set(world + ".kind", "WORLD_EVENT");
+        yaml.set(world + ".base-entity", "RAVAGER");
+        yaml.set(world + ".level", 80);
+        yaml.set(world + ".health-multiplier", 35.0);
+        yaml.set(world + ".damage-multiplier", 5.0);
+        yaml.set(world + ".scale-multiplier", 1.75);
+        yaml.set(world + ".phases", List.of(
+                Map.of("health-percent", 100.0, "attack-interval-ticks", 120, "patterns", List.of("SLAM", "PROJECTILE_VOLLEY"), "announcement", "The Rift Colossus has awakened."),
+                Map.of("health-percent", 66.0, "attack-interval-ticks", 95, "patterns", List.of("SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "announcement", "The Rift tears open around the Colossus."),
+                Map.of("health-percent", 33.0, "attack-interval-ticks", 70, "patterns", List.of("ENRAGE_BUFF", "SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "announcement", "The Colossus enters its final rage.")));
+        yaml.set(world + ".loot.guaranteed", List.of("NETHER_STAR"));
+        yaml.set(world + ".loot.chance-drops", List.of(Map.of("material", "NETHERITE_INGOT", "chance-percent", 15.0, "rarity", "LEGENDARY"), Map.of("material", "DIAMOND_BLOCK", "chance-percent", 25.0, "rarity", "EPIC")));
+        yaml.set(world + ".loot.money", 2500.0);
+        yaml.set(world + ".loot.exp", 6000L);
 
         try { file.getParentFile().mkdirs(); yaml.save(file); }
         catch (IOException e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to create default bosses.yml", e); }
