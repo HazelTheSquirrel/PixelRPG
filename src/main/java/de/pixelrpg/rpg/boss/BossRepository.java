@@ -29,6 +29,13 @@ public final class BossRepository {
         definitionsById.clear();
         if (!file.exists()) createDefaultBosses();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        if (ensureWorldBossDefaults(yaml)) {
+            try {
+                yaml.save(file);
+            } catch (IOException e) {
+                plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to migrate world boss defaults", e);
+            }
+        }
         ConfigurationSection root = yaml.getConfigurationSection("bosses");
         if (root == null) return;
         for (String id : root.getKeys(false)) {
@@ -111,6 +118,27 @@ public final class BossRepository {
         }
     }
 
+    private boolean ensureWorldBossDefaults(YamlConfiguration yaml) {
+        boolean changed = false;
+        changed |= ensureWorldBoss(yaml, "rift_colossus", "Der Risskoloss", "RAVAGER", 80, 35.0, 5.0, 1.75, 2500, 6000, "pixelrpg:boss/risskern", "NETHER_STAR", "NETHERITE_INGOT", 15.0, "LEGENDARY");
+        changed |= ensureWorldBoss(yaml, "storm_lord", "Der Sturmherrscher", "EVOKER", 84, 38.0, 4.8, 1.55, 3000, 7000, "pixelrpg:boss/sturmherz", "TOTEM_OF_UNDYING", "DIAMOND_BLOCK", 18.0, "LEGENDARY");
+        changed |= ensureWorldBoss(yaml, "abyss_lord", "Der Abgrundfürst", "ELDER_GUARDIAN", 88, 42.0, 4.5, 1.55, 3400, 8000, "pixelrpg:boss/abgrundkern", "HEART_OF_THE_SEA", "SPONGE", 20.0, "EPIC");
+        changed |= ensureWorldBoss(yaml, "soul_devourer", "Der Seelenverschlinger", "WITHER_SKELETON", 92, 45.0, 5.4, 1.50, 3800, 9000, "pixelrpg:boss/seelenkrone", "NETHER_STAR", "NETHERITE_SCRAP", 20.0, "LEGENDARY");
+        changed |= ensureWorldBoss(yaml, "end_harbinger", "Der Endbote", "ENDERMAN", 96, 48.0, 5.2, 1.55, 4200, 10000, "pixelrpg:boss/endriss", "DRAGON_BREATH", "ENDER_EYE", 25.0, "LEGENDARY");
+        changed |= ensureWorldBoss(yaml, "ancient_world_warden", "Der Uralte Weltenwächter", "WARDEN", 100, 55.0, 6.0, 1.65, 5000, 12000, "pixelrpg:boss/weltenherz", "NETHER_STAR", "ECHO_SHARD", 30.0, "LEGENDARY");
+        return changed;
+    }
+
+    private boolean ensureWorldBoss(YamlConfiguration yaml, String id, String name, String entity, int level,
+                                    double hp, double damage, double scale, double money, long exp, String customDrop,
+                                    String guaranteedMaterial, String chanceMaterial, double chancePercent, String rarity) {
+        String path = "bosses." + id;
+        if (yaml.isConfigurationSection(path)) return false;
+        worldBoss(yaml, id, name, entity, level, hp, damage, scale, money, exp, customDrop,
+                guaranteedMaterial, chanceMaterial, chancePercent, rarity);
+        return true;
+    }
+
     private void createDefaultBosses() {
         YamlConfiguration yaml = new YamlConfiguration();
         boss(yaml, "plunderer", "Der Plünderer", "PILLAGER", 12, 4.0, 1.6, 1.15, 100, List.of("PROJECTILE_VOLLEY"), List.of("PLAINS", "SUNFLOWER_PLAINS"), "pixelrpg:boss/pluenderer_siegel", 150, 300);
@@ -140,18 +168,12 @@ public final class BossRepository {
         boss(yaml, "magma_colossus", "Der Magmakoloss", "MAGMA_CUBE", 66, 18.0, 2.8, 1.45, 70, List.of("SLAM"), List.of("BASALT_DELTAS"), "pixelrpg:boss/magmaherz", 1350, 3700);
         boss(yaml, "end_king", "Der Endkönig", "SHULKER", 78, 22.0, 3.2, 1.50, 85, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("THE_END", "END_HIGHLANDS", "END_MIDLANDS", "SMALL_END_ISLANDS", "END_BARRENS"), "pixelrpg:boss/shulkerkern", 1800, 5000);
 
-        worldBoss(yaml, "rift_colossus", "Der Risskoloss", "RAVAGER", 80, 35.0, 5.0, 1.75, 2500, 6000,
-                "pixelrpg:boss/risskern", "NETHER_STAR", "NETHERITE_INGOT", 15.0, "LEGENDARY");
-        worldBoss(yaml, "storm_lord", "Der Sturmherrscher", "EVOKER", 84, 38.0, 4.8, 1.55, 3000, 7000,
-                "pixelrpg:boss/sturmherz", "TOTEM_OF_UNDYING", "DIAMOND_BLOCK", 18.0, "LEGENDARY");
-        worldBoss(yaml, "abyss_lord", "Der Abgrundfürst", "ELDER_GUARDIAN", 88, 42.0, 4.5, 1.55, 3400, 8000,
-                "pixelrpg:boss/abgrundkern", "HEART_OF_THE_SEA", "SPONGE", 20.0, "EPIC");
-        worldBoss(yaml, "soul_devourer", "Der Seelenverschlinger", "WITHER_SKELETON", 92, 45.0, 5.4, 1.50, 3800, 9000,
-                "pixelrpg:boss/seelenkrone", "NETHER_STAR", "NETHERITE_SCRAP", 20.0, "LEGENDARY");
-        worldBoss(yaml, "end_harbinger", "Der Endbote", "ENDERMAN", 96, 48.0, 5.2, 1.55, 4200, 10000,
-                "pixelrpg:boss/endriss", "DRAGON_BREATH", "ENDER_EYE", 25.0, "LEGENDARY");
-        worldBoss(yaml, "ancient_world_warden", "Der Uralte Weltenwächter", "WARDEN", 100, 55.0, 6.0, 1.65, 5000, 12000,
-                "pixelrpg:boss/weltenherz", "NETHER_STAR", "ECHO_SHARD", 30.0, "LEGENDARY");
+        worldBoss(yaml, "rift_colossus", "Der Risskoloss", "RAVAGER", 80, 35.0, 5.0, 1.75, 2500, 6000, "pixelrpg:boss/risskern", "NETHER_STAR", "NETHERITE_INGOT", 15.0, "LEGENDARY");
+        worldBoss(yaml, "storm_lord", "Der Sturmherrscher", "EVOKER", 84, 38.0, 4.8, 1.55, 3000, 7000, "pixelrpg:boss/sturmherz", "TOTEM_OF_UNDYING", "DIAMOND_BLOCK", 18.0, "LEGENDARY");
+        worldBoss(yaml, "abyss_lord", "Der Abgrundfürst", "ELDER_GUARDIAN", 88, 42.0, 4.5, 1.55, 3400, 8000, "pixelrpg:boss/abgrundkern", "HEART_OF_THE_SEA", "SPONGE", 20.0, "EPIC");
+        worldBoss(yaml, "soul_devourer", "Der Seelenverschlinger", "WITHER_SKELETON", 92, 45.0, 5.4, 1.50, 3800, 9000, "pixelrpg:boss/seelenkrone", "NETHER_STAR", "NETHERITE_SCRAP", 20.0, "LEGENDARY");
+        worldBoss(yaml, "end_harbinger", "Der Endbote", "ENDERMAN", 96, 48.0, 5.2, 1.55, 4200, 10000, "pixelrpg:boss/endriss", "DRAGON_BREATH", "ENDER_EYE", 25.0, "LEGENDARY");
+        worldBoss(yaml, "ancient_world_warden", "Der Uralte Weltenwächter", "WARDEN", 100, 55.0, 6.0, 1.65, 5000, 12000, "pixelrpg:boss/weltenherz", "NETHER_STAR", "ECHO_SHARD", 30.0, "LEGENDARY");
 
         try { file.getParentFile().mkdirs(); yaml.save(file); }
         catch (IOException e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to create default bosses.yml", e); }
@@ -196,37 +218,18 @@ public final class BossRepository {
 
     private List<Map<String, Object>> worldBossPhases(String id) {
         return switch (id) {
-            case "rift_colossus" -> List.of(
-                    phase(100.0, 120, List.of("SLAM", "PROJECTILE_VOLLEY"), "Der Risskoloss erwacht."),
-                    phase(66.0, 95, List.of("SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "Der Riss reißt weiter auf."),
-                    phase(33.0, 70, List.of("ENRAGE_BUFF", "SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "Der Risskoloss entfesselt seine letzte Kraft."));
-            case "storm_lord" -> List.of(
-                    phase(100.0, 110, List.of("PROJECTILE_VOLLEY", "SLAM"), "Der Sturmherrscher ruft den Sturm."),
-                    phase(66.0, 85, List.of("PROJECTILE_VOLLEY", "SUMMON_ADDS", "SLAM"), "Der Himmel bricht über dem Schlachtfeld auf."),
-                    phase(33.0, 60, List.of("ENRAGE_BUFF", "PROJECTILE_VOLLEY", "SUMMON_ADDS", "SLAM"), "Der Sturmherrscher rastet aus."));
-            case "abyss_lord" -> List.of(
-                    phase(100.0, 115, List.of("PROJECTILE_VOLLEY", "SLAM"), "Der Abgrundfürst erhebt sich."),
-                    phase(66.0, 90, List.of("PROJECTILE_VOLLEY", "SUMMON_ADDS", "SLAM"), "Der Abgrund zieht alles in die Tiefe."),
-                    phase(33.0, 65, List.of("ENRAGE_BUFF", "PROJECTILE_VOLLEY", "SUMMON_ADDS"), "Der Abgrundfürst entfesselt seine letzte Welle."));
-            case "soul_devourer" -> List.of(
-                    phase(100.0, 105, List.of("SLAM", "PROJECTILE_VOLLEY"), "Der Seelenverschlinger sammelt Seelen."),
-                    phase(66.0, 80, List.of("SUMMON_ADDS", "PROJECTILE_VOLLEY", "SLAM"), "Die gefallenen Seelen kehren zurück."),
-                    phase(33.0, 55, List.of("ENRAGE_BUFF", "SUMMON_ADDS", "PROJECTILE_VOLLEY", "SLAM"), "Der Seelenverschlinger ist außer Kontrolle."));
-            case "end_harbinger" -> List.of(
-                    phase(100.0, 100, List.of("PROJECTILE_VOLLEY", "SLAM"), "Der Endbote durchbricht den Schleier."),
-                    phase(66.0, 75, List.of("SUMMON_ADDS", "PROJECTILE_VOLLEY", "SLAM"), "Der Endbote öffnet weitere Risse."),
-                    phase(33.0, 50, List.of("ENRAGE_BUFF", "PROJECTILE_VOLLEY", "SUMMON_ADDS", "SLAM"), "Der Endbote beginnt zu zerfallen."));
-            case "ancient_world_warden" -> List.of(
-                    phase(100.0, 120, List.of("SLAM", "PROJECTILE_VOLLEY"), "Der Uralte Weltenwächter erwacht."),
-                    phase(66.0, 90, List.of("SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "Das Schlachtfeld erzittert."),
-                    phase(33.0, 55, List.of("ENRAGE_BUFF", "SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "Der Weltenwächter entfesselt seine letzte Macht."));
+            case "rift_colossus" -> List.of(phase(100.0, 120, List.of("SLAM", "PROJECTILE_VOLLEY"), "Der Risskoloss erwacht."), phase(66.0, 95, List.of("SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "Der Riss reißt weiter auf."), phase(33.0, 70, List.of("ENRAGE_BUFF", "SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "Der Risskoloss entfesselt seine letzte Kraft."));
+            case "storm_lord" -> List.of(phase(100.0, 110, List.of("PROJECTILE_VOLLEY", "SLAM"), "Der Sturmherrscher ruft den Sturm."), phase(66.0, 85, List.of("PROJECTILE_VOLLEY", "SUMMON_ADDS", "SLAM"), "Der Himmel bricht über dem Schlachtfeld auf."), phase(33.0, 60, List.of("ENRAGE_BUFF", "PROJECTILE_VOLLEY", "SUMMON_ADDS", "SLAM"), "Der Sturmherrscher rastet aus."));
+            case "abyss_lord" -> List.of(phase(100.0, 115, List.of("PROJECTILE_VOLLEY", "SLAM"), "Der Abgrundfürst erhebt sich."), phase(66.0, 90, List.of("PROJECTILE_VOLLEY", "SUMMON_ADDS", "SLAM"), "Der Abgrund zieht alles in die Tiefe."), phase(33.0, 65, List.of("ENRAGE_BUFF", "PROJECTILE_VOLLEY", "SUMMON_ADDS"), "Der Abgrundfürst entfesselt seine letzte Welle."));
+            case "soul_devourer" -> List.of(phase(100.0, 105, List.of("SLAM", "PROJECTILE_VOLLEY"), "Der Seelenverschlinger sammelt Seelen."), phase(66.0, 80, List.of("SUMMON_ADDS", "PROJECTILE_VOLLEY", "SLAM"), "Die gefallenen Seelen kehren zurück."), phase(33.0, 55, List.of("ENRAGE_BUFF", "SUMMON_ADDS", "PROJECTILE_VOLLEY", "SLAM"), "Der Seelenverschlinger ist außer Kontrolle."));
+            case "end_harbinger" -> List.of(phase(100.0, 100, List.of("PROJECTILE_VOLLEY", "SLAM"), "Der Endbote durchbricht den Schleier."), phase(66.0, 75, List.of("SUMMON_ADDS", "PROJECTILE_VOLLEY", "SLAM"), "Der Endbote öffnet weitere Risse."), phase(33.0, 50, List.of("ENRAGE_BUFF", "PROJECTILE_VOLLEY", "SUMMON_ADDS", "SLAM"), "Der Endbote beginnt zu zerfallen."));
+            case "ancient_world_warden" -> List.of(phase(100.0, 120, List.of("SLAM", "PROJECTILE_VOLLEY"), "Der Uralte Weltenwächter erwacht."), phase(66.0, 90, List.of("SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "Das Schlachtfeld erzittert."), phase(33.0, 55, List.of("ENRAGE_BUFF", "SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "Der Weltenwächter entfesselt seine letzte Macht."));
             default -> List.of();
         };
     }
 
     private Map<String, Object> phase(double healthPercent, int interval, List<String> patterns, String announcement) {
-        return Map.of("health-percent", healthPercent, "attack-interval-ticks", interval,
-                "patterns", patterns, "announcement", announcement);
+        return Map.of("health-percent", healthPercent, "attack-interval-ticks", interval, "patterns", patterns, "announcement", announcement);
     }
 
     private double toDouble(Object value) { return value instanceof Number number ? number.doubleValue() : 0.0D; }
