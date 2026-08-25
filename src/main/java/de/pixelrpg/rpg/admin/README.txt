@@ -1,1 +1,0 @@
-Admin implementation is being migrated to the existing /rpgadmin command structure.
