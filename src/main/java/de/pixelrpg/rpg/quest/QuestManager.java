@@ -5,6 +5,7 @@ import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
 import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
 import de.pixelrpg.rpg.lang.LanguageManager;
+import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -79,7 +80,7 @@ public final class QuestManager {
     }
 
     public boolean canAccept(PlayerProfile profile, Quest quest) {
-        if (!profile.isRegisteredInGuild()) return false;
+        if (!profile.isRegistered()) return false;
         if (profile.hasCompletedQuest(quest.id())) return false;
         if (!questRepository.prerequisitesMet(profile, quest.id())) return false;
         return profile.getLevel() >= quest.requiredLevel();
@@ -87,7 +88,7 @@ public final class QuestManager {
 
     public boolean acceptQuest(Player player, Quest quest) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegisteredInGuild() || !canAccept(profile, quest) || profile.hasActiveQuest(quest.id())) return false;
+        if (profile == null || !profile.isRegistered() || !canAccept(profile, quest) || profile.hasActiveQuest(quest.id())) return false;
         if (profile.getActiveQuests().size() >= MAX_ACTIVE_QUESTS) {
             player.sendMessage(Component.text("Du kannst maximal 5 Quests gleichzeitig aktiv haben.", NamedTextColor.RED));
             return false;
@@ -108,7 +109,7 @@ public final class QuestManager {
 
     public boolean abandonQuest(Player player, String questId) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegisteredInGuild() || !profile.hasActiveQuest(questId)) return false;
+        if (profile == null || !profile.isRegistered() || !profile.hasActiveQuest(questId)) return false;
         profile.removeActiveQuest(questId);
         removeTimer(player.getUniqueId(), questId);
         lang.send(player, "quest.abandoned");
@@ -118,7 +119,7 @@ public final class QuestManager {
     public boolean completeQuest(Player player, String questId) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         Quest quest = questRepository.getQuest(questId);
-        if (profile == null || !profile.isRegisteredInGuild() || quest == null || !profile.hasActiveQuest(questId)) return false;
+        if (profile == null || !profile.isRegistered() || quest == null || !profile.hasActiveQuest(questId)) return false;
         QuestProgress progress = profile.getActiveQuests().get(questId);
         if (progress.getCurrentAmount() < quest.requiredAmount()) {
             lang.send(player, "quest.requirements-not-met");
@@ -132,6 +133,13 @@ public final class QuestManager {
     }
 
     private boolean isAtQuestGiver(Player player, Quest quest) {
+        if (quest.questGiverNpcId() == null || quest.questGiverNpcId().isBlank()) {
+            return PixelRPGPlugin.getInstance().getNpcManager().getAll().stream()
+                    .filter(npc -> npc.type() == NpcType.QUEST)
+                    .map(RPGNpc::location)
+                    .filter(location -> location.getWorld() != null && player.getWorld().equals(location.getWorld()))
+                    .anyMatch(location -> player.getLocation().distanceSquared(location) <= 36.0D);
+        }
         return PixelRPGPlugin.getInstance().getNpcManager().getById(quest.questGiverNpcId())
                 .map(RPGNpc::location)
                 .filter(location -> location.getWorld() != null && player.getWorld().equals(location.getWorld()))
@@ -187,7 +195,7 @@ public final class QuestManager {
 
     public void checkInventoryQuests(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegisteredInGuild()) return;
+        if (profile == null || !profile.isRegistered()) return;
         for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.COLLECT) continue;
@@ -201,7 +209,7 @@ public final class QuestManager {
 
     public void checkReachLocationQuests(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegisteredInGuild()) return;
+        if (profile == null || !profile.isRegistered()) return;
         for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.REACH_LOCATION || entry.getValue().getCurrentAmount() >= quest.requiredAmount()) continue;
@@ -220,7 +228,7 @@ public final class QuestManager {
     /** Updates TALK_TO_NPC quests when the configured NPC is interacted with. */
     public void progressTalkToNpc(Player player, String npcId) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegisteredInGuild() || npcId == null || npcId.isBlank()) return;
+        if (profile == null || !profile.isRegistered() || npcId == null || npcId.isBlank()) return;
         for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.TALK_TO_NPC || !quest.targetKey().equalsIgnoreCase(npcId)) continue;
@@ -241,7 +249,7 @@ public final class QuestManager {
     private void notifyGlobalEventCompleted(Quest quest) {
         for (Player online : Bukkit.getOnlinePlayers()) {
             PlayerProfile profile = profileManager.getProfile(online.getUniqueId()).orElse(null);
-            if (profile == null || !profile.isRegisteredInGuild() || !profile.hasActiveQuest(quest.id())) continue;
+            if (profile == null || !profile.isRegistered() || !profile.hasActiveQuest(quest.id())) continue;
             profile.getActiveQuests().get(quest.id()).setCurrentAmount(quest.requiredAmount());
             lang.send(online, "quest.progress", "current", String.valueOf(quest.requiredAmount()), "required", String.valueOf(quest.requiredAmount()));
         }
@@ -285,7 +293,7 @@ public final class QuestManager {
         if (!isRegistered(source.getUniqueId())) return;
         de.pixelrpg.rpg.api.PartyAPI partyAPI = Bukkit.getServicesManager().load(de.pixelrpg.rpg.api.PartyAPI.class);
         if (partyAPI == null || !partyAPI.isInParty(source.getUniqueId())) {
-            profileManager.getProfile(source.getUniqueId()).filter(PlayerProfile::isRegisteredInGuild).ifPresent(action);
+            profileManager.getProfile(source.getUniqueId()).filter(PlayerProfile::isRegistered).ifPresent(action);
             return;
         }
         Set<UUID> members = partyAPI.getPartyMembers(source.getUniqueId());
@@ -293,7 +301,7 @@ public final class QuestManager {
             Player member = Bukkit.getPlayer(memberUuid);
             if (member == null || !member.isOnline()) continue;
             if (!member.getWorld().equals(referenceLocation.getWorld()) || member.getLocation().distance(referenceLocation) > partyShareRange) continue;
-            profileManager.getProfile(memberUuid).filter(PlayerProfile::isRegisteredInGuild).ifPresent(action);
+            profileManager.getProfile(memberUuid).filter(PlayerProfile::isRegistered).ifPresent(action);
         }
     }
 
@@ -302,6 +310,6 @@ public final class QuestManager {
         if (timers != null) timers.remove(questId);
     }
 
-    private boolean isRegistered(UUID uuid) { return profileManager.getProfile(uuid).map(PlayerProfile::isRegisteredInGuild).orElse(false); }
+    private boolean isRegistered(UUID uuid) { return profileManager.getProfile(uuid).map(PlayerProfile::isRegistered).orElse(false); }
     public QuestRepository getRepository() { return questRepository; }
 }
