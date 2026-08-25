@@ -18,9 +18,12 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public final class PartySubCommand implements SubCommand, CommandExecutor, TabCompleter {
+    private static final List<String> SUBCOMMANDS = List.of("invite", "accept", "leave", "kick", "transfer", "disband", "info");
+
     private final PartyManager partyManager;
     private final PlayerProfileManager profileManager;
     private final LanguageManager lang;
@@ -49,7 +52,7 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
             new PartyGUI(player, partyManager, profileManager).open(player);
             return true;
         }
-        return switch (args[0].toLowerCase()) {
+        return switch (args[0].toLowerCase(Locale.ROOT)) {
             case "invite" -> handleInvite(player, args);
             case "accept" -> handleAccept(player);
             case "leave" -> handleLeave(player);
@@ -117,12 +120,24 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
     @Override public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) { return resolveTabComplete(args); }
 
     private List<String> resolveTabComplete(String[] args) {
-        if (args.length == 1) return List.of("invite", "accept", "leave", "kick", "transfer", "disband", "info");
-        if (args.length == 2 && (args[0].equalsIgnoreCase("invite") || args[0].equalsIgnoreCase("kick") || args[0].equalsIgnoreCase("transfer"))) {
+        if (args.length == 1) {
+            String prefix = args[0].toLowerCase(Locale.ROOT);
+            return SUBCOMMANDS.stream().filter(value -> value.startsWith(prefix)).toList();
+        }
+        if (args.length == 2 && isPlayerArgument(args[0])) {
+            String prefix = args[1].toLowerCase(Locale.ROOT);
             List<String> names = new ArrayList<>();
-            for (Player online : Bukkit.getOnlinePlayers()) names.add(online.getName());
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                if (online.getName().toLowerCase(Locale.ROOT).startsWith(prefix)) names.add(online.getName());
+            }
             return names;
         }
         return List.of();
+    }
+
+    private boolean isPlayerArgument(String subcommand) {
+        return subcommand.equalsIgnoreCase("invite")
+                || subcommand.equalsIgnoreCase("kick")
+                || subcommand.equalsIgnoreCase("transfer");
     }
 }
