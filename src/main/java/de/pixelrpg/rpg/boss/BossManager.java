@@ -63,7 +63,10 @@ public final class BossManager {
         this.barUpdateIntervalTicks = Math.max(1, barUpdateIntervalTicks);
         this.phaseCheckIntervalTicks = Math.max(1, phaseCheckIntervalTicks);
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
+        plugin.getServer().getPluginManager().registerEvents(new BossRewardItemListener(guildAPI), plugin);
     }
+
+    public boolean isRegistered(UUID playerId) { return guildAPI.isRegistered(playerId); }
 
     public LivingEntity spawnWorldBoss(BossDefinition definition, Location location) {
         if (definition.getKind() != BossKind.WORLD_EVENT) throw new IllegalArgumentException("Not a world-event boss: " + definition.getId());
@@ -230,9 +233,7 @@ public final class BossManager {
         return result;
     }
 
-    private void giveGuaranteedLoot(Player player, BossLootConfig lootConfig, int level) {
-        for (String reward : lootConfig.guaranteedMaterials()) giveReward(player, reward, ItemRarity.RARE, level);
-    }
+    private void giveGuaranteedLoot(Player player, BossLootConfig lootConfig, int level) { for (String reward : lootConfig.guaranteedMaterials()) giveReward(player, reward, ItemRarity.RARE, level); }
 
     private void giveChanceLoot(Player player, BossLootConfig lootConfig, int level) {
         Random random = ThreadLocalRandom.current();
@@ -247,15 +248,10 @@ public final class BossManager {
         try {
             Material material = Material.valueOf(rewardId.toUpperCase());
             RPGItemBuilder.createItem(material, rarity, level).ifPresent(item -> giveItem(player, item));
-        } catch (IllegalArgumentException ignored) {
-            plugin.getLogger().warning("Invalid boss loot material: " + rewardId);
-        }
+        } catch (IllegalArgumentException ignored) { plugin.getLogger().warning("Invalid boss loot material: " + rewardId); }
     }
 
-    private void giveItem(Player player, org.bukkit.inventory.ItemStack item) {
-        player.getInventory().addItem(item).values().forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
-    }
-
+    private void giveItem(Player player, org.bukkit.inventory.ItemStack item) { player.getInventory().addItem(item).values().forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder)); }
     private void callDefeatedEvent(ActiveBoss activeBoss, Set<UUID> participants) { Bukkit.getPluginManager().callEvent(new BossDefeatedEvent(activeBoss.getDefinition().getId(), participants)); }
 
     private void cleanup(ActiveBoss activeBoss) {
