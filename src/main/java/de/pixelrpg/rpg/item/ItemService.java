@@ -157,7 +157,7 @@ public final class ItemService implements ItemAPI {
         if (definition.unique()) lore.add(0, Component.text("UNIQUE • 1/1", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
 
         if (!definition.weaponAbility().isBlank()) {
-            boolean ranged = definition.category().getProfile() == ItemStatProfile.RANGED_WEAPON;
+            boolean ranged = definition.category() == ItemCategory.RANGED_WEAPON;
             lore.add(Component.text("Fähigkeit: " + definition.weaponAbility(), NamedTextColor.AQUA)
                     .decoration(TextDecoration.ITALIC, false));
             lore.add(Component.text((ranged ? "Beim Loslassen" : "Rechtsklick") + " • 6s Cooldown", NamedTextColor.GRAY)
