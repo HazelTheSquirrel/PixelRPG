@@ -4,6 +4,7 @@ import de.pixelrpg.rpg.api.ItemAPI;
 import de.pixelrpg.rpg.dialogue.BankStorageService;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.gui.TradeDepotGUI;
+import de.pixelrpg.rpg.gui.TradeDepotSellGUI;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import io.papermc.paper.dialog.DialogResponseView;
@@ -82,15 +83,21 @@ public final class TradeDepotManager {
         player.sendMessage(Component.text("Dir wurden " + format(amount) + " Gold aus Verkäufen gutgeschrieben.", NamedTextColor.GOLD));
     }
 
-    public void openSellDialog(Player player) {
-        ItemStack held = player.getInventory().getItemInMainHand();
-        if (!isTradeableRpgItem(held)) {
-            player.sendMessage(Component.text("Nur PixelRPG-Items können im Handelsdepot angeboten werden.", NamedTextColor.RED));
+    public void openSellSelection(Player player) {
+        new TradeDepotSellGUI(player, this).open(player);
+    }
+
+    public void openSellDialog(Player player, int inventorySlot, ItemStack selectedItem) {
+        ItemStack current = getStorageItem(player, inventorySlot);
+        if (!isTradeableRpgItem(current) || !current.isSimilar(selectedItem) || current.getAmount() != selectedItem.getAmount()) {
+            player.sendMessage(Component.text("Das ausgewählte Item wurde inzwischen verändert oder ist nicht mehr verfügbar.", NamedTextColor.RED));
+            openSellSelection(player);
             return;
         }
 
         List<DialogBody> body = List.of(
-                DialogBody.plainMessage(Component.text("Das Item aus deiner Haupthand wird als Handelsware eingestellt.", NamedTextColor.WHITE)),
+                DialogBody.plainMessage(Component.text("Ausgewählt: " + current.getAmount() + "x " + displayName(current), NamedTextColor.WHITE)),
+                DialogBody.plainMessage(Component.text("Dieses Item wird aus deinem Inventar entfernt und als Handelsware eingestellt.", NamedTextColor.GRAY)),
                 DialogBody.plainMessage(Component.text("Laufzeit: 7 Tage · Verkaufsgebühr: 5 %", NamedTextColor.GRAY))
         );
         DialogInput input = DialogInput.text(
@@ -98,10 +105,10 @@ public final class TradeDepotManager {
                 true, "", 16, null);
         dialogueEngine.openTextInputAction(player, Component.text("Handelsware einstellen", NamedTextColor.GOLD),
                 body, input, Component.text("Einstellen"), NamedTextColor.GREEN,
-                this::createListingFromResponse);
+                (target, response) -> createListingFromResponse(target, response, inventorySlot, selectedItem));
     }
 
-    private void createListingFromResponse(Player player, DialogResponseView response) {
+    private void createListingFromResponse(Player player, DialogResponseView response, int inventorySlot, ItemStack selectedItem) {
         String rawValue = response.getText("price");
         if (rawValue == null || rawValue.isBlank()) {
             player.sendMessage(Component.text("Bitte gib einen Verkaufspreis ein.", NamedTextColor.RED));
@@ -120,14 +127,15 @@ public final class TradeDepotManager {
             return;
         }
 
-        ItemStack held = player.getInventory().getItemInMainHand();
-        if (!isTradeableRpgItem(held)) {
-            player.sendMessage(Component.text("Nur PixelRPG-Items können im Handelsdepot angeboten werden.", NamedTextColor.RED));
+        ItemStack current = getStorageItem(player, inventorySlot);
+        if (!isTradeableRpgItem(current) || !current.isSimilar(selectedItem) || current.getAmount() != selectedItem.getAmount()) {
+            player.sendMessage(Component.text("Das ausgewählte Item wurde inzwischen verändert oder ist nicht mehr verfügbar.", NamedTextColor.RED));
+            openSellSelection(player);
             return;
         }
 
-        ItemStack listed = held.clone();
-        player.getInventory().setItemInMainHand(null);
+        ItemStack listed = current.clone();
+        player.getInventory().setItem(inventorySlot, null);
         TradeDepotListing listing = new TradeDepotListing(UUID.randomUUID(), player.getUniqueId(), listed, price,
                 System.currentTimeMillis() + LISTING_DURATION_MILLIS);
         listings.put(listing.id(), listing);
@@ -208,6 +216,19 @@ public final class TradeDepotManager {
 
     private boolean isTradeableRpgItem(ItemStack item) {
         return item != null && !item.isEmpty() && itemAPI != null && itemAPI.isRPGItem(item);
+    }
+
+    private ItemStack getStorageItem(Player player, int slot) {
+        if (slot < 0 || slot >= player.getInventory().getStorageContents().length) return null;
+        return player.getInventory().getStorageContents()[slot];
+    }
+
+    private String displayName(ItemStack item) {
+        if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
+            return net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
+                    .serialize(item.getItemMeta().displayName());
+        }
+        return item.getType().key().value();
     }
 
     private boolean canFit(Player player, ItemStack item) {
