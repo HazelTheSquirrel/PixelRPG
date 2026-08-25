@@ -144,7 +144,7 @@ public final class ItemService implements ItemAPI {
         if (definition.soulbound()) pdc.set(RPGKeys.Item.soulbound(), PersistentDataType.BOOLEAN, true);
         if (!definition.weaponAbility().isBlank()) {
             pdc.set(RPGKeys.Item.weaponAbility(), PersistentDataType.STRING, definition.weaponAbility());
-            pdc.set(RPGKeys.Item.weaponAbilityCooldownMillis(), PersistentDataType.LONG, definition.weaponAbilityCooldownMillis());
+            pdc.set(RPGKeys.Item.weaponAbilityCooldownMillis(), PersistentDataType.LONG, 6000L);
         }
 
         List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
@@ -155,6 +155,14 @@ public final class ItemService implements ItemAPI {
                 .decoration(TextDecoration.ITALIC, false));
         if (definition.soulbound()) lore.add(0, Component.text("⚡ Soulbound", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
         if (definition.unique()) lore.add(0, Component.text("UNIQUE • 1/1", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
+
+        if (!definition.weaponAbility().isBlank()) {
+            boolean ranged = definition.category().getProfile() == ItemStatProfile.RANGED_WEAPON;
+            lore.add(Component.text("Fähigkeit: " + definition.weaponAbility(), NamedTextColor.AQUA)
+                    .decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text((ranged ? "Beim Loslassen" : "Rechtsklick") + " • 6s Cooldown", NamedTextColor.GRAY)
+                    .decoration(TextDecoration.ITALIC, false));
+        }
 
         if (definition.category().getProfile() == ItemStatProfile.ARMOR) {
             double critChance = Math.round(definition.itemLevel() * definition.rarity().getStatMultiplier() * 0.05D * 10.0D) / 10.0D;
