@@ -19,6 +19,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 public final class RPGItemBuilder {
+    private static final long WEAPON_ABILITY_COOLDOWN_MILLIS = 6_000L;
     private static double growthMultiplier = 10.0D;
     private static double weaponBaseDamage = 3.0D;
     private static double weaponBaseCritChance = 0.5D;
@@ -103,7 +104,7 @@ public final class RPGItemBuilder {
         lore.add(Component.text(" "));
 
         switch (category.getProfile()) {
-            case WEAPON -> addWeaponStats(lore, pdc, multiplier, levelFactor);
+            case WEAPON -> addWeaponStats(lore, pdc, material, multiplier, levelFactor);
             case ARMOR, SHIELD -> addArmorStats(lore, pdc, category, multiplier, levelFactor);
             case TOOL -> addToolStats(lore, pdc, multiplier, levelFactor);
         }
@@ -111,6 +112,11 @@ public final class RPGItemBuilder {
         meta.displayName(Component.text(displayName, NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
+
+        if (category.getProfile() == ItemStatProfile.WEAPON) {
+            item = applyMaterialWeaponAbility(item).orElse(item);
+        }
+
         return java.util.Optional.of(item);
     }
 
@@ -132,8 +138,34 @@ public final class RPGItemBuilder {
         return result;
     }
 
+    private static java.util.Optional<ItemStack> applyMaterialWeaponAbility(ItemStack item) {
+        String abilityId = weaponAbilityId(item.getType());
+        if (abilityId == null) return java.util.Optional.of(item);
+        return java.util.Optional.of(withWeaponAbility(item, abilityId, WEAPON_ABILITY_COOLDOWN_MILLIS));
+    }
+
+    private static String weaponAbilityId(Material material) {
+        return switch (material) {
+            case WOODEN_SWORD -> "Holzklingenfeger";
+            case STONE_SWORD -> "Steinbrecher";
+            case COPPER_SWORD -> "Kupfersturm";
+            case IRON_SWORD -> "Eiserne Bastion";
+            case GOLDEN_SWORD -> "Goldene Klingenflut";
+            case DIAMOND_SWORD -> "Diamantspalter";
+            case NETHERITE_SWORD -> "Netherit-Eruption";
+            case COPPER_AXE -> "Kupferstatische Axt";
+            case IRON_AXE -> "Eisen-Erdbruch";
+            case GOLDEN_AXE -> "Goldener Wirbel";
+            case DIAMOND_AXE -> "Diamant-Henker";
+            case NETHERITE_AXE -> "Höllenspalter";
+            case BOW -> "Kupferwind-Schuss";
+            case CROSSBOW -> "Eiserne Salve";
+            default -> null;
+        };
+    }
+
     private static void addWeaponStats(List<Component> lore, PersistentDataContainer pdc,
-                                       double multiplier, double levelFactor) {
+                                       Material material, double multiplier, double levelFactor) {
         double damage = round(weaponBaseDamage * levelFactor * multiplier);
         double critChance = round(weaponBaseCritChance * levelFactor * multiplier);
         double critDamage = round(weaponBaseCritDamage * levelFactor * multiplier);
