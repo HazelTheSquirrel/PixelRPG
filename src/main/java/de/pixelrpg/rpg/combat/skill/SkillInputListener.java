@@ -18,7 +18,7 @@ public final class SkillInputListener implements Listener {
     }
 
     // Zuständig für die Aktivierung einer Nahkampf-Waffenfähigkeit per Rechtsklick; Fernkampfwaffen dürfen normal gespannt werden.
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onWeaponAbility(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
