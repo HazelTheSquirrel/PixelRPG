@@ -26,10 +26,12 @@ public final class CompanionDialog {
 
     private final CompanionService companionService;
     private final DialogueEngine dialogueEngine;
+    private final QuickActionsDialogService quickActions;
 
-    public CompanionDialog(CompanionService companionService, DialogueEngine dialogueEngine) {
+    public CompanionDialog(CompanionService companionService, DialogueEngine dialogueEngine, QuickActionsDialogService quickActions) {
         this.companionService = companionService;
         this.dialogueEngine = dialogueEngine;
+        this.quickActions = quickActions;
     }
 
     public void open(Player player) {
@@ -79,6 +81,7 @@ public final class CompanionDialog {
             }
         }
 
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, quickActions::openQuickActions));
         dialogueEngine.openMultiAction(player, Component.text("PixelRPG – Begleiter", NamedTextColor.GOLD), body, actions, 2);
     }
 
