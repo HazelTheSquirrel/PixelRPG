@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.combat.skill;
 
+import io.papermc.paper.event.player.PlayerStopUsingItemEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -7,6 +8,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 
 public final class SkillInputListener implements Listener {
     private final WeaponAbilityEngine abilityEngine;
@@ -15,13 +17,23 @@ public final class SkillInputListener implements Listener {
         this.abilityEngine = abilityEngine;
     }
 
-    // Zuständig für die Aktivierung einer Waffenfähigkeit per Rechtsklick und verhindert bei aktivierter Fähigkeit die Vanilla-Nutzung.
+    // Zuständig für die Aktivierung einer Nahkampf-Waffenfähigkeit per Rechtsklick; Fernkampfwaffen dürfen normal gespannt werden.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onWeaponAbility(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (!event.getPlayer().getInventory().getItemInMainHand().hasItemMeta()) return;
+        ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
+        if (item.isEmpty() || !item.hasItemMeta()) return;
+        if (abilityEngine.isRangedWeapon(item.getType())) return;
         if (abilityEngine.cast(event.getPlayer())) event.setCancelled(true);
+    }
+
+    // Zuständig für das Auslösen der Bogen-/Armbrustfähigkeit genau beim Loslassen der Benutzungstaste.
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onRangedWeaponRelease(PlayerStopUsingItemEvent event) {
+        if (abilityEngine.castReleased(event.getPlayer(), event.getItem(), event.getTicksHeldFor())) {
+            event.getPlayer().sendActionBar(net.kyori.adventure.text.Component.text("Waffenfähigkeit ausgelöst"));
+        }
     }
 
     // Zuständig für die Freigabe temporärer Waffenfähigkeitsdaten beim Verlassen des Servers.
