@@ -57,17 +57,19 @@ public final class DebugSubCommand implements SubCommand {
     }
 
     private void bosses(CommandSender sender) {
-        sender.sendMessage(Component.text("DEBUG BOSS active=" + plugin.getBossManager().getActiveBosses().size(), NamedTextColor.GOLD));
-        plugin.getBossManager().getActiveBosses().forEach(boss -> sender.sendMessage(Component.text(boss.id() + " | " + boss.definition().id(), NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("DEBUG BOSS active=" + plugin.getBossManager().getActiveBossCount(), NamedTextColor.GOLD));
     }
 
     private void stats(CommandSender sender, String[] args) {
         if (args.length < 2) { sender.sendMessage(Component.text("Usage: /rpgadmin debug stats <name>", NamedTextColor.RED)); return; }
         Player player = Bukkit.getPlayerExact(args[1]);
         if (player == null) { sender.sendMessage(Component.text("Spieler nicht online.", NamedTextColor.RED)); return; }
+        plugin.getStatEngine().recalculate(player);
+        var stats = plugin.getStatEngine().getCachedStats(player.getUniqueId());
         sender.sendMessage(Component.text("DEBUG STATS " + player.getName(), NamedTextColor.GOLD));
-        var stats = plugin.getStatEngine().calculate(player);
-        sender.sendMessage(Component.text(stats.toString(), NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("HP=" + stats.maxHealth() + " Armor=" + stats.armor() + " Damage=" + stats.bonusDamage(), NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("Crit=" + stats.critChance() + "% CritDamage=" + stats.critDamageMultiplier() + "x Lifesteal=" + stats.lifestealBonus() + "%", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("Reach=" + stats.reach() + " AttackPower=" + stats.attackPower(), NamedTextColor.GRAY));
     }
 
     @Override
