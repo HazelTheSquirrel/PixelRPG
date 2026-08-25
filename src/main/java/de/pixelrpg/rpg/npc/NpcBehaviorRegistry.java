@@ -4,7 +4,7 @@ import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.npc.behavior.FillerBehavior;
 import de.pixelrpg.rpg.npc.behavior.ProfessionTrainerBehavior;
-import de.pixelrpg.rpg.npc.behavior.QuestBehaviorV2;
+import de.pixelrpg.rpg.npc.behavior.QuestBehavior;
 import de.pixelrpg.rpg.profession.Profession;
 
 import java.util.EnumMap;
@@ -23,7 +23,10 @@ public final class NpcBehaviorRegistry {
         if (plugin == null) return Optional.empty();
 
         if (type == NpcType.QUEST && plugin.getQuestManager() != null) {
-            return Optional.of(new QuestBehaviorV2(plugin.getQuestManager(), plugin.getPlayerProfileManager(), new DialogueEngine()));
+            return Optional.of(new QuestBehavior(
+                    plugin.getQuestManager(),
+                    plugin.getPlayerProfileManager(),
+                    new DialogueEngine()));
         }
 
         NpcBehavior behavior = behaviors.get(type);
