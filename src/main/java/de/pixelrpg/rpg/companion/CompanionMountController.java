@@ -8,8 +8,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.SaddledMountInventory;
 import org.bukkit.util.Vector;
 
@@ -48,7 +48,8 @@ public final class CompanionMountController {
                 || definition.type() == CompanionDefinition.CompanionMountDefinition.Type.UNDERWATER) {
             double vertical = 0.0D;
             if (input.isJump()) vertical += speed * 0.75D;
-            if (input.isSneak()) vertical -= speed * 0.75D;
+            // Minecrafts Sprint-Eingabe entspricht standardmäßig STRG und wird bei Flug-/Unterwassermounts zum Absenken verwendet.
+            if (input.isSprint()) vertical -= speed * 0.75D;
             direction.setY(vertical + direction.getY());
             if (direction.lengthSquared() > 0.0001D) {
                 direction.normalize().multiply(speed);
