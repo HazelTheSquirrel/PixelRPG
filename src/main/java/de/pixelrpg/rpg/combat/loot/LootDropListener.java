@@ -55,7 +55,7 @@ public final class LootDropListener implements Listener {
                     .toList();
 
             if (!eligibleItems.isEmpty()) {
-                ItemDefinition definition = eligibleItems.get(random.nextInt(eligibleItems.size()));
+                ItemDefinition definition = selectLevelWeightedItem(eligibleItems, playerLevel, random);
                 itemService.createItem(definition.id()).ifPresent(event.getDrops()::add);
             }
         }
@@ -66,5 +66,30 @@ public final class LootDropListener implements Listener {
             long amount = min == max ? min : random.nextLong(min, max + 1);
             event.getDrops().addAll(GuildCurrencyItemFactory.createStacks(amount));
         }
+    }
+
+    private ItemDefinition selectLevelWeightedItem(
+            List<ItemDefinition> eligibleItems,
+            int playerLevel,
+            ThreadLocalRandom random
+    ) {
+        long totalWeight = 0L;
+
+        for (ItemDefinition definition : eligibleItems) {
+            totalWeight += levelWeight(definition.itemLevel(), playerLevel);
+        }
+
+        long roll = random.nextLong(totalWeight);
+        for (ItemDefinition definition : eligibleItems) {
+            roll -= levelWeight(definition.itemLevel(), playerLevel);
+            if (roll < 0L) return definition;
+        }
+
+        return eligibleItems.getLast();
+    }
+
+    private long levelWeight(int itemLevel, int playerLevel) {
+        int level = Math.max(1, Math.min(itemLevel, playerLevel));
+        return (long) level * level;
     }
 }
