@@ -14,7 +14,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.UUID;
 
-/** Handles navigation and persistence for the personal bank and dedicated Handelsware inventory. */
+/** Handles navigation and persistence for the personal bank and separate Handelsfach. */
 public final class BankInventoryListener implements Listener {
     private static final int BACK_SLOT = 45;
     private static final int NEXT_SLOT = 53;
@@ -33,6 +33,7 @@ public final class BankInventoryListener implements Listener {
 
         int rawSlot = event.getRawSlot();
         if (rawSlot < 0 || rawSlot >= event.getView().getTopInventory().getSize()) return;
+        if (holder.page() == BankStorageService.TRADE_GOODS_PAGE) return;
 
         if (rawSlot == BACK_SLOT && holder.page() > 0) {
             event.setCancelled(true);
@@ -40,48 +41,51 @@ public final class BankInventoryListener implements Listener {
             return;
         }
 
-        if (rawSlot == NEXT_SLOT && holder.page() < BankStorageService.PAGE_COUNT - 1) {
+        if (rawSlot == NEXT_SLOT && holder.page() < BankStorageService.BANK_PAGE_COUNT - 1) {
             event.setCancelled(true);
             openPage(player, holder.playerId(), holder.page() + 1);
         }
     }
 
-    // Zuständig für das Speichern der Bankseite beim Schließen des benutzerdefinierten Bankinventars.
+    // Zuständig für das Speichern des jeweils geöffneten Bank- oder Handelsfachs beim Schließen.
     @EventHandler
     public void onBankInventoryClose(InventoryCloseEvent event) {
         if (!(event.getInventory().getHolder() instanceof BankInventoryHolder holder)) return;
-        storage.save(holder.playerId(), collectContents(holder.playerId(), event.getInventory(), holder.page()));
+        if (holder.page() == BankStorageService.TRADE_GOODS_PAGE) {
+            storage.saveTradeGoods(holder.playerId(), collectContents(event.getInventory()));
+            return;
+        }
+        storage.save(holder.playerId(), collectBankContents(holder.playerId(), event.getInventory(), holder.page()));
     }
 
     private void openPage(Player player, UUID playerId, int page) {
         ItemStack[] contents = storage.load(playerId);
         BankInventoryHolder holder = new BankInventoryHolder(playerId, page);
-        String title = page == BankStorageService.TRADE_GOODS_PAGE
-                ? "Handelsfach"
-                : "Bankfach – Seite " + (page + 1);
         var inventory = Bukkit.createInventory(holder, BankStorageService.PAGE_SIZE,
-                Component.text(title, NamedTextColor.BLACK));
+                Component.text("Bankfach – Seite " + (page + 1), NamedTextColor.BLACK));
         holder.inventory(inventory);
 
         int offset = page * BankStorageService.PAGE_SIZE;
-        for (int slot = 0; slot < BankStorageService.PAGE_SIZE; slot++) {
-            inventory.setItem(slot, contents[offset + slot]);
-        }
-
+        for (int slot = 0; slot < BankStorageService.PAGE_SIZE; slot++) inventory.setItem(slot, contents[offset + slot]);
         if (page > 0) inventory.setItem(BACK_SLOT, navigationHead("MHF_ArrowLeft", "Zurück"));
-        if (page < BankStorageService.PAGE_COUNT - 1) inventory.setItem(NEXT_SLOT, navigationHead("MHF_ArrowRight", "Weiter"));
-
+        if (page < BankStorageService.BANK_PAGE_COUNT - 1) inventory.setItem(NEXT_SLOT, navigationHead("MHF_ArrowRight", "Weiter"));
         player.openInventory(inventory);
     }
 
-    private ItemStack[] collectContents(UUID playerId, org.bukkit.inventory.Inventory inventory, int page) {
+    private ItemStack[] collectBankContents(UUID playerId, org.bukkit.inventory.Inventory inventory, int page) {
         ItemStack[] contents = storage.load(playerId);
         int offset = page * BankStorageService.PAGE_SIZE;
         for (int slot = 0; slot < BankStorageService.PAGE_SIZE; slot++) {
-            if (slot == NEXT_SLOT && page < BankStorageService.PAGE_COUNT - 1) continue;
+            if (slot == NEXT_SLOT && page < BankStorageService.BANK_PAGE_COUNT - 1) continue;
             if (slot == BACK_SLOT && page > 0) continue;
             contents[offset + slot] = inventory.getItem(slot);
         }
+        return contents;
+    }
+
+    private ItemStack[] collectContents(org.bukkit.inventory.Inventory inventory) {
+        ItemStack[] contents = new ItemStack[BankStorageService.PAGE_SIZE];
+        for (int slot = 0; slot < contents.length; slot++) contents[slot] = inventory.getItem(slot);
         return contents;
     }
 
