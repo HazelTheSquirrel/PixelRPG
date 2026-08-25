@@ -137,7 +137,13 @@ public final class ProfessionDialog {
         if (recipe.unlockPrice() > 0L && !unlocked) body.add(DialogBody.plainMessage(Component.text("Preis: " + recipe.unlockPrice() + " Gold", NamedTextColor.GOLD)));
         if (!learned) body.add(DialogBody.plainMessage(Component.text("Du musst diesen Beruf zuerst erlernen.", NamedTextColor.WHITE)));
 
-        Consumer<Player> back = target -> allowPurchase ? openTrainerRecipes(target, profession) : openProfession(target, profession);
+        Consumer<Player> back = target -> {
+            if (allowPurchase) {
+                openTrainerRecipes(target, profession);
+            } else {
+                openProfession(target, profession);
+            }
+        };
         dialogueEngine.openMultiAction(player, Component.text(recipe.displayName(), NamedTextColor.GOLD), body, actions, 1, back);
     }
 
