@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.npc.behavior;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.ProfessionDialog;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
@@ -11,6 +10,7 @@ import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.profession.ProfessionService;
+import de.pixelrpg.rpg.quest.QuestManager;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
@@ -41,7 +41,10 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
         this.professionDialog = new ProfessionDialog(
                 profileManager,
                 dialogueEngine,
-                new QuickActionsDialogService(profileManager, PixelRPGPlugin.getInstance().getStatEngine()));
+                new QuickActionsDialogService(
+                        profileManager,
+                        de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getStatEngine(),
+                        de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getQuestManager()));
     }
 
     @Override
