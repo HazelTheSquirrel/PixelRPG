@@ -1,8 +1,5 @@
 package de.pixelrpg.rpg.gui;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.dialogue.DialogueEngine;
-import de.pixelrpg.rpg.dialogue.ReceptionDialog;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.party.PartyManager;
@@ -29,14 +26,12 @@ public final class PartyGUI extends AbstractGUI {
     private final Player viewer;
     private final PartyManager partyManager;
     private final PlayerProfileManager profileManager;
-    private final LanguageManager lang;
 
     public PartyGUI(Player viewer, PartyManager partyManager, PlayerProfileManager profileManager) {
-        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("party.gui-title"));
+        super(54, Component.text("Party", NamedTextColor.GOLD));
         this.viewer = viewer;
         this.partyManager = partyManager;
         this.profileManager = profileManager;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -45,12 +40,11 @@ public final class PartyGUI extends AbstractGUI {
         if (partyOpt.isEmpty()) {
             setItem(22, buildActionItem(Material.LIME_DYE, "Party erstellen", NamedTextColor.GREEN), event -> {
                 partyManager.createParty(viewer.getUniqueId());
-                lang.send(viewer, "party.created");
-                open(viewer);
+                viewer.closeInventory();
             });
-            setItem(49, backButton(), event -> new ReceptionDialog(viewer, profileManager, new DialogueEngine()).open());
             return;
         }
+
         Party party = partyOpt.get();
         int slot = 0;
         for (UUID member : party.getMembers()) {
@@ -69,7 +63,6 @@ public final class PartyGUI extends AbstractGUI {
             else partyManager.leaveParty(viewer);
             viewer.closeInventory();
         });
-        setItem(49, backButton(), event -> new ReceptionDialog(viewer, profileManager, new DialogueEngine()).open());
     }
 
     private void openMemberActions(UUID target) {
@@ -114,14 +107,6 @@ public final class PartyGUI extends AbstractGUI {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(Component.text(name, color).decoration(TextDecoration.ITALIC, false));
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private ItemStack backButton() {
-        ItemStack item = new ItemStack(Material.ARROW);
-        ItemMeta meta = item.getItemMeta();
-        meta.displayName(lang.get("common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }
