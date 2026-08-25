@@ -61,7 +61,7 @@ public final class CraftingService {
         }
 
         ItemRarity rolledRarity = CraftingRarityRoller.roll(recipe.rarity());
-        ItemStack result = createResult(recipe, rolledRarity, professionLevel);
+        ItemStack result = createResult(recipe, rolledRarity, Math.min(99, professionLevel));
         player.getInventory().addItem(result).values()
                 .forEach(stack -> player.getWorld().dropItemNaturally(player.getLocation(), stack));
 
@@ -70,12 +70,12 @@ public final class CraftingService {
         return CraftResult.success(result, experience);
     }
 
-    private ItemStack createResult(CraftRecipe recipe, ItemRarity rarity, int professionLevel) {
+    private ItemStack createResult(CraftRecipe recipe, ItemRarity rarity, int itemLevel) {
         if (!recipe.resultItemId().isBlank()) {
             return itemService.createItem(recipe.resultItemId())
                     .orElseThrow(() -> new IllegalStateException("Unable to create crafting result item: " + recipe.resultItemId()));
         }
-        ItemStack item = CraftedItemFactory.create(recipe.id(), recipe.displayName(), recipe.resultMaterial(), rarity, professionLevel);
+        ItemStack item = CraftedItemFactory.create(recipe.id(), recipe.displayName(), recipe.resultMaterial(), rarity, itemLevel);
         if (recipe.resultAmount() > 1) item.setAmount(recipe.resultAmount());
         return item;
     }
