@@ -58,14 +58,33 @@ Stand: 2026-08-25 – abgeglichen mit dem aktuellen `main`-Stand
 - Vier Professionen bleiben: BLACKSMITH, PROVISIONER, ALCHEMIST, SCHOLAR.
 - Gilden sind ein eigenes soziales Gameplay-System mit gemeinsamer Gildenstadt/-basis und Gildenbank.
 - Partys unterstützen gemeinsame XP, Loot-Verteilung, Party-Buffs und gemeinsamen Questfortschritt.
+- Party-Komfortfunktionen sind zusätzlich über `/party` verfügbar; NPC/Dialoge bleiben die eigentliche Gameplay-Interaktion.
 - Alte Default-Bosse Forest Tyrant, Frost Sovereign und Void Reaper werden nicht als finales Bosskonzept fortgeführt.
 - Biom-Bosse sind regionale Spezialmonster und keine Worldbosse. Sie sind an ein bestimmtes Minecraft-Biom gebunden, können dort über die interne 10-%-Spawnprüfung erscheinen und verbrennen nicht durch Tageslicht.
 - Worldbosse sind ausschließlich Admin-gestartete Events. Sie haben feste Level, individuelle Belohnungen für aktive Teilnehmer, mehrere Phasen und dürfen Adds beschwören. Tageslicht verbrennt sie nicht. Es gibt keinen automatischen Worldboss-Respawn.
 - Ein eigenes Regions-/Mob-Scaling-System außerhalb der Biom-Bosse wird nicht umgesetzt.
 - Aktuell existiert keine verbindliche Lore.
-- Spieler benötigen keine Gameplay-Commands als Voraussetzung für die Systeme; die eigentlichen Interaktionen erfolgen über NPCs/Dialoge. Die wenigen Gilden-Commands dienen als komfortable Zusatzfunktionen für Einladungen, Annahme, Verlassen und Info.
+- Spieler benötigen keine Gameplay-Commands als Voraussetzung für die Systeme; die eigentlichen Interaktionen erfolgen über NPCs/Dialoge. Die wenigen Gilden-Commands dienen als komfortable Zusatzfunktionen für Einladungen, Annahme, Verlassen und Info. `/party` ist ebenfalls nur eine Komfortfunktion.
 - Sprachen: Deutsch, Englisch, Spanisch, Französisch; nur dort einsetzen, wo Mehrsprachigkeit sinnvoll ist.
 - Travel bleibt beim bestehenden NPC-/Waypoint-Prinzip: NPC schaltet Ziel frei, erneutes Ansprechen zeigt verfügbare Reiseziele.
+
+---
+
+# Aktuelle Abweichungen / zuletzt synchronisierte Punkte
+
+## 05 – Quests
+- [x] `ESCORT` als nicht mehr unterstützter Quest-Typ entfernt.
+- [x] Aktive Quests im PixelRPG-Charakterdialog zeigen den tatsächlichen Questnamen.
+- [x] Klick auf eine aktive Quest öffnet einen Questdetail-Dialog.
+- [x] Questdetail zeigt Beschreibung und aktuelles Ziel/Fortschritt.
+- [x] Questdetail zeigt vorhandene Belohnungs-/Zeitinformationen.
+- [x] Aktive Quests können über den Questdetail-Dialog abgebrochen werden.
+- [ ] vollständige Runtime-Regressionstests der Quest-Dialoge noch ausstehend.
+
+## 12 – Party
+- [x] `/party` als zusätzlicher Party-Komfortcommand vorhanden.
+- [x] bestehende Party-Funktionen bleiben über den Party-Command erreichbar.
+- [x] NPC/Dialoge bleiben die eigentliche Gameplay-Interaktion.
 
 ---
 
@@ -238,6 +257,7 @@ Dieser Punkt wird **nicht umgesetzt**.
 - [ ] vollständige Runtime-Tests für Worldboss-Events
 - [ ] vollständige Runtime-Tests für Boss-Phasen / Adds / Loot
 - [ ] vollständige Runtime-Tests für Gilden-Gründung / Einladungen / Gildenbank
+- [ ] vollständige Runtime-Tests für Questdetail-Dialog / Quest-Abbruch
 - [ ] vollständige Regressionstests aller bisherigen Systeme
 
 ---
