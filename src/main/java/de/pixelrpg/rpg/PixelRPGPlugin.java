@@ -186,7 +186,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 8.0), getConfig().getInt("npc.look-interval-ticks", 5)).start();
         DialogueEngine dialogueEngine = new DialogueEngine();
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
-        QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine);
+        QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager);
         companionService = new CompanionService(this);
         npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine, partyManager));
@@ -236,6 +236,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         rootCommand.register(new BossSubCommand(bossRepository, bossManager));
         registerCommand("rpgadmin", new PaperBasicCommandAdapter("rpgadmin", rootCommand, rootCommand, "rpg.admin"));
         PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
+        PaperBasicCommandAdapter partyAdapter = new PaperBasicCommandAdapter("party", partyCommand, partyCommand, "rpg.member");
+        registerCommand("party", partyAdapter);
         registerCommand("rpgparty", new PaperBasicCommandAdapter("rpgparty", partyCommand, partyCommand, "rpg.member"));
         registerCommand("questlog", new PaperBasicCommandAdapter("questlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member"));
         DialogueCommand dialogueCommand = new DialogueCommand(playerProfileManager, dialogueEngine);
@@ -261,10 +263,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
     }
 
     public static PixelRPGPlugin getInstance() { return instance; }
-    public CompanionService getCompanionService() { return companionService; }
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
     public StatEngine getStatEngine() { return statEngine; }
     public ProfessionSystem getProfessionSystem() { return professionSystem; }
+    public ItemEconomyConfig getItemEconomyConfig() { return itemEconomyConfig; }
     public ItemService getItemService() { return itemService; }
     public EquipmentService getEquipmentService() { return equipmentService; }
     public NpcManager getNpcManager() { return npcManager; }
@@ -272,10 +274,12 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public StoryManager getStoryManager() { return storyManager; }
     public PartyManager getPartyManager() { return partyManager; }
     public QuestManager getQuestManager() { return questManager; }
+    public QuestRepository getQuestRepository() { return questRepository; }
     public GlobalEventState getGlobalEventState() { return globalEventState; }
+    public BossRepository getBossRepository() { return bossRepository; }
     public BossManager getBossManager() { return bossManager; }
     public StatisticsService getStatisticsService() { return statisticsService; }
     public ScoreboardService getScoreboardService() { return scoreboardService; }
-    public PlaytimeTracker getPlaytimeTracker() { return playtimeTracker; }
     public LanguageManager getLanguageManager() { return languageManager; }
+    public CompanionService getCompanionService() { return companionService; }
 }
