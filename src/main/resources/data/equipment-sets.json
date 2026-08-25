@@ -1,3 +1,59 @@
 {
-  "sets": []
+  "sets": [
+    {
+      "id": "donnerwacht",
+      "name": "Donnerwacht",
+      "bonuses": [
+        { "pieces": 2, "stats": { "MOVEMENT_SPEED": 0.02 }, "trim": { "pattern": "minecraft:bolt", "material": "minecraft:copper" } },
+        { "pieces": 3, "stats": { "REACH": 0.15 } },
+        { "pieces": 4, "stats": { "ATTACK_POWER": 2.0 } }
+      ]
+    },
+    {
+      "id": "schattengeflecht",
+      "name": "Schattengeflecht",
+      "bonuses": [
+        { "pieces": 2, "stats": { "CRIT": 4.0 }, "trim": { "pattern": "minecraft:vex", "material": "minecraft:iron" } },
+        { "pieces": 3, "stats": { "LIFESTEAL": 1.5 } },
+        { "pieces": 4, "stats": { "CRIT_DAMAGE": 0.15 } }
+      ]
+    },
+    {
+      "id": "stahlwall",
+      "name": "Stahlwall",
+      "bonuses": [
+        { "pieces": 2, "stats": { "ARMOR": 2.5 }, "trim": { "pattern": "minecraft:ward", "material": "minecraft:iron" } },
+        { "pieces": 3, "stats": { "HP": 6.0 } },
+        { "pieces": 4, "stats": { "ATTACK_POWER": 3.0 } }
+      ]
+    },
+    {
+      "id": "sonnengewand",
+      "name": "Sonnengewand",
+      "bonuses": [
+        { "pieces": 2, "stats": { "MOVEMENT_SPEED": 0.03 }, "trim": { "pattern": "minecraft:dune", "material": "minecraft:gold" } },
+        { "pieces": 3, "stats": { "CRIT_DAMAGE": 0.20 } },
+        { "pieces": 4, "stats": { "CRIT": 5.0 } }
+      ]
+    },
+    {
+      "id": "kristallwache",
+      "name": "Kristallwache",
+      "bonuses": [
+        { "pieces": 2, "stats": { "DAMAGE": 3.0 }, "trim": { "pattern": "minecraft:spire", "material": "minecraft:diamond" } },
+        { "pieces": 3, "stats": { "ARMOR": 3.0 } },
+        { "pieces": 4, "stats": { "CRIT_DAMAGE": 0.30 } }
+      ]
+    },
+    {
+      "id": "hoellenschmiede",
+      "name": "Höllenschmiede",
+      "bonuses": [
+        { "pieces": 2, "stats": { "HP": 10.0 }, "trim": { "pattern": "minecraft:silence", "material": "minecraft:netherite" } },
+        { "pieces": 3, "stats": { "DAMAGE": 5.0 } },
+        { "pieces": 4, "stats": { "LIFESTEAL": 4.0, "ATTACK_POWER": 4.0 } }
+      ]
+    }
+  ],
+  "trim_mappings": {}
 }
