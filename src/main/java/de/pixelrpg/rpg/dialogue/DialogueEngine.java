@@ -43,9 +43,7 @@ public final class DialogueEngine {
         int safeColumns = Math.max(1, Math.min(3, columns));
 
         List<ActionButton> safeActions = new ArrayList<>(actions);
-        if (backAction != null) {
-            safeActions.add(actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
-        }
+        if (backAction != null) safeActions.add(actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
         ActionButton close = actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog);
 
         player.showDialog(Dialog.create(factory -> {
@@ -63,6 +61,20 @@ public final class DialogueEngine {
                                       DialogInput input, Component actionLabel,
                                       NamedTextColor actionColor,
                                       BiConsumer<Player, DialogResponseView> action) {
+        openInputAction(player, title, body, input, actionLabel, actionColor, action);
+    }
+
+    public void openTextInputAction(Player player, Component title, List<DialogBody> body,
+                                    DialogInput input, Component actionLabel,
+                                    NamedTextColor actionColor,
+                                    BiConsumer<Player, DialogResponseView> action) {
+        openInputAction(player, title, body, input, actionLabel, actionColor, action);
+    }
+
+    private void openInputAction(Player player, Component title, List<DialogBody> body,
+                                 DialogInput input, Component actionLabel,
+                                 NamedTextColor actionColor,
+                                 BiConsumer<Player, DialogResponseView> action) {
         Objects.requireNonNull(player, "player");
         Objects.requireNonNull(title, "title");
         Objects.requireNonNull(body, "body");
@@ -145,9 +157,7 @@ public final class DialogueEngine {
 
     private List<DialogBody> normalizeBody(List<DialogBody> body) {
         return body.stream().map(entry -> {
-            if (entry instanceof PlainMessageDialogBody plain) {
-                return DialogBody.plainMessage(whiteText(plain.contents()), plain.width());
-            }
+            if (entry instanceof PlainMessageDialogBody plain) return DialogBody.plainMessage(whiteText(plain.contents()), plain.width());
             return entry;
         }).toList();
     }
