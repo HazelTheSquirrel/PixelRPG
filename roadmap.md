@@ -61,7 +61,9 @@ Stand: 2026-08-25 – abgeglichen mit dem aktuellen `main`-Stand
 - Party-Komfortfunktionen sind zusätzlich über `/party` verfügbar; NPC/Dialoge bleiben die eigentliche Gameplay-Interaktion.
 - Alte Default-Bosse Forest Tyrant, Frost Sovereign und Void Reaper werden nicht als finales Bosskonzept fortgeführt.
 - Biom-Bosse sind regionale Spezialmonster und keine Worldbosse. Sie sind an ein bestimmtes Minecraft-Biom gebunden, können dort über die interne 10-%-Spawnprüfung erscheinen und verbrennen nicht durch Tageslicht.
-- Worldbosse sind ausschließlich Admin-gestartete Events. Sie haben feste Level, individuelle Belohnungen für aktive Teilnehmer, mehrere Phasen und dürfen Adds beschwören. Tageslicht verbrennt sie nicht. Es gibt keinen automatischen Worldboss-Respawn.
+- Worldbosse sind ausschließlich Admin-gestartete Events. Es gibt aktuell sechs Worldbosse mit festen Leveln, individuellen Belohnungen für aktive Teilnehmer, mehreren Phasen, Adds und individuellen Angriffsmustern. Tageslicht verbrennt sie nicht. Es gibt keinen automatischen Worldboss-Respawn.
+- Worldbosse dürfen die Weltumgebung nicht dauerhaft beschädigen oder verändern: keine Blockzerstörung durch Explosionen, keine dauerhaft erzeugten Feuer-/Lava-Schäden und keine von Worldboss-Mechaniken verursachten permanenten Blockänderungen.
+- Worldboss-Angriffe dürfen Spieler und Entities treffen und Vanilla-Kampfmechaniken wie Projektile, AoE, Knockback, Status-Effekte und temporäre Gefahrenbereiche verwenden.
 - Ein eigenes Regions-/Mob-Scaling-System außerhalb der Biom-Bosse wird nicht umgesetzt.
 - Aktuell existiert keine verbindliche Lore.
 - Spieler benötigen keine Gameplay-Commands als Voraussetzung für die Systeme; die eigentlichen Interaktionen erfolgen über NPCs/Dialoge. Die wenigen Gilden-Commands dienen als komfortable Zusatzfunktionen für Einladungen, Annahme, Verlassen und Info. `/party` ist ebenfalls nur eine Komfortfunktion.
@@ -112,8 +114,10 @@ Stand: 2026-08-25 – abgeglichen mit dem aktuellen `main`-Stand
 - [x] keine Adds
 - [x] Biom-Bindung wird bei der Runtime berücksichtigt
 - [x] Tageslicht-Immunität ohne automatische allgemeine Feuer-/Lava-Immunität
+- [x] finale Biom-Boss-Definitionen und thematische Vanilla-Angriffsmuster umgesetzt
 
 ## Worldbosse
+- [x] sechs finale Worldbosse umgesetzt
 - [x] Worldboss ist ausschließlich ein Admin-Event
 - [x] Admin kann Worldboss-Event starten/spawnen
 - [x] kein automatischer Worldboss-Respawn
@@ -131,6 +135,16 @@ Stand: 2026-08-25 – abgeglichen mit dem aktuellen `main`-Stand
 - [x] lange Kämpfe / hohe Herausforderung
 - [x] zeitweise gefährliche Bereiche / Boss-Mechaniken
 - [x] Tageslicht-Immunität ohne automatische allgemeine Feuer-/Lava-Immunität
+- [x] Worldboss-Mechaniken können keine Blöcke dauerhaft zerstören oder verändern
+- [x] Worldboss-Entities und temporäre Event-Mechaniken werden beim Event-Ende bereinigt
+
+### Aktuelle Worldbosse
+- [x] Der Risskoloss
+- [x] Der Sturmherrscher
+- [x] Der Abgrundfürst
+- [x] Der Seelenverschlinger
+- [x] Der Endbote
+- [x] Der Uralte Weltenwächter
 
 ## Loot / Teilnahme
 - [x] datengetriebene Loot-Tables
@@ -140,6 +154,8 @@ Stand: 2026-08-25 – abgeglichen mit dem aktuellen `main`-Stand
 - [x] normale Bosse verwenden Party-System für Loot
 - [x] Worldbosse belohnen aktive Teilnehmer individuell
 - [x] Party bleibt beim Worldboss unabhängig vom individuellen Loot
+- [x] Worldboss-Rewards verwenden das bestehende PixelRPG-Lootsystem
+- [x] Unique Companions bleiben bis zur Fertigstellung des Companion-Systems bewusst offen
 
 ## Altbestand / Content
 - [x] Forest Tyrant entfernt
@@ -289,11 +305,13 @@ Dieser Punkt wird **nicht umgesetzt**.
 
 # 22 – Testing / QA — 🟡 IN ARBEIT
 - [x] CI-Build grün für 17 – Bosses
+- [x] CI-Build grün nach vollständiger Worldboss-Implementierung
 - [x] CI-Build grün für 19 – Gilden
 - [x] CI-Build grün für 20 – Moderation / Admin
 - [ ] vollständige Runtime-Tests für Biom-Boss-Spawnchance
 - [ ] vollständige Runtime-Tests für Worldboss-Events
 - [ ] vollständige Runtime-Tests für Boss-Phasen / Adds / Loot
+- [ ] vollständige Runtime-Tests für Worldboss-Umgebungsschutz
 - [ ] vollständige Runtime-Tests für Gilden-Gründung / Einladungen / Gildenbank
 - [ ] vollständige Runtime-Tests für Questdetail-Dialog / Quest-Abbruch
 - [ ] vollständige Regressionstests aller bisherigen Systeme
