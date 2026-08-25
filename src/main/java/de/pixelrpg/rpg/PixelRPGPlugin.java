@@ -207,7 +207,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RPGStatsListener(statEngine, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new SkillInputListener(weaponAbilityEngine), this);
         getServer().getPluginManager().registerEvents(shopEditorGUI, this);
-        getServer().getPluginManager().registerEvents(new LootDropListener(playerProfileManager, itemEconomyConfig, itemService), this);
+        getServer().getPluginManager().registerEvents(new LootDropListener(playerProfileManager, itemEconomyConfig), this);
         mobLevelScalingListener = new MobLevelScalingListener(this, playerProfileManager, mobScalingConfig);
         getServer().getPluginManager().registerEvents(mobLevelScalingListener, this);
         mobLevelScalingListener.start();
@@ -258,25 +258,41 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (mobLevelScalingListener != null) mobLevelScalingListener.shutdown();
         if (combatDamageListener != null) combatDamageListener.shutdown();
         if (npcLookTask != null) npcLookTask.stop();
-        if (scoreboardService != null) scoreboardService.stop();
-        if (playtimeTracker != null) playtimeTracker.stop();
+        if (mobNameplateService != null) mobNameplateService.cancelAll();
         if (biomeBossSpawnTask != null) biomeBossSpawnTask.stop();
-        if (questManager != null) questManager.stopTimerCheckTask();
-        if (partyManager != null) partyManager.shutdown();
+        if (questManager != null) questManager.shutdown();
+        if (scoreboardService != null) scoreboardService.shutdown();
+        if (playtimeTracker != null) playtimeTracker.shutdown();
         if (companionService != null) companionService.shutdown();
+        if (bossManager != null) bossManager.shutdown();
+        if (partyManager != null) partyManager.shutdown();
+        if (npcManager != null) npcManager.shutdown();
         if (playerProfileManager != null) playerProfileManager.shutdown();
         instance = null;
     }
 
-    public static PixelRPGPlugin getInstance() {
-        return instance;
+    private void registerCommand(String name, PaperBasicCommandAdapter adapter) {
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> event.registrar().register(name, adapter));
     }
 
-    private void registerCommand(String name, org.bukkit.command.CommandExecutor executor, org.bukkit.command.TabCompleter completer, String permission) {
-        var command = getCommand(name);
-        if (command == null) throw new IllegalStateException("Command not registered in paper-plugin.yml: " + name);
-        command.setExecutor(executor);
-        command.setTabCompleter(completer);
-        if (permission != null) command.setPermission(permission);
-    }
+    public static PixelRPGPlugin getInstance() { return instance; }
+    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
+    public StatEngine getStatEngine() { return statEngine; }
+    public ProfessionSystem getProfessionSystem() { return professionSystem; }
+    public ItemEconomyConfig getItemEconomyConfig() { return itemEconomyConfig; }
+    public ItemService getItemService() { return itemService; }
+    public EquipmentService getEquipmentService() { return equipmentService; }
+    public NpcManager getNpcManager() { return npcManager; }
+    public ShopManager getShopManager() { return shopManager; }
+    public StoryManager getStoryManager() { return storyManager; }
+    public PartyManager getPartyManager() { return partyManager; }
+    public QuestManager getQuestManager() { return questManager; }
+    public QuestRepository getQuestRepository() { return questRepository; }
+    public GlobalEventState getGlobalEventState() { return globalEventState; }
+    public BossRepository getBossRepository() { return bossRepository; }
+    public BossManager getBossManager() { return bossManager; }
+    public StatisticsService getStatisticsService() { return statisticsService; }
+    public ScoreboardService getScoreboardService() { return scoreboardService; }
+    public LanguageManager getLanguageManager() { return languageManager; }
+    public CompanionService getCompanionService() { return companionService; }
 }

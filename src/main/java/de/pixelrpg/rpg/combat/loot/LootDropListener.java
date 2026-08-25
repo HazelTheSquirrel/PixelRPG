@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.combat.loot;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.item.ItemDefinition;
@@ -22,10 +23,10 @@ public final class LootDropListener implements Listener {
     private final ItemService itemService;
     private final List<ItemDefinition> lootPool;
 
-    public LootDropListener(GuildAPI guildAPI, ItemEconomyConfig economyConfig, ItemService itemService) {
+    public LootDropListener(GuildAPI guildAPI, ItemEconomyConfig economyConfig) {
         this.guildAPI = guildAPI;
         this.economyConfig = economyConfig;
-        this.itemService = itemService;
+        this.itemService = PixelRPGPlugin.getInstance().getItemService();
         this.lootPool = itemService.definitions().stream()
                 .filter(definition -> !definition.adminOnly())
                 .filter(definition -> !definition.unique())
