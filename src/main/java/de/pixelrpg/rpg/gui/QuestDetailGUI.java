@@ -7,6 +7,7 @@ import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
 import de.pixelrpg.rpg.quest.QuestManager;
 import de.pixelrpg.rpg.quest.QuestText;
+import de.pixelrpg.rpg.quest.QuestType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -26,7 +27,7 @@ public final class QuestDetailGUI extends AbstractGUI {
     private final LanguageManager lang;
 
     public QuestDetailGUI(Player viewer, QuestManager questManager, PlayerProfileManager profileManager, Quest quest) {
-        super(54, Component.text(quest.title()));
+        super(54, QuestText.title(quest));
         this.viewer = viewer;
         this.questManager = questManager;
         this.profileManager = profileManager;
@@ -39,13 +40,19 @@ public final class QuestDetailGUI extends AbstractGUI {
         PlayerProfile profile = profileManager.getProfile(viewer.getUniqueId()).orElse(null);
         if (profile == null) return;
 
+        Component questTitle = QuestText.title(quest).color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false);
         ItemStack info = new ItemStack(Material.WRITTEN_BOOK);
         ItemMeta meta = info.getItemMeta();
-        meta.displayName(Component.text(quest.title(), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(questTitle);
+        meta.itemName(questTitle);
+
         List<Component> lore = new ArrayList<>();
         lore.add(Component.text(quest.description(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text(" "));
         lore.add(QuestText.objective(quest).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
+        if (quest.type() == QuestType.COLLECT) {
+            lore.add(QuestText.requiredItem(quest).color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+        }
         if (profile.hasActiveQuest(quest.id())) {
             var progress = profile.getActiveQuests().get(quest.id());
             lore.add(lang.get("quest.progress", "current", String.valueOf(progress.getCurrentAmount()), "required", String.valueOf(quest.requiredAmount())).color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
