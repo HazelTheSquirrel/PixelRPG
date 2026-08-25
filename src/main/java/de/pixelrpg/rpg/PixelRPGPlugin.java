@@ -99,14 +99,17 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private CraftingGUI craftingGUI;
     private MobScalingConfig mobScalingConfig;
     private MobNameplateService mobNameplateService;
+    private MobLevelScalingListener mobLevelScalingListener;
     private NpcManager npcManager;
     private NpcBehaviorRegistry npcBehaviorRegistry;
+    private NpcLookTask npcLookTask;
     private ShopManager shopManager;
     private ShopEditorGUI shopEditorGUI;
     private StoryManager storyManager;
     private PartyManager partyManager;
     private QuestRepository questRepository;
     private QuestManager questManager;
+    private QuestPassiveCheckTask questPassiveCheckTask;
     private GlobalEventState globalEventState;
     private BossRepository bossRepository;
     private BossManager bossManager;
@@ -116,6 +119,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private PlaytimeTracker playtimeTracker;
     private LanguageManager languageManager;
     private CompanionService companionService;
+    private CombatDamageListener combatDamageListener;
 
     @Override
     public void onEnable() {
@@ -183,7 +187,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcManager = new NpcManager(this);
         npcManager.loadAll();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
-        new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 8.0), getConfig().getInt("npc.look-interval-ticks", 5)).start();
+        npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 8.0), getConfig().getInt("npc.look-interval-ticks", 5));
+        npcLookTask.start();
         DialogueEngine dialogueEngine = new DialogueEngine();
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager);
@@ -203,11 +208,12 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SkillInputListener(weaponAbilityEngine), this);
         getServer().getPluginManager().registerEvents(shopEditorGUI, this);
         getServer().getPluginManager().registerEvents(new LootDropListener(playerProfileManager, itemEconomyConfig), this);
-        MobLevelScalingListener mobLevelScalingListener = new MobLevelScalingListener(this, playerProfileManager, mobScalingConfig);
+        mobLevelScalingListener = new MobLevelScalingListener(this, playerProfileManager, mobScalingConfig);
         getServer().getPluginManager().registerEvents(mobLevelScalingListener, this);
         mobLevelScalingListener.start();
         getServer().getPluginManager().registerEvents(new MobNameplateListener(mobNameplateService, playerProfileManager), this);
-        getServer().getPluginManager().registerEvents(new CombatDamageListener(playerProfileManager, playerProfileManager, statEngine, mobScalingConfig), this);
+        combatDamageListener = new CombatDamageListener(playerProfileManager, playerProfileManager, statEngine);
+        getServer().getPluginManager().registerEvents(combatDamageListener, this);
         getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new BossCombustListener(), this);
         getServer().getPluginManager().registerEvents(new MobExperienceListener(playerProfileManager, mobScalingConfig), this);
@@ -226,7 +232,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(playtimeTracker, this);
         getServer().getPluginManager().registerEvents(new QuickActionsDialogListener(quickActions, companionService), this);
         getServer().getPluginManager().registerEvents(new CompanionExperienceListener(companionService), this);
-        new QuestPassiveCheckTask(this, questManager).start();
+        questPassiveCheckTask = new QuestPassiveCheckTask(this, questManager);
+        questPassiveCheckTask.start();
 
         RootCommand rootCommand = new RootCommand();
         rootCommand.register(new CompanionSubCommand(companionService));
@@ -247,6 +254,11 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (questPassiveCheckTask != null) questPassiveCheckTask.stop();
+        if (mobLevelScalingListener != null) mobLevelScalingListener.shutdown();
+        if (combatDamageListener != null) combatDamageListener.shutdown();
+        if (npcLookTask != null) npcLookTask.stop();
+        if (mobNameplateService != null) mobNameplateService.cancelAll();
         if (biomeBossSpawnTask != null) biomeBossSpawnTask.stop();
         if (questManager != null) questManager.shutdown();
         if (scoreboardService != null) scoreboardService.shutdown();
@@ -254,6 +266,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (companionService != null) companionService.shutdown();
         if (bossManager != null) bossManager.shutdown();
         if (partyManager != null) partyManager.shutdown();
+        if (npcManager != null) npcManager.shutdown();
         if (playerProfileManager != null) playerProfileManager.shutdown();
         instance = null;
     }
