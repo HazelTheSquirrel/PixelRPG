@@ -134,11 +134,6 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         Bukkit.getPluginManager().callEvent(new PlayerUnregistrationEvent(player));
     }
 
-    @Deprecated(forRemoval = true)
-    public void registerToGuild(Player player) { registerPlayer(player); }
-    @Deprecated(forRemoval = true)
-    public void leaveGuild(Player player) { unregisterPlayer(player); }
-
     public void unlockWaypoint(UUID uuid, String waypointId) {
         PlayerProfile profile = activeProfiles.get(uuid);
         if (profile != null) {
