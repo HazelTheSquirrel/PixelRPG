@@ -28,6 +28,10 @@ public final class GuildDialog {
     private final DialogueEngine dialogue;
     private final QuickActionsDialogService quickActions;
 
+    public GuildDialog(GuildManager guilds, PlayerProfileManager profiles, DialogueEngine dialogue) {
+        this(guilds, profiles, dialogue, null);
+    }
+
     public GuildDialog(GuildManager guilds, PlayerProfileManager profiles, DialogueEngine dialogue, QuickActionsDialogService quickActions) {
         this.guilds = guilds;
         this.profiles = profiles;
@@ -61,7 +65,9 @@ public final class GuildDialog {
                 .width(220).build();
         ActionButton cancel = ActionButton.builder(Component.text("Abbrechen", NamedTextColor.RED))
                 .action(DialogAction.customClick((response, audience) -> {
-                    if (audience instanceof Player target) quickActions.openQuickActions(target);
+                    if (!(audience instanceof Player target)) return;
+                    if (quickActions != null) quickActions.openQuickActions(target);
+                    else new ReceptionDialog(target, profiles, dialogue, null, guilds).open();
                 }, ClickCallback.Options.builder().uses(1).build()))
                 .width(220).build();
         player.showDialog(Dialog.create(factory -> {
