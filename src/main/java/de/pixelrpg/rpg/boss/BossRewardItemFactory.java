@@ -50,6 +50,12 @@ public final class BossRewardItemFactory {
             case "seelenfragment" -> new Reward(id, "Seelenfragment", ItemRarity.EPIC, "SOUL_FRAGMENT", 20_000L);
             case "magmaherz" -> new Reward(id, "Magmaherz", ItemRarity.EPIC, "MAGMA_HEART", 20_000L);
             case "shulkerkern" -> new Reward(id, "Shulkerkern", ItemRarity.LEGENDARY, "SHULKER_CORE", 25_000L);
+            case "risskern" -> new Reward(id, "Risskern", ItemRarity.LEGENDARY, "RIFT_CORE", 30_000L);
+            case "sturmherz" -> new Reward(id, "Sturmherz", ItemRarity.LEGENDARY, "STORM_HEART", 30_000L);
+            case "abgrundkern" -> new Reward(id, "Abgrundkern", ItemRarity.LEGENDARY, "ABYSS_CORE", 30_000L);
+            case "seelenkrone" -> new Reward(id, "Seelenkrone", ItemRarity.LEGENDARY, "SOUL_CROWN", 30_000L);
+            case "endriss" -> new Reward(id, "Endriss", ItemRarity.LEGENDARY, "END_RIFT", 30_000L);
+            case "weltenherz" -> new Reward(id, "Weltenherz", ItemRarity.LEGENDARY, "WORLD_HEART", 35_000L);
             default -> null;
         };
     }
