@@ -220,14 +220,51 @@ Dieser Punkt wird **nicht umgesetzt**.
 
 ---
 
-# 20 – Moderation / Admin — 🟡 IN ARBEIT
-- [ ] Admin Command System
-- [ ] NPC Management
-- [ ] Item Management
-- [ ] Quest Management
-- [x] Boss Management / Worldboss-Event-Start
-- [ ] Player Management
-- [ ] Debug Tools
+# 20 – Moderation / Admin — 🟢 98 % ABGESCHLOSSEN
+
+## Zentrale Admin-Schnittstelle
+- [x] zentraler `/rpgadmin`-Command
+- [x] bestehende `/rpgadmin npc create`-Struktur als Grundlage beibehalten und erweitert
+- [x] Admin-Funktionen als Unterbefehle organisiert
+- [x] Admin-Berechtigung (`rpg.admin`) für die Schnittstelle
+
+## NPC Management
+- [x] NPC über `/rpgadmin npc` erstellen
+- [x] bestehende NPC-Create-Mechanik weiterverwendet
+- [x] NPC konfigurieren/bearbeiten
+- [x] NPC entfernen/verwalten
+- [x] keine manuelle Dateiänderung als Voraussetzung
+
+## Item Management
+- [x] Admin-Give-System
+- [x] Item-Inspect-System
+- [x] Items administrativ erstellen
+- [x] RPG-Stats administrativ verändern
+- [x] Validierung der Item-/Stat-Eingaben
+
+## Quest Management
+- [x] Quest geben
+- [x] Quest entfernen/abbrechen
+- [x] Quest zurücksetzen
+- [x] Quest-Fortschritt setzen
+- [x] Quest abschließen
+- [x] Queststatus administrativ einsehen/verwalten
+
+## Boss Management
+- [x] bestehendes Boss Management
+- [x] Worldboss-Event administrativ starten/spawnen
+
+## Player Management
+- [x] relevante PixelRPG-Spielerdaten einsehen
+- [x] relevante Spielerdaten administrativ verändern
+- [x] Spielerdaten zurücksetzen
+- [x] Level/XP und weitere verwaltbare Progressionsdaten administrieren
+
+## Debug Tools
+- [x] `/rpgadmin debug` als separates Entwickler-/Testwerkzeug
+- [x] Zugriff über Admin-Berechtigung
+- [x] gezielte Diagnose/Testmöglichkeiten für PixelRPG-Systeme
+- [x] Debug-Funktionen sind kein normales Gameplay-System
 
 ---
 
@@ -253,6 +290,7 @@ Dieser Punkt wird **nicht umgesetzt**.
 # 22 – Testing / QA — 🟡 IN ARBEIT
 - [x] CI-Build grün für 17 – Bosses
 - [x] CI-Build grün für 19 – Gilden
+- [x] CI-Build grün für 20 – Moderation / Admin
 - [ ] vollständige Runtime-Tests für Biom-Boss-Spawnchance
 - [ ] vollständige Runtime-Tests für Worldboss-Events
 - [ ] vollständige Runtime-Tests für Boss-Phasen / Adds / Loot
@@ -285,6 +323,6 @@ Dieser Punkt wird **nicht umgesetzt**.
 | 17 – Bosses | 🟢 98 % |
 | 18 – Regions / Mob Scaling | ⚪ Verworfen |
 | 19 – Gilden | 🟢 98 % |
-| 20 – Moderation / Admin | 🟡 In Arbeit |
+| 20 – Moderation / Admin | 🟢 98 % |
 | 21 – Data / Persistence | 🟢 98 % |
 | 22 – Testing / QA | 🟡 In Arbeit |
