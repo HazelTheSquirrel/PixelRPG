@@ -39,13 +39,12 @@ public final class QuickActionsDialogService {
     private final PlayerProfileManager profiles;
     private final StatEngine statEngine;
     private final QuestManager questManager;
-    private final ItemService itemService;
+    private final ItemService itemService = new ItemService();
 
-    public QuickActionsDialogService(PlayerProfileManager profiles, StatEngine statEngine, QuestManager questManager, ItemService itemService) {
+    public QuickActionsDialogService(PlayerProfileManager profiles, StatEngine statEngine, QuestManager questManager) {
         this.profiles = profiles;
         this.statEngine = statEngine;
         this.questManager = questManager;
-        this.itemService = itemService;
     }
 
     public PlayerProfileManager profileManager() { return profiles; }
@@ -109,27 +108,16 @@ public final class QuickActionsDialogService {
             body.add(DialogBody.plainMessage(Component.text("Aktive Quests: " + profile.getActiveQuests().size() + "/" + QuestManager.MAX_ACTIVE_QUESTS, NamedTextColor.AQUA)));
             profile.getActiveQuests().forEach((questId, progress) -> {
                 Quest quest = questManager.getRepository().getQuest(questId);
-                Component label = quest == null
-                        ? Component.text(questId, NamedTextColor.YELLOW)
-                        : QuestText.title(quest).color(NamedTextColor.YELLOW);
-                Component description = quest == null
-                        ? Component.text("Quest-ID: " + questId, NamedTextColor.GRAY)
-                        : Component.text(quest.description(), NamedTextColor.GRAY);
-                Component objective = quest == null
-                        ? Component.text("Ziel unbekannt • " + progress.getCurrentAmount() + "/?", NamedTextColor.WHITE)
-                        : objectiveWithProgress(quest, progress);
-                actions.add(actionButton(label.append(Component.text(" • ", NamedTextColor.DARK_GRAY)).append(objective),
-                        target -> openQuestDetails(target, questId, description, companionDialog, professionDialog)));
+                Component label = quest == null ? Component.text(questId, NamedTextColor.YELLOW) : QuestText.title(quest).color(NamedTextColor.YELLOW);
+                Component description = quest == null ? Component.text("Quest-ID: " + questId, NamedTextColor.GRAY) : Component.text(quest.description(), NamedTextColor.GRAY);
+                Component objective = quest == null ? Component.text("Ziel unbekannt • " + progress.getCurrentAmount() + "/?", NamedTextColor.WHITE) : objectiveWithProgress(quest, progress);
+                actions.add(actionButton(label.append(Component.text(" • ", NamedTextColor.DARK_GRAY)).append(objective), target -> openQuestDetails(target, questId, description, companionDialog, professionDialog)));
             });
         }
         actions.add(actionButton(Component.text("Zurück", NamedTextColor.WHITE), this::openQuickActions));
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
-            builder.base(DialogBase.builder(Component.text("PixelRPG – Aktive Quests", NamedTextColor.GOLD))
-                    .body(normalizeBodies(body))
-                    .canCloseWithEscape(true)
-                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
-                    .build());
+            builder.base(DialogBase.builder(Component.text("PixelRPG – Aktive Quests", NamedTextColor.GOLD)).body(normalizeBodies(body)).canCloseWithEscape(true).afterAction(DialogBase.DialogAfterAction.CLOSE).build());
             builder.type(DialogType.multiAction(actions, DialogueEngineCloseButton.create(), 1));
         }));
     }
@@ -143,7 +131,6 @@ public final class QuickActionsDialogService {
             openActiveQuests(player, companionDialog, professionDialog);
             return;
         }
-
         List<DialogBody> body = new ArrayList<>();
         body.add(DialogBody.plainMessage(Component.text(quest != null ? quest.title() : questId, NamedTextColor.YELLOW).decorate(TextDecoration.BOLD)));
         body.add(DialogBody.plainMessage(quest != null ? Component.text(quest.description(), NamedTextColor.WHITE) : fallbackDescription));
@@ -153,7 +140,6 @@ public final class QuickActionsDialogService {
             body.add(DialogBody.plainMessage(rewards(quest)));
             if (progress.hasExpiry()) body.add(DialogBody.plainMessage(Component.text("Zeit verbleibend: " + formatRemaining(progress.getExpiryTimestampMillis()), NamedTextColor.RED)));
         }
-
         ActionButton abandon = actionButton(Component.text("Quest abbrechen", NamedTextColor.RED), target -> {
             questManager.abandonQuest(target, questId);
             openActiveQuests(target, companionDialog, professionDialog);
@@ -161,21 +147,13 @@ public final class QuickActionsDialogService {
         ActionButton back = actionButton(Component.text("Zurück", NamedTextColor.WHITE), target -> openActiveQuests(target, companionDialog, professionDialog));
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
-            builder.base(DialogBase.builder(Component.text("Questdetails", NamedTextColor.GOLD))
-                    .body(body)
-                    .canCloseWithEscape(true)
-                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
-                    .build());
+            builder.base(DialogBase.builder(Component.text("Questdetails", NamedTextColor.GOLD)).body(body).canCloseWithEscape(true).afterAction(DialogBase.DialogAfterAction.CLOSE).build());
             builder.type(DialogType.multiAction(List.of(abandon, back), DialogueEngineCloseButton.create(), 1));
         }));
     }
 
     private Component objectiveWithProgress(Quest quest, QuestProgress progress) {
-        return Component.text()
-                .append(Component.text("Ziel: ", NamedTextColor.AQUA))
-                .append(QuestText.objective(quest).color(NamedTextColor.WHITE))
-                .append(Component.text(" • Fortschritt: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.AQUA))
-                .build();
+        return Component.text().append(Component.text("Ziel: ", NamedTextColor.AQUA)).append(QuestText.objective(quest).color(NamedTextColor.WHITE)).append(Component.text(" • Fortschritt: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.AQUA)).build();
     }
 
     private Component rewards(Quest quest) {
@@ -184,7 +162,6 @@ public final class QuickActionsDialogService {
         if (quest.rewardMoney() > 0.0D) rewards.add(Component.text(format(quest.rewardMoney()) + " Gold", NamedTextColor.GOLD));
         for (String rewardItem : quest.rewardItemMaterials()) rewards.add(rewardItem(rewardItem));
         if (quest.rewardsCompanion()) rewards.add(Component.text(companionRewardName(quest.rewardCompanionId()), NamedTextColor.LIGHT_PURPLE));
-
         Component result = Component.text("Belohnungen: ", NamedTextColor.YELLOW);
         if (rewards.isEmpty()) return result.append(Component.text("Keine", NamedTextColor.GRAY));
         for (int i = 0; i < rewards.size(); i++) {
@@ -198,19 +175,11 @@ public final class QuickActionsDialogService {
         if (raw == null || raw.isBlank()) return Component.text("Unbekannter Gegenstand", NamedTextColor.GRAY);
         String normalized = raw.trim();
         for (ItemDefinition definition : itemService.definitions()) {
-            if (definition.id().equalsIgnoreCase(normalized)) {
-                return Component.text(definition.name() + " (" + definition.rarity().name() + ")", NamedTextColor.GREEN);
-            }
+            if (definition.id().equalsIgnoreCase(normalized)) return Component.text(definition.name() + " (" + definition.rarity().name() + ")", NamedTextColor.GREEN);
         }
-
         Material material = Material.matchMaterial(normalized);
         if (material != null) return Component.translatable(material.translationKey(), NamedTextColor.GREEN);
-
-        String readable = normalized.replaceFirst("(?i)i(?:common|uncommon|rare|epic|legendary|unique)i\\d+$", "")
-                .replace('_', ' ')
-                .replace('|', ' ')
-                .replaceAll("\\s+", " ")
-                .trim();
+        String readable = normalized.replaceFirst("(?i)i(?:common|uncommon|rare|epic|legendary|unique)i\\d+$", "").replace('_', ' ').replace('|', ' ').replaceAll("\\s+", " ").trim();
         if (readable.isBlank()) readable = normalized;
         return Component.text(Character.toUpperCase(readable.charAt(0)) + readable.substring(1), NamedTextColor.GREEN);
     }
@@ -238,12 +207,9 @@ public final class QuickActionsDialogService {
     }
 
     private ActionButton actionButton(Component label, Consumer<Player> action) {
-        return ActionButton.builder(label)
-                .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
-                    if (audience instanceof Player target) action.accept(target);
-                }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
-                .width(220)
-                .build();
+        return ActionButton.builder(label).action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
+            if (audience instanceof Player target) action.accept(target);
+        }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build())).width(220).build();
     }
 
     public Component characterCard(Player player) {
@@ -251,23 +217,10 @@ public final class QuickActionsDialogService {
         StatEngine.CachedStats stats = statEngine.getCachedStats(player.getUniqueId());
         double maxHealth = player.getAttribute(Attribute.MAX_HEALTH) != null ? player.getAttribute(Attribute.MAX_HEALTH).getValue() : stats.maxHealth();
         double armor = player.getAttribute(Attribute.ARMOR) != null ? player.getAttribute(Attribute.ARMOR).getValue() : stats.armor();
-
         Component section = Component.text("────────────────────────", NamedTextColor.DARK_GRAY);
         Component header = Component.text("CHARAKTER", NamedTextColor.GOLD).decorate(TextDecoration.BOLD);
-        Component identity = Component.text()
-                .append(Component.text("Name: ", NamedTextColor.WHITE)).append(Component.text(player.getName(), NamedTextColor.AQUA)).append(Component.newline())
-                .append(Component.text("Level: ", NamedTextColor.WHITE)).append(Component.text(profile.getLevel(), NamedTextColor.AQUA)).append(Component.newline())
-                .append(Component.text("EXP: ", NamedTextColor.WHITE)).append(Component.text(profile.getExperience(), NamedTextColor.AQUA)).build();
-        Component statsComponent = Component.text()
-                .append(Component.text("HP: ", NamedTextColor.WHITE)).append(Component.text(format(player.getHealth()) + "/" + format(maxHealth), NamedTextColor.RED)).append(Component.newline())
-                .append(Component.text("Armor: ", NamedTextColor.WHITE)).append(Component.text(format(armor), NamedTextColor.GRAY)).append(Component.newline())
-                .append(Component.text("Movement Speed: ", NamedTextColor.WHITE)).append(Component.text(format(stats.movementSpeedBonus()), NamedTextColor.AQUA)).append(Component.newline())
-                .append(Component.text("Reach: ", NamedTextColor.WHITE)).append(Component.text(format(stats.entityReach()), NamedTextColor.AQUA)).append(Component.newline())
-                .append(Component.text("Damage: ", NamedTextColor.WHITE)).append(Component.text(format(stats.bonusDamage()), NamedTextColor.YELLOW)).append(Component.newline())
-                .append(Component.text("Crit: ", NamedTextColor.WHITE)).append(Component.text(format(stats.critChance()) + "%", NamedTextColor.YELLOW)).append(Component.newline())
-                .append(Component.text("Crit-Schaden: ", NamedTextColor.WHITE)).append(Component.text(format(stats.critDamageMultiplier()), NamedTextColor.YELLOW)).append(Component.newline())
-                .append(Component.text("Lifesteal: ", NamedTextColor.WHITE)).append(Component.text(format(stats.lifestealBonus()) + "%", NamedTextColor.LIGHT_PURPLE)).append(Component.newline())
-                .append(Component.text("Attack Power: ", NamedTextColor.WHITE)).append(Component.text(format(stats.attackPower()), NamedTextColor.GOLD)).build();
+        Component identity = Component.text().append(Component.text("Name: ", NamedTextColor.WHITE)).append(Component.text(player.getName(), NamedTextColor.AQUA)).append(Component.newline()).append(Component.text("Level: ", NamedTextColor.WHITE)).append(Component.text(profile.getLevel(), NamedTextColor.AQUA)).append(Component.newline()).append(Component.text("EXP: ", NamedTextColor.WHITE)).append(Component.text(profile.getExperience(), NamedTextColor.AQUA)).build();
+        Component statsComponent = Component.text().append(Component.text("HP: ", NamedTextColor.WHITE)).append(Component.text(format(player.getHealth()) + "/" + format(maxHealth), NamedTextColor.RED)).append(Component.newline()).append(Component.text("Armor: ", NamedTextColor.WHITE)).append(Component.text(format(armor), NamedTextColor.GRAY)).append(Component.newline()).append(Component.text("Movement Speed: ", NamedTextColor.WHITE)).append(Component.text(format(stats.movementSpeedBonus()), NamedTextColor.AQUA)).append(Component.newline()).append(Component.text("Reach: ", NamedTextColor.WHITE)).append(Component.text(format(stats.entityReach()), NamedTextColor.AQUA)).append(Component.newline()).append(Component.text("Damage: ", NamedTextColor.WHITE)).append(Component.text(format(stats.bonusDamage()), NamedTextColor.YELLOW)).append(Component.newline()).append(Component.text("Crit: ", NamedTextColor.WHITE)).append(Component.text(format(stats.critChance()) + "%", NamedTextColor.YELLOW)).append(Component.newline()).append(Component.text("Crit-Schaden: ", NamedTextColor.WHITE)).append(Component.text(format(stats.critDamageMultiplier()), NamedTextColor.YELLOW)).append(Component.newline()).append(Component.text("Lifesteal: ", NamedTextColor.WHITE)).append(Component.text(format(stats.lifestealBonus()) + "%", NamedTextColor.LIGHT_PURPLE)).append(Component.newline()).append(Component.text("Attack Power: ", NamedTextColor.WHITE)).append(Component.text(format(stats.attackPower()), NamedTextColor.GOLD)).build();
         return Component.text().append(header).append(Component.newline()).append(section).append(Component.newline()).append(identity).append(Component.newline()).append(Component.newline()).append(Component.text("STATS", NamedTextColor.WHITE).decorate(TextDecoration.BOLD)).append(Component.newline()).append(statsComponent).build();
     }
 
