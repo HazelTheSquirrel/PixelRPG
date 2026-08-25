@@ -1,0 +1,13 @@
+// settings.gradle
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven {
+            name = "papermc"
+            url = "https://repo.papermc.io/repository/maven-public/"
+        }
+    }
+}
+
+rootProject.name = 'Pixel-RPG'
