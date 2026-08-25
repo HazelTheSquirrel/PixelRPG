@@ -25,10 +25,12 @@ public final class ProfessionDialog {
     private final ProfessionService professionService;
     private final CraftingService craftingService;
     private final DialogueEngine dialogueEngine;
+    private final QuickActionsDialogService quickActions;
 
-    public ProfessionDialog(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
+    public ProfessionDialog(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, QuickActionsDialogService quickActions) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
+        this.quickActions = quickActions;
         var professionSystem = PixelRPGPlugin.getInstance().getProfessionSystem();
         this.professionService = professionSystem.professionService();
         this.craftingService = professionSystem.craftingService();
@@ -51,6 +53,7 @@ public final class ProfessionDialog {
             actions.add(dialogueEngine.actionButton(Component.text(label), learned ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
                     target -> openProfession(target, profession)));
         }
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, quickActions::openQuickActions));
         dialogueEngine.openMultiAction(player, Component.text("PixelRPG – Berufe", NamedTextColor.GOLD), body, actions, 1);
     }
 
@@ -116,7 +119,7 @@ public final class ProfessionDialog {
                     target -> {
                         var result = craftingService.craft(target, recipe.id());
                         target.sendMessage(Component.text(result.message(), result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
-                        if (result.success()) target.sendMessage(Component.text("+" + result.experience() + " Berufs-XP", NamedTextColor.AQUA));
+                        if (result.success()) openRecipeDetails(target, recipe, false);
                     }));
         } else if (allowPurchase && learned) {
             String unlockText = recipe.requiredQuestId().isBlank()
@@ -134,13 +137,7 @@ public final class ProfessionDialog {
         if (recipe.unlockPrice() > 0L && !unlocked) body.add(DialogBody.plainMessage(Component.text("Preis: " + recipe.unlockPrice() + " Gold", NamedTextColor.GOLD)));
         if (!learned) body.add(DialogBody.plainMessage(Component.text("Du musst diesen Beruf zuerst erlernen.", NamedTextColor.WHITE)));
 
-        Consumer<Player> back = target -> {
-            if (allowPurchase) {
-                openTrainerRecipes(target, profession);
-            } else {
-                openProfession(target, profession);
-            }
-        };
+        Consumer<Player> back = target -> allowPurchase ? openTrainerRecipes(target, profession) : openProfession(target, profession);
         dialogueEngine.openMultiAction(player, Component.text(recipe.displayName(), NamedTextColor.GOLD), body, actions, 1, back);
     }
 
