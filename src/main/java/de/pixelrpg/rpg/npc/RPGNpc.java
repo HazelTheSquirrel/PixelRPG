@@ -16,8 +16,4 @@ public record RPGNpc(String id, NpcType type, String name, Location location, St
     public boolean hasCustomSkin() {
         return skinSource != null && !skinSource.isBlank();
     }
-
-    public boolean isProfessionTrainer() {
-        return type == NpcType.PROFESSION_TRAINER && profession != null;
-    }
 }
