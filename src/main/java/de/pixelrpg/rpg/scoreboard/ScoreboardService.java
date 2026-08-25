@@ -4,14 +4,17 @@ import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.companion.Companion;
 import de.pixelrpg.rpg.companion.CompanionService;
 import de.pixelrpg.rpg.core.Level;
+import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
 import de.pixelrpg.rpg.quest.QuestManager;
 import de.pixelrpg.rpg.quest.QuestProgress;
+import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -35,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class ScoreboardService implements Listener {
     private static final int MAX_LINES = 15;
     private static final int MAX_TRACKED_QUESTS = 2;
+    private static final String SCOREBOARD_ENTRY_FORMATS = "0123456789abcdef";
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
     private final int updateIntervalTicks;
@@ -168,6 +172,7 @@ public final class ScoreboardService implements Listener {
         if (manager == null) throw new IllegalStateException("Bukkit scoreboard manager is unavailable.");
         Scoreboard board = manager.getNewScoreboard();
         Objective objective = board.registerNewObjective("pixelrpg", Criteria.DUMMY, Component.text("PIXELRPG", NamedTextColor.GOLD));
+        objective.numberFormat(NumberFormat.blank());
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         PlayerScoreboardState state = new PlayerScoreboardState(board, objective);
         player.setScoreboard(board);
@@ -181,8 +186,9 @@ public final class ScoreboardService implements Listener {
         return team;
     }
 
+    /** Uses invisible legacy formatting entries only as unique scoreboard keys; no ChatColor API is used. */
     private String entryFor(int index) {
-        return "\u200B".repeat(index + 1);
+        return "\u00A7" + SCOREBOARD_ENTRY_FORMATS.charAt(index);
     }
 
     private List<Component> buildLines(Player player, PlayerProfile profile) {
@@ -190,6 +196,8 @@ public final class ScoreboardService implements Listener {
         lines.add(Component.text(" "));
         lines.add(Component.text(player.getName(), NamedTextColor.WHITE));
         lines.add(Component.text("Level: ", NamedTextColor.GRAY).append(Component.text(profile.getLevel(), NamedTextColor.GOLD)));
+
+        appendPartyLine(lines, player);
         lines.add(Component.text(" "));
 
         CompanionService companionService = PixelRPGPlugin.getInstance().getCompanionService();
@@ -200,8 +208,30 @@ public final class ScoreboardService implements Listener {
 
         appendQuestTrackerLines(lines, profile);
         lines.add(Component.text(" "));
+        lines.add(Component.text("Gold: ", NamedTextColor.GRAY).append(Component.text(formatGold(profile.getMoney()), NamedTextColor.GOLD)));
         lines.add(Component.text("Tode: ", NamedTextColor.GRAY).append(Component.text(profile.getStatistic("DEATHS"), NamedTextColor.DARK_RED)));
         return lines;
+    }
+
+    private void appendPartyLine(List<Component> lines, Player player) {
+        Party party = PixelRPGPlugin.getInstance().getPartyManager().getParty(player.getUniqueId()).orElse(null);
+        Component line = Component.text("Party: ", NamedTextColor.GRAY);
+        if (party == null || party.getMembers().isEmpty()) {
+            lines.add(line.append(Component.text("Keine", NamedTextColor.DARK_GRAY)));
+            return;
+        }
+
+        boolean first = true;
+        for (UUID memberId : party.getMembers()) {
+            if (!first) line = line.append(Component.text(", ", NamedTextColor.DARK_GRAY));
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(memberId);
+            String name = offlinePlayer.getName() == null ? memberId.toString().substring(0, 8) : offlinePlayer.getName();
+            Component member = Component.text(name, memberId.equals(player.getUniqueId()) ? NamedTextColor.AQUA : NamedTextColor.WHITE);
+            if (offlinePlayer instanceof Player onlinePlayer && onlinePlayer.isOnline()) member = member.hoverEvent(onlinePlayer.asHoverEvent());
+            line = line.append(member);
+            first = false;
+        }
+        lines.add(line);
     }
 
     // Fügt die aktiven Quests mit Ziel und Fortschritt in den rechten PixelRPG-HUD ein.
@@ -210,19 +240,27 @@ public final class ScoreboardService implements Listener {
         QuestManager questManager = PixelRPGPlugin.getInstance().getQuestManager();
         if (questManager == null || profile.getActiveQuests().isEmpty()) {
             lines.add(Component.text("Keine", NamedTextColor.DARK_GRAY));
+            lines.add(Component.text("Keine", NamedTextColor.DARK_GRAY));
             return;
         }
 
         int shown = 0;
         for (QuestProgress progress : profile.getActiveQuests().values()) {
-            if (shown >= MAX_TRACKED_QUESTS || lines.size() >= MAX_LINES - 3) break;
+            if (shown >= MAX_TRACKED_QUESTS) break;
             Quest quest = questManager.getRepository().getQuest(progress.getQuestId());
             if (quest == null) continue;
             String title = quest.title();
-            if (title.length() > 28) title = title.substring(0, 28) + "…";
-            lines.add(Component.text(title, NamedTextColor.WHITE));
-            lines.add(Component.text(progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.GREEN));
+            if (title.length() > 22) title = title.substring(0, 22) + "…";
+            lines.add(Component.text(title + " " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.WHITE));
             shown++;
         }
+        while (shown < MAX_TRACKED_QUESTS) {
+            lines.add(Component.text(" "));
+            shown++;
+        }
+    }
+
+    private String formatGold(double amount) {
+        return String.format(java.util.Locale.ROOT, "%.2f", amount);
     }
 }
