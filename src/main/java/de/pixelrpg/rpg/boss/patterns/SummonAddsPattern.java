@@ -31,10 +31,25 @@ public final class SummonAddsPattern implements BossAttackPattern {
                 .getOrDefault(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, Level.MIN_LEVEL);
         bossLevel = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, bossLevel));
 
-        for (int i = 0; i < 3; i++) {
-            double angle = (Math.PI * 2 / 3) * i;
+        EntityType addType = switch (boss.getType()) {
+            case RAVAGER -> EntityType.PILLAGER;
+            case EVOKER -> EntityType.VEX;
+            case ELDER_GUARDIAN -> EntityType.DROWNED;
+            case WITHER_SKELETON -> EntityType.WITHER_SKELETON;
+            case ENDERMAN -> EntityType.ENDERMITE;
+            case WARDEN -> EntityType.CAVE_SPIDER;
+            default -> EntityType.ZOMBIE;
+        };
+
+        boolean worldBossAdd = boss.getPersistentDataContainer()
+                .getOrDefault(RPGKeys.Boss.worldBossMarker(), PersistentDataType.BOOLEAN, false);
+        String bossId = boss.getPersistentDataContainer().get(RPGKeys.Boss.bossId(), PersistentDataType.STRING);
+
+        int amount = addType == EntityType.VEX ? 4 : 3;
+        for (int i = 0; i < amount; i++) {
+            double angle = (Math.PI * 2 / amount) * i;
             Location spawnLoc = center.clone().add(Math.cos(angle) * 4, 0, Math.sin(angle) * 4);
-            LivingEntity add = (LivingEntity) center.getWorld().spawnEntity(spawnLoc, EntityType.ZOMBIE);
+            LivingEntity add = (LivingEntity) center.getWorld().spawnEntity(spawnLoc, addType);
 
             var hpAttribute = add.getAttribute(Attribute.MAX_HEALTH);
             if (hpAttribute != null) {
@@ -43,6 +58,11 @@ public final class SummonAddsPattern implements BossAttackPattern {
                 add.setHealth(hp);
             }
             add.getPersistentDataContainer().set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, bossLevel);
+            if (worldBossAdd) {
+                add.getPersistentDataContainer().set(RPGKeys.Boss.worldBossMarker(), PersistentDataType.BOOLEAN, true);
+                if (bossId != null) add.getPersistentDataContainer().set(RPGKeys.Boss.bossId(), PersistentDataType.STRING, bossId);
+                add.setRemoveWhenFarAway(false);
+            }
         }
     }
 }
