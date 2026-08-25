@@ -37,7 +37,6 @@ public final class QuestManager {
     private final Plugin plugin;
     private final QuestRepository questRepository;
     private final PlayerProfileManager profileManager;
-    private final de.pixelrpg.rpg.api.GuildAPI guildAPI;
     private final GlobalEventState globalEventState;
     private final double partyShareRange;
     private final LanguageManager lang;
@@ -45,11 +44,10 @@ public final class QuestManager {
     private BukkitTask timerTask;
 
     public QuestManager(Plugin plugin, QuestRepository questRepository, PlayerProfileManager profileManager,
-                        de.pixelrpg.rpg.api.GuildAPI guildAPI, GlobalEventState globalEventState, double partyShareRange) {
+                        GlobalEventState globalEventState, double partyShareRange) {
         this.plugin = plugin;
         this.questRepository = questRepository;
         this.profileManager = profileManager;
-        this.guildAPI = guildAPI;
         this.globalEventState = globalEventState;
         this.partyShareRange = partyShareRange;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
@@ -221,9 +219,6 @@ public final class QuestManager {
             }
         }
     }
-
-    /** Escort quests are intentionally not part of the final quest type pool. */
-    public void checkEscortQuests(Player player) { }
 
     /** Updates TALK_TO_NPC quests when the configured NPC is interacted with. */
     public void progressTalkToNpc(Player player, String npcId) {
