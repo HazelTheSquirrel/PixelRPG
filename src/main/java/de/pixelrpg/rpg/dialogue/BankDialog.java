@@ -74,7 +74,7 @@ public final class BankDialog {
         );
         DialogInput input = DialogInput.numberRange(
                 "amount", 260, Component.text("Betrag", NamedTextColor.WHITE),
-                "Betrag: %s Gold", 1.0f, (float) maxAmount, 1.0f, 1.0f);
+                "%s: %s Gold", 1.0f, (float) maxAmount, 1.0f, 1.0f);
 
         dialogueEngine.openNumberRangeAction(player, Component.text("Geld einzahlen", NamedTextColor.GOLD),
                 body, input, Component.text("Einzahlen"), NamedTextColor.GREEN,
@@ -97,7 +97,7 @@ public final class BankDialog {
         );
         DialogInput input = DialogInput.numberRange(
                 "amount", 260, Component.text("Betrag", NamedTextColor.WHITE),
-                "Betrag: %s Gold", 1.0f, (float) maxAmount, 1.0f, 1.0f);
+                "%s: %s Gold", 1.0f, (float) maxAmount, 1.0f, 1.0f);
 
         dialogueEngine.openNumberRangeAction(player, Component.text("Geld auszahlen", NamedTextColor.GOLD),
                 body, input, Component.text("Auszahlen"), NamedTextColor.YELLOW,
@@ -193,13 +193,10 @@ public final class BankDialog {
         boolean tradeGoods = page == BankStorageService.TRADE_GOODS_PAGE;
         ItemStack[] contents = tradeGoods ? bankStorage.loadTradeGoods(player.getUniqueId()) : bankStorage.load(player.getUniqueId());
         BankInventoryHolder holder = new BankInventoryHolder(player.getUniqueId(), page);
-        var inventory = org.bukkit.Bukkit.createInventory(holder, BankStorageService.PAGE_SIZE,
-                Component.text(title, NamedTextColor.BLACK));
+        var inventory = org.bukkit.Bukkit.createInventory(holder, BankStorageService.PAGE_SIZE, Component.text(title, NamedTextColor.BLACK));
         holder.inventory(inventory);
         int offset = tradeGoods ? 0 : page * BankStorageService.PAGE_SIZE;
-        for (int slot = 0; slot < BankStorageService.PAGE_SIZE; slot++) {
-            inventory.setItem(slot, contents[offset + slot]);
-        }
+        for (int slot = 0; slot < BankStorageService.PAGE_SIZE; slot++) inventory.setItem(slot, contents[offset + slot]);
         if (!tradeGoods && page > 0) inventory.setItem(45, createNavigationHead("MHF_ArrowLeft", "Zurück"));
         if (!tradeGoods && page < BankStorageService.BANK_PAGE_COUNT - 1) inventory.setItem(53, createNavigationHead("MHF_ArrowRight", "Weiter"));
         player.openInventory(inventory);
