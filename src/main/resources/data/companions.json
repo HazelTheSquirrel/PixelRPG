@@ -2,18 +2,9 @@
   "progression": {
     "maxLevel": 99,
     "level100Mode": "GRIND",
-    "xp": {
-      "base": 100,
-      "perLevel": 8,
-      "mobKill": 50,
-      "questCompletion": 500
-    }
+    "xp": { "base": 100, "perLevel": 8, "mobKill": 50, "questCompletion": 500 }
   },
-  "defaults": {
-    "activeXpOnly": true,
-    "maxNameLength": 24,
-    "passive": true
-  },
+  "defaults": { "activeXpOnly": true, "maxNameLength": 24, "passive": true },
   "definitions": [
     { "id": "common-chicken", "name": "PixelRPG Chicken", "entityType": "CHICKEN", "rarity": "COMMON", "renameable": true, "adminOnly": false, "scale": 0.85, "passive": true, "unlock": { "type": "QUEST" } },
     { "id": "common-cow", "name": "PixelRPG Cow", "entityType": "COW", "rarity": "COMMON", "renameable": true, "adminOnly": false, "scale": 0.90, "passive": true, "unlock": { "type": "QUEST" } },
@@ -29,14 +20,15 @@
     { "id": "uncommon-armadillo", "name": "PixelRPG Armadillo", "entityType": "ARMADILLO", "rarity": "UNCOMMON", "renameable": true, "adminOnly": false, "scale": 0.85, "passive": true, "unlock": { "type": "QUEST" } },
     { "id": "uncommon-panda", "name": "PixelRPG Panda", "entityType": "PANDA", "rarity": "UNCOMMON", "renameable": true, "adminOnly": false, "scale": 0.80, "passive": true, "combat": { "enabled": true, "attackRange": 2.5, "aggroRange": 10.0, "maxOwnerCombatDistance": 24.0, "attackIntervalTicks": 25, "hostileTargets": true, "playerTargets": false, "friendlyTargets": false, "protectOwner": true }, "unlock": { "type": "QUEST" } },
     { "id": "epic-pig", "name": "PixelRPG Pig", "entityType": "PIG", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 1.00, "passive": true, "unlock": { "type": "QUEST" }, "mount": { "enabled": true, "type": "GROUND", "movementSpeed": 0.55, "requiresSaddle": true } },
-    { "id": "epic-horse", "name": "PixelRPG Horse", "entityType": "HORSE", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 0.90, "passive": true, "unlock": { "type": "BOSS", "bossId": "frost_sovereign" }, "mount": { "enabled": true, "type": "GROUND", "movementSpeed": 0.70, "requiresSaddle": true } },
-    { "id": "epic-zombie-horse", "name": "PixelRPG Zombie Horse", "entityType": "ZOMBIE_HORSE", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 1.00, "passive": true, "unlock": { "type": "BOSS", "bossId": "void_reaper" }, "mount": { "enabled": true, "type": "GROUND", "movementSpeed": 0.70, "requiresSaddle": true } },
-    { "id": "epic-skeleton-horse", "name": "PixelRPG Skeleton Horse", "entityType": "SKELETON_HORSE", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 1.00, "passive": true, "unlock": { "type": "BOSS", "bossId": "forest_tyrant" }, "mount": { "enabled": true, "type": "GROUND", "movementSpeed": 0.70, "requiresSaddle": true } },
+    { "id": "epic-horse", "name": "PixelRPG Horse", "entityType": "HORSE", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 0.90, "passive": true, "unlock": { "type": "QUEST" }, "mount": { "enabled": true, "type": "GROUND", "movementSpeed": 0.70, "requiresSaddle": true } },
+    { "id": "epic-zombie-horse", "name": "PixelRPG Zombie Horse", "entityType": "ZOMBIE_HORSE", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 1.00, "passive": true, "unlock": { "type": "QUEST" }, "mount": { "enabled": true, "type": "GROUND", "movementSpeed": 0.70, "requiresSaddle": true } },
+    { "id": "epic-skeleton-horse", "name": "PixelRPG Skeleton Horse", "entityType": "SKELETON_HORSE", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 1.00, "passive": true, "unlock": { "type": "QUEST" }, "mount": { "enabled": true, "type": "GROUND", "movementSpeed": 0.70, "requiresSaddle": true } },
     { "id": "epic-camel", "name": "PixelRPG Camel", "entityType": "CAMEL", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 0.90, "passive": true, "unlock": { "type": "QUEST" } },
     { "id": "epic-nautilus", "name": "PixelRPG Nautilus", "entityType": "NAUTILUS", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 0.85, "passive": true, "unlock": { "type": "QUEST" }, "mount": { "enabled": true, "type": "UNDERWATER", "movementSpeed": 0.65, "requiresSaddle": true } },
     { "id": "epic-creaking", "name": "PixelRPG Creaking", "entityType": "CREAKING", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 0.90, "passive": true, "combat": { "enabled": true, "attackRange": 2.5, "aggroRange": 16.0, "maxOwnerCombatDistance": 24.0, "attackIntervalTicks": 20, "hostileTargets": true, "playerTargets": false, "friendlyTargets": false, "protectOwner": true }, "unlock": { "type": "QUEST" } },
     { "id": "epic-happy-ghast", "name": "PixelRPG Happy Ghast", "entityType": "HAPPY_GHAST", "rarity": "EPIC", "renameable": true, "adminOnly": false, "scale": 0.65, "passive": true, "unlock": { "type": "QUEST" } },
     { "id": "legendary-iron-golem", "name": "PixelRPG Iron Golem", "entityType": "IRON_GOLEM", "rarity": "LEGENDARY", "renameable": true, "adminOnly": false, "scale": 0.65, "passive": true, "combat": { "enabled": true, "attackRange": 3.0, "aggroRange": 16.0, "maxOwnerCombatDistance": 24.0, "attackIntervalTicks": 20, "hostileTargets": true, "playerTargets": false, "friendlyTargets": false, "protectOwner": true }, "unlock": { "type": "QUEST" } },
+    { "id": "rare-bee-queen", "name": "PixelRPG Bienenkönigin", "entityType": "BEE", "rarity": "RARE", "renameable": true, "adminOnly": false, "scale": 0.85, "passive": true, "unlock": { "type": "BOSS", "bossId": "bee_queen" } },
     {
       "id": "unique-hazel",
       "name": "Hazel",
