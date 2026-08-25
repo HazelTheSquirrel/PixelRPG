@@ -60,7 +60,7 @@ public final class CraftingRecipeRegistry {
             String id = "vanilla:" + vanillaKey.toLowerCase(Locale.ROOT);
             ItemStack output = recipe.getResult();
             recipes.putIfAbsent(id, new CraftRecipe(profession, id, pretty(result), result, output.getAmount(), ItemRarity.COMMON,
-                    costs, 1, 0L, "", true, true, ""));
+                    costs, 1, 0L, "", false, true, ""));
         }
     }
 
