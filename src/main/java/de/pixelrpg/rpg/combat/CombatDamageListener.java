@@ -2,7 +2,6 @@ package de.pixelrpg.rpg.combat;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.GuildAPI;
-import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -36,7 +35,7 @@ public final class CombatDamageListener implements Listener {
     private final CombatStateService combatStateService;
     private final double bossMaxHitPercentOfMaxHp;
 
-    public CombatDamageListener(GuildAPI guildAPI, PlayerProfileManager profileManager, StatEngine statEngine, MobScalingConfig ignoredScalingConfig) {
+    public CombatDamageListener(GuildAPI guildAPI, PlayerProfileManager profileManager, StatEngine statEngine) {
         this.guildAPI = guildAPI;
         this.profileManager = profileManager;
         this.statEngine = statEngine;
@@ -156,6 +155,10 @@ public final class CombatDamageListener implements Listener {
         if (guildAPI.isRegistered(player.getUniqueId())) return;
         event.setCancelled(true);
         monster.setTarget(null);
+    }
+
+    public void shutdown() {
+        combatStateService.shutdown();
     }
 
     private Player resolvePlayerAttacker(org.bukkit.entity.Entity damager) {
