@@ -135,6 +135,31 @@ public final class BossRewardItemListener implements Listener {
                 effect(player, PotionEffectType.STRENGTH, 12, 0);
             }
             case "SHULKER_CORE" -> effect(player, PotionEffectType.LEVITATION, 3, 0);
+            case "RIFT_CORE" -> {
+                effect(player, PotionEffectType.RESISTANCE, 15, 0);
+                effect(player, PotionEffectType.STRENGTH, 12, 0);
+            }
+            case "STORM_HEART" -> {
+                effect(player, PotionEffectType.SPEED, 20, 1);
+                effect(player, PotionEffectType.SLOW_FALLING, 20, 0);
+            }
+            case "ABYSS_CORE" -> {
+                effect(player, PotionEffectType.CONDUIT_POWER, 30, 0);
+                effect(player, PotionEffectType.WATER_BREATHING, 30, 0);
+            }
+            case "SOUL_CROWN" -> {
+                effect(player, PotionEffectType.STRENGTH, 15, 1);
+                effect(player, PotionEffectType.FIRE_RESISTANCE, 20, 0);
+            }
+            case "END_RIFT" -> {
+                effect(player, PotionEffectType.SPEED, 15, 1);
+                effect(player, PotionEffectType.NIGHT_VISION, 30, 0);
+            }
+            case "WORLD_HEART" -> {
+                effect(player, PotionEffectType.RESISTANCE, 20, 1);
+                effect(player, PotionEffectType.ABSORPTION, 20, 1);
+                player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation().add(0, 1, 0), 30, 0.6, 0.9, 0.6, 0.05);
+            }
             default -> { return false; }
         }
         return true;
