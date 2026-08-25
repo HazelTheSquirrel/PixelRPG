@@ -151,8 +151,7 @@ public final class ItemService implements ItemAPI {
         lore.removeIf(component -> component instanceof TextComponent text && text.content().startsWith("Requires Level "));
         lore.add(Math.min(2, lore.size()), Component.text("Requires Level " + definition.requiredLevel(), NamedTextColor.RED)
                 .decoration(TextDecoration.ITALIC, false));
-        lore.add(Component.text("Gearscore " + format(gearscore), NamedTextColor.YELLOW)
-                .decoration(TextDecoration.ITALIC, false));
+
         if (definition.soulbound()) lore.add(0, Component.text("⚡ Soulbound", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
         if (definition.unique()) lore.add(0, Component.text("UNIQUE • 1/1", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
 
@@ -169,6 +168,10 @@ public final class ItemService implements ItemAPI {
             pdc.set(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, critChance);
             lore.add(Component.text("+" + format(critChance) + "% Crit", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
         }
+
+        // Gearscore is always the final lore line.
+        lore.add(Component.text("Gearscore " + format(gearscore), NamedTextColor.YELLOW)
+                .decoration(TextDecoration.ITALIC, false));
 
         meta.displayName(Component.text(definition.name(), NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
