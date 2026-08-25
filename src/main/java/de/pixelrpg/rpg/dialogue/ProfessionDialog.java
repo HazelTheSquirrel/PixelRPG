@@ -76,8 +76,7 @@ public final class ProfessionDialog {
 
         List<ActionButton> actions = new ArrayList<>();
         for (CraftRecipe recipe : craftingService.recipes(profession)) {
-            boolean unlocked = recipe.unlockedByDefault() || profile.hasUnlockedRecipe(recipe.id());
-            if (!unlocked) continue;
+            if (!craftingService.isUnlocked(player, recipe)) continue;
             actions.add(dialogueEngine.actionButton(Component.text(recipe.displayName()), NamedTextColor.GREEN,
                     target -> openRecipeDetails(target, recipe, false)));
         }
@@ -101,7 +100,7 @@ public final class ProfessionDialog {
         Profession profession = recipe.profession();
         int professionLevel = professionService.getLevel(player.getUniqueId(), profession);
         boolean learned = profile.hasLearnedProfession(profession);
-        boolean unlocked = recipe.unlockedByDefault() || profile.hasUnlockedRecipe(recipe.id());
+        boolean unlocked = craftingService.isUnlocked(player, recipe);
         boolean levelAvailable = professionLevel >= recipe.requiredProfessionLevel();
 
         List<DialogBody> body = new ArrayList<>();
@@ -121,7 +120,7 @@ public final class ProfessionDialog {
                         target.sendMessage(Component.text(result.message(), result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
                         if (result.success()) openRecipeDetails(target, recipe, false);
                     }));
-        } else if (allowPurchase && learned) {
+        } else if (allowPurchase && learned && !recipe.vanillaRecipe()) {
             String unlockText = recipe.requiredQuestId().isBlank()
                     ? "Rezept freischalten" + (recipe.unlockPrice() > 0L ? " • " + recipe.unlockPrice() + " Gold" : "")
                     : "Rezept über Quest freischalten";
@@ -133,6 +132,7 @@ public final class ProfessionDialog {
                     }));
         }
 
+        if (recipe.vanillaRecipe() && !unlocked) body.add(DialogBody.plainMessage(Component.text("Dieses Vanilla-Rezept muss zuerst im Minecraft-Rezeptbuch entdeckt werden.", NamedTextColor.YELLOW)));
         if (!recipe.requiredQuestId().isBlank() && !unlocked) body.add(DialogBody.plainMessage(Component.text("Quest: " + recipe.requiredQuestId(), NamedTextColor.AQUA)));
         if (recipe.unlockPrice() > 0L && !unlocked) body.add(DialogBody.plainMessage(Component.text("Preis: " + recipe.unlockPrice() + " Gold", NamedTextColor.GOLD)));
         if (!learned) body.add(DialogBody.plainMessage(Component.text("Du musst diesen Beruf zuerst erlernen.", NamedTextColor.WHITE)));
@@ -154,8 +154,9 @@ public final class ProfessionDialog {
 
         List<ActionButton> actions = new ArrayList<>();
         for (CraftRecipe recipe : craftingService.recipes(profession)) {
-            boolean unlocked = recipe.unlockedByDefault() || profile.hasUnlockedRecipe(recipe.id());
-            actions.add(dialogueEngine.actionButton(Component.text(recipe.displayName() + (unlocked ? " • freigeschaltet" : " • freischalten")),
+            boolean unlocked = craftingService.isUnlocked(player, recipe);
+            String state = unlocked ? " • freigeschaltet" : recipe.vanillaRecipe() ? " • Rezeptbuch" : " • freischalten";
+            actions.add(dialogueEngine.actionButton(Component.text(recipe.displayName() + state),
                     unlocked ? NamedTextColor.GREEN : NamedTextColor.YELLOW,
                     target -> openRecipeDetails(target, recipe, true)));
         }
