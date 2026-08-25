@@ -20,6 +20,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -92,17 +93,32 @@ public final class TradeDepotManager {
                 DialogBody.plainMessage(Component.text("Das Item aus deiner Haupthand wird als Handelsware eingestellt.", NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text("Laufzeit: 7 Tage · Verkaufsgebühr: 5 %", NamedTextColor.GRAY))
         );
-        DialogInput input = DialogInput.numberRange(
-                "price", 260, Component.text("Verkaufspreis", NamedTextColor.WHITE),
-                "%s Gold", 1.0f, Float.MAX_VALUE, 1.0f, 1.0f);
-        dialogueEngine.openNumberRangeAction(player, Component.text("Handelsware einstellen", NamedTextColor.GOLD),
+        DialogInput input = DialogInput.text(
+                "price", 260, Component.text("Verkaufspreis in Gold", NamedTextColor.WHITE),
+                true, "", 16, null);
+        dialogueEngine.openTextInputAction(player, Component.text("Handelsware einstellen", NamedTextColor.GOLD),
                 body, input, Component.text("Einstellen"), NamedTextColor.GREEN,
                 this::createListingFromResponse);
     }
 
     private void createListingFromResponse(Player player, DialogResponseView response) {
-        Float value = response.getFloat("price");
-        if (value == null || !Float.isFinite(value) || value <= 0.0f) return;
+        String rawValue = response.getText("price");
+        if (rawValue == null || rawValue.isBlank()) {
+            player.sendMessage(Component.text("Bitte gib einen Verkaufspreis ein.", NamedTextColor.RED));
+            return;
+        }
+
+        final double price;
+        try {
+            price = new BigDecimal(rawValue.trim().replace(',', '.')).doubleValue();
+        } catch (NumberFormatException exception) {
+            player.sendMessage(Component.text("Der Verkaufspreis ist ungültig.", NamedTextColor.RED));
+            return;
+        }
+        if (!Double.isFinite(price) || price <= 0.0D) {
+            player.sendMessage(Component.text("Der Verkaufspreis muss größer als 0 Gold sein.", NamedTextColor.RED));
+            return;
+        }
 
         ItemStack held = player.getInventory().getItemInMainHand();
         if (!isTradeableRpgItem(held)) {
@@ -110,7 +126,6 @@ public final class TradeDepotManager {
             return;
         }
 
-        double price = value.doubleValue();
         ItemStack listed = held.clone();
         player.getInventory().setItemInMainHand(null);
         TradeDepotListing listing = new TradeDepotListing(UUID.randomUUID(), player.getUniqueId(), listed, price,
