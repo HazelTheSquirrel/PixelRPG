@@ -12,6 +12,7 @@ public final class BossDefinition {
     private EntityType baseEntityType;
     private BossKind kind;
     private Biome biome;
+    private List<Biome> biomes = List.of();
     private int level;
     private double healthMultiplier;
     private double damageMultiplier;
@@ -44,6 +45,12 @@ public final class BossDefinition {
     public void setKind(BossKind kind) { this.kind = kind == null ? BossKind.BIOME : kind; }
     public Biome getBiome() { return biome; }
     public void setBiome(Biome biome) { this.biome = biome; }
+    public List<Biome> getBiomes() { return biomes; }
+    public void setBiomes(List<Biome> biomes) {
+        this.biomes = biomes == null ? List.of() : biomes.stream().filter(java.util.Objects::nonNull).distinct().toList();
+        this.biome = this.biomes.isEmpty() ? null : this.biomes.getFirst();
+    }
+    public boolean matchesBiome(Biome biome) { return biome != null && this.biomes.contains(biome); }
     public int getLevel() { return level; }
     public void setLevel(int level) { this.level = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, level)); }
     public double getHealthMultiplier() { return healthMultiplier; }
