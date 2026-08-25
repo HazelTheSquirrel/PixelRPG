@@ -13,7 +13,6 @@ import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.CraftingService;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.profession.ProfessionService;
-import de.pixelrpg.rpg.quest.QuestManager;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
@@ -23,24 +22,22 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native-dialog blacksmith NPC with blacksmith quests, profession learning and recipe access. */
+/** Native-dialog blacksmith NPC with profession learning and recipe access. */
 public final class BlacksmithBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final ProfessionService professionService;
     private final DialogueEngine dialogueEngine;
     private final ProfessionDialog professionDialog;
-    private final QuestManager questManager;
 
     public BlacksmithBehavior(PlayerProfileManager profileManager,
                               ProfessionService professionService,
                               CraftingService craftingService,
-                              QuestManager questManager,
                               DialogueEngine dialogueEngine) {
         this.profileManager = profileManager;
         this.professionService = professionService;
         this.dialogueEngine = dialogueEngine;
-        this.professionDialog = new ProfessionDialog(profileManager, dialogueEngine);
-        this.questManager = questManager;
+        this.professionDialog = new ProfessionDialog(profileManager, dialogueEngine,
+                new de.pixelrpg.rpg.dialogue.QuickActionsDialogService(profileManager, PixelRPGPlugin.getInstance().getStatEngine()));
     }
 
     /** Compatibility constructor for the existing plugin bootstrap; legacy GUI parameters remain accepted. */
@@ -49,7 +46,6 @@ public final class BlacksmithBehavior implements NpcBehavior {
         this(profileManager,
                 PixelRPGPlugin.getInstance().getProfessionSystem().professionService(),
                 PixelRPGPlugin.getInstance().getProfessionSystem().craftingService(),
-                PixelRPGPlugin.getInstance().getQuestManager(),
                 dialogueEngine);
     }
 
@@ -74,8 +70,7 @@ public final class BlacksmithBehavior implements NpcBehavior {
         boolean learned = profile.hasLearnedProfession(Profession.BLACKSMITH);
 
         List<DialogBody> body = new ArrayList<>();
-        body.add(DialogBody.plainMessage(Component.text(
-                "Waffen, Rüstung und Werkzeuge aus Meisterhand.", NamedTextColor.GRAY)));
+        body.add(DialogBody.plainMessage(Component.text("Waffen, Rüstung und Werkzeuge aus Meisterhand.", NamedTextColor.GRAY)));
         body.add(DialogBody.plainMessage(Component.text(
                 learned
                         ? level >= Profession.MAX_LEVEL
@@ -85,11 +80,6 @@ public final class BlacksmithBehavior implements NpcBehavior {
                 learned ? NamedTextColor.YELLOW : NamedTextColor.RED)));
 
         List<ActionButton> actions = new ArrayList<>();
-        if (questManager != null) {
-            actions.add(dialogueEngine.actionButton(Component.text("Schmiedequests"), NamedTextColor.YELLOW,
-                    target -> new QuestBehavior(questManager, profileManager, dialogueEngine).onInteract(target, npc)));
-        }
-
         if (!learned) {
             actions.add(dialogueEngine.actionButton(Component.text("Schmied erlernen"), NamedTextColor.GREEN,
                     target -> {
@@ -102,12 +92,6 @@ public final class BlacksmithBehavior implements NpcBehavior {
         }
 
         actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
-
-        dialogueEngine.openMultiAction(
-                player,
-                Component.text("Schmied", NamedTextColor.GOLD),
-                body,
-                actions,
-                1);
+        dialogueEngine.openMultiAction(player, Component.text("Schmied", NamedTextColor.GOLD), body, actions, 1);
     }
 }
