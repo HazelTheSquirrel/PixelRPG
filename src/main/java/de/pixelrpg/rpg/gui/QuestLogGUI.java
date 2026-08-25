@@ -44,6 +44,7 @@ public final class QuestLogGUI extends AbstractGUI {
             ItemMeta meta = empty.getItemMeta();
             meta.displayName(lang.get("quest.no-active").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
             empty.setItemMeta(meta);
+        
             setItem(22, empty);
         } else {
             int slot = 0;
@@ -51,16 +52,25 @@ public final class QuestLogGUI extends AbstractGUI {
                 if (slot >= 45) break;
                 Quest quest = questManager.getRepository().getQuest(progress.getQuestId());
                 if (quest == null) continue;
+
+                Component questTitle = QuestText.title(quest)
+                        .color(NamedTextColor.YELLOW)
+                        .decoration(TextDecoration.ITALIC, false);
                 ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
                 ItemMeta meta = item.getItemMeta();
-                meta.displayName(Component.text(quest.title(), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+                meta.displayName(questTitle);
+                meta.itemName(questTitle);
+
                 List<Component> lore = new ArrayList<>();
                 lore.add(Component.text(quest.description(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
                 lore.add(Component.text(" "));
                 lore.add(QuestText.objective(quest).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
+                if (quest.type() == de.pixelrpg.rpg.quest.QuestType.COLLECT) {
+                    lore.add(QuestText.requiredItem(quest).color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+                }
                 lore.add(lang.get("quest.progress", "current", String.valueOf(progress.getCurrentAmount()), "required", String.valueOf(quest.requiredAmount())).color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
                 lore.add(Component.text(" "));
-                lore.add(Component.text("Das Questziel wird über die Locator-Bar angezeigt.", NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+                lore.add(Component.text("Das Questziel ist hier jederzeit sichtbar.", NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
                 lore.add(progress.hasExpiry()
                         ? lang.get("quest.time-limited").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)
                         : lang.get("quest.no-time-limit").color(NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
