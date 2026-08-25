@@ -7,10 +7,6 @@ import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import de.pixelrpg.rpg.quest.Quest;
-import de.pixelrpg.rpg.quest.QuestManager;
-import de.pixelrpg.rpg.quest.QuestProgress;
-import de.pixelrpg.rpg.quest.QuestText;
 import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -38,7 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class ScoreboardService implements Listener {
     private static final int MAX_LINES = 15;
-    private static final int MAX_TRACKED_QUESTS = 2;
     private static final String SCOREBOARD_ENTRY_FORMATS = "0123456789abcdef";
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
@@ -197,17 +192,13 @@ public final class ScoreboardService implements Listener {
         lines.add(Component.text(" "));
         lines.add(Component.text(player.getName(), NamedTextColor.WHITE));
         lines.add(Component.text("Level: ", NamedTextColor.GRAY).append(Component.text(profile.getLevel(), NamedTextColor.GOLD)));
-
         appendPartyLine(lines, player);
         lines.add(Component.text(" "));
-
         CompanionService companionService = PixelRPGPlugin.getInstance().getCompanionService();
         Companion activeCompanion = companionService == null ? null : companionService.getActive(player.getUniqueId());
         lines.add(Component.text("Companion:", NamedTextColor.GRAY));
         lines.add(Component.text(activeCompanion == null ? "Keiner" : activeCompanion.name(), activeCompanion == null ? NamedTextColor.DARK_GRAY : NamedTextColor.AQUA));
         lines.add(Component.text(" "));
-
-        appendQuestTrackerLines(lines, profile);
         lines.add(Component.text(" "));
         lines.add(Component.text("Gold: ", NamedTextColor.GRAY).append(Component.text(formatGold(profile.getMoney()), NamedTextColor.GOLD)));
         lines.add(Component.text("Tode: ", NamedTextColor.GRAY).append(Component.text(profile.getStatistic("DEATHS"), NamedTextColor.DARK_RED)));
@@ -221,7 +212,6 @@ public final class ScoreboardService implements Listener {
             lines.add(line.append(Component.text("Keine", NamedTextColor.DARK_GRAY)));
             return;
         }
-
         boolean first = true;
         for (UUID memberId : party.getMembers()) {
             if (!first) line = line.append(Component.text(", ", NamedTextColor.DARK_GRAY));
@@ -233,38 +223,6 @@ public final class ScoreboardService implements Listener {
             first = false;
         }
         lines.add(line);
-    }
-
-    // Fügt die aktiven Quests mit Name, Ziel und Fortschritt in den rechten PixelRPG-HUD ein.
-    private void appendQuestTrackerLines(List<Component> lines, PlayerProfile profile) {
-        lines.add(Component.text("Quests:", NamedTextColor.YELLOW));
-        QuestManager questManager = PixelRPGPlugin.getInstance().getQuestManager();
-        if (questManager == null || profile.getActiveQuests().isEmpty()) {
-            lines.add(Component.text("Keine", NamedTextColor.DARK_GRAY));
-            lines.add(Component.text("Keine", NamedTextColor.DARK_GRAY));
-            return;
-        }
-
-        int shown = 0;
-        for (QuestProgress progress : profile.getActiveQuests().values()) {
-            if (shown >= MAX_TRACKED_QUESTS) break;
-            Quest quest = questManager.getRepository().getQuest(progress.getQuestId());
-            if (quest == null) continue;
-
-            String title = QuestText.titlePlain(quest);
-            String required = QuestText.requiredItemPlain(quest);
-            String suffix = required.isBlank()
-                    ? progress.getCurrentAmount() + "/" + quest.requiredAmount()
-                    : required + " " + progress.getCurrentAmount() + "/" + quest.requiredAmount();
-            String lineText = title + " • " + suffix;
-            if (lineText.length() > 40) lineText = lineText.substring(0, 40) + "…";
-            lines.add(Component.text(lineText, NamedTextColor.WHITE));
-            shown++;
-        }
-        while (shown < MAX_TRACKED_QUESTS) {
-            lines.add(Component.text(" "));
-            shown++;
-        }
     }
 
     private String formatGold(double amount) {
