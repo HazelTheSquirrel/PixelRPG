@@ -9,7 +9,6 @@ public enum NpcType {
 
     RECEPTION(NamedTextColor.AQUA, NpcFunction.RECEPTION),
     BLACKSMITH(NamedTextColor.RED, NpcFunction.QUEST, NpcFunction.PROFESSION, NpcFunction.CRAFTING),
-    PROFESSION_TRAINER(NamedTextColor.BLUE, NpcFunction.PROFESSION),
     QUEST(NamedTextColor.YELLOW, NpcFunction.QUEST),
     SHOP(NamedTextColor.GREEN, NpcFunction.SHOP),
     TRAVEL(NamedTextColor.LIGHT_PURPLE, NpcFunction.TRAVEL),
