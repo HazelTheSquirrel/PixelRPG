@@ -251,7 +251,7 @@ public final class ScoreboardService implements Listener {
             Quest quest = questManager.getRepository().getQuest(progress.getQuestId());
             if (quest == null) continue;
 
-            String title = QuestText.title(quest).toString();
+            String title = QuestText.titlePlain(quest);
             String required = QuestText.requiredItemPlain(quest);
             String suffix = required.isBlank()
                     ? progress.getCurrentAmount() + "/" + quest.requiredAmount()
