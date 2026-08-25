@@ -73,31 +73,12 @@ public final class QuestRepository {
         int amount = number(json, "requiredAmount", 1);
         if (level < Level.MIN_LEVEL || level > Level.MAX_NORMAL_LEVEL || category < Level.MIN_LEVEL || category > Level.MAX_NORMAL_LEVEL || amount <= 0) return false;
 
-        if (string(json, "questGiverNpcId", "").isBlank()) {
-            plugin.getLogger().warning("Ignoring quest '" + id + "': questGiverNpcId is required for every quest.");
-            return false;
-        }
-
-        switch (type) {
-            case HUNT -> {
-                if (!isVanillaEntityType(string(json, "targetKey", "")) || !hasWorldNavigation(object(json, "navigation"))) {
-                    plugin.getLogger().warning("Ignoring quest '" + id + "': HUNT needs a vanilla entity and a biome/structure navigation target.");
-                    return false;
-                }
-            }
-            case COLLECT -> {
-                if (!isVanillaMaterial(string(json, "targetKey", "")) || !hasWorldNavigation(object(json, "navigation"))) {
-                    plugin.getLogger().warning("Ignoring quest '" + id + "': COLLECT needs a vanilla item and a biome/structure navigation target.");
-                    return false;
-                }
-            }
-            case TALK_TO_NPC -> { if (string(json, "targetKey", "").isBlank()) return false; }
-            case REACH_LOCATION -> {
-                if (!hasWorldNavigation(object(json, "navigation"))) return false;
-            }
-            case GLOBAL_EVENT -> { if (string(json, "targetKey", "").isBlank()) return false; }
-        }
-        return true;
+        if (type == QuestType.GLOBAL_EVENT && string(json, "targetKey", "").isBlank()) return false;
+        if (type == QuestType.TALK_TO_NPC && string(json, "targetKey", "").isBlank()) return false;
+        if (type == QuestType.HUNT && !isVanillaEntityType(string(json, "targetKey", ""))) return false;
+        if (type == QuestType.COLLECT && !isVanillaMaterial(string(json, "targetKey", ""))) return false;
+        if (type == QuestType.REACH_LOCATION && !hasWorldNavigation(object(json, "navigation"))) return false;
+        return type != QuestType.ESCORT;
     }
 
     private boolean hasWorldNavigation(JsonObject navigation) {
