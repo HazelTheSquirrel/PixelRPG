@@ -44,7 +44,7 @@
       "targetKey": "HONEYCOMB",
       "requiredAmount": 6,
       "prerequisites": ["intro_zombie_watch"],
-      "reward": { "money": 35.0, "experience": 140, "items": [], "companionId": "test-bee" }
+      "reward": { "money": 35.0, "experience": 140, "items": [], "companionId": "rare-bee-queen" }
     },
     {
       "id": "regional_copper_supply",
@@ -269,7 +269,7 @@
       "categoryLevel": 55,
       "targetKey": "BOGGED",
       "requiredAmount": 15,
-      "reward": { "money": 0.0, "experience": 2200, "items": [], "companionId": "test-bogged" }
+      "reward": { "money": 0.0, "experience": 2200, "items": [], "companionId": "rare-bogged" }
     },
     {
       "id": "companion_spider",
@@ -313,7 +313,7 @@
       "categoryLevel": 78,
       "targetKey": "DROWNED",
       "requiredAmount": 20,
-      "reward": { "money": 0.0, "experience": 3120, "items": [], "companionId": "test-nautilus" }
+      "reward": { "money": 0.0, "experience": 3120, "items": [], "companionId": "epic-nautilus" }
     },
     {
       "id": "companion_creaking",
@@ -324,7 +324,7 @@
       "categoryLevel": 82,
       "targetKey": "CREAKING",
       "requiredAmount": 5,
-      "reward": { "money": 0.0, "experience": 3280, "items": [], "companionId": "test-creaking" }
+      "reward": { "money": 0.0, "experience": 3280, "items": [], "companionId": "epic-creaking" }
     },
     {
       "id": "companion_happy_ghast",
@@ -335,7 +335,7 @@
       "categoryLevel": 86,
       "targetKey": "GHAST",
       "requiredAmount": 10,
-      "reward": { "money": 0.0, "experience": 3440, "items": [], "companionId": "test-happy-ghast" }
+      "reward": { "money": 0.0, "experience": 3440, "items": [], "companionId": "epic-happy-ghast" }
     },
     {
       "id": "companion_iron_golem",
@@ -357,7 +357,7 @@
       "categoryLevel": 95,
       "targetKey": "MAGMA_CUBE",
       "requiredAmount": 20,
-      "reward": { "money": 0.0, "experience": 3800, "items": [], "companionId": "test-sulfur-cube" }
+      "reward": { "money": 0.0, "experience": 3800, "items": [], "companionId": "legendary-sulfur-cube" }
     }
   ]
 }
