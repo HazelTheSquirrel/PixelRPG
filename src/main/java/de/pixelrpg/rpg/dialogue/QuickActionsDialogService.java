@@ -3,7 +3,9 @@ package de.pixelrpg.rpg.dialogue;
 import de.pixelrpg.rpg.item.SoulboundService;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.quest.Quest;
 import de.pixelrpg.rpg.quest.QuestManager;
+import de.pixelrpg.rpg.quest.QuestProgress;
 import de.pixelrpg.rpg.stats.StatEngine;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.registry.RegistryAccess;
@@ -24,16 +26,20 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.function.Consumer;
 
 /** Builds the player-specific PixelRPG character card opened from the G action. */
 public final class QuickActionsDialogService {
     private static final Key CHARACTER_CARD_DIALOG = Key.key("pixelrpg:character_card");
     private final PlayerProfileManager profiles;
     private final StatEngine statEngine;
+    private final QuestManager questManager;
 
-    public QuickActionsDialogService(PlayerProfileManager profiles, StatEngine statEngine) {
+    public QuickActionsDialogService(PlayerProfileManager profiles, StatEngine statEngine, QuestManager questManager) {
         this.profiles = profiles;
         this.statEngine = statEngine;
+        this.questManager = questManager;
     }
 
     public PlayerProfileManager profileManager() { return profiles; }
@@ -85,7 +91,7 @@ public final class QuickActionsDialogService {
         }
     }
 
-    /** Opens the active-quest view from the G quick-actions menu. */
+    /** Opens the active-quest list from the G quick-actions menu. */
     public void openActiveQuests(Player player, CompanionDialog companionDialog, ProfessionDialog professionDialog) {
         PlayerProfile profile = profiles.getProfile(player.getUniqueId()).filter(PlayerProfile::isRegistered).orElse(null);
         if (profile == null) return;
@@ -95,13 +101,65 @@ public final class QuickActionsDialogService {
             body.add(DialogBody.plainMessage(Component.text("Du hast aktuell keine aktiven Quests.", NamedTextColor.WHITE)));
         } else {
             body.add(DialogBody.plainMessage(Component.text("Aktive Quests: " + profile.getActiveQuests().size() + "/" + QuestManager.MAX_ACTIVE_QUESTS, NamedTextColor.AQUA)));
-            profile.getActiveQuests().forEach((questId, progress) -> actions.add(actionButton(Component.text(questId + " • " + progress.getCurrentAmount(), NamedTextColor.YELLOW), NamedTextColor.YELLOW, target -> target.sendMessage(Component.text("Quest " + questId + ": " + progress.getCurrentAmount() + " Fortschritt", NamedTextColor.WHITE)))));
+            profile.getActiveQuests().forEach((questId, progress) -> {
+                Quest quest = questManager.getRepository().getQuest(questId);
+                Component label = quest == null
+                        ? Component.text(questId, NamedTextColor.YELLOW)
+                        : Component.text(quest.title(), NamedTextColor.YELLOW);
+                Component description = quest == null
+                        ? Component.text("Quest-ID: " + questId, NamedTextColor.GRAY)
+                        : Component.text(quest.description(), NamedTextColor.GRAY);
+                actions.add(actionButton(label.append(Component.text(" • " + progress.getCurrentAmount() + "/" + (quest == null ? "?" : quest.requiredAmount()), NamedTextColor.WHITE)), target -> openQuestDetails(target, questId, description, companionDialog, professionDialog)));
+            });
         }
-        actions.add(actionButton(Component.text("Zurück"), NamedTextColor.WHITE, this::openQuickActions));
+        actions.add(actionButton(Component.text("Zurück", NamedTextColor.WHITE), this::openQuickActions));
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
-            builder.base(DialogBase.builder(Component.text("PixelRPG – Aktive Quests", NamedTextColor.GOLD)).body(normalizeBodies(body)).canCloseWithEscape(true).afterAction(DialogBase.DialogAfterAction.CLOSE).build());
+            builder.base(DialogBase.builder(Component.text("PixelRPG – Aktive Quests", NamedTextColor.GOLD))
+                    .body(normalizeBodies(body))
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .build());
             builder.type(DialogType.multiAction(actions, DialogueEngineCloseButton.create(), 1));
+        }));
+    }
+
+    /** Opens detailed information for one active quest and provides the abandon action. */
+    private void openQuestDetails(Player player, String questId, Component fallbackDescription, CompanionDialog companionDialog, ProfessionDialog professionDialog) {
+        PlayerProfile profile = profiles.getProfile(player.getUniqueId()).filter(PlayerProfile::isRegistered).orElse(null);
+        Quest quest = questManager.getRepository().getQuest(questId);
+        QuestProgress progress = profile == null ? null : profile.getActiveQuests().get(questId);
+        if (profile == null || progress == null) {
+            openActiveQuests(player, companionDialog, professionDialog);
+            return;
+        }
+
+        List<DialogBody> body = new ArrayList<>();
+        body.add(DialogBody.plainMessage(Component.text(quest != null ? quest.title() : questId, NamedTextColor.YELLOW).decorate(TextDecoration.BOLD)));
+        body.add(DialogBody.plainMessage(quest != null ? Component.text(quest.description(), NamedTextColor.WHITE) : fallbackDescription));
+        if (quest != null) {
+            body.add(DialogBody.plainMessage(Component.text("Ziel: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.AQUA)));
+            body.add(DialogBody.plainMessage(Component.text("Typ: " + quest.type().name(), NamedTextColor.GRAY)));
+            if (quest.rewardExp() > 0L) body.add(DialogBody.plainMessage(Component.text("Belohnung: " + quest.rewardExp() + " XP", NamedTextColor.GREEN)));
+            if (quest.rewardMoney() > 0.0D) body.add(DialogBody.plainMessage(Component.text("Belohnung: " + format(quest.rewardMoney()) + " Gold", NamedTextColor.GOLD)));
+            if (!quest.rewardItemMaterials().isEmpty()) body.add(DialogBody.plainMessage(Component.text("Gegenstandsbelohnungen: " + String.join(", ", quest.rewardItemMaterials()), NamedTextColor.GREEN)));
+            if (quest.rewardsCompanion()) body.add(DialogBody.plainMessage(Component.text("Begleiter: " + quest.rewardCompanionId(), NamedTextColor.LIGHT_PURPLE)));
+            if (progress.hasExpiry()) body.add(DialogBody.plainMessage(Component.text("Zeit verbleibend: " + formatRemaining(progress.getExpiryTimestampMillis()), NamedTextColor.RED)));
+        }
+
+        ActionButton abandon = actionButton(Component.text("Quest abbrechen", NamedTextColor.RED), target -> {
+            questManager.abandonQuest(target, questId);
+            openActiveQuests(target, companionDialog, professionDialog);
+        });
+        ActionButton back = actionButton(Component.text("Zurück", NamedTextColor.WHITE), target -> openActiveQuests(target, companionDialog, professionDialog));
+        player.showDialog(Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Questdetails", NamedTextColor.GOLD))
+                    .body(body)
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .build());
+            builder.type(DialogType.multiAction(List.of(abandon, back), DialogueEngineCloseButton.create(), 1));
         }));
     }
 
@@ -112,10 +170,13 @@ public final class QuickActionsDialogService {
         }).toList();
     }
 
-    private ActionButton actionButton(Component label, NamedTextColor color, java.util.function.Consumer<Player> action) {
-        return ActionButton.builder(label.color(color)).action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
-            if (audience instanceof Player target) action.accept(target);
-        }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build())).width(220).build();
+    private ActionButton actionButton(Component label, Consumer<Player> action) {
+        return ActionButton.builder(label)
+                .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
+                    if (audience instanceof Player target) action.accept(target);
+                }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
+                .width(220)
+                .build();
     }
 
     public Component characterCard(Player player) {
@@ -143,7 +204,16 @@ public final class QuickActionsDialogService {
         return Component.text().append(header).append(Component.newline()).append(section).append(Component.newline()).append(identity).append(Component.newline()).append(Component.newline()).append(Component.text("STATS", NamedTextColor.WHITE).decorate(TextDecoration.BOLD)).append(Component.newline()).append(statsComponent).build();
     }
 
-    private String format(double value) { return String.format(java.util.Locale.ROOT, "%.1f", value); }
+    private String format(double value) { return String.format(Locale.ROOT, "%.1f", value); }
+
+    private String formatRemaining(long expiryTimestampMillis) {
+        long seconds = Math.max(0L, (expiryTimestampMillis - System.currentTimeMillis()) / 1000L);
+        long hours = seconds / 3600L;
+        long minutes = (seconds % 3600L) / 60L;
+        long remainingSeconds = seconds % 60L;
+        if (hours > 0L) return hours + "h " + minutes + "m";
+        return minutes + "m " + remainingSeconds + "s";
+    }
 
     private static final class DialogueEngineCloseButton {
         private static ActionButton create() {
