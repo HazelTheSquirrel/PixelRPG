@@ -164,10 +164,10 @@ public final class CompanionFollowTask implements Runnable {
         if (direction.lengthSquared() < 0.001D) direction.setZ(1.0D);
         direction.normalize().multiply(-Math.max(1.0D, follow.stopDistance()));
         Location target = playerLocation.clone().add(direction);
-        moveTowards(companion, target, follow.movementSpeed());
+        moveTowards(companion, target, follow.movementSpeed(), companion instanceof Mannequin);
     }
 
-    private static void moveTowards(LivingEntity entity, Location target, double speed) {
+    private static void moveTowards(LivingEntity entity, Location target, double speed, boolean allowOneBlockDescend) {
         Location current = entity.getLocation();
         Vector delta = target.toVector().subtract(current.toVector());
         delta.setY(Math.max(-0.35D, Math.min(0.35D, delta.getY())));
@@ -178,6 +178,7 @@ public final class CompanionFollowTask implements Runnable {
 
         Vector horizontal = delta.clone().setY(0.0D);
         boolean stepUp = shouldStepUp(entity, horizontal);
+        boolean stepDown = allowOneBlockDescend && shouldStepDown(entity, horizontal, delta.getY());
         boolean fallingBehind = target.getY() > current.getY() + 0.35D;
         boolean falling = entity.getVelocity().getY() < -0.08D;
 
@@ -185,6 +186,8 @@ public final class CompanionFollowTask implements Runnable {
             delta.setY(JUMP_VELOCITY);
         } else if (fallingBehind && entity.isOnGround() && !falling) {
             delta.setY(JUMP_VELOCITY);
+        } else if (stepDown && entity.isOnGround()) {
+            delta.setY(-0.28D);
         } else {
             delta.setY(Math.max(-0.35D, Math.min(0.35D, delta.getY())));
         }
@@ -193,6 +196,7 @@ public final class CompanionFollowTask implements Runnable {
         delta.setZ(horizontal.getZ());
         delta.normalize().multiply(Math.max(0.05D, speed));
         if (stepUp || fallingBehind) delta.setY(JUMP_VELOCITY);
+        if (stepDown && !stepUp && !fallingBehind) delta.setY(-0.28D);
         entity.setVelocity(delta);
         entity.setRotation((float) Math.toDegrees(Math.atan2(-delta.getX(), delta.getZ())), entity.getPitch());
     }
@@ -207,6 +211,15 @@ public final class CompanionFollowTask implements Runnable {
         Location landing = feet.clone().add(0.0D, 1.0D, 0.0D);
 
         return isSolid(feet) && !isSolid(head) && !isSolid(landing);
+    }
+
+    private static boolean shouldStepDown(LivingEntity entity, Vector horizontal, double targetDeltaY) {
+        if (horizontal.lengthSquared() < 0.01D || targetDeltaY > -0.20D) return false;
+        Vector direction = horizontal.clone().normalize();
+        Location current = entity.getLocation();
+        Location ahead = current.clone().add(direction.getX() * 0.65D, 0.0D, direction.getZ() * 0.65D);
+        Location below = ahead.clone().add(0.0D, -1.0D, 0.0D);
+        return !isSolid(ahead) && isSolid(below);
     }
 
     private static boolean isSolid(Location location) {
