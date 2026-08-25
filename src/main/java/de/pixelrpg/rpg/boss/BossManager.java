@@ -19,6 +19,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
@@ -258,7 +259,22 @@ public final class BossManager {
     private void cleanup(ActiveBoss activeBoss) {
         if (activeBoss.getTask() != null) activeBoss.getTask().cancel();
         for (UUID viewerUuid : activeBoss.getViewers()) { Player viewer = Bukkit.getPlayer(viewerUuid); if (viewer != null) viewer.hideBossBar(activeBoss.getBossBar()); }
+        if (activeBoss.getDefinition().getKind() == BossKind.WORLD_EVENT) {
+            String bossId = activeBoss.getDefinition().getId();
+            for (Entity entity : activeBossEntityWorldEntities(activeBoss)) {
+                if (entity.getUniqueId().equals(activeBoss.getEntityUuid())) continue;
+                String entityBossId = entity.getPersistentDataContainer().get(RPGKeys.Boss.bossId(), PersistentDataType.STRING);
+                boolean worldBossEntity = entity.getPersistentDataContainer().getOrDefault(RPGKeys.Boss.worldBossMarker(), PersistentDataType.BOOLEAN, false);
+                if (worldBossEntity && bossId.equals(entityBossId)) entity.remove();
+            }
+        }
         activeBosses.remove(activeBoss.getEntityUuid());
+    }
+
+    private List<Entity> activeBossEntityWorldEntities(ActiveBoss activeBoss) {
+        Entity bossEntity = Bukkit.getEntity(activeBoss.getEntityUuid());
+        if (bossEntity == null || bossEntity.getWorld() == null) return List.of();
+        return bossEntity.getWorld().getEntities();
     }
 
     public boolean hasActiveBossOfType(String bossId) { return activeBosses.values().stream().anyMatch(active -> active.getDefinition().getId().equals(bossId)); }
