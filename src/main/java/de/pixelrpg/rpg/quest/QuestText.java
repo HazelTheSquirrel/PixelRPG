@@ -9,8 +9,12 @@ public final class QuestText {
     }
 
     public static Component title(Quest quest) {
+        return Component.text(titlePlain(quest));
+    }
+
+    public static String titlePlain(Quest quest) {
         String title = quest.title();
-        return Component.text(title == null || title.isBlank() ? quest.id() : title);
+        return title == null || title.isBlank() ? quest.id() : title;
     }
 
     public static Component objective(Quest quest) {
