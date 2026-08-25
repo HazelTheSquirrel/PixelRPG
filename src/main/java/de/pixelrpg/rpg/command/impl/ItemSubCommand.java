@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.command.impl;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.command.SubCommand;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.ItemDefinition;
@@ -133,14 +132,16 @@ public final class ItemSubCommand implements SubCommand {
         return true;
     }
 
-    private <T, Z> T value(PersistentDataContainer pdc, org.bukkit.NamespacedKey key, PersistentDataType<T, Z> type) { return pdc.get(key, type); }
+    private <P, C> C value(PersistentDataContainer pdc, org.bukkit.NamespacedKey key, PersistentDataType<P, C> type) {
+        return pdc.get(key, type);
+    }
 
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) return List.of("list", "give", "create", "inspect", "set");
         if (args.length == 2) return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
         if (args.length == 3 && args[0].equalsIgnoreCase("give")) return itemService.definitions().stream().map(ItemDefinition::id).toList();
-        if (args.length == 3 && args[0].equalsIgnoreCase("create")) return Arrays.stream(Material.values()).filter(material -> material.isItem()).map(Enum::name).toList();
+        if (args.length == 3 && args[0].equalsIgnoreCase("create")) return Arrays.stream(Material.values()).filter(Material::isItem).map(Enum::name).toList();
         if (args.length == 4 && args[0].equalsIgnoreCase("create")) return Arrays.stream(ItemRarity.values()).map(Enum::name).toList();
         if (args.length == 3 && args[0].equalsIgnoreCase("set")) return List.of("level", "requiredLevel", "damage", "crit", "critDamage", "reach", "lifesteal", "armor", "health", "movement", "gearscore");
         return List.of();
