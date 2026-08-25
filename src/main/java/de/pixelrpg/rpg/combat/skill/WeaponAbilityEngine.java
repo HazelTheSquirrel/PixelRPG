@@ -15,12 +15,10 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.Vector;
 
 import java.util.Map;
 import java.util.UUID;
@@ -29,7 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 /** Executes the material-specific PixelRPG weapon abilities with one shared six-second cooldown. */
 public final class WeaponAbilityEngine {
     private static final long COOLDOWN_MILLIS = 6_000L;
-    private static final int COOLDOWN_TICKS = 120;
 
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
@@ -90,7 +87,6 @@ public final class WeaponAbilityEngine {
         if (!executed) return false;
 
         cooldownExpiry.put(player.getUniqueId(), now + COOLDOWN_MILLIS);
-        player.setCooldown(weapon.getType(), COOLDOWN_TICKS);
         player.sendActionBar(Component.text(skill.displayName() + "  •  6s Cooldown", NamedTextColor.GOLD)
                 .decoration(TextDecoration.ITALIC, false));
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.55F, skill.soundPitch());
