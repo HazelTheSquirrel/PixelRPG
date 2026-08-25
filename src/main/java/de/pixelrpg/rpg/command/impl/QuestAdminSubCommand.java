@@ -16,7 +16,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -93,9 +93,11 @@ public final class QuestAdminSubCommand implements SubCommand {
         PlayerProfile profile = plugin.getPlayerProfileManager().getProfile(target.getUniqueId()).orElse(null);
         if (profile == null) { error(sender, "Kein aktives Profil."); return true; }
         profile.removeActiveQuest(quest.id());
-        profile.getCompletedQuests();
+        HashSet<String> completed = new HashSet<>(profile.getCompletedQuests());
+        completed.remove(quest.id());
+        profile.setCompletedQuests(completed);
         plugin.getPlayerProfileManager().saveProfileAsync(target.getUniqueId());
-        sender.sendMessage(Component.text("Aktiver Queststatus zurückgesetzt: " + quest.id(), NamedTextColor.GREEN));
+        sender.sendMessage(Component.text("Queststatus vollständig zurückgesetzt: " + quest.id(), NamedTextColor.GREEN));
         return true;
     }
 
@@ -153,7 +155,9 @@ public final class QuestAdminSubCommand implements SubCommand {
     }
 
     private Quest quest(String id) {
-        return questManager.getRepository().getQuest(id);
+        Quest quest = questManager.getRepository().getQuest(id);
+        if (quest == null) return null;
+        return quest;
     }
 
     private void error(CommandSender sender, String message) { sender.sendMessage(Component.text(message, NamedTextColor.RED)); }
@@ -161,7 +165,7 @@ public final class QuestAdminSubCommand implements SubCommand {
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) return List.of("reload", "list", "give", "remove", "reset", "progress", "complete");
-        if (args.length == 2 && args.length > 1) return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
+        if (args.length == 2) return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
         if (args.length == 3) return questManager.getRepository().getAllQuests().stream().map(Quest::id).sorted().toList();
         return List.of();
     }
