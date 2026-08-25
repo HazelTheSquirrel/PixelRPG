@@ -3,7 +3,9 @@ package de.pixelrpg.rpg.npc;
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.npc.behavior.FillerBehavior;
+import de.pixelrpg.rpg.npc.behavior.ProfessionTrainerBehavior;
 import de.pixelrpg.rpg.npc.behavior.QuestBehaviorV2;
+import de.pixelrpg.rpg.profession.Profession;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -27,6 +29,18 @@ public final class NpcBehaviorRegistry {
         NpcBehavior behavior = behaviors.get(type);
         if (behavior != null) return Optional.of(behavior);
 
+        if (plugin.getProfessionSystem() != null) {
+            Profession profession = professionFor(type);
+            if (profession != null) {
+                return Optional.of(new ProfessionTrainerBehavior(
+                        type,
+                        profession,
+                        plugin.getPlayerProfileManager(),
+                        plugin.getProfessionSystem().professionService(),
+                        new DialogueEngine()));
+            }
+        }
+
         if (type == NpcType.FILLER && plugin.getQuestManager() != null) {
             return Optional.of(new FillerBehavior(
                     plugin.getQuestManager(),
@@ -35,5 +49,15 @@ public final class NpcBehaviorRegistry {
         }
 
         return Optional.empty();
+    }
+
+    private Profession professionFor(NpcType type) {
+        return switch (type) {
+            case PROFESSION_BLACKSMITH -> Profession.BLACKSMITH;
+            case PROFESSION_PROVISIONER -> Profession.PROVISIONER;
+            case PROFESSION_SCHOLAR -> Profession.SCHOLAR;
+            case PROFESSION_ALCHEMIST -> Profession.ALCHEMIST;
+            default -> null;
+        };
     }
 }
