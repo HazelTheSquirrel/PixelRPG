@@ -1,52 +1,47 @@
 {
   "recipes": [
-    {
-      "id": "blacksmith:iron_golem_spawn_egg",
-      "label": "Eisengolem-Spawnei",
-      "profession": "BLACKSMITH",
-      "result": "IRON_GOLEM_SPAWN_EGG",
-      "resultAmount": 1,
-      "rarity": "EPIC",
-      "costs": {
-        "STICK": 1,
-        "IRON_INGOT": 1,
-        "DIAMOND": 1
-      },
-      "requiredProfessionLevel": 30,
-      "unlockPrice": 2500,
-      "unlockedByDefault": false
-    },
-    {
-      "id": "alchemist:experimental_reagent",
-      "label": "Experimentelles Reagenz",
-      "profession": "ALCHEMIST",
-      "result": "GHAST_TEAR",
-      "resultAmount": 1,
-      "rarity": "EPIC",
-      "costs": {
-        "GLASS_BOTTLE": 1,
-        "BLAZE_POWDER": 2,
-        "GLOWSTONE_DUST": 4
-      },
-      "requiredProfessionLevel": 35,
-      "unlockPrice": 1800,
-      "unlockedByDefault": false
-    },
-    {
-      "id": "scholar:knowledge_fragment",
-      "label": "Wissensfragment",
-      "profession": "SCHOLAR",
-      "result": "EXPERIENCE_BOTTLE",
-      "resultAmount": 1,
-      "rarity": "RARE",
-      "costs": {
-        "BOOK": 1,
-        "LAPIS_LAZULI": 4,
-        "DIAMOND": 1
-      },
-      "requiredProfessionLevel": 30,
-      "unlockPrice": 1500,
-      "unlockedByDefault": false
-    }
+    {"id":"blacksmith:iron_nails","label":"Eisennägel","profession":"BLACKSMITH","result":"IRON_NUGGET","costs":{"IRON_INGOT":1},"requiredProfessionLevel":1,"unlockPrice":100,"rarity":"UNCOMMON","unlockedByDefault":false},
+    {"id":"blacksmith:iron_sword_dull","label":"Stumpfes Eisenschwert","profession":"BLACKSMITH","result":"IRON_SWORD","costs":{"STICK":1,"IRON_INGOT":1},"requiredProfessionLevel":10,"unlockPrice":300,"rarity":"UNCOMMON","unlockedByDefault":false},
+    {"id":"blacksmith:iron_helmet","label":"Eisenhelm","profession":"BLACKSMITH","result":"IRON_HELMET","costs":{"IRON_INGOT":5},"requiredProfessionLevel":20,"unlockPrice":600,"rarity":"RARE","unlockedByDefault":false},
+    {"id":"blacksmith:sharp_iron_sword","label":"Geschärftes Eisenschwert","profession":"BLACKSMITH","result":"IRON_SWORD","costs":{"STICK":1,"IRON_INGOT":2,"FLINT":1},"requiredProfessionLevel":30,"unlockPrice":900,"rarity":"RARE","unlockedByDefault":false},
+    {"id":"blacksmith:iron_shield","label":"Verstärkter Eisenschild","profession":"BLACKSMITH","result":"SHIELD","costs":{"IRON_INGOT":6,"OAK_PLANKS":1},"requiredProfessionLevel":40,"unlockPrice":1400,"rarity":"EPIC","unlockedByDefault":false},
+    {"id":"blacksmith:diamond_sword","label":"Geschmiedete Diamantklinge","profession":"BLACKSMITH","result":"DIAMOND_SWORD","costs":{"STICK":1,"DIAMOND":2,"IRON_INGOT":2},"requiredProfessionLevel":50,"unlockPrice":2200,"rarity":"EPIC","unlockedByDefault":false},
+    {"id":"blacksmith:diamond_chestplate","label":"Geschmiedete Diamantbrustplatte","profession":"BLACKSMITH","result":"DIAMOND_CHESTPLATE","costs":{"DIAMOND":8,"IRON_INGOT":2},"requiredProfessionLevel":60,"unlockPrice":3500,"rarity":"EPIC","unlockedByDefault":false},
+    {"id":"blacksmith:reinforced_diamond_shield","label":"Verstärkter Diamantschild","profession":"BLACKSMITH","result":"SHIELD","costs":{"IRON_INGOT":4,"DIAMOND":2,"AMETHYST_SHARD":1},"requiredProfessionLevel":70,"unlockPrice":5000,"rarity":"LEGENDARY","unlockedByDefault":false},
+    {"id":"blacksmith:netherite_sword","label":"Netheritklinge","profession":"BLACKSMITH","result":"NETHERITE_SWORD","costs":{"DIAMOND_SWORD":1,"NETHERITE_INGOT":1},"requiredProfessionLevel":85,"unlockPrice":8000,"rarity":"LEGENDARY","unlockedByDefault":false},
+    {"id":"blacksmith:master_mace","label":"Meisterstreitkolben","profession":"BLACKSMITH","result":"MACE","costs":{"BREEZE_ROD":1,"HEAVY_CORE":1,"NETHERITE_INGOT":1},"requiredProfessionLevel":100,"unlockPrice":15000,"rarity":"LEGENDARY","unlockedByDefault":false},
+
+    {"id":"provisioner:travel_bread","label":"Reisebrot","profession":"PROVISIONER","result":"BREAD","costs":{"WHEAT":3},"requiredProfessionLevel":1,"unlockPrice":100,"rarity":"UNCOMMON","unlockedByDefault":false},
+    {"id":"provisioner:seasoned_bread","label":"Gewürztes Brot","profession":"PROVISIONER","result":"BREAD","costs":{"BREAD":1,"SUGAR":1},"requiredProfessionLevel":10,"unlockPrice":300,"rarity":"UNCOMMON","unlockedByDefault":false},
+    {"id":"provisioner:honey_cookie","label":"Honiggebäck","profession":"PROVISIONER","result":"COOKIE","costs":{"WHEAT":2,"COCOA_BEANS":1,"HONEY_BOTTLE":1},"requiredProfessionLevel":20,"unlockPrice":600,"rarity":"RARE","unlockedByDefault":false},
+    {"id":"provisioner:fish_stew","label":"Fischsuppe","profession":"PROVISIONER","result":"MUSHROOM_STEW","costs":{"COOKED_COD":1,"RED_MUSHROOM":1,"BOWL":1},"requiredProfessionLevel":30,"unlockPrice":900,"rarity":"RARE","unlockedByDefault":false},
+    {"id":"provisioner:mead","label":"Metflasche","profession":"PROVISIONER","result":"HONEY_BOTTLE","costs":{"HONEY_BOTTLE":2,"SUGAR":1,"BROWN_MUSHROOM":1,"GLASS_BOTTLE":1},"requiredProfessionLevel":40,"unlockPrice":1400,"rarity":"EPIC","unlockedByDefault":false},
+    {"id":"provisioner:golden_carrot","label":"Goldener Proviant","profession":"PROVISIONER","result":"GOLDEN_CARROT","costs":{"CARROT":1,"GOLD_NUGGET":8},"requiredProfessionLevel":50,"unlockPrice":2200,"rarity":"EPIC","unlockedByDefault":false},
+    {"id":"provisioner:adventurer_ration","label":"Abenteurerproviant","profession":"PROVISIONER","result":"COOKED_BEEF","costs":{"COOKED_BEEF":2,"BREAD":1,"CARROT":1},"requiredProfessionLevel":60,"unlockPrice":3500,"rarity":"EPIC","unlockedByDefault":false},
+    {"id":"provisioner:golden_feast","label":"Goldenes Festmahl","profession":"PROVISIONER","result":"GOLDEN_APPLE","costs":{"APPLE":1,"GOLD_INGOT":8},"requiredProfessionLevel":70,"unlockPrice":5000,"rarity":"LEGENDARY","unlockedByDefault":false},
+    {"id":"provisioner:master_honey_bread","label":"Meisterkoch-Honigbrot","profession":"PROVISIONER","result":"HONEY_BOTTLE","costs":{"BREAD":2,"HONEY_BOTTLE":2,"GOLD_NUGGET":4},"requiredProfessionLevel":85,"unlockPrice":8000,"rarity":"LEGENDARY","unlockedByDefault":false},
+    {"id":"provisioner:master_met","label":"Goldener Meistermet","profession":"PROVISIONER","result":"HONEY_BOTTLE","costs":{"HONEY_BOTTLE":2,"GOLD_INGOT":1,"SUGAR":2,"GLASS_BOTTLE":1},"requiredProfessionLevel":100,"unlockPrice":15000,"rarity":"LEGENDARY","unlockedByDefault":false},
+
+    {"id":"alchemist:glass_reagent","label":"Glasreagenz","profession":"ALCHEMIST","result":"GLASS_BOTTLE","costs":{"GLASS":3},"requiredProfessionLevel":1,"unlockPrice":100,"rarity":"UNCOMMON","unlockedByDefault":false},
+    {"id":"alchemist:blaze_extract","label":"Flammenextrakt","profession":"ALCHEMIST","result":"BLAZE_POWDER","costs":{"BLAZE_ROD":1},"requiredProfessionLevel":10,"unlockPrice":300,"rarity":"UNCOMMON","unlockedByDefault":false},
+    {"id":"alchemist:fermented_extract","label":"Gärender Extrakt","profession":"ALCHEMIST","result":"FERMENTED_SPIDER_EYE","costs":{"SPIDER_EYE":1,"SUGAR":1,"BROWN_MUSHROOM":1},"requiredProfessionLevel":20,"unlockPrice":600,"rarity":"RARE","unlockedByDefault":false},
+    {"id":"alchemist:glittering_elixir","label":"Glitzerndes Elixier","profession":"ALCHEMIST","result":"GLISTERING_MELON_SLICE","costs":{"MELON_SLICE":1,"GOLD_NUGGET":8},"requiredProfessionLevel":30,"unlockPrice":900,"rarity":"RARE","unlockedByDefault":false},
+    {"id":"alchemist:mead_elixir","label":"Met-Elixier","profession":"ALCHEMIST","result":"HONEY_BOTTLE","costs":{"HONEY_BOTTLE":2,"BLAZE_POWDER":1,"GLASS_BOTTLE":1},"requiredProfessionLevel":40,"unlockPrice":1400,"rarity":"EPIC","unlockedByDefault":false},
+    {"id":"alchemist:end_essence","label":"Enderessenz","profession":"ALCHEMIST","result":"ENDER_PEARL","costs":{"ENDER_PEARL":1,"GHAST_TEAR":1,"GLASS_BOTTLE":1},"requiredProfessionLevel":50,"unlockPrice":2200,"rarity":"EPIC","unlockedByDefault":false},
+    {"id":"alchemist:phantom_essence","label":"Phantomessenz","profession":"ALCHEMIST","result":"PHANTOM_MEMBRANE","costs":{"PHANTOM_MEMBRANE":1,"GLASS_BOTTLE":2},"requiredProfessionLevel":60,"unlockPrice":3500,"rarity":"EPIC","unlockedByDefault":false},
+    {"id":"alchemist:dragon_reagent","label":"Drachenatem-Reagenz","profession":"ALCHEMIST","result":"DRAGON_BREATH","costs":{"DRAGON_BREATH":1,"GLOWSTONE_DUST":4},"requiredProfessionLevel":70,"unlockPrice":5000,"rarity":"LEGENDARY","unlockedByDefault":false},
+    {"id":"alchemist:master_healing","label":"Meisterelixier der Heilung","profession":"ALCHEMIST","result":"GHAST_TEAR","costs":{"GHAST_TEAR":2,"GLISTERING_MELON_SLICE":2,"DRAGON_BREATH":1},"requiredProfessionLevel":85,"unlockPrice":8000,"rarity":"LEGENDARY","unlockedByDefault":false},
+    {"id":"alchemist:philosopher_extract","label":"Philosophenextrakt","profession":"ALCHEMIST","result":"NETHER_STAR","costs":{"NETHER_STAR":1,"DRAGON_BREATH":2,"GLOWSTONE_DUST":8},"requiredProfessionLevel":100,"unlockPrice":15000,"rarity":"LEGENDARY","unlockedByDefault":false},
+
+    {"id":"scholar:research_book","label":"Forschungsbuch","profession":"SCHOLAR","result":"BOOK","costs":{"BOOK":1,"PAPER":2},"requiredProfessionLevel":1,"unlockPrice":100,"rarity":"UNCOMMON","unlockedByDefault":false},
+    {"id":"scholar:map_collection","label":"Kartensammlung","profession":"SCHOLAR","result":"MAP","costs":{"PAPER":4,"COMPASS":1},"requiredProfessionLevel":10,"unlockPrice":300,"rarity":"UNCOMMON","unlockedByDefault":false},
+    {"id":"scholar:monster_manual","label":"Lehrbuch der Monster","profession":"SCHOLAR","result":"BOOK","costs":{"BOOK":1,"ROTTEN_FLESH":2,"INK_SAC":1},"requiredProfessionLevel":20,"unlockPrice":600,"rarity":"RARE","unlockedByDefault":false},
+    {"id":"scholar:star_map","label":"Sternenkarte","profession":"SCHOLAR","result":"MAP","costs":{"PAPER":4,"AMETHYST_SHARD":1,"COMPASS":1},"requiredProfessionLevel":30,"unlockPrice":900,"rarity":"RARE","unlockedByDefault":false},
+    {"id":"scholar:redstone_manual","label":"Redstone-Handbuch","profession":"SCHOLAR","result":"BOOK","costs":{"BOOK":1,"REDSTONE":4,"COPPER_INGOT":2},"requiredProfessionLevel":40,"unlockPrice":1400,"rarity":"EPIC","unlockedByDefault":false},
+    {"id":"scholar:knowledge_fragment","label":"Wissensfragment","profession":"SCHOLAR","result":"EXPERIENCE_BOTTLE","costs":{"BOOK":1,"LAPIS_LAZULI":4,"DIAMOND":1},"requiredProfessionLevel":50,"unlockPrice":2200,"rarity":"EPIC","unlockedByDefault":false},
+    {"id":"scholar:enchantment_compendium","label":"Enzyklopädie der Verzauberung","profession":"SCHOLAR","result":"ENCHANTED_BOOK","costs":{"BOOK":1,"LAPIS_LAZULI":8,"DIAMOND":1},"requiredProfessionLevel":60,"unlockPrice":3500,"rarity":"EPIC","unlockedByDefault":false},
+    {"id":"scholar:master_atlas","label":"Meisteratlas","profession":"SCHOLAR","result":"MAP","costs":{"MAP":1,"COMPASS":1,"AMETHYST_SHARD":4,"GOLD_INGOT":2},"requiredProfessionLevel":70,"unlockPrice":5000,"rarity":"LEGENDARY","unlockedByDefault":false},
+    {"id":"scholar:ender_compass","label":"Enderkompass","profession":"SCHOLAR","result":"COMPASS","costs":{"COMPASS":1,"ENDER_EYE":1,"AMETHYST_SHARD":2},"requiredProfessionLevel":85,"unlockPrice":8000,"rarity":"LEGENDARY","unlockedByDefault":false},
+    {"id":"scholar:master_archive","label":"Meisterarchiv","profession":"SCHOLAR","result":"BOOK","costs":{"BOOK":3,"NETHER_STAR":1,"AMETHYST_SHARD":8,"LAPIS_LAZULI":16},"requiredProfessionLevel":100,"unlockPrice":15000,"rarity":"LEGENDARY","unlockedByDefault":false}
   ]
 }
