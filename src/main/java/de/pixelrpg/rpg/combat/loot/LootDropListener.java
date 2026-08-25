@@ -1,7 +1,7 @@
 package de.pixelrpg.rpg.combat.loot;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.GuildAPI;
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.item.ItemDefinition;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
@@ -42,10 +42,18 @@ public final class LootDropListener implements Listener {
         if (killer == null || !guildAPI.isRegistered(killer.getUniqueId())) return;
 
         ThreadLocalRandom random = ThreadLocalRandom.current();
+        int playerLevel = Math.max(1, guildAPI.getLevel(killer.getUniqueId()));
 
         if (!lootPool.isEmpty() && random.nextDouble() < economyConfig.getItemDropChance()) {
-            ItemDefinition definition = lootPool.get(random.nextInt(lootPool.size()));
-            itemService.createItem(definition.id()).ifPresent(event.getDrops()::add);
+            List<ItemDefinition> eligibleItems = lootPool.stream()
+                    .filter(definition -> definition.itemLevel() <= playerLevel)
+                    .filter(definition -> definition.requiredLevel() <= playerLevel)
+                    .toList();
+
+            if (!eligibleItems.isEmpty()) {
+                ItemDefinition definition = eligibleItems.get(random.nextInt(eligibleItems.size()));
+                itemService.createItem(definition.id()).ifPresent(event.getDrops()::add);
+            }
         }
 
         if (random.nextDouble() < economyConfig.getCurrencyDropChance()) {
