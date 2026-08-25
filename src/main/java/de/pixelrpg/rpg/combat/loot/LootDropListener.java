@@ -39,7 +39,7 @@ public final class LootDropListener implements Listener {
         LivingEntity entity = event.getEntity();
         if (!(entity instanceof Monster)) return;
         Player killer = entity.getKiller();
-        if (killer == null || !guildAPI.isRegistered(killer.getUniqueId())) return;
+        if (killer == null) return;
 
         ThreadLocalRandom random = ThreadLocalRandom.current();
         int playerLevel = Math.max(1, guildAPI.getLevel(killer.getUniqueId()));
@@ -56,7 +56,8 @@ public final class LootDropListener implements Listener {
             }
         }
 
-        if (random.nextDouble() < economyConfig.getCurrencyDropChance()) {
+        if (guildAPI.isRegistered(killer.getUniqueId())
+                && random.nextDouble() < economyConfig.getCurrencyDropChance()) {
             long min = economyConfig.getCurrencyDropMinAmount();
             long max = Math.max(min, economyConfig.getCurrencyDropMaxAmount());
             long amount = min == max ? min : random.nextLong(min, max + 1);
