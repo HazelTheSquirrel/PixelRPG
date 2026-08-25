@@ -33,13 +33,17 @@ public final class LootDropListener implements Listener {
                 .toList();
     }
 
-    // Zuständig für direkte PixelRPG-Ausrüstungsdrops und Gildengold beim Töten eines Monsters.
+    // Zuständig für PixelRPG-Loot und Gildengold; nicht registrierte Vanilla-Spieler bleiben vollständig bei Vanilla-Loot.
     @EventHandler(priority = EventPriority.HIGH)
     public void onMonsterDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
         if (!(entity instanceof Monster)) return;
+
         Player killer = entity.getKiller();
         if (killer == null) return;
+
+        // Oberste Trennlinie: Nicht registrierte Spieler sind Vanilla-Spieler und erhalten keinerlei PixelRPG-Loot.
+        if (!guildAPI.isRegistered(killer.getUniqueId())) return;
 
         ThreadLocalRandom random = ThreadLocalRandom.current();
         int playerLevel = Math.max(1, guildAPI.getLevel(killer.getUniqueId()));
@@ -56,8 +60,7 @@ public final class LootDropListener implements Listener {
             }
         }
 
-        if (guildAPI.isRegistered(killer.getUniqueId())
-                && random.nextDouble() < economyConfig.getCurrencyDropChance()) {
+        if (random.nextDouble() < economyConfig.getCurrencyDropChance()) {
             long min = economyConfig.getCurrencyDropMinAmount();
             long max = Math.max(min, economyConfig.getCurrencyDropMaxAmount());
             long amount = min == max ? min : random.nextLong(min, max + 1);
