@@ -4,6 +4,7 @@ import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.core.RPGKeys;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -12,6 +13,7 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.projectiles.ProjectileSource;
 
 /** Protects the world-boss event from damaging the world and from interacting with unregistered players. */
 public final class WorldBossProtectionListener implements Listener {
@@ -48,16 +50,34 @@ public final class WorldBossProtectionListener implements Listener {
         Entity damager = event.getDamager();
         Entity target = event.getEntity();
 
-        if (isWorldBossEntity(damager) && target instanceof Player player
+        Player damagerPlayer = resolvePlayerSource(damager);
+        boolean worldBossSource = isWorldBossEntity(damager) || isWorldBossProjectile(damager);
+
+        if (worldBossSource && target instanceof Player player
                 && !guildAPI.isRegistered(player.getUniqueId())) {
             event.setCancelled(true);
             return;
         }
 
-        if (isWorldBossEntity(target) && damager instanceof Player player
-                && !guildAPI.isRegistered(player.getUniqueId())) {
+        if (isWorldBossEntity(target) && damagerPlayer != null
+                && !guildAPI.isRegistered(damagerPlayer.getUniqueId())) {
             event.setCancelled(true);
         }
+    }
+
+    private Player resolvePlayerSource(Entity entity) {
+        if (entity instanceof Player player) return player;
+        if (entity instanceof Projectile projectile) {
+            ProjectileSource source = projectile.getShooter();
+            if (source instanceof Player player) return player;
+        }
+        return null;
+    }
+
+    private boolean isWorldBossProjectile(Entity entity) {
+        if (!(entity instanceof Projectile projectile)) return false;
+        ProjectileSource source = projectile.getShooter();
+        return source instanceof Entity sourceEntity && isWorldBossEntity(sourceEntity);
     }
 
     private boolean isWorldBossEntity(Entity entity) {
