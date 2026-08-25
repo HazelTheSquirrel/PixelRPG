@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
+/** Native quest-board dialog. Empty questGiverNpcId values are intentionally offered by every QUEST NPC. */
 public final class QuestBehaviorV2 implements NpcBehavior {
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
@@ -44,12 +45,16 @@ public final class QuestBehaviorV2 implements NpcBehavior {
         openQuestRanges(player, npc);
     }
 
+    private boolean belongsToNpc(Quest quest, RPGNpc npc) {
+        return quest.questGiverNpcId().isBlank() || npc.id().equalsIgnoreCase(quest.questGiverNpcId());
+    }
+
     private void openQuestRanges(Player player, RPGNpc npc) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
         List<Integer> levels = new TreeSet<>(questManager.getRepository().getAllQuests().stream()
                 .filter(quest -> quest.type() != QuestType.GLOBAL_EVENT)
-                .filter(quest -> npc.id().equalsIgnoreCase(quest.questGiverNpcId()))
+                .filter(quest -> belongsToNpc(quest, npc))
                 .map(Quest::categoryLevel).toList()).stream().toList();
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text("Quests dieses Auftraggebers", NamedTextColor.WHITE)),
@@ -76,7 +81,7 @@ public final class QuestBehaviorV2 implements NpcBehavior {
         if (profile == null) return;
         List<Quest> quests = questManager.getRepository().getAllQuests().stream()
                 .filter(quest -> quest.type() != QuestType.GLOBAL_EVENT)
-                .filter(quest -> npc.id().equalsIgnoreCase(quest.questGiverNpcId()))
+                .filter(quest -> belongsToNpc(quest, npc))
                 .filter(quest -> quest.categoryLevel() == start)
                 .sorted(Comparator.comparingInt(Quest::requiredLevel).thenComparing(Quest::title)).toList();
         List<DialogBody> body = List.of(DialogBody.plainMessage(Component.text("Level " + start + "–" + end, NamedTextColor.AQUA)));
