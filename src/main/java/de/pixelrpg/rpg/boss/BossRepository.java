@@ -82,6 +82,10 @@ public final class BossRepository {
                 plugin.getLogger().warning("Ignoring phases for biome boss: " + id);
                 definition.setPhases(List.of());
             }
+            if (definition.getKind() == BossKind.WORLD_EVENT && definition.getPhases().isEmpty()) {
+                plugin.getLogger().warning("Ignoring world boss without phases: " + id);
+                continue;
+            }
             definitionsById.put(id, definition);
         }
         validateBiomeUniqueness();
@@ -136,22 +140,18 @@ public final class BossRepository {
         boss(yaml, "magma_colossus", "Der Magmakoloss", "MAGMA_CUBE", 66, 18.0, 2.8, 1.45, 70, List.of("SLAM"), List.of("BASALT_DELTAS"), "pixelrpg:boss/magmaherz", 1350, 3700);
         boss(yaml, "end_king", "Der Endkönig", "SHULKER", 78, 22.0, 3.2, 1.50, 85, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("THE_END", "END_HIGHLANDS", "END_MIDLANDS", "SMALL_END_ISLANDS", "END_BARRENS"), "pixelrpg:boss/shulkerkern", 1800, 5000);
 
-        String world = "bosses.rift_colossus";
-        yaml.set(world + ".name", "Rift Colossus");
-        yaml.set(world + ".kind", "WORLD_EVENT");
-        yaml.set(world + ".base-entity", "RAVAGER");
-        yaml.set(world + ".level", 80);
-        yaml.set(world + ".health-multiplier", 35.0);
-        yaml.set(world + ".damage-multiplier", 5.0);
-        yaml.set(world + ".scale-multiplier", 1.75);
-        yaml.set(world + ".phases", List.of(
-                Map.of("health-percent", 100.0, "attack-interval-ticks", 120, "patterns", List.of("SLAM", "PROJECTILE_VOLLEY"), "announcement", "The Rift Colossus has awakened."),
-                Map.of("health-percent", 66.0, "attack-interval-ticks", 95, "patterns", List.of("SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "announcement", "The Rift tears open around the Colossus."),
-                Map.of("health-percent", 33.0, "attack-interval-ticks", 70, "patterns", List.of("ENRAGE_BUFF", "SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "announcement", "The Colossus enters its final rage.")));
-        yaml.set(world + ".loot.guaranteed", List.of("NETHER_STAR"));
-        yaml.set(world + ".loot.chance-drops", List.of(Map.of("material", "NETHERITE_INGOT", "chance-percent", 15.0, "rarity", "LEGENDARY"), Map.of("material", "DIAMOND_BLOCK", "chance-percent", 25.0, "rarity", "EPIC")));
-        yaml.set(world + ".loot.money", 2500.0);
-        yaml.set(world + ".loot.exp", 6000L);
+        worldBoss(yaml, "rift_colossus", "Der Risskoloss", "RAVAGER", 80, 35.0, 5.0, 1.75, 2500, 6000,
+                "pixelrpg:boss/risskern", "NETHER_STAR", "NETHERITE_INGOT", 15.0, "LEGENDARY");
+        worldBoss(yaml, "storm_lord", "Der Sturmherrscher", "EVOKER", 84, 38.0, 4.8, 1.55, 3000, 7000,
+                "pixelrpg:boss/sturmherz", "TOTEM_OF_UNDYING", "DIAMOND_BLOCK", 18.0, "LEGENDARY");
+        worldBoss(yaml, "abyss_lord", "Der Abgrundfürst", "ELDER_GUARDIAN", 88, 42.0, 4.5, 1.55, 3400, 8000,
+                "pixelrpg:boss/abgrundkern", "HEART_OF_THE_SEA", "SPONGE", 20.0, "EPIC");
+        worldBoss(yaml, "soul_devourer", "Der Seelenverschlinger", "WITHER_SKELETON", 92, 45.0, 5.4, 1.50, 3800, 9000,
+                "pixelrpg:boss/seelenkrone", "NETHER_STAR", "NETHERITE_SCRAP", 20.0, "LEGENDARY");
+        worldBoss(yaml, "end_harbinger", "Der Endbote", "ENDERMAN", 96, 48.0, 5.2, 1.55, 4200, 10000,
+                "pixelrpg:boss/endriss", "DRAGON_BREATH", "ENDER_EYE", 25.0, "LEGENDARY");
+        worldBoss(yaml, "ancient_world_warden", "Der Uralte Weltenwächter", "WARDEN", 100, 55.0, 6.0, 1.65, 5000, 12000,
+                "pixelrpg:boss/weltenherz", "NETHER_STAR", "ECHO_SHARD", 30.0, "LEGENDARY");
 
         try { file.getParentFile().mkdirs(); yaml.save(file); }
         catch (IOException e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to create default bosses.yml", e); }
@@ -174,6 +174,59 @@ public final class BossRepository {
         yaml.set(path + ".loot.guaranteed", List.of(customDrop));
         yaml.set(path + ".loot.money", money);
         yaml.set(path + ".loot.exp", exp);
+    }
+
+    private void worldBoss(YamlConfiguration yaml, String id, String name, String entity, int level,
+                           double hp, double damage, double scale, double money, long exp, String customDrop,
+                           String guaranteedMaterial, String chanceMaterial, double chancePercent, String rarity) {
+        String path = "bosses." + id;
+        yaml.set(path + ".name", name);
+        yaml.set(path + ".kind", "WORLD_EVENT");
+        yaml.set(path + ".base-entity", entity);
+        yaml.set(path + ".level", level);
+        yaml.set(path + ".health-multiplier", hp);
+        yaml.set(path + ".damage-multiplier", damage);
+        yaml.set(path + ".scale-multiplier", scale);
+        yaml.set(path + ".loot.guaranteed", List.of(customDrop, guaranteedMaterial));
+        yaml.set(path + ".loot.chance-drops", List.of(Map.of("material", chanceMaterial, "chance-percent", chancePercent, "rarity", rarity)));
+        yaml.set(path + ".loot.money", money);
+        yaml.set(path + ".loot.exp", exp);
+        yaml.set(path + ".phases", worldBossPhases(id));
+    }
+
+    private List<Map<String, Object>> worldBossPhases(String id) {
+        return switch (id) {
+            case "rift_colossus" -> List.of(
+                    phase(100.0, 120, List.of("SLAM", "PROJECTILE_VOLLEY"), "Der Risskoloss erwacht."),
+                    phase(66.0, 95, List.of("SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "Der Riss reißt weiter auf."),
+                    phase(33.0, 70, List.of("ENRAGE_BUFF", "SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "Der Risskoloss entfesselt seine letzte Kraft."));
+            case "storm_lord" -> List.of(
+                    phase(100.0, 110, List.of("PROJECTILE_VOLLEY", "SLAM"), "Der Sturmherrscher ruft den Sturm."),
+                    phase(66.0, 85, List.of("PROJECTILE_VOLLEY", "SUMMON_ADDS", "SLAM"), "Der Himmel bricht über dem Schlachtfeld auf."),
+                    phase(33.0, 60, List.of("ENRAGE_BUFF", "PROJECTILE_VOLLEY", "SUMMON_ADDS", "SLAM"), "Der Sturmherrscher rastet aus."));
+            case "abyss_lord" -> List.of(
+                    phase(100.0, 115, List.of("PROJECTILE_VOLLEY", "SLAM"), "Der Abgrundfürst erhebt sich."),
+                    phase(66.0, 90, List.of("PROJECTILE_VOLLEY", "SUMMON_ADDS", "SLAM"), "Der Abgrund zieht alles in die Tiefe."),
+                    phase(33.0, 65, List.of("ENRAGE_BUFF", "PROJECTILE_VOLLEY", "SUMMON_ADDS"), "Der Abgrundfürst entfesselt seine letzte Welle."));
+            case "soul_devourer" -> List.of(
+                    phase(100.0, 105, List.of("SLAM", "PROJECTILE_VOLLEY"), "Der Seelenverschlinger sammelt Seelen."),
+                    phase(66.0, 80, List.of("SUMMON_ADDS", "PROJECTILE_VOLLEY", "SLAM"), "Die gefallenen Seelen kehren zurück."),
+                    phase(33.0, 55, List.of("ENRAGE_BUFF", "SUMMON_ADDS", "PROJECTILE_VOLLEY", "SLAM"), "Der Seelenverschlinger ist außer Kontrolle."));
+            case "end_harbinger" -> List.of(
+                    phase(100.0, 100, List.of("PROJECTILE_VOLLEY", "SLAM"), "Der Endbote durchbricht den Schleier."),
+                    phase(66.0, 75, List.of("SUMMON_ADDS", "PROJECTILE_VOLLEY", "SLAM"), "Der Endbote öffnet weitere Risse."),
+                    phase(33.0, 50, List.of("ENRAGE_BUFF", "PROJECTILE_VOLLEY", "SUMMON_ADDS", "SLAM"), "Der Endbote beginnt zu zerfallen."));
+            case "ancient_world_warden" -> List.of(
+                    phase(100.0, 120, List.of("SLAM", "PROJECTILE_VOLLEY"), "Der Uralte Weltenwächter erwacht."),
+                    phase(66.0, 90, List.of("SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "Das Schlachtfeld erzittert."),
+                    phase(33.0, 55, List.of("ENRAGE_BUFF", "SLAM", "SUMMON_ADDS", "PROJECTILE_VOLLEY"), "Der Weltenwächter entfesselt seine letzte Macht."));
+            default -> List.of();
+        };
+    }
+
+    private Map<String, Object> phase(double healthPercent, int interval, List<String> patterns, String announcement) {
+        return Map.of("health-percent", healthPercent, "attack-interval-ticks", interval,
+                "patterns", patterns, "announcement", announcement);
     }
 
     private double toDouble(Object value) { return value instanceof Number number ? number.doubleValue() : 0.0D; }
