@@ -1,8 +1,8 @@
 # PixelRPG – Zentrale Projektdokumentation
 
-Stand: 2026-08-24
+Stand: 2026-08-25
 
-> Zentrale Dokumentation für das PixelRPG-Projekt. Historische Einzel-Dokumentationen wurden hier zusammengeführt. Die konkrete Abarbeitung erfolgt ausschließlich über `roadmap.md`.
+> Zentrale Dokumentation für das PixelRPG-Projekt. Die konkrete Abarbeitung erfolgt ausschließlich über `roadmap.md`.
 
 ## 1. Technische Basis
 
@@ -17,98 +17,43 @@ Stand: 2026-08-24
 - kein `ChatColor`
 - keine alten 1.21.x-APIs oder Dialogimplementierungen
 
-## 2. Entwicklungsprinzip
+## 2. Verbindliche Designentscheidungen
 
-PixelRPG wird Feature für Feature fertiggestellt. Ein Feature gilt als abgeschlossen, wenn es implementiert, integriert, spielbar, persistent, robust, getestet und dokumentiert ist.
+- PixelRPG hat **keine Klassen**.
+- PixelRPG hat **keine frei verteilbaren Player-Attribute**.
+- Ein neu registrierter Spieler erhält keinen Startbonus.
+- Level/XP sind die zentrale Spielerprogression.
+- Combat-Stärke entsteht aus Gear, Stats, Weapon Skills und aktiven Companions.
+- Character Stats: HP, Armor, Movement Speed, Reach, Damage, Crit, Crit-Schaden, Lifesteal, Attack Power.
+- Basis-Crit-Chance ist 0 %.
+- Standard-Crit-Schaden ist ×2 und kann durch Gear/Companions erhöht werden.
+- Lifesteal heilt den entsprechenden Prozentsatz des tatsächlich verursachten Schadens.
+- Vanilla-Schaden bleibt Bestandteil der Berechnung; Vanilla-Angriffsgeschwindigkeit bleibt unverändert.
+- Rüstung wird über eine eigene MMORPG-Mitigation berechnet.
+- Waffen können Reach, Damage, Crit, Crit-Schaden, Lifesteal und Attack Power liefern.
+- Equipment: Helm, Brust, Hose, Schuhe, Waffe, Nebenhand.
+- Gearscore basiert auf Item-Level und Item-Definition/Balancing.
+- Companions geben passive Stat-Boni nur solange sie aktiv gerufen und draußen sind; Despawn entfernt den Bonus sofort. Unique Companions sind davon ausgenommen.
+- PvP ist kein eigenes Gameplay-System.
+- Währung ist Goldtaler; virtuell als Kontostand und physisch als Sonnenblume.
+- Vollständiger Player-Trade ist nicht priorisiert; Spielerhandel erfolgt über das Auktionshaus.
+- Professionen: BLACKSMITH, PROVISIONER, ALCHEMIST, SCHOLAR.
+- Partys unterstützen gemeinsame XP, Loot-Verteilung, Party-Buffs und gemeinsamen Questfortschritt.
+- Gilden sind ein eigenes soziales System mit Gildenstadt/-basis und Gildenbank.
+- Ein eigenes Regions-/Mob-Scaling-System außerhalb der Biom-Bosse wird nicht umgesetzt.
 
-Zielbereich: **95–98 % = abgeschlossen**. Absolute 100 % werden nicht als dauerhafter Zustand betrachtet, weil zukünftige Bugs, Minecraft-Änderungen oder neue Gameplay-Ideen jederzeit auftreten können.
-
-Arbeitsweise:
-
-```text
-Soll-Verhalten definieren
-→ vorhandenen Code vollständig prüfen
-→ Lücken identifizieren
-→ nur notwendige Änderungen umsetzen
-→ Build
-→ Server-/Runtime-Test
-→ Fehler beheben
-→ Dokumentation aktualisieren
-→ Feature abhaken
-```
-
-## 3. Aktueller Scope
-
-### Bewusst außerhalb des zukünftigen Scopes
-
-- Mana als Gameplay-Ressource
-- Blessings
-- Curses
-- Gems
-- Runes
-- Sockets
-- alte F–S-Ranks
-- vollständiges eigenständiges Resourcepack-System
-- vollständiges Guild-System als zukünftiges Großfeature
-
-Historische Klassen, Keys oder Texte dieser Systeme sind nicht automatisch aktiv. Bei Cleanup wird ihre tatsächliche Verwendung geprüft.
-
-### Aktive Progressionsbasis
-
-```text
-Spieler-Level 1–99
-Level 100 = reserviertes Endgame
-Spieler-Level → Attribute/Klasse → Equipment → finale Stats → Combat/Mob Scaling → XP/Loot
-```
-
-Keine Mana-Kosten für Weapon-Abilities.
-
-## 4. Player / Progression
+## 3. Player / Progression
 
 - Spieler werden zunächst als Vanilla-Spieler behandelt.
 - Erst nach PixelRPG-Registrierung greifen RPG-Systeme.
 - Spieler-Level: 1–99.
 - Level 100 ist für Endgame reserviert.
-- XP-Kurve bis Level 79 ist WotLK-inspiriert; ab Level 80 kontrollierte Endgame-Kurve.
-- Klassen: Warrior, Ranger, Rogue, Healer, Mage.
-- Klassen- und Stat-Systeme greifen nur auf registrierte PixelRPG-Spieler.
-- Player-Level-Up-Events und Statistik-APIs sind vorhanden.
+- XP-/Level-Up-System und Player-Level-Up-Events sind vorhanden.
+- Es gibt keine Klassenwahl und keine frei verteilbaren Attributpunkte.
 
-## 5. Attribute / Balancing
+## 4. Combat / Stats
 
-Aktive Attribute stammen aus `src/main/resources/data/attributes.json`.
-
-| Attribut | Effekt pro Punkt |
-|---|---:|
-| Vitality | +2 HP |
-| Agility | +0.0025 Bewegungsgeschwindigkeit |
-| Agility | +0.20 % Crit Chance |
-| Precision | +0.75 Bonus Damage |
-| Range | +0.10 Block Interaction Range |
-| Range | +0.10 Entity Interaction Range |
-| Toughness | +1 Armor |
-
-Kosten-Baseline:
-
-- Base: `30.0`
-- Multiplikator: `1.08`
-- Klassenrabatt für Primärattribute: `0.75`
-- Soulview: `500.0`
-- Elytra Permit: `750.0`
-
-Klassen-Baseline liegt in `data/class-balance.json`.
-
-| Klasse | Armor | Health | Speed | Melee | Ranged | Spell | Heal | Crit | Crit Damage |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Warrior | 5.0 | 10.0 | 0 | 1.05 | 0.95 | 0.90 | 1.00 | 0 | 1.00 |
-| Ranger | 0 | 3.0 | 0.0025 | 0.95 | 1.05 | 1.00 | 1.00 | 3 | 1.00 |
-| Rogue | 0 | 0 | 0.002 | 1.00 | 1.00 | 1.00 | 1.00 | 5 | 1.15 |
-| Healer | 3.0 | 10.0 | 0 | 0.95 | 0.95 | 1.00 | 1.15 | 0 | 1.00 |
-| Mage | -2.0 | -2.0 | 0 | 0.85 | 1.00 | 1.15 | 1.00 | 0 | 1.00 |
-
-## 6. Combat
-
-Vorhanden bzw. Bestandteil des aktiven Systems:
+Das aktive System umfasst:
 
 - zentrale Damage-Logik
 - Weapon-Abilities
@@ -116,27 +61,24 @@ Vorhanden bzw. Bestandteil des aktiven Systems:
 - Mob Scaling
 - Loot
 - Boss Damage
-- Class-/Stat-Einfluss
+- RPG-Stats
 - Soulbound Death Protection
 
-Weapon-Abilities werden per Rechtsklick ausgelöst und besitzen waffenbezogene Cooldowns. Es gibt keine Mana-Kosten.
+Weapon-Abilities besitzen keine Mana-Kosten.
 
-Mob Scaling Baseline:
+Aktive Character Stats:
 
-- HP pro Level: `5.0`
-- Damage pro Level: `0.30`
-- Player-Parity-Multiplier: `1.05`
-- XP pro Max-Health: `4.0`
+- HP
+- Armor
+- Movement Speed
+- Reach
+- Damage
+- Crit
+- Crit-Schaden
+- Lifesteal
+- Attack Power
 
-| Dimension | HP | Damage | Base Level |
-|---|---:|---:|---:|
-| Overworld | 1.00 | 1.00 | 1 |
-| Nether | 1.15 | 1.10 | 50 |
-| The End | 1.30 | 1.20 | 75 |
-
-Das Mischverhalten von Vanilla- und registrierten PixelRPG-Spielern bleibt Bestandteil der Runtime-Validierung.
-
-## 7. Items / Equipment
+## 5. Items / Equipment
 
 PixelRPG verwendet PDC-/Metadata-Identität als primäre Item-Identität. Das Vanilla-Material allein ist keine PixelRPG-Identität.
 
@@ -149,57 +91,41 @@ Raritäten:
 - Legendary
 - Unique
 
-Item-Scaling-Baseline aus `data/item-scaling.json`:
-
-```text
-Growth multiplier = 10.0
-Weapon damage base = 3.0
-Weapon crit base = 0.5
-Armor base = 0.7
-Health base = 1.2
-Tool efficiency base = 1.0
-```
-
-| Rarity | Multiplikator |
-|---|---:|
-| Common | 1.00 |
-| Uncommon | 1.10 |
-| Rare | 1.22 |
-| Epic | 1.38 |
-| Legendary | 1.60 |
-| Unique | 1.60 |
-
 Unique ist keine normale Zufallsrarität.
 
-Soulbound ist eine echte Gameplay-Eigenschaft. Der aktuelle Charakterprofil-Dialog besitzt eine native Aktion zum Binden des identifizierten Gegenstands in der Haupthand. Der Death-/Respawn-Pfad schützt Soulbound-Gegenstände vor dem normalen Drop registrierter PixelRPG-Spieler.
+Soulbound ist eine echte Gameplay-Eigenschaft. Der Charakterprofil-Dialog besitzt eine native Aktion zum Binden eines identifizierten Gegenstands in der Haupthand. Soulbound-Gegenstände werden beim Tod registrierter PixelRPG-Spieler geschützt.
 
-## 8. Quests
+## 6. Quests
 
 Das Quest-System besitzt Repository, Manager, Progress, Navigation, globale Events, passive Checks, Mob-Kills sowie XP-/Progressionslogik.
 
-Verbindliche Designregeln:
+Verbindliche Regeln:
 
 - Open World statt künstlicher Level-Gebiete.
 - Keine Reputation.
 - Keine Titel.
-- Maximal 5 aktive Quests als aktueller Designwert.
+- Maximal 5 aktive Quests.
 - Questketten statt Filler-Quests.
 - NPCs und echte Orte stehen im Mittelpunkt.
 - Recovery Compass ist ein Richtungshelfer, kein vollständiges GPS.
-- Veränderliche Questdaten bleiben datengetrieben.
+- Questdaten bleiben datengetrieben.
+- Questziele müssen für Spieler sichtbar und verständlich sein.
+- Aktive Quests zeigen Titel, Beschreibung, Fortschritt und relevante Informationen.
+- Eine aktive Quest kann aus der Charakterkarte geöffnet und dort abgebrochen werden.
 
-Questtypen:
+Verbindlicher Questtypen-Pool:
 
 - `HUNT`
 - `COLLECT`
 - `TALK_TO_NPC`
-- `ESCORT`
 - `REACH_LOCATION`
 - `GLOBAL_EVENT`
 
-Primäre Questdatenquelle: `src/main/resources/data/quests.json`.
+**`ESCORT` gehört nicht zum finalen Questtypen-Pool.**
 
-## 9. NPC / Dialogue
+Primäre Questdatenquelle: `src/main/resources/data/quests_v2.json`.
+
+## 7. NPC / Dialogue
 
 Native Minecraft-/Paper-Dialoge sind der primäre Interaktionsweg.
 
@@ -207,7 +133,6 @@ Vorhandene Dialogbereiche umfassen unter anderem:
 
 - Registrierung
 - Empfang
-- Schmied
 - Quest
 - Shop
 - Travel
@@ -216,14 +141,31 @@ Vorhandene Dialogbereiche umfassen unter anderem:
 - Companion
 - Berufe
 - Soulbound
+- Charakterkarte
+- Aktive Quests
 
-Inventory-GUIs bleiben dort bestehen, wo Dialoge nicht ausreichen.
+Inventory-GUIs bleiben dort bestehen, wo Dialoge funktional nicht ausreichen.
 
-NPCs sind dauerhafte PixelRPG-Weltschnittstellen und müssen nach Login und relevantem Chunk-Lifecycle wieder sichtbar sein.
+NPCs sind dauerhafte PixelRPG-Weltschnittstellen und werden über den relevanten Chunk-Lifecycle verwaltet.
 
-## 10. Companions
+## 8. Charakterkarte / G-Interaktion
 
-Companions sind Runtime-Entities und **keine persistenten Welt-NPCs**.
+Die Charakterkarte wird über die native Minecraft-Quick-Action-Interaktion `minecraft:quick_actions` geöffnet.
+
+Die Charakterkarte enthält unter anderem:
+
+- Charakterprofil
+- Aktive Quests
+- Begleiter
+- Berufe
+- Gilde
+- Schließen
+
+Der Bereich **Aktive Quests** zeigt die echten Questtitel statt nur Quest-IDs. Beim Anklicken einer Quest öffnet sich ein Detaildialog mit Beschreibung, Ziel/Fortschritt und relevanten Belohnungs-/Zeitinformationen. Von dort kann die Quest abgebrochen oder zur Liste zurückgekehrt werden.
+
+## 9. Companions
+
+Companions sind Runtime-Entities und keine persistenten Welt-NPCs.
 
 Lifecycle:
 
@@ -246,15 +188,8 @@ Grundregeln:
 - Normale Companions sind passiv, unbesiegbar und nicht kampffähig.
 - Normale Companions liefern Utility und passive RPG-Boni.
 - Hostile-Mob-Companions werden nicht verwendet.
-- `unique-hazel` ist ADMIN-only und die einzige normale Ausnahme für eigenen Combat-/Skin-Mechanismus.
-- Companion-ID, Rarity und Unlock-Quelle sind datengetrieben in `companions.json`.
-- Java enthält keine Companion-ID-spezifische Unlock-Sonderlogik.
-
-Unlocks sind datengetrieben über Quest-/Boss-Quellen. Raritäten: Common, Uncommon, Rare, Epic, Legendary, Unique.
-
-Passive Boni können unter anderem Leben, Rüstung, Lifesteal, Crit-Chance und Crit-Schaden beeinflussen, sofern konfiguriert.
-
-Companion Runtime, Follow, Movement, Passive-System, Combat-Regeln, XP/Level, Equipment, Runtime-Registry und Cleanup wurden bereits umfassend poliert. Neue Companion-Inhalte sind aktuell nicht geplant.
+- `unique-hazel` ist ADMIN-only und eine separate Ausnahme für Combat-/Skin-Mechanik.
+- Companion-ID, Rarity und Unlock-Quelle sind datengetrieben.
 
 ### Mounts
 
@@ -267,58 +202,89 @@ Aktuell vorgesehen:
 - Nautilus – Unterwasser-Mount
 - Bee – Spezial-Flugmount
 
-Bee-Zielwerte:
+## 10. Bosses
 
-- Scale `1.60`
-- Fluggeschwindigkeit `1.05` Blöcke/Tick
-- Steuerung über Paper 26.x `Player#getCurrentInput()`
-- Jump steigt, Sneak sinkt
-- keine Vanilla-Bienen-Kampfmechanik
-- unbesiegbar und passiv
+Das Repository besitzt ein eigenes Boss-System mit:
 
-Unique-Hazel bleibt ein separates `MANNEQUIN`-System mit eigenem Combat-Controller und Skin-Resolver.
+- Boss Definitions / Registry
+- Active Boss
+- feste Boss-Level
+- Boss Stats
+- BossBar
+- Attack Patterns
+- Damage Contribution
+- Death Handling
+- datengetriebenen Loot-Tables
+- optionalen Companion Rewards
 
-## 11. Bosses
+Biom-Bosse sind an ein Minecraft-Biom gebunden. Worldbosse sind ausschließlich Admin-gestartete Events.
 
-Das Repository besitzt ein eigenes Boss-System mit Active Boss, Attack Patterns, Pattern Registry, Combat und Boss-Events. Bosses können als Unlock-Quelle für Companions dienen.
+## 11. Crafting / Professions
 
-Für den Abschluss müssen Phasen/Patterns, Damage Contribution, Death, Loot und Companion Rewards als vollständiger Gameplay-Loop validiert werden.
+Crafting besitzt Registry, Rezepte und Progressionsstufen. Rezepte werden datengetrieben verwaltet.
 
-## 12. Crafting / Professions
+Die vier Professionen sind:
 
-Crafting besitzt eine Registry, Progressionsstufen und Rezepte. Die vier vorhandenen Berufe wurden um zusätzliche Level-/Rarity-Stufen erweitert.
+- BLACKSMITH
+- PROVISIONER
+- ALCHEMIST
+- SCHOLAR
 
-Die zusätzlichen Rezepte gelten erst nach erfolgreichem Build und Server-Test als abgeschlossen.
+Crafting und Berufe sind Bestandteil des vorgesehenen Gameplay-Loops.
 
-Dialog-basiertes Crafting und Berufe sind Teil des vorgesehenen Gameplay-Loops.
+## 12. Economy / Trading / Party / Guild
 
-## 13. Economy / Trading / Party / Guild
+Economy- und Item-Werte werden in Shop-, Bank- und Reward-Pfade integriert.
 
-Economy- und Item-Werte sind vorhanden und werden weiter in Shop-, Bank- und Reward-Pfade integriert.
+### Party
 
-Party besitzt API, Creation, Members, Invites, Leave und Events.
+Party besitzt:
 
-Player Trading ist noch nicht vollständig als Gameplay-System abgeschlossen.
+- Party API
+- Creation
+- Members
+- Invites
+- Leave
+- Kick
+- Leadership Transfer
+- Disband
+- gemeinsame XP-/Loot-/Quest-Mechaniken
+- Events und Disconnect-Handling
+- persistente Profildaten
 
-Ein vollständiges Guild-System ist derzeit ausdrücklich kein zukünftiges Großfeature. Bestehende tatsächlich verwendete Guild-/Economy-Currency-Pfade bleiben erhalten, bis ihre konkrete Verwendung geprüft wurde.
+Komfortbefehl:
 
-## 14. GUI / UI
+- `/party`
+- `/party invite <Spieler>`
+- `/party accept`
+- `/party leave`
+- `/party kick <Spieler>`
+- `/party transfer <Spieler>`
+- `/party disband`
+- `/party info`
 
-Aktive GUIs werden einzeln nach tatsächlicher Verwendung bewertet. Nicht erreichbare Legacy-GUIs wurden bereits entfernt.
+`/rpgparty` bleibt als bestehender Kompatibilitäts-/Komfortbefehl erhalten.
 
-Native Dialoge bleiben der bevorzugte Weg für Interaktionen, während Inventory-GUIs dort verwendet werden, wo sie funktional sinnvoll sind.
+### Guild
 
-## 15. Persistence / Database
+Gilden besitzen persistente Daten, eindeutige Namen, maximal 50 Mitglieder, einen Gildenmeister, Einladungen und eine gemeinsame Gildenbank. Gildenfunktionen sind zusätzlich über NPCs/Dialoge und die dafür vorgesehenen Komfortbefehle erreichbar.
+
+## 13. GUI / UI
+
+Native Dialoge bleiben der bevorzugte Weg für Interaktionen.
+
+Inventory-GUIs werden nur dort verwendet, wo sie funktional sinnvoll sind, beispielsweise für Crafting, Party oder komplexe Inventarverwaltung.
+
+## 14. Persistence / Database
 
 YAML und MySQL bleiben die PlayerProfile-Repositories.
 
 - HikariCP wird verwendet.
 - MySQL Connector wird verwendet.
-- Player-, Companion- und Quest-Daten besitzen Persistenzpfade.
-- Historische Produktionsspalten werden nicht destruktiv automatisch gelöscht.
+- Player-, Companion-, Quest-, Profession-, Economy-, Party-, Equipment- und Guild-Daten besitzen Persistenzpfade.
 - Persistenz über Server-Neustart ist Bestandteil der Abschlussprüfung.
 
-## 16. API / Commands / Permissions
+## 15. API / Commands / Permissions
 
 Vorhandene API-Bereiche umfassen unter anderem:
 
@@ -328,24 +294,17 @@ Vorhandene API-Bereiche umfassen unter anderem:
 - Item API
 - Party API
 - Statistics API
-- eigene Events für Boss, Klassenwechsel, Guild Join/Leave, Level-Up und Quest Completion
+- Events für Boss, Level-Up und Quest Completion
 
-Commands und Permissions werden gegen ihre tatsächliche Registrierung und Runtime-Verwendung geprüft.
+Gameplay-Systeme sollen grundsätzlich über NPCs/Dialoge funktionieren. Commands sind Komfortfunktionen und keine Voraussetzung für die Kernmechaniken.
 
-## 17. Cleanup-Regeln
+## 16. Cleanup-Regeln
 
-Bereits entfernte, nachweislich ungenutzte Bereiche umfassen unter anderem:
+Veraltete Klassen, Systeme und Dokumentationsreste werden nur nach tatsächlicher Dependency-Prüfung entfernt.
 
-- mehrere alte Quest-/Admin-/Travel-/Bank-/Class-Selection-GUIs
-- nicht registrierten CraftingCommand
-- ungenutzte Class-Set-Service-/Factory-Klassen
-- veraltete Companion-Stat-Datei
-- alten Equipment-Aura-Config-Key
-- das alte Resourcepack-Verzeichnis
+Insbesondere dürfen keine alten Klassen-, frei verteilbaren Attribut- oder `ESCORT`-Designs erneut als verbindliche Projektbestandteile dokumentiert werden.
 
-Weitere historische Reste werden nur nach tatsächlicher Dependency-Prüfung entfernt.
-
-## 18. Definition of Done
+## 17. Definition of Done
 
 ```text
 Code vorhanden
@@ -360,4 +319,4 @@ Code vorhanden
 = Feature abgeschlossen
 ```
 
-Diese Dokumentation beschreibt den **Projektstand und die verbindlichen Designentscheidungen**. Konkrete offene Arbeit wird ausschließlich in `roadmap.md` gepflegt.
+Diese Dokumentation beschreibt den Projektstand und die verbindlichen Designentscheidungen. Konkrete offene Arbeit wird ausschließlich in `roadmap.md` gepflegt.
