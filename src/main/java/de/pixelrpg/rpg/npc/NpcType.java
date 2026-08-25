@@ -8,7 +8,10 @@ import java.util.Set;
 public enum NpcType {
 
     RECEPTION(NamedTextColor.AQUA, NpcFunction.RECEPTION),
-    BLACKSMITH(NamedTextColor.RED, NpcFunction.QUEST, NpcFunction.PROFESSION, NpcFunction.CRAFTING),
+    PROFESSION_BLACKSMITH(NamedTextColor.GRAY, NpcFunction.PROFESSION),
+    PROFESSION_PROVISIONER(NamedTextColor.GREEN, NpcFunction.PROFESSION),
+    PROFESSION_SCHOLAR(NamedTextColor.AQUA, NpcFunction.PROFESSION),
+    PROFESSION_ALCHEMIST(NamedTextColor.LIGHT_PURPLE, NpcFunction.PROFESSION),
     QUEST(NamedTextColor.YELLOW, NpcFunction.QUEST),
     SHOP(NamedTextColor.GREEN, NpcFunction.SHOP),
     TRAVEL(NamedTextColor.LIGHT_PURPLE, NpcFunction.TRAVEL),
