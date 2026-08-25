@@ -10,6 +10,7 @@ import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
 import de.pixelrpg.rpg.quest.QuestManager;
 import de.pixelrpg.rpg.quest.QuestProgress;
+import de.pixelrpg.rpg.quest.QuestText;
 import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -186,7 +187,7 @@ public final class ScoreboardService implements Listener {
         return team;
     }
 
-    /** Uses invisible legacy formatting entries only as unique scoreboard keys; no ChatColor API is used. */
+    /** Uses invisible formatting entries only as unique scoreboard keys; no ChatColor API is used. */
     private String entryFor(int index) {
         return "\u00A7" + SCOREBOARD_ENTRY_FORMATS.charAt(index);
     }
@@ -234,7 +235,7 @@ public final class ScoreboardService implements Listener {
         lines.add(line);
     }
 
-    // Fügt die aktiven Quests mit Ziel und Fortschritt in den rechten PixelRPG-HUD ein.
+    // Fügt die aktiven Quests mit Name, Ziel und Fortschritt in den rechten PixelRPG-HUD ein.
     private void appendQuestTrackerLines(List<Component> lines, PlayerProfile profile) {
         lines.add(Component.text("Quests:", NamedTextColor.YELLOW));
         QuestManager questManager = PixelRPGPlugin.getInstance().getQuestManager();
@@ -249,9 +250,15 @@ public final class ScoreboardService implements Listener {
             if (shown >= MAX_TRACKED_QUESTS) break;
             Quest quest = questManager.getRepository().getQuest(progress.getQuestId());
             if (quest == null) continue;
-            String title = quest.title();
-            if (title.length() > 22) title = title.substring(0, 22) + "…";
-            lines.add(Component.text(title + " " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.WHITE));
+
+            String title = QuestText.title(quest).toString();
+            String required = QuestText.requiredItemPlain(quest);
+            String suffix = required.isBlank()
+                    ? progress.getCurrentAmount() + "/" + quest.requiredAmount()
+                    : required + " " + progress.getCurrentAmount() + "/" + quest.requiredAmount();
+            String lineText = title + " • " + suffix;
+            if (lineText.length() > 40) lineText = lineText.substring(0, 40) + "…";
+            lines.add(Component.text(lineText, NamedTextColor.WHITE));
             shown++;
         }
         while (shown < MAX_TRACKED_QUESTS) {
