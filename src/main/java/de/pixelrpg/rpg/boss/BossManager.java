@@ -103,10 +103,7 @@ public final class BossManager {
         double newHp = levelStats.hp() * parityMultiplier * definition.getHealthMultiplier();
         double newDamage = levelStats.damage() * parityMultiplier * definition.getDamageMultiplier();
         AttributeInstance hpAttribute = entity.getAttribute(Attribute.MAX_HEALTH);
-        if (hpAttribute != null) {
-            hpAttribute.setBaseValue(newHp);
-            entity.setHealth(newHp);
-        }
+        if (hpAttribute != null) { hpAttribute.setBaseValue(newHp); entity.setHealth(newHp); }
         AttributeInstance dmgAttribute = entity.getAttribute(Attribute.ATTACK_DAMAGE);
         if (dmgAttribute != null) dmgAttribute.setBaseValue(newDamage);
         AttributeInstance scaleAttribute = entity.getAttribute(Attribute.SCALE);
@@ -115,31 +112,16 @@ public final class BossManager {
 
     private void tick(ActiveBoss activeBoss) {
         LivingEntity entity = (LivingEntity) Bukkit.getEntity(activeBoss.getEntityUuid());
-        if (entity == null || entity.isDead() || !entity.isValid()) {
-            cleanup(activeBoss);
-            return;
-        }
-
+        if (entity == null || entity.isDead() || !entity.isValid()) { cleanup(activeBoss); return; }
         if (activeBoss.getDefinition().getKind() == BossKind.BIOME) {
-            if (entity.getLocation().getBlock().getBiome() != activeBoss.getDefinition().getBiome()) {
+            if (!activeBoss.getDefinition().matchesBiome(entity.getLocation().getBlock().getBiome())) {
                 Location safe = activeBoss.getLastValidBiomeLocation();
                 if (safe != null && safe.getWorld() != null) entity.teleport(safe);
-                else {
-                    entity.remove();
-                    cleanup(activeBoss);
-                    return;
-                }
-            } else {
-                activeBoss.setLastValidBiomeLocation(entity.getLocation());
-            }
+                else { entity.remove(); cleanup(activeBoss); return; }
+            } else activeBoss.setLastValidBiomeLocation(entity.getLocation());
         }
-
         activeBoss.incrementBarUpdateTimer(phaseCheckIntervalTicks);
-        if (activeBoss.getTicksSinceLastBarUpdate() >= barUpdateIntervalTicks) {
-            activeBoss.resetBarUpdateTimer();
-            updateBossBar(activeBoss, entity);
-        }
-
+        if (activeBoss.getTicksSinceLastBarUpdate() >= barUpdateIntervalTicks) { activeBoss.resetBarUpdateTimer(); updateBossBar(activeBoss, entity); }
         if (activeBoss.getDefinition().getKind() == BossKind.WORLD_EVENT) checkPhaseTransition(activeBoss, entity);
         runAttackPatternIfDue(activeBoss, entity);
     }
@@ -152,21 +134,10 @@ public final class BossManager {
         for (Player player : location.getWorld().getPlayers()) {
             UUID uuid = player.getUniqueId();
             boolean isViewer = activeBoss.getViewers().contains(uuid);
-            if (!guildAPI.isRegistered(uuid)) {
-                if (isViewer) {
-                    player.hideBossBar(activeBoss.getBossBar());
-                    activeBoss.getViewers().remove(uuid);
-                }
-                continue;
-            }
+            if (!guildAPI.isRegistered(uuid)) { if (isViewer) { player.hideBossBar(activeBoss.getBossBar()); activeBoss.getViewers().remove(uuid); } continue; }
             boolean inRange = player.getLocation().distanceSquared(location) <= barRadius * barRadius;
-            if (inRange && !isViewer) {
-                player.showBossBar(activeBoss.getBossBar());
-                activeBoss.getViewers().add(uuid);
-            } else if (!inRange && isViewer) {
-                player.hideBossBar(activeBoss.getBossBar());
-                activeBoss.getViewers().remove(uuid);
-            }
+            if (inRange && !isViewer) { player.showBossBar(activeBoss.getBossBar()); activeBoss.getViewers().add(uuid); }
+            else if (!inRange && isViewer) { player.hideBossBar(activeBoss.getBossBar()); activeBoss.getViewers().remove(uuid); }
         }
     }
 
@@ -181,12 +152,9 @@ public final class BossManager {
         if (targetIndex == activeBoss.getCurrentPhaseIndex()) return;
         activeBoss.setCurrentPhaseIndex(targetIndex);
         BossPhase phase = phases.get(targetIndex);
-        if (!phase.announcementMessage().isBlank()) {
-            Component message = Component.text(phase.announcementMessage(), NamedTextColor.DARK_RED);
-            for (UUID viewerUuid : activeBoss.getViewers()) {
-                Player viewer = Bukkit.getPlayer(viewerUuid);
-                if (viewer != null && guildAPI.isRegistered(viewerUuid)) viewer.sendMessage(message);
-            }
+        if (!phase.announcementMessage().isBlank()) for (UUID viewerUuid : activeBoss.getViewers()) {
+            Player viewer = Bukkit.getPlayer(viewerUuid);
+            if (viewer != null && guildAPI.isRegistered(viewerUuid)) viewer.sendMessage(Component.text(phase.announcementMessage(), NamedTextColor.DARK_RED));
         }
     }
 
@@ -197,13 +165,8 @@ public final class BossManager {
         if (definition.getKind() == BossKind.WORLD_EVENT) {
             List<BossPhase> phases = definition.getPhases();
             if (phases.isEmpty() || activeBoss.getCurrentPhaseIndex() < 0) return;
-            BossPhase phase = phases.get(activeBoss.getCurrentPhaseIndex());
-            patterns = phase.attackPatternIds();
-            interval = phase.attackIntervalTicks();
-        } else {
-            patterns = definition.getAttackPatternIds().stream().filter(id -> !id.equalsIgnoreCase("SUMMON_ADDS")).toList();
-            interval = definition.getAttackIntervalTicks();
-        }
+            BossPhase phase = phases.get(activeBoss.getCurrentPhaseIndex()); patterns = phase.attackPatternIds(); interval = phase.attackIntervalTicks();
+        } else { patterns = definition.getAttackPatternIds().stream().filter(id -> !id.equalsIgnoreCase("SUMMON_ADDS")).toList(); interval = definition.getAttackIntervalTicks(); }
         if (patterns.isEmpty()) return;
         activeBoss.incrementAttackTimer(phaseCheckIntervalTicks);
         if (activeBoss.getTicksSinceLastAttack() < interval) return;
@@ -233,10 +196,7 @@ public final class BossManager {
 
     private void distributeRewards(ActiveBoss activeBoss) {
         BossLootConfig lootConfig = activeBoss.getDefinition().getLootConfig();
-        if (lootConfig == null) {
-            callDefeatedEvent(activeBoss, Set.of());
-            return;
-        }
+        if (lootConfig == null) { callDefeatedEvent(activeBoss, Set.of()); return; }
         Set<UUID> participants = new HashSet<>(activeBoss.getDamageContribution().keySet());
         Set<UUID> recipients = activeBoss.getDefinition().getKind() == BossKind.WORLD_EVENT ? onlineRegistered(participants) : resolvePartyRecipients(participants);
         for (UUID uuid : recipients) {
@@ -254,10 +214,7 @@ public final class BossManager {
     private Set<UUID> resolvePartyRecipients(Set<UUID> participants) {
         Set<UUID> recipients = new HashSet<>();
         for (UUID participant : participants) {
-            if (!partyAPI.isInParty(participant)) {
-                if (Bukkit.getPlayer(participant) != null) recipients.add(participant);
-                continue;
-            }
+            if (!partyAPI.isInParty(participant)) { if (Bukkit.getPlayer(participant) != null) recipients.add(participant); continue; }
             for (UUID member : partyAPI.getPartyMembers(participant)) {
                 if (!partyAPI.isWithinShareRange(participant, member)) continue;
                 Player player = Bukkit.getPlayer(member);
@@ -269,44 +226,41 @@ public final class BossManager {
 
     private Set<UUID> onlineRegistered(Set<UUID> uuids) {
         Set<UUID> result = new HashSet<>();
-        for (UUID uuid : uuids) {
-            Player player = Bukkit.getPlayer(uuid);
-            if (player != null && player.isOnline() && guildAPI.isRegistered(uuid)) result.add(uuid);
-        }
+        for (UUID uuid : uuids) { Player player = Bukkit.getPlayer(uuid); if (player != null && player.isOnline() && guildAPI.isRegistered(uuid)) result.add(uuid); }
         return result;
     }
 
     private void giveGuaranteedLoot(Player player, BossLootConfig lootConfig, int level) {
-        for (String materialName : lootConfig.guaranteedMaterials()) giveMaterial(player, materialName, ItemRarity.RARE, level);
+        for (String reward : lootConfig.guaranteedMaterials()) giveReward(player, reward, ItemRarity.RARE, level);
     }
 
     private void giveChanceLoot(Player player, BossLootConfig lootConfig, int level) {
         Random random = ThreadLocalRandom.current();
-        for (BossLootEntry entry : lootConfig.chanceDrops()) {
-            if (random.nextDouble(100.0D) < entry.chancePercent()) giveMaterial(player, entry.material(), entry.rarity(), level);
-        }
+        for (BossLootEntry entry : lootConfig.chanceDrops()) if (random.nextDouble(100.0D) < entry.chancePercent()) giveReward(player, entry.material(), entry.rarity(), level);
     }
 
-    private void giveMaterial(Player player, String materialName, ItemRarity rarity, int level) {
+    private void giveReward(Player player, String rewardId, ItemRarity rarity, int level) {
+        if (rewardId != null && rewardId.toLowerCase(java.util.Locale.ROOT).startsWith("pixelrpg:boss/")) {
+            BossRewardItemFactory.create(rewardId, level).ifPresent(item -> giveItem(player, item));
+            return;
+        }
         try {
-            Material material = Material.valueOf(materialName.toUpperCase());
-            RPGItemBuilder.createItem(material, rarity, level).ifPresent(item -> player.getInventory().addItem(item).values()
-                    .forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder)));
+            Material material = Material.valueOf(rewardId.toUpperCase());
+            RPGItemBuilder.createItem(material, rarity, level).ifPresent(item -> giveItem(player, item));
         } catch (IllegalArgumentException ignored) {
-            plugin.getLogger().warning("Invalid boss loot material: " + materialName);
+            plugin.getLogger().warning("Invalid boss loot material: " + rewardId);
         }
     }
 
-    private void callDefeatedEvent(ActiveBoss activeBoss, Set<UUID> participants) {
-        Bukkit.getPluginManager().callEvent(new BossDefeatedEvent(activeBoss.getDefinition().getId(), participants));
+    private void giveItem(Player player, org.bukkit.inventory.ItemStack item) {
+        player.getInventory().addItem(item).values().forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
     }
+
+    private void callDefeatedEvent(ActiveBoss activeBoss, Set<UUID> participants) { Bukkit.getPluginManager().callEvent(new BossDefeatedEvent(activeBoss.getDefinition().getId(), participants)); }
 
     private void cleanup(ActiveBoss activeBoss) {
         if (activeBoss.getTask() != null) activeBoss.getTask().cancel();
-        for (UUID viewerUuid : activeBoss.getViewers()) {
-            Player viewer = Bukkit.getPlayer(viewerUuid);
-            if (viewer != null) viewer.hideBossBar(activeBoss.getBossBar());
-        }
+        for (UUID viewerUuid : activeBoss.getViewers()) { Player viewer = Bukkit.getPlayer(viewerUuid); if (viewer != null) viewer.hideBossBar(activeBoss.getBossBar()); }
         activeBosses.remove(activeBoss.getEntityUuid());
     }
 
