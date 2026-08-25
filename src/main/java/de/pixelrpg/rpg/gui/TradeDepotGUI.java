@@ -56,10 +56,10 @@ public final class TradeDepotGUI extends AbstractGUI {
         ItemMeta sellMeta = sell.getItemMeta();
         sellMeta.displayName(Component.text("Handelsware einstellen", NamedTextColor.GREEN)
                 .decoration(TextDecoration.ITALIC, false));
-        sellMeta.lore(List.of(Component.text("Nimm das gewünschte PixelRPG-Item in die Haupthand und klicke hier.", NamedTextColor.GRAY)
+        sellMeta.lore(List.of(Component.text("Klicke hier und wähle anschließend ein Item aus deinem Inventar.", NamedTextColor.GRAY)
                 .decoration(TextDecoration.ITALIC, false)));
         sell.setItemMeta(sellMeta);
-        setItem(49, sell, event -> manager.openSellDialog(viewer));
+        setItem(49, sell, event -> manager.openSellSelection(viewer));
 
         ItemStack close = new ItemStack(Material.BARRIER);
         ItemMeta closeMeta = close.getItemMeta();
