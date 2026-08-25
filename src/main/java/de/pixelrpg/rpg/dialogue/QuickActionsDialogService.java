@@ -1,11 +1,14 @@
 package de.pixelrpg.rpg.dialogue;
 
+import de.pixelrpg.rpg.item.ItemDefinition;
+import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.SoulboundService;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
 import de.pixelrpg.rpg.quest.QuestManager;
 import de.pixelrpg.rpg.quest.QuestProgress;
+import de.pixelrpg.rpg.quest.QuestText;
 import de.pixelrpg.rpg.stats.StatEngine;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.registry.RegistryAccess;
@@ -20,6 +23,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -35,11 +39,13 @@ public final class QuickActionsDialogService {
     private final PlayerProfileManager profiles;
     private final StatEngine statEngine;
     private final QuestManager questManager;
+    private final ItemService itemService;
 
-    public QuickActionsDialogService(PlayerProfileManager profiles, StatEngine statEngine, QuestManager questManager) {
+    public QuickActionsDialogService(PlayerProfileManager profiles, StatEngine statEngine, QuestManager questManager, ItemService itemService) {
         this.profiles = profiles;
         this.statEngine = statEngine;
         this.questManager = questManager;
+        this.itemService = itemService;
     }
 
     public PlayerProfileManager profileManager() { return profiles; }
@@ -105,11 +111,15 @@ public final class QuickActionsDialogService {
                 Quest quest = questManager.getRepository().getQuest(questId);
                 Component label = quest == null
                         ? Component.text(questId, NamedTextColor.YELLOW)
-                        : Component.text(quest.title(), NamedTextColor.YELLOW);
+                        : QuestText.title(quest).color(NamedTextColor.YELLOW);
                 Component description = quest == null
                         ? Component.text("Quest-ID: " + questId, NamedTextColor.GRAY)
                         : Component.text(quest.description(), NamedTextColor.GRAY);
-                actions.add(actionButton(label.append(Component.text(" • " + progress.getCurrentAmount() + "/" + (quest == null ? "?" : quest.requiredAmount()), NamedTextColor.WHITE)), target -> openQuestDetails(target, questId, description, companionDialog, professionDialog)));
+                Component objective = quest == null
+                        ? Component.text("Ziel unbekannt • " + progress.getCurrentAmount() + "/?", NamedTextColor.WHITE)
+                        : objectiveWithProgress(quest, progress);
+                actions.add(actionButton(label.append(Component.text(" • ", NamedTextColor.DARK_GRAY)).append(objective),
+                        target -> openQuestDetails(target, questId, description, companionDialog, professionDialog)));
             });
         }
         actions.add(actionButton(Component.text("Zurück", NamedTextColor.WHITE), this::openQuickActions));
@@ -138,12 +148,9 @@ public final class QuickActionsDialogService {
         body.add(DialogBody.plainMessage(Component.text(quest != null ? quest.title() : questId, NamedTextColor.YELLOW).decorate(TextDecoration.BOLD)));
         body.add(DialogBody.plainMessage(quest != null ? Component.text(quest.description(), NamedTextColor.WHITE) : fallbackDescription));
         if (quest != null) {
-            body.add(DialogBody.plainMessage(Component.text("Ziel: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.AQUA)));
+            body.add(DialogBody.plainMessage(objectiveWithProgress(quest, progress)));
             body.add(DialogBody.plainMessage(Component.text("Typ: " + quest.type().name(), NamedTextColor.GRAY)));
-            if (quest.rewardExp() > 0L) body.add(DialogBody.plainMessage(Component.text("Belohnung: " + quest.rewardExp() + " XP", NamedTextColor.GREEN)));
-            if (quest.rewardMoney() > 0.0D) body.add(DialogBody.plainMessage(Component.text("Belohnung: " + format(quest.rewardMoney()) + " Gold", NamedTextColor.GOLD)));
-            if (!quest.rewardItemMaterials().isEmpty()) body.add(DialogBody.plainMessage(Component.text("Gegenstandsbelohnungen: " + String.join(", ", quest.rewardItemMaterials()), NamedTextColor.GREEN)));
-            if (quest.rewardsCompanion()) body.add(DialogBody.plainMessage(Component.text("Begleiter: " + quest.rewardCompanionId(), NamedTextColor.LIGHT_PURPLE)));
+            body.add(DialogBody.plainMessage(rewards(quest)));
             if (progress.hasExpiry()) body.add(DialogBody.plainMessage(Component.text("Zeit verbleibend: " + formatRemaining(progress.getExpiryTimestampMillis()), NamedTextColor.RED)));
         }
 
@@ -161,6 +168,66 @@ public final class QuickActionsDialogService {
                     .build());
             builder.type(DialogType.multiAction(List.of(abandon, back), DialogueEngineCloseButton.create(), 1));
         }));
+    }
+
+    private Component objectiveWithProgress(Quest quest, QuestProgress progress) {
+        return Component.text()
+                .append(Component.text("Ziel: ", NamedTextColor.AQUA))
+                .append(QuestText.objective(quest).color(NamedTextColor.WHITE))
+                .append(Component.text(" • Fortschritt: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.AQUA))
+                .build();
+    }
+
+    private Component rewards(Quest quest) {
+        List<Component> rewards = new ArrayList<>();
+        if (quest.rewardExp() > 0L) rewards.add(Component.text(quest.rewardExp() + " XP", NamedTextColor.GREEN));
+        if (quest.rewardMoney() > 0.0D) rewards.add(Component.text(format(quest.rewardMoney()) + " Gold", NamedTextColor.GOLD));
+        for (String rewardItem : quest.rewardItemMaterials()) rewards.add(rewardItem(rewardItem));
+        if (quest.rewardsCompanion()) rewards.add(Component.text(companionRewardName(quest.rewardCompanionId()), NamedTextColor.LIGHT_PURPLE));
+
+        Component result = Component.text("Belohnungen: ", NamedTextColor.YELLOW);
+        if (rewards.isEmpty()) return result.append(Component.text("Keine", NamedTextColor.GRAY));
+        for (int i = 0; i < rewards.size(); i++) {
+            if (i > 0) result = result.append(Component.text(" • ", NamedTextColor.DARK_GRAY));
+            result = result.append(rewards.get(i));
+        }
+        return result;
+    }
+
+    private Component rewardItem(String raw) {
+        if (raw == null || raw.isBlank()) return Component.text("Unbekannter Gegenstand", NamedTextColor.GRAY);
+        String normalized = raw.trim();
+        for (ItemDefinition definition : itemService.definitions()) {
+            if (definition.id().equalsIgnoreCase(normalized)) {
+                return Component.text(definition.name() + " (" + definition.rarity().name() + ")", NamedTextColor.GREEN);
+            }
+        }
+
+        Material material = Material.matchMaterial(normalized);
+        if (material != null) return Component.translatable(material.translationKey(), NamedTextColor.GREEN);
+
+        String readable = normalized.replaceFirst("(?i)i(?:common|uncommon|rare|epic|legendary|unique)i\\d+$", "")
+                .replace('_', ' ')
+                .replace('|', ' ')
+                .replaceAll("\\s+", " ")
+                .trim();
+        if (readable.isBlank()) readable = normalized;
+        return Component.text(Character.toUpperCase(readable.charAt(0)) + readable.substring(1), NamedTextColor.GREEN);
+    }
+
+    private String companionRewardName(String companionId) {
+        if (companionId == null || companionId.isBlank()) return "Unbekannter Begleiter";
+        return switch (companionId.toLowerCase(Locale.ROOT)) {
+            case "rare-bee-queen" -> "Bienenkönigin";
+            case "rare-bogged" -> "Bogged";
+            case "rare-spider" -> "Spinne";
+            case "rare-creeper" -> "Creeper";
+            case "epic-nautilus" -> "Nautilus";
+            case "epic-creaking" -> "Creaking";
+            case "epic-happy-ghast" -> "Happy Ghast";
+            case "legendary-sulfur-cube" -> "Schwefelwürfel";
+            default -> companionId.replace('-', ' ');
+        };
     }
 
     private List<DialogBody> normalizeBodies(List<DialogBody> bodies) {
