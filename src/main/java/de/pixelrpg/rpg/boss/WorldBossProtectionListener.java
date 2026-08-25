@@ -2,13 +2,13 @@ package de.pixelrpg.rpg.boss;
 
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.core.RPGKeys;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.persistence.PersistentDataType;
@@ -36,6 +36,12 @@ public final class WorldBossProtectionListener implements Listener {
         }
     }
 
+    // Zuständig dafür, dass Enderman-ähnliche Worldboss-Mechaniken keine Blöcke aufnehmen oder platzieren können.
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onWorldBossBlockChange(EntityChangeBlockEvent event) {
+        if (isWorldBossEntity(event.getEntity())) event.setCancelled(true);
+    }
+
     // Zuständig für die strikte Trennung: Worldboss-Events dürfen nur registrierte PixelRPG-Spieler beschädigen und umgekehrt.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onWorldBossDamage(EntityDamageByEntityEvent event) {
@@ -48,8 +54,7 @@ public final class WorldBossProtectionListener implements Listener {
             return;
         }
 
-        if (target instanceof Entity bossTarget && isWorldBossEntity(bossTarget)
-                && damager instanceof Player player
+        if (isWorldBossEntity(target) && damager instanceof Player player
                 && !guildAPI.isRegistered(player.getUniqueId())) {
             event.setCancelled(true);
         }
