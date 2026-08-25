@@ -44,7 +44,7 @@ public final class QuestManager {
     private BukkitTask timerTask;
 
     public QuestManager(Plugin plugin, QuestRepository questRepository, PlayerProfileManager profileManager,
-                        GlobalEventState globalEventState, double partyShareRange) {
+                        de.pixelrpg.rpg.api.GuildAPI guildAPI, GlobalEventState globalEventState, double partyShareRange) {
         this.plugin = plugin;
         this.questRepository = questRepository;
         this.profileManager = profileManager;
