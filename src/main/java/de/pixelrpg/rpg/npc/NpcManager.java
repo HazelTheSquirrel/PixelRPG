@@ -62,6 +62,7 @@ public final class NpcManager {
                     (float) section.getDouble("yaw"), (float) section.getDouble("pitch"));
             String skinSource = section.getString("skin-source", null);
             Profession profession = parseProfession(section.getString("profession"));
+            if (profession == null) profession = professionFor(type);
 
             RPGNpc npc = new RPGNpc(id, type, name, location, skinSource, profession);
             npcsById.put(id, npc);
@@ -82,7 +83,8 @@ public final class NpcManager {
     public RPGNpc createWithId(String id, NpcType type, String name, Location location, String skinSource, Profession profession) {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("NPC id must not be blank");
         if (npcsById.containsKey(id)) throw new IllegalArgumentException("NPC id already exists: " + id);
-        RPGNpc npc = new RPGNpc(id, type, name, location.clone(), skinSource, profession);
+        Profession effectiveProfession = profession == null ? professionFor(type) : profession;
+        RPGNpc npc = new RPGNpc(id, type, name, location.clone(), skinSource, effectiveProfession);
         npcsById.put(id, npc);
         spawnEntityFor(npc);
         saveAll();
@@ -252,7 +254,9 @@ public final class NpcManager {
 
     private NpcType parseType(String raw) {
         if (raw == null) return null;
-        try { return NpcType.valueOf(raw.trim().toUpperCase()); }
+        String normalized = raw.trim().toUpperCase();
+        if (normalized.equals("BLACKSMITH")) return NpcType.PROFESSION_BLACKSMITH;
+        try { return NpcType.valueOf(normalized); }
         catch (IllegalArgumentException e) { return null; }
     }
 
@@ -260,5 +264,15 @@ public final class NpcManager {
         if (raw == null || raw.isBlank()) return null;
         try { return Profession.valueOf(raw.trim().toUpperCase()); }
         catch (IllegalArgumentException e) { return null; }
+    }
+
+    private Profession professionFor(NpcType type) {
+        return switch (type) {
+            case PROFESSION_BLACKSMITH -> Profession.BLACKSMITH;
+            case PROFESSION_PROVISIONER -> Profession.PROVISIONER;
+            case PROFESSION_SCHOLAR -> Profession.SCHOLAR;
+            case PROFESSION_ALCHEMIST -> Profession.ALCHEMIST;
+            default -> null;
+        };
     }
 }
