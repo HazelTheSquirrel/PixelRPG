@@ -46,6 +46,13 @@ public final class DialogueEngine {
         if (backAction != null) safeActions.add(actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
         ActionButton close = actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog);
 
+        // Paper requires at least one action in a native multi-action dialog.
+        if (safeActions.isEmpty()) {
+            safeActions.add(close);
+            close = null;
+        }
+
+        ActionButton finalClose = close;
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(normalize(title))
@@ -53,7 +60,7 @@ public final class DialogueEngine {
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .build());
-            builder.type(DialogType.multiAction(safeActions, close, safeColumns));
+            builder.type(DialogType.multiAction(safeActions, finalClose, safeColumns));
         }));
     }
 
