@@ -92,8 +92,8 @@ public final class CompanionFollowTask implements Runnable {
             }
 
             if (definition.combat().enabled()) {
-                combatController.tick(owner, living, definition, living.getWorld().getGameTime());
-                if (living.getLocation().distanceSquared(owner.getLocation()) <= definition.follow().startDistance() * definition.follow().startDistance()) continue;
+                LivingEntity target = combatController.tick(owner, living, definition, living.getWorld().getGameTime());
+                if (target != null) continue;
             }
             follow(owner, living, definition.follow());
         }
