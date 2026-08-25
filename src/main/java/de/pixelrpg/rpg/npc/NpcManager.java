@@ -62,10 +62,6 @@ public final class NpcManager {
                     (float) section.getDouble("yaw"), (float) section.getDouble("pitch"));
             String skinSource = section.getString("skin-source", null);
             Profession profession = parseProfession(section.getString("profession"));
-            if (type == NpcType.PROFESSION_TRAINER && profession == null) {
-                plugin.getLogger().warning("Skipping profession trainer NPC " + id + ": missing profession.");
-                continue;
-            }
 
             RPGNpc npc = new RPGNpc(id, type, name, location, skinSource, profession);
             npcsById.put(id, npc);
