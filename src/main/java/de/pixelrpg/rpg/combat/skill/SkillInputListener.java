@@ -31,9 +31,7 @@ public final class SkillInputListener implements Listener {
     // Zuständig für das Auslösen der Bogen-/Armbrustfähigkeit genau beim Loslassen der Benutzungstaste.
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onRangedWeaponRelease(PlayerStopUsingItemEvent event) {
-        if (abilityEngine.castReleased(event.getPlayer(), event.getItem(), event.getTicksHeldFor())) {
-            event.getPlayer().sendActionBar(net.kyori.adventure.text.Component.text("Waffenfähigkeit ausgelöst"));
-        }
+        abilityEngine.castReleased(event.getPlayer(), event.getItem(), event.getTicksHeldFor());
     }
 
     // Zuständig für die Freigabe temporärer Waffenfähigkeitsdaten beim Verlassen des Servers.
