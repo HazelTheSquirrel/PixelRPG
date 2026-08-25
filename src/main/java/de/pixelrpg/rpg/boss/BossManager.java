@@ -59,11 +59,12 @@ public final class BossManager {
         this.economyAPI = economyAPI;
         this.itemEconomyConfig = itemEconomyConfig;
         this.mobScalingConfig = mobScalingConfig;
-        this.barRadius = barRadius;
+        this.barRadius = Math.max(1.0D, barRadius);
         this.barUpdateIntervalTicks = Math.max(1, barUpdateIntervalTicks);
         this.phaseCheckIntervalTicks = Math.max(1, phaseCheckIntervalTicks);
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
         plugin.getServer().getPluginManager().registerEvents(new BossRewardItemListener(guildAPI), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new WorldBossProtectionListener(guildAPI), plugin);
     }
 
     public boolean isRegistered(UUID playerId) { return guildAPI.isRegistered(playerId); }
