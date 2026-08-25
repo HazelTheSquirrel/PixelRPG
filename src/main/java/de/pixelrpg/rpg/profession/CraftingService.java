@@ -5,6 +5,7 @@ import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -14,7 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-/** Executes validated profession crafting recipes and keeps the crafting session reusable. */
+/** Executes validated profession crafting and respects vanilla recipe discovery for vanilla recipes. */
 public final class CraftingService {
     private final ProfessionService professionService;
     private final PlayerProfileManager profileManager;
@@ -32,6 +33,15 @@ public final class CraftingService {
     public List<CraftRecipe> recipes(Profession profession) { return registry.getRecipes(profession); }
     public ProfessionService.UnlockResult unlockRecipe(Player player, CraftRecipe recipe) { return professionService.unlockRecipe(player, recipe); }
 
+    public boolean isUnlocked(Player player, CraftRecipe recipe) {
+        if (recipe.unlockedByDefault()) return true;
+        if (recipe.vanillaRecipe()) {
+            NamespacedKey key = vanillaKey(recipe);
+            return key != null && player.hasDiscoveredRecipe(key);
+        }
+        return profileManager.getProfile(player.getUniqueId()).map(profile -> profile.hasUnlockedRecipe(recipe.id())).orElse(false);
+    }
+
     public CraftResult craft(Player player, String recipeId) {
         Objects.requireNonNull(player, "player");
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
@@ -43,7 +53,7 @@ public final class CraftingService {
 
         int level = professionService.getLevel(player.getUniqueId(), recipe.profession());
         if (level < recipe.requiredProfessionLevel()) return CraftResult.failure("Profession level too low");
-        if (!recipe.unlockedByDefault() && !profile.hasUnlockedRecipe(recipe.id())) return CraftResult.failure("Recipe not unlocked");
+        if (!isUnlocked(player, recipe)) return CraftResult.failure(recipe.vanillaRecipe() ? "Vanilla recipe not discovered" : "Recipe not unlocked");
         if (recipe.rarity() == ItemRarity.UNIQUE) return CraftResult.failure("UNIQUE items cannot be crafted");
 
         for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) {
@@ -61,6 +71,12 @@ public final class CraftingService {
         long experience = craftExperience(recipe);
         professionService.addExperience(player, recipe.profession(), experience);
         return CraftResult.success(result, experience);
+    }
+
+    private NamespacedKey vanillaKey(CraftRecipe recipe) {
+        if (!recipe.id().startsWith("vanilla:")) return null;
+        String keyText = recipe.id().substring("vanilla:".length());
+        return NamespacedKey.fromString(keyText);
     }
 
     private ItemStack createResult(CraftRecipe recipe, int playerLevel) {
