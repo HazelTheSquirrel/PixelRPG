@@ -78,7 +78,7 @@ public final class QuestRepository {
         if (type == QuestType.HUNT && !isVanillaEntityType(string(json, "targetKey", ""))) return false;
         if (type == QuestType.COLLECT && !isVanillaMaterial(string(json, "targetKey", ""))) return false;
         if (type == QuestType.REACH_LOCATION && !hasWorldNavigation(object(json, "navigation"))) return false;
-        return type != QuestType.ESCORT;
+        return true;
     }
 
     private boolean hasWorldNavigation(JsonObject navigation) {
