@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -25,14 +24,17 @@ public final class LanguageManager {
     private static final String DEFAULT_LANGUAGE = "en";
     private static final Set<String> KNOWN_LANGUAGES = Set.of("en", "de", "fr", "es");
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%([A-Za-z0-9_.-]+)%");
-    private static final Map<String, String> BUILTIN_MESSAGES = Map.of(
-            "common.close", "Close",
-            "common.cancel", "Cancel"
+    private static final Map<String, Map<String, String>> BUILTIN_MESSAGES = Map.of(
+            "en", Map.of("common.close", "Close", "common.cancel", "Cancel"),
+            "de", Map.of("common.close", "Schließen", "common.cancel", "Abbrechen"),
+            "fr", Map.of("common.close", "Fermer", "common.cancel", "Annuler"),
+            "es", Map.of("common.close", "Cerrar", "common.cancel", "Cancelar")
     );
 
     private final Plugin plugin;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final Map<String, Map<String, String>> languages = new LinkedHashMap<>();
+    private final Set<String> invalidTranslations = new java.util.HashSet<>();
     private Set<String> supportedLanguages = Set.of(DEFAULT_LANGUAGE);
     private String currentLanguage = DEFAULT_LANGUAGE;
 
@@ -43,6 +45,7 @@ public final class LanguageManager {
     public void load(String languageCode) {
         currentLanguage = normalizeLanguage(languageCode);
         languages.clear();
+        invalidTranslations.clear();
 
         LinkedHashSet<String> configuredLanguages = new LinkedHashSet<>();
         for (String configured : plugin.getConfig().getStringList("language.supported")) {
@@ -99,16 +102,16 @@ public final class LanguageManager {
     private void validateLanguageFiles() {
         Map<String, String> english = languages.getOrDefault(DEFAULT_LANGUAGE, Map.of());
         for (String language : supportedLanguages) {
-            if (DEFAULT_LANGUAGE.equals(language)) continue;
             Map<String, String> selected = languages.getOrDefault(language, Map.of());
-            Set<String> missing = new HashSet<>(english.keySet());
-            missing.removeAll(selected.keySet());
-            if (!missing.isEmpty()) {
-                plugin.getLogger().warning("Language " + language + " is missing " + missing.size() + " translation key(s); English fallback will be used.");
+            if (!DEFAULT_LANGUAGE.equals(language)) {
+                Set<String> missing = new HashSet<>(english.keySet());
+                missing.removeAll(selected.keySet());
+                if (!missing.isEmpty()) {
+                    plugin.getLogger().warning("Language " + language + " is missing " + missing.size() + " translation key(s); English fallback will be used.");
+                }
             }
             validatePlaceholders(language, english, selected);
         }
-        validatePlaceholders(DEFAULT_LANGUAGE, english, english);
     }
 
     private void validatePlaceholders(String language, Map<String, String> reference, Map<String, String> selected) {
@@ -118,8 +121,9 @@ public final class LanguageManager {
             Set<String> expected = placeholders(entry.getValue());
             Set<String> actual = placeholders(selectedText);
             if (!expected.equals(actual)) {
+                invalidTranslations.add(language + ':' + entry.getKey());
                 plugin.getLogger().warning("Language " + language + " has mismatched placeholders for key " + entry.getKey()
-                        + " (expected " + expected + ", found " + actual + "). English fallback will be used for this key.");
+                        + " (expected " + expected + ", found " + actual + "); English fallback will be used.");
             }
         }
     }
@@ -148,17 +152,21 @@ public final class LanguageManager {
     }
 
     private String resolveRaw(String language, String key) {
-        Map<String, String> selected = languages.get(language);
-        if (selected != null) {
-            String raw = selected.get(key);
-            if (raw != null) return raw;
+        if (!invalidTranslations.contains(language + ':' + key)) {
+            Map<String, String> selected = languages.get(language);
+            if (selected != null) {
+                String raw = selected.get(key);
+                if (raw != null) return raw;
+            }
         }
-        Map<String, String> english = languages.get(DEFAULT_LANGUAGE);
-        if (english != null) {
-            String raw = english.get(key);
-            if (raw != null) return raw;
+        if (!DEFAULT_LANGUAGE.equals(language) && !invalidTranslations.contains(DEFAULT_LANGUAGE + ':' + key)) {
+            Map<String, String> english = languages.get(DEFAULT_LANGUAGE);
+            if (english != null) {
+                String raw = english.get(key);
+                if (raw != null) return raw;
+            }
         }
-        return BUILTIN_MESSAGES.getOrDefault(key, key);
+        return BUILTIN_MESSAGES.getOrDefault(language, BUILTIN_MESSAGES.get(DEFAULT_LANGUAGE)).getOrDefault(key, key);
     }
 
     public Component prefixed(String key, String... placeholders) {
