@@ -27,7 +27,7 @@ public final class QuestDetailGUI extends AbstractGUI {
     private final LanguageManager lang;
 
     public QuestDetailGUI(Player viewer, QuestManager questManager, PlayerProfileManager profileManager, Quest quest) {
-        super(54, QuestText.title(quest));
+        super(54, QuestText.title(viewer, quest));
         this.viewer = viewer;
         this.questManager = questManager;
         this.profileManager = profileManager;
@@ -40,24 +40,25 @@ public final class QuestDetailGUI extends AbstractGUI {
         PlayerProfile profile = profileManager.getProfile(viewer.getUniqueId()).orElse(null);
         if (profile == null) return;
 
-        Component questTitle = QuestText.title(quest).color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false);
+        Component questTitle = QuestText.title(viewer, quest).color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false);
         ItemStack info = new ItemStack(Material.WRITTEN_BOOK);
         ItemMeta meta = info.getItemMeta();
         meta.displayName(questTitle);
         meta.itemName(questTitle);
 
         List<Component> lore = new ArrayList<>();
-        lore.add(Component.text(quest.description(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
-        lore.add(Component.text(" "));
-        lore.add(QuestText.objective(quest).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
+        lore.add(QuestText.description(viewer, quest).color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.empty());
+        lore.add(QuestText.objective(viewer, quest).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
         if (quest.type() == QuestType.COLLECT) {
-            lore.add(QuestText.requiredItem(quest).color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+            lore.add(QuestText.requiredItem(viewer, quest).color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
         }
         if (profile.hasActiveQuest(quest.id())) {
             var progress = profile.getActiveQuests().get(quest.id());
-            lore.add(lang.get("quest.progress", "current", String.valueOf(progress.getCurrentAmount()), "required", String.valueOf(quest.requiredAmount())).color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
-            lore.add(Component.text(" "));
-            lore.add(Component.text("Questziel und aktueller Fortschritt sind jederzeit hier sichtbar.", NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+            lore.add(lang.get(viewer, "quest.progress", "current", String.valueOf(progress.getCurrentAmount()), "required", String.valueOf(quest.requiredAmount()))
+                    .color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.empty());
+            lore.add(lang.get(viewer, "quest.detail-hint").color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
         }
         meta.lore(lore);
         info.setItemMeta(meta);
@@ -66,8 +67,8 @@ public final class QuestDetailGUI extends AbstractGUI {
         if (profile.hasActiveQuest(quest.id())) {
             ItemStack abandon = new ItemStack(Material.BARRIER);
             ItemMeta abandonMeta = abandon.getItemMeta();
-            abandonMeta.displayName(Component.text("Quest abbrechen", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
-            abandonMeta.lore(List.of(Component.text("Der aktuelle Fortschritt geht verloren.", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+            abandonMeta.displayName(lang.get(viewer, "quest.abandon").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+            abandonMeta.lore(List.of(lang.get(viewer, "quest.abandon-desc").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
             abandon.setItemMeta(abandonMeta);
             setItem(31, abandon, event -> {
                 questManager.abandonQuest(viewer, quest.id());
@@ -77,7 +78,7 @@ public final class QuestDetailGUI extends AbstractGUI {
 
         ItemStack back = new ItemStack(Material.ARROW);
         ItemMeta backMeta = back.getItemMeta();
-        backMeta.displayName(lang.get("common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        backMeta.displayName(lang.get(viewer, "common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         back.setItemMeta(backMeta);
         setItem(49, back, event -> new QuestLogGUI(viewer, questManager, profileManager).open(viewer));
     }
