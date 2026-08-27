@@ -1,1 +1,2771 @@
-{"recipes":[{"id":"blacksmith:iron_nuggets","label":"Eisennuggets","profession":"BLACKSMITH","result":"IRON_NUGGET","costs":{"IRON_INGOT":1},"requiredProfessionLevel":1,"unlockPrice":100,"rarity":"COMMON","unlockedByDefault":false},{"id":"blacksmith:copper_ingot","label":"Kupferbarren","profession":"BLACKSMITH","result":"COPPER_INGOT","costs":{"RAW_COPPER":3,"COAL":1},"requiredProfessionLevel":5,"unlockPrice":180,"rarity":"COMMON","unlockedByDefault":false},{"id":"blacksmith:iron_ingot","label":"Eisenbarren","profession":"BLACKSMITH","result":"IRON_INGOT","costs":{"RAW_IRON":3,"COAL":1},"requiredProfessionLevel":10,"unlockPrice":300,"rarity":"UNCOMMON","unlockedByDefault":false},{"id":"blacksmith:gold_ingot","label":"Goldbarren","profession":"BLACKSMITH","result":"GOLD_INGOT","costs":{"RAW_GOLD":3,"COAL":1},"requiredProfessionLevel":15,"unlockPrice":450,"rarity":"UNCOMMON","unlockedByDefault":false},{"id":"blacksmith:iron_sword","label":"Eisenschwert","profession":"BLACKSMITH","result":"IRON_SWORD","costs":{"IRON_INGOT":2,"STICK":1},"requiredProfessionLevel":20,"unlockPrice":600,"rarity":"UNCOMMON","unlockedByDefault":false},{"id":"blacksmith:iron_pickaxe","label":"Eisenspitzhacke","profession":"BLACKSMITH","result":"IRON_PICKAXE","costs":{"IRON_INGOT":3,"STICK":2},"requiredProfessionLevel":25,"unlockPrice":750,"rarity":"UNCOMMON","unlockedByDefault":false},{"id":"blacksmith:iron_axe","label":"Eisenaxt","profession":"BLACKSMITH","result":"IRON_AXE","costs":{"IRON_INGOT":3,"STICK":2},"requiredProfessionLevel":30,"unlockPrice":900,"rarity":"RARE","unlockedByDefault":false},{"id":"blacksmith:iron_helmet","label":"Eisenhelm","profession":"BLACKSMITH","result":"IRON_HELMET","costs":{"IRON_INGOT":5},"requiredProfessionLevel":35,"unlockPrice":1150,"rarity":"RARE","unlockedByDefault":false},{"id":"blacksmith:iron_chestplate","label":"Eisenbrustplatte","profession":"BLACKSMITH","result":"IRON_CHESTPLATE","costs":{"IRON_INGOT":8},"requiredProfessionLevel":38,"unlockPrice":1300,"rarity":"RARE","unlockedByDefault":false},{"id":"blacksmith:iron_leggings","label":"Eisenbeinschutz","profession":"BLACKSMITH","result":"IRON_LEGGINGS","costs":{"IRON_INGOT":7},"requiredProfessionLevel":40,"unlockPrice":1400,"rarity":"RARE","unlockedByDefault":false},{"id":"blacksmith:iron_boots","label":"Eisenstiefel","profession":"BLACKSMITH","result":"IRON_BOOTS","costs":{"IRON_INGOT":4},"requiredProfessionLevel":42,"unlockPrice":1500,"rarity":"RARE","unlockedByDefault":false},{"id":"blacksmith:gold_sword","label":"Goldklinge","profession":"BLACKSMITH","result":"GOLDEN_SWORD","costs":{"GOLD_INGOT":2,"STICK":1},"requiredProfessionLevel":45,"unlockPrice":1800,"rarity":"RARE","unlockedByDefault":false},{"id":"blacksmith:gold_helmet","label":"Goldhelm","profession":"BLACKSMITH","result":"GOLDEN_HELMET","costs":{"GOLD_INGOT":5},"requiredProfessionLevel":48,"unlockPrice":2000,"rarity":"RARE","unlockedByDefault":false},{"id":"blacksmith:gold_chestplate","label":"Goldbrustplatte","profession":"BLACKSMITH","result":"GOLDEN_CHESTPLATE","costs":{"GOLD_INGOT":8},"requiredProfessionLevel":50,"unlockPrice":2200,"rarity":"EPIC","unlockedByDefault":false},{"id":"blacksmith:gold_leggings","label":"Goldbeinschutz","profession":"BLACKSMITH","result":"GOLDEN_LEGGINGS","costs":{"GOLD_INGOT":7},"requiredProfessionLevel":52,"unlockPrice":2400,"rarity":"EPIC","unlockedByDefault":false},{"id":"blacksmith:gold_boots","label":"Goldstiefel","profession":"BLACKSMITH","result":"GOLDEN_BOOTS","costs":{"GOLD_INGOT":4},"requiredProfessionLevel":54,"unlockPrice":2600,"rarity":"EPIC","unlockedByDefault":false},{"id":"blacksmith:diamond_sword","label":"Diamantklinge","profession":"BLACKSMITH","result":"DIAMOND_SWORD","costs":{"DIAMOND":2,"STICK":1},"requiredProfessionLevel":60,"unlockPrice":3500,"rarity":"EPIC","unlockedByDefault":false},{"id":"blacksmith:diamond_chestplate","label":"Diamantbrustplatte","profession":"BLACKSMITH","result":"DIAMOND_CHESTPLATE","costs":{"DIAMOND":8},"requiredProfessionLevel":68,"unlockPrice":4800,"rarity":"EPIC","unlockedByDefault":false},{"id":"blacksmith:netherite_sword","label":"Netheritklinge","profession":"BLACKSMITH","result":"NETHERITE_SWORD","costs":{"DIAMOND_SWORD":1,"NETHERITE_INGOT":1},"requiredProfessionLevel":90,"unlockPrice":10000,"rarity":"LEGENDARY","unlockedByDefault":false},{"id":"blacksmith:master_mace","label":"Meisterstreitkolben","profession":"BLACKSMITH","result":"MACE","costs":{"BREEZE_ROD":1,"HEAVY_CORE":1,"NETHERITE_INGOT":1},"requiredProfessionLevel":100,"unlockPrice":15000,"rarity":"LEGENDARY","unlockedByDefault":false},{"id":"provisioner:bread","label":"Reisebrot","profession":"PROVISIONER","result":"BREAD","costs":{"WHEAT":3},"requiredProfessionLevel":1,"unlockPrice":100,"rarity":"COMMON","unlockedByDefault":false},{"id":"provisioner:baked_potato","label":"Ofenkartoffel","profession":"PROVISIONER","result":"BAKED_POTATO","costs":{"POTATO":1,"COAL":1},"requiredProfessionLevel":5,"unlockPrice":180,"rarity":"COMMON","unlockedByDefault":false},{"id":"provisioner:cooked_chicken","label":"Gebratenes Huhn","profession":"PROVISIONER","result":"COOKED_CHICKEN","costs":{"CHICKEN":1,"COAL":1},"requiredProfessionLevel":10,"unlockPrice":300,"rarity":"COMMON","unlockedByDefault":false},{"id":"provisioner:cooked_porkchop","label":"Gebratenes Schweinefleisch","profession":"PROVISIONER","result":"COOKED_PORKCHOP","costs":{"PORKCHOP":1,"COAL":1},"requiredProfessionLevel":15,"unlockPrice":450,"rarity":"COMMON","unlockedByDefault":false},{"id":"provisioner:cooked_beef","label":"Gebratenes Rindfleisch","profession":"PROVISIONER","result":"COOKED_BEEF","costs":{"BEEF":1,"COAL":1},"requiredProfessionLevel":20,"unlockPrice":600,"rarity":"UNCOMMON","unlockedByDefault":false},{"id":"provisioner:cooked_mutton","label":"Gebratenes Hammelfleisch","profession":"PROVISIONER","result":"COOKED_MUTTON","costs":{"MUTTON":1,"COAL":1},"requiredProfessionLevel":25,"unlockPrice":750,"rarity":"UNCOMMON","unlockedByDefault":false},{"id":"provisioner:cooked_rabbit","label":"Gebratenes Kaninchen","profession":"PROVISIONER","result":"COOKED_RABBIT","costs":{"RABBIT":1,"COAL":1},"requiredProfessionLevel":30,"unlockPrice":900,"rarity":"UNCOMMON","unlockedByDefault":false},{"id":"provisioner:cooked_cod","label":"Gebratener Kabeljau","profession":"PROVISIONER","result":"COOKED_COD","costs":{"COD":1,"COAL":1},"requiredProfessionLevel":35,"unlockPrice":1150,"rarity":"UNCOMMON","unlockedByDefault":false},{"id":"provisioner:cooked_salmon","label":"Gebratener Lachs","profession":"PROVISIONER","result":"COOKED_SALMON","costs":{"SALMON":1,"COAL":1},"requiredProfessionLevel":40,"unlockPrice":1400,"rarity":"RARE","unlockedByDefault":false},{"id":"provisioner:cookie","label":"Keks","profession":"PROVISIONER","result":"COOKIE","costs":{"WHEAT":2,"COCOA_BEANS":1},"requiredProfessionLevel":45,"unlockPrice":1800,"rarity":"RARE","unlockedByDefault":false},{"id":"provisioner:pumpkin_pie","label":"Kürbiskuchen","profession":"PROVISIONER","result":"PUMPKIN_PIE","costs":{"PUMPKIN":1,"SUGAR":1,"EGG":1},"requiredProfessionLevel":50,"unlockPrice":2200,"rarity":"RARE","unlockedByDefault":false},{"id":"provisioner:dried_kelp","label":"Getrockneter Seetang","profession":"PROVISIONER","result":"DRIED_KELP","costs":{"KELP":1,"COAL":1},"requiredProfessionLevel":55,"unlockPrice":2800,"rarity":"RARE","unlockedByDefault":false},{"id":"provisioner:beetroot","label":"Rote Bete","profession":"PROVISIONER","result":"BEETROOT","costs":{"BEETROOT_SEEDS":2},"requiredProfessionLevel":60,"unlockPrice":3500,"rarity":"EPIC","unlockedByDefault":false},{"id":"provisioner:melon_slices","label":"Melonenscheiben","profession":"PROVISIONER","result":"MELON_SLICE","costs":{"MELON":1},"requiredProfessionLevel":65,"unlockPrice":4200,"rarity":"EPIC","unlockedByDefault":false,"resultAmount":4},{"id":"provisioner:golden_carrot","label":"Goldene Karotte","profession":"PROVISIONER","result":"GOLDEN_CARROT","costs":{"CARROT":1,"GOLD_NUGGET":8},"requiredProfessionLevel":70,"unlockPrice":5000,"rarity":"EPIC","unlockedByDefault":false},{"id":"provisioner:chorus_fruit","label":"Chorusfrucht","profession":"PROVISIONER","result":"CHORUS_FRUIT","costs":{"CHORUS_FLOWER":1},"requiredProfessionLevel":75,"unlockPrice":6200,"rarity":"LEGENDARY","unlockedByDefault":false},{"id":"provisioner:honey_bottle","label":"Honigtrunk","profession":"PROVISIONER","result":"HONEY_BOTTLE","costs":{"GLASS_BOTTLE":1,"SUGAR":3},"requiredProfessionLevel":80,"unlockPrice":7000,"rarity":"LEGENDARY","unlockedByDefault":false},{"id":"provisioner:golden_apple","label":"Goldener Apfel","profession":"PROVISIONER","result":"GOLDEN_APPLE","costs":{"APPLE":1,"GOLD_INGOT":8},"requiredProfessionLevel":85,"unlockPrice":8500,"rarity":"LEGENDARY","unlockedByDefault":false},{"id":"provisioner:enchanted_golden_apple","label":"Verzauberter goldener Apfel","profession":"PROVISIONER","result":"ENCHANTED_GOLDEN_APPLE","costs":{"GOLD_BLOCK":8,"APPLE":1},"requiredProfessionLevel":95,"unlockPrice":13000,"rarity":"LEGENDARY","unlockedByDefault":false},{"id":"provisioner:master_ration","label":"Meisterproviant","profession":"PROVISIONER","result":"GOLDEN_CARROT","costs":{"CARROT":2,"GOLD_INGOT":1,"HONEY_BOTTLE":1},"requiredProfessionLevel":100,"unlockPrice":15000,"rarity":"LEGENDARY","unlockedByDefault":false},{"id":"alchemist:awkward_potion","label":"Seltsamer Trank","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"NETHER_WART":1},"requiredProfessionLevel":1,"unlockPrice":100,"rarity":"COMMON","unlockedByDefault":false,"potionType":"AWKWARD"},{"id":"alchemist:swiftness","label":"Trank der Schnelligkeit","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"SUGAR":1},"requiredProfessionLevel":10,"unlockPrice":300,"rarity":"UNCOMMON","unlockedByDefault":false,"potionType":"SWIFTNESS"},{"id":"alchemist:long_swiftness","label":"Langer Trank der Schnelligkeit","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"REDSTONE":1},"requiredProfessionLevel":15,"unlockPrice":450,"rarity":"UNCOMMON","unlockedByDefault":false,"potionType":"LONG_SWIFTNESS"},{"id":"alchemist:strong_swiftness","label":"Starker Trank der Schnelligkeit","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"GLOWSTONE_DUST":2},"requiredProfessionLevel":20,"unlockPrice":600,"rarity":"RARE","unlockedByDefault":false,"potionType":"STRONG_SWIFTNESS"},{"id":"alchemist:fire_resistance","label":"Trank der Feuerresistenz","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"MAGMA_CREAM":1},"requiredProfessionLevel":25,"unlockPrice":750,"rarity":"RARE","unlockedByDefault":false,"potionType":"FIRE_RESISTANCE"},{"id":"alchemist:long_fire_resistance","label":"Langer Trank der Feuerresistenz","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"REDSTONE":1},"requiredProfessionLevel":30,"unlockPrice":900,"rarity":"RARE","unlockedByDefault":false,"potionType":"LONG_FIRE_RESISTANCE"},{"id":"alchemist:healing","label":"Trank der Heilung","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"GLISTERING_MELON_SLICE":1},"requiredProfessionLevel":35,"unlockPrice":1150,"rarity":"RARE","unlockedByDefault":false,"potionType":"HEALING"},{"id":"alchemist:strong_healing","label":"Starker Trank der Heilung","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"GLOWSTONE_DUST":2},"requiredProfessionLevel":40,"unlockPrice":1400,"rarity":"EPIC","unlockedByDefault":false,"potionType":"STRONG_HEALING"},{"id":"alchemist:night_vision","label":"Trank der Nachtsicht","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"GOLDEN_CARROT":1},"requiredProfessionLevel":45,"unlockPrice":1800,"rarity":"EPIC","unlockedByDefault":false,"potionType":"NIGHT_VISION"},{"id":"alchemist:long_night_vision","label":"Langer Trank der Nachtsicht","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"REDSTONE":1},"requiredProfessionLevel":50,"unlockPrice":2200,"rarity":"EPIC","unlockedByDefault":false,"potionType":"LONG_NIGHT_VISION"},{"id":"alchemist:water_breathing","label":"Trank der Wasseratmung","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"PUFFERFISH":1},"requiredProfessionLevel":55,"unlockPrice":2800,"rarity":"EPIC","unlockedByDefault":false,"potionType":"WATER_BREATHING"},{"id":"alchemist:long_water_breathing","label":"Langer Trank der Wasseratmung","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"REDSTONE":1},"requiredProfessionLevel":60,"unlockPrice":3500,"rarity":"EPIC","unlockedByDefault":false,"potionType":"LONG_WATER_BREATHING"},{"id":"alchemist:leaping","label":"Trank des Springens","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"RABBIT_FOOT":1},"requiredProfessionLevel":65,"unlockPrice":4200,"rarity":"EPIC","unlockedByDefault":false,"potionType":"LEAPING"},{"id":"alchemist:long_leaping","label":"Langer Trank des Springens","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"REDSTONE":1},"requiredProfessionLevel":70,"unlockPrice":5000,"rarity":"LEGENDARY","unlockedByDefault":false,"potionType":"LONG_LEAPING"},{"id":"alchemist:strength","label":"Trank der Stärke","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"BLAZE_POWDER":1},"requiredProfessionLevel":75,"unlockPrice":6200,"rarity":"LEGENDARY","unlockedByDefault":false,"potionType":"STRENGTH"},{"id":"alchemist:strong_strength","label":"Starker Trank der Stärke","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"GLOWSTONE_DUST":2},"requiredProfessionLevel":80,"unlockPrice":7000,"rarity":"LEGENDARY","unlockedByDefault":false,"potionType":"STRONG_STRENGTH"},{"id":"alchemist:regeneration","label":"Trank der Regeneration","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"GHAST_TEAR":1},"requiredProfessionLevel":85,"unlockPrice":8500,"rarity":"LEGENDARY","unlockedByDefault":false,"potionType":"REGENERATION"},{"id":"alchemist:long_regeneration","label":"Langer Trank der Regeneration","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"REDSTONE":1},"requiredProfessionLevel":90,"unlockPrice":10000,"rarity":"LEGENDARY","unlockedByDefault":false,"potionType":"LONG_REGENERATION"},{"id":"alchemist:slow_falling","label":"Trank des sanften Falls","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"PHANTOM_MEMBRANE":1},"requiredProfessionLevel":95,"unlockPrice":13000,"rarity":"LEGENDARY","unlockedByDefault":false,"potionType":"SLOW_FALLING"},{"id":"alchemist:turtle_master","label":"Trank des Schildkrötenmeisters","profession":"ALCHEMIST","result":"POTION","costs":{"POTION":1,"TURTLE_SCUTE":1},"requiredProfessionLevel":100,"unlockPrice":15000,"rarity":"LEGENDARY","unlockedByDefault":false,"potionType":"TURTLE_MASTER"},{"id":"scholar:paper","label":"Papierbündel","profession":"SCHOLAR","result":"PAPER","costs":{"SUGAR_CANE":3},"requiredProfessionLevel":1,"unlockPrice":100,"rarity":"COMMON","unlockedByDefault":false},{"id":"scholar:book","label":"Forschungsbuch","profession":"SCHOLAR","result":"BOOK","costs":{"PAPER":3,"LEATHER":1},"requiredProfessionLevel":5,"unlockPrice":180,"rarity":"COMMON","unlockedByDefault":false},{"id":"scholar:quill","label":"Federkiel","profession":"SCHOLAR","result":"WRITABLE_BOOK","costs":{"BOOK":1,"FEATHER":1,"INK_SAC":1},"requiredProfessionLevel":10,"unlockPrice":300,"rarity":"COMMON","unlockedByDefault":false},{"id":"scholar:map","label":"Leere Karte","profession":"SCHOLAR","result":"MAP","costs":{"PAPER":8,"COMPASS":1},"requiredProfessionLevel":15,"unlockPrice":450,"rarity":"UNCOMMON","unlockedByDefault":false},{"id":"scholar:field_journal","label":"Feldtagebuch","profession":"SCHOLAR","result":"BOOK","costs":{"BOOK":1,"PAPER":3,"FEATHER":1},"requiredProfessionLevel":20,"unlockPrice":600,"rarity":"UNCOMMON","unlockedByDefault":false},{"id":"scholar:monster_manual","label":"Monsterhandbuch","profession":"SCHOLAR","result":"BOOK","costs":{"BOOK":1,"ROTTEN_FLESH":2,"INK_SAC":1},"requiredProfessionLevel":30,"unlockPrice":900,"rarity":"RARE","unlockedByDefault":false},{"id":"scholar:explorer_chart","label":"Entdeckerkarte","profession":"SCHOLAR","result":"MAP","costs":{"PAPER":5,"COMPASS":1,"FEATHER":2},"requiredProfessionLevel":35,"unlockPrice":1150,"rarity":"RARE","unlockedByDefault":false},{"id":"scholar:redstone_manual","label":"Redstone-Handbuch","profession":"SCHOLAR","result":"BOOK","costs":{"BOOK":1,"REDSTONE":4,"COPPER_INGOT":2},"requiredProfessionLevel":40,"unlockPrice":1400,"rarity":"RARE","unlockedByDefault":false},{"id":"scholar:arcane_notes","label":"Arkane Notizen","profession":"SCHOLAR","result":"BOOK","costs":{"BOOK":1,"LAPIS_LAZULI":6,"AMETHYST_SHARD":2},"requiredProfessionLevel":45,"unlockPrice":1800,"rarity":"EPIC","unlockedByDefault":false},{"id":"scholar:sharpness_book","label":"Verzaubertes Buch: Schärfe III","profession":"SCHOLAR","result":"ENCHANTED_BOOK","costs":{"BOOK":1,"LAPIS_LAZULI":4,"DIAMOND":1},"requiredProfessionLevel":50,"unlockPrice":2200,"rarity":"EPIC","unlockedByDefault":false,"enchantment":"sharpness","enchantmentLevel":3},{"id":"scholar:protection_book","label":"Verzaubertes Buch: Schutz III","profession":"SCHOLAR","result":"ENCHANTED_BOOK","costs":{"BOOK":1,"LAPIS_LAZULI":4,"DIAMOND":1},"requiredProfessionLevel":55,"unlockPrice":2800,"rarity":"EPIC","unlockedByDefault":false,"enchantment":"protection","enchantmentLevel":3},{"id":"scholar:efficiency_book","label":"Verzaubertes Buch: Effizienz IV","profession":"SCHOLAR","result":"ENCHANTED_BOOK","costs":{"BOOK":1,"LAPIS_LAZULI":4,"DIAMOND":1},"requiredProfessionLevel":60,"unlockPrice":3500,"rarity":"EPIC","unlockedByDefault":false,"enchantment":"efficiency","enchantmentLevel":4},{"id":"scholar:unbreaking_book","label":"Verzaubertes Buch: Haltbarkeit III","profession":"SCHOLAR","result":"ENCHANTED_BOOK","costs":{"BOOK":1,"LAPIS_LAZULI":5,"DIAMOND":1},"requiredProfessionLevel":65,"unlockPrice":4200,"rarity":"EPIC","unlockedByDefault":false,"enchantment":"unbreaking","enchantmentLevel":3},{"id":"scholar:fortune_book","label":"Verzaubertes Buch: Glück III","profession":"SCHOLAR","result":"ENCHANTED_BOOK","costs":{"BOOK":1,"LAPIS_LAZULI":6,"DIAMOND":2},"requiredProfessionLevel":70,"unlockPrice":5000,"rarity":"LEGENDARY","unlockedByDefault":false,"enchantment":"fortune","enchantmentLevel":3},{"id":"scholar:silk_touch_book","label":"Verzaubertes Buch: Behutsamkeit","profession":"SCHOLAR","result":"ENCHANTED_BOOK","costs":{"BOOK":1,"LAPIS_LAZULI":6,"DIAMOND":2},"requiredProfessionLevel":75,"unlockPrice":6200,"rarity":"LEGENDARY","unlockedByDefault":false,"enchantment":"silk_touch","enchantmentLevel":1},{"id":"scholar:power_book","label":"Verzaubertes Buch: Stärke V","profession":"SCHOLAR","result":"ENCHANTED_BOOK","costs":{"BOOK":1,"LAPIS_LAZULI":6,"DIAMOND":2},"requiredProfessionLevel":80,"unlockPrice":7000,"rarity":"LEGENDARY","unlockedByDefault":false,"enchantment":"power","enchantmentLevel":5},{"id":"scholar:sharpness_master","label":"Meisterbuch: Schärfe V","profession":"SCHOLAR","result":"ENCHANTED_BOOK","costs":{"BOOK":1,"LAPIS_LAZULI":10,"NETHER_STAR":1},"requiredProfessionLevel":90,"unlockPrice":10000,"rarity":"LEGENDARY","unlockedByDefault":false,"enchantment":"sharpness","enchantmentLevel":5},{"id":"scholar:master_atlas","label":"Meisteratlas","profession":"SCHOLAR","result":"MAP","costs":{"MAP":1,"COMPASS":1,"AMETHYST_SHARD":4,"GOLD_INGOT":2},"requiredProfessionLevel":95,"unlockPrice":13000,"rarity":"LEGENDARY","unlockedByDefault":false},{"id":"scholar:grand_grimoire","label":"Großes Grimoire: Reparatur","profession":"SCHOLAR","result":"ENCHANTED_BOOK","costs":{"BOOK":2,"NETHER_STAR":1,"DIAMOND":2,"LAPIS_LAZULI":16},"requiredProfessionLevel":100,"unlockPrice":15000,"rarity":"LEGENDARY","unlockedByDefault":false,"enchantment":"mending","enchantmentLevel":1},{"id":"scholar:ender_compass","label":"Enderkompass","profession":"SCHOLAR","result":"COMPASS","costs":{"COMPASS":1,"ENDER_EYE":1,"AMETHYST_SHARD":2},"requiredProfessionLevel":85,"unlockPrice":8500,"rarity":"LEGENDARY","unlockedByDefault":false}]}
+{
+  "recipes": [
+    {
+      "id": "blacksmith:iron_sword",
+      "label": "Eisenschwert",
+      "profession": "BLACKSMITH",
+      "result": "IRON_SWORD",
+      "costs": {
+        "IRON_INGOT": 2,
+        "STICK": 1
+      },
+      "requiredProfessionLevel": 1,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:iron_pickaxe",
+      "label": "Eisenspitzhacke",
+      "profession": "BLACKSMITH",
+      "result": "IRON_PICKAXE",
+      "costs": {
+        "IRON_INGOT": 3,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 1,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:iron_axe",
+      "label": "Eisenaxt",
+      "profession": "BLACKSMITH",
+      "result": "IRON_AXE",
+      "costs": {
+        "IRON_INGOT": 3,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 1,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:iron_shovel",
+      "label": "Eisenschaufel",
+      "profession": "BLACKSMITH",
+      "result": "IRON_SHOVEL",
+      "costs": {
+        "IRON_INGOT": 1,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 1,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:iron_hoe",
+      "label": "Eisenhacke",
+      "profession": "BLACKSMITH",
+      "result": "IRON_HOE",
+      "costs": {
+        "IRON_INGOT": 2,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 1,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:iron_helmet",
+      "label": "Eisenhelm",
+      "profession": "BLACKSMITH",
+      "result": "IRON_HELMET",
+      "costs": {
+        "IRON_INGOT": 5
+      },
+      "requiredProfessionLevel": 10,
+      "unlockPrice": 300,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:iron_chestplate",
+      "label": "Eisenbrustplatte",
+      "profession": "BLACKSMITH",
+      "result": "IRON_CHESTPLATE",
+      "costs": {
+        "IRON_INGOT": 8
+      },
+      "requiredProfessionLevel": 10,
+      "unlockPrice": 300,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:iron_leggings",
+      "label": "Eisenbeinschutz",
+      "profession": "BLACKSMITH",
+      "result": "IRON_LEGGINGS",
+      "costs": {
+        "IRON_INGOT": 7
+      },
+      "requiredProfessionLevel": 10,
+      "unlockPrice": 300,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:iron_boots",
+      "label": "Eisenstiefel",
+      "profession": "BLACKSMITH",
+      "result": "IRON_BOOTS",
+      "costs": {
+        "IRON_INGOT": 4
+      },
+      "requiredProfessionLevel": 10,
+      "unlockPrice": 300,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:shield",
+      "label": "Verstärkter Schild",
+      "profession": "BLACKSMITH",
+      "result": "SHIELD",
+      "costs": {
+        "IRON_INGOT": 1,
+        "OAK_PLANKS": 6
+      },
+      "requiredProfessionLevel": 10,
+      "unlockPrice": 300,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:golden_sword",
+      "label": "Goldklinge",
+      "profession": "BLACKSMITH",
+      "result": "GOLDEN_SWORD",
+      "costs": {
+        "GOLD_INGOT": 2,
+        "STICK": 1
+      },
+      "requiredProfessionLevel": 20,
+      "unlockPrice": 600,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:golden_pickaxe",
+      "label": "Goldspitzhacke",
+      "profession": "BLACKSMITH",
+      "result": "GOLDEN_PICKAXE",
+      "costs": {
+        "GOLD_INGOT": 3,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 20,
+      "unlockPrice": 600,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:golden_axe",
+      "label": "Goldaxt",
+      "profession": "BLACKSMITH",
+      "result": "GOLDEN_AXE",
+      "costs": {
+        "GOLD_INGOT": 3,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 20,
+      "unlockPrice": 600,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:golden_shovel",
+      "label": "Goldschaufel",
+      "profession": "BLACKSMITH",
+      "result": "GOLDEN_SHOVEL",
+      "costs": {
+        "GOLD_INGOT": 1,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 20,
+      "unlockPrice": 600,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:golden_hoe",
+      "label": "Goldhacke",
+      "profession": "BLACKSMITH",
+      "result": "GOLDEN_HOE",
+      "costs": {
+        "GOLD_INGOT": 2,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 20,
+      "unlockPrice": 600,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:golden_helmet",
+      "label": "Goldhelm",
+      "profession": "BLACKSMITH",
+      "result": "GOLDEN_HELMET",
+      "costs": {
+        "GOLD_INGOT": 5
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 900,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:golden_chestplate",
+      "label": "Goldbrustplatte",
+      "profession": "BLACKSMITH",
+      "result": "GOLDEN_CHESTPLATE",
+      "costs": {
+        "GOLD_INGOT": 8
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 900,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:golden_leggings",
+      "label": "Goldbeinschutz",
+      "profession": "BLACKSMITH",
+      "result": "GOLDEN_LEGGINGS",
+      "costs": {
+        "GOLD_INGOT": 7
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 900,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:golden_boots",
+      "label": "Goldstiefel",
+      "profession": "BLACKSMITH",
+      "result": "GOLDEN_BOOTS",
+      "costs": {
+        "GOLD_INGOT": 4
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 900,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_sword",
+      "label": "Diamantklinge",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_SWORD",
+      "costs": {
+        "DIAMOND": 2,
+        "STICK": 1
+      },
+      "requiredProfessionLevel": 40,
+      "unlockPrice": 1400,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_pickaxe",
+      "label": "Diamantspitzhacke",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_PICKAXE",
+      "costs": {
+        "DIAMOND": 3,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 40,
+      "unlockPrice": 1400,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_axe",
+      "label": "Diamantaxt",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_AXE",
+      "costs": {
+        "DIAMOND": 3,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 40,
+      "unlockPrice": 1400,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_shovel",
+      "label": "Diamantschaufel",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_SHOVEL",
+      "costs": {
+        "DIAMOND": 1,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 40,
+      "unlockPrice": 1400,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_hoe",
+      "label": "Diamanthacke",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_HOE",
+      "costs": {
+        "DIAMOND": 2,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 40,
+      "unlockPrice": 1400,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_helmet",
+      "label": "Diamanthelm",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_HELMET",
+      "costs": {
+        "DIAMOND": 5
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 2200,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_chestplate",
+      "label": "Diamantbrustplatte",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_CHESTPLATE",
+      "costs": {
+        "DIAMOND": 8
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 2200,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_leggings",
+      "label": "Diamantbeinschutz",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_LEGGINGS",
+      "costs": {
+        "DIAMOND": 7
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 2200,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_boots",
+      "label": "Diamantstiefel",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_BOOTS",
+      "costs": {
+        "DIAMOND": 4
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 2200,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:netherite_sword",
+      "label": "Netheritklinge",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_SWORD",
+      "costs": {
+        "DIAMOND_SWORD": 1,
+        "NETHERITE_INGOT": 1
+      },
+      "requiredProfessionLevel": 60,
+      "unlockPrice": 3500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:netherite_pickaxe",
+      "label": "Netheritspitzhacke",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_PICKAXE",
+      "costs": {
+        "DIAMOND_PICKAXE": 1,
+        "NETHERITE_INGOT": 1
+      },
+      "requiredProfessionLevel": 60,
+      "unlockPrice": 3500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:netherite_axe",
+      "label": "Netherit-Axt",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_AXE",
+      "costs": {
+        "DIAMOND_AXE": 1,
+        "NETHERITE_INGOT": 1
+      },
+      "requiredProfessionLevel": 60,
+      "unlockPrice": 3500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:netherite_shovel",
+      "label": "Netherit-Schaufel",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_SHOVEL",
+      "costs": {
+        "DIAMOND_SHOVEL": 1,
+        "NETHERITE_INGOT": 1
+      },
+      "requiredProfessionLevel": 60,
+      "unlockPrice": 3500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:netherite_hoe",
+      "label": "Netherit-Hacke",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_HOE",
+      "costs": {
+        "DIAMOND_HOE": 1,
+        "NETHERITE_INGOT": 1
+      },
+      "requiredProfessionLevel": 60,
+      "unlockPrice": 3500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:netherite_helmet",
+      "label": "Netherithelm",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_HELMET",
+      "costs": {
+        "DIAMOND_HELMET": 1,
+        "NETHERITE_INGOT": 1
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 5000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:netherite_chestplate",
+      "label": "Netheritbrustplatte",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_CHESTPLATE",
+      "costs": {
+        "DIAMOND_CHESTPLATE": 1,
+        "NETHERITE_INGOT": 1
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 5000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:netherite_leggings",
+      "label": "Netheritbeinschutz",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_LEGGINGS",
+      "costs": {
+        "DIAMOND_LEGGINGS": 1,
+        "NETHERITE_INGOT": 1
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 5000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:netherite_boots",
+      "label": "Netheritstiefel",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_BOOTS",
+      "costs": {
+        "DIAMOND_BOOTS": 1,
+        "NETHERITE_INGOT": 1
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 5000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_star_sword",
+      "label": "Sternenschliff-Diamantschwert",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_SWORD",
+      "costs": {
+        "DIAMOND_SWORD": 1,
+        "NETHER_STAR": 1
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 7000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_core_pickaxe",
+      "label": "Sternkern-Spitzhacke",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_PICKAXE",
+      "costs": {
+        "DIAMOND_PICKAXE": 1,
+        "NETHER_STAR": 1
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 7000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_core_axe",
+      "label": "Sternkern-Axt",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_AXE",
+      "costs": {
+        "DIAMOND_AXE": 1,
+        "NETHER_STAR": 1
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 7000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_core_chestplate",
+      "label": "Sternkern-Brustplatte",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_CHESTPLATE",
+      "costs": {
+        "DIAMOND_CHESTPLATE": 1,
+        "NETHER_STAR": 1
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 7000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:netherite_star_sword",
+      "label": "Höllenstern-Klinge",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_SWORD",
+      "costs": {
+        "NETHERITE_SWORD": 1,
+        "NETHER_STAR": 1
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 10000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:netherite_star_chestplate",
+      "label": "Höllenstern-Brustplatte",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_CHESTPLATE",
+      "costs": {
+        "NETHERITE_CHESTPLATE": 1,
+        "NETHER_STAR": 1
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 10000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:mace_masterwork",
+      "label": "Meisterstreitkolben",
+      "profession": "BLACKSMITH",
+      "result": "MACE",
+      "costs": {
+        "MACE": 1,
+        "HEAVY_CORE": 1,
+        "NETHER_STAR": 1
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 10000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:anvil_masterwork",
+      "label": "Schmiedemeister-Amboss",
+      "profession": "BLACKSMITH",
+      "result": "ANVIL",
+      "costs": {
+        "ANVIL": 1,
+        "NETHER_STAR": 1,
+        "IRON_BLOCK": 3
+      },
+      "requiredProfessionLevel": 95,
+      "unlockPrice": 13000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:grindstone_masterwork",
+      "label": "Meister-Schleifstein",
+      "profession": "BLACKSMITH",
+      "result": "GRINDSTONE",
+      "costs": {
+        "GRINDSTONE": 1,
+        "DIAMOND": 2,
+        "IRON_INGOT": 4
+      },
+      "requiredProfessionLevel": 95,
+      "unlockPrice": 13000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:smithing_table_masterwork",
+      "label": "Meisterschmiedetisch",
+      "profession": "BLACKSMITH",
+      "result": "SMITHING_TABLE",
+      "costs": {
+        "SMITHING_TABLE": 1,
+        "DIAMOND": 2,
+        "IRON_INGOT": 4
+      },
+      "requiredProfessionLevel": 95,
+      "unlockPrice": 13000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:enchanting_table",
+      "label": "Schmiedezaubertisch",
+      "profession": "BLACKSMITH",
+      "result": "ENCHANTING_TABLE",
+      "costs": {
+        "BOOK": 1,
+        "DIAMOND": 2,
+        "OBSIDIAN": 4
+      },
+      "requiredProfessionLevel": 95,
+      "unlockPrice": 13000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:beacon_frame",
+      "label": "Schmiedebake",
+      "profession": "BLACKSMITH",
+      "result": "BEACON",
+      "costs": {
+        "BEACON": 1,
+        "NETHER_STAR": 1
+      },
+      "requiredProfessionLevel": 100,
+      "unlockPrice": 15000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:spawner",
+      "label": "Monster-Spawner",
+      "profession": "BLACKSMITH",
+      "result": "SPAWNER",
+      "costs": {
+        "IRON_BLOCK": 8,
+        "DIAMOND": 4,
+        "NETHER_STAR": 1
+      },
+      "requiredProfessionLevel": 100,
+      "unlockPrice": 15000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+
+    {
+      "id": "provisioner:bread",
+      "label": "Reisebrot",
+      "profession": "PROVISIONER",
+      "result": "BREAD",
+      "costs": {
+        "WHEAT": 3
+      },
+      "requiredProfessionLevel": 1,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:baked_potato",
+      "label": "Ofenkartoffel",
+      "profession": "PROVISIONER",
+      "result": "BAKED_POTATO",
+      "costs": {
+        "POTATO": 1,
+        "COAL": 1
+      },
+      "requiredProfessionLevel": 3,
+      "unlockPrice": 400,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:cooked_chicken",
+      "label": "Gebratenes Huhn",
+      "profession": "PROVISIONER",
+      "result": "COOKED_CHICKEN",
+      "costs": {
+        "CHICKEN": 1,
+        "COAL": 1
+      },
+      "requiredProfessionLevel": 5,
+      "unlockPrice": 700,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:cooked_porkchop",
+      "label": "Gebratenes Schweinefleisch",
+      "profession": "PROVISIONER",
+      "result": "COOKED_PORKCHOP",
+      "costs": {
+        "PORKCHOP": 1,
+        "COAL": 1
+      },
+      "requiredProfessionLevel": 7,
+      "unlockPrice": 1000,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:cooked_beef",
+      "label": "Gebratenes Rindfleisch",
+      "profession": "PROVISIONER",
+      "result": "COOKED_BEEF",
+      "costs": {
+        "BEEF": 1,
+        "COAL": 1
+      },
+      "requiredProfessionLevel": 9,
+      "unlockPrice": 1300,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:cooked_mutton",
+      "label": "Gebratenes Hammelfleisch",
+      "profession": "PROVISIONER",
+      "result": "COOKED_MUTTON",
+      "costs": {
+        "MUTTON": 1,
+        "COAL": 1
+      },
+      "requiredProfessionLevel": 11,
+      "unlockPrice": 1600,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:cooked_rabbit",
+      "label": "Gebratenes Kaninchen",
+      "profession": "PROVISIONER",
+      "result": "COOKED_RABBIT",
+      "costs": {
+        "RABBIT": 1,
+        "COAL": 1
+      },
+      "requiredProfessionLevel": 13,
+      "unlockPrice": 1900,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:cooked_cod",
+      "label": "Gebratener Kabeljau",
+      "profession": "PROVISIONER",
+      "result": "COOKED_COD",
+      "costs": {
+        "COD": 1,
+        "COAL": 1
+      },
+      "requiredProfessionLevel": 15,
+      "unlockPrice": 2200,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:cooked_salmon",
+      "label": "Gebratener Lachs",
+      "profession": "PROVISIONER",
+      "result": "COOKED_SALMON",
+      "costs": {
+        "SALMON": 1,
+        "COAL": 1
+      },
+      "requiredProfessionLevel": 17,
+      "unlockPrice": 2500,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:cookie",
+      "label": "Keks",
+      "profession": "PROVISIONER",
+      "result": "COOKIE",
+      "costs": {
+        "WHEAT": 2,
+        "COCOA_BEANS": 1
+      },
+      "requiredProfessionLevel": 19,
+      "unlockPrice": 2800,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:pumpkin_pie",
+      "label": "Kürbiskuchen",
+      "profession": "PROVISIONER",
+      "result": "PUMPKIN_PIE",
+      "costs": {
+        "PUMPKIN": 1,
+        "SUGAR": 1,
+        "EGG": 1
+      },
+      "requiredProfessionLevel": 21,
+      "unlockPrice": 3100,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:dried_kelp",
+      "label": "Getrockneter Seetang",
+      "profession": "PROVISIONER",
+      "result": "DRIED_KELP",
+      "costs": {
+        "KELP": 1,
+        "COAL": 1
+      },
+      "requiredProfessionLevel": 23,
+      "unlockPrice": 3400,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:beetroot_soup",
+      "label": "Rote-Bete-Suppe",
+      "profession": "PROVISIONER",
+      "result": "BEETROOT_SOUP",
+      "costs": {
+        "BEETROOT": 1,
+        "BOWL": 1
+      },
+      "requiredProfessionLevel": 25,
+      "unlockPrice": 3700,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:mushroom_stew",
+      "label": "Pilzeintopf",
+      "profession": "PROVISIONER",
+      "result": "MUSHROOM_STEW",
+      "costs": {
+        "RED_MUSHROOM": 1,
+        "BROWN_MUSHROOM": 1,
+        "BOWL": 1
+      },
+      "requiredProfessionLevel": 27,
+      "unlockPrice": 4000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:rabbit_stew",
+      "label": "Kaninchenragout",
+      "profession": "PROVISIONER",
+      "result": "RABBIT_STEW",
+      "costs": {
+        "RABBIT": 1,
+        "CARROT": 1,
+        "BROWN_MUSHROOM": 1,
+        "BOWL": 1
+      },
+      "requiredProfessionLevel": 29,
+      "unlockPrice": 4300,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:suspicious_stew",
+      "label": "Gewürzeintopf",
+      "profession": "PROVISIONER",
+      "result": "SUSPICIOUS_STEW",
+      "costs": {
+        "BOWL": 1,
+        "BROWN_MUSHROOM": 1,
+        "RED_MUSHROOM": 1,
+        "DANDELION": 1
+      },
+      "requiredProfessionLevel": 31,
+      "unlockPrice": 4600,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:golden_carrot",
+      "label": "Goldene Karotte",
+      "profession": "PROVISIONER",
+      "result": "GOLDEN_CARROT",
+      "costs": {
+        "CARROT": 1,
+        "GOLD_NUGGET": 8
+      },
+      "requiredProfessionLevel": 33,
+      "unlockPrice": 4900,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:golden_apple",
+      "label": "Goldener Apfel",
+      "profession": "PROVISIONER",
+      "result": "GOLDEN_APPLE",
+      "costs": {
+        "APPLE": 1,
+        "GOLD_INGOT": 8
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 5200,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:chorus_fruit",
+      "label": "Chorusfrucht",
+      "profession": "PROVISIONER",
+      "result": "CHORUS_FRUIT",
+      "costs": {
+        "CHORUS_FLOWER": 1
+      },
+      "requiredProfessionLevel": 37,
+      "unlockPrice": 5500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:honey_bottle",
+      "label": "Honigtrunk",
+      "profession": "PROVISIONER",
+      "result": "HONEY_BOTTLE",
+      "costs": {
+        "HONEY_BOTTLE": 1,
+        "SUGAR": 1
+      },
+      "requiredProfessionLevel": 39,
+      "unlockPrice": 5800,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:glow_berry_bowl",
+      "label": "Leuchtbeeren-Dessert",
+      "profession": "PROVISIONER",
+      "result": "GLOW_BERRIES",
+      "costs": {
+        "GLOW_BERRIES": 2
+      },
+      "requiredProfessionLevel": 41,
+      "unlockPrice": 6100,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:sweet_berry_bowl",
+      "label": "Waldbeeren-Dessert",
+      "profession": "PROVISIONER",
+      "result": "SWEET_BERRIES",
+      "costs": {
+        "SWEET_BERRIES": 2
+      },
+      "requiredProfessionLevel": 43,
+      "unlockPrice": 6400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:apple_pie",
+      "label": "Apfelkuchen",
+      "profession": "PROVISIONER",
+      "result": "APPLE",
+      "costs": {
+        "APPLE": 1,
+        "WHEAT": 3,
+        "SUGAR": 2
+      },
+      "requiredProfessionLevel": 45,
+      "unlockPrice": 6700,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:carrot_stew",
+      "label": "Karottenproviant",
+      "profession": "PROVISIONER",
+      "result": "CARROT",
+      "costs": {
+        "CARROT": 3,
+        "BOWL": 1
+      },
+      "requiredProfessionLevel": 47,
+      "unlockPrice": 7000,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:melon_ration",
+      "label": "Melonenration",
+      "profession": "PROVISIONER",
+      "result": "MELON_SLICE",
+      "costs": {
+        "MELON_SLICE": 3,
+        "SUGAR": 1
+      },
+      "requiredProfessionLevel": 49,
+      "unlockPrice": 7300,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:pumpkin_ration",
+      "label": "Kürbisration",
+      "profession": "PROVISIONER",
+      "result": "PUMPKIN_PIE",
+      "costs": {
+        "PUMPKIN_PIE": 1,
+        "HONEY_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 51,
+      "unlockPrice": 7600,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:beef_stew",
+      "label": "Herzhafter Rindereintopf",
+      "profession": "PROVISIONER",
+      "result": "COOKED_BEEF",
+      "costs": {
+        "COOKED_BEEF": 2,
+        "CARROT": 1,
+        "BOWL": 1
+      },
+      "requiredProfessionLevel": 53,
+      "unlockPrice": 7900,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:chicken_stew",
+      "label": "Herzhafter Hühnereintopf",
+      "profession": "PROVISIONER",
+      "result": "COOKED_CHICKEN",
+      "costs": {
+        "COOKED_CHICKEN": 2,
+        "CARROT": 1,
+        "BOWL": 1
+      },
+      "requiredProfessionLevel": 55,
+      "unlockPrice": 8200,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:fish_platter",
+      "label": "Fischplatte",
+      "profession": "PROVISIONER",
+      "result": "COOKED_COD",
+      "costs": {
+        "COOKED_COD": 2,
+        "COOKED_SALMON": 1
+      },
+      "requiredProfessionLevel": 57,
+      "unlockPrice": 8500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:hunter_platter",
+      "label": "Jägerplatte",
+      "profession": "PROVISIONER",
+      "result": "COOKED_BEEF",
+      "costs": {
+        "COOKED_BEEF": 1,
+        "COOKED_PORKCHOP": 1,
+        "CARROT": 1
+      },
+      "requiredProfessionLevel": 59,
+      "unlockPrice": 8800,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:traveler_bread",
+      "label": "Wandererproviant",
+      "profession": "PROVISIONER",
+      "result": "BREAD",
+      "costs": {
+        "BREAD": 1,
+        "HONEY_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 61,
+      "unlockPrice": 9100,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:sweet_bread",
+      "label": "Honigbrot",
+      "profession": "PROVISIONER",
+      "result": "BREAD",
+      "costs": {
+        "BREAD": 1,
+        "HONEY_BOTTLE": 1,
+        "SUGAR": 1
+      },
+      "requiredProfessionLevel": 63,
+      "unlockPrice": 9400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:golden_bread",
+      "label": "Goldbrot",
+      "profession": "PROVISIONER",
+      "result": "BREAD",
+      "costs": {
+        "BREAD": 1,
+        "GOLD_NUGGET": 4
+      },
+      "requiredProfessionLevel": 65,
+      "unlockPrice": 9700,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:glistering_fruit",
+      "label": "Glitzerfrucht",
+      "profession": "PROVISIONER",
+      "result": "GOLDEN_CARROT",
+      "costs": {
+        "GOLDEN_CARROT": 1,
+        "GLOW_BERRIES": 2
+      },
+      "requiredProfessionLevel": 67,
+      "unlockPrice": 10000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:honey_carrot",
+      "label": "Honigkarotte",
+      "profession": "PROVISIONER",
+      "result": "GOLDEN_CARROT",
+      "costs": {
+        "GOLDEN_CARROT": 1,
+        "HONEY_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 69,
+      "unlockPrice": 10300,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:royal_carrot",
+      "label": "Königliche Karotte",
+      "profession": "PROVISIONER",
+      "result": "GOLDEN_CARROT",
+      "costs": {
+        "GOLDEN_CARROT": 1,
+        "GOLDEN_APPLE": 1
+      },
+      "requiredProfessionLevel": 71,
+      "unlockPrice": 10600,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:royal_feast",
+      "label": "Königsmahl",
+      "profession": "PROVISIONER",
+      "result": "GOLDEN_APPLE",
+      "costs": {
+        "GOLDEN_APPLE": 1,
+        "GOLDEN_CARROT": 1,
+        "HONEY_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 73,
+      "unlockPrice": 10900,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:enchanted_apple_ration",
+      "label": "Verzauberte Festmahlration",
+      "profession": "PROVISIONER",
+      "result": "ENCHANTED_GOLDEN_APPLE",
+      "costs": {
+        "ENCHANTED_GOLDEN_APPLE": 1,
+        "HONEY_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 75,
+      "unlockPrice": 11200,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:sweet_berry_honey",
+      "label": "Honigbeeren",
+      "profession": "PROVISIONER",
+      "result": "SWEET_BERRIES",
+      "costs": {
+        "SWEET_BERRIES": 2,
+        "HONEY_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 77,
+      "unlockPrice": 11500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:glow_berry_honey",
+      "label": "Honigleuchtbeeren",
+      "profession": "PROVISIONER",
+      "result": "GLOW_BERRIES",
+      "costs": {
+        "GLOW_BERRIES": 2,
+        "HONEY_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 79,
+      "unlockPrice": 11800,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:chorus_honey",
+      "label": "Honig-Chorusfrucht",
+      "profession": "PROVISIONER",
+      "result": "CHORUS_FRUIT",
+      "costs": {
+        "CHORUS_FRUIT": 1,
+        "HONEY_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 81,
+      "unlockPrice": 12100,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:golden_melon",
+      "label": "Goldene Melone",
+      "profession": "PROVISIONER",
+      "result": "MELON_SLICE",
+      "costs": {
+        "MELON_SLICE": 3,
+        "GOLD_NUGGET": 8
+      },
+      "requiredProfessionLevel": 83,
+      "unlockPrice": 12400,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:spiced_potato",
+      "label": "Gewürzkartoffel",
+      "profession": "PROVISIONER",
+      "result": "BAKED_POTATO",
+      "costs": {
+        "BAKED_POTATO": 1,
+        "SUGAR": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 85,
+      "unlockPrice": 12700,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:ember_meat",
+      "label": "Glutbraten",
+      "profession": "PROVISIONER",
+      "result": "COOKED_BEEF",
+      "costs": {
+        "COOKED_BEEF": 1,
+        "BLAZE_POWDER": 1
+      },
+      "requiredProfessionLevel": 87,
+      "unlockPrice": 13000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:frost_fish",
+      "label": "Frostfisch",
+      "profession": "PROVISIONER",
+      "result": "COOKED_SALMON",
+      "costs": {
+        "COOKED_SALMON": 1,
+        "SNOWBALL": 4
+      },
+      "requiredProfessionLevel": 89,
+      "unlockPrice": 13300,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:end_ration",
+      "label": "Endzeitproviant",
+      "profession": "PROVISIONER",
+      "result": "CHORUS_FRUIT",
+      "costs": {
+        "CHORUS_FRUIT": 1,
+        "GOLDEN_CARROT": 1
+      },
+      "requiredProfessionLevel": 91,
+      "unlockPrice": 13600,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:nether_ration",
+      "label": "Netherproviant",
+      "profession": "PROVISIONER",
+      "result": "COOKED_PORKCHOP",
+      "costs": {
+        "COOKED_PORKCHOP": 1,
+        "BLAZE_POWDER": 1
+      },
+      "requiredProfessionLevel": 93,
+      "unlockPrice": 13900,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:adventurer_ration",
+      "label": "Abenteurerproviant",
+      "profession": "PROVISIONER",
+      "result": "GOLDEN_CARROT",
+      "costs": {
+        "GOLDEN_CARROT": 1,
+        "HONEY_BOTTLE": 1,
+        "BREAD": 1
+      },
+      "requiredProfessionLevel": 95,
+      "unlockPrice": 14200,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:master_feast",
+      "label": "Meistermahl",
+      "profession": "PROVISIONER",
+      "result": "ENCHANTED_GOLDEN_APPLE",
+      "costs": {
+        "ENCHANTED_GOLDEN_APPLE": 1,
+        "GOLDEN_CARROT": 1,
+        "HONEY_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 98,
+      "unlockPrice": 14800,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:legendary_ration",
+      "label": "Legendäre Ration",
+      "profession": "PROVISIONER",
+      "result": "GOLDEN_CARROT",
+      "costs": {
+        "GOLDEN_CARROT": 1,
+        "GOLDEN_APPLE": 1,
+        "HONEY_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 100,
+      "unlockPrice": 15000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+
+    {
+      "id": "alchemist:awkward_potion",
+      "label": "Seltsamer Trank",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "NETHER_WART": 1
+      },
+      "requiredProfessionLevel": 1,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "potionType": "AWKWARD"
+    },
+    {
+      "id": "alchemist:swiftness",
+      "label": "Trank der Schnelligkeit",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "SUGAR": 1
+      },
+      "requiredProfessionLevel": 5,
+      "unlockPrice": 700,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "potionType": "SWIFTNESS"
+    },
+    {
+      "id": "alchemist:long_swiftness",
+      "label": "Langer Trank der Schnelligkeit",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 7,
+      "unlockPrice": 1000,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "potionType": "LONG_SWIFTNESS"
+    },
+    {
+      "id": "alchemist:strong_swiftness",
+      "label": "Starker Trank der Schnelligkeit",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "GLOWSTONE_DUST": 2
+      },
+      "requiredProfessionLevel": 9,
+      "unlockPrice": 1300,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "potionType": "STRONG_SWIFTNESS"
+    },
+    {
+      "id": "alchemist:fire_resistance",
+      "label": "Trank der Feuerresistenz",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "MAGMA_CREAM": 1
+      },
+      "requiredProfessionLevel": 11,
+      "unlockPrice": 1600,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "potionType": "FIRE_RESISTANCE"
+    },
+    {
+      "id": "alchemist:long_fire_resistance",
+      "label": "Langer Trank der Feuerresistenz",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 13,
+      "unlockPrice": 1900,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "potionType": "LONG_FIRE_RESISTANCE"
+    },
+    {
+      "id": "alchemist:healing",
+      "label": "Trank der Heilung",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "GLISTERING_MELON_SLICE": 1
+      },
+      "requiredProfessionLevel": 15,
+      "unlockPrice": 2200,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "potionType": "HEALING"
+    },
+    {
+      "id": "alchemist:strong_healing",
+      "label": "Starker Trank der Heilung",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "GLOWSTONE_DUST": 2
+      },
+      "requiredProfessionLevel": 17,
+      "unlockPrice": 2500,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "potionType": "STRONG_HEALING"
+    },
+    {
+      "id": "alchemist:night_vision",
+      "label": "Trank der Nachtsicht",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "GOLDEN_CARROT": 1
+      },
+      "requiredProfessionLevel": 19,
+      "unlockPrice": 2800,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "potionType": "NIGHT_VISION"
+    },
+    {
+      "id": "alchemist:long_night_vision",
+      "label": "Langer Trank der Nachtsicht",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 21,
+      "unlockPrice": 3100,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "potionType": "LONG_NIGHT_VISION"
+    },
+    {
+      "id": "alchemist:water_breathing",
+      "label": "Trank der Wasseratmung",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "PUFFERFISH": 1
+      },
+      "requiredProfessionLevel": 23,
+      "unlockPrice": 3400,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "potionType": "WATER_BREATHING"
+    },
+    {
+      "id": "alchemist:long_water_breathing",
+      "label": "Langer Trank der Wasseratmung",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 25,
+      "unlockPrice": 3700,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "potionType": "LONG_WATER_BREATHING"
+    },
+    {
+      "id": "alchemist:leaping",
+      "label": "Trank des Springens",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "RABBIT_FOOT": 1
+      },
+      "requiredProfessionLevel": 27,
+      "unlockPrice": 4000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "LEAPING"
+    },
+    {
+      "id": "alchemist:long_leaping",
+      "label": "Langer Trank des Springens",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 29,
+      "unlockPrice": 4300,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "LONG_LEAPING"
+    },
+    {
+      "id": "alchemist:strength",
+      "label": "Trank der Stärke",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "BLAZE_POWDER": 1
+      },
+      "requiredProfessionLevel": 31,
+      "unlockPrice": 4600,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "STRENGTH"
+    },
+    {
+      "id": "alchemist:strong_strength",
+      "label": "Starker Trank der Stärke",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "GLOWSTONE_DUST": 2
+      },
+      "requiredProfessionLevel": 33,
+      "unlockPrice": 4900,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "STRONG_STRENGTH"
+    },
+    {
+      "id": "alchemist:regeneration",
+      "label": "Trank der Regeneration",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "GHAST_TEAR": 1
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 5200,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "REGENERATION"
+    },
+    {
+      "id": "alchemist:long_regeneration",
+      "label": "Langer Trank der Regeneration",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 37,
+      "unlockPrice": 5500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "LONG_REGENERATION"
+    },
+    {
+      "id": "alchemist:slow_falling",
+      "label": "Trank des sanften Falls",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "PHANTOM_MEMBRANE": 1
+      },
+      "requiredProfessionLevel": 39,
+      "unlockPrice": 5800,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "SLOW_FALLING"
+    },
+    {
+      "id": "alchemist:turtle_master",
+      "label": "Trank des Schildkrötenmeisters",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "POTION": 1,
+        "TURTLE_SCUTE": 1
+      },
+      "requiredProfessionLevel": 41,
+      "unlockPrice": 6100,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "TURTLE_MASTER"
+    },
+    {
+      "id": "alchemist:splash_swiftness",
+      "label": "Spritztrank: Schnelligkeit",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "SUGAR": 1
+      },
+      "requiredProfessionLevel": 45,
+      "unlockPrice": 7000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "SWIFTNESS"
+    },
+    {
+      "id": "alchemist:splash_fire_resistance",
+      "label": "Spritztrank: Feuerresistenz",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "MAGMA_CREAM": 1
+      },
+      "requiredProfessionLevel": 47,
+      "unlockPrice": 7300,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "FIRE_RESISTANCE"
+    },
+    {
+      "id": "alchemist:splash_healing",
+      "label": "Spritztrank: Heilung",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "GLISTERING_MELON_SLICE": 1
+      },
+      "requiredProfessionLevel": 49,
+      "unlockPrice": 7600,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "HEALING"
+    },
+    {
+      "id": "alchemist:splash_night_vision",
+      "label": "Spritztrank: Nachtsicht",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "GOLDEN_CARROT": 1
+      },
+      "requiredProfessionLevel": 51,
+      "unlockPrice": 7900,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "NIGHT_VISION"
+    },
+    {
+      "id": "alchemist:splash_water_breathing",
+      "label": "Spritztrank: Wasseratmung",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "PUFFERFISH": 1
+      },
+      "requiredProfessionLevel": 53,
+      "unlockPrice": 8200,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "WATER_BREATHING"
+    },
+    {
+      "id": "alchemist:splash_leaping",
+      "label": "Spritztrank: Springen",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "RABBIT_FOOT": 1
+      },
+      "requiredProfessionLevel": 55,
+      "unlockPrice": 8500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "LEAPING"
+    },
+    {
+      "id": "alchemist:splash_strength",
+      "label": "Spritztrank: Stärke",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "BLAZE_POWDER": 1
+      },
+      "requiredProfessionLevel": 57,
+      "unlockPrice": 8800,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "STRENGTH"
+    },
+    {
+      "id": "alchemist:splash_regeneration",
+      "label": "Spritztrank: Regeneration",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "GHAST_TEAR": 1
+      },
+      "requiredProfessionLevel": 59,
+      "unlockPrice": 9100,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "REGENERATION"
+    },
+    {
+      "id": "alchemist:splash_slow_falling",
+      "label": "Spritztrank: Sanfter Fall",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "PHANTOM_MEMBRANE": 1
+      },
+      "requiredProfessionLevel": 61,
+      "unlockPrice": 9400,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "SLOW_FALLING"
+    },
+    {
+      "id": "alchemist:splash_turtle_master",
+      "label": "Spritztrank: Schildkrötenmeister",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "TURTLE_SCUTE": 1
+      },
+      "requiredProfessionLevel": 63,
+      "unlockPrice": 9700,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "TURTLE_MASTER"
+    },
+    {
+      "id": "alchemist:splash_long_swiftness",
+      "label": "Spritztrank: Lange Schnelligkeit",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 65,
+      "unlockPrice": 10000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "LONG_SWIFTNESS"
+    },
+    {
+      "id": "alchemist:splash_long_fire_resistance",
+      "label": "Spritztrank: Lange Feuerresistenz",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 67,
+      "unlockPrice": 10300,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "LONG_FIRE_RESISTANCE"
+    },
+    {
+      "id": "alchemist:splash_long_night_vision",
+      "label": "Spritztrank: Lange Nachtsicht",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 69,
+      "unlockPrice": 10600,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "LONG_NIGHT_VISION"
+    },
+    {
+      "id": "alchemist:splash_long_water_breathing",
+      "label": "Spritztrank: Lange Wasseratmung",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 71,
+      "unlockPrice": 10900,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "LONG_WATER_BREATHING"
+    },
+    {
+      "id": "alchemist:splash_long_leaping",
+      "label": "Spritztrank: Langes Springen",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 73,
+      "unlockPrice": 11200,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "LONG_LEAPING"
+    },
+    {
+      "id": "alchemist:splash_long_regeneration",
+      "label": "Spritztrank: Lange Regeneration",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "costs": {
+        "POTION": 1,
+        "GUNPOWDER": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 75,
+      "unlockPrice": 11500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "LONG_REGENERATION"
+    },
+
+    {
+      "id": "scholar:paper_bundle",
+      "label": "Papierbündel",
+      "profession": "SCHOLAR",
+      "result": "PAPER",
+      "costs": {
+        "PAPER": 2,
+        "SUGAR_CANE": 1
+      },
+      "requiredProfessionLevel": 1,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:research_book",
+      "label": "Forschungsbuch",
+      "profession": "SCHOLAR",
+      "result": "BOOK",
+      "costs": {
+        "BOOK": 1,
+        "PAPER": 2,
+        "LEATHER": 1
+      },
+      "requiredProfessionLevel": 4,
+      "unlockPrice": 400,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:quill",
+      "label": "Federkiel",
+      "profession": "SCHOLAR",
+      "result": "WRITABLE_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "FEATHER": 1,
+        "INK_SAC": 1
+      },
+      "requiredProfessionLevel": 7,
+      "unlockPrice": 700,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:map",
+      "label": "Leere Karte",
+      "profession": "SCHOLAR",
+      "result": "MAP",
+      "costs": {
+        "PAPER": 8,
+        "COMPASS": 1
+      },
+      "requiredProfessionLevel": 10,
+      "unlockPrice": 1000,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:field_journal",
+      "label": "Feldtagebuch",
+      "profession": "SCHOLAR",
+      "result": "WRITABLE_BOOK",
+      "costs": {
+        "WRITABLE_BOOK": 1,
+        "PAPER": 2,
+        "FEATHER": 1
+      },
+      "requiredProfessionLevel": 13,
+      "unlockPrice": 1300,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:monster_manual",
+      "label": "Monsterhandbuch",
+      "profession": "SCHOLAR",
+      "result": "BOOK",
+      "costs": {
+        "BOOK": 1,
+        "ROTTEN_FLESH": 2,
+        "INK_SAC": 1
+      },
+      "requiredProfessionLevel": 16,
+      "unlockPrice": 1600,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:explorer_chart",
+      "label": "Entdeckerkarte",
+      "profession": "SCHOLAR",
+      "result": "MAP",
+      "costs": {
+        "MAP": 1,
+        "COMPASS": 1,
+        "FEATHER": 1
+      },
+      "requiredProfessionLevel": 19,
+      "unlockPrice": 1900,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:redstone_manual",
+      "label": "Redstone-Handbuch",
+      "profession": "SCHOLAR",
+      "result": "BOOK",
+      "costs": {
+        "BOOK": 1,
+        "REDSTONE": 4,
+        "COPPER_INGOT": 2
+      },
+      "requiredProfessionLevel": 22,
+      "unlockPrice": 2200,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:arcane_notes",
+      "label": "Arkane Notizen",
+      "profession": "SCHOLAR",
+      "result": "BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 4,
+        "AMETHYST_SHARD": 2
+      },
+      "requiredProfessionLevel": 25,
+      "unlockPrice": 2500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:ender_notes",
+      "label": "Enderforschung",
+      "profession": "SCHOLAR",
+      "result": "BOOK",
+      "costs": {
+        "BOOK": 1,
+        "ENDER_PEARL": 1,
+        "LAPIS_LAZULI": 4
+      },
+      "requiredProfessionLevel": 28,
+      "unlockPrice": 2800,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:atlas",
+      "label": "Meisteratlas",
+      "profession": "SCHOLAR",
+      "result": "MAP",
+      "costs": {
+        "MAP": 1,
+        "COMPASS": 1,
+        "AMETHYST_SHARD": 4,
+        "GOLD_INGOT": 2
+      },
+      "requiredProfessionLevel": 31,
+      "unlockPrice": 3100,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:ender_compass",
+      "label": "Enderkompass",
+      "profession": "SCHOLAR",
+      "result": "COMPASS",
+      "costs": {
+        "COMPASS": 1,
+        "ENDER_EYE": 1,
+        "AMETHYST_SHARD": 2
+      },
+      "requiredProfessionLevel": 34,
+      "unlockPrice": 3400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:spyglass",
+      "label": "Forscherfernrohr",
+      "profession": "SCHOLAR",
+      "result": "SPYGLASS",
+      "costs": {
+        "COPPER_INGOT": 2,
+        "AMETHYST_SHARD": 1
+      },
+      "requiredProfessionLevel": 37,
+      "unlockPrice": 3700,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:clock",
+      "label": "Präzisionsuhr",
+      "profession": "SCHOLAR",
+      "result": "CLOCK",
+      "costs": {
+        "CLOCK": 1,
+        "GOLD_NUGGET": 4,
+        "REDSTONE": 2
+      },
+      "requiredProfessionLevel": 40,
+      "unlockPrice": 4000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:name_tag",
+      "label": "Forscher-Namensschild",
+      "profession": "SCHOLAR",
+      "result": "NAME_TAG",
+      "costs": {
+        "NAME_TAG": 1,
+        "GOLD_INGOT": 1
+      },
+      "requiredProfessionLevel": 43,
+      "unlockPrice": 4300,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:experience_bottle",
+      "label": "Wissensphiole",
+      "profession": "SCHOLAR",
+      "result": "EXPERIENCE_BOTTLE",
+      "costs": {
+        "GLASS_BOTTLE": 1,
+        "LAPIS_LAZULI": 4
+      },
+      "requiredProfessionLevel": 46,
+      "unlockPrice": 4600,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:enchanted_book_blank",
+      "label": "Leeres Zauberbuch",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 2
+      },
+      "requiredProfessionLevel": 49,
+      "unlockPrice": 4900,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:written_book",
+      "label": "Gelehrtenwerk",
+      "profession": "SCHOLAR",
+      "result": "WRITTEN_BOOK",
+      "costs": {
+        "WRITABLE_BOOK": 1,
+        "BOOK": 1
+      },
+      "requiredProfessionLevel": 52,
+      "unlockPrice": 5200,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:lodestone_compass",
+      "label": "Seelenkompass",
+      "profession": "SCHOLAR",
+      "result": "COMPASS",
+      "costs": {
+        "COMPASS": 1,
+        "LODESTONE": 1
+      },
+      "requiredProfessionLevel": 55,
+      "unlockPrice": 5500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:recovery_compass",
+      "label": "Ahnenkompass",
+      "profession": "SCHOLAR",
+      "result": "RECOVERY_COMPASS",
+      "costs": {
+        "COMPASS": 1,
+        "ECHO_SHARD": 8
+      },
+      "requiredProfessionLevel": 58,
+      "unlockPrice": 5800,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:enchantment_sharpness",
+      "label": "Verzaubertes Buch: Schärfe V",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 61,
+      "unlockPrice": 7000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "enchantment": "sharpness",
+      "enchantmentLevel": 5
+    },
+    {
+      "id": "scholar:enchantment_smite",
+      "label": "Verzaubertes Buch: Bann V",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 62,
+      "unlockPrice": 7350,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "enchantment": "smite",
+      "enchantmentLevel": 5
+    },
+    {
+      "id": "scholar:enchantment_bane_of_arthropods",
+      "label": "Verzaubertes Buch: Nemesis der Gliederfüßer V",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 63,
+      "unlockPrice": 7700,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "enchantment": "bane_of_arthropods",
+      "enchantmentLevel": 5
+    },
+    {
+      "id": "scholar:enchantment_knockback",
+      "label": "Verzaubertes Buch: Rückstoß II",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 64,
+      "unlockPrice": 8050,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "enchantment": "knockback",
+      "enchantmentLevel": 2
+    },
+    {
+      "id": "scholar:enchantment_fire_aspect",
+      "label": "Verzaubertes Buch: Verbrennung II",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 65,
+      "unlockPrice": 8400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "enchantment": "fire_aspect",
+      "enchantmentLevel": 2
+    },
+    {
+      "id": "scholar:enchantment_looting",
+      "label": "Verzaubertes Buch: Plünderung III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 7,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 66,
+      "unlockPrice": 8750,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "enchantment": "looting",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:enchantment_sweeping",
+      "label": "Verzaubertes Buch: Schwungkraft III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 7,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 67,
+      "unlockPrice": 9100,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "enchantment": "sweeping",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:enchantment_efficiency",
+      "label": "Verzaubertes Buch: Effizienz V",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 7,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 68,
+      "unlockPrice": 9450,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "enchantment": "efficiency",
+      "enchantmentLevel": 5
+    },
+    {
+      "id": "scholar:enchantment_silk_touch",
+      "label": "Verzaubertes Buch: Behutsamkeit",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 7,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 69,
+      "unlockPrice": 9800,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "silk_touch",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:enchantment_fortune",
+      "label": "Verzaubertes Buch: Glück III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 10150,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "fortune",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:enchantment_unbreaking",
+      "label": "Verzaubertes Buch: Haltbarkeit III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 71,
+      "unlockPrice": 10500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "unbreaking",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:enchantment_mending",
+      "label": "Verzaubertes Buch: Reparatur",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 10,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 72,
+      "unlockPrice": 10850,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "mending",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:enchantment_protection",
+      "label": "Verzaubertes Buch: Schutz IV",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 73,
+      "unlockPrice": 11200,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "protection",
+      "enchantmentLevel": 4
+    },
+    {
+      "id": "scholar:enchantment_fire_protection",
+      "label": "Verzaubertes Buch: Feuerschutz IV",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 74,
+      "unlockPrice": 11550,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "fire_protection",
+      "enchantmentLevel": 4
+    },
+    {
+      "id": "scholar:enchantment_blast_protection",
+      "label": "Verzaubertes Buch: Explosionsschutz IV",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 75,
+      "unlockPrice": 11900,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "blast_protection",
+      "enchantmentLevel": 4
+    },
+    {
+      "id": "scholar:enchantment_projectile_protection",
+      "label": "Verzaubertes Buch: Schussschutz IV",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 76,
+      "unlockPrice": 12250,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "projectile_protection",
+      "enchantmentLevel": 4
+    },
+    {
+      "id": "scholar:enchantment_feather_falling",
+      "label": "Verzaubertes Buch: Federfall IV",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 77,
+      "unlockPrice": 12600,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "feather_falling",
+      "enchantmentLevel": 4
+    },
+    {
+      "id": "scholar:enchantment_respiration",
+      "label": "Verzaubertes Buch: Atmung III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 78,
+      "unlockPrice": 12950,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "respiration",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:enchantment_aqua_affinity",
+      "label": "Verzaubertes Buch: Wasseraffinität",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 79,
+      "unlockPrice": 13300,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "aqua_affinity",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:enchantment_thorns",
+      "label": "Verzaubertes Buch: Dornen III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 13650,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "thorns",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:enchantment_depth_strider",
+      "label": "Verzaubertes Buch: Wasserläufer III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 9,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 81,
+      "unlockPrice": 14000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "depth_strider",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:enchantment_frost_walker",
+      "label": "Verzaubertes Buch: Eisläufer II",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 9,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 82,
+      "unlockPrice": 14350,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "frost_walker",
+      "enchantmentLevel": 2
+    },
+    {
+      "id": "scholar:enchantment_soul_speed",
+      "label": "Verzaubertes Buch: Seelenläufer III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 9,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 83,
+      "unlockPrice": 14700,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "soul_speed",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:enchantment_swift_sneak",
+      "label": "Verzaubertes Buch: Schnelles Schleichen III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 9,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 84,
+      "unlockPrice": 15050,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "swift_sneak",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:enchantment_power",
+      "label": "Verzaubertes Buch: Stärke V",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 9,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 85,
+      "unlockPrice": 15400,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "power",
+      "enchantmentLevel": 5
+    },
+    {
+      "id": "scholar:enchantment_punch",
+      "label": "Verzaubertes Buch: Schlag II",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 9,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 86,
+      "unlockPrice": 15750,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "punch",
+      "enchantmentLevel": 2
+    },
+    {
+      "id": "scholar:enchantment_flame",
+      "label": "Verzaubertes Buch: Flamme",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 9,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 87,
+      "unlockPrice": 16100,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "flame",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:enchantment_infinity",
+      "label": "Verzaubertes Buch: Unendlichkeit",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 10,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 88,
+      "unlockPrice": 16450,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "infinity",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:enchantment_loyalty",
+      "label": "Verzaubertes Buch: Treue III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 10,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 89,
+      "unlockPrice": 16800,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "loyalty",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:enchantment_impaling",
+      "label": "Verzaubertes Buch: Harpune V",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 10,
+        "DIAMOND": 3
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 17150,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "impaling",
+      "enchantmentLevel": 5
+    }
+  ]
+}
