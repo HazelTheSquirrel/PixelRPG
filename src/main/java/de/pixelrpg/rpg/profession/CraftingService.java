@@ -1,15 +1,23 @@
 package de.pixelrpg.rpg.profession;
 
 import de.pixelrpg.rpg.item.CraftedItemFactory;
-import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.ItemRarity;
+import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionType;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -75,6 +83,42 @@ public final class CraftingService {
             return itemService.createItem(recipe.resultItemId())
                     .orElseThrow(() -> new IllegalStateException("Unable to create crafting result item: " + recipe.resultItemId()));
         }
+
+        if (!recipe.potionType().isBlank()) {
+            PotionType potionType;
+            try {
+                potionType = PotionType.valueOf(recipe.potionType().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
+                throw new IllegalStateException("Invalid potion type for recipe " + recipe.id() + ": " + recipe.potionType(), exception);
+            }
+
+            ItemStack potion = new ItemStack(recipe.resultMaterial(), recipe.resultAmount());
+            PotionMeta meta = (PotionMeta) potion.getItemMeta();
+            meta.setBasePotionType(potionType);
+            meta.displayName(net.kyori.adventure.text.Component.text(recipe.displayName()));
+            potion.setItemMeta(meta);
+            return potion;
+        }
+
+        if (!recipe.enchantment().isBlank()) {
+            if (recipe.resultMaterial() != Material.ENCHANTED_BOOK) {
+                throw new IllegalStateException("Enchanted-book recipe must produce ENCHANTED_BOOK: " + recipe.id());
+            }
+
+            var enchantmentRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT);
+            var enchantment = enchantmentRegistry.get(NamespacedKey.minecraft(recipe.enchantment().toLowerCase(Locale.ROOT)));
+            if (enchantment == null) {
+                throw new IllegalStateException("Unknown enchantment for recipe " + recipe.id() + ": " + recipe.enchantment());
+            }
+
+            ItemStack book = new ItemStack(Material.ENCHANTED_BOOK, recipe.resultAmount());
+            EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
+            meta.addStoredEnchant(enchantment, recipe.enchantmentLevel(), false);
+            meta.displayName(net.kyori.adventure.text.Component.text(recipe.displayName()));
+            book.setItemMeta(meta);
+            return book;
+        }
+
         ItemStack item = CraftedItemFactory.create(recipe.id(), recipe.displayName(), recipe.resultMaterial(), rarity, itemLevel);
         if (recipe.resultAmount() > 1) item.setAmount(recipe.resultAmount());
         return item;
