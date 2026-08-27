@@ -1,11 +1,9 @@
 package de.pixelrpg.rpg.companion;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.stats.StatEngine;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -22,26 +20,18 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
-/** Handles passive companion protection, passive player bonuses and runtime lifecycle. */
+/** Handles companion lifecycle and delegates all player-stat calculation to the central StatEngine. */
 public final class CompanionExperienceListener implements Listener {
     private final CompanionService companionService;
-    private final CompanionStatsCalculator statsCalculator = new CompanionStatsCalculator();
+    private final StatEngine statEngine;
     private final JavaPlugin plugin;
-    private final NamespacedKey healthKey;
-    private final NamespacedKey armorKey;
-    private final NamespacedKey critChanceKey;
-    private final NamespacedKey critDamageKey;
-    private final NamespacedKey lifestealKey;
     private final BukkitTask passiveStatsTask;
 
     public CompanionExperienceListener(CompanionService companionService) {
         this.companionService = companionService;
         this.plugin = JavaPlugin.getProvidingPlugin(CompanionExperienceListener.class);
-        this.healthKey = new NamespacedKey(plugin, "companion_health");
-        this.armorKey = new NamespacedKey(plugin, "companion_armor");
-        this.critChanceKey = new NamespacedKey(plugin, "companion_crit_chance");
-        this.critDamageKey = new NamespacedKey(plugin, "companion_crit_damage");
-        this.lifestealKey = new NamespacedKey(plugin, "companion_lifesteal");
+        PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
+        this.statEngine = pixelRPG.getStatEngine();
         this.passiveStatsTask = Bukkit.getScheduler().runTaskTimer(plugin, this::refreshAllPlayers, 1L, 10L);
     }
 
@@ -49,7 +39,7 @@ public final class CompanionExperienceListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         companionService.restoreActive(event.getPlayer());
-        refreshPlayer(event.getPlayer());
+        refreshStats(event.getPlayer());
     }
 
     // Clears a companion's active runtime state when its spawned entity dies.
@@ -57,7 +47,11 @@ public final class CompanionExperienceListener implements Listener {
     public void onCompanionDeath(EntityDeathEvent event) {
         if (!isCompanion(event.getEntity())) return;
         java.util.UUID ownerUuid = companionService.getOwnerOfEntity(event.getEntity().getUniqueId());
-        if (ownerUuid != null) companionService.clearActive(ownerUuid);
+        if (ownerUuid != null) {
+            companionService.clearActive(ownerUuid);
+            Player owner = Bukkit.getPlayer(ownerUuid);
+            if (owner != null) refreshStats(owner);
+        }
     }
 
     // Makes all non-Unique-Mannequin companions completely invulnerable.
@@ -85,69 +79,19 @@ public final class CompanionExperienceListener implements Listener {
         event.setCancelled(true);
     }
 
-    // Despawns the runtime entity on quit while preserving the persisted active selection for the next join.
+    // Despawns the runtime entity on quit while clearing all central stat modifiers for the leaving player.
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         companionService.despawn(event.getPlayer().getUniqueId());
-        refreshPlayerWithoutCompanion(event.getPlayer());
+        statEngine.clear(event.getPlayer());
     }
 
     private void refreshAllPlayers() {
-        for (Player player : Bukkit.getOnlinePlayers()) refreshPlayer(player);
+        for (Player player : Bukkit.getOnlinePlayers()) refreshStats(player);
     }
 
-    private void refreshPlayer(Player player) {
-        Companion active = companionService.getActive(player.getUniqueId());
-        if (active == null || !isSummoned(player, active)) {
-            refreshPlayerWithoutCompanion(player);
-            return;
-        }
-
-        CompanionDefinition definition = companionService.definition(active.id());
-        if (definition.rarity().isUnique() && definition.visual().type() == CompanionDefinition.CompanionVisualDefinition.VisualType.MANNEQUIN) {
-            refreshPlayerWithoutCompanion(player);
-            return;
-        }
-
-        CompanionStats stats = statsCalculator.playerPassiveStats(definition);
-        setModifier(player, Attribute.MAX_HEALTH, healthKey, stats.health());
-        setModifier(player, Attribute.ARMOR, armorKey, stats.armor());
-        player.getPersistentDataContainer().set(critChanceKey, PersistentDataType.DOUBLE, stats.critChance());
-        player.getPersistentDataContainer().set(critDamageKey, PersistentDataType.DOUBLE, stats.critDamage());
-        player.getPersistentDataContainer().set(lifestealKey, PersistentDataType.DOUBLE, stats.lifesteal());
-
-        AttributeInstance maxHealth = player.getAttribute(Attribute.MAX_HEALTH);
-        if (maxHealth != null && player.getHealth() > maxHealth.getValue()) player.setHealth(maxHealth.getValue());
-    }
-
-    private boolean isSummoned(Player player, Companion active) {
-        java.util.UUID entityId = companionService.getActiveEntity(player.getUniqueId());
-        if (entityId == null) return false;
-        Entity entity = Bukkit.getEntity(entityId);
-        if (!(entity instanceof LivingEntity living) || !entity.isValid() || entity.isDead()) return false;
-        String runtimeId = living.getPersistentDataContainer().get(RPGKeys.Companion.id(), PersistentDataType.STRING);
-        return active.id().equals(runtimeId);
-    }
-
-    private void setModifier(Player player, Attribute attribute, NamespacedKey key, double amount) {
-        AttributeInstance instance = player.getAttribute(attribute);
-        if (instance == null) return;
-        removeModifier(player, attribute, key);
-        if (amount <= 0.0D) return;
-        instance.addTransientModifier(new AttributeModifier(key, amount, AttributeModifier.Operation.ADD_NUMBER));
-    }
-
-    private void removeModifier(Player player, Attribute attribute, NamespacedKey key) {
-        AttributeInstance instance = player.getAttribute(attribute);
-        if (instance == null) return;
-        AttributeModifier modifier = instance.getModifier(key);
-        if (modifier != null) instance.removeModifier(modifier);
-    }
-
-    private void clearBonusData(Player player) {
-        player.getPersistentDataContainer().remove(critChanceKey);
-        player.getPersistentDataContainer().remove(critDamageKey);
-        player.getPersistentDataContainer().remove(lifestealKey);
+    private void refreshStats(Player player) {
+        statEngine.recalculate(player);
     }
 
     private boolean isCompanion(Entity entity) {
@@ -165,12 +109,6 @@ public final class CompanionExperienceListener implements Listener {
 
     public void shutdown() {
         passiveStatsTask.cancel();
-        for (Player player : Bukkit.getOnlinePlayers()) refreshPlayerWithoutCompanion(player);
-    }
-
-    private void refreshPlayerWithoutCompanion(Player player) {
-        removeModifier(player, Attribute.MAX_HEALTH, healthKey);
-        removeModifier(player, Attribute.ARMOR, armorKey);
-        clearBonusData(player);
+        for (Player player : Bukkit.getOnlinePlayers()) statEngine.recalculate(player);
     }
 }
