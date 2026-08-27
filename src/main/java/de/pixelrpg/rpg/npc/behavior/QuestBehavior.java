@@ -8,6 +8,7 @@ import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
 import de.pixelrpg.rpg.quest.QuestManager;
+import de.pixelrpg.rpg.quest.QuestText;
 import de.pixelrpg.rpg.quest.QuestType;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
@@ -104,7 +105,7 @@ public final class QuestBehavior implements NpcBehavior {
         List<Quest> quests = questManager.getRepository().getAllQuests().stream()
                 .filter(quest -> quest.type() != QuestType.GLOBAL_EVENT)
                 .filter(quest -> quest.categoryLevel() == start)
-                .sorted(Comparator.comparingInt(Quest::requiredLevel).thenComparing(Quest::title))
+                .sorted(Comparator.comparingInt(Quest::requiredLevel).thenComparing(QuestText::titlePlain))
                 .toList();
 
         List<DialogBody> body = List.of(
@@ -117,8 +118,11 @@ public final class QuestBehavior implements NpcBehavior {
         for (Quest quest : quests) {
             boolean active = profile.hasActiveQuest(quest.id());
             boolean levelAvailable = profile.getLevel() >= Math.max(1, quest.requiredLevel() - unlockBuffer());
+            Component label = Component.text(active ? "[Aktiv] " : "")
+                    .append(QuestText.title(quest))
+                    .append(Component.text(" • Level " + quest.requiredLevel(), NamedTextColor.GRAY));
             actions.add(dialogueEngine.actionButton(
-                    Component.text((active ? "[Aktiv] " : "") + quest.title() + " • Level " + quest.requiredLevel()),
+                    label,
                     active ? NamedTextColor.YELLOW : levelAvailable ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
                     target -> openQuestDetails(target, quest, start, end)));
         }
@@ -148,14 +152,14 @@ public final class QuestBehavior implements NpcBehavior {
         String status = completed ? "Bereits abgeschlossen" : active ? "Aktiv" : levelAvailable ? "Verfügbar" : "Noch nicht verfügbar";
         String rewards = "Belohnung: " + quest.rewardMoney() + " Gold, " + quest.rewardExp() + " EP";
 
-        List<DialogBody> body = List.of(
-                DialogBody.plainMessage(Component.text(quest.description(), NamedTextColor.WHITE)),
-                DialogBody.plainMessage(Component.text(
-                        "Empfohlen ab Level " + quest.requiredLevel() + " • Freigeschaltet ab Level " + unlockLevel
-                                + " • " + quest.requiredAmount() + "x • " + status,
-                        levelAvailable ? NamedTextColor.AQUA : NamedTextColor.RED)),
-                DialogBody.plainMessage(Component.text(rewards, NamedTextColor.GOLD))
-        );
+        List<DialogBody> body = new ArrayList<>();
+        body.add(DialogBody.plainMessage(QuestText.objective(quest).color(NamedTextColor.AQUA)));
+        body.add(DialogBody.plainMessage(Component.text(quest.description(), NamedTextColor.WHITE)));
+        body.add(DialogBody.plainMessage(Component.text(
+                "Empfohlen ab Level " + quest.requiredLevel() + " • Freigeschaltet ab Level " + unlockLevel
+                        + " • " + quest.requiredAmount() + "x • " + status,
+                levelAvailable ? NamedTextColor.AQUA : NamedTextColor.RED)));
+        body.add(DialogBody.plainMessage(Component.text(rewards, NamedTextColor.GOLD)));
 
         List<ActionButton> actions = new ArrayList<>();
         if (!active && !completed && levelAvailable && questManager.canAccept(profile, quest)) {
@@ -186,7 +190,7 @@ public final class QuestBehavior implements NpcBehavior {
 
         dialogueEngine.openMultiAction(
                 player,
-                Component.text(quest.title(), NamedTextColor.GOLD),
+                QuestText.title(quest).color(NamedTextColor.GOLD),
                 body,
                 actions,
                 2);
