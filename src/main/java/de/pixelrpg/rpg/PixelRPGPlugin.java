@@ -173,7 +173,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         bossRepository = new BossRepository(this);
         bossRepository.load();
         bossManager = new BossManager(this, patternRegistry, playerProfileManager, partyManager, playerProfileManager,
-                mobScalingConfig, getConfig().getDouble("bosses.bar-radius", 60.0D),
+                itemService, mobScalingConfig, languageManager,
+                getConfig().getDouble("bosses.bar-radius", 60.0D),
                 getConfig().getInt("bosses.bar-update-interval-ticks", 20),
                 getConfig().getInt("bosses.phase-check-interval-ticks", 10));
         biomeBossSpawnTask = new BiomeBossSpawnTask(this, bossRepository, bossManager,
