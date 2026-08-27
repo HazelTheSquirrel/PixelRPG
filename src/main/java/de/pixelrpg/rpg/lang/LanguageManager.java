@@ -34,7 +34,7 @@ public final class LanguageManager {
     private final Plugin plugin;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final Map<String, Map<String, String>> languages = new LinkedHashMap<>();
-    private final Set<String> invalidTranslations = new java.util.HashSet<>();
+    private final Set<String> invalidTranslations = new HashSet<>();
     private Set<String> supportedLanguages = Set.of(DEFAULT_LANGUAGE);
     private String currentLanguage = DEFAULT_LANGUAGE;
 
@@ -141,6 +141,16 @@ public final class LanguageManager {
 
     public Component get(Player player, String key, String... placeholders) {
         return render(resolvePlayerLanguage(player), key, placeholders);
+    }
+
+    /** Returns the raw localized string for advanced rendering and content fallbacks. */
+    public String raw(String key) {
+        return resolveRaw(currentLanguage, key);
+    }
+
+    /** Returns the raw localized string for the player's Minecraft client language. */
+    public String raw(Player player, String key) {
+        return resolveRaw(resolvePlayerLanguage(player), key);
     }
 
     private Component render(String language, String key, String... placeholders) {
