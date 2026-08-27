@@ -3,12 +3,13 @@ package de.pixelrpg.rpg.quest;
 import de.pixelrpg.rpg.item.ItemDefinition;
 import de.pixelrpg.rpg.item.ItemDefinitionRegistry;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 
 import java.util.Locale;
 
-/** Centralized, player-facing text for quest titles and objectives. */
+/** Centralized player-facing text for every quest screen and notification. */
 public final class QuestText {
     private QuestText() {
     }
@@ -19,29 +20,43 @@ public final class QuestText {
 
     public static String titlePlain(Quest quest) {
         String title = quest.title();
-        return title == null || title.isBlank() ? quest.id() : title;
+        return title == null || title.isBlank() ? "Unbenannte Quest" : title;
+    }
+
+    public static Component description(Quest quest) {
+        String description = quest.description();
+        return Component.text(description == null || description.isBlank() ? "Keine Beschreibung vorhanden." : description);
     }
 
     public static Component objective(Quest quest) {
         return switch (quest.type()) {
             case HUNT -> Component.text("Töte ")
                     .append(Component.text(quest.requiredAmount()))
-                    .append(Component.text(" "))
+                    .append(Component.text("x "))
                     .append(entityName(quest.targetKey()));
             case COLLECT -> Component.text("Sammle ")
                     .append(Component.text(quest.requiredAmount()))
-                    .append(Component.text(" "))
+                    .append(Component.text("x "))
                     .append(itemName(quest.targetKey()));
-            case TALK_TO_NPC -> Component.text("Sprich mit ").append(Component.text(quest.targetKey()));
+            case TALK_TO_NPC -> Component.text("Sprich mit ").append(Component.text(prettyKey(quest.targetKey())));
             case REACH_LOCATION -> Component.text("Erreiche den angegebenen Zielort.");
             case GLOBAL_EVENT -> Component.text("Beteilige dich am serverweiten Ziel: ")
                     .append(Component.text(prettyKey(quest.targetKey())));
         };
     }
 
+    public static Component objectiveWithProgress(Quest quest, QuestProgress progress) {
+        int current = Math.min(Math.max(0, progress.getCurrentAmount()), quest.requiredAmount());
+        NamedTextColor color = current >= quest.requiredAmount() ? NamedTextColor.GREEN : NamedTextColor.AQUA;
+        return Component.text("Ziel: ", NamedTextColor.AQUA)
+                .append(objective(quest).color(NamedTextColor.WHITE))
+                .append(Component.text(" • Fortschritt: ", NamedTextColor.GRAY))
+                .append(Component.text(current + "/" + quest.requiredAmount(), color));
+    }
+
     public static Component requiredItem(Quest quest) {
         if (quest.type() != QuestType.COLLECT) return Component.empty();
-        return Component.text("Benötigt: ")
+        return Component.text("Benötigt: ", NamedTextColor.WHITE)
                 .append(Component.text(quest.requiredAmount()))
                 .append(Component.text("x "))
                 .append(itemName(quest.targetKey()));
@@ -52,7 +67,7 @@ public final class QuestText {
         return quest.requiredAmount() + "x " + itemNamePlain(quest.targetKey());
     }
 
-    /** Resolves a quest item to the actual PixelRPG display name or the vanilla translated item name. */
+    /** Resolves a quest item to the actual PixelRPG display name or the vanilla translated item component. */
     public static Component itemName(String key) {
         ItemDefinition definition = findDefinition(key);
         if (definition != null) return Component.text(definition.name());
@@ -62,7 +77,7 @@ public final class QuestText {
         return Component.text(prettyKey(key));
     }
 
-    /** Resolves a quest item to a plain display name for contexts that require a String. */
+    /** Resolves a quest item to a plain display name for string-only contexts. */
     public static String itemNamePlain(String key) {
         ItemDefinition definition = findDefinition(key);
         if (definition != null) return definition.name();
@@ -72,12 +87,21 @@ public final class QuestText {
         return prettyKey(key);
     }
 
-    private static Component entityName(String key) {
+    public static Component entityName(String key) {
         try {
             EntityType type = EntityType.valueOf(key.toUpperCase(Locale.ROOT));
             return Component.translatable(type.translationKey());
         } catch (IllegalArgumentException exception) {
             return Component.text(prettyKey(key));
+        }
+    }
+
+    public static String entityNamePlain(String key) {
+        try {
+            EntityType type = EntityType.valueOf(key.toUpperCase(Locale.ROOT));
+            return prettyKey(type.name());
+        } catch (IllegalArgumentException exception) {
+            return prettyKey(key);
         }
     }
 
