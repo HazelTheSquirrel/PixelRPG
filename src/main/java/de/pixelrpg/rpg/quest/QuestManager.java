@@ -4,7 +4,6 @@ import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
 import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.item.ItemService;
-import de.pixelrpg.rpg.item.RPGItemBuilder;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
@@ -56,7 +55,8 @@ public final class QuestManager {
         this.globalEventState = globalEventState;
         this.partyShareRange = partyShareRange;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
-        this.itemService = new ItemService();
+        this.itemService = PixelRPGPlugin.getInstance().getItemService();
+        if (this.itemService == null) throw new IllegalStateException("ItemService must be initialized before QuestManager.");
     }
 
     public void startTimerCheckTask() {
@@ -189,17 +189,26 @@ public final class QuestManager {
     private void giveRewardItem(Player player, String definition, int fallbackLevel) {
         String[] parts = definition.split("\\|", -1);
         try {
-            Material material = Material.valueOf(parts[0].trim().toUpperCase(Locale.ROOT));
+            String rewardId = parts[0].trim();
+            if (rewardId.toLowerCase(Locale.ROOT).startsWith("pixelrpg:")) {
+                int itemLevel = parts.length >= 2 ? Integer.parseInt(parts[1].trim()) : fallbackLevel;
+                itemService.createItem(rewardId, Math.max(1, itemLevel))
+                        .ifPresent(item -> player.getInventory().addItem(item));
+                return;
+            }
+
+            Material material = Material.matchMaterial(rewardId);
+            if (material == null || material.isAir()) throw new IllegalArgumentException("Unknown material");
             if (parts.length == 1) {
                 player.getInventory().addItem(new ItemStack(material));
                 return;
             }
             ItemRarity rarity = ItemRarity.valueOf(parts[1].trim().toUpperCase(Locale.ROOT));
             int itemLevel = parts.length >= 3 ? Integer.parseInt(parts[2].trim()) : fallbackLevel;
-            RPGItemBuilder.createItem(material, rarity, Math.max(1, itemLevel))
+            itemService.createVanillaReward(material, rarity, Math.max(1, itemLevel))
                     .ifPresent(item -> player.getInventory().addItem(item));
         } catch (IllegalArgumentException exception) {
-            plugin.getLogger().warning("Invalid quest reward item '" + definition + "'. Use MATERIAL or MATERIAL|RARITY|ITEM_LEVEL.");
+            plugin.getLogger().warning("Invalid quest reward item '" + definition + "'. Use MATERIAL, MATERIAL|RARITY|ITEM_LEVEL or pixelrpg:item-id|ITEM_LEVEL.");
         }
     }
 
