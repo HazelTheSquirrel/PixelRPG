@@ -18,7 +18,10 @@ public record CraftRecipe(
         String requiredQuestId,
         boolean unlockedByDefault,
         boolean vanillaRecipe,
-        String resultItemId
+        String resultItemId,
+        String potionType,
+        String enchantment,
+        int enchantmentLevel
 ) {
     public CraftRecipe {
         if (profession == null) throw new IllegalArgumentException("Profession must not be null");
@@ -36,6 +39,9 @@ public record CraftRecipe(
         if (unlockPrice < 0L) throw new IllegalArgumentException("Unlock price must not be negative");
         if (requiredQuestId == null) requiredQuestId = "";
         if (resultItemId == null) resultItemId = "";
+        if (potionType == null) potionType = "";
+        if (enchantment == null) enchantment = "";
+        if (enchantmentLevel < 0) throw new IllegalArgumentException("Enchantment level must not be negative");
         costs = Map.copyOf(costs);
     }
 
