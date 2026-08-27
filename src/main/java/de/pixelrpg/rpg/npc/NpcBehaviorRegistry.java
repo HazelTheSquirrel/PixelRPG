@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.npc;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
 import de.pixelrpg.rpg.npc.behavior.FillerBehavior;
 import de.pixelrpg.rpg.npc.behavior.ProfessionTrainerBehavior;
 import de.pixelrpg.rpg.npc.behavior.QuestBehavior;
@@ -13,6 +14,11 @@ import java.util.Optional;
 
 public final class NpcBehaviorRegistry {
     private final Map<NpcType, NpcBehavior> behaviors = new EnumMap<>(NpcType.class);
+    private final QuickActionsDialogService quickActions;
+
+    public NpcBehaviorRegistry(QuickActionsDialogService quickActions) {
+        this.quickActions = quickActions;
+    }
 
     public void register(NpcBehavior behavior) {
         behaviors.put(behavior.type(), behavior);
@@ -32,7 +38,7 @@ public final class NpcBehaviorRegistry {
         NpcBehavior behavior = behaviors.get(type);
         if (behavior != null) return Optional.of(behavior);
 
-        if (plugin.getProfessionSystem() != null && plugin.getItemService() != null) {
+        if (plugin.getProfessionSystem() != null && quickActions != null) {
             Profession profession = professionFor(type);
             if (profession != null) {
                 return Optional.of(new ProfessionTrainerBehavior(
@@ -41,7 +47,7 @@ public final class NpcBehaviorRegistry {
                         plugin.getPlayerProfileManager(),
                         plugin.getProfessionSystem().professionService(),
                         new DialogueEngine(),
-                        plugin.getItemService()));
+                        quickActions));
             }
         }
 
