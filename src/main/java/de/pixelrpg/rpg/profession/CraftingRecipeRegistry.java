@@ -53,7 +53,10 @@ public final class CraftingRecipeRegistry {
             boolean defaultUnlocked = json.has("unlockedByDefault") && json.get("unlockedByDefault").getAsBoolean();
             String label = json.has("label") ? json.get("label").getAsString() : pretty(result);
             String resultItemId = json.has("resultItemId") ? json.get("resultItemId").getAsString() : "";
-            recipes.put(id, new CraftRecipe(profession, id, label, result, amount, maximumRarity, costs, level, price, quest, defaultUnlocked, false, resultItemId));
+            String potionType = json.has("potionType") ? json.get("potionType").getAsString() : "";
+            String enchantment = json.has("enchantment") ? json.get("enchantment").getAsString() : "";
+            int enchantmentLevel = json.has("enchantmentLevel") ? json.get("enchantmentLevel").getAsInt() : 0;
+            recipes.put(id, new CraftRecipe(profession, id, label, result, amount, maximumRarity, costs, level, price, quest, defaultUnlocked, false, resultItemId, potionType, enchantment, enchantmentLevel));
         }
     }
 
