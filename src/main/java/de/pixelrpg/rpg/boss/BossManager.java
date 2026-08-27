@@ -9,7 +9,7 @@ import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.ItemRarity;
-import de.pixelrpg.rpg.item.RPGItemBuilder;
+import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
@@ -41,8 +41,8 @@ public final class BossManager {
     private final GuildAPI guildAPI;
     private final PartyAPI partyAPI;
     private final EconomyAPI economyAPI;
-    private final ItemEconomyConfig itemEconomyConfig;
     private final MobScalingConfig mobScalingConfig;
+    private final ItemService itemService;
     private final double barRadius;
     private final int barUpdateIntervalTicks;
     private final int phaseCheckIntervalTicks;
@@ -58,8 +58,9 @@ public final class BossManager {
         this.guildAPI = guildAPI;
         this.partyAPI = partyAPI;
         this.economyAPI = economyAPI;
-        this.itemEconomyConfig = itemEconomyConfig;
         this.mobScalingConfig = mobScalingConfig;
+        this.itemService = PixelRPGPlugin.getInstance().getItemService();
+        if (this.itemService == null) throw new IllegalStateException("ItemService must be initialized before BossManager.");
         this.barRadius = Math.max(1.0D, barRadius);
         this.barUpdateIntervalTicks = Math.max(1, barUpdateIntervalTicks);
         this.phaseCheckIntervalTicks = Math.max(1, phaseCheckIntervalTicks);
@@ -105,10 +106,10 @@ public final class BossManager {
     private void applyBaseStats(LivingEntity entity, BossDefinition definition) {
         MobScalingConfig.LevelBaseStats levelStats = mobScalingConfig.getBaseStats(definition.getLevel());
         double parityMultiplier = mobScalingConfig.getPlayerParityMultiplier();
-        double newHp = levelStats.hp() * parityMultiplier * definition.getHealthMultiplier();
+        double newHp = Math.min(1024.0D, Math.max(1.0D, levelStats.hp() * parityMultiplier * definition.getHealthMultiplier()));
         double newDamage = levelStats.damage() * parityMultiplier * definition.getDamageMultiplier();
         AttributeInstance hpAttribute = entity.getAttribute(Attribute.MAX_HEALTH);
-        if (hpAttribute != null) { hpAttribute.setBaseValue(newHp); entity.setHealth(newHp); }
+        if (hpAttribute != null) { hpAttribute.setBaseValue(newHp); entity.setHealth(Math.min(entity.getHealth(), newHp)); }
         AttributeInstance dmgAttribute = entity.getAttribute(Attribute.ATTACK_DAMAGE);
         if (dmgAttribute != null) dmgAttribute.setBaseValue(newDamage);
         AttributeInstance scaleAttribute = entity.getAttribute(Attribute.SCALE);
@@ -235,26 +236,39 @@ public final class BossManager {
         return result;
     }
 
-    private void giveGuaranteedLoot(Player player, BossLootConfig lootConfig, int level) { for (String reward : lootConfig.guaranteedMaterials()) giveReward(player, reward, ItemRarity.RARE, level); }
+    private void giveGuaranteedLoot(Player player, BossLootConfig lootConfig, int level) {
+        for (String reward : lootConfig.guaranteedMaterials()) giveReward(player, reward, ItemRarity.RARE, level);
+    }
 
     private void giveChanceLoot(Player player, BossLootConfig lootConfig, int level) {
         Random random = ThreadLocalRandom.current();
-        for (BossLootEntry entry : lootConfig.chanceDrops()) if (random.nextDouble(100.0D) < entry.chancePercent()) giveReward(player, entry.material(), entry.rarity(), level);
+        for (BossLootEntry entry : lootConfig.chanceDrops()) {
+            if (random.nextDouble(100.0D) < entry.chancePercent()) giveReward(player, entry.material(), entry.rarity(), level);
+        }
     }
 
     private void giveReward(Player player, String rewardId, ItemRarity rarity, int level) {
-        if (rewardId != null && rewardId.toLowerCase(java.util.Locale.ROOT).startsWith("pixelrpg:boss/")) {
-            BossRewardItemFactory.create(rewardId, level).ifPresent(item -> giveItem(player, item));
+        if (rewardId == null || rewardId.isBlank()) return;
+        String normalized = rewardId.trim().toLowerCase(java.util.Locale.ROOT);
+        if (normalized.startsWith("pixelrpg:")) {
+            itemService.createItem(normalized, level).ifPresent(item -> giveItem(player, item));
             return;
         }
-        try {
-            Material material = Material.valueOf(rewardId.toUpperCase());
-            RPGItemBuilder.createItem(material, rarity, level).ifPresent(item -> giveItem(player, item));
-        } catch (IllegalArgumentException ignored) { plugin.getLogger().warning("Invalid boss loot material: " + rewardId); }
+        Material material = Material.matchMaterial(rewardId);
+        if (material == null || material.isAir()) {
+            plugin.getLogger().warning("Invalid boss loot reward: " + rewardId);
+            return;
+        }
+        itemService.createVanillaReward(material, rarity, level).ifPresent(item -> giveItem(player, item));
     }
 
-    private void giveItem(Player player, org.bukkit.inventory.ItemStack item) { player.getInventory().addItem(item).values().forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder)); }
-    private void callDefeatedEvent(ActiveBoss activeBoss, Set<UUID> participants) { Bukkit.getPluginManager().callEvent(new BossDefeatedEvent(activeBoss.getDefinition().getId(), participants)); }
+    private void giveItem(Player player, org.bukkit.inventory.ItemStack item) {
+        player.getInventory().addItem(item).values().forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
+    }
+
+    private void callDefeatedEvent(ActiveBoss activeBoss, Set<UUID> participants) {
+        Bukkit.getPluginManager().callEvent(new BossDefeatedEvent(activeBoss.getDefinition().getId(), participants));
+    }
 
     private void cleanup(ActiveBoss activeBoss) {
         if (activeBoss.getTask() != null) activeBoss.getTask().cancel();
