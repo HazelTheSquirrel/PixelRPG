@@ -109,7 +109,7 @@ public final class BossManager {
         double newHp = Math.min(1024.0D, Math.max(1.0D, levelStats.hp() * parityMultiplier * definition.getHealthMultiplier()));
         double newDamage = levelStats.damage() * parityMultiplier * definition.getDamageMultiplier();
         AttributeInstance hpAttribute = entity.getAttribute(Attribute.MAX_HEALTH);
-        if (hpAttribute != null) { hpAttribute.setBaseValue(newHp); entity.setHealth(Math.min(entity.getHealth(), newHp)); }
+        if (hpAttribute != null) { hpAttribute.setBaseValue(newHp); entity.setHealth(newHp); }
         AttributeInstance dmgAttribute = entity.getAttribute(Attribute.ATTACK_DAMAGE);
         if (dmgAttribute != null) dmgAttribute.setBaseValue(newDamage);
         AttributeInstance scaleAttribute = entity.getAttribute(Attribute.SCALE);
