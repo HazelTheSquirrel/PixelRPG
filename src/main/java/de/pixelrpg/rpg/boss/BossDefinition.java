@@ -7,8 +7,6 @@ import org.bukkit.entity.EntityType;
 import java.util.List;
 
 public final class BossDefinition {
-    private static final double MAX_MINECRAFT_HEALTH = 1024.0D;
-
     private final String id;
     private String displayName;
     private EntityType baseEntityType;
@@ -55,14 +53,7 @@ public final class BossDefinition {
     public boolean matchesBiome(Biome biome) { return biome != null && this.biomes.contains(biome); }
     public int getLevel() { return level; }
     public void setLevel(int level) { this.level = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, level)); }
-
-    /** Returns a multiplier that can never produce a MAX_HEALTH value above Minecraft's 1024.0 attribute limit. */
-    public double getHealthMultiplier() {
-        double baseHealth = 20.0D + Math.clamp(level, Level.MIN_LEVEL, Level.MAX_NORMAL_LEVEL) * 8.0D;
-        double safeMaximum = MAX_MINECRAFT_HEALTH / Math.max(1.0D, baseHealth);
-        return Math.min(healthMultiplier, safeMaximum);
-    }
-
+    public double getHealthMultiplier() { return healthMultiplier; }
     public void setHealthMultiplier(double healthMultiplier) { this.healthMultiplier = Math.max(0.1D, healthMultiplier); }
     public double getDamageMultiplier() { return damageMultiplier; }
     public void setDamageMultiplier(double damageMultiplier) { this.damageMultiplier = Math.max(0.1D, damageMultiplier); }
