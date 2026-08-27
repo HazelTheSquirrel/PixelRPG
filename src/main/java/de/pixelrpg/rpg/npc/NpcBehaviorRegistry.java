@@ -32,7 +32,7 @@ public final class NpcBehaviorRegistry {
         NpcBehavior behavior = behaviors.get(type);
         if (behavior != null) return Optional.of(behavior);
 
-        if (plugin.getProfessionSystem() != null) {
+        if (plugin.getProfessionSystem() != null && plugin.getItemService() != null) {
             Profession profession = professionFor(type);
             if (profession != null) {
                 return Optional.of(new ProfessionTrainerBehavior(
@@ -40,7 +40,8 @@ public final class NpcBehaviorRegistry {
                         profession,
                         plugin.getPlayerProfileManager(),
                         plugin.getProfessionSystem().professionService(),
-                        new DialogueEngine()));
+                        new DialogueEngine(),
+                        plugin.getItemService()));
             }
         }
 
