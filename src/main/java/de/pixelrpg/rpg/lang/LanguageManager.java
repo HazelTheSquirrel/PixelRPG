@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -19,11 +20,12 @@ import java.util.Set;
 public final class LanguageManager {
 
     private static final String DEFAULT_LANGUAGE = "en";
-    private static final Set<String> SUPPORTED_LANGUAGES = Set.of("en", "de", "fr", "es");
+    private static final Set<String> KNOWN_LANGUAGES = Set.of("en", "de", "fr", "es");
 
     private final Plugin plugin;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final Map<String, Map<String, String>> languages = new HashMap<>();
+    private Set<String> supportedLanguages = Set.of(DEFAULT_LANGUAGE);
     private String currentLanguage = DEFAULT_LANGUAGE;
 
     public LanguageManager(Plugin plugin) {
@@ -34,7 +36,17 @@ public final class LanguageManager {
         currentLanguage = normalizeLanguage(languageCode);
         languages.clear();
 
-        for (String supportedLanguage : SUPPORTED_LANGUAGES) {
+        LinkedHashSet<String> configuredLanguages = new LinkedHashSet<>();
+        for (String configured : plugin.getConfig().getStringList("language.supported")) {
+            String normalized = normalizeLanguage(configured);
+            if (KNOWN_LANGUAGES.contains(normalized)) {
+                configuredLanguages.add(normalized);
+            }
+        }
+        configuredLanguages.add(DEFAULT_LANGUAGE);
+        supportedLanguages = Set.copyOf(configuredLanguages);
+
+        for (String supportedLanguage : supportedLanguages) {
             Map<String, String> messages = new HashMap<>();
             loadInto(messages, supportedLanguage);
             languages.put(supportedLanguage, messages);
@@ -44,7 +56,7 @@ public final class LanguageManager {
             plugin.getLogger().warning("English language file is missing or empty; translation keys will be shown as fallback text.");
         }
 
-        if (!SUPPORTED_LANGUAGES.contains(currentLanguage)) {
+        if (!supportedLanguages.contains(currentLanguage)) {
             currentLanguage = DEFAULT_LANGUAGE;
         }
     }
@@ -168,10 +180,8 @@ public final class LanguageManager {
         }
 
         Locale locale = player.locale();
-        String language = locale == null ? DEFAULT_LANGUAGE : locale.getLanguage();
-        return SUPPORTED_LANGUAGES.contains(language.toLowerCase(Locale.ROOT))
-                ? language.toLowerCase(Locale.ROOT)
-                : DEFAULT_LANGUAGE;
+        String language = locale == null ? DEFAULT_LANGUAGE : locale.getLanguage().toLowerCase(Locale.ROOT);
+        return supportedLanguages.contains(language) ? language : DEFAULT_LANGUAGE;
     }
 
     private String normalizeLanguage(String languageCode) {
@@ -182,7 +192,7 @@ public final class LanguageManager {
         String baseLanguage = normalized.contains("_")
                 ? normalized.substring(0, normalized.indexOf('_'))
                 : normalized;
-        return SUPPORTED_LANGUAGES.contains(baseLanguage) ? baseLanguage : DEFAULT_LANGUAGE;
+        return KNOWN_LANGUAGES.contains(baseLanguage) ? baseLanguage : DEFAULT_LANGUAGE;
     }
 
     public String getCurrentLanguage() {
@@ -190,6 +200,6 @@ public final class LanguageManager {
     }
 
     public Set<String> getSupportedLanguages() {
-        return SUPPORTED_LANGUAGES;
+        return supportedLanguages;
     }
 }
