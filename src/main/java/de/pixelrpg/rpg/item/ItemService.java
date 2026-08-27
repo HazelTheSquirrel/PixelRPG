@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.item;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.ItemAPI;
 import de.pixelrpg.rpg.core.RPGKeys;
 import net.kyori.adventure.text.Component;
@@ -24,23 +23,13 @@ public final class ItemService implements ItemAPI {
     private final ItemDefinitionRegistry definitions;
     private final UniqueItemService uniqueItems;
 
+    public ItemService(Plugin plugin) {
+        this(plugin, new UniqueItemService(plugin));
+    }
+
     public ItemService(Plugin plugin, UniqueItemService uniqueItems) {
         this.definitions = new ItemDefinitionRegistry(plugin);
         this.uniqueItems = uniqueItems;
-    }
-
-    /** Creates the primary service during plugin startup or a shared view afterwards. */
-    public ItemService() {
-        PixelRPGPlugin plugin = PixelRPGPlugin.getInstance();
-        if (plugin == null) throw new IllegalStateException("PixelRPGPlugin must be initialized before ItemService creation.");
-        ItemService central = plugin.getItemService();
-        if (central == null) {
-            this.uniqueItems = new UniqueItemService(plugin);
-            this.definitions = new ItemDefinitionRegistry(plugin);
-        } else {
-            this.definitions = central.definitions;
-            this.uniqueItems = central.uniqueItems;
-        }
     }
 
     @Override public Optional<ItemStack> createItem(String itemId) { return createDefinedItem(itemId, 0, false); }
