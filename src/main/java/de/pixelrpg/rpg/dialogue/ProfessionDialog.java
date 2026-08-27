@@ -7,6 +7,9 @@ import de.pixelrpg.rpg.profession.CraftRecipe;
 import de.pixelrpg.rpg.profession.CraftingService;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.profession.ProfessionService;
+import de.pixelrpg.rpg.quest.Quest;
+import de.pixelrpg.rpg.quest.QuestManager;
+import de.pixelrpg.rpg.quest.QuestText;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
@@ -26,11 +29,13 @@ public final class ProfessionDialog {
     private final CraftingService craftingService;
     private final DialogueEngine dialogueEngine;
     private final QuickActionsDialogService quickActions;
+    private final QuestManager questManager;
 
     public ProfessionDialog(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, QuickActionsDialogService quickActions) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.quickActions = quickActions;
+        this.questManager = PixelRPGPlugin.getInstance().getQuestManager();
         var professionSystem = PixelRPGPlugin.getInstance().getProfessionSystem();
         this.professionService = professionSystem.professionService();
         this.craftingService = professionSystem.craftingService();
@@ -133,7 +138,14 @@ public final class ProfessionDialog {
         }
 
         if (recipe.vanillaRecipe() && !unlocked) body.add(DialogBody.plainMessage(Component.text("Dieses Vanilla-Rezept muss zuerst im Minecraft-Rezeptbuch entdeckt werden.", NamedTextColor.YELLOW)));
-        if (!recipe.requiredQuestId().isBlank() && !unlocked) body.add(DialogBody.plainMessage(Component.text("Quest: " + recipe.requiredQuestId(), NamedTextColor.AQUA)));
+        if (!recipe.requiredQuestId().isBlank() && !unlocked) {
+            Quest quest = questManager == null ? null : questManager.getRepository().getQuest(recipe.requiredQuestId());
+            Component questLabel = quest == null
+                    ? Component.text(recipe.requiredQuestId(), NamedTextColor.AQUA)
+                    : QuestText.title(quest).color(NamedTextColor.AQUA);
+            body.add(DialogBody.plainMessage(Component.text("Quest: ", NamedTextColor.WHITE).append(questLabel)));
+            if (quest != null) body.add(DialogBody.plainMessage(QuestText.objective(quest).color(NamedTextColor.GRAY)));
+        }
         if (recipe.unlockPrice() > 0L && !unlocked) body.add(DialogBody.plainMessage(Component.text("Preis: " + recipe.unlockPrice() + " Gold", NamedTextColor.GOLD)));
         if (!learned) body.add(DialogBody.plainMessage(Component.text("Du musst diesen Beruf zuerst erlernen.", NamedTextColor.WHITE)));
 
