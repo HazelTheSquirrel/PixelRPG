@@ -55,6 +55,8 @@ import de.pixelrpg.rpg.npc.NpcInteractListener;
 import de.pixelrpg.rpg.npc.NpcLookTask;
 import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.npc.behavior.BankerBehavior;
+import de.pixelrpg.rpg.npc.behavior.FillerBehavior;
+import de.pixelrpg.rpg.npc.behavior.ProfessionTrainerBehavior;
 import de.pixelrpg.rpg.npc.behavior.QuestBehavior;
 import de.pixelrpg.rpg.npc.behavior.ReceptionBehavior;
 import de.pixelrpg.rpg.npc.behavior.ShopBehavior;
@@ -64,6 +66,7 @@ import de.pixelrpg.rpg.party.PartyDisconnectListener;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.profession.ProfessionSystem;
 import de.pixelrpg.rpg.quest.GlobalEventState;
 import de.pixelrpg.rpg.quest.QuestExperienceScalingListener;
@@ -193,13 +196,22 @@ public final class PixelRPGPlugin extends JavaPlugin {
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager, itemService);
         companionService = new CompanionService(this);
-        npcBehaviorRegistry = new NpcBehaviorRegistry(quickActions);
+        npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine, partyManager));
         npcBehaviorRegistry.register(new QuestBehavior(questManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new ShopBehavior(shopManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new TravelBehavior(npcManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogue, dialogueEngine, playerProfileManager));
         npcBehaviorRegistry.register(new BankerBehavior(playerProfileManager, dialogueEngine));
+        npcBehaviorRegistry.register(new FillerBehavior(questManager, playerProfileManager, dialogueEngine));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_BLACKSMITH, Profession.BLACKSMITH,
+                playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_PROVISIONER, Profession.PROVISIONER,
+                playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_SCHOLAR, Profession.SCHOLAR,
+                playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_ALCHEMIST, Profession.ALCHEMIST,
+                playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
 
         getServer().getPluginManager().registerEvents(equipmentService, this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
