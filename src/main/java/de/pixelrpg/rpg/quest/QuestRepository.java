@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import de.pixelrpg.rpg.config.JsonDataManager;
 import de.pixelrpg.rpg.core.Level;
+import de.pixelrpg.rpg.item.ItemDefinitionRegistry;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import org.bukkit.Material;
 import org.bukkit.plugin.Plugin;
@@ -15,13 +16,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class QuestRepository {
     private final Plugin plugin;
+    private final ItemDefinitionRegistry itemDefinitions;
     private final Map<String, Quest> questsById = new ConcurrentHashMap<>();
     private final Map<String, List<String>> prerequisitesByQuest = new ConcurrentHashMap<>();
     private final Map<String, List<String>> followUpsByQuest = new ConcurrentHashMap<>();
 
     private static final int MAX_ACTIVE_QUESTS = 5;
 
-    public QuestRepository(Plugin plugin) { this.plugin = plugin; }
+    public QuestRepository(Plugin plugin) {
+        this.plugin = plugin;
+        this.itemDefinitions = new ItemDefinitionRegistry(plugin);
+    }
 
     public void load() {
         questsById.clear();
@@ -63,8 +68,9 @@ public final class QuestRepository {
         String id = string(json, "id", "").strip();
         if (id.isBlank() || questsById.containsKey(id)) return false;
         QuestType type;
-        try { type = QuestType.valueOf(string(json, "type", "HUNT").trim().toUpperCase()); }
-        catch (IllegalArgumentException exception) {
+        try {
+            type = QuestType.valueOf(string(json, "type", "HUNT").trim().toUpperCase());
+        } catch (IllegalArgumentException exception) {
             plugin.getLogger().warning("Ignoring quest '" + id + "': unknown quest type.");
             return false;
         }
@@ -76,7 +82,7 @@ public final class QuestRepository {
         if (type == QuestType.GLOBAL_EVENT && string(json, "targetKey", "").isBlank()) return false;
         if (type == QuestType.TALK_TO_NPC && string(json, "targetKey", "").isBlank()) return false;
         if (type == QuestType.HUNT && !isVanillaEntityType(string(json, "targetKey", ""))) return false;
-        if (type == QuestType.COLLECT && !isVanillaMaterial(string(json, "targetKey", ""))) return false;
+        if (type == QuestType.COLLECT && !isQuestItem(string(json, "targetKey", ""))) return false;
         if (type == QuestType.REACH_LOCATION && !hasWorldNavigation(object(json, "navigation"))) return false;
         return true;
     }
@@ -85,16 +91,25 @@ public final class QuestRepository {
         return navigation != null && (!string(navigation, "structure", "").isBlank() || !stringList(navigation, "biomes").isEmpty());
     }
 
-    private boolean isVanillaMaterial(String key) {
-        try { return key != null && !key.isBlank() && Material.valueOf(key.trim().toUpperCase()).isItem(); }
-        catch (IllegalArgumentException exception) { return false; }
+    /** Accepts both normal Minecraft materials and concrete PixelRPG item definition IDs. */
+    private boolean isQuestItem(String key) {
+        if (key == null || key.isBlank()) return false;
+        String normalized = key.trim();
+        try {
+            Material material = Material.matchMaterial(normalized);
+            if (material != null && material.isItem()) return true;
+        } catch (IllegalArgumentException ignored) {
+        }
+        return itemDefinitions.find(normalized).isPresent();
     }
 
     private boolean isVanillaEntityType(String key) {
         try {
             var type = org.bukkit.entity.EntityType.valueOf(key.trim().toUpperCase());
             return type.isAlive() && type != org.bukkit.entity.EntityType.PLAYER;
-        } catch (IllegalArgumentException exception) { return false; }
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
     }
 
     private List<String> mergePrerequisites(JsonObject json) {
