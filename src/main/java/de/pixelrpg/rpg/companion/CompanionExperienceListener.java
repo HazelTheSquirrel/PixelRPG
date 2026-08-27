@@ -8,6 +8,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Wolf;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityCombustEvent;
@@ -87,11 +88,26 @@ public final class CompanionExperienceListener implements Listener {
     }
 
     private void refreshAllPlayers() {
-        for (Player player : Bukkit.getOnlinePlayers()) refreshStats(player);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            ensureWolfTamed(player);
+            refreshStats(player);
+        }
     }
 
     private void refreshStats(Player player) {
         statEngine.recalculate(player);
+    }
+
+    private void ensureWolfTamed(Player owner) {
+        Entity entity = companionService.getActiveEntity(owner.getUniqueId()) == null
+                ? null
+                : Bukkit.getEntity(companionService.getActiveEntity(owner.getUniqueId()));
+        if (!(entity instanceof Wolf wolf) || !isCompanion(wolf)) return;
+        String companionId = wolf.getPersistentDataContainer().get(RPGKeys.Companion.id(), PersistentDataType.STRING);
+        if (!"uncommon-wolf".equalsIgnoreCase(companionId)) return;
+        if (!wolf.isTamed()) wolf.setTamed(true);
+        if (wolf.getOwner() == null || !owner.getUniqueId().equals(wolf.getOwner().getUniqueId())) wolf.setOwner(owner);
+        if (wolf.isSitting()) wolf.setSitting(false);
     }
 
     private boolean isCompanion(Entity entity) {
