@@ -108,9 +108,9 @@ public final class QuickActionsDialogService {
             body.add(DialogBody.plainMessage(Component.text("Aktive Quests: " + profile.getActiveQuests().size() + "/" + QuestManager.MAX_ACTIVE_QUESTS, NamedTextColor.AQUA)));
             profile.getActiveQuests().forEach((questId, progress) -> {
                 Quest quest = questManager.getRepository().getQuest(questId);
-                Component label = quest == null ? Component.text(questId, NamedTextColor.YELLOW) : QuestText.title(quest).color(NamedTextColor.YELLOW);
-                Component description = quest == null ? Component.text("Quest-ID: " + questId, NamedTextColor.GRAY) : Component.text(quest.description(), NamedTextColor.GRAY);
-                Component objective = quest == null ? Component.text("Ziel unbekannt • " + progress.getCurrentAmount() + "/?", NamedTextColor.WHITE) : objectiveWithProgress(quest, progress);
+                Component label = quest == null ? Component.text("Unbekannte Quest", NamedTextColor.RED) : QuestText.title(quest).color(NamedTextColor.YELLOW);
+                Component description = quest == null ? Component.text("Die Questdefinition konnte nicht geladen werden.", NamedTextColor.RED) : QuestText.description(quest).color(NamedTextColor.GRAY);
+                Component objective = quest == null ? Component.text("Ziel unbekannt • " + progress.getCurrentAmount() + "/?", NamedTextColor.RED) : QuestText.objectiveWithProgress(quest, progress);
                 actions.add(actionButton(label.append(Component.text(" • ", NamedTextColor.DARK_GRAY)).append(objective), target -> openQuestDetails(target, questId, description, companionDialog, professionDialog)));
             });
         }
@@ -132,11 +132,12 @@ public final class QuickActionsDialogService {
             return;
         }
         List<DialogBody> body = new ArrayList<>();
-        body.add(DialogBody.plainMessage(Component.text(quest != null ? quest.title() : questId, NamedTextColor.YELLOW).decorate(TextDecoration.BOLD)));
-        body.add(DialogBody.plainMessage(quest != null ? Component.text(quest.description(), NamedTextColor.WHITE) : fallbackDescription));
+        body.add(DialogBody.plainMessage(quest != null ? QuestText.title(quest).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD) : Component.text("Unbekannte Quest", NamedTextColor.RED).decorate(TextDecoration.BOLD)));
+        body.add(DialogBody.plainMessage(quest != null ? QuestText.description(quest).color(NamedTextColor.WHITE) : fallbackDescription));
         if (quest != null) {
-            body.add(DialogBody.plainMessage(objectiveWithProgress(quest, progress)));
+            body.add(DialogBody.plainMessage(QuestText.objectiveWithProgress(quest, progress)));
             body.add(DialogBody.plainMessage(Component.text("Typ: " + quest.type().name(), NamedTextColor.GRAY)));
+            if (quest.isProfessionQuest()) body.add(DialogBody.plainMessage(Component.text("Beruf: " + quest.profession().displayName() + " • benötigt Level " + quest.requiredProfessionLevel(), NamedTextColor.AQUA)));
             body.add(DialogBody.plainMessage(rewards(quest)));
             if (progress.hasExpiry()) body.add(DialogBody.plainMessage(Component.text("Zeit verbleibend: " + formatRemaining(progress.getExpiryTimestampMillis()), NamedTextColor.RED)));
         }
@@ -150,10 +151,6 @@ public final class QuickActionsDialogService {
             builder.base(DialogBase.builder(Component.text("Questdetails", NamedTextColor.GOLD)).body(body).canCloseWithEscape(true).afterAction(DialogBase.DialogAfterAction.CLOSE).build());
             builder.type(DialogType.multiAction(List.of(abandon, back), DialogueEngineCloseButton.create(), 1));
         }));
-    }
-
-    private Component objectiveWithProgress(Quest quest, QuestProgress progress) {
-        return Component.text().append(Component.text("Ziel: ", NamedTextColor.AQUA)).append(QuestText.objective(quest).color(NamedTextColor.WHITE)).append(Component.text(" • Fortschritt: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.AQUA)).build();
     }
 
     private Component rewards(Quest quest) {
