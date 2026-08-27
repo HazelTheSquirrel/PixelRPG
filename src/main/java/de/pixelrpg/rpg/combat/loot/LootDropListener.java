@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class LootDropListener implements Listener {
@@ -71,17 +70,14 @@ public final class LootDropListener implements Listener {
         LivingEntity entity = event.getEntity();
         if (!(entity instanceof Monster)) return;
         Player killer = entity.getKiller();
-        if (killer == null) return;
-        if (!guildAPI.isRegistered(killer.getUniqueId())) return;
-
+        if (killer == null || !guildAPI.isRegistered(killer.getUniqueId())) return;
         ThreadLocalRandom random = ThreadLocalRandom.current();
         int playerLevel = Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, guildAPI.getLevel(killer.getUniqueId())));
         applyArmorStatsToVanillaDrops(event.getDrops(), playerLevel, random);
-
         if (random.nextDouble() < economyConfig.getItemDropChance()) {
             int lootLevel = rollLootLevel(playerLevel, random);
             Material material = DROP_POOL.get(random.nextInt(DROP_POOL.size()));
-            createLoot(material, lootLevel, playerLevel, random).ifPresent(event.getDrops()::add);
+            createLoot(material, lootLevel, playerLevel).ifPresent(event.getDrops()::add);
         }
         if (random.nextDouble() < economyConfig.getCurrencyDropChance()) {
             long min = economyConfig.getCurrencyDropMinAmount();
@@ -113,17 +109,16 @@ public final class LootDropListener implements Listener {
         var pdc = meta.getPersistentDataContainer();
         List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
         double rarityMultiplier = rarity.getStatMultiplier();
-        double scale = Math.max(1.0D, Math.pow(1.08D, Math.max(0, itemLevel - 1)));
+        double scale = 1.0D + Math.min(4.0D, Math.max(0, itemLevel - 1) * 0.04D);
         for (int i = 0; i < count; i++) {
-            String affix = candidates.get(i);
-            switch (affix) {
+            switch (candidates.get(i)) {
                 case "CRIT" -> {
                     double value = round((0.6D + random.nextDouble() * 1.8D) * rarityMultiplier * scale / 10.0D);
                     pdc.set(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, value);
                     lore.add(Component.text("+" + format(value) + "% Crit", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
                 }
                 case "CRIT_DAMAGE" -> {
-                    double value = round((0.05D + random.nextDouble() * 0.15D) * rarityMultiplier);
+                    double value = round((0.05D + random.nextDouble() * 0.15D) * rarityMultiplier * scale);
                     pdc.set(RPGKeys.Item.critDamage(), PersistentDataType.DOUBLE, value);
                     lore.add(Component.text("+" + format(value * 100.0D) + "% Crit-Schaden", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
                 }
@@ -149,7 +144,7 @@ public final class LootDropListener implements Listener {
         item.setItemMeta(meta);
     }
 
-    private java.util.Optional<ItemStack> createLoot(Material material, int lootLevel, int playerLevel, ThreadLocalRandom random) {
+    private java.util.Optional<ItemStack> createLoot(Material material, int lootLevel, int playerLevel) {
         ItemDefinition definition = definedItemsByMaterial.getOrDefault(material, List.of()).stream()
                 .filter(candidate -> candidate.itemLevel() <= lootLevel)
                 .filter(candidate -> candidate.requiredLevel() <= playerLevel)
@@ -172,12 +167,7 @@ public final class LootDropListener implements Listener {
     }
 
     private long levelWeight(int itemLevel) { long level = Math.max(1L, itemLevel); return level * level; }
-
-    private static boolean isArmor(Material material) {
-        return material.name().endsWith("_HELMET") || material.name().endsWith("_CHESTPLATE")
-                || material.name().endsWith("_LEGGINGS") || material.name().endsWith("_BOOTS");
-    }
-
+    private static boolean isArmor(Material material) { return material.name().endsWith("_HELMET") || material.name().endsWith("_CHESTPLATE") || material.name().endsWith("_LEGGINGS") || material.name().endsWith("_BOOTS"); }
     private static double round(double value) { return Math.round(value * 100.0D) / 100.0D; }
     private static String format(double value) { return Math.abs(value - Math.rint(value)) < 0.0001D ? Long.toString(Math.round(value)) : String.format(java.util.Locale.ROOT, "%.2f", value); }
 }
