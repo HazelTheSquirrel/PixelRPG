@@ -98,7 +98,7 @@ public final class ProfessionDialog {
         return questManager.getRepository().getAllQuests().stream()
                 .filter(Quest::isProfessionQuest)
                 .filter(quest -> quest.profession() == profession)
-                .sorted(Comparator.comparingInt(Quest::requiredProfessionLevel).thenComparing(QuestText::titlePlain))
+                .sorted(Comparator.comparingInt(Quest::requiredProfessionLevel).thenComparing(Quest::title))
                 .toList();
     }
 
