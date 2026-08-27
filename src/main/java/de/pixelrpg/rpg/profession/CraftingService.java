@@ -60,17 +60,14 @@ public final class CraftingService {
         if (recipe.rarity() == ItemRarity.UNIQUE) return CraftResult.failure("UNIQUE items cannot be crafted");
 
         for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) {
-            String ingredientId = "minecraft:" + cost.getKey().getKey().toString().toLowerCase(Locale.ROOT);
-            if (itemService.countIngredient(player, ingredientId) < cost.getValue()) return CraftResult.failure("Missing materials");
+            if (!player.getInventory().contains(cost.getKey(), cost.getValue())) return CraftResult.failure("Missing materials");
         }
         for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) {
-            String ingredientId = "minecraft:" + cost.getKey().getKey().toString().toLowerCase(Locale.ROOT);
-            itemService.removeIngredient(player, ingredientId, cost.getValue());
+            player.getInventory().removeItem(new ItemStack(cost.getKey(), cost.getValue()));
         }
 
         ItemRarity rolledRarity = CraftingRarityRoller.roll(recipe.rarity());
         ItemStack result = createResult(recipe, rolledRarity, Math.min(99, professionLevel));
-        if (recipe.resultAmount() > 1) result.setAmount(recipe.resultAmount());
         player.getInventory().addItem(result).values()
                 .forEach(stack -> player.getWorld().dropItemNaturally(player.getLocation(), stack));
 
