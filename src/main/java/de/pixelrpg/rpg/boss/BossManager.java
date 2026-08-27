@@ -7,7 +7,6 @@ import de.pixelrpg.rpg.api.PartyAPI;
 import de.pixelrpg.rpg.api.events.BossDefeatedEvent;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.core.RPGKeys;
-import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.lang.LanguageManager;
@@ -50,9 +49,8 @@ public final class BossManager {
     private final Map<UUID, ActiveBoss> activeBosses = new ConcurrentHashMap<>();
 
     public BossManager(Plugin plugin, BossAttackPatternRegistry patternRegistry, GuildAPI guildAPI,
-                       PartyAPI partyAPI, EconomyAPI economyAPI, ItemEconomyConfig itemEconomyConfig,
-                       MobScalingConfig mobScalingConfig, double barRadius, int barUpdateIntervalTicks,
-                       int phaseCheckIntervalTicks) {
+                       PartyAPI partyAPI, EconomyAPI economyAPI, MobScalingConfig mobScalingConfig,
+                       double barRadius, int barUpdateIntervalTicks, int phaseCheckIntervalTicks) {
         this.plugin = plugin;
         this.patternRegistry = patternRegistry;
         this.guildAPI = guildAPI;
@@ -65,7 +63,6 @@ public final class BossManager {
         this.barUpdateIntervalTicks = Math.max(1, barUpdateIntervalTicks);
         this.phaseCheckIntervalTicks = Math.max(1, phaseCheckIntervalTicks);
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
-        plugin.getServer().getPluginManager().registerEvents(new BossRewardItemListener(guildAPI), plugin);
         plugin.getServer().getPluginManager().registerEvents(new WorldBossProtectionListener(guildAPI), plugin);
     }
 
