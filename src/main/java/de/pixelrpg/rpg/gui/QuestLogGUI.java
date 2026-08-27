@@ -44,7 +44,6 @@ public final class QuestLogGUI extends AbstractGUI {
             ItemMeta meta = empty.getItemMeta();
             meta.displayName(lang.get("quest.no-active").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
             empty.setItemMeta(meta);
-        
             setItem(22, empty);
         } else {
             int slot = 0;
@@ -80,7 +79,8 @@ public final class QuestLogGUI extends AbstractGUI {
                 slot++;
             }
         }
-        setItem(49, backButton(), event -> new ReceptionDialog(viewer, profileManager, new DialogueEngine()).open());
+        setItem(49, backButton(), event -> new ReceptionDialog(viewer, profileManager,
+                new DialogueEngine(PixelRPGPlugin.getInstance().getLanguageManager())).open());
     }
 
     private ItemStack backButton() {
