@@ -56,37 +56,110 @@ public final class BossRewardItemListener implements Listener {
     private boolean activate(Player player, String ability) {
         switch (ability) {
             case "PLUNDERER_SEAL" -> effect(player, PotionEffectType.GLOWING, 10, 0);
-            case "BEE_QUEEN_MARK" -> { effect(player, PotionEffectType.SPEED, 10, 0); effect(player, PotionEffectType.REGENERATION, 5, 0); }
+            case "BEE_QUEEN_MARK" -> {
+                effect(player, PotionEffectType.SPEED, 10, 0);
+                effect(player, PotionEffectType.REGENERATION, 5, 0);
+            }
             case "WITCH_CAULDRON" -> effect(player, PotionEffectType.POISON, 8, 0);
-            case "KNAARZ_HEART" -> { effect(player, PotionEffectType.ABSORPTION, 15, 1); effect(player, PotionEffectType.RESISTANCE, 8, 0); }
-            case "JUNGLE_AMULET" -> { effect(player, PotionEffectType.SPEED, 15, 0); effect(player, PotionEffectType.JUMP_BOOST, 15, 1); }
-            case "SWAMP_POTION" -> { effect(player, PotionEffectType.WATER_BREATHING, 20, 0); effect(player, PotionEffectType.NIGHT_VISION, 20, 0); }
-            case "HUSK_SEAL" -> { effect(player, PotionEffectType.FIRE_RESISTANCE, 20, 0); effect(player, PotionEffectType.STRENGTH, 10, 0); }
-            case "RAVAGER_TROPHY" -> { effect(player, PotionEffectType.RESISTANCE, 12, 0); effect(player, PotionEffectType.STRENGTH, 8, 0); }
-            case "GOLDEN_FOSSIL" -> { effect(player, PotionEffectType.HASTE, 20, 0); effect(player, PotionEffectType.LUCK, 20, 0); }
-            case "FROSTWOLF_FANG" -> { effect(player, PotionEffectType.SPEED, 15, 1); effect(player, PotionEffectType.RESISTANCE, 10, 0); }
+            case "KNAARZ_HEART" -> {
+                effect(player, PotionEffectType.ABSORPTION, 15, 1);
+                effect(player, PotionEffectType.RESISTANCE, 8, 0);
+            }
+            case "JUNGLE_AMULET" -> {
+                effect(player, PotionEffectType.SPEED, 15, 0);
+                effect(player, PotionEffectType.JUMP_BOOST, 15, 1);
+            }
+            case "SWAMP_POTION" -> {
+                effect(player, PotionEffectType.WATER_BREATHING, 20, 0);
+                effect(player, PotionEffectType.NIGHT_VISION, 20, 0);
+            }
+            case "HUSK_SEAL" -> {
+                effect(player, PotionEffectType.FIRE_RESISTANCE, 20, 0);
+                effect(player, PotionEffectType.STRENGTH, 10, 0);
+            }
+            case "RAVAGER_TROPHY" -> {
+                effect(player, PotionEffectType.RESISTANCE, 12, 0);
+                effect(player, PotionEffectType.STRENGTH, 8, 0);
+            }
+            case "GOLDEN_FOSSIL" -> {
+                effect(player, PotionEffectType.HASTE, 20, 0);
+                effect(player, PotionEffectType.LUCK, 20, 0);
+            }
+            case "FROSTWOLF_FANG" -> {
+                effect(player, PotionEffectType.SPEED, 15, 1);
+                effect(player, PotionEffectType.RESISTANCE, 10, 0);
+            }
             case "FROST_ARROW_QUIVER" -> player.getInventory().addItem(new ItemStack(Material.SPECTRAL_ARROW, 8));
-            case "MOUNTAIN_HORN" -> { effect(player, PotionEffectType.RESISTANCE, 12, 0); player.getWorld().spawnParticle(Particle.SNOWFLAKE, player.getLocation().add(0, 1, 0), 18, 0.5, 0.7, 0.5, 0.01); }
-            case "WILD_HORN" -> { effect(player, PotionEffectType.JUMP_BOOST, 15, 1); effect(player, PotionEffectType.SPEED, 15, 0); }
+            case "MOUNTAIN_HORN" -> {
+                effect(player, PotionEffectType.RESISTANCE, 12, 0);
+                player.getWorld().spawnParticle(Particle.SNOWFLAKE, player.getLocation().add(0, 1, 0), 18, 0.5, 0.7, 0.5, 0.01);
+            }
+            case "WILD_HORN" -> {
+                effect(player, PotionEffectType.JUMP_BOOST, 15, 1);
+                effect(player, PotionEffectType.SPEED, 15, 0);
+            }
             case "BLOSSOM_HONEY" -> effect(player, PotionEffectType.REGENERATION, 10, 1);
             case "CAPTAINS_NAUTILUS" -> effect(player, PotionEffectType.WATER_BREATHING, 30, 0);
             case "RIVER_PEBBLE" -> effect(player, PotionEffectType.DOLPHINS_GRACE, 20, 0);
             case "EYE_OF_DEPTH" -> effect(player, PotionEffectType.CONDUIT_POWER, 20, 0);
-            case "MYCELIUM_CORE" -> { effect(player, PotionEffectType.REGENERATION, 12, 1); effect(player, PotionEffectType.SATURATION, 1, 0); }
-            case "SPIDER_EYE_HUNTER" -> { effect(player, PotionEffectType.NIGHT_VISION, 30, 0); effect(player, PotionEffectType.SPEED, 15, 0); }
-            case "ECHO_HEART" -> { effect(player, PotionEffectType.RESISTANCE, 10, 1); effect(player, PotionEffectType.ABSORPTION, 10, 0); }
-            case "NETHER_CORE" -> { effect(player, PotionEffectType.FIRE_RESISTANCE, 30, 0); effect(player, PotionEffectType.STRENGTH, 10, 0); }
-            case "CRIMSON_HEART" -> { effect(player, PotionEffectType.FIRE_RESISTANCE, 20, 0); effect(player, PotionEffectType.REGENERATION, 10, 0); }
-            case "BOUND_ENDER_PEARL" -> { player.teleport(player.getWorld().getSpawnLocation()); return true; }
-            case "SOUL_FRAGMENT" -> { effect(player, PotionEffectType.FIRE_RESISTANCE, 20, 0); effect(player, PotionEffectType.SLOW_FALLING, 15, 0); }
-            case "MAGMA_HEART" -> { effect(player, PotionEffectType.FIRE_RESISTANCE, 30, 0); effect(player, PotionEffectType.STRENGTH, 12, 0); }
+            case "MYCELIUM_CORE" -> {
+                effect(player, PotionEffectType.REGENERATION, 12, 1);
+                effect(player, PotionEffectType.SATURATION, 1, 0);
+            }
+            case "SPIDER_EYE_HUNTER" -> {
+                effect(player, PotionEffectType.NIGHT_VISION, 30, 0);
+                effect(player, PotionEffectType.SPEED, 15, 0);
+            }
+            case "ECHO_HEART" -> {
+                effect(player, PotionEffectType.RESISTANCE, 10, 1);
+                effect(player, PotionEffectType.ABSORPTION, 10, 0);
+            }
+            case "NETHER_CORE" -> {
+                effect(player, PotionEffectType.FIRE_RESISTANCE, 30, 0);
+                effect(player, PotionEffectType.STRENGTH, 10, 0);
+            }
+            case "CRIMSON_HEART" -> {
+                effect(player, PotionEffectType.FIRE_RESISTANCE, 20, 0);
+                effect(player, PotionEffectType.REGENERATION, 10, 0);
+            }
+            case "BOUND_ENDER_PEARL" -> {
+                player.teleport(player.getWorld().getSpawnLocation());
+                return true;
+            }
+            case "SOUL_FRAGMENT" -> {
+                effect(player, PotionEffectType.FIRE_RESISTANCE, 20, 0);
+                effect(player, PotionEffectType.SLOW_FALLING, 15, 0);
+            }
+            case "MAGMA_HEART" -> {
+                effect(player, PotionEffectType.FIRE_RESISTANCE, 30, 0);
+                effect(player, PotionEffectType.STRENGTH, 12, 0);
+            }
             case "SHULKER_CORE" -> effect(player, PotionEffectType.LEVITATION, 3, 0);
-            case "RIFT_CORE" -> { effect(player, PotionEffectType.RESISTANCE, 15, 0); effect(player, PotionEffectType.STRENGTH, 12, 0); }
-            case "STORM_HEART" -> { effect(player, PotionEffectType.SPEED, 20, 1); effect(player, PotionEffectType.SLOW_FALLING, 20, 0); }
-            case "ABYSS_CORE" -> { effect(player, PotionEffectType.CONDUIT_POWER, 30, 0); effect(player, PotionEffectType.WATER_BREATHING, 30, 0); }
-            case "SOUL_CROWN" -> { effect(player, PotionEffectType.STRENGTH, 15, 1); effect(player, PotionEffectType.FIRE_RESISTANCE, 20, 0); }
-            case "END_RIFT" -> { effect(player, PotionEffectType.SPEED, 15, 1); effect(player, PotionEffectType.NIGHT_VISION, 30, 0); }
-            case "WORLD_HEART" -> { effect(player, PotionEffectType.RESISTANCE, 20, 1); effect(player, PotionEffectType.ABSORPTION, 20, 1); player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation().add(0, 1, 0), 30, 0.6, 0.9, 0.6, 0.05); }
+            case "RIFT_CORE" -> {
+                effect(player, PotionEffectType.RESISTANCE, 15, 0);
+                effect(player, PotionEffectType.STRENGTH, 12, 0);
+            }
+            case "STORM_HEART" -> {
+                effect(player, PotionEffectType.SPEED, 20, 1);
+                effect(player, PotionEffectType.SLOW_FALLING, 20, 0);
+            }
+            case "ABYSS_CORE" -> {
+                effect(player, PotionEffectType.CONDUIT_POWER, 30, 0);
+                effect(player, PotionEffectType.WATER_BREATHING, 30, 0);
+            }
+            case "SOUL_CROWN" -> {
+                effect(player, PotionEffectType.STRENGTH, 15, 1);
+                effect(player, PotionEffectType.FIRE_RESISTANCE, 20, 0);
+            }
+            case "END_RIFT" -> {
+                effect(player, PotionEffectType.SPEED, 15, 1);
+                effect(player, PotionEffectType.NIGHT_VISION, 30, 0);
+            }
+            case "WORLD_HEART" -> {
+                effect(player, PotionEffectType.RESISTANCE, 20, 1);
+                effect(player, PotionEffectType.ABSORPTION, 20, 1);
+                player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation().add(0, 1, 0), 30, 0.6, 0.9, 0.6, 0.05);
+            }
             default -> { return false; }
         }
         return true;
