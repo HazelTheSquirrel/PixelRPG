@@ -13,6 +13,11 @@ storage:
 
 language:
   default: "en"
+  supported:
+    - "en"
+    - "de"
+    - "fr"
+    - "es"
 
 items:
   soulbound:
