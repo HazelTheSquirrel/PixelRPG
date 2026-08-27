@@ -33,7 +33,7 @@ public final class QuickActionsDialogListener implements Listener {
         this.service = service;
         this.companionService = companionService;
         this.guildManager = GuildManager.getInstance(plugin, service.profileManager());
-        DialogueEngine dialogueEngine = new DialogueEngine();
+        DialogueEngine dialogueEngine = new DialogueEngine(plugin.getLanguageManager());
         this.companionDialog = new CompanionDialog(companionService, dialogueEngine, service);
         this.professionDialog = new ProfessionDialog(service.profileManager(), dialogueEngine, service);
         this.characterCardScoreboard = new CharacterCardScoreboardService(plugin, service.profileManager(), service.statEngine());
@@ -60,7 +60,7 @@ public final class QuickActionsDialogListener implements Listener {
 
     /** Opens guild creation or guild management from the direct G character card. */
     @EventHandler
-    public void onGuildAction(PlayerCustomClickEvent event) { handlePlayerAction(event, GUILD_ACTION, player -> new GuildDialog(guildManager, service.profileManager(), new DialogueEngine(), service).open(player)); }
+    public void onGuildAction(PlayerCustomClickEvent event) { handlePlayerAction(event, GUILD_ACTION, player -> new GuildDialog(guildManager, service.profileManager(), new DialogueEngine(plugin.getLanguageManager()), service).open(player)); }
 
     /** Opens the validated Mannequin companion equipment inventory from its unique dialog action. */
     @EventHandler
