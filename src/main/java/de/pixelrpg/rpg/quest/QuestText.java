@@ -42,8 +42,7 @@ public final class QuestText {
 
     public static Component description(Player player, Quest quest) {
         String localized = localizedContent(player, quest, "description");
-        if (localized != null) return Component.text(localized);
-        return description(quest);
+        return localized != null ? Component.text(localized) : description(quest);
     }
 
     public static Component objective(Quest quest) {
@@ -73,12 +72,9 @@ public final class QuestText {
     public static Component objectiveWithProgress(Player player, Quest quest, QuestProgress progress) {
         int current = Math.min(Math.max(0, progress.getCurrentAmount()), quest.requiredAmount());
         NamedTextColor color = current >= quest.requiredAmount() ? NamedTextColor.GREEN : NamedTextColor.AQUA;
-        return languageManager().get(player, "quest.objective-progress",
-                        "objective", objective(player, quest).toString(),
-                        "current", String.valueOf(current),
-                        "required", String.valueOf(quest.requiredAmount()))
-                .color(NamedTextColor.WHITE)
-                .append(Component.text(" "))
+        return lang(player).get(player, "quest.objective-label")
+                .append(objective(player, quest).color(NamedTextColor.WHITE))
+                .append(lang(player).get(player, "quest.progress-label"))
                 .append(Component.text(current + "/" + quest.requiredAmount(), color));
     }
 
@@ -88,7 +84,7 @@ public final class QuestText {
 
     public static Component requiredItem(Player player, Quest quest) {
         if (quest.type() != QuestType.COLLECT) return Component.empty();
-        return languageManager().get(player, "quest.required-item", "amount", String.valueOf(quest.requiredAmount()))
+        return lang(player).get(player, "quest.required-item", "amount", String.valueOf(quest.requiredAmount()))
                 .append(Component.text(" "))
                 .append(itemName(quest.targetKey()));
     }
@@ -140,7 +136,7 @@ public final class QuestText {
         if (player == null || quest.id() == null || quest.id().isBlank()) return null;
         LanguageManager lang = languageManager();
         String key = "quest.content." + quest.id() + "." + field;
-        String value = lang.get(player, key).toString();
+        String value = lang.raw(player, key);
         return value.equals(key) ? null : value;
     }
 
@@ -148,6 +144,10 @@ public final class QuestText {
         LanguageManager manager = PixelRPGPlugin.getInstance().getLanguageManager();
         if (manager == null) throw new IllegalStateException("LanguageManager is not initialized.");
         return manager;
+    }
+
+    private static LanguageManager lang(Player player) {
+        return languageManager();
     }
 
     private static ItemDefinition findDefinition(String key) {
