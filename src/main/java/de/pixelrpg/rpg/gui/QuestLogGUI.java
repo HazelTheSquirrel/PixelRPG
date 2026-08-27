@@ -28,7 +28,7 @@ public final class QuestLogGUI extends AbstractGUI {
     private final LanguageManager lang;
 
     public QuestLogGUI(Player viewer, QuestManager questManager, PlayerProfileManager profileManager) {
-        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("quest.log-title"));
+        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get(viewer, "quest.log-title"));
         this.viewer = viewer;
         this.questManager = questManager;
         this.profileManager = profileManager;
@@ -42,7 +42,7 @@ public final class QuestLogGUI extends AbstractGUI {
         if (profile.getActiveQuests().isEmpty()) {
             ItemStack empty = new ItemStack(Material.BARRIER);
             ItemMeta meta = empty.getItemMeta();
-            meta.displayName(lang.get("quest.no-active").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+            meta.displayName(lang.get(viewer, "quest.no-active").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
             empty.setItemMeta(meta);
             setItem(22, empty);
         } else {
@@ -52,7 +52,7 @@ public final class QuestLogGUI extends AbstractGUI {
                 Quest quest = questManager.getRepository().getQuest(progress.getQuestId());
                 if (quest == null) continue;
 
-                Component questTitle = QuestText.title(quest)
+                Component questTitle = QuestText.title(viewer, quest)
                         .color(NamedTextColor.YELLOW)
                         .decoration(TextDecoration.ITALIC, false);
                 ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
@@ -61,18 +61,19 @@ public final class QuestLogGUI extends AbstractGUI {
                 meta.itemName(questTitle);
 
                 List<Component> lore = new ArrayList<>();
-                lore.add(Component.text(quest.description(), NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
-                lore.add(Component.text(" "));
-                lore.add(QuestText.objective(quest).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
+                lore.add(QuestText.description(viewer, quest).color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+                lore.add(Component.empty());
+                lore.add(QuestText.objective(viewer, quest).color(NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
                 if (quest.type() == de.pixelrpg.rpg.quest.QuestType.COLLECT) {
-                    lore.add(QuestText.requiredItem(quest).color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+                    lore.add(QuestText.requiredItem(viewer, quest).color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
                 }
-                lore.add(lang.get("quest.progress", "current", String.valueOf(progress.getCurrentAmount()), "required", String.valueOf(quest.requiredAmount())).color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
-                lore.add(Component.text(" "));
-                lore.add(Component.text("Das Questziel ist hier jederzeit sichtbar.", NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+                lore.add(lang.get(viewer, "quest.progress", "current", String.valueOf(progress.getCurrentAmount()), "required", String.valueOf(quest.requiredAmount()))
+                        .color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
+                lore.add(Component.empty());
+                lore.add(lang.get(viewer, "quest.list-hint").color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
                 lore.add(progress.hasExpiry()
-                        ? lang.get("quest.time-limited").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)
-                        : lang.get("quest.no-time-limit").color(NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
+                        ? lang.get(viewer, "quest.time-limited").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)
+                        : lang.get(viewer, "quest.no-time-limit").color(NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
                 meta.lore(lore);
                 item.setItemMeta(meta);
                 setItem(slot, item, event -> new QuestDetailGUI(viewer, questManager, profileManager, quest).open(viewer));
@@ -86,7 +87,7 @@ public final class QuestLogGUI extends AbstractGUI {
     private ItemStack backButton() {
         ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(lang.get("common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(lang.get(viewer, "common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }
