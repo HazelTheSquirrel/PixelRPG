@@ -253,19 +253,17 @@ public final class PixelRPGPlugin extends JavaPlugin {
         rootCommand.register(new ShopSubCommand(shopManager, shopEditorGUI, npcManager));
         rootCommand.register(new QuestAdminSubCommand(questManager));
         rootCommand.register(new BossSubCommand(bossRepository, bossManager));
-        registerCommand("rpgadmin", new PaperBasicCommandAdapter("rpgadmin", rootCommand, rootCommand, "rpg.admin"));
         PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
-        PaperBasicCommandAdapter partyAdapter = new PaperBasicCommandAdapter("party", partyCommand, partyCommand, "rpg.member");
-        registerCommand("party", partyAdapter);
-        registerCommand("rpgparty", new PaperBasicCommandAdapter("rpgparty", partyCommand, partyCommand, "rpg.member"));
-        registerCommand("questlog", new PaperBasicCommandAdapter("questlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member"));
-        registerCommand("dialogue", new PaperBasicCommandAdapter("dialogue", new DialogueCommand(playerProfileManager, dialogueEngine, npcManager), null, "rpg.member"));
+        PaperBasicCommandAdapter rpgAdminCommand = new PaperBasicCommandAdapter("rpgadmin", rootCommand, rootCommand, "rpg.admin");
+        PaperBasicCommandAdapter partyAdapter = new PaperBasicCommandAdapter("rpgparty", partyCommand, partyCommand, "rpg.member");
+        PaperBasicCommandAdapter questLogAdapter = new PaperBasicCommandAdapter("questlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member");
+        PaperBasicCommandAdapter dialogueAdapter = new PaperBasicCommandAdapter("dialogue", new DialogueCommand(playerProfileManager, dialogueEngine), null, "rpg.member");
 
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-            event.registrar().register(new PaperBasicCommandAdapter("rpgadmin", rootCommand, rootCommand, "rpg.admin").command());
-            event.registrar().register(new PaperBasicCommandAdapter("rpgparty", partyCommand, partyCommand, "rpg.member").command());
-            event.registrar().register(new PaperBasicCommandAdapter("questlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member").command());
-            event.registrar().register(new PaperBasicCommandAdapter("dialogue", new DialogueCommand(playerProfileManager, dialogueEngine, npcManager), null, "rpg.member").command());
+            event.registrar().register("rpgadmin", rpgAdminCommand);
+            event.registrar().register("rpgparty", partyAdapter);
+            event.registrar().register("questlog", questLogAdapter);
+            event.registrar().register("dialogue", dialogueAdapter);
         });
     }
 
@@ -273,20 +271,14 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public void onDisable() {
         if (questPassiveCheckTask != null) questPassiveCheckTask.stop();
         if (biomeBossSpawnTask != null) biomeBossSpawnTask.stop();
-        if (mobLevelScalingListener != null) mobLevelScalingListener.stop();
-        if (playtimeTracker != null) playtimeTracker.stop();
-        if (scoreboardService != null) scoreboardService.stop();
-        if (questManager != null) questManager.stop();
+        if (mobLevelScalingListener != null) mobLevelScalingListener.shutdown();
+        if (playtimeTracker != null) playtimeTracker.shutdown();
+        if (scoreboardService != null) scoreboardService.shutdown();
+        if (questManager != null) questManager.shutdown();
         if (bossManager != null) bossManager.shutdown();
         if (npcLookTask != null) npcLookTask.stop();
-        if (storyManager != null) storyManager.stop();
         if (playerProfileManager != null) playerProfileManager.shutdown();
         if (instance == this) instance = null;
-    }
-
-    private void registerCommand(String name, PaperBasicCommandAdapter command) {
-        var commandMap = getServer().getCommandMap();
-        commandMap.register(name, command.command());
     }
 
     public static PixelRPGPlugin getInstance() { return instance; }
@@ -304,4 +296,5 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public LanguageManager getLanguageManager() { return languageManager; }
     public NpcManager getNpcManager() { return npcManager; }
     public ScoreboardService getScoreboardService() { return scoreboardService; }
+    public PartyManager getPartyManager() { return partyManager; }
 }
