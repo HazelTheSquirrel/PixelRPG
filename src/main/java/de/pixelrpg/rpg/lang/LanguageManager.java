@@ -25,10 +25,50 @@ public final class LanguageManager {
     private static final Set<String> KNOWN_LANGUAGES = Set.of("en", "de", "fr", "es");
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%([A-Za-z0-9_.-]+)%");
     private static final Map<String, Map<String, String>> BUILTIN_MESSAGES = Map.of(
-            "en", Map.of("common.close", "Close", "common.cancel", "Cancel"),
-            "de", Map.of("common.close", "Schließen", "common.cancel", "Abbrechen"),
-            "fr", Map.of("common.close", "Fermer", "common.cancel", "Annuler"),
-            "es", Map.of("common.close", "Cerrar", "common.cancel", "Cancelar")
+            "en", Map.ofEntries(
+                    Map.entry("common.close", "Close"), Map.entry("common.cancel", "Cancel"),
+                    Map.entry("quest.max-active", "You can have at most %max% active quests."),
+                    Map.entry("quest.objective.hunt", "Kill %amount%x"), Map.entry("quest.objective.collect", "Collect %amount%x"),
+                    Map.entry("quest.objective.talk", "Talk to %target%"), Map.entry("quest.objective.reach", "Reach the designated destination."),
+                    Map.entry("quest.objective.global", "Participate in the server-wide objective: %target%"),
+                    Map.entry("quest.objective-label", "Objective: "), Map.entry("quest.progress-label", " • Progress: "),
+                    Map.entry("quest.required-item", "Required: %amount%x"), Map.entry("quest.detail-hint", "Quest objective and current progress are shown here at any time."),
+                    Map.entry("quest.list-hint", "Click for details."), Map.entry("quest.abandon-desc", "Current progress will be lost."),
+                    Map.entry("companion.unlocked", "Companion unlocked: %name%")
+            ),
+            "de", Map.ofEntries(
+                    Map.entry("common.close", "Schließen"), Map.entry("common.cancel", "Abbrechen"),
+                    Map.entry("quest.max-active", "Du kannst maximal %max% Quests gleichzeitig aktiv haben."),
+                    Map.entry("quest.objective.hunt", "Töte %amount%x"), Map.entry("quest.objective.collect", "Sammle %amount%x"),
+                    Map.entry("quest.objective.talk", "Sprich mit %target%"), Map.entry("quest.objective.reach", "Erreiche den angegebenen Zielort."),
+                    Map.entry("quest.objective.global", "Beteilige dich am serverweiten Ziel: %target%"),
+                    Map.entry("quest.objective-label", "Ziel: "), Map.entry("quest.progress-label", " • Fortschritt: "),
+                    Map.entry("quest.required-item", "Benötigt: %amount%x"), Map.entry("quest.detail-hint", "Questziel und aktueller Fortschritt sind jederzeit hier sichtbar."),
+                    Map.entry("quest.list-hint", "Für Details klicken."), Map.entry("quest.abandon-desc", "Der aktuelle Fortschritt geht verloren."),
+                    Map.entry("companion.unlocked", "Begleiter freigeschaltet: %name%")
+            ),
+            "fr", Map.ofEntries(
+                    Map.entry("common.close", "Fermer"), Map.entry("common.cancel", "Annuler"),
+                    Map.entry("quest.max-active", "Vous pouvez avoir au maximum %max% quêtes actives."),
+                    Map.entry("quest.objective.hunt", "Tuez %amount%x"), Map.entry("quest.objective.collect", "Collectez %amount%x"),
+                    Map.entry("quest.objective.talk", "Parlez à %target%"), Map.entry("quest.objective.reach", "Atteignez la destination indiquée."),
+                    Map.entry("quest.objective.global", "Participez à l'objectif serveur : %target%"),
+                    Map.entry("quest.objective-label", "Objectif : "), Map.entry("quest.progress-label", " • Progression : "),
+                    Map.entry("quest.required-item", "Requis : %amount%x"), Map.entry("quest.detail-hint", "L'objectif et la progression de la quête sont visibles ici à tout moment."),
+                    Map.entry("quest.list-hint", "Cliquez pour les détails."), Map.entry("quest.abandon-desc", "La progression actuelle sera perdue."),
+                    Map.entry("companion.unlocked", "Compagnon débloqué : %name%")
+            ),
+            "es", Map.ofEntries(
+                    Map.entry("common.close", "Cerrar"), Map.entry("common.cancel", "Cancelar"),
+                    Map.entry("quest.max-active", "Puedes tener como máximo %max% misiones activas."),
+                    Map.entry("quest.objective.hunt", "Mata %amount%x"), Map.entry("quest.objective.collect", "Recolecta %amount%x"),
+                    Map.entry("quest.objective.talk", "Habla con %target%"), Map.entry("quest.objective.reach", "Alcanza el destino indicado."),
+                    Map.entry("quest.objective.global", "Participa en el objetivo del servidor: %target%"),
+                    Map.entry("quest.objective-label", "Objetivo: "), Map.entry("quest.progress-label", " • Progreso: "),
+                    Map.entry("quest.required-item", "Necesario: %amount%x"), Map.entry("quest.detail-hint", "El objetivo y el progreso actual de la misión se muestran aquí."),
+                    Map.entry("quest.list-hint", "Haz clic para ver los detalles."), Map.entry("quest.abandon-desc", "Se perderá el progreso actual."),
+                    Map.entry("companion.unlocked", "Compañero desbloqueado: %name%")
+            )
     );
 
     private final Plugin plugin;
