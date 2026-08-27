@@ -193,7 +193,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 8.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
-        DialogueEngine dialogueEngine = new DialogueEngine();
+        DialogueEngine dialogueEngine = new DialogueEngine(languageManager);
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager, itemService);
         companionService = new CompanionService(this);
@@ -259,52 +259,46 @@ public final class PixelRPGPlugin extends JavaPlugin {
         registerCommand("party", partyAdapter);
         registerCommand("rpgparty", new PaperBasicCommandAdapter("rpgparty", partyCommand, partyCommand, "rpg.member"));
         registerCommand("questlog", new PaperBasicCommandAdapter("questlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member"));
-        DialogueCommand dialogueCommand = new DialogueCommand(playerProfileManager, dialogueEngine);
-        registerCommand("dialogue", new PaperBasicCommandAdapter("dialogue", dialogueCommand, dialogueCommand, "rpg.member"));
-        getLogger().info("PixelRPG core enabled.");
+        registerCommand("dialogue", new PaperBasicCommandAdapter("dialogue", new DialogueCommand(playerProfileManager, dialogueEngine, npcManager), null, "rpg.member"));
+
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+            event.registrar().register(new PaperBasicCommandAdapter("rpgadmin", rootCommand, rootCommand, "rpg.admin").command());
+            event.registrar().register(new PaperBasicCommandAdapter("rpgparty", partyCommand, partyCommand, "rpg.member").command());
+            event.registrar().register(new PaperBasicCommandAdapter("questlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member").command());
+            event.registrar().register(new PaperBasicCommandAdapter("dialogue", new DialogueCommand(playerProfileManager, dialogueEngine, npcManager), null, "rpg.member").command());
+        });
     }
 
     @Override
     public void onDisable() {
         if (questPassiveCheckTask != null) questPassiveCheckTask.stop();
-        if (mobLevelScalingListener != null) mobLevelScalingListener.shutdown();
-        if (combatDamageListener != null) combatDamageListener.shutdown();
-        if (npcLookTask != null) npcLookTask.stop();
-        if (mobNameplateService != null) mobNameplateService.cancelAll();
         if (biomeBossSpawnTask != null) biomeBossSpawnTask.stop();
-        if (questManager != null) questManager.shutdown();
-        if (scoreboardService != null) scoreboardService.shutdown();
-        if (playtimeTracker != null) playtimeTracker.shutdown();
-        if (companionService != null) companionService.shutdown();
+        if (mobLevelScalingListener != null) mobLevelScalingListener.stop();
+        if (playtimeTracker != null) playtimeTracker.stop();
+        if (scoreboardService != null) scoreboardService.stop();
+        if (questManager != null) questManager.stop();
         if (bossManager != null) bossManager.shutdown();
-        if (partyManager != null) partyManager.shutdown();
-        if (npcManager != null) npcManager.shutdown();
+        if (npcLookTask != null) npcLookTask.stop();
+        if (storyManager != null) storyManager.stop();
         if (playerProfileManager != null) playerProfileManager.shutdown();
-        instance = null;
+        if (instance == this) instance = null;
     }
 
-    private void registerCommand(String name, PaperBasicCommandAdapter adapter) {
-        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> event.registrar().register(name, adapter));
+    private void registerCommand(String name, PaperBasicCommandAdapter command) {
+        var commandMap = getServer().getCommandMap();
+        commandMap.register(name, command.command());
     }
 
     public static PixelRPGPlugin getInstance() { return instance; }
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
     public StatEngine getStatEngine() { return statEngine; }
     public ProfessionSystem getProfessionSystem() { return professionSystem; }
-    public ItemEconomyConfig getItemEconomyConfig() { return itemEconomyConfig; }
     public ItemService getItemService() { return itemService; }
     public EquipmentService getEquipmentService() { return equipmentService; }
-    public NpcManager getNpcManager() { return npcManager; }
     public ShopManager getShopManager() { return shopManager; }
     public StoryManager getStoryManager() { return storyManager; }
-    public PartyManager getPartyManager() { return partyManager; }
     public QuestManager getQuestManager() { return questManager; }
-    public QuestRepository getQuestRepository() { return questRepository; }
-    public GlobalEventState getGlobalEventState() { return globalEventState; }
-    public BossRepository getBossRepository() { return bossRepository; }
     public BossManager getBossManager() { return bossManager; }
-    public StatisticsService getStatisticsService() { return statisticsService; }
-    public ScoreboardService getScoreboardService() { return scoreboardService; }
-    public LanguageManager getLanguageManager() { return languageManager; }
     public CompanionService getCompanionService() { return companionService; }
+    public LanguageManager getLanguageManager() { return languageManager; }
 }
