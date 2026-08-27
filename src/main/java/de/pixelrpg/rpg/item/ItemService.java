@@ -112,29 +112,7 @@ public final class ItemService implements ItemAPI {
         if (item == null || !item.hasItemMeta()) return Optional.empty();
         return Optional.ofNullable(item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE));
     }
-    public boolean matchesIngredient(ItemStack item, String ingredientId) {
-        if (item == null || item.getType().isAir() || ingredientId == null || ingredientId.isBlank()) return false;
-        String normalized = ingredientId.trim().toLowerCase(Locale.ROOT);
-        if (normalized.startsWith("pixelrpg:")) return getItemId(item).map(id -> id.equalsIgnoreCase(normalized)).orElse(false);
-        if (normalized.startsWith("minecraft:")) return item.getType().getKey().toString().equals(normalized);
-        return false;
-    }
-    public int countIngredient(org.bukkit.entity.Player player, String ingredientId) {
-        int count = 0;
-        for (ItemStack item : player.getInventory().getStorageContents()) if (matchesIngredient(item, ingredientId)) count += item.getAmount();
-        return count;
-    }
-    public boolean removeIngredient(org.bukkit.entity.Player player, String ingredientId, int amount) {
-        if (amount <= 0 || countIngredient(player, ingredientId) < amount) return false;
-        int remaining = amount;
-        for (ItemStack item : player.getInventory().getStorageContents()) {
-            if (!matchesIngredient(item, ingredientId) || remaining <= 0) continue;
-            int remove = Math.min(remaining, item.getAmount());
-            item.setAmount(item.getAmount() - remove);
-            remaining -= remove;
-        }
-        return remaining == 0;
-    }
+
     private Optional<ItemStack> createDefinedItem(String itemId, int explicitItemLevel, boolean admin) {
         ItemDefinition definition = definitions.find(itemId).orElse(null);
         if (definition == null) return Optional.empty();
