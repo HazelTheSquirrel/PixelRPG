@@ -100,7 +100,7 @@ public final class QuestBehavior implements NpcBehavior {
         List<Quest> quests = questManager.getRepository().getAllQuests().stream()
                 .filter(this::isWorldQuest)
                 .filter(quest -> quest.categoryLevel() == start)
-                .sorted(Comparator.comparingInt(Quest::requiredLevel).thenComparing(QuestText::titlePlain))
+                .sorted(Comparator.comparingInt(Quest::requiredLevel).thenComparing(Quest::title))
                 .toList();
 
         List<DialogBody> body = List.of(
