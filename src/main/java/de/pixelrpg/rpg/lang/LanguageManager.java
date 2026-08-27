@@ -140,9 +140,9 @@ public final class LanguageManager {
     }
 
     private void validateLanguageFiles() {
-        Map<String, String> english = languages.getOrDefault(DEFAULT_LANGUAGE, Map.of());
+        Map<String, String> english = mergedMessages(DEFAULT_LANGUAGE);
         for (String language : supportedLanguages) {
-            Map<String, String> selected = languages.getOrDefault(language, Map.of());
+            Map<String, String> selected = mergedMessages(language);
             if (!DEFAULT_LANGUAGE.equals(language)) {
                 Set<String> missing = new HashSet<>(english.keySet());
                 missing.removeAll(selected.keySet());
@@ -152,6 +152,12 @@ public final class LanguageManager {
             }
             validatePlaceholders(language, english, selected);
         }
+    }
+
+    private Map<String, String> mergedMessages(String language) {
+        Map<String, String> merged = new LinkedHashMap<>(BUILTIN_MESSAGES.getOrDefault(language, Map.of()));
+        merged.putAll(languages.getOrDefault(language, Map.of()));
+        return merged;
     }
 
     private void validatePlaceholders(String language, Map<String, String> reference, Map<String, String> selected) {
@@ -183,12 +189,10 @@ public final class LanguageManager {
         return render(resolvePlayerLanguage(player), key, placeholders);
     }
 
-    /** Returns the raw localized string for advanced rendering and content fallbacks. */
     public String raw(String key) {
         return resolveRaw(currentLanguage, key);
     }
 
-    /** Returns the raw localized string for the player's Minecraft client language. */
     public String raw(Player player, String key) {
         return resolveRaw(resolvePlayerLanguage(player), key);
     }
@@ -203,20 +207,18 @@ public final class LanguageManager {
 
     private String resolveRaw(String language, String key) {
         if (!invalidTranslations.contains(language + ':' + key)) {
-            Map<String, String> selected = languages.get(language);
-            if (selected != null) {
-                String raw = selected.get(key);
-                if (raw != null) return raw;
-            }
+            String raw = languages.getOrDefault(language, Map.of()).get(key);
+            if (raw != null) return raw;
+            raw = BUILTIN_MESSAGES.getOrDefault(language, Map.of()).get(key);
+            if (raw != null) return raw;
         }
         if (!DEFAULT_LANGUAGE.equals(language) && !invalidTranslations.contains(DEFAULT_LANGUAGE + ':' + key)) {
-            Map<String, String> english = languages.get(DEFAULT_LANGUAGE);
-            if (english != null) {
-                String raw = english.get(key);
-                if (raw != null) return raw;
-            }
+            String raw = languages.getOrDefault(DEFAULT_LANGUAGE, Map.of()).get(key);
+            if (raw != null) return raw;
+            raw = BUILTIN_MESSAGES.getOrDefault(DEFAULT_LANGUAGE, Map.of()).get(key);
+            if (raw != null) return raw;
         }
-        return BUILTIN_MESSAGES.getOrDefault(language, BUILTIN_MESSAGES.get(DEFAULT_LANGUAGE)).getOrDefault(key, key);
+        return key;
     }
 
     public Component prefixed(String key, String... placeholders) {
@@ -232,17 +234,14 @@ public final class LanguageManager {
         return miniMessage.deserialize(resolveRaw(language, "prefix"));
     }
 
-    /** Sends a translated message using the player's current Minecraft client language. */
     public void send(Player player, String key, String... placeholders) {
         player.sendMessage(get(player, key, placeholders));
     }
 
-    /** Sends a translated message with the translated prefix using the player's locale. */
     public void sendPrefixed(Player player, String key, String... placeholders) {
         player.sendMessage(prefixed(player, key, placeholders));
     }
 
-    /** Sends an action bar using the player's current Minecraft client language. */
     public void sendActionBar(Player player, String key, String... placeholders) {
         player.sendActionBar(get(player, key, placeholders));
     }
