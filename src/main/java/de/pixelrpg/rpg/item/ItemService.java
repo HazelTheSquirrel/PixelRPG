@@ -32,12 +32,15 @@ public final class ItemService implements ItemAPI {
         this.uniqueItems = uniqueItems;
     }
 
+    @Override public Optional<ItemStack> createItem(Material material, ItemRarity rarity, int itemLevel) {
+        if (rarity == ItemRarity.UNIQUE) return Optional.empty();
+        return RPGItemBuilder.createItem(material, rarity, itemLevel);
+    }
     @Override public Optional<ItemStack> createItem(String itemId) { return createDefinedItem(itemId, 0, false); }
     public Optional<ItemStack> createAdminItem(String itemId) { return createDefinedItem(itemId, 0, true); }
     public Optional<ItemStack> createItem(String itemId, int itemLevel) { return createDefinedItem(itemId, Math.clamp(itemLevel, 1, 99), false); }
     public Optional<ItemStack> createVanillaReward(Material material, ItemRarity rarity, int itemLevel) {
-        if (material == null || material.isAir() || rarity == null || rarity == ItemRarity.UNIQUE) return Optional.empty();
-        return RPGItemBuilder.createItem(material, rarity, Math.clamp(itemLevel, 1, 99));
+        return createItem(material, rarity, Math.clamp(itemLevel, 1, 99));
     }
 
     /**
