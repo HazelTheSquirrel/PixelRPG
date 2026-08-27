@@ -15,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class LootDropListener implements Listener {
@@ -61,14 +62,14 @@ public final class LootDropListener implements Listener {
         }
     }
 
-    private java.util.Optional<org.bukkit.inventory.ItemStack> createLoot(int lootLevel, int playerLevel, ThreadLocalRandom random) {
+    private Optional<org.bukkit.inventory.ItemStack> createLoot(int lootLevel, int playerLevel, ThreadLocalRandom random) {
         List<ItemDefinition> eligible = lootDefinitions.stream()
                 .filter(definition -> definition.itemLevel() <= lootLevel)
                 .filter(definition -> definition.requiredLevel() <= playerLevel)
                 .toList();
-        if (eligible.isEmpty()) return java.util.Optional.empty();
+        if (eligible.isEmpty()) return Optional.empty();
         ItemDefinition definition = eligible.get(random.nextInt(eligible.size()));
-        return itemService.createItem(definition.id());
+        return itemService.createItem(definition.id(), lootLevel);
     }
 
     private int rollLootLevel(int playerLevel, ThreadLocalRandom random) {
