@@ -144,13 +144,16 @@ public final class StatEngine {
         Companion active = service.getActive(playerId);
         if (active == null || active.rarity().isUnique()) return CompanionPassiveStats.EMPTY;
         CompanionDefinition definition = service.definition(active.id());
-        if (!definition.passive() || definition.passives().isEmpty()) return CompanionPassiveStats.EMPTY;
-
-        var configured = definition.passives().values().iterator().next();
-        if (!configured.has("stat") || !configured.has("amount")) return CompanionPassiveStats.EMPTY;
-        String stat = configured.get("stat").getAsString().trim().toUpperCase(java.util.Locale.ROOT);
-        double amount = Math.max(0.0D, configured.get("amount").getAsDouble());
-        return fromConfiguredStat(stat, amount);
+        if (!definition.passive()) return CompanionPassiveStats.EMPTY;
+        if (!definition.passives().isEmpty()) {
+            var configured = definition.passives().values().iterator().next();
+            if (configured.has("stat") && configured.has("amount")) {
+                String stat = configured.get("stat").getAsString().trim().toUpperCase();
+                double amount = Math.max(0.0D, configured.get("amount").getAsDouble());
+                return fromConfiguredStat(stat, amount);
+            }
+        }
+        return fallbackPassiveStats(active);
     }
 
     private CompanionPassiveStats fromConfiguredStat(String stat, double amount) {
@@ -165,6 +168,31 @@ public final class StatEngine {
             case "LIFESTEAL" -> new CompanionPassiveStats(0, 0, 0, 0, 0, 0, 0, amount, 0);
             case "ATTACK_POWER" -> new CompanionPassiveStats(0, 0, 0, 0, 0, 0, 0, 0, amount);
             default -> CompanionPassiveStats.EMPTY;
+        };
+    }
+
+    private CompanionPassiveStats fallbackPassiveStats(Companion companion) {
+        int index = Math.floorMod(companion.id().hashCode(), 9);
+        double rarity = companion.rarity().statMultiplier();
+        double budget = switch (companion.rarity()) {
+            case COMMON -> 1.0D;
+            case UNCOMMON -> 1.5D;
+            case RARE -> 2.25D;
+            case EPIC -> 3.25D;
+            case LEGENDARY -> 4.5D;
+            case UNIQUE -> 0.0D;
+        };
+        double power = budget * rarity;
+        return switch (index) {
+            case 0 -> new CompanionPassiveStats(power * 5.0D, 0, 0, 0, 0, 0, 0, 0, 0);
+            case 1 -> new CompanionPassiveStats(0, power, 0, 0, 0, 0, 0, 0, 0);
+            case 2 -> new CompanionPassiveStats(0, 0, power * 0.01D, 0, 0, 0, 0, 0, 0);
+            case 3 -> new CompanionPassiveStats(0, 0, 0, power * 0.05D, 0, 0, 0, 0, 0);
+            case 4 -> new CompanionPassiveStats(0, 0, 0, 0, power, 0, 0, 0, 0);
+            case 5 -> new CompanionPassiveStats(0, 0, 0, 0, 0, power, 0, 0, 0);
+            case 6 -> new CompanionPassiveStats(0, 0, 0, 0, 0, 0, power * 0.05D, 0, 0);
+            case 7 -> new CompanionPassiveStats(0, 0, 0, 0, 0, 0, 0, power * 0.5D, 0);
+            default -> new CompanionPassiveStats(0, 0, 0, 0, 0, 0, 0, 0, power);
         };
     }
 
