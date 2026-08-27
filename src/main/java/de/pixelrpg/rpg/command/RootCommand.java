@@ -20,8 +20,8 @@ import java.util.Map;
 public final class RootCommand implements CommandExecutor, TabCompleter {
     private final Map<String, SubCommand> subCommands = new LinkedHashMap<>();
 
-    public RootCommand() {
-        register(new ItemSubCommand(new ItemService()));
+    public RootCommand(ItemService itemService) {
+        register(new ItemSubCommand(itemService));
         register(new PlayerAdminSubCommand());
         register(new DebugSubCommand());
     }
