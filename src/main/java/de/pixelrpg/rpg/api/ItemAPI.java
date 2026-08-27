@@ -3,11 +3,14 @@ package de.pixelrpg.rpg.api;
 import de.pixelrpg.rpg.item.ItemCategory;
 import de.pixelrpg.rpg.item.ItemDefinition;
 import de.pixelrpg.rpg.item.ItemRarity;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 
 public interface ItemAPI {
+    Optional<ItemStack> createItem(Material material, ItemRarity rarity, int itemLevel);
+
     Optional<ItemStack> createItem(String itemId);
 
     boolean isRPGItem(ItemStack item);
