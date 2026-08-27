@@ -258,35 +258,41 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (mobLevelScalingListener != null) mobLevelScalingListener.shutdown();
         if (combatDamageListener != null) combatDamageListener.shutdown();
         if (npcLookTask != null) npcLookTask.stop();
+        if (mobNameplateService != null) mobNameplateService.cancelAll();
         if (biomeBossSpawnTask != null) biomeBossSpawnTask.stop();
-        if (scoreboardService != null) scoreboardService.stop();
-        if (playtimeTracker != null) playtimeTracker.stop();
-        if (questManager != null) questManager.stopTimerCheckTask();
+        if (questManager != null) questManager.shutdown();
+        if (scoreboardService != null) scoreboardService.shutdown();
+        if (playtimeTracker != null) playtimeTracker.shutdown();
+        if (companionService != null) companionService.shutdown();
+        if (bossManager != null) bossManager.shutdown();
+        if (partyManager != null) partyManager.shutdown();
+        if (npcManager != null) npcManager.shutdown();
         if (playerProfileManager != null) playerProfileManager.shutdown();
         instance = null;
+    }
+
+    private void registerCommand(String name, PaperBasicCommandAdapter adapter) {
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> event.registrar().register(name, adapter));
     }
 
     public static PixelRPGPlugin getInstance() { return instance; }
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
     public StatEngine getStatEngine() { return statEngine; }
     public ProfessionSystem getProfessionSystem() { return professionSystem; }
+    public ItemEconomyConfig getItemEconomyConfig() { return itemEconomyConfig; }
     public ItemService getItemService() { return itemService; }
-    public QuestManager getQuestManager() { return questManager; }
-    public PartyManager getPartyManager() { return partyManager; }
+    public EquipmentService getEquipmentService() { return equipmentService; }
     public NpcManager getNpcManager() { return npcManager; }
     public ShopManager getShopManager() { return shopManager; }
     public StoryManager getStoryManager() { return storyManager; }
-    public BossManager getBossManager() { return bossManager; }
+    public PartyManager getPartyManager() { return partyManager; }
+    public QuestManager getQuestManager() { return questManager; }
+    public QuestRepository getQuestRepository() { return questRepository; }
+    public GlobalEventState getGlobalEventState() { return globalEventState; }
     public BossRepository getBossRepository() { return bossRepository; }
+    public BossManager getBossManager() { return bossManager; }
     public StatisticsService getStatisticsService() { return statisticsService; }
+    public ScoreboardService getScoreboardService() { return scoreboardService; }
+    public LanguageManager getLanguageManager() { return languageManager; }
     public CompanionService getCompanionService() { return companionService; }
-    public void registerCommand(String name, org.bukkit.command.CommandExecutor executor, org.bukkit.command.TabCompleter completer, String permission) {
-        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-            var command = event.registrar().register(name);
-            command.setPermission(permission);
-            command.setDescription("PixelRPG command");
-            command.setExecutor(executor);
-            if (completer != null) command.setTabCompleter(completer);
-        });
-    }
 }
