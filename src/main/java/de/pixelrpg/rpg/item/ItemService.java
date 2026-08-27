@@ -39,31 +39,44 @@ public final class ItemService implements ItemAPI {
         if (material == null || material.isAir() || rarity == null || rarity == ItemRarity.UNIQUE) return Optional.empty();
         return RPGItemBuilder.createItem(material, rarity, Math.clamp(itemLevel, 1, 99));
     }
+
+    /**
+     * Creates a crafted item using the same semantics as the functional main branch.
+     * Unsupported materials remain ordinary vanilla items while retaining the recipe identity.
+     */
     public ItemStack createCraftedItem(String itemId, String displayName, Material material, ItemRarity rarity, int itemLevel) {
         if (itemId == null || itemId.isBlank()) throw new IllegalArgumentException("itemId must not be blank");
         if (displayName == null || displayName.isBlank()) throw new IllegalArgumentException("displayName must not be blank");
-        if (material == null || material.isAir()) throw new IllegalArgumentException("material must be valid");
-        if (rarity == null || rarity == ItemRarity.UNIQUE) throw new IllegalArgumentException("Crafted item rarity must be non-UNIQUE");
         if (itemLevel < 1 || itemLevel > 99) throw new IllegalArgumentException("itemLevel must be between 1 and 99");
-        ItemStack item = RPGItemBuilder.createItem(material, rarity, itemLevel).orElseThrow(() -> new IllegalArgumentException("Unsupported PixelRPG crafting result material: " + material));
+        if (material == null) throw new IllegalArgumentException("material must not be null");
+        if (rarity == null) throw new IllegalArgumentException("rarity must not be null");
+        if (rarity == ItemRarity.UNIQUE) throw new IllegalArgumentException("UNIQUE items can only be granted by an administrator");
+
+        Optional<ItemStack> rpgItem = RPGItemBuilder.createItem(material, rarity, itemLevel);
+        ItemStack item = rpgItem.orElseGet(() -> new ItemStack(material));
         ItemMeta meta = item.getItemMeta();
         var pdc = meta.getPersistentDataContainer();
         pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, normalize(itemId));
         pdc.set(RPGKeys.Item.instanceId(), PersistentDataType.STRING, UUID.randomUUID().toString());
         pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, true);
-        pdc.set(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER, itemLevel);
-        pdc.set(RPGKeys.Item.unique(), PersistentDataType.BOOLEAN, false);
-        double gearscore = Math.round(itemLevel * rarity.getStatMultiplier() * 10.0D) / 10.0D;
-        pdc.set(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE, gearscore);
-        List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
-        if (!lore.isEmpty()) lore.add(Component.text(" "));
-        lore.add(Component.text("Crafted Item", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
-        lore.add(Component.text("Gearscore " + format(gearscore), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
-        meta.lore(lore);
+
+        if (rpgItem.isPresent()) {
+            pdc.set(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER, itemLevel);
+            pdc.set(RPGKeys.Item.unique(), PersistentDataType.BOOLEAN, false);
+            double gearscore = Math.round(itemLevel * rarity.getStatMultiplier() * 10.0D) / 10.0D;
+            pdc.set(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE, gearscore);
+            List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
+            if (!lore.isEmpty()) lore.add(Component.text(" "));
+            lore.add(Component.text("Crafted Item", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Gearscore " + format(gearscore), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+            meta.lore(lore);
+        }
+
         meta.displayName(Component.text(displayName, NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }
+
     public List<ItemDefinition> definitions() { return definitions.all().stream().toList(); }
     @Override public boolean isRPGItem(ItemStack item) { return getItemId(item).isPresent(); }
     @Override public boolean isGuildItem(ItemStack item) {
