@@ -33,20 +33,13 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
                                      PlayerProfileManager profileManager,
                                      ProfessionService professionService,
                                      DialogueEngine dialogueEngine,
-                                     ItemService itemService) {
+                                     QuickActionsDialogService quickActions) {
         this.type = type;
         this.profession = profession;
         this.profileManager = profileManager;
         this.professionService = professionService;
         this.dialogueEngine = dialogueEngine;
-        this.professionDialog = new ProfessionDialog(
-                profileManager,
-                dialogueEngine,
-                new QuickActionsDialogService(
-                        profileManager,
-                        de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getStatEngine(),
-                        de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getQuestManager(),
-                        itemService));
+        this.professionDialog = new ProfessionDialog(profileManager, dialogueEngine, quickActions);
     }
 
     @Override
