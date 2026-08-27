@@ -92,7 +92,9 @@ public final class ProfessionActivityListener implements Listener {
     // Vergibt berufsbezogene XP für abgeschlossene Quests anhand des stabilen Quest-ID-Präfixes.
     @EventHandler
     public void onQuestCompleted(QuestCompletedEvent event) {
-        professionService.addExperience(event.getPlayer(), professionForQuest(event.getQuestId()), 40L);
+        Profession profession = professionForQuest(event.getQuestId());
+        if (profession == null) return;
+        professionService.addExperience(event.getPlayer(), profession, 40L);
     }
 
     private long miningXp(Material material) {
@@ -106,11 +108,12 @@ public final class ProfessionActivityListener implements Listener {
     }
 
     private Profession professionForQuest(String questId) {
-        if (questId == null) return Profession.SCHOLAR;
-        String id = questId.toLowerCase();
-        if (id.startsWith("blacksmith.")) return Profession.BLACKSMITH;
-        if (id.startsWith("provisioner.")) return Profession.PROVISIONER;
-        if (id.startsWith("alchemist.")) return Profession.ALCHEMIST;
-        return Profession.SCHOLAR;
+        if (questId == null || questId.isBlank()) return null;
+        String id = questId.toLowerCase(java.util.Locale.ROOT);
+        if (id.startsWith("blacksmith.") || id.startsWith("blacksmith_")) return Profession.BLACKSMITH;
+        if (id.startsWith("provisioner.") || id.startsWith("provisioner_")) return Profession.PROVISIONER;
+        if (id.startsWith("alchemist.") || id.startsWith("alchemist_")) return Profession.ALCHEMIST;
+        if (id.startsWith("scholar.") || id.startsWith("scholar_")) return Profession.SCHOLAR;
+        return null;
     }
 }

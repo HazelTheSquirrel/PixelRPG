@@ -12,7 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-/** Loads and validates the complete concrete PixelRPG item catalogue from JSON. */
+/** Loads and validates the complete concrete PixelRPG item catalogue from the central JSON sources. */
 public final class ItemDefinitionRegistry {
     private final Map<String, ItemDefinition> definitions = new LinkedHashMap<>();
 
@@ -30,9 +30,14 @@ public final class ItemDefinitionRegistry {
     }
 
     private void load(Plugin plugin) {
-        JsonObject root = new JsonDataManager(plugin).load("item-definitions.json");
+        loadFile(plugin, "item-definitions.json");
+        loadFile(plugin, "boss-reward-items.json");
+    }
+
+    private void loadFile(Plugin plugin, String fileName) {
+        JsonObject root = new JsonDataManager(plugin).load(fileName);
         JsonArray items = root.getAsJsonArray("items");
-        if (items == null) throw new IllegalStateException("item-definitions.json requires an 'items' array");
+        if (items == null) throw new IllegalStateException(fileName + " requires an 'items' array");
 
         for (var element : items) {
             ItemDefinition definition = parse(element.getAsJsonObject());

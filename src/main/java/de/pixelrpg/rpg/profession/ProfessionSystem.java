@@ -12,19 +12,14 @@ public final class ProfessionSystem {
     private final PlayerProfileManager profileManager;
     private final ProfessionService professionService;
     private final CraftingRecipeRegistry craftingRecipeRegistry;
-    private final CraftingService craftingService;
+    private CraftingService craftingService;
 
     public ProfessionSystem(PixelRPGPlugin plugin, PlayerProfileManager profileManager) {
-        this(plugin, profileManager, new ItemService());
-    }
-
-    public ProfessionSystem(PixelRPGPlugin plugin, PlayerProfileManager profileManager, ItemService itemService) {
         this.plugin = Objects.requireNonNull(plugin);
         this.profileManager = Objects.requireNonNull(profileManager);
         this.professionService = new ProfessionService(profileManager);
         this.craftingRecipeRegistry = new CraftingRecipeRegistry();
         this.craftingRecipeRegistry.load(plugin);
-        this.craftingService = new CraftingService(professionService, profileManager, itemService, craftingRecipeRegistry);
     }
 
     public void register() {
@@ -32,6 +27,15 @@ public final class ProfessionSystem {
     }
 
     public ProfessionService professionService() { return professionService; }
-    public CraftingService craftingService() { return craftingService; }
+
+    public CraftingService craftingService() {
+        if (craftingService == null) {
+            ItemService itemService = plugin.getItemService();
+            if (itemService == null) throw new IllegalStateException("ItemService must be initialized before the crafting service is requested.");
+            craftingService = new CraftingService(professionService, profileManager, itemService, craftingRecipeRegistry);
+        }
+        return craftingService;
+    }
+
     public CraftingRecipeRegistry craftingRecipeRegistry() { return craftingRecipeRegistry; }
 }

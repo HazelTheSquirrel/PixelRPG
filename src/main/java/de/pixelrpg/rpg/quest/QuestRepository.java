@@ -1,206 +1,361 @@
 package de.pixelrpg.rpg.quest;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import de.pixelrpg.rpg.config.JsonDataManager;
-import de.pixelrpg.rpg.core.Level;
-import de.pixelrpg.rpg.item.ItemDefinitionRegistry;
+import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
+import de.pixelrpg.rpg.item.ItemRarity;
+import de.pixelrpg.rpg.item.ItemService;
+import de.pixelrpg.rpg.item.RPGItemBuilder;
+import de.pixelrpg.rpg.lang.LanguageManager;
+import de.pixelrpg.rpg.npc.NpcType;
+import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfile;
-import de.pixelrpg.rpg.profession.Profession;
+import de.pixelrpg.rpg.player.PlayerProfileManager;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Biome;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.EntityType;
+import org.bukkit.generator.structure.Structure;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Duration;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
-public final class QuestRepository {
+public final class QuestManager {
+    public static final int MAX_ACTIVE_QUESTS = 5;
+
     private final Plugin plugin;
-    private final ItemDefinitionRegistry itemDefinitions;
-    private final Map<String, Quest> questsById = new ConcurrentHashMap<>();
-    private final Map<String, List<String>> prerequisitesByQuest = new ConcurrentHashMap<>();
-    private final Map<String, List<String>> followUpsByQuest = new ConcurrentHashMap<>();
-    private static final int MAX_ACTIVE_QUESTS = 5;
+    private final QuestRepository questRepository;
+    private final PlayerProfileManager profileManager;
+    private final GlobalEventState globalEventState;
+    private final double partyShareRange;
+    private final LanguageManager lang;
+    private final ItemService itemService;
+    private final Map<UUID, Map<String, Long>> questTimers = new ConcurrentHashMap<>();
+    private BukkitTask timerTask;
 
-    public QuestRepository(Plugin plugin) {
+    public QuestManager(Plugin plugin, QuestRepository questRepository, PlayerProfileManager profileManager,
+                        de.pixelrpg.rpg.api.GuildAPI guildAPI, GlobalEventState globalEventState, double partyShareRange) {
         this.plugin = plugin;
-        this.itemDefinitions = new ItemDefinitionRegistry(plugin);
+        this.questRepository = questRepository;
+        this.profileManager = profileManager;
+        this.globalEventState = globalEventState;
+        this.partyShareRange = partyShareRange;
+        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
+        this.itemService = new ItemService();
     }
 
-    public void load() {
-        questsById.clear();
-        prerequisitesByQuest.clear();
-        followUpsByQuest.clear();
-        loadDefinitionsFrom("quests_v2.json");
-        loadDefinitionsFrom("quests_additional.json");
-        loadDefinitionsFrom("quests_world_expansion.json");
-        validateReferences();
+    public void startTimerCheckTask() {
+        if (timerTask != null) return;
+        timerTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            long now = System.currentTimeMillis();
+            for (Map.Entry<UUID, Map<String, Long>> playerEntry : new HashMap<>(questTimers).entrySet()) {
+                UUID uuid = playerEntry.getKey();
+                for (Map.Entry<String, Long> questEntry : new HashMap<>(playerEntry.getValue()).entrySet()) {
+                    if (now < questEntry.getValue()) continue;
+                    playerEntry.getValue().remove(questEntry.getKey());
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        profileManager.getProfile(uuid).ifPresent(profile -> profile.removeActiveQuest(questEntry.getKey()));
+                        Player player = Bukkit.getPlayer(uuid);
+                        if (player != null && player.isOnline()) lang.send(player, "quest.expired");
+                    });
+                }
+            }
+        }, 20L, 20L);
     }
 
-    private void loadDefinitionsFrom(String resourceName) {
-        JsonObject root;
-        try {
-            root = new JsonDataManager(plugin).load(resourceName);
-        } catch (RuntimeException exception) {
-            plugin.getLogger().warning("Unable to load quest data '" + resourceName + "': " + exception.getMessage());
-            return;
+    public void shutdown() {
+        if (timerTask != null) {
+            timerTask.cancel();
+            timerTask = null;
         }
-        JsonArray definitions = root.getAsJsonArray("definitions");
-        if (definitions == null) return;
-        for (var element : definitions) {
-            if (!element.isJsonObject()) continue;
-            JsonObject json = element.getAsJsonObject();
-            if (!validateDefinition(json)) continue;
-            String id = string(json, "id", "").strip();
-            QuestType type = parseType(string(json, "type", "HUNT"));
-            int recommendedLevel = number(json, "recommendedLevel", 1);
-            int categoryLevel = number(json, "categoryLevel", recommendedLevel);
-            int requiredAmount = number(json, "requiredAmount", 1);
-            JsonObject reward = object(json, "reward");
-            JsonObject navigation = object(json, "navigation");
-            Profession profession = parseProfession(string(json, "profession", ""));
-            int requiredProfessionLevel = number(json, "requiredProfessionLevel", profession == null ? 1 : recommendedLevel);
-            Quest quest = new Quest(id, string(json, "title", "").strip(), string(json, "description", "").strip(), type,
-                    string(json, "targetKey", "").strip(), requiredAmount, recommendedLevel, categoryLevel,
-                    numberDouble(reward, "money", 0.0), numberLong(reward, "experience", 0L),
-                    number(reward, "durationMinutes", 0), stringList(reward, "items"),
-                    string(reward, "companionId", "").strip(), string(json, "questGiverNpcId", "").strip(),
-                    string(navigation, "structure", "").strip(), stringList(navigation, "biomes"),
-                    Math.max(1, number(navigation, "radius", 1024)), bool(navigation, "findUnexplored", false), null,
-                    profession, requiredProfessionLevel);
-            questsById.put(id, quest);
-            prerequisitesByQuest.put(id, mergePrerequisites(json));
-            followUpsByQuest.put(id, stringList(json, "followUpQuestIds"));
-        }
+        questTimers.clear();
     }
 
-    private boolean validateDefinition(JsonObject json) {
-        String id = string(json, "id", "").strip();
-        if (id.isBlank() || questsById.containsKey(id)) return false;
-        String title = string(json, "title", "").strip();
-        String description = string(json, "description", "").strip();
-        if (title.isBlank() || description.isBlank()) {
-            plugin.getLogger().warning("Ignoring quest '" + id + "': title and description are required.");
+    public boolean canAccept(PlayerProfile profile, Quest quest) {
+        if (!profile.isRegistered()) return false;
+        if (profile.hasCompletedQuest(quest.id())) return false;
+        if (!questRepository.prerequisitesMet(profile, quest.id())) return false;
+        if (profile.getLevel() < quest.requiredLevel()) return false;
+        return !quest.isProfessionQuest() || (profile.hasLearnedProfession(quest.profession())
+                && getProfessionLevel(profile, quest) >= quest.requiredProfessionLevel());
+    }
+
+    private int getProfessionLevel(PlayerProfile profile, Quest quest) {
+        return PixelRPGPlugin.getInstance().getProfessionSystem().professionService()
+                .getLevel(profile.getUuid(), quest.profession());
+    }
+
+    public boolean acceptQuest(Player player, Quest quest) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered() || !canAccept(profile, quest) || profile.hasActiveQuest(quest.id())) return false;
+        if (profile.getActiveQuests().size() >= MAX_ACTIVE_QUESTS) {
+            player.sendMessage(Component.text("Du kannst maximal 5 Quests gleichzeitig aktiv haben.", NamedTextColor.RED));
             return false;
         }
-        QuestType type;
-        try {
-            type = QuestType.valueOf(string(json, "type", "HUNT").trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException exception) {
-            plugin.getLogger().warning("Ignoring quest '" + id + "': unknown quest type.");
-            return false;
+        long expiry = quest.hasTimeLimit() ? System.currentTimeMillis() + quest.durationMinutes() * 60_000L : 0L;
+        profile.startQuest(new QuestProgress(quest.id(), 0, expiry));
+        if (quest.hasTimeLimit()) {
+            questTimers.computeIfAbsent(player.getUniqueId(), ignored -> new ConcurrentHashMap<>()).put(quest.id(), expiry);
+            lang.send(player, "quest.time-limit", "minutes", String.valueOf(quest.durationMinutes()));
         }
-        int level = number(json, "recommendedLevel", 1);
-        int category = number(json, "categoryLevel", level);
-        int amount = number(json, "requiredAmount", 1);
-        if (level < Level.MIN_LEVEL || level > Level.MAX_NORMAL_LEVEL || category < Level.MIN_LEVEL || category > Level.MAX_NORMAL_LEVEL || amount <= 0) return false;
-        Profession profession = parseProfession(string(json, "profession", ""));
-        int professionLevel = number(json, "requiredProfessionLevel", profession == null ? 1 : level);
-        if (profession != null && (professionLevel < Profession.MIN_LEVEL || professionLevel > Profession.MAX_LEVEL)) return false;
-        if (type == QuestType.GLOBAL_EVENT && string(json, "targetKey", "").isBlank()) return false;
-        if (type == QuestType.TALK_TO_NPC && string(json, "targetKey", "").isBlank()) return false;
-        if (type == QuestType.HUNT && !isVanillaEntityType(string(json, "targetKey", ""))) return false;
-        if (type == QuestType.COLLECT && !isQuestItem(string(json, "targetKey", ""))) return false;
-        if (type == QuestType.REACH_LOCATION && !hasWorldNavigation(object(json, "navigation"))) return false;
+        lang.send(player, "quest.accepted", "title", QuestText.titlePlain(quest));
         return true;
     }
 
-    private Profession parseProfession(String value) {
-        if (value == null || value.isBlank()) return null;
-        try {
-            return Profession.valueOf(value.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException exception) {
-            plugin.getLogger().warning("Unknown quest profession '" + value + "'.");
-            return null;
-        }
+    public boolean abandonQuest(Player player, String questId) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered() || !profile.hasActiveQuest(questId)) return false;
+        profile.removeActiveQuest(questId);
+        removeTimer(player.getUniqueId(), questId);
+        lang.send(player, "quest.abandoned");
+        return true;
     }
 
-    private boolean hasWorldNavigation(JsonObject navigation) {
-        return navigation != null && (!string(navigation, "structure", "").isBlank() || !stringList(navigation, "biomes").isEmpty());
-    }
-
-    /** Accepts both normal Minecraft materials and concrete PixelRPG item definition IDs. */
-    private boolean isQuestItem(String key) {
-        if (key == null || key.isBlank()) return false;
-        String normalized = key.trim();
-        try {
-            Material material = Material.matchMaterial(normalized);
-            if (material != null && material.isItem()) return true;
-        } catch (IllegalArgumentException ignored) {
-        }
-        return itemDefinitions.find(normalized).isPresent();
-    }
-
-    private boolean isVanillaEntityType(String key) {
-        try {
-            var type = org.bukkit.entity.EntityType.valueOf(key.trim().toUpperCase(Locale.ROOT));
-            return type.isAlive() && type != org.bukkit.entity.EntityType.PLAYER;
-        } catch (IllegalArgumentException exception) {
+    public boolean completeQuest(Player player, String questId) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        Quest quest = questRepository.getQuest(questId);
+        if (profile == null || !profile.isRegistered() || quest == null || !profile.hasActiveQuest(questId)) return false;
+        QuestProgress progress = profile.getActiveQuests().get(questId);
+        if (progress.isExpired()) {
+            profile.removeActiveQuest(questId);
+            removeTimer(player.getUniqueId(), quest.id());
+            lang.send(player, "quest.expired");
             return false;
         }
+        if (progress.getCurrentAmount() < quest.requiredAmount()) {
+            lang.send(player, "quest.requirements-not-met");
+            return false;
+        }
+        if (!isAtQuestGiver(player, quest)) {
+            lang.send(player, "quest.requirements-not-met");
+            return false;
+        }
+        return grantCompletion(player, profile, quest);
     }
 
-    private List<String> mergePrerequisites(JsonObject json) {
-        List<String> prerequisites = new ArrayList<>(stringList(json, "prerequisites"));
-        JsonObject requirements = object(json, "requirements");
-        if (requirements != null) {
-            String previousQuest = string(requirements, "previousQuest", "").strip();
-            if (!previousQuest.isBlank() && !prerequisites.contains(previousQuest)) prerequisites.add(previousQuest);
+    private boolean isAtQuestGiver(Player player, Quest quest) {
+        // Profession quests are explicitly turned in through the profession trainer dialog.
+        if (quest.isProfessionQuest()) return true;
+        if (quest.questGiverNpcId() == null || quest.questGiverNpcId().isBlank()) {
+            return PixelRPGPlugin.getInstance().getNpcManager().getAll().stream()
+                    .filter(npc -> npc.type() == NpcType.QUEST)
+                    .map(RPGNpc::location)
+                    .filter(location -> location.getWorld() != null && player.getWorld().equals(location.getWorld()))
+                    .anyMatch(location -> player.getLocation().distanceSquared(location) <= 36.0D);
         }
-        return List.copyOf(prerequisites);
+        return PixelRPGPlugin.getInstance().getNpcManager().getById(quest.questGiverNpcId())
+                .map(RPGNpc::location)
+                .filter(location -> location.getWorld() != null && player.getWorld().equals(location.getWorld()))
+                .map(location -> player.getLocation().distanceSquared(location) <= 36.0D)
+                .orElse(false);
     }
 
-    private void validateReferences() {
-        for (Map.Entry<String, List<String>> entry : prerequisitesByQuest.entrySet()) {
-            entry.getValue().stream().filter(id -> !questsById.containsKey(id))
-                    .forEach(id -> plugin.getLogger().warning("Quest '" + entry.getKey() + "' references unknown prerequisite '" + id + "'."));
+    private boolean grantCompletion(Player player, PlayerProfile profile, Quest quest) {
+        profile.removeActiveQuest(quest.id());
+        profile.markQuestCompleted(quest.id());
+        removeTimer(player.getUniqueId(), quest.id());
+        if (quest.rewardMoney() > 0.0D) profile.addMoney(quest.rewardMoney());
+        if (quest.rewardExp() > 0L) profileManager.addExperience(player.getUniqueId(), quest.rewardExp());
+        for (String rewardDefinition : quest.rewardItemMaterials()) giveRewardItem(player, rewardDefinition, quest.requiredLevel());
+        if (quest.rewardsCompanion()) {
+            var companionService = PixelRPGPlugin.getInstance().getCompanionService();
+            if (companionService != null && companionService.unlockDefinition(player.getUniqueId(), quest.rewardCompanionId())) {
+                player.sendMessage(Component.text("Begleiter freigeschaltet: ", NamedTextColor.WHITE)
+                        .append(Component.text(quest.rewardCompanionId(), NamedTextColor.YELLOW)));
+            }
         }
-        for (Map.Entry<String, List<String>> entry : followUpsByQuest.entrySet()) {
-            entry.getValue().stream().filter(id -> !questsById.containsKey(id))
-                    .forEach(id -> plugin.getLogger().warning("Quest '" + entry.getKey() + "' references unknown follow-up quest '" + id + "'."));
+        lang.send(player, "quest.completed", "title", QuestText.titlePlain(quest));
+        player.showTitle(Title.title(QuestText.title(quest).color(NamedTextColor.YELLOW), Component.text(" "),
+                Title.Times.times(Duration.ofMillis(300), Duration.ofMillis(1800), Duration.ofMillis(300))));
+        Bukkit.getPluginManager().callEvent(new QuestCompletedEvent(player, quest.id()));
+        return true;
+    }
+
+    private void giveRewardItem(Player player, String definition, int fallbackLevel) {
+        String[] parts = definition.split("\\|", -1);
+        try {
+            Material material = Material.valueOf(parts[0].trim().toUpperCase(Locale.ROOT));
+            if (parts.length == 1) {
+                player.getInventory().addItem(new ItemStack(material));
+                return;
+            }
+            ItemRarity rarity = ItemRarity.valueOf(parts[1].trim().toUpperCase(Locale.ROOT));
+            int itemLevel = parts.length >= 3 ? Integer.parseInt(parts[2].trim()) : fallbackLevel;
+            RPGItemBuilder.createItem(material, rarity, Math.max(1, itemLevel))
+                    .ifPresent(item -> player.getInventory().addItem(item));
+        } catch (IllegalArgumentException exception) {
+            plugin.getLogger().warning("Invalid quest reward item '" + definition + "'. Use MATERIAL or MATERIAL|RARITY|ITEM_LEVEL.");
         }
-        for (String questId : questsById.keySet()) {
-            if (hasPrerequisiteCycle(questId, new java.util.HashSet<>(), new java.util.HashSet<>())) {
-                plugin.getLogger().warning("Quest '" + questId + "' participates in a prerequisite cycle.");
+    }
+
+    public void progressHuntQuests(Player killer, String mobTypeKey) {
+        if (!isRegistered(killer.getUniqueId())) return;
+        propagateToParty(killer, profile -> applyHuntProgress(profile, mobTypeKey), killer.getLocation());
+    }
+
+    private void applyHuntProgress(PlayerProfile profile, String mobTypeKey) {
+        for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
+            Quest quest = questRepository.getQuest(entry.getKey());
+            if (quest == null || quest.type() != QuestType.HUNT || !quest.targetKey().equalsIgnoreCase(mobTypeKey)) continue;
+            incrementProgress(profile, entry.getValue(), quest);
+        }
+    }
+
+    /** Recalculates COLLECT progress from the player's current inventory. */
+    public void checkInventoryQuests(Player player) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered()) return;
+        for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
+            Quest quest = questRepository.getQuest(entry.getKey());
+            if (quest == null || quest.type() != QuestType.COLLECT) continue;
+            int amount = countQuestItems(player, quest.targetKey());
+            int next = Math.min(quest.requiredAmount(), amount);
+            QuestProgress progress = entry.getValue();
+            if (progress.getCurrentAmount() == next) continue;
+            progress.setCurrentAmount(next);
+            player.sendActionBar(QuestText.objectiveWithProgress(quest, progress));
+        }
+    }
+
+    private int countQuestItems(Player player, String targetKey) {
+        Material material = Material.matchMaterial(targetKey);
+        String normalizedTarget = normalizeItemId(targetKey);
+        int amount = 0;
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item == null || item.isEmpty()) continue;
+            if (material != null && item.getType() == material && !isSpecificRpgItemTarget(normalizedTarget)) {
+                amount += item.getAmount();
+                continue;
+            }
+            if (itemService.getItemId(item).map(id -> normalizeItemId(id).equals(normalizedTarget)).orElse(false)) amount += item.getAmount();
+        }
+        return amount;
+    }
+
+    private boolean isSpecificRpgItemTarget(String normalizedTarget) {
+        return normalizedTarget.startsWith("pixelrpg:");
+    }
+
+    private String normalizeItemId(String key) {
+        String normalized = key == null ? "" : key.trim().toLowerCase(Locale.ROOT);
+        return normalized.startsWith("pixelrpg:") ? normalized : "pixelrpg:" + normalized;
+    }
+
+    public void checkReachLocationQuests(Player player) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered()) return;
+        for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
+            Quest quest = questRepository.getQuest(entry.getKey());
+            if (quest == null || quest.type() != QuestType.REACH_LOCATION || entry.getValue().getCurrentAmount() >= quest.requiredAmount()) continue;
+            Location target = resolveNavigationLocation(player.getLocation(), quest);
+            if (target == null || !player.getWorld().equals(target.getWorld())) continue;
+            if (player.getLocation().distanceSquared(target) <= 64.0D) {
+                entry.getValue().setCurrentAmount(quest.requiredAmount());
+                lang.send(player, "quest.location-reached", "title", QuestText.titlePlain(quest));
             }
         }
     }
 
-    private boolean hasPrerequisiteCycle(String questId, java.util.Set<String> visiting, java.util.Set<String> visited) {
-        if (!visiting.add(questId)) return true;
-        if (visited.contains(questId)) {
-            visiting.remove(questId);
-            return false;
+    /** Updates TALK_TO_NPC quests when the configured NPC is interacted with. */
+    public void progressTalkToNpc(Player player, String npcId) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered() || npcId == null || npcId.isBlank()) return;
+        for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
+            Quest quest = questRepository.getQuest(entry.getKey());
+            if (quest == null || quest.type() != QuestType.TALK_TO_NPC || !quest.targetKey().equalsIgnoreCase(npcId)) continue;
+            entry.getValue().setCurrentAmount(quest.requiredAmount());
         }
-        for (String prerequisite : prerequisitesByQuest.getOrDefault(questId, List.of())) {
-            if (questsById.containsKey(prerequisite) && hasPrerequisiteCycle(prerequisite, visiting, visited)) return true;
-        }
-        visiting.remove(questId);
-        visited.add(questId);
-        return false;
     }
 
-    private static JsonObject object(JsonObject parent, String key) { return parent != null && parent.has(key) && parent.get(key).isJsonObject() ? parent.getAsJsonObject(key) : null; }
-    private static String string(JsonObject object, String key, String fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsString() : fallback; }
-    private static int number(JsonObject object, String key, int fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.getAsJsonPrimitive(key).getAsInt() : fallback; }
-    private static long numberLong(JsonObject object, String key, long fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.getAsJsonPrimitive(key).getAsLong() : fallback; }
-    private static double numberDouble(JsonObject object, String key, double fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.getAsJsonPrimitive(key).getAsDouble() : fallback; }
-    private static boolean bool(JsonObject object, String key, boolean fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isBoolean() ? object.getAsJsonPrimitive(key).getAsBoolean() : fallback; }
-    private static List<String> stringList(JsonObject object, String key) {
-        if (object == null || !object.has(key) || !object.get(key).isJsonArray()) return List.of();
-        List<String> result = new ArrayList<>();
-        for (var element : object.getAsJsonArray(key)) if (element.isJsonPrimitive()) result.add(element.getAsString());
-        return List.copyOf(result);
+    public void progressGlobalEvent(String targetKey) {
+        for (Quest quest : questRepository.getQuestsByType(QuestType.GLOBAL_EVENT)) {
+            if (!quest.targetKey().equalsIgnoreCase(targetKey)) continue;
+            int current = globalEventState.getProgress(quest.id());
+            if (current >= quest.requiredAmount()) continue;
+            int updated = globalEventState.addProgress(quest.id(), 1);
+            if (updated >= quest.requiredAmount()) notifyGlobalEventCompleted(quest);
+        }
     }
 
-    public Quest getQuest(String id) { return questsById.get(id); }
-    public List<Quest> getAllQuests() { return List.copyOf(questsById.values()); }
-    public List<Quest> getQuestsByType(QuestType type) { return questsById.values().stream().filter(quest -> quest.type() == type).toList(); }
-    public int maxActiveQuests() { return MAX_ACTIVE_QUESTS; }
-    public int unlockEarlyLevels() { return 0; }
-    public boolean prerequisitesMet(PlayerProfile profile, String questId) { return prerequisitesByQuest.getOrDefault(questId, List.of()).stream().allMatch(profile::hasCompletedQuest); }
-    public List<String> getFollowUpQuestIds(String questId) { return followUpsByQuest.getOrDefault(questId, List.of()); }
-    private QuestType parseType(String value) { try { return QuestType.valueOf(value.trim().toUpperCase(Locale.ROOT)); } catch (IllegalArgumentException exception) { return QuestType.HUNT; } }
+    private void notifyGlobalEventCompleted(Quest quest) {
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            PlayerProfile profile = profileManager.getProfile(online.getUniqueId()).orElse(null);
+            if (profile == null || !profile.isRegistered() || !profile.hasActiveQuest(quest.id())) continue;
+            profile.getActiveQuests().get(quest.id()).setCurrentAmount(quest.requiredAmount());
+            lang.send(online, "quest.progress", "current", String.valueOf(quest.requiredAmount()), "required", String.valueOf(quest.requiredAmount()));
+        }
+    }
+
+    public int getGlobalEventProgress(String questId) { return globalEventState.getProgress(questId); }
+
+    private Location resolveNavigationLocation(Location origin, Quest quest) {
+        if (quest.targetStructureKey() != null && !quest.targetStructureKey().isBlank()) {
+            var structureRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.STRUCTURE);
+            var key = org.bukkit.NamespacedKey.fromString(quest.targetStructureKey());
+            if (key != null) {
+                Structure structure = structureRegistry.get(key);
+                if (structure != null) {
+                    var result = origin.getWorld().locateNearestStructure(origin, structure, quest.navigationRadius(), false);
+                    if (result != null) return result.getLocation();
+                }
+            }
+        }
+        if (!quest.targetBiomeKeys().isEmpty()) {
+            var biomeRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME);
+            Biome[] biomes = quest.targetBiomeKeys().stream().map(org.bukkit.NamespacedKey::fromString)
+                    .filter(java.util.Objects::nonNull).map(biomeRegistry::get).filter(java.util.Objects::nonNull).toArray(Biome[]::new);
+            if (biomes.length > 0) {
+                var result = origin.getWorld().locateNearestBiome(origin, quest.navigationRadius(), biomes);
+                if (result != null) return result.getLocation();
+            }
+        }
+        return quest.reachLocation();
+    }
+
+    private void incrementProgress(PlayerProfile profile, QuestProgress progress, Quest quest) {
+        if (progress.getCurrentAmount() >= quest.requiredAmount()) return;
+        int next = Math.min(quest.requiredAmount(), progress.getCurrentAmount() + 1);
+        progress.setCurrentAmount(next);
+        Player player = Bukkit.getPlayer(profile.getUuid());
+        if (player != null && player.isOnline()) player.sendActionBar(QuestText.objectiveWithProgress(quest, progress));
+    }
+
+    private void propagateToParty(Player source, Consumer<PlayerProfile> action, Location referenceLocation) {
+        if (!isRegistered(source.getUniqueId())) return;
+        de.pixelrpg.rpg.api.PartyAPI partyAPI = Bukkit.getServicesManager().load(de.pixelrpg.rpg.api.PartyAPI.class);
+        if (partyAPI == null || !partyAPI.isInParty(source.getUniqueId())) {
+            profileManager.getProfile(source.getUniqueId()).filter(PlayerProfile::isRegistered).ifPresent(action);
+            return;
+        }
+        Set<UUID> members = partyAPI.getPartyMembers(source.getUniqueId());
+        for (UUID memberUuid : members) {
+            Player member = Bukkit.getPlayer(memberUuid);
+            if (member == null || !member.isOnline()) continue;
+            if (!member.getWorld().equals(referenceLocation.getWorld()) || member.getLocation().distance(referenceLocation) > partyShareRange) continue;
+            profileManager.getProfile(memberUuid).filter(PlayerProfile::isRegistered).ifPresent(action);
+        }
+    }
+
+    private void removeTimer(UUID uuid, String questId) {
+        Map<String, Long> timers = questTimers.get(uuid);
+        if (timers != null) timers.remove(questId);
+    }
+
+    private boolean isRegistered(UUID uuid) { return profileManager.getProfile(uuid).map(PlayerProfile::isRegistered).orElse(false); }
+    public QuestRepository getRepository() { return questRepository; }
 }

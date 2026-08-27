@@ -25,6 +25,7 @@ import org.bukkit.scheduler.BukkitTask;
 /** Handles passive companion protection, passive player bonuses and runtime lifecycle. */
 public final class CompanionExperienceListener implements Listener {
     private final CompanionService companionService;
+    private final CompanionStatsCalculator statsCalculator = new CompanionStatsCalculator();
     private final JavaPlugin plugin;
     private final NamespacedKey healthKey;
     private final NamespacedKey armorKey;
@@ -108,7 +109,7 @@ public final class CompanionExperienceListener implements Listener {
             return;
         }
 
-        CompanionStats stats = passiveStats(definition);
+        CompanionStats stats = statsCalculator.playerPassiveStats(definition);
         setModifier(player, Attribute.MAX_HEALTH, healthKey, stats.health());
         setModifier(player, Attribute.ARMOR, armorKey, stats.armor());
         player.getPersistentDataContainer().set(critChanceKey, PersistentDataType.DOUBLE, stats.critChance());
@@ -122,35 +123,10 @@ public final class CompanionExperienceListener implements Listener {
     private boolean isSummoned(Player player, Companion active) {
         java.util.UUID entityId = companionService.getActiveEntity(player.getUniqueId());
         if (entityId == null) return false;
-
         Entity entity = Bukkit.getEntity(entityId);
         if (!(entity instanceof LivingEntity living) || !entity.isValid() || entity.isDead()) return false;
-
         String runtimeId = living.getPersistentDataContainer().get(RPGKeys.Companion.id(), PersistentDataType.STRING);
         return active.id().equals(runtimeId);
-    }
-
-    private CompanionStats passiveStats(CompanionDefinition definition) {
-        CompanionStats configured = definition.baseStats();
-        CompanionRarity rarity = definition.rarity();
-        double tier = switch (rarity) {
-            case COMMON -> 1.0D;
-            case UNCOMMON -> 2.0D;
-            case RARE -> 3.5D;
-            case EPIC -> 5.0D;
-            case LEGENDARY -> 7.5D;
-            case UNIQUE -> 0.0D;
-        };
-        return new CompanionStats(
-                configured.health() > 0.0D ? configured.health() : tier * 2.0D,
-                0.0D,
-                0.0D,
-                configured.armor() > 0.0D ? configured.armor() : tier,
-                configured.critChance() > 0.0D ? configured.critChance() : tier * 0.5D,
-                configured.critDamage() > 0.0D ? configured.critDamage() : tier * 0.02D,
-                configured.lifesteal() > 0.0D ? configured.lifesteal() : tier * 0.25D,
-                0.0D,
-                0.0D);
     }
 
     private void setModifier(Player player, Attribute attribute, NamespacedKey key, double amount) {
