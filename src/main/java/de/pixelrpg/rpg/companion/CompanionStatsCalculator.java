@@ -35,29 +35,6 @@ public final class CompanionStatsCalculator {
                 base.mana());
     }
 
-    /** Centralizes the passive player bonus defaults used by companions without explicit passive stats. */
-    public CompanionStats playerPassiveStats(CompanionDefinition definition) {
-        CompanionStats configured = definition.baseStats();
-        double tier = switch (definition.rarity()) {
-            case COMMON -> 1.0D;
-            case UNCOMMON -> 2.0D;
-            case RARE -> 3.5D;
-            case EPIC -> 5.0D;
-            case LEGENDARY -> 7.5D;
-            case UNIQUE -> 0.0D;
-        };
-        return new CompanionStats(
-                configured.health() > 0.0D ? configured.health() : tier * 2.0D,
-                0.0D,
-                0.0D,
-                configured.armor() > 0.0D ? configured.armor() : tier,
-                configured.critChance() > 0.0D ? configured.critChance() : tier * 0.5D,
-                configured.critDamage() > 0.0D ? configured.critDamage() : tier * 0.02D,
-                configured.lifesteal() > 0.0D ? configured.lifesteal() : tier * 0.25D,
-                0.0D,
-                0.0D);
-    }
-
     public void apply(CompanionStats stats, LivingEntity entity) {
         set(entity, Attribute.MAX_HEALTH, stats.health());
         set(entity, Attribute.ATTACK_DAMAGE, stats.damage());
