@@ -11,6 +11,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.server.PluginDisableEvent;
 
 public final class QuickActionsDialogListener implements Listener {
     private static final Key PROFILE_ACTION = Key.key("pixelrpg:character_card/profile");
@@ -81,6 +82,14 @@ public final class QuickActionsDialogListener implements Listener {
     /** Closes the native character card when the player selects the close action. */
     @EventHandler
     public void onCloseAction(PlayerCustomClickEvent event) { handlePlayerAction(event, CLOSE_ACTION, Player::closeDialog); }
+
+    /** Stops the character-card and companion entity bridges when PixelRPG is disabled. */
+    @EventHandler
+    public void onPluginDisable(PluginDisableEvent event) {
+        if (event.getPlugin() != plugin) return;
+        characterCardScoreboard.stop();
+        companionService.shutdown();
+    }
 
     private void handlePlayerAction(PlayerCustomClickEvent event, Key identifier, java.util.function.Consumer<Player> action) {
         if (!identifier.equals(event.getIdentifier())) return;
