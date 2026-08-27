@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.boss;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.EconomyAPI;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.api.PartyAPI;
@@ -49,20 +48,22 @@ public final class BossManager {
     private final Map<UUID, ActiveBoss> activeBosses = new ConcurrentHashMap<>();
 
     public BossManager(Plugin plugin, BossAttackPatternRegistry patternRegistry, GuildAPI guildAPI,
-                       PartyAPI partyAPI, EconomyAPI economyAPI, MobScalingConfig mobScalingConfig,
+                       PartyAPI partyAPI, EconomyAPI economyAPI, ItemService itemService,
+                       MobScalingConfig mobScalingConfig, LanguageManager languageManager,
                        double barRadius, int barUpdateIntervalTicks, int phaseCheckIntervalTicks) {
         this.plugin = plugin;
         this.patternRegistry = patternRegistry;
         this.guildAPI = guildAPI;
         this.partyAPI = partyAPI;
         this.economyAPI = economyAPI;
+        this.itemService = itemService;
         this.mobScalingConfig = mobScalingConfig;
-        this.itemService = PixelRPGPlugin.getInstance().getItemService();
-        if (this.itemService == null) throw new IllegalStateException("ItemService must be initialized before BossManager.");
         this.barRadius = Math.max(1.0D, barRadius);
         this.barUpdateIntervalTicks = Math.max(1, barUpdateIntervalTicks);
         this.phaseCheckIntervalTicks = Math.max(1, phaseCheckIntervalTicks);
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
+        this.lang = languageManager;
+        if (this.itemService == null) throw new IllegalArgumentException("itemService must not be null");
+        if (this.lang == null) throw new IllegalArgumentException("languageManager must not be null");
         plugin.getServer().getPluginManager().registerEvents(new WorldBossProtectionListener(guildAPI), plugin);
     }
 
