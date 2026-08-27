@@ -140,7 +140,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         itemEconomyConfig = new ItemEconomyConfig();
         itemEconomyConfig.load(getConfig());
         RPGItemBuilder.configureScaling(this);
-        itemService = new ItemService();
+        itemService = new ItemService(this);
         equipmentService = new EquipmentService(playerProfileManager, statEngine, itemService);
         Bukkit.getServicesManager().register(de.pixelrpg.rpg.api.ItemAPI.class, itemService, this, ServicePriority.Normal);
         craftingGUI = new CraftingGUI(professionSystem.craftingService(), playerProfileManager);
