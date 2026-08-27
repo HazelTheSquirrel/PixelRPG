@@ -22,7 +22,6 @@ public final class QuestRepository {
     private final Map<String, Quest> questsById = new ConcurrentHashMap<>();
     private final Map<String, List<String>> prerequisitesByQuest = new ConcurrentHashMap<>();
     private final Map<String, List<String>> followUpsByQuest = new ConcurrentHashMap<>();
-
     private static final int MAX_ACTIVE_QUESTS = 5;
 
     public QuestRepository(Plugin plugin) {
@@ -36,6 +35,7 @@ public final class QuestRepository {
         followUpsByQuest.clear();
         loadDefinitionsFrom("quests_v2.json");
         loadDefinitionsFrom("quests_additional.json");
+        loadDefinitionsFrom("quests_world_expansion.json");
         validateReferences();
     }
 
@@ -96,13 +96,9 @@ public final class QuestRepository {
         int category = number(json, "categoryLevel", level);
         int amount = number(json, "requiredAmount", 1);
         if (level < Level.MIN_LEVEL || level > Level.MAX_NORMAL_LEVEL || category < Level.MIN_LEVEL || category > Level.MAX_NORMAL_LEVEL || amount <= 0) return false;
-
         Profession profession = parseProfession(string(json, "profession", ""));
         int professionLevel = number(json, "requiredProfessionLevel", profession == null ? 1 : level);
-        if (profession != null && (professionLevel < Profession.MIN_LEVEL || professionLevel > Profession.MAX_LEVEL)) {
-            plugin.getLogger().warning("Ignoring quest '" + id + "': invalid profession level.");
-            return false;
-        }
+        if (profession != null && (professionLevel < Profession.MIN_LEVEL || professionLevel > Profession.MAX_LEVEL)) return false;
         if (type == QuestType.GLOBAL_EVENT && string(json, "targetKey", "").isBlank()) return false;
         if (type == QuestType.TALK_TO_NPC && string(json, "targetKey", "").isBlank()) return false;
         if (type == QuestType.HUNT && !isVanillaEntityType(string(json, "targetKey", ""))) return false;
