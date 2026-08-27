@@ -64,6 +64,7 @@ public final class BossManager {
         this.lang = languageManager;
         if (this.itemService == null) throw new IllegalArgumentException("itemService must not be null");
         if (this.lang == null) throw new IllegalArgumentException("languageManager must not be null");
+        plugin.getServer().getPluginManager().registerEvents(new BossRewardItemListener(guildAPI), plugin);
         plugin.getServer().getPluginManager().registerEvents(new WorldBossProtectionListener(guildAPI), plugin);
     }
 
