@@ -63,11 +63,12 @@ public final class CompanionExperienceListener implements Listener {
         event.setCancelled(true);
     }
 
-    // Prevents hostile vanilla AI from targeting passive companions or their owners.
+    // Keeps passive companions from acquiring vanilla AI targets; the tamed wolf is intentionally exempt so it can react to owner combat.
     @EventHandler
     public void onCompanionTarget(EntityTargetLivingEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity) || !isCompanion(entity)) return;
         if (isUniqueMannequin(entity)) return;
+        if (isTamedPixelRpgWolf(entity)) return;
         event.setCancelled(true);
         if (entity instanceof Mob mob) mob.setTarget(null);
     }
@@ -108,6 +109,12 @@ public final class CompanionExperienceListener implements Listener {
         if (!wolf.isTamed()) wolf.setTamed(true);
         if (wolf.getOwner() == null || !owner.getUniqueId().equals(wolf.getOwner().getUniqueId())) wolf.setOwner(owner);
         if (wolf.isSitting()) wolf.setSitting(false);
+    }
+
+    private boolean isTamedPixelRpgWolf(LivingEntity entity) {
+        if (!(entity instanceof Wolf wolf) || !wolf.isTamed()) return false;
+        String id = entity.getPersistentDataContainer().get(RPGKeys.Companion.id(), PersistentDataType.STRING);
+        return "uncommon-wolf".equalsIgnoreCase(id);
     }
 
     private boolean isCompanion(Entity entity) {
