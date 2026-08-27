@@ -104,7 +104,7 @@ public final class QuestManager {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered() || !canAccept(profile, quest) || profile.hasActiveQuest(quest.id())) return false;
         if (profile.getActiveQuests().size() >= MAX_ACTIVE_QUESTS) {
-            player.sendMessage(Component.text("Du kannst maximal 5 Quests gleichzeitig aktiv haben.", NamedTextColor.RED));
+            lang.send(player, "quest.max-active", "max", String.valueOf(MAX_ACTIVE_QUESTS));
             return false;
         }
         long expiry = quest.hasTimeLimit() ? System.currentTimeMillis() + quest.durationMinutes() * 60_000L : 0L;
@@ -113,7 +113,7 @@ public final class QuestManager {
             questTimers.computeIfAbsent(player.getUniqueId(), ignored -> new ConcurrentHashMap<>()).put(quest.id(), expiry);
             lang.send(player, "quest.time-limit", "minutes", String.valueOf(quest.durationMinutes()));
         }
-        lang.send(player, "quest.accepted", "title", QuestText.titlePlain(quest));
+        lang.send(player, "quest.accepted", "title", QuestText.titlePlain(player, quest));
         return true;
     }
 
@@ -175,12 +175,11 @@ public final class QuestManager {
         if (quest.rewardsCompanion()) {
             var companionService = PixelRPGPlugin.getInstance().getCompanionService();
             if (companionService != null && companionService.unlockDefinition(player.getUniqueId(), quest.rewardCompanionId())) {
-                player.sendMessage(Component.text("Begleiter freigeschaltet: ", NamedTextColor.WHITE)
-                        .append(Component.text(quest.rewardCompanionId(), NamedTextColor.YELLOW)));
+                lang.send(player, "companion.unlocked", "name", quest.rewardCompanionId());
             }
         }
-        lang.send(player, "quest.completed", "title", QuestText.titlePlain(quest));
-        player.showTitle(Title.title(QuestText.title(quest).color(NamedTextColor.YELLOW), Component.text(" "),
+        lang.send(player, "quest.completed", "title", QuestText.titlePlain(player, quest));
+        player.showTitle(Title.title(QuestText.title(player, quest).color(NamedTextColor.YELLOW), Component.empty(),
                 Title.Times.times(Duration.ofMillis(300), Duration.ofMillis(1800), Duration.ofMillis(300))));
         Bukkit.getPluginManager().callEvent(new QuestCompletedEvent(player, quest.id()));
         return true;
@@ -237,7 +236,7 @@ public final class QuestManager {
             QuestProgress progress = entry.getValue();
             if (progress.getCurrentAmount() == next) continue;
             progress.setCurrentAmount(next);
-            player.sendActionBar(QuestText.objectiveWithProgress(quest, progress));
+            player.sendActionBar(QuestText.objectiveWithProgress(player, quest, progress));
         }
     }
 
@@ -275,7 +274,7 @@ public final class QuestManager {
             if (target == null || !player.getWorld().equals(target.getWorld())) continue;
             if (player.getLocation().distanceSquared(target) <= 64.0D) {
                 entry.getValue().setCurrentAmount(quest.requiredAmount());
-                lang.send(player, "quest.location-reached", "title", QuestText.titlePlain(quest));
+                lang.send(player, "quest.location-reached", "title", QuestText.titlePlain(player, quest));
             }
         }
     }
@@ -341,7 +340,7 @@ public final class QuestManager {
         int next = Math.min(quest.requiredAmount(), progress.getCurrentAmount() + 1);
         progress.setCurrentAmount(next);
         Player player = Bukkit.getPlayer(profile.getUuid());
-        if (player != null && player.isOnline()) player.sendActionBar(QuestText.objectiveWithProgress(quest, progress));
+        if (player != null && player.isOnline()) player.sendActionBar(QuestText.objectiveWithProgress(player, quest, progress));
     }
 
     private void propagateToParty(Player source, Consumer<PlayerProfile> action, Location referenceLocation) {
