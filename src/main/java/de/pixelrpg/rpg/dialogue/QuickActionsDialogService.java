@@ -39,12 +39,13 @@ public final class QuickActionsDialogService {
     private final PlayerProfileManager profiles;
     private final StatEngine statEngine;
     private final QuestManager questManager;
-    private final ItemService itemService = new ItemService();
+    private final ItemService itemService;
 
-    public QuickActionsDialogService(PlayerProfileManager profiles, StatEngine statEngine, QuestManager questManager) {
+    public QuickActionsDialogService(PlayerProfileManager profiles, StatEngine statEngine, QuestManager questManager, ItemService itemService) {
         this.profiles = profiles;
         this.statEngine = statEngine;
         this.questManager = questManager;
+        this.itemService = itemService;
     }
 
     public PlayerProfileManager profileManager() { return profiles; }
