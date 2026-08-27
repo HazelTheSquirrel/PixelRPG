@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.quest;
 
+import de.pixelrpg.rpg.profession.Profession;
 import org.bukkit.Location;
 
 import java.util.List;
@@ -23,12 +24,15 @@ public record Quest(
         List<String> targetBiomeKeys,
         int navigationRadius,
         boolean findUnexploredStructure,
-        Location reachLocation
+        Location reachLocation,
+        Profession profession,
+        int requiredProfessionLevel
 ) {
 
     public Quest {
         rewardItemMaterials = rewardItemMaterials == null ? List.of() : List.copyOf(rewardItemMaterials);
         targetBiomeKeys = targetBiomeKeys == null ? List.of() : List.copyOf(targetBiomeKeys);
+        requiredProfessionLevel = Math.max(1, requiredProfessionLevel);
     }
 
     public boolean hasTimeLimit() {
@@ -37,6 +41,10 @@ public record Quest(
 
     public boolean rewardsCompanion() {
         return rewardCompanionId != null && !rewardCompanionId.isBlank();
+    }
+
+    public boolean isProfessionQuest() {
+        return profession != null;
     }
 
     public boolean hasNavigationTarget() {
