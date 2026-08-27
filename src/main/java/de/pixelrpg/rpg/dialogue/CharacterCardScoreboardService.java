@@ -16,12 +16,12 @@ import org.bukkit.scoreboard.RenderType;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** Keeps the player-specific final RPG values available to the native character-card presentation. */
+/** Keeps player-specific RPG values available to the native character-card presentation. */
 public final class CharacterCardScoreboardService {
-    private static final Map<String, String> OBJECTIVES = Map.ofEntries(
+    private static final Map<String, String> OBJECTIVES = new LinkedHashMap<>(Map.ofEntries(
             Map.entry("level", "px_cc_lvl"),
             Map.entry("health", "px_cc_hp"),
             Map.entry("maxHealth", "px_cc_maxhp"),
@@ -33,12 +33,12 @@ public final class CharacterCardScoreboardService {
             Map.entry("critDamage", "px_cc_critdmg"),
             Map.entry("lifesteal", "px_cc_lifesteal"),
             Map.entry("attackPower", "px_cc_atk")
-    );
+    ));
 
     private final JavaPlugin plugin;
     private final PlayerProfileManager profiles;
     private final StatEngine statEngine;
-    private final Map<String, Objective> objectives = new HashMap<>();
+    private final Map<String, Objective> objectives = new LinkedHashMap<>();
     private BukkitTask task;
 
     public CharacterCardScoreboardService(JavaPlugin plugin, PlayerProfileManager profiles, StatEngine statEngine) {
@@ -63,7 +63,9 @@ public final class CharacterCardScoreboardService {
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
         OBJECTIVES.forEach((key, objectiveName) -> {
             Objective objective = scoreboard.getObjective(objectiveName);
-            if (objective == null) objective = scoreboard.registerNewObjective(objectiveName, Criteria.DUMMY, Component.text("PixelRPG " + key), RenderType.INTEGER);
+            if (objective == null) {
+                objective = scoreboard.registerNewObjective(objectiveName, Criteria.DUMMY, Component.text("PixelRPG " + key), RenderType.INTEGER);
+            }
             objective.numberFormat(NumberFormat.noStyle());
             objectives.put(key, objective);
         });
@@ -76,9 +78,16 @@ public final class CharacterCardScoreboardService {
     private void sync(Player player) {
         PlayerProfile profile = profiles.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) return;
+
         StatEngine.CachedStats stats = statEngine.getCachedStats(player.getUniqueId());
-        double maxHealth = player.getAttribute(Attribute.MAX_HEALTH) != null ? player.getAttribute(Attribute.MAX_HEALTH).getValue() : stats.maxHealth();
-        double armor = player.getAttribute(Attribute.ARMOR) != null ? player.getAttribute(Attribute.ARMOR).getValue() : stats.armor();
+        Attribute maxHealthAttribute = Attribute.MAX_HEALTH;
+        Attribute armorAttribute = Attribute.ARMOR;
+        var maxHealthInstance = player.getAttribute(maxHealthAttribute);
+        var armorInstance = player.getAttribute(armorAttribute);
+
+        double maxHealth = maxHealthInstance != null ? maxHealthInstance.getValue() : stats.maxHealth();
+        double armor = armorInstance != null ? armorInstance.getValue() : stats.armor();
+
         set(player, "level", profile.getLevel());
         set(player, "health", round(player.getHealth()));
         set(player, "maxHealth", round(maxHealth));
@@ -92,7 +101,16 @@ public final class CharacterCardScoreboardService {
         set(player, "attackPower", round(stats.attackPower()));
     }
 
-    private void set(Player player, String key, int value) { score(player, key).setScore(Math.max(0, value)); }
-    private Score score(Player player, String key) { return objectives.get(key).getScore(player.getName()); }
-    private int round(double value) { return (int) Math.round(value); }
+    private void set(Player player, String key, int value) {
+        Objective objective = objectives.get(key);
+        if (objective != null) objective.getScore(player.getName()).setScore(Math.max(0, value));
+    }
+
+    private Score score(Player player, String key) {
+        return objectives.get(key).getScore(player.getName());
+    }
+
+    private int round(double value) {
+        return (int) Math.round(value);
+    }
 }
