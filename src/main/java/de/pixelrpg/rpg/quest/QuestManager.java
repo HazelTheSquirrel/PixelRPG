@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.quest;
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
 import de.pixelrpg.rpg.item.ItemRarity;
+import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
 import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcType;
@@ -40,6 +41,7 @@ public final class QuestManager {
     private final GlobalEventState globalEventState;
     private final double partyShareRange;
     private final LanguageManager lang;
+    private final ItemService itemService;
     private final Map<UUID, Map<String, Long>> questTimers = new ConcurrentHashMap<>();
     private BukkitTask timerTask;
 
@@ -51,6 +53,7 @@ public final class QuestManager {
         this.globalEventState = globalEventState;
         this.partyShareRange = partyShareRange;
         this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
+        this.itemService = new ItemService();
     }
 
     public void startTimerCheckTask() {
@@ -97,7 +100,7 @@ public final class QuestManager {
             questTimers.computeIfAbsent(player.getUniqueId(), ignored -> new ConcurrentHashMap<>()).put(quest.id(), expiry);
             lang.send(player, "quest.time-limit", "minutes", String.valueOf(quest.durationMinutes()));
         }
-        lang.send(player, "quest.accepted", "title", quest.title());
+        lang.send(player, "quest.accepted", "title", QuestText.titlePlain(quest));
         if (quest.type() == QuestType.GLOBAL_EVENT && globalEventState.getProgress(quest.id()) >= quest.requiredAmount()) {
             profile.getActiveQuests().get(quest.id()).setCurrentAmount(quest.requiredAmount());
             lang.send(player, "quest.progress", "current", String.valueOf(quest.requiredAmount()), "required", String.valueOf(quest.requiredAmount()));
@@ -119,6 +122,12 @@ public final class QuestManager {
         Quest quest = questRepository.getQuest(questId);
         if (profile == null || !profile.isRegistered() || quest == null || !profile.hasActiveQuest(questId)) return false;
         QuestProgress progress = profile.getActiveQuests().get(questId);
+        if (progress.isExpired()) {
+            profile.removeActiveQuest(questId);
+            removeTimer(player.getUniqueId(), quest.id());
+            lang.send(player, "quest.expired");
+            return false;
+        }
         if (progress.getCurrentAmount() < quest.requiredAmount()) {
             lang.send(player, "quest.requirements-not-met");
             return false;
@@ -158,8 +167,8 @@ public final class QuestManager {
                 player.sendMessage(Component.text("Begleiter freigeschaltet: ", NamedTextColor.WHITE).append(Component.text(quest.rewardCompanionId(), NamedTextColor.YELLOW)));
             }
         }
-        lang.send(player, "quest.completed", "title", quest.title());
-        player.showTitle(Title.title(Component.text(quest.title(), NamedTextColor.YELLOW), Component.text(" "),
+        lang.send(player, "quest.completed", "title", QuestText.titlePlain(quest));
+        player.showTitle(Title.title(QuestText.title(quest).color(NamedTextColor.YELLOW), Component.text(" "),
                 Title.Times.times(Duration.ofMillis(300), Duration.ofMillis(1800), Duration.ofMillis(300))));
         Bukkit.getPluginManager().callEvent(new QuestCompletedEvent(player, quest.id()));
         return true;
@@ -191,18 +200,44 @@ public final class QuestManager {
         }
     }
 
+    /** Recalculates COLLECT progress from the player's current inventory. */
     public void checkInventoryQuests(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) return;
         for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.COLLECT) continue;
-            Material material = Material.matchMaterial(quest.targetKey());
-            if (material == null || !material.isItem()) continue;
-            int amount = 0;
-            for (ItemStack item : player.getInventory().getContents()) if (item != null && item.getType() == material) amount += item.getAmount();
-            entry.getValue().setCurrentAmount(Math.min(quest.requiredAmount(), amount));
+            int amount = countQuestItems(player, quest.targetKey());
+            int next = Math.min(quest.requiredAmount(), amount);
+            QuestProgress progress = entry.getValue();
+            if (progress.getCurrentAmount() == next) continue;
+            progress.setCurrentAmount(next);
+            player.sendActionBar(lang.get("quest.progress", "current", String.valueOf(next), "required", String.valueOf(quest.requiredAmount())));
         }
+    }
+
+    private int countQuestItems(Player player, String targetKey) {
+        Material material = Material.matchMaterial(targetKey);
+        String normalizedTarget = normalizeItemId(targetKey);
+        int amount = 0;
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item == null || item.isEmpty()) continue;
+            if (material != null && item.getType() == material && !isSpecificRpgItemTarget(normalizedTarget)) {
+                amount += item.getAmount();
+                continue;
+            }
+            if (itemService.getItemId(item).map(id -> normalizeItemId(id).equals(normalizedTarget)).orElse(false)) amount += item.getAmount();
+        }
+        return amount;
+    }
+
+    private boolean isSpecificRpgItemTarget(String normalizedTarget) {
+        return normalizedTarget.startsWith("pixelrpg:");
+    }
+
+    private String normalizeItemId(String key) {
+        String normalized = key == null ? "" : key.trim().toLowerCase(java.util.Locale.ROOT);
+        return normalized.startsWith("pixelrpg:") ? normalized : "pixelrpg:" + normalized;
     }
 
     public void checkReachLocationQuests(Player player) {
@@ -215,7 +250,7 @@ public final class QuestManager {
             if (target == null || !player.getWorld().equals(target.getWorld())) continue;
             if (player.getLocation().distanceSquared(target) <= 64.0D) {
                 entry.getValue().setCurrentAmount(quest.requiredAmount());
-                lang.send(player, "quest.location-reached", "title", quest.title());
+                lang.send(player, "quest.location-reached", "title", QuestText.titlePlain(quest));
             }
         }
     }
