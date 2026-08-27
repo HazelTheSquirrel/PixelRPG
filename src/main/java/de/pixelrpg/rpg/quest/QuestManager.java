@@ -20,6 +20,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Biome;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.EntityType;
 import org.bukkit.generator.structure.Structure;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -27,10 +28,12 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 public final class QuestManager {
     public static final int MAX_ACTIVE_QUESTS = 5;
@@ -76,7 +79,10 @@ public final class QuestManager {
     }
 
     public void shutdown() {
-        if (timerTask != null) { timerTask.cancel(); timerTask = null; }
+        if (timerTask != null) {
+            timerTask.cancel();
+            timerTask = null;
+        }
         questTimers.clear();
     }
 
@@ -84,7 +90,14 @@ public final class QuestManager {
         if (!profile.isRegistered()) return false;
         if (profile.hasCompletedQuest(quest.id())) return false;
         if (!questRepository.prerequisitesMet(profile, quest.id())) return false;
-        return profile.getLevel() >= quest.requiredLevel();
+        if (profile.getLevel() < quest.requiredLevel()) return false;
+        return !quest.isProfessionQuest() || (profile.hasLearnedProfession(quest.profession())
+                && getProfessionLevel(profile, quest) >= quest.requiredProfessionLevel());
+    }
+
+    private int getProfessionLevel(PlayerProfile profile, Quest quest) {
+        return PixelRPGPlugin.getInstance().getProfessionSystem().professionService()
+                .getLevel(profile.getUuid(), quest.profession());
     }
 
     public boolean acceptQuest(Player player, Quest quest) {
@@ -101,10 +114,6 @@ public final class QuestManager {
             lang.send(player, "quest.time-limit", "minutes", String.valueOf(quest.durationMinutes()));
         }
         lang.send(player, "quest.accepted", "title", QuestText.titlePlain(quest));
-        if (quest.type() == QuestType.GLOBAL_EVENT && globalEventState.getProgress(quest.id()) >= quest.requiredAmount()) {
-            profile.getActiveQuests().get(quest.id()).setCurrentAmount(quest.requiredAmount());
-            lang.send(player, "quest.progress", "current", String.valueOf(quest.requiredAmount()), "required", String.valueOf(quest.requiredAmount()));
-        }
         return true;
     }
 
@@ -140,6 +149,8 @@ public final class QuestManager {
     }
 
     private boolean isAtQuestGiver(Player player, Quest quest) {
+        // Profession quests are explicitly turned in through the profession trainer dialog.
+        if (quest.isProfessionQuest()) return true;
         if (quest.questGiverNpcId() == null || quest.questGiverNpcId().isBlank()) {
             return PixelRPGPlugin.getInstance().getNpcManager().getAll().stream()
                     .filter(npc -> npc.type() == NpcType.QUEST)
@@ -164,7 +175,8 @@ public final class QuestManager {
         if (quest.rewardsCompanion()) {
             var companionService = PixelRPGPlugin.getInstance().getCompanionService();
             if (companionService != null && companionService.unlockDefinition(player.getUniqueId(), quest.rewardCompanionId())) {
-                player.sendMessage(Component.text("Begleiter freigeschaltet: ", NamedTextColor.WHITE).append(Component.text(quest.rewardCompanionId(), NamedTextColor.YELLOW)));
+                player.sendMessage(Component.text("Begleiter freigeschaltet: ", NamedTextColor.WHITE)
+                        .append(Component.text(quest.rewardCompanionId(), NamedTextColor.YELLOW)));
             }
         }
         lang.send(player, "quest.completed", "title", QuestText.titlePlain(quest));
@@ -177,11 +189,15 @@ public final class QuestManager {
     private void giveRewardItem(Player player, String definition, int fallbackLevel) {
         String[] parts = definition.split("\\|", -1);
         try {
-            Material material = Material.valueOf(parts[0].trim().toUpperCase());
-            if (parts.length == 1) { player.getInventory().addItem(new ItemStack(material)); return; }
-            ItemRarity rarity = ItemRarity.valueOf(parts[1].trim().toUpperCase());
+            Material material = Material.valueOf(parts[0].trim().toUpperCase(Locale.ROOT));
+            if (parts.length == 1) {
+                player.getInventory().addItem(new ItemStack(material));
+                return;
+            }
+            ItemRarity rarity = ItemRarity.valueOf(parts[1].trim().toUpperCase(Locale.ROOT));
             int itemLevel = parts.length >= 3 ? Integer.parseInt(parts[2].trim()) : fallbackLevel;
-            RPGItemBuilder.createItem(material, rarity, Math.max(1, itemLevel)).ifPresent(item -> player.getInventory().addItem(item));
+            RPGItemBuilder.createItem(material, rarity, Math.max(1, itemLevel))
+                    .ifPresent(item -> player.getInventory().addItem(item));
         } catch (IllegalArgumentException exception) {
             plugin.getLogger().warning("Invalid quest reward item '" + definition + "'. Use MATERIAL or MATERIAL|RARITY|ITEM_LEVEL.");
         }
@@ -212,7 +228,7 @@ public final class QuestManager {
             QuestProgress progress = entry.getValue();
             if (progress.getCurrentAmount() == next) continue;
             progress.setCurrentAmount(next);
-            player.sendActionBar(lang.get("quest.progress", "current", String.valueOf(next), "required", String.valueOf(quest.requiredAmount())));
+            player.sendActionBar(QuestText.objectiveWithProgress(quest, progress));
         }
     }
 
@@ -236,7 +252,7 @@ public final class QuestManager {
     }
 
     private String normalizeItemId(String key) {
-        String normalized = key == null ? "" : key.trim().toLowerCase(java.util.Locale.ROOT);
+        String normalized = key == null ? "" : key.trim().toLowerCase(Locale.ROOT);
         return normalized.startsWith("pixelrpg:") ? normalized : "pixelrpg:" + normalized;
     }
 
@@ -316,10 +332,10 @@ public final class QuestManager {
         int next = Math.min(quest.requiredAmount(), progress.getCurrentAmount() + 1);
         progress.setCurrentAmount(next);
         Player player = Bukkit.getPlayer(profile.getUuid());
-        if (player != null && player.isOnline()) player.sendActionBar(lang.get("quest.progress", "current", String.valueOf(next), "required", String.valueOf(quest.requiredAmount())));
+        if (player != null && player.isOnline()) player.sendActionBar(QuestText.objectiveWithProgress(quest, progress));
     }
 
-    private void propagateToParty(Player source, java.util.function.Consumer<PlayerProfile> action, Location referenceLocation) {
+    private void propagateToParty(Player source, Consumer<PlayerProfile> action, Location referenceLocation) {
         if (!isRegistered(source.getUniqueId())) return;
         de.pixelrpg.rpg.api.PartyAPI partyAPI = Bukkit.getServicesManager().load(de.pixelrpg.rpg.api.PartyAPI.class);
         if (partyAPI == null || !partyAPI.isInParty(source.getUniqueId())) {
