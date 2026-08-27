@@ -3,7 +3,6 @@ package de.pixelrpg.rpg.npc.behavior;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.ProfessionDialog;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
-import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
@@ -16,11 +15,10 @@ import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
-
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native profession trainer dialog for learning one profession and buying its recipes. */
+/** Native profession trainer dialog for learning one profession and opening its unified content view. */
 public final class ProfessionTrainerBehavior implements NpcBehavior {
     private final NpcType type;
     private final Profession profession;
@@ -43,9 +41,7 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
     }
 
     @Override
-    public NpcType type() {
-        return type;
-    }
+    public NpcType type() { return type; }
 
     @Override
     public void onInteract(Player player, RPGNpc npc) {
@@ -53,37 +49,22 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
             dialogueEngine.openUnavailable(player, profession.displayName(), "Du musst zuerst Rathausmitglied sein.");
             return;
         }
-
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
-
-        boolean learned = profile.hasLearnedProfession(profession);
-        int level = professionService.getLevel(player.getUniqueId(), profession);
-        long experience = professionService.getExperience(player.getUniqueId(), profession);
-        long next = level >= Profession.MAX_LEVEL ? 0L : ProfessionService.experienceForLevel(level + 1);
+        if (profile.hasLearnedProfession(profession)) {
+            professionDialog.open(player, profession);
+            return;
+        }
 
         List<DialogBody> body = new ArrayList<>();
         body.add(DialogBody.plainMessage(Component.text(profession.description(), NamedTextColor.GRAY)));
-        body.add(DialogBody.plainMessage(Component.text(
-                learned
-                        ? level >= Profession.MAX_LEVEL
-                            ? profession.displayName() + " Level " + Profession.MAX_LEVEL + " – Meister"
-                            : profession.displayName() + " Level " + level + "/" + Profession.MAX_LEVEL + " • " + experience + "/" + next + " EP"
-                        : "Du hast den Beruf " + profession.displayName() + " noch nicht erlernt.",
-                learned ? NamedTextColor.YELLOW : NamedTextColor.RED)));
-
+        body.add(DialogBody.plainMessage(Component.text("Du hast den Beruf " + profession.displayName() + " noch nicht erlernt.", NamedTextColor.RED)));
         List<ActionButton> actions = new ArrayList<>();
-        if (!learned) {
-            actions.add(dialogueEngine.actionButton(Component.text(profession.displayName() + " erlernen"), NamedTextColor.GREEN,
-                    target -> {
-                        professionService.learn(target, profession);
-                        onInteract(target, npc);
-                    }));
-        } else {
-            actions.add(dialogueEngine.actionButton(Component.text("Rezepte kaufen / verwalten"), NamedTextColor.BLUE,
-                    target -> professionDialog.openTrainerRecipes(target, profession)));
-        }
-
+        actions.add(dialogueEngine.actionButton(Component.text(profession.displayName() + " erlernen"), NamedTextColor.GREEN,
+                target -> {
+                    professionService.learn(target, profession);
+                    onInteract(target, npc);
+                }));
         actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
         dialogueEngine.openMultiAction(player, Component.text(profession.displayName(), NamedTextColor.GOLD), body, actions, 1);
     }
