@@ -63,23 +63,14 @@ public final class CraftingService {
             String ingredientId = "minecraft:" + cost.getKey().getKey().toString().toLowerCase(Locale.ROOT);
             if (itemService.countIngredient(player, ingredientId) < cost.getValue()) return CraftResult.failure("Missing materials");
         }
-
-        ItemRarity rolledRarity = CraftingRarityRoller.roll(recipe.rarity());
-        ItemStack result;
-        try {
-            result = createResult(recipe, rolledRarity, Math.min(99, professionLevel));
-        } catch (RuntimeException exception) {
-            return CraftResult.failure("Crafting recipe is invalid: " + exception.getMessage());
-        }
-        if (recipe.resultAmount() > 1) result.setAmount(recipe.resultAmount());
-
         for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) {
             String ingredientId = "minecraft:" + cost.getKey().getKey().toString().toLowerCase(Locale.ROOT);
-            if (!itemService.removeIngredient(player, ingredientId, cost.getValue())) {
-                return CraftResult.failure("Inventory changed while crafting");
-            }
+            itemService.removeIngredient(player, ingredientId, cost.getValue());
         }
 
+        ItemRarity rolledRarity = CraftingRarityRoller.roll(recipe.rarity());
+        ItemStack result = createResult(recipe, rolledRarity, Math.min(99, professionLevel));
+        if (recipe.resultAmount() > 1) result.setAmount(recipe.resultAmount());
         player.getInventory().addItem(result).values()
                 .forEach(stack -> player.getWorld().dropItemNaturally(player.getLocation(), stack));
 
@@ -90,7 +81,7 @@ public final class CraftingService {
 
     private ItemStack createResult(CraftRecipe recipe, ItemRarity rarity, int itemLevel) {
         if (!recipe.resultItemId().isBlank()) {
-            return itemService.createItem(recipe.resultItemId(), itemLevel)
+            return itemService.createItem(recipe.resultItemId())
                     .orElseThrow(() -> new IllegalStateException("Unable to create crafting result item: " + recipe.resultItemId()));
         }
 
@@ -133,9 +124,7 @@ public final class CraftingService {
     }
 
     private long craftExperience(CraftRecipe recipe) {
-        long levelExperience = (long) recipe.requiredProfessionLevel() * 6L;
-        long materialExperience = recipe.costs().values().stream().mapToLong(Integer::longValue).sum() * 5L;
-        return Math.max(20L, levelExperience + materialExperience);
+        return Math.max(20L, recipe.requiredProfessionLevel() * 6L + recipe.costs().values().stream().mapToLong(Integer::longValue).sum() * 5L);
     }
 
     public record CraftResult(boolean success, String message, ItemStack result, long experience) {
