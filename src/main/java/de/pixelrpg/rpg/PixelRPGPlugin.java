@@ -70,7 +70,6 @@ import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.profession.ProfessionSystem;
 import de.pixelrpg.rpg.quest.GlobalEventState;
-import de.pixelrpg.rpg.quest.QuestExperienceScalingListener;
 import de.pixelrpg.rpg.quest.QuestManager;
 import de.pixelrpg.rpg.quest.QuestMobKillListener;
 import de.pixelrpg.rpg.quest.QuestPassiveCheckTask;
@@ -233,7 +232,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MobExperienceListener(playerProfileManager, mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry, questManager), this);
         getServer().getPluginManager().registerEvents(new QuestMobKillListener(questManager), this);
-        getServer().getPluginManager().registerEvents(new QuestExperienceScalingListener(), this);
         getServer().getPluginManager().registerEvents(new PartyDisconnectListener(partyManager), this);
         getServer().getPluginManager().registerEvents(new BossDeathListener(bossManager), this);
         getServer().getPluginManager().registerEvents(new MobKillStatisticListener(playerProfileManager, statisticsService), this);
