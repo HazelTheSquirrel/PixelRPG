@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.party.PartyManager;
@@ -63,7 +64,7 @@ public final class PartyGUI extends AbstractGUI {
     }
 
     private void openMemberActions(UUID target) {
-        DialogueEngine engine = new DialogueEngine();
+        DialogueEngine engine = new DialogueEngine(PixelRPGPlugin.getInstance().getLanguageManager());
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text("Mitglied verwalten", NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text(name(target), NamedTextColor.GRAY)));
