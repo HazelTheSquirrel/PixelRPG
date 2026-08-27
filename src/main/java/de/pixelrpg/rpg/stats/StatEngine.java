@@ -163,9 +163,9 @@ public final class StatEngine {
         return new CompanionPassiveStats(
                 configured.health() > 0.0D ? configured.health() : tier * 2.0D,
                 configured.armor() > 0.0D ? configured.armor() : tier,
-                configured.movementSpeed(),
                 0.0D,
-                configured.damage(),
+                0.0D,
+                0.0D,
                 configured.critChance() > 0.0D ? configured.critChance() : tier * 0.5D,
                 configured.critDamage() > 0.0D ? configured.critDamage() : tier * 0.02D,
                 configured.lifesteal() > 0.0D ? configured.lifesteal() : tier * 0.25D,
