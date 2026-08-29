@@ -1,9 +1,7 @@
 package de.pixelrpg.rpg.command.impl;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.command.SubCommand;
 import de.pixelrpg.rpg.gui.PartyGUI;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -26,12 +24,10 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
 
     private final PartyManager partyManager;
     private final PlayerProfileManager profileManager;
-    private final LanguageManager lang;
 
     public PartySubCommand(PartyManager partyManager, PlayerProfileManager profileManager) {
         this.partyManager = partyManager;
         this.profileManager = profileManager;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override public String name() { return "party"; }
@@ -41,11 +37,11 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Only players can use this command.", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Nur Spieler können diesen Befehl nutzen.", NamedTextColor.RED));
             return true;
         }
         if (!profileManager.isRegistered(player.getUniqueId())) {
-            lang.send(player, "common.not-registered");
+            player.sendMessage(Component.text("Du musst registriertes Rathausmitglied sein.", NamedTextColor.RED));
             return true;
         }
         if (args.length == 0) {
@@ -60,58 +56,58 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
             case "transfer" -> handleTransfer(player, args);
             case "disband" -> handleDisband(player);
             case "info" -> { new PartyGUI(player, partyManager, profileManager).open(player); yield true; }
-            default -> { lang.send(player, "party.usage-root"); yield true; }
+            default -> { player.sendMessage(Component.text("Verwendung: /rpgparty <invite|accept|leave|disband|info>", NamedTextColor.YELLOW)); yield true; }
         };
     }
 
     private boolean handleInvite(Player player, String[] args) {
-        if (args.length < 2) { lang.send(player, "party.usage-invite"); return true; }
+        if (args.length < 2) { player.sendMessage(Component.text("Verwendung: /rpgparty invite <Spieler>", NamedTextColor.YELLOW)); return true; }
         Player target = Bukkit.getPlayerExact(args[1]);
-        if (target == null) { lang.send(player, "party.player-not-online"); return true; }
-        if (target.getUniqueId().equals(player.getUniqueId())) { lang.send(player, "party.cannot-invite-self"); return true; }
-        if (!profileManager.isRegistered(target.getUniqueId())) { lang.send(player, "party.target-not-registered", "player", target.getName()); return true; }
+        if (target == null) { player.sendMessage(Component.text("Spieler ist nicht online.", NamedTextColor.RED)); return true; }
+        if (target.getUniqueId().equals(player.getUniqueId())) { player.sendMessage(Component.text("Du kannst dich nicht selbst einladen.", NamedTextColor.RED)); return true; }
+        if (!profileManager.isRegistered(target.getUniqueId())) { player.sendMessage(Component.text(target.getName() + " ist kein registriertes Rathausmitglied.", NamedTextColor.RED)); return true; }
         Party party = partyManager.getParty(player.getUniqueId()).orElseGet(() -> partyManager.createParty(player.getUniqueId()));
-        if (!party.isLeader(player.getUniqueId())) { lang.send(player, "party.only-leader-invite"); return true; }
-        if (party.isFull()) { lang.send(player, "party.party-full"); return true; }
-        if (!partyManager.addInvite(target.getUniqueId(), player.getUniqueId())) { lang.send(player, "party.invite-failed"); return true; }
-        lang.send(player, "party.invite-sent", "player", target.getName());
-        lang.send(target, "party.invited-you", "player", player.getName());
+        if (!party.isLeader(player.getUniqueId())) { player.sendMessage(Component.text("Nur der Gruppenanführer kann einladen.", NamedTextColor.RED)); return true; }
+        if (party.isFull()) { player.sendMessage(Component.text("Deine Gruppe ist voll.", NamedTextColor.RED)); return true; }
+        if (!partyManager.addInvite(target.getUniqueId(), player.getUniqueId())) { player.sendMessage(Component.text("Die Einladung konnte nicht gesendet werden.", NamedTextColor.RED)); return true; }
+        player.sendMessage(Component.text("Einladung an " + target.getName() + " gesendet.", NamedTextColor.GREEN));
+        target.sendMessage(Component.text(player.getName() + " hat dich in eine Gruppe eingeladen! Nutze /rpgparty accept", NamedTextColor.GREEN));
         return true;
     }
 
     private boolean handleAccept(Player player) {
         boolean success = partyManager.acceptInvite(player);
-        lang.send(player, success ? "party.joined" : "party.no-pending-invite");
+        player.sendMessage(Component.text(success ? "Du bist der Gruppe beigetreten!" : "Keine ausstehende Einladung oder die Gruppe ist voll.", success ? NamedTextColor.GREEN : NamedTextColor.RED));
         return true;
     }
 
     private boolean handleLeave(Player player) {
-        if (partyManager.getParty(player.getUniqueId()).isEmpty()) { lang.send(player, "party.not-in-party"); return true; }
+        if (partyManager.getParty(player.getUniqueId()).isEmpty()) { player.sendMessage(Component.text("Du bist in keiner Gruppe.", NamedTextColor.RED)); return true; }
         partyManager.leaveParty(player);
-        lang.send(player, "party.left");
+        player.sendMessage(Component.text("Du hast die Gruppe verlassen.", NamedTextColor.YELLOW));
         return true;
     }
 
     private boolean handleKick(Player player, String[] args) {
-        if (args.length < 2) { lang.send(player, "party.usage-kick"); return true; }
+        if (args.length < 2) { player.sendMessage(Component.text("Verwendung: /rpgparty kick <Spieler>", NamedTextColor.YELLOW)); return true; }
         Player target = Bukkit.getPlayerExact(args[1]);
-        if (target == null || !partyManager.kick(player, target.getUniqueId())) { lang.send(player, "party.kick-failed"); return true; }
-        lang.send(player, "party.kicked-member", "player", target.getName());
+        if (target == null || !partyManager.kick(player, target.getUniqueId())) { player.sendMessage(Component.text("Spieler konnte nicht aus der Gruppe entfernt werden.", NamedTextColor.RED)); return true; }
+        player.sendMessage(Component.text(target.getName() + " wurde aus der Gruppe entfernt.", NamedTextColor.GREEN));
         return true;
     }
 
     private boolean handleTransfer(Player player, String[] args) {
-        if (args.length < 2) { lang.send(player, "party.usage-transfer"); return true; }
+        if (args.length < 2) { player.sendMessage(Component.text("Verwendung: /rpgparty transfer <Spieler>", NamedTextColor.YELLOW)); return true; }
         Player target = Bukkit.getPlayerExact(args[1]);
-        if (target == null || !partyManager.transferLeadership(player, target.getUniqueId())) { lang.send(player, "party.transfer-failed"); return true; }
-        lang.send(player, "party.transfer-success", "player", target.getName());
+        if (target == null || !partyManager.transferLeadership(player, target.getUniqueId())) { player.sendMessage(Component.text("Die Gruppenleitung konnte nicht übertragen werden.", NamedTextColor.RED)); return true; }
+        player.sendMessage(Component.text(target.getName() + " ist jetzt der Gruppenanführer.", NamedTextColor.GREEN));
         return true;
     }
 
     private boolean handleDisband(Player player) {
         Optional<Party> party = partyManager.getParty(player.getUniqueId());
-        if (party.isEmpty()) { lang.send(player, "party.not-in-party"); return true; }
-        if (!party.get().isLeader(player.getUniqueId())) { lang.send(player, "party.only-leader-disband"); return true; }
+        if (party.isEmpty()) { player.sendMessage(Component.text("Du bist in keiner Gruppe.", NamedTextColor.RED)); return true; }
+        if (!party.get().isLeader(player.getUniqueId())) { player.sendMessage(Component.text("Nur der Anführer kann die Gruppe auflösen.", NamedTextColor.RED)); return true; }
         partyManager.disbandParty(party.get());
         return true;
     }
