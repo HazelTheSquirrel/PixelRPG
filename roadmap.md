@@ -99,7 +99,7 @@ Statische Prüfung des aktuellen Branches:
 - [x] sprachabhängige Actionbar-/Scoreboard-Ausgaben geprüft bzw. umgestellt
 - [x] sprachabhängige Messages geprüft bzw. umgestellt
 
-**Forensischer Abgleich 29.08.2026:** Die produktiven Language-/Locale-Suchmuster wurden erneut gegen den aktuellen Branch geprüft. Keine verbleibenden `LanguageManager`- oder `Player.locale()`-Verwendungen und keine produktiven `lang/*.yml`-Ressourcen gefunden. Die Übersetzungen wurden beim manuellen Review als unauffällig bewertet. Die echte Server-Runtime bleibt separat offen.
+**Forensischer Abgleich 29.08.2026:** Keine verbleibenden `LanguageManager`- oder `Player.locale()`-Verwendungen und keine produktiven `lang/*.yml`-Ressourcen gefunden. Die bereits migrierten Übersetzungen wurden praktisch geprüft. Dabei wurden zusätzlich zwei konkrete Deutsch-only-Reste gefunden: englische Stat-Namen im `minecraft:quick_actions`-Charakterprofil sowie englische Item-Namen in diesem Bereich.
 
 ## Phase 3 – Deutsche Texte festlegen
 
@@ -113,9 +113,12 @@ Statische Prüfung des aktuellen Branches:
 - [x] bestehende Dialog-Aktionen und Buttons erhalten
 - [x] visueller/praktischer Spieler-Durchgang für Items, Quests und Begleiter erfolgreich durchgeführt
 - [x] praktische Prüfung der Dialogue-Texte erfolgreich durchgeführt
+- [x] Chat-Nachrichten praktisch geprüft; Ausgaben korrekt
+- [ ] englische Stat-Namen im `minecraft:quick_actions`-Charakterprofil vollständig auf Deutsch umgestellt
+- [ ] englische Item-Namen im `minecraft:quick_actions`-Charakterprofil vollständig auf Deutsch umgestellt
 - [ ] vollständiger visueller Runtime-Durchgang aller übrigen GUIs/Item-Lores noch ausstehend
 
-**Review-Stand:** Items, Quests, Begleiter und Dialogue-Texte wurden praktisch im Spiel geprüft und sehen korrekt aus. Für die übrigen Bereiche steht der vollständige Runtime-Durchgang weiterhin aus.
+**Review-Stand:** Items, Quests, Begleiter, Dialoge, NPC-Ausgaben und Chat-Nachrichten wurden praktisch geprüft. Die genannten Bereiche funktionieren, allerdings wurden im G-Charakterprofil noch englische Stat-/Item-Bezeichnungen festgestellt.
 
 ## Phase 4 – Locale-Abhängigkeit entfernen
 
@@ -153,34 +156,29 @@ Statische Prüfung des aktuellen Branches:
 - [x] keine fehlenden `lang/*.yml`-Ressourcen im aktuellen Tree
 - [ ] vollständige Runtime-Warnings-Regression noch ausstehend
 
-Der letzte dokumentierte erfolgreiche Branch-Build lief für Commit `d3521fec21e1713fe61da356005d3cac1e06bb56` erfolgreich durch. Änderungen an der Roadmap selbst sind Dokumentation und ersetzen keinen Runtime-Test.
-
 ## Serverstart
 
-- [ ] Pluginstart auf einem echten Paper-26.2-Server durchgeführt
-- [ ] keine Runtime-Exception beim Start
-- [ ] Commands registrieren sich zur Laufzeit
-- [ ] Tasks starten zur Laufzeit
-- [ ] Datenbankverbindung getestet
+- [x] Pluginstart auf einem echten Paper-26.2-Server durchgeführt
+- [x] Serverlog beim Start ohne Fehler
+- [x] keine Runtime-Exception beim getesteten Start
+- [x] Tasks/NPC-Systeme im getesteten Lauf gestartet
+- [x] Datenbankverbindung getestet
+- [x] Datenbankverknüpfung im getesteten Lauf funktionierte
 
 ## Spielerfunktionen
 
-- [ ] Registrierung
-- [ ] Login
-- [ ] Profil
-- [ ] Level
-- [ ] XP
-- [ ] Stats
-- [ ] Equipment
-- [x] Items – praktisch getestet, keine Auffälligkeiten
-- [ ] Combat
+- [x] Registrierung / Profil im getesteten Lauf funktionsfähig
+- [x] NPCs – alle vorhandenen NPCs praktisch getestet
+- [x] Dialoge – praktisch getestet
+- [x] Chat-Nachrichten – praktisch getestet
+- [x] Items – praktisch getestet; Funktion korrekt, aber englische Bezeichnungen im G-Charakterprofil entdeckt
 - [x] Companions – praktisch getestet, keine Auffälligkeiten
 - [x] Quests – praktisch getestet, keine Auffälligkeiten
-- [ ] NPCs
-- [x] Dialoge – praktisch getestet, keine Auffälligkeiten
-- [ ] Story
-- [ ] Professions
-- [ ] Crafting
+- [ ] Level / XP / Stats vollständig geprüft
+- [ ] Equipment vollständig geprüft
+- [ ] Combat vollständig geprüft
+- [ ] Story vollständig geprüft
+- [ ] Professions / Crafting vollständig geprüft – dabei wurden fehlende sichtbare Rezepte und falsche Berufsauswahl bei Berufslehrer-NPCs entdeckt
 - [ ] Economy
 - [ ] Shop
 - [ ] Party
@@ -190,17 +188,31 @@ Der letzte dokumentierte erfolgreiche Branch-Build lief für Commit `d3521fec21e
 - [ ] Trade
 - [ ] Travel
 
+## Bekannte Runtime-Befunde
+
+### Berufslehrer-NPCs
+
+- [x] Ursache identifiziert: `ProfessionTrainerBehavior` öffnete nach dem Lernen bzw. bei bereits gelerntem Beruf die allgemeine `ProfessionDialog.open()`-Ansicht statt der berufsspezifischen Traineransicht.
+- [x] Korrektur implementiert: Berufslehrer öffnen jetzt `openTrainerRecipes(player, profession)` und zeigen damit ausschließlich die Rezepte des jeweiligen Berufs.
+- [ ] Runtime-Nachtest der vier Berufslehrer nach der Korrektur noch ausstehend.
+
+### Quick Actions / G-Charakterprofil
+
+- [ ] englische Stat-Namen vollständig auf Deutsch umgestellt
+- [ ] englische Item-Namen vollständig auf Deutsch umgestellt
+- [ ] Runtime-Nachtest nach der Korrektur ausstehend
+
 ## Persistenz
 
-- [ ] Player-Profil wird gespeichert
-- [ ] Player-Profil wird geladen
-- [ ] Stats bleiben erhalten
-- [ ] Equipment bleibt erhalten
-- [ ] Quests bleiben erhalten
-- [ ] Economy bleibt erhalten
-- [ ] Profession-Daten bleiben erhalten
-- [ ] Companion-Daten bleiben erhalten
-- [ ] JSON-Content bleibt nutzbar
+- [x] Datenbankverbindung im realen Serverlauf erfolgreich getestet
+- [ ] Player-Profil explizit über einen vollständigen Save/Reload-Zyklus geprüft
+- [ ] Stats bleiben nach Reload erhalten
+- [ ] Equipment bleibt nach Reload erhalten
+- [ ] Quests bleiben nach Reload erhalten
+- [ ] Economy bleibt nach Reload erhalten
+- [ ] Profession-Daten bleiben nach Reload erhalten
+- [ ] Companion-Daten bleiben nach Reload erhalten
+- [ ] JSON-Content bleibt vollständig nutzbar
 
 ---
 
@@ -222,8 +234,8 @@ Der letzte dokumentierte erfolgreiche Branch-Build lief für Commit `d3521fec21e
 - [x] Placeholder erhalten
 - [x] Components/Dialoge funktional erhalten
 - [x] Build nach Änderungen durchführen
-- [ ] Runtime testen
-- [ ] Regression gegen den echten IST-Zustand durchführen
+- [ ] Runtime nach jeder Korrektur erneut testen
+- [ ] Regression gegen den echten IST-Zustand vollständig abschließen
 
 ---
 
@@ -240,13 +252,15 @@ Der letzte dokumentierte erfolgreiche Branch-Build lief für Commit `d3521fec21e
 
 - [x] `LanguageManager`-Aufrufer vollständig migrieren.
 - [x] Locale-Abhängigkeiten für Spielertexte entfernen.
-- [x] Quest-Texte statisch prüfen.
-- [x] Dialog-Texte statisch prüfen.
-- [x] Item-Texte statisch prüfen.
-- [x] Companion-Texte statisch prüfen.
-- [x] Boss-/Story-Texte statisch prüfen.
-- [x] GUI-/Command-Ausgaben statisch prüfen.
-- [ ] Runtime-Regression aller genannten Bereiche durchführen.
+- [x] Quest-Texte statisch und praktisch prüfen.
+- [x] Dialog-Texte statisch und praktisch prüfen.
+- [x] Item-Texte statisch und praktisch prüfen.
+- [x] Companion-Texte statisch und praktisch prüfen.
+- [x] NPC- und Chat-Ausgaben praktisch prüfen.
+- [ ] Quick-Actions-Stat-/Item-Bezeichnungen vollständig auf Deutsch bereinigen und nachtesten.
+- [x] Ursache der Berufslehrer-/Rezeptanzeige identifizieren und Code korrigieren.
+- [ ] Berufslehrer-/Rezeptanzeige nach der Korrektur erneut praktisch testen.
+- [ ] Runtime-Regression aller genannten Bereiche vollständig durchführen.
 
 ## ⚡ MEDIUM
 
@@ -275,21 +289,22 @@ Die Umsetzung ist erst abgeschlossen, wenn alle folgenden Punkte erfüllt sind:
 - [x] keine neue Übersetzungsarchitektur vorhanden
 - [x] bestehende Gameplay-Logik im Code unverändert als Zielbestandsschutz
 - [x] Build erfolgreich
-- [ ] Serverstart erfolgreich getestet
+- [x] Serverstart praktisch erfolgreich getestet
 - [ ] alle Commands zur Laufzeit getestet
-- [ ] alle GUIs zur Laufzeit getestet
+- [ ] alle GUIs zur Laufzeit vollständig getestet
 - [x] Quests zur Laufzeit getestet
 - [x] Dialoge zur Laufzeit getestet
 - [x] Items zur Laufzeit getestet
 - [x] Companions zur Laufzeit getestet
 - [ ] Bosses zur Laufzeit getestet
-- [ ] Professions/Crafting zur Laufzeit getestet
+- [ ] Professions/Crafting vollständig nach der Korrektur getestet
 - [ ] Party/Guild zur Laufzeit getestet
 - [ ] Economy/Shop zur Laufzeit getestet
-- [ ] Persistenz zur Laufzeit getestet
+- [ ] vollständiger Persistenzzyklus getestet
 - [ ] Shutdown zur Laufzeit getestet
+- [ ] G-Charakterprofil nach deutscher Stat-/Item-Bereinigung erneut getestet
 
-**Status:** Die statische Language-Bereinigung ist abgeschlossen. Items, Quests, Begleiter und Dialoge wurden zusätzlich praktisch geprüft und zeigen keine Auffälligkeiten. Die übrigen Runtime-Punkte bleiben bewusst offen, bis sie tatsächlich getestet wurden. Ungeprüfte Punkte werden nicht als erledigt markiert.
+**Status:** Die statische Language-Bereinigung ist abgeschlossen. Der reale Paper-26.2-Serverstart inklusive Datenbankverbindung wurde ohne Fehler getestet; NPCs und Chat-Ausgaben funktionieren. Items, Quests, Begleiter und Dialoge wurden praktisch geprüft. Zwei konkrete Restfehler wurden gefunden: Berufslehrer-NPCs öffneten die falsche, allgemeine Berufsansicht und im G-Charakterprofil existieren noch englische Stat-/Item-Bezeichnungen. Die Berufslehrer-Ursache wurde im Code korrigiert; deren Nachtest sowie die Quick-Actions-Bereinigung stehen noch aus. Ungeprüfte Punkte werden weiterhin nicht als erledigt markiert.
 
 ---
 
