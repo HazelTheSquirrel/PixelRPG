@@ -1,7 +1,5 @@
 package de.pixelrpg.rpg.gui;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
@@ -24,7 +22,6 @@ public final class QuestDetailGUI extends AbstractGUI {
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
     private final Quest quest;
-    private final LanguageManager lang;
 
     public QuestDetailGUI(Player viewer, QuestManager questManager, PlayerProfileManager profileManager, Quest quest) {
         super(54, QuestText.title(viewer, quest));
@@ -32,7 +29,6 @@ public final class QuestDetailGUI extends AbstractGUI {
         this.questManager = questManager;
         this.profileManager = profileManager;
         this.quest = quest;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -55,10 +51,11 @@ public final class QuestDetailGUI extends AbstractGUI {
         }
         if (profile.hasActiveQuest(quest.id())) {
             var progress = profile.getActiveQuests().get(quest.id());
-            lore.add(lang.get(viewer, "quest.progress", "current", String.valueOf(progress.getCurrentAmount()), "required", String.valueOf(quest.requiredAmount()))
-                    .color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Fortschritt: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.GREEN)
+                    .decoration(TextDecoration.ITALIC, false));
             lore.add(Component.empty());
-            lore.add(lang.get(viewer, "quest.detail-hint").color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Questziel und aktueller Fortschritt sind jederzeit hier sichtbar.", NamedTextColor.AQUA)
+                    .decoration(TextDecoration.ITALIC, false));
         }
         meta.lore(lore);
         info.setItemMeta(meta);
@@ -67,8 +64,8 @@ public final class QuestDetailGUI extends AbstractGUI {
         if (profile.hasActiveQuest(quest.id())) {
             ItemStack abandon = new ItemStack(Material.BARRIER);
             ItemMeta abandonMeta = abandon.getItemMeta();
-            abandonMeta.displayName(lang.get(viewer, "quest.abandon").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
-            abandonMeta.lore(List.of(lang.get(viewer, "quest.abandon-desc").color(NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
+            abandonMeta.displayName(Component.text("Quest abbrechen", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+            abandonMeta.lore(List.of(Component.text("Der aktuelle Fortschritt geht verloren.", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)));
             abandon.setItemMeta(abandonMeta);
             setItem(31, abandon, event -> {
                 questManager.abandonQuest(viewer, quest.id());
@@ -78,7 +75,7 @@ public final class QuestDetailGUI extends AbstractGUI {
 
         ItemStack back = new ItemStack(Material.ARROW);
         ItemMeta backMeta = back.getItemMeta();
-        backMeta.displayName(lang.get(viewer, "common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        backMeta.displayName(Component.text("Zurück", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         back.setItemMeta(backMeta);
         setItem(49, back, event -> new QuestLogGUI(viewer, questManager, profileManager).open(viewer));
     }
