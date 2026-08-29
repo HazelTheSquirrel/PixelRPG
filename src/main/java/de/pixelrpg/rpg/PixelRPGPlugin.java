@@ -48,7 +48,6 @@ import de.pixelrpg.rpg.gui.ShopEditorGUI;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcBehaviorRegistry;
 import de.pixelrpg.rpg.npc.NpcChunkListener;
 import de.pixelrpg.rpg.npc.NpcInteractListener;
@@ -120,7 +119,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private StatisticsService statisticsService;
     private ScoreboardService scoreboardService;
     private PlaytimeTracker playtimeTracker;
-    private LanguageManager languageManager;
     private CompanionService companionService;
     private CombatDamageListener combatDamageListener;
 
@@ -129,8 +127,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         instance = this;
         saveDefaultConfig();
         RPGKeys.init(this);
-        languageManager = new LanguageManager(this);
-        languageManager.load(getConfig().getString("language.default", "en"));
         StoryBookFactory.load(getConfig());
         GuildCurrencyItemFactory.configureMaxStackSize(getConfig().getInt("economy.currency.max-stack-size", 64));
         playerProfileManager = new PlayerProfileManager(this);
@@ -172,7 +168,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         bossRepository = new BossRepository(this);
         bossRepository.load();
         bossManager = new BossManager(this, patternRegistry, playerProfileManager, partyManager, playerProfileManager,
-                itemService, mobScalingConfig, languageManager,
+                itemService, mobScalingConfig,
                 getConfig().getDouble("bosses.bar-radius", 60.0D),
                 getConfig().getInt("bosses.bar-update-interval-ticks", 20),
                 getConfig().getInt("bosses.phase-check-interval-ticks", 10));
@@ -193,7 +189,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 8.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
-        DialogueEngine dialogueEngine = new DialogueEngine(languageManager);
+        DialogueEngine dialogueEngine = new DialogueEngine();
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager, itemService);
         companionService = new CompanionService(this);
@@ -293,7 +289,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public QuestRepository getQuestRepository() { return questRepository; }
     public BossManager getBossManager() { return bossManager; }
     public CompanionService getCompanionService() { return companionService; }
-    public LanguageManager getLanguageManager() { return languageManager; }
     public NpcManager getNpcManager() { return npcManager; }
     public ScoreboardService getScoreboardService() { return scoreboardService; }
     public PartyManager getPartyManager() { return partyManager; }
