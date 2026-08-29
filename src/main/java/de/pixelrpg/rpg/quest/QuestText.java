@@ -6,13 +6,60 @@ import de.pixelrpg.rpg.item.ItemDefinitionRegistry;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.util.Locale;
+import java.util.Map;
 
 /** Centralized player-facing text for every quest screen and notification. */
 public final class QuestText {
+    private static final Map<String, String> GERMAN_ITEM_NAMES = Map.ofEntries(
+            Map.entry("OAK_LOG", "Eichenstamm"), Map.entry("HONEYCOMB", "Honigwabe"),
+            Map.entry("COPPER_ORE", "Kupfererz"), Map.entry("IRON_INGOT", "Eisenbarren"),
+            Map.entry("GOLD_INGOT", "Goldbarren"), Map.entry("BLAZE_ROD", "Lohenrute"),
+            Map.entry("ENDER_PEARL", "Enderperle"), Map.entry("CHORUS_FRUIT", "Chorusfrucht"),
+            Map.entry("NETHERITE_SCRAP", "Netherit-Schrott"), Map.entry("DIAMOND", "Diamant"),
+            Map.entry("COAL", "Kohle"), Map.entry("WHEAT", "Weizen"),
+            Map.entry("BEEF", "Rindfleisch"), Map.entry("COD", "Kabeljau"),
+            Map.entry("SUGAR", "Zucker"), Map.entry("APPLE", "Apfel"),
+            Map.entry("DANDELION", "Löwenzahn"), Map.entry("RED_DYE", "Roter Farbstoff"),
+            Map.entry("GLOW_BERRIES", "Leuchtbeeren"), Map.entry("SPIDER_EYE", "Spinnenauge"),
+            Map.entry("GHAST_TEAR", "Ghastträne"), Map.entry("PAPER", "Papier"),
+            Map.entry("INK_SAC", "Tintenbeutel"), Map.entry("BOOK", "Buch"),
+            Map.entry("OBSIDIAN", "Obsidian"), Map.entry("SLIME_BALL", "Schleimball"),
+            Map.entry("REDSTONE", "Redstone"), Map.entry("LAPIS_LAZULI", "Lapislazuli"),
+            Map.entry("QUARTZ", "Netherquarz"), Map.entry("ANCIENT_DEBRIS", "Antiker Schrott"),
+            Map.entry("GLOWSTONE_DUST", "Leuchtsteinstaub"), Map.entry("PRISMARINE_SHARD", "Prismarinscherbe"),
+            Map.entry("PRISMARINE_CRYSTALS", "Prismarinkristall"), Map.entry("SOUL_SAND", "Seelensand"),
+            Map.entry("EMERALD", "Smaragd"), Map.entry("ENDER_EYE", "Enderauge"),
+            Map.entry("NETHERITE_INGOT", "Netheritbarren"), Map.entry("DRAGON_BREATH", "Drachenatem"),
+            Map.entry("AMETHYST_SHARD", "Amethystscherbe"), Map.entry("NETHER_STAR", "Netherstern"),
+            Map.entry("MAGMA_CREAM", "Magmacreme"), Map.entry("FIRE_CHARGE", "Feuerkugel"),
+            Map.entry("GUNPOWDER", "Schießpulver"), Map.entry("TORCH", "Fackel"),
+            Map.entry("ARROW", "Pfeil"), Map.entry("STRING", "Faden"), Map.entry("SLIME", "Schleim"),
+            Map.entry("QUARTZ", "Netherquarz"), Map.entry("PHANTOM_MEMBRANE", "Phantomhaut"),
+            Map.entry("SHULKER_SHELL", "Shulkerschale"), Map.entry("COOKED_BEEF", "Gebratenes Rindfleisch"),
+            Map.entry("COOKED_PORKCHOP", "Gebratenes Schweinefleisch"), Map.entry("EYE_OF_ENDER", "Enderauge"),
+            Map.entry("NETHERITE_SCRAP", "Netherit-Schrott"), Map.entry("NETHERITE_INGOT", "Netheritbarren"),
+            Map.entry("BAMBOO", "Bambus")
+    );
+
+    private static final Map<String, String> GERMAN_ENTITY_NAMES = Map.ofEntries(
+            Map.entry("ZOMBIE", "Zombie"), Map.entry("SKELETON", "Skelett"), Map.entry("SPIDER", "Spinne"),
+            Map.entry("WITCH", "Hexe"), Map.entry("CHICKEN", "Huhn"), Map.entry("COW", "Kuh"),
+            Map.entry("SHEEP", "Schaf"), Map.entry("RABBIT", "Kaninchen"), Map.entry("BAT", "Fledermaus"),
+            Map.entry("FOX", "Fuchs"), Map.entry("GOAT", "Ziege"), Map.entry("PARROT", "Papagei"),
+            Map.entry("ARMADILLO", "Gürteltier"), Map.entry("PANDA", "Panda"), Map.entry("BOGGED", "Sumpfskelett"),
+            Map.entry("CREEPER", "Creeper"), Map.entry("HUSK", "Wüstenzombie"), Map.entry("DROWNED", "Ertrunkener"),
+            Map.entry("SLIME", "Schleim"), Map.entry("ENDERMAN", "Enderman"), Map.entry("BLAZE", "Lohe"),
+            Map.entry("GHAST", "Ghast"), Map.entry("MAGMA_CUBE", "Magmawürfel"), Map.entry("PIGLIN", "Piglin"),
+            Map.entry("PIGLIN_BRUTE", "Piglin-Barbar"), Map.entry("HOGLIN", "Hoglin"), Map.entry("WITHER_SKELETON", "Witherskelett"),
+            Map.entry("GUARDIAN", "Wächter"), Map.entry("ELDER_GUARDIAN", "Ältester Wächter"), Map.entry("SHULKER", "Shulker"),
+            Map.entry("EVOKER", "Magier"), Map.entry("VINDICATOR", "Vindicator"), Map.entry("RAVAGER", "Verwüster"),
+            Map.entry("WARDEN", "Wärter"), Map.entry("PHANTOM", "Phantom"), Map.entry("WITHER", "Wither"),
+            Map.entry("CREAKING", "Knarzer")
+    );
+
     private QuestText() {
     }
 
@@ -85,42 +132,36 @@ public final class QuestText {
         return quest.requiredAmount() + "x " + itemNamePlain(quest.targetKey());
     }
 
-    /** Resolves a quest item to the actual PixelRPG display name or the vanilla translated item component. */
+    /** Resolves a quest item to the actual PixelRPG display name or a fixed German vanilla name. */
     public static Component itemName(String key) {
         ItemDefinition definition = findDefinition(key);
         if (definition != null) return Component.text(definition.name());
-
-        Material material = Material.matchMaterial(key == null ? "" : key.trim());
-        if (material != null && material.isItem()) return Component.translatable(material.translationKey());
-        return Component.text(prettyKey(key));
+        return Component.text(itemNamePlain(key));
     }
 
     /** Resolves a quest item to a plain display name for string-only contexts. */
     public static String itemNamePlain(String key) {
+        if (key == null || key.isBlank()) return "Unbekannt";
+        String normalized = key.trim().toUpperCase(Locale.ROOT);
+        String known = GERMAN_ITEM_NAMES.get(normalized);
+        if (known != null) return known;
+
         ItemDefinition definition = findDefinition(key);
         if (definition != null) return definition.name();
 
-        Material material = Material.matchMaterial(key == null ? "" : key.trim());
-        if (material != null && material.isItem()) return prettyKey(material.name());
+        Material material = Material.matchMaterial(key.trim());
+        if (material != null) return prettyKey(material.name());
         return prettyKey(key);
     }
 
     public static Component entityName(String key) {
-        try {
-            EntityType type = EntityType.valueOf(key.toUpperCase(Locale.ROOT));
-            return Component.translatable(type.translationKey());
-        } catch (IllegalArgumentException exception) {
-            return Component.text(prettyKey(key));
-        }
+        return Component.text(entityNamePlain(key));
     }
 
     public static String entityNamePlain(String key) {
-        try {
-            EntityType type = EntityType.valueOf(key.toUpperCase(Locale.ROOT));
-            return prettyKey(type.name());
-        } catch (IllegalArgumentException exception) {
-            return prettyKey(key);
-        }
+        if (key == null || key.isBlank()) return "Unbekannte Kreatur";
+        String known = GERMAN_ENTITY_NAMES.get(key.trim().toUpperCase(Locale.ROOT));
+        return known != null ? known : prettyKey(key);
     }
 
     private static ItemDefinition findDefinition(String key) {
