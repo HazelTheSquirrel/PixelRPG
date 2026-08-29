@@ -8,7 +8,6 @@ import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.item.ItemService;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -44,12 +43,11 @@ public final class BossManager {
     private final double barRadius;
     private final int barUpdateIntervalTicks;
     private final int phaseCheckIntervalTicks;
-    private final LanguageManager lang;
     private final Map<UUID, ActiveBoss> activeBosses = new ConcurrentHashMap<>();
 
     public BossManager(Plugin plugin, BossAttackPatternRegistry patternRegistry, GuildAPI guildAPI,
                        PartyAPI partyAPI, EconomyAPI economyAPI, ItemService itemService,
-                       MobScalingConfig mobScalingConfig, LanguageManager languageManager,
+                       MobScalingConfig mobScalingConfig,
                        double barRadius, int barUpdateIntervalTicks, int phaseCheckIntervalTicks) {
         this.plugin = plugin;
         this.patternRegistry = patternRegistry;
@@ -61,9 +59,7 @@ public final class BossManager {
         this.barRadius = Math.max(1.0D, barRadius);
         this.barUpdateIntervalTicks = Math.max(1, barUpdateIntervalTicks);
         this.phaseCheckIntervalTicks = Math.max(1, phaseCheckIntervalTicks);
-        this.lang = languageManager;
         if (this.itemService == null) throw new IllegalArgumentException("itemService must not be null");
-        if (this.lang == null) throw new IllegalArgumentException("languageManager must not be null");
         plugin.getServer().getPluginManager().registerEvents(new BossRewardItemListener(guildAPI), plugin);
         plugin.getServer().getPluginManager().registerEvents(new WorldBossProtectionListener(guildAPI), plugin);
     }
@@ -211,7 +207,7 @@ public final class BossManager {
             guildAPI.addExperience(uuid, lootConfig.expReward());
             giveGuaranteedLoot(player, lootConfig, activeBoss.getDefinition().getLevel());
             giveChanceLoot(player, lootConfig, activeBoss.getDefinition().getLevel());
-            player.sendMessage(lang.get("boss.defeated-reward", "money", String.valueOf(lootConfig.moneyReward()), "exp", String.valueOf(lootConfig.expReward())));
+            player.sendMessage(Component.text("Boss besiegt! +" + lootConfig.moneyReward() + " Gold, +" + lootConfig.expReward() + " EP", NamedTextColor.GREEN));
         }
         callDefeatedEvent(activeBoss, onlineRegistered(participants));
     }
