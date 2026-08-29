@@ -1,8 +1,6 @@
 package de.pixelrpg.rpg.dialogue;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.trade.TradeDepotManager;
@@ -25,7 +23,6 @@ public final class BankDialog {
     private final DialogueEngine dialogueEngine;
     private final BankStorageService bankStorage;
     private final TradeDepotManager tradeDepot;
-    private final LanguageManager lang;
 
     public BankDialog(PlayerProfileManager profileManager, DialogueEngine dialogueEngine,
                       BankStorageService bankStorage, TradeDepotManager tradeDepot) {
@@ -33,7 +30,6 @@ public final class BankDialog {
         this.dialogueEngine = dialogueEngine;
         this.bankStorage = bankStorage;
         this.tradeDepot = tradeDepot;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     public void open(Player player) {
@@ -64,7 +60,7 @@ public final class BankDialog {
     private void openDepositSelector(Player player) {
         long maxAmount = getInventoryCurrencyAmount(player);
         if (maxAmount <= 0L) {
-            lang.send(player, "bank.no-currency");
+            player.sendMessage(Component.text("Du trägst kein Gold bei dir.", NamedTextColor.RED));
             return;
         }
 
@@ -87,7 +83,7 @@ public final class BankDialog {
 
         long maxAmount = (long) Math.floor(profile.getMoney());
         if (maxAmount <= 0L) {
-            lang.send(player, "bank.balance-empty");
+            player.sendMessage(Component.text("Dein Kontostand ist leer.", NamedTextColor.RED));
             return;
         }
 
@@ -133,11 +129,11 @@ public final class BankDialog {
         if (profile == null) return;
         double removed = removeCurrencyFromInventory(player, amount);
         if (removed <= 0.0) {
-            lang.send(player, "bank.no-currency");
+            player.sendMessage(Component.text("Du trägst kein Gold bei dir.", NamedTextColor.RED));
             return;
         }
         profile.addMoney(removed);
-        lang.send(player, "bank.deposit-success", "amount", format(removed));
+        player.sendMessage(Component.text(format(removed) + " Gold eingezahlt.", NamedTextColor.GREEN));
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.2f);
         open(player);
     }
@@ -164,7 +160,7 @@ public final class BankDialog {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
         if (!profile.removeMoney(amount)) {
-            lang.send(player, "bank.insufficient");
+            player.sendMessage(Component.text("Nicht genügend Gold.", NamedTextColor.RED));
             return;
         }
         giveCurrency(player, amount);
@@ -177,7 +173,7 @@ public final class BankDialog {
             player.getInventory().addItem(stack).values().forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder));
         }
         player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.0f);
-        lang.send(player, "bank.withdrew-stacks", "amount", String.valueOf(amount), "stacks", String.valueOf(stacks.size()));
+        player.sendMessage(Component.text(amount + " Gold als " + stacks.size() + " Stapel abgehoben.", NamedTextColor.GREEN));
     }
 
     private void openBankCompartment(Player player) {
