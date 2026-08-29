@@ -1,9 +1,7 @@
 package de.pixelrpg.rpg.profession;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.item.ItemService;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import io.papermc.paper.registry.RegistryAccess;
@@ -28,14 +26,12 @@ public final class CraftingService {
     private final PlayerProfileManager profileManager;
     private final ItemService itemService;
     private final CraftingRecipeRegistry registry;
-    private final LanguageManager languageManager;
 
     public CraftingService(ProfessionService professionService, PlayerProfileManager profileManager, ItemService itemService, CraftingRecipeRegistry registry) {
         this.professionService = Objects.requireNonNull(professionService);
         this.profileManager = Objects.requireNonNull(profileManager);
         this.itemService = Objects.requireNonNull(itemService);
         this.registry = Objects.requireNonNull(registry);
-        this.languageManager = Objects.requireNonNull(PixelRPGPlugin.getInstance().getLanguageManager());
     }
     public Optional<CraftRecipe> find(String recipeId) { return registry.find(recipeId); }
     public List<CraftRecipe> recipes(Profession profession) { return registry.getRecipes(profession); }
@@ -47,15 +43,15 @@ public final class CraftingService {
     public CraftResult craft(Player player, String recipeId) {
         Objects.requireNonNull(player, "player");
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegistered()) return CraftResult.failure(languageManager.raw(player, "profession.craft-registration-required"));
+        if (profile == null || !profile.isRegistered()) return CraftResult.failure("Du musst registriertes Rathausmitglied sein.");
         CraftRecipe recipe = find(recipeId).orElse(null);
-        if (recipe == null) return CraftResult.failure(languageManager.raw(player, "profession.craft-unknown-recipe"));
-        if (!profile.hasLearnedProfession(recipe.profession())) return CraftResult.failure(languageManager.raw(player, "profession.craft-not-learned"));
+        if (recipe == null) return CraftResult.failure("Dieses Rezept existiert nicht.");
+        if (!profile.hasLearnedProfession(recipe.profession())) return CraftResult.failure("Du hast diesen Beruf noch nicht erlernt.");
         int professionLevel = professionService.getLevel(player.getUniqueId(), recipe.profession());
-        if (professionLevel < recipe.requiredProfessionLevel()) return CraftResult.failure(languageManager.raw(player, "profession.craft-level-too-low"));
-        if (!isUnlocked(player, recipe)) return CraftResult.failure(languageManager.raw(player, "profession.craft-not-unlocked"));
-        if (recipe.rarity() == ItemRarity.UNIQUE) return CraftResult.failure(languageManager.raw(player, "profession.craft-unique"));
-        for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) if (!player.getInventory().contains(cost.getKey(), cost.getValue())) return CraftResult.failure(languageManager.raw(player, "profession.craft-missing-materials"));
+        if (professionLevel < recipe.requiredProfessionLevel()) return CraftResult.failure("Dein Berufslevel ist für dieses Rezept zu niedrig.");
+        if (!isUnlocked(player, recipe)) return CraftResult.failure("Dieses Rezept wurde noch nicht freigeschaltet.");
+        if (recipe.rarity() == ItemRarity.UNIQUE) return CraftResult.failure("Einzigartige Gegenstände können nicht hergestellt werden.");
+        for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) if (!player.getInventory().contains(cost.getKey(), cost.getValue())) return CraftResult.failure("Dir fehlen die benötigten Materialien.");
         for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) player.getInventory().removeItem(new ItemStack(cost.getKey(), cost.getValue()));
         ItemRarity rolledRarity = CraftingRarityRoller.roll(recipe.rarity());
         ItemStack result = createResult(recipe, rolledRarity, Math.min(99, professionLevel));
@@ -63,7 +59,7 @@ public final class CraftingService {
         player.getInventory().addItem(result).values().forEach(stack -> player.getWorld().dropItemNaturally(player.getLocation(), stack));
         long experience = craftExperience(recipe);
         professionService.addExperience(player, recipe.profession(), experience);
-        return CraftResult.success(result, experience, languageManager.raw(player, "profession.craft-success"));
+        return CraftResult.success(result, experience, "Herstellung erfolgreich.");
     }
     private ItemStack createResult(CraftRecipe recipe, ItemRarity rarity, int itemLevel) {
         if (!recipe.resultItemId().isBlank()) return itemService.createItem(recipe.resultItemId()).orElseThrow(() -> new IllegalStateException("Unable to create crafting result item: " + recipe.resultItemId()));
