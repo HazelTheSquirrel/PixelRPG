@@ -8,12 +8,13 @@ import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.GuildBankAccessDialog;
 import de.pixelrpg.rpg.guild.GuildBankService;
 import de.pixelrpg.rpg.guild.GuildManager;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.trade.TradeDepotManager;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
 public final class BankerBehavior implements NpcBehavior {
@@ -21,7 +22,6 @@ public final class BankerBehavior implements NpcBehavior {
     private final DialogueEngine dialogueEngine;
     private final BankStorageService bankStorage;
     private final TradeDepotManager tradeDepot;
-    private final LanguageManager lang;
     private final GuildBankAccessDialog guildBankAccess;
 
     public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
@@ -30,7 +30,6 @@ public final class BankerBehavior implements NpcBehavior {
         this.bankStorage = new BankStorageService(PixelRPGPlugin.getInstance());
         PixelRPGPlugin.getInstance().getServer().getPluginManager().registerEvents(new BankInventoryListener(bankStorage), PixelRPGPlugin.getInstance());
         this.tradeDepot = new TradeDepotManager(PixelRPGPlugin.getInstance(), profileManager, bankStorage, dialogueEngine);
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
         GuildManager guildManager = GuildManager.getInstance(PixelRPGPlugin.getInstance(), profileManager);
         GuildBankService guildBankService = new GuildBankService(PixelRPGPlugin.getInstance(), guildManager);
         BankDialog personalBank = new BankDialog(profileManager, dialogueEngine, bankStorage, tradeDepot);
@@ -39,8 +38,12 @@ public final class BankerBehavior implements NpcBehavior {
 
     @Override public NpcType type() { return NpcType.BANKER; }
 
-    @Override public void onInteract(Player player, RPGNpc npc) {
-        if (!profileManager.isRegistered(player.getUniqueId())) { lang.send(player, "npc.not-registered"); return; }
+    @Override
+    public void onInteract(Player player, RPGNpc npc) {
+        if (!profileManager.isRegistered(player.getUniqueId())) {
+            player.sendMessage(Component.text("Du musst registriertes Rathausmitglied sein.", NamedTextColor.RED));
+            return;
+        }
         guildBankAccess.open(player);
     }
 
