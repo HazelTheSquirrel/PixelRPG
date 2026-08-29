@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.gui;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.party.PartyManager;
@@ -35,8 +34,7 @@ public final class PartyGUI extends AbstractGUI {
         this.profileManager = profileManager;
     }
 
-    @Override
-    protected void populate() {
+    @Override protected void populate() {
         Optional<Party> partyOpt = partyManager.getParty(viewer.getUniqueId());
         if (partyOpt.isEmpty()) {
             setItem(22, buildActionItem(Material.LIME_DYE, "Party erstellen", NamedTextColor.GREEN), event -> {
@@ -45,7 +43,6 @@ public final class PartyGUI extends AbstractGUI {
             });
             return;
         }
-
         Party party = partyOpt.get();
         int slot = 0;
         for (UUID member : party.getMembers()) {
@@ -64,11 +61,9 @@ public final class PartyGUI extends AbstractGUI {
     }
 
     private void openMemberActions(UUID target) {
-        DialogueEngine engine = new DialogueEngine(PixelRPGPlugin.getInstance().getLanguageManager());
-        List<DialogBody> body = List.of(
-                DialogBody.plainMessage(Component.text("Mitglied verwalten", NamedTextColor.WHITE)),
-                DialogBody.plainMessage(Component.text(name(target), NamedTextColor.GRAY)));
-        ActionButton transfer = engine.actionButton(Component.text("Leader übertragen", NamedTextColor.GOLD), NamedTextColor.GOLD, player -> {
+        DialogueEngine engine = new DialogueEngine();
+        List<DialogBody> body = List.of(DialogBody.plainMessage(Component.text("Mitglied verwalten", NamedTextColor.WHITE)), DialogBody.plainMessage(Component.text(name(target), NamedTextColor.GRAY)));
+        ActionButton transfer = engine.actionButton(Component.text("Anführer übertragen", NamedTextColor.GOLD), NamedTextColor.GOLD, player -> {
             partyManager.transferLeadership(player, target);
             new PartyGUI(player, partyManager, profileManager).open(player);
         });
@@ -87,14 +82,14 @@ public final class PartyGUI extends AbstractGUI {
 
     private ItemStack buildMemberItem(Party party, UUID member) {
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(member);
-        String name = offlinePlayer.getName() != null ? offlinePlayer.getName() : "Unknown";
+        String name = offlinePlayer.getName() != null ? offlinePlayer.getName() : "Unbekannt";
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         meta.setOwningPlayer(offlinePlayer);
         boolean isLeader = party.isLeader(member);
         meta.displayName(Component.text(name, isLeader ? NamedTextColor.GOLD : NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
         List<Component> lore = new ArrayList<>();
-        lore.add(Component.text(isLeader ? "Leader" : "Mitglied", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text(isLeader ? "Anführer" : "Mitglied", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text(offlinePlayer.isOnline() ? "Online" : "Offline", offlinePlayer.isOnline() ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
