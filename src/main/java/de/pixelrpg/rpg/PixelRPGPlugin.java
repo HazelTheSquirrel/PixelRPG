@@ -250,16 +250,16 @@ public final class PixelRPGPlugin extends JavaPlugin {
         rootCommand.register(new QuestAdminSubCommand(questManager));
         rootCommand.register(new BossSubCommand(bossRepository, bossManager));
         PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
-        PaperBasicCommandAdapter rpgAdminCommand = new PaperBasicCommandAdapter("rpgadmin", rootCommand, rootCommand, "rpg.admin");
-        PaperBasicCommandAdapter partyAdapter = new PaperBasicCommandAdapter("rpgparty", partyCommand, partyCommand, "rpg.member");
-        PaperBasicCommandAdapter questLogAdapter = new PaperBasicCommandAdapter("questlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member");
-        PaperBasicCommandAdapter dialogueAdapter = new PaperBasicCommandAdapter("dialogue", new DialogueCommand(playerProfileManager, dialogueEngine), null, "rpg.member");
+        PaperBasicCommandAdapter rpgAdminCommand = new PaperBasicCommandAdapter("pixelrpgadmin", rootCommand, rootCommand, "rpg.admin");
+        PaperBasicCommandAdapter partyAdapter = new PaperBasicCommandAdapter("pixelrpgparty", partyCommand, partyCommand, "rpg.member");
+        PaperBasicCommandAdapter questLogAdapter = new PaperBasicCommandAdapter("pixelrpgquestlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member");
+        PaperBasicCommandAdapter dialogueAdapter = new PaperBasicCommandAdapter("pixelrpgdialogue", new DialogueCommand(playerProfileManager, dialogueEngine), null, "rpg.member");
 
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
-            event.registrar().register("rpgadmin", rpgAdminCommand);
-            event.registrar().register("rpgparty", partyAdapter);
-            event.registrar().register("questlog", questLogAdapter);
-            event.registrar().register("dialogue", dialogueAdapter);
+            event.registrar().register("pixelrpgadmin", rpgAdminCommand);
+            event.registrar().register("pixelrpgparty", partyAdapter);
+            event.registrar().register("pixelrpgquestlog", questLogAdapter);
+            event.registrar().register("pixelrpgdialogue", dialogueAdapter);
         });
     }
 
