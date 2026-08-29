@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.dialogue;
 
-import de.pixelrpg.rpg.lang.LanguageManager;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.dialog.DialogResponseView;
 import io.papermc.paper.registry.data.dialog.ActionButton;
@@ -25,15 +24,9 @@ import java.util.function.Consumer;
 
 /** Central factory for all PixelRPG native Minecraft dialogs. */
 public final class DialogueEngine {
-    private final LanguageManager languageManager;
-
-    public DialogueEngine(LanguageManager languageManager) {
-        this.languageManager = Objects.requireNonNull(languageManager, "languageManager");
-    }
-
     public void openNotice(Player player, Component title, Component body, Component closeLabel) {
         Objects.requireNonNull(player, "player");
-        player.showDialog(createNotice(player, title, body, closeLabel));
+        player.showDialog(createNotice(title, body, closeLabel));
     }
 
     public void openMultiAction(Player player, Component title, List<DialogBody> body,
@@ -51,9 +44,9 @@ public final class DialogueEngine {
 
         List<ActionButton> safeActions = new ArrayList<>(actions);
         if (backAction != null) {
-            safeActions.add(actionButton(languageManager.get(player, "common.back"), NamedTextColor.WHITE, backAction));
+            safeActions.add(actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
         }
-        ActionButton close = actionButton(languageManager.get(player, "common.close"), NamedTextColor.GRAY, Player::closeDialog);
+        ActionButton close = actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog);
 
         // Paper requires at least one action in a native multi-action dialog.
         if (safeActions.isEmpty()) {
@@ -107,7 +100,7 @@ public final class DialogueEngine {
                 .action(dialogAction)
                 .width(220)
                 .build();
-        ActionButton cancel = actionButton(languageManager.get(player, "common.cancel"), NamedTextColor.RED, Player::closeDialog);
+        ActionButton cancel = actionButton(Component.text("Abbrechen"), NamedTextColor.RED, Player::closeDialog);
 
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
@@ -155,10 +148,10 @@ public final class DialogueEngine {
         openNotice(player,
                 Component.text(title, NamedTextColor.GOLD),
                 Component.text(message, NamedTextColor.WHITE),
-                languageManager.get(player, "common.close"));
+                Component.text("Schließen", NamedTextColor.GRAY));
     }
 
-    private Dialog createNotice(Player player, Component title, Component body, Component closeLabel) {
+    private Dialog createNotice(Component title, Component body, Component closeLabel) {
         ActionButton close = actionButton(closeLabel, NamedTextColor.GRAY, Player::closeDialog);
         return Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
