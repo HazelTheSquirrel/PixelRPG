@@ -37,11 +37,9 @@ public final class QuestText {
             Map.entry("MAGMA_CREAM", "Magmacreme"), Map.entry("FIRE_CHARGE", "Feuerkugel"),
             Map.entry("GUNPOWDER", "Schießpulver"), Map.entry("TORCH", "Fackel"),
             Map.entry("ARROW", "Pfeil"), Map.entry("STRING", "Faden"), Map.entry("SLIME", "Schleim"),
-            Map.entry("QUARTZ", "Netherquarz"), Map.entry("PHANTOM_MEMBRANE", "Phantomhaut"),
-            Map.entry("SHULKER_SHELL", "Shulkerschale"), Map.entry("COOKED_BEEF", "Gebratenes Rindfleisch"),
-            Map.entry("COOKED_PORKCHOP", "Gebratenes Schweinefleisch"), Map.entry("EYE_OF_ENDER", "Enderauge"),
-            Map.entry("NETHERITE_SCRAP", "Netherit-Schrott"), Map.entry("NETHERITE_INGOT", "Netheritbarren"),
-            Map.entry("BAMBOO", "Bambus")
+            Map.entry("PHANTOM_MEMBRANE", "Phantomhaut"), Map.entry("SHULKER_SHELL", "Shulkerschale"),
+            Map.entry("COOKED_BEEF", "Gebratenes Rindfleisch"), Map.entry("COOKED_PORKCHOP", "Gebratenes Schweinefleisch"),
+            Map.entry("EYE_OF_ENDER", "Enderauge"), Map.entry("BAMBOO", "Bambus")
     );
 
     private static final Map<String, String> GERMAN_ENTITY_NAMES = Map.ofEntries(
@@ -63,35 +61,23 @@ public final class QuestText {
     private QuestText() {
     }
 
-    public static Component title(Quest quest) {
-        return Component.text(titlePlain(quest));
-    }
-
-    public static Component title(Player player, Quest quest) {
-        return Component.text(titlePlain(quest));
-    }
+    public static Component title(Quest quest) { return Component.text(titlePlain(quest)); }
+    public static Component title(Player player, Quest quest) { return Component.text(titlePlain(quest)); }
 
     public static String titlePlain(Quest quest) {
         String title = quest.title();
         return title == null || title.isBlank() ? "Unbenannte Quest" : title;
     }
 
-    public static String titlePlain(Player player, Quest quest) {
-        return titlePlain(quest);
-    }
+    public static String titlePlain(Player player, Quest quest) { return titlePlain(quest); }
 
     public static Component description(Quest quest) {
         String description = quest.description();
         return Component.text(description == null || description.isBlank() ? "Keine Beschreibung verfügbar." : description);
     }
 
-    public static Component description(Player player, Quest quest) {
-        return description(quest);
-    }
-
-    public static Component objective(Quest quest) {
-        return objective(null, quest);
-    }
+    public static Component description(Player player, Quest quest) { return description(quest); }
+    public static Component objective(Quest quest) { return objective(null, quest); }
 
     public static Component objective(Player player, Quest quest) {
         String amount = String.valueOf(quest.requiredAmount());
@@ -104,9 +90,7 @@ public final class QuestText {
         };
     }
 
-    public static Component objectiveWithProgress(Quest quest, QuestProgress progress) {
-        return objectiveWithProgress(null, quest, progress);
-    }
+    public static Component objectiveWithProgress(Quest quest, QuestProgress progress) { return objectiveWithProgress(null, quest, progress); }
 
     public static Component objectiveWithProgress(Player player, Quest quest, QuestProgress progress) {
         int current = Math.min(Math.max(0, progress.getCurrentAmount()), quest.requiredAmount());
@@ -117,14 +101,11 @@ public final class QuestText {
                 .append(Component.text(current + "/" + quest.requiredAmount(), color));
     }
 
-    public static Component requiredItem(Quest quest) {
-        return requiredItem(null, quest);
-    }
+    public static Component requiredItem(Quest quest) { return requiredItem(null, quest); }
 
     public static Component requiredItem(Player player, Quest quest) {
         if (quest.type() != QuestType.COLLECT) return Component.empty();
-        return Component.text("Benötigt: " + quest.requiredAmount() + "x ", NamedTextColor.AQUA)
-                .append(itemName(quest.targetKey()));
+        return Component.text("Benötigt: " + quest.requiredAmount() + "x ", NamedTextColor.AQUA).append(itemName(quest.targetKey()));
     }
 
     public static String requiredItemPlain(Quest quest) {
@@ -139,24 +120,19 @@ public final class QuestText {
         return Component.text(itemNamePlain(key));
     }
 
-    /** Resolves a quest item to a plain display name for string-only contexts. */
     public static String itemNamePlain(String key) {
         if (key == null || key.isBlank()) return "Unbekannt";
         String normalized = key.trim().toUpperCase(Locale.ROOT);
         String known = GERMAN_ITEM_NAMES.get(normalized);
         if (known != null) return known;
-
         ItemDefinition definition = findDefinition(key);
         if (definition != null) return definition.name();
-
         Material material = Material.matchMaterial(key.trim());
         if (material != null) return prettyKey(material.name());
         return prettyKey(key);
     }
 
-    public static Component entityName(String key) {
-        return Component.text(entityNamePlain(key));
-    }
+    public static Component entityName(String key) { return Component.text(entityNamePlain(key)); }
 
     public static String entityNamePlain(String key) {
         if (key == null || key.isBlank()) return "Unbekannte Kreatur";
