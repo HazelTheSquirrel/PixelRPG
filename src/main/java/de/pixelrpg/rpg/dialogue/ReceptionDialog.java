@@ -58,8 +58,8 @@ public final class ReceptionDialog {
                 new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager).open();
             }));
         } else {
-            // Reception order: Registrieren/Austreten, Party, Gilde, Seelenbindung, Scoreboard.
-            actions.add(dialogueEngine.actionButton(Component.text("Aus dem Rathaus austreten"), NamedTextColor.RED, this::openLeaveConfirmation));
+            // Reception order: Registrierung aufheben, Party, Gilde, Seelenbindung, Scoreboard.
+            actions.add(dialogueEngine.actionButton(Component.text("PixelRPG-Registrierung aufheben"), NamedTextColor.RED, this::openLeaveConfirmation));
             if (partyManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Party", NamedTextColor.AQUA), NamedTextColor.AQUA,
                         target -> new PartyGUI(target, partyManager, profileManager).open(target)));
@@ -73,7 +73,7 @@ public final class ReceptionDialog {
                     Component.text(profile.isScoreboardEnabled() ? "Scoreboard ausschalten" : "Scoreboard einschalten", NamedTextColor.GOLD),
                     NamedTextColor.GOLD, this::toggleScoreboard));
         }
-        dialogueEngine.openMultiAction(player, Component.text("Rathaus", NamedTextColor.GOLD), body, actions, 1);
+        dialogueEngine.openMultiAction(player, Component.text("RPG-Registrierung", NamedTextColor.GOLD), body, actions, 1);
     }
 
     private void toggleScoreboard(Player target) {
@@ -144,13 +144,13 @@ public final class ReceptionDialog {
     }
 
     private void openLeaveConfirmation(Player target) {
-        ActionButton yes = dialogueEngine.actionButton(Component.text("Ja, unwiderruflich austreten"), NamedTextColor.RED, player -> {
+        ActionButton yes = dialogueEngine.actionButton(Component.text("Ja, Registrierung unwiderruflich aufheben"), NamedTextColor.RED, player -> {
             profileManager.unregisterPlayer(player);
-            player.sendMessage(Component.text("Du hast das Rathaus verlassen. Dein Fortschritt wurde gelöscht.", NamedTextColor.GREEN));
+            player.sendMessage(Component.text("Deine PixelRPG-Registrierung wurde aufgehoben. Dein Fortschritt wurde gelöscht.", NamedTextColor.GREEN));
         });
         ActionButton no = dialogueEngine.actionButton(Component.text("Nein, abbrechen"), NamedTextColor.GREEN,
                 player -> new ReceptionDialog(player, profileManager, dialogueEngine, partyManager, guildManager).open());
-        dialogueEngine.openConfirmation(target, Component.text("Austritt bestätigen?", NamedTextColor.GOLD),
-                List.of(DialogBody.plainMessage(Component.text("Warnung: setzt allen Fortschritt zurück!", NamedTextColor.WHITE))), yes, no);
+        dialogueEngine.openConfirmation(target, Component.text("Registrierung aufheben?", NamedTextColor.GOLD),
+                List.of(DialogBody.plainMessage(Component.text("Warnung: Setzt deinen gesamten PixelRPG-Fortschritt zurück.", NamedTextColor.WHITE))), yes, no);
     }
 }

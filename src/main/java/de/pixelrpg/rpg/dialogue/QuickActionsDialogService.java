@@ -173,13 +173,24 @@ public final class QuickActionsDialogService {
         if (raw == null || raw.isBlank()) return Component.text("Unbekannter Gegenstand", NamedTextColor.GRAY);
         String normalized = raw.trim();
         for (ItemDefinition definition : itemService.definitions()) {
-            if (definition.id().equalsIgnoreCase(normalized)) return Component.text(definition.name() + " (" + definition.rarity().name() + ")", NamedTextColor.GREEN);
+            if (definition.id().equalsIgnoreCase(normalized)) return Component.text(definition.name() + " (" + rarityDisplayName(definition.rarity()) + ")", NamedTextColor.GREEN);
         }
         Material material = Material.matchMaterial(normalized);
         if (material != null) return Component.translatable(material.translationKey(), NamedTextColor.GREEN);
         String readable = normalized.replaceFirst("(?i)i(?:common|uncommon|rare|epic|legendary|unique)i\\d+$", "").replace('_', ' ').replace('|', ' ').replaceAll("\\s+", " ").trim();
         if (readable.isBlank()) readable = normalized;
         return Component.text(Character.toUpperCase(readable.charAt(0)) + readable.substring(1), NamedTextColor.GREEN);
+    }
+
+    private String rarityDisplayName(de.pixelrpg.rpg.item.ItemRarity rarity) {
+        return switch (rarity) {
+            case COMMON -> "Gewöhnlich";
+            case UNCOMMON -> "Ungewöhnlich";
+            case RARE -> "Selten";
+            case EPIC -> "Episch";
+            case LEGENDARY -> "Legendär";
+            case UNIQUE -> "Einzigartig";
+        };
     }
 
     private String companionRewardName(String companionId) {
@@ -190,8 +201,8 @@ public final class QuickActionsDialogService {
             case "rare-spider" -> "Spinne";
             case "rare-creeper" -> "Creeper";
             case "epic-nautilus" -> "Nautilus";
-            case "epic-creaking" -> "Creaking";
-            case "epic-happy-ghast" -> "Happy Ghast";
+            case "epic-creaking" -> "Knarzer";
+            case "epic-happy-ghast" -> "Glücklicher Ghast";
             case "legendary-sulfur-cube" -> "Schwefelwürfel";
             default -> companionId.replace('-', ' ');
         };
@@ -217,9 +228,9 @@ public final class QuickActionsDialogService {
         double armor = player.getAttribute(Attribute.ARMOR) != null ? player.getAttribute(Attribute.ARMOR).getValue() : stats.armor();
         Component section = Component.text("────────────────────────", NamedTextColor.DARK_GRAY);
         Component header = Component.text("CHARAKTER", NamedTextColor.GOLD).decorate(TextDecoration.BOLD);
-        Component identity = Component.text().append(Component.text("Name: ", NamedTextColor.WHITE)).append(Component.text(player.getName(), NamedTextColor.AQUA)).append(Component.newline()).append(Component.text("Level: ", NamedTextColor.WHITE)).append(Component.text(profile.getLevel(), NamedTextColor.AQUA)).append(Component.newline()).append(Component.text("EXP: ", NamedTextColor.WHITE)).append(Component.text(profile.getExperience(), NamedTextColor.AQUA)).build();
-        Component statsComponent = Component.text().append(Component.text("HP: ", NamedTextColor.WHITE)).append(Component.text(format(player.getHealth()) + "/" + format(maxHealth), NamedTextColor.RED)).append(Component.newline()).append(Component.text("Armor: ", NamedTextColor.WHITE)).append(Component.text(format(armor), NamedTextColor.GRAY)).append(Component.newline()).append(Component.text("Movement Speed: ", NamedTextColor.WHITE)).append(Component.text(format(stats.movementSpeedBonus()), NamedTextColor.AQUA)).append(Component.newline()).append(Component.text("Reach: ", NamedTextColor.WHITE)).append(Component.text(format(stats.entityReach()), NamedTextColor.AQUA)).append(Component.newline()).append(Component.text("Damage: ", NamedTextColor.WHITE)).append(Component.text(format(stats.bonusDamage()), NamedTextColor.YELLOW)).append(Component.newline()).append(Component.text("Crit: ", NamedTextColor.WHITE)).append(Component.text(format(stats.critChance()) + "%", NamedTextColor.YELLOW)).append(Component.newline()).append(Component.text("Crit-Schaden: ", NamedTextColor.WHITE)).append(Component.text(format(stats.critDamageMultiplier()), NamedTextColor.YELLOW)).append(Component.newline()).append(Component.text("Lifesteal: ", NamedTextColor.WHITE)).append(Component.text(format(stats.lifestealBonus()) + "%", NamedTextColor.LIGHT_PURPLE)).append(Component.newline()).append(Component.text("Attack Power: ", NamedTextColor.WHITE)).append(Component.text(format(stats.attackPower()), NamedTextColor.GOLD)).build();
-        return Component.text().append(header).append(Component.newline()).append(section).append(Component.newline()).append(identity).append(Component.newline()).append(Component.newline()).append(Component.text("STATS", NamedTextColor.WHITE).decorate(TextDecoration.BOLD)).append(Component.newline()).append(statsComponent).build();
+        Component identity = Component.text().append(Component.text("Name: ", NamedTextColor.WHITE)).append(Component.text(player.getName(), NamedTextColor.AQUA)).append(Component.newline()).append(Component.text("Level: ", NamedTextColor.WHITE)).append(Component.text(profile.getLevel(), NamedTextColor.AQUA)).append(Component.newline()).append(Component.text("Erfahrung: ", NamedTextColor.WHITE)).append(Component.text(profile.getExperience(), NamedTextColor.AQUA)).build();
+        Component statsComponent = Component.text().append(Component.text("LP: ", NamedTextColor.WHITE)).append(Component.text(format(player.getHealth()) + "/" + format(maxHealth), NamedTextColor.RED)).append(Component.newline()).append(Component.text("Rüstung: ", NamedTextColor.WHITE)).append(Component.text(format(armor), NamedTextColor.GRAY)).append(Component.newline()).append(Component.text("Bewegungsgeschwindigkeit: ", NamedTextColor.WHITE)).append(Component.text(format(stats.movementSpeedBonus()), NamedTextColor.AQUA)).append(Component.newline()).append(Component.text("Reichweite: ", NamedTextColor.WHITE)).append(Component.text(format(stats.entityReach()), NamedTextColor.AQUA)).append(Component.newline()).append(Component.text("Schaden: ", NamedTextColor.WHITE)).append(Component.text(format(stats.bonusDamage()), NamedTextColor.YELLOW)).append(Component.newline()).append(Component.text("Kritische Trefferchance: ", NamedTextColor.WHITE)).append(Component.text(format(stats.critChance()) + "%", NamedTextColor.YELLOW)).append(Component.newline()).append(Component.text("Kritischer Schaden: ", NamedTextColor.WHITE)).append(Component.text(format(stats.critDamageMultiplier()), NamedTextColor.YELLOW)).append(Component.newline()).append(Component.text("Lebensraub: ", NamedTextColor.WHITE)).append(Component.text(format(stats.lifestealBonus()) + "%", NamedTextColor.LIGHT_PURPLE)).append(Component.newline()).append(Component.text("Angriffskraft: ", NamedTextColor.WHITE)).append(Component.text(format(stats.attackPower()), NamedTextColor.GOLD)).build();
+        return Component.text().append(header).append(Component.newline()).append(section).append(Component.newline()).append(identity).append(Component.newline()).append(Component.newline()).append(Component.text("WERTE", NamedTextColor.WHITE).decorate(TextDecoration.BOLD)).append(Component.newline()).append(statsComponent).build();
     }
 
     private String format(double value) { return String.format(Locale.ROOT, "%.1f", value); }

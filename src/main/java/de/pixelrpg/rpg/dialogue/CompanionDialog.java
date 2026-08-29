@@ -23,6 +23,7 @@ import java.util.List;
 /** Native current Paper dialog for companion ownership, progression, activation and equipment. */
 public final class CompanionDialog {
     private static final String EQUIP_ACTION_PREFIX = "pixelrpg:companion_equip/";
+    private static final String HIDDEN_QUICK_ACTION_COMPANION_ID = "common-chicken";
 
     private final CompanionService companionService;
     private final DialogueEngine dialogueEngine;
@@ -35,7 +36,9 @@ public final class CompanionDialog {
     }
 
     public void open(Player player) {
-        List<Companion> companions = companionService.getCompanions(player.getUniqueId());
+        List<Companion> companions = companionService.getCompanions(player.getUniqueId()).stream()
+                .filter(companion -> !HIDDEN_QUICK_ACTION_COMPANION_ID.equalsIgnoreCase(companion.id()))
+                .toList();
         List<DialogBody> body = new ArrayList<>();
         List<ActionButton> actions = new ArrayList<>();
 

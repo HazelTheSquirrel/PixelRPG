@@ -70,8 +70,8 @@ public final class ItemService implements ItemAPI {
             pdc.set(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE, gearscore);
             List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
             if (!lore.isEmpty()) lore.add(Component.text(" "));
-            lore.add(Component.text("Crafted Item", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
-            lore.add(Component.text("Gearscore " + format(gearscore), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Hergestellter Gegenstand", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Ausrüstungswert " + format(gearscore), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
             meta.lore(lore);
         }
 
@@ -139,21 +139,21 @@ public final class ItemService implements ItemAPI {
             pdc.set(RPGKeys.Item.weaponAbilityCooldownMillis(), PersistentDataType.LONG, definition.weaponAbilityCooldownMillis());
         }
         List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
-        lore.removeIf(component -> component instanceof TextComponent text && text.content().startsWith("Requires Level "));
-        lore.add(Math.min(2, lore.size()), Component.text("Requires Level " + definition.requiredLevel(), NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
-        if (definition.soulbound()) lore.add(0, Component.text("⚡ Soulbound", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
-        if (definition.unique()) lore.add(0, Component.text("UNIQUE • 1/1", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
+        lore.removeIf(component -> component instanceof TextComponent text && text.content().startsWith("Benötigt Level "));
+        lore.add(Math.min(2, lore.size()), Component.text("Benötigt Level " + definition.requiredLevel(), NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        if (definition.soulbound()) lore.add(0, Component.text("⚡ Seelengebunden", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+        if (definition.unique()) lore.add(0, Component.text("EINZIGARTIG • 1/1", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
         if (!definition.weaponAbility().isBlank()) {
             boolean ranged = definition.category() == ItemCategory.RANGED_WEAPON;
             lore.add(Component.text("Fähigkeit: " + definition.weaponAbility(), NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
-            lore.add(Component.text((ranged ? "Beim Loslassen" : "Rechtsklick") + " • " + Math.max(0L, definition.weaponAbilityCooldownMillis()) + "ms Cooldown", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text((ranged ? "Beim Loslassen" : "Rechtsklick") + " • " + Math.max(0L, definition.weaponAbilityCooldownMillis()) + "ms Abklingzeit", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
         }
         if (definition.category().getProfile() == ItemStatProfile.ARMOR) {
             double critChance = Math.round(itemLevel * definition.rarity().getStatMultiplier() * 0.05D * 10.0D) / 10.0D;
             pdc.set(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, critChance);
-            lore.add(Component.text("+" + format(critChance) + "% Crit", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("+" + format(critChance) + "% Kritische Trefferchance", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
         }
-        lore.add(Component.text("Gearscore " + format(gearscore), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("Ausrüstungswert " + format(gearscore), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
         meta.displayName(Component.text(definition.name(), NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
