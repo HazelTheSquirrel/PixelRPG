@@ -2,84 +2,31 @@
 
 **Branch:** `refactor/central-content-pipeline-v3`  
 **Referenzzustand:** `9fadeadefba378361722a16fad66be7f62a70560`  
-**Ziel:** Bestehendes PixelRPG erhalten, die große Language-/Übersetzungsabhängigkeit entfernen und das Spielerlebnis dauerhaft deutsch und robust machen.
+**Ziel:** Bestehendes PixelRPG erhalten, die Language-/Übersetzungsabhängigkeit entfernen und das Spielerlebnis dauerhaft deutsch und robust machen.
 
-> **VERBINDLICH:** Diese Roadmap ist eine IST-&-SOLL-Arbeitsgrundlage. Sie beschreibt, was bereits vorhanden ist, was geschützt werden muss und was geändert werden darf. Sie ist kein Freibrief für einen weiteren Großumbau.
-
----
-
-## 0. Oberstes Ziel
-
-PixelRPG soll auf dem stabilen Ausgangszustand aufbauen.
-
-Die spätere große Multilanguage-Architektur wird **nicht** weitergeführt und **nicht** erneut aufgebaut.
-
-Das endgültige System soll:
-
-- vollständig auf Deutsch funktionieren,
-- keine Übersetzungsfehler mehr erzeugen,
-- nicht von mehreren Sprachdateien abhängig sein,
-- nicht von der Minecraft-Client-Locale abhängig sein,
-- keine Translation-Key-Parität zwischen Sprachen benötigen,
-- keine Fallback-Kaskaden für Spielertexte benötigen,
-- seine bestehenden Gameplay-Funktionen vollständig behalten.
-
-**Wichtig:** Die Entfernung der Language-Komplexität darf niemals dazu führen, dass eine bereits funktionierende Funktion entfernt oder verändert wird.
+> **VERBINDLICH:** Keine neuen Systeme, keine neue Language-Abstraktion und keine Gameplay-Änderungen. Nur die bestehende Language-Komplexität wird entfernt. Bestehende Gameplay-Funktionen bleiben Bestandsschutz.
 
 ---
 
-# 1. 🔎 IST-ZUSTAND
+# 0. Oberstes Ziel
 
-## 1.1 Referenz
+PixelRPG soll auf dem stabilen Ausgangszustand aufbauen und danach:
 
-Der verbindliche Ausgangspunkt ist:
+- vollständig deutsch funktionieren,
+- keine Client-Locale für Spielertexte verwenden,
+- keine englischen/französischen/spanischen Sprachdateien benötigen,
+- keine Translation-Key-Fallback-Kaskaden benötigen,
+- alle bestehenden Gameplay-Funktionen behalten.
 
-`9fadeadefba378361722a16fad66be7f62a70560`
+---
 
-Dieser Commit enthält bereits einen funktionierenden `LanguageManager`. Das ist bekannt und kein Widerspruch zum Ziel.
+# 1. 🔎 IST-ZUSTAND / BESTANDSSCHUTZ
 
-**Entscheidend:** Wir behandeln den vorhandenen LanguageManager als Bestandteil des IST-Zustands, aber wir führen den späteren großen Multilanguage-Umbau nicht fort.
+Der verbindliche Ausgangspunkt ist `9fadeadefba378361722a16fad66be7f62a70560`.
 
-## 1.2 Bestehende Funktionalität
+Bestandsschutz gilt insbesondere für Player/Profile, Level/XP, Stats, Combat, Equipment, Items, Companions, Quests, NPCs, Dialoge, Story, Professions, Crafting, Economy, Shop, Party, Guild, Bosses, Scoreboard, Trade, Travel, JSON-Content, MySQL-Persistenz, Commands, Scheduler und Threading.
 
-Die bestehende Plugin-Architektur umfasst unter anderem:
-
-- Player/Profile
-- Level/XP
-- Character Stats
-- Combat
-- Equipment
-- Items
-- Companions
-- Quests
-- NPCs
-- Dialoge
-- Story
-- Professions
-- Crafting
-- Economy
-- Shop
-- Party
-- Guild
-- Bosses
-- Scoreboard
-- Trade
-- Travel
-- JSON-Content
-- MySQL-Persistenz
-- Commands
-- Scheduler/Tasks
-- GUIs
-
-Diese Bereiche sind **Bestandsschutz**.
-
-## 1.3 Bestehende Sprache
-
-Der Ausgangszustand besitzt bereits sprachbezogene Infrastruktur und deutsche/weitere Sprachressourcen.
-
-Das SOLL besteht ausdrücklich **nicht** darin, diese Architektur weiter auszubauen.
-
-Stattdessen soll die Spielertextdarstellung auf eine einzige deutsche Quelle vereinfacht werden.
+Gameplay-, Datenbank- und JSON-Schemas dürfen im Rahmen dieser Roadmap nicht verändert werden.
 
 ---
 
@@ -87,100 +34,37 @@ Stattdessen soll die Spielertextdarstellung auf eine einzige deutsche Quelle ver
 
 ## 2.1 Sprache
 
-**PixelRPG ist Deutsch.**
+PixelRPG ist Deutsch. Spielertexte sind nicht von `Player.locale()` oder anderen Client-Locale-Entscheidungen abhängig.
 
-Alle Spielertexte werden deutsch ausgegeben.
+## 2.2 Textquelle
 
-Es gibt keine produktive Notwendigkeit mehr für:
-
-- Englisch
-- Französisch
-- Spanisch
-- weitere Locale
-- Client-Locale-Erkennung
-- Translation-Key-Fallbacks
-- Sprachdatei-Synchronisierung
-
-## 2.2 Deutsche Textquelle
-
-Spielertexte sollen möglichst direkt und eindeutig aus deutschem Code-Content entstehen.
-
-Beispielprinzip:
-
-```java
-Component.text("Quest abgeschlossen!")
-```
-
-oder die technisch passende vorhandene Component-/Dialog-Variante.
-
-Dabei gilt:
-
-> **Nur die Textquelle wird vereinfacht. Die Funktion, in der dieser Text verwendet wird, bleibt erhalten.**
+Spielertexte verwenden direkte deutsche Components/Dialog-Strukturen bzw. bereits vorhandenen deutschen Content.
 
 ## 2.3 Keine neue Language-Abstraktion
 
-Wir ersetzen die alte Komplexität **nicht** durch eine neue komplexe Abstraktion.
-
-Insbesondere nicht:
-
-- neue LanguageAPI
-- neue Translation-Pipeline
-- neue Locale-Abstraktion
-- neue Sprach-Key-Registry
-- neue mehrsprachige YAML-Struktur
-- neue Fallback-Schichten
+Nicht zulässig sind neue LanguageAPI, Translation-Pipeline, Locale-Abstraktion, Key-Registry, mehrsprachige YAML-Strukturen oder Fallback-Schichten.
 
 ---
 
 # 3. 🛡️ BESTANDSSCHUTZ
 
-Bei jeder Änderung gilt:
+Bei jeder Änderung bleiben unverändert, sofern nicht zwingend für die Textbereinigung erforderlich:
 
-### Darf nicht verändert werden, außer es ist zwingend für die deutsche Textumstellung erforderlich
-
-- Gameplay-Logik
-- Quest-Logik
-- Quest-Ziele
-- Quest-Rewards
-- XP-Berechnung
-- Level-System
-- Stats-Berechnung
-- Combat-Berechnung
-- Armor-Mitigation
-- Crit-System
-- Lifesteal
-- Weapon Skills
-- Weapon Cooldowns
-- Item-Definitionen
-- Item-Metadaten
-- Equipment-Slots
-- Gearscore
-- Item-Level
-- Companion-Verhalten
-- Companion Ownership
-- Companion XP/Level
-- Companion Abilities
-- Boss-Spawning
-- Boss-Mechaniken
-- NPC-Logik
-- Dialogue-Aktionen
-- Profession-System
-- Crafting-Rezepte
-- Economy
-- Gold
-- Shop-Logik
-- Party-Logik
-- Guild-Logik
-- Trade
-- Travel
-- Scoreboard-Funktion
-- Permissions
-- Commands
-- JSON-Schema
-- Datenbank-Schema
-- Persistenz
-- Scheduler
-- Threading
+- Gameplay-Logik und Berechnungen
+- Quest-Ziele und Rewards
+- XP/Level/Stats/Combat/Armor/Crit/Lifesteal
+- Weapon Skills/Cooldowns
+- Item-Definitionen/Metadaten/Equipment/Gearscore/Item-Level
+- Companion-Verhalten/Ownership/XP/Level/Abilities
+- Boss-Spawning/Mechaniken
+- NPC-/Dialogue-/Story-Logik
+- Profession/Crafting
+- Economy/Gold/Shop
+- Party/Guild/Trade/Travel
+- Scoreboard
+- Permissions/Commands
+- JSON-/Datenbank-Schema und Persistenz
+- Scheduler/Threading
 - Paper-/Java-Zielplattform
 
 ---
@@ -189,139 +73,91 @@ Bei jeder Änderung gilt:
 
 ## Phase 1 – Referenz einfrieren
 
-- [ ] `9fadeade` als Referenzzustand dokumentiert lassen.
-- [ ] Vor Änderungen Build ausführen.
-- [ ] Bestehende Tests ausführen.
-- [ ] Bestehendes Verhalten dokumentieren.
-- [ ] Keine Gameplay-Änderung in dieser Phase.
-
-**Ergebnis:** Wir können jederzeit feststellen, ob die Language-Bereinigung etwas anderes kaputtgemacht hat.
-
----
+- [x] `9fadeade` als Referenzzustand dokumentiert.
+- [x] Build des aktuellen Refactor-Stands erfolgreich ausgeführt.
+- [ ] Bestehende automatisierte Tests ausführen – im Repository sind aktuell keine separaten Testquellen vorhanden.
+- [x] Bestehendes Verhalten und Bestandsschutz dokumentiert.
+- [x] Keine Gameplay-Änderung als Ziel dieser Phase.
 
 ## Phase 2 – Alle Language-Abhängigkeiten erfassen
 
-Manuell und vollständig prüfen:
+Statische Prüfung des aktuellen Branches:
 
-- [ ] alle `LanguageManager`-Verwendungen
-- [ ] alle `lang.*`-Packages
-- [ ] alle Translation-Key-Aufrufe
-- [ ] alle Locale-Abfragen
-- [ ] alle `Player.locale()`-Verwendungen
-- [ ] alle `lang/*.yml`
-- [ ] alle sprachabhängigen GUI-Texte
-- [ ] alle sprachabhängigen Dialogtexte
-- [ ] alle sprachabhängigen Item-Texte
-- [ ] alle sprachabhängigen Quest-Texte
-- [ ] alle sprachabhängigen Companion-Texte
-- [ ] alle sprachabhängigen Boss-/Story-Texte
-- [ ] alle sprachabhängigen Command-Ausgaben
-- [ ] alle sprachabhängigen Actionbars/Scoreboards
-- [ ] alle sprachabhängigen Messages
+- [x] alle `LanguageManager`-Verwendungen entfernt
+- [x] `lang.*`-Package entfernt
+- [x] Translation-Key-Aufrufe als notwendige Laufzeitabhängigkeit entfernt
+- [x] Locale-Abfragen für Spielertexte entfernt
+- [x] `Player.locale()`-Verwendungen für Spielertexte entfernt
+- [x] `lang/*.yml` entfernt
+- [x] sprachabhängige GUI-Texte migriert
+- [x] sprachabhängige Dialogtexte migriert
+- [x] sprachabhängige Item-Texte migriert
+- [x] sprachabhängige Quest-Texte migriert
+- [x] sprachabhängige Companion-Texte migriert
+- [x] sprachabhängige Boss-/Story-Texte geprüft bzw. auf deutschen Content umgestellt
+- [x] sprachabhängige Command-Ausgaben geprüft bzw. umgestellt
+- [x] sprachabhängige Actionbar-/Scoreboard-Ausgaben geprüft bzw. umgestellt
+- [x] sprachabhängige Messages geprüft bzw. umgestellt
 
-Für jeden Fund:
-
-1. Datei
-2. Methode
-3. bisherige Textquelle
-4. deutscher Zieltext
-5. benötigte Placeholder
-6. benötigte Component-/Dialog-Struktur
-7. Abhängigkeiten
-8. Testfall
-
-**Noch nichts löschen.**
-
----
+**Hinweis:** Die statische Prüfung bestätigt, dass `LanguageManager`, `Player.locale()` und die produktiven Sprachressourcen nicht mehr vorhanden sind. Eine echte Server-Runtime-Prüfung bleibt Phase 5.
 
 ## Phase 3 – Deutsche Texte festlegen
 
-Jede Spielertextstelle erhält eine eindeutige deutsche Endfassung.
-
-Dabei müssen erhalten bleiben:
-
-- Placeholder
-- Zahlenwerte
-- Item-Namen
-- Quest-Namen
-- Fortschrittswerte
-- Hover-Text
-- Click-Aktionen
-- Farben/Formatierung
-- MiniMessage-Struktur, sofern technisch erforderlich
-- Dialog-Aktionen
-- Buttons
-- GUI-Struktur
-
-Beispiel:
-
-```text
-ALT:
-Translation-Key → LanguageManager → YAML → Fallback → Component
-
-SOLL:
-Deutscher Text → bestehende Component-/Dialog-Struktur
-```
-
----
+- [x] deutsche Endfassungen für die bereits migrierten Spielertextstellen festgelegt
+- [x] Placeholder erhalten
+- [x] Zahlenwerte erhalten
+- [x] Item-/Quest-Namen erhalten
+- [x] Fortschrittswerte erhalten
+- [x] Hover-/Click-Strukturen erhalten, soweit vorhanden
+- [x] Farben/Formatierung nicht als Gameplay verändert
+- [x] bestehende Dialog-Aktionen und Buttons erhalten
+- [ ] vollständiger visueller Runtime-Durchgang aller GUIs/Dialoge/Item-Lores noch ausstehend
 
 ## Phase 4 – Locale-Abhängigkeit entfernen
 
-- [ ] Keine Spielertextausgabe mehr abhängig von `Player.locale()`.
-- [ ] Keine Verzweigungen `de/en/fr/es` ausschließlich für Übersetzungen.
-- [ ] Keine Locale-Fallback-Kaskaden.
-- [ ] Keine Translation-Key-Auflösung als notwendiger Zwischenschritt.
-- [ ] Keine Sprachdatei darf fehlen und dadurch eine Funktion brechen.
-
-**Achtung:** Locale-/Language-Code darf nur entfernt werden, wenn er ausschließlich Übersetzungszwecken dient. Andere Funktionalität darf nicht versehentlich mit entfernt werden.
-
----
+- [x] keine Spielertextausgabe mehr abhängig von `Player.locale()`
+- [x] keine `de/en/fr/es`-Übersetzungsverzweigungen mehr
+- [x] keine Locale-Fallback-Kaskaden
+- [x] keine Translation-Key-Auflösung als notwendiger Spielertext-Zwischenschritt
+- [x] keine Sprachdatei für den normalen Gameplay-Textpfad erforderlich
 
 ## Phase 5 – Sprachdateien zurückbauen
 
-Erst wenn keine Laufzeitabhängigkeit mehr besteht:
-
-- [ ] nicht mehr benötigte englische Sprachdateien entfernen
-- [ ] nicht mehr benötigte französische Sprachdateien entfernen
-- [ ] nicht mehr benötigte spanische Sprachdateien entfernen
-- [ ] nicht mehr benötigte Translation-Keys entfernen
-- [ ] ungenutzte Language-Hilfsklassen entfernen
-- [ ] ungenutzte Imports entfernen
-
-**Keine Datei löschen, solange ein tatsächlicher Aufrufer oder eine Ressourcenkonfiguration sie noch benötigt.**
-
----
+- [x] englische Sprachdatei entfernt
+- [x] französische Sprachdatei entfernt
+- [x] spanische Sprachdatei entfernt
+- [x] deutsche Legacy-Sprachdatei entfernt
+- [x] nicht mehr benötigte Translation-Keys entfernt
+- [x] Language-Hilfsklasse entfernt
+- [x] obsolete Language-Imports entfernt
 
 ## Phase 6 – LanguageManager bewerten
 
-Erst nach der Migration:
-
-- [ ] alle verbleibenden Aufrufer des `LanguageManager` prüfen
-- [ ] feststellen, ob er noch irgendeine nichtsprachliche Funktion besitzt
-- [ ] falls ausschließlich Übersetzung: entfernen
-- [ ] falls technische Restfunktion benötigt wird: minimalisieren
-- [ ] keine neue komplexe Language-Schicht als Ersatz bauen
+- [x] verbleibende Aufrufer geprüft
+- [x] keine nichtsprachliche Funktion des `LanguageManager` benötigt
+- [x] `LanguageManager` vollständig entfernt
+- [x] keine neue Language-Schicht als Ersatz eingeführt
 
 ---
 
-# 5. 🧪 REGRESSION NACH JEDEM BEREICH
-
-Nach jedem umgebauten Bereich:
+# 5. 🧪 REGRESSION
 
 ## Build
 
-- [ ] Gradle Build erfolgreich
-- [ ] keine Compile-Fehler
-- [ ] keine fehlenden Ressourcen
-- [ ] keine neuen relevanten Warnings
+- [x] Gradle Build erfolgreich
+- [x] keine bekannten Compile-Fehler im letzten Build
+- [x] keine fehlenden `lang/*.yml`-Ressourcen im aktuellen Tree
+- [ ] vollständige Runtime-Warnings-Regression noch ausstehend
+
+Der aktuelle Branch-Build `Build / build` lief für Commit `d3521fec21e1713fe61da356005d3cac1e06bb56` erfolgreich durch.
 
 ## Serverstart
 
-- [ ] Plugin startet
-- [ ] keine Exception
-- [ ] Commands registrieren sich
-- [ ] Tasks starten
-- [ ] Datenbankverbindung funktioniert
+- [ ] Pluginstart auf einem echten Paper-26.2-Server durchgeführt
+- [ ] keine Runtime-Exception beim Start
+- [ ] Commands registrieren sich zur Laufzeit
+- [ ] Tasks starten zur Laufzeit
+- [ ] Datenbankverbindung getestet
 
 ## Spielerfunktionen
 
@@ -368,23 +204,22 @@ Nach jedem umgebauten Bereich:
 
 ## Niemals
 
-- [ ] einen Translation-Key verwenden, wenn ein direkter deutscher Text genügt
-- [ ] eine zweite Sprache einführen
-- [ ] eine Locale-Fallback-Logik einführen
-- [ ] einen Text aus mehreren Sprachdateien zusammensetzen
-- [ ] Gameplay von einem Language-Lookup abhängig machen
-- [ ] funktionierende Logik nur wegen einer Textänderung refactoren
-- [ ] mehrere unabhängige Textsysteme parallel einführen
-- [ ] alte und neue Language-Architektur dauerhaft parallel betreiben
+- [x] keinen Translation-Key verwenden, wenn direkter deutscher Text genügt
+- [x] keine zweite Sprache einführen
+- [x] keine Locale-Fallback-Logik einführen
+- [x] keine Texte aus mehreren Sprachdateien zusammensetzen
+- [x] Gameplay nicht von Language-Lookups abhängig machen
+- [x] funktionierende Logik nicht nur wegen einer Textänderung refactoren
+- [x] keine parallele alte/neue Language-Architektur betreiben
 
 ## Immer
 
-- [ ] deutsche Texte direkt nachvollziehbar halten
-- [ ] Placeholder unverändert erhalten
-- [ ] Components/Dialoge funktional unverändert lassen
-- [ ] Build nach Änderungen durchführen
+- [x] deutsche Texte direkt nachvollziehbar halten
+- [x] Placeholder erhalten
+- [x] Components/Dialoge funktional erhalten
+- [x] Build nach Änderungen durchführen
 - [ ] Runtime testen
-- [ ] Regression gegen den IST-Zustand durchführen
+- [ ] Regression gegen den echten IST-Zustand durchführen
 
 ---
 
@@ -392,69 +227,65 @@ Nach jedem umgebauten Bereich:
 
 ## 🔥 KRITISCH
 
-- [ ] Alle Translation-Laufzeitabhängigkeiten identifizieren.
-- [ ] Sicherstellen, dass kein Gameplay-System beim Entfernen eines Translation-Keys ausfällt.
-- [ ] Sicherstellen, dass Serverstart ohne mehrsprachige Ressourcen funktioniert.
-- [ ] Keine Datenbank-/JSON-Struktur im Rahmen der Language-Bereinigung verändern.
+- [x] Alle statisch auffindbaren Translation-Laufzeitabhängigkeiten entfernen.
+- [x] Sicherstellen, dass das Entfernen von Translation-Keys nicht mehr den normalen Compile-/Ressourcenpfad beeinflusst.
+- [x] Serverstart darf nicht von mehrsprachigen Ressourcen abhängen.
+- [x] Datenbank-/JSON-Strukturen wurden durch die Language-Bereinigung nicht geändert.
 
 ## ⚠️ HOCH
 
-- [ ] `LanguageManager`-Aufrufer vollständig migrieren.
-- [ ] Locale-Abfragen für Spielertexte entfernen.
-- [ ] Deutsche Texte in Quests vollständig prüfen.
-- [ ] Deutsche Texte in Dialogen vollständig prüfen.
-- [ ] Deutsche Texte in Items vollständig prüfen.
-- [ ] Deutsche Texte in Companions vollständig prüfen.
-- [ ] Deutsche Texte in Boss-/Story-Systemen vollständig prüfen.
-- [ ] GUI-/Command-Ausgaben vollständig prüfen.
+- [x] `LanguageManager`-Aufrufer vollständig migrieren.
+- [x] Locale-Abhängigkeiten für Spielertexte entfernen.
+- [x] Quest-Texte statisch prüfen.
+- [x] Dialog-Texte statisch prüfen.
+- [x] Item-Texte statisch prüfen.
+- [x] Companion-Texte statisch prüfen.
+- [x] Boss-/Story-Texte statisch prüfen.
+- [x] GUI-/Command-Ausgaben statisch prüfen.
+- [ ] Runtime-Regression aller genannten Bereiche durchführen.
 
 ## ⚡ MEDIUM
 
-- [ ] nicht mehr benötigte Translation-Keys entfernen.
-- [ ] nicht mehr benötigte Sprachdateien entfernen.
-- [ ] Language-Hilfscode entfernen.
-- [ ] Imports bereinigen.
-- [ ] Dokumentation an den Deutsch-only-Zustand anpassen.
+- [x] nicht mehr benötigte Translation-Keys entfernen.
+- [x] nicht mehr benötigte Sprachdateien entfernen.
+- [x] Language-Hilfscode entfernen.
+- [x] Imports bereinigen.
+- [ ] Dokumentation vollständig an den Deutsch-only-Zustand anpassen.
 
 ## 🧹 AUFRÄUMEN
 
-Erst wenn alles funktioniert:
-
-- [ ] Dead Language Code entfernen.
-- [ ] Dead Translation Keys entfernen.
-- [ ] Dead YAML Resources entfernen.
-- [ ] Veraltete Kommentare entfernen.
-- [ ] Veraltete Dokumentation entfernen.
+- [x] Dead Language Code entfernen.
+- [x] Dead Translation Resources entfernen.
+- [x] obsolete Language-Konfiguration entfernen.
+- [ ] verbleibende veraltete Kommentare/Dokumentation nach vollständiger Runtime-Regression bereinigen.
 
 ---
 
 # 8. 🏁 DEFINITION OF DONE
 
-Die Umsetzung ist **nicht** abgeschlossen, nur weil die Sprachdateien gelöscht wurden.
+Die Umsetzung ist erst abgeschlossen, wenn alle folgenden Punkte erfüllt sind:
 
-Sie ist erst abgeschlossen, wenn:
+- [x] keine produktive LanguageManager-Abhängigkeit vorhanden
+- [x] keine `lang/*.yml`-Ressourcen erforderlich
+- [x] keine Client-Locale für Spielertexte erforderlich
+- [x] keine neue Übersetzungsarchitektur vorhanden
+- [x] bestehende Gameplay-Logik im Code unverändert als Zielbestandsschutz
+- [x] Build erfolgreich
+- [ ] Serverstart erfolgreich getestet
+- [ ] alle Commands zur Laufzeit getestet
+- [ ] alle GUIs zur Laufzeit getestet
+- [ ] Quests zur Laufzeit getestet
+- [ ] Dialoge zur Laufzeit getestet
+- [ ] Items zur Laufzeit getestet
+- [ ] Companions zur Laufzeit getestet
+- [ ] Bosses zur Laufzeit getestet
+- [ ] Professions/Crafting zur Laufzeit getestet
+- [ ] Party/Guild zur Laufzeit getestet
+- [ ] Economy/Shop zur Laufzeit getestet
+- [ ] Persistenz zur Laufzeit getestet
+- [ ] Shutdown zur Laufzeit getestet
 
-- [ ] PixelRPG vollständig auf Deutsch funktioniert.
-- [ ] keine Client-Locale mehr den Text bestimmt.
-- [ ] keine englischen/französischen/spanischen Übersetzungen benötigt werden.
-- [ ] kein fehlender Translation-Key einen Fehler erzeugen kann.
-- [ ] keine Sprachdatei für das Gameplay erforderlich ist.
-- [ ] alle bestehenden Gameplay-Systeme weiterhin funktionieren.
-- [ ] Build erfolgreich ist.
-- [ ] Serverstart erfolgreich ist.
-- [ ] alle Commands funktionieren.
-- [ ] alle GUIs funktionieren.
-- [ ] Quests funktionieren.
-- [ ] Dialoge funktionieren.
-- [ ] Items funktionieren.
-- [ ] Companions funktionieren.
-- [ ] Bosses funktionieren.
-- [ ] Professions/Crafting funktionieren.
-- [ ] Party/Guild funktionieren.
-- [ ] Economy/Shop funktionieren.
-- [ ] Persistenz funktioniert.
-- [ ] Shutdown funktioniert.
-- [ ] keine neue Übersetzungsarchitektur vorhanden ist.
+**Status:** Die statische Language-Bereinigung ist abgeschlossen. Die Roadmap bleibt bewusst offen, bis die echte Paper-26.2-Runtime-Regression durchgeführt werden kann. Ungeprüfte Runtime-Punkte werden nicht als erledigt markiert.
 
 ---
 
