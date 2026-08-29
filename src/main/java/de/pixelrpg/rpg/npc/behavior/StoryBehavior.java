@@ -1,8 +1,6 @@
 package de.pixelrpg.rpg.npc.behavior;
 
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
-import de.pixelrpg.rpg.lang.LanguageManager;
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
@@ -24,48 +22,37 @@ public final class StoryBehavior implements NpcBehavior {
     private final StoryNpcDialogue dialogue;
     private final DialogueEngine dialogueEngine;
     private final PlayerProfileManager profileManager;
-    private final LanguageManager lang;
 
     public StoryBehavior(StoryManager storyManager, StoryNpcDialogue dialogue, DialogueEngine dialogueEngine, PlayerProfileManager profileManager) {
         this.storyManager = storyManager;
         this.dialogue = dialogue;
         this.dialogueEngine = dialogueEngine;
         this.profileManager = profileManager;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
-    @Override
-    public NpcType type() {
-        return NpcType.STORY;
-    }
+    @Override public NpcType type() { return NpcType.STORY; }
 
     @Override
     public void onInteract(Player player, RPGNpc npc) {
         if (!profileManager.isRegistered(player.getUniqueId())) {
-            lang.send(player, "npc.not-registered");
+            player.sendMessage(Component.text("Du musst registriertes Rathausmitglied sein.", NamedTextColor.RED));
             return;
         }
-
         Optional<StoryChapter> next = storyManager.getNextChapterFor(player.getUniqueId());
         if (next.isEmpty()) {
             dialogue.begin(player, npc);
             return;
         }
-
         StoryChapter chapter = next.get();
         dialogueEngine.openMultiAction(
                 player,
                 Component.text("Geschichte", NamedTextColor.GOLD),
                 List.of(DialogBody.plainMessage(Component.text(chapter.title(), NamedTextColor.YELLOW))),
-                List.of(dialogueEngine.actionButton(
-                        Component.text("Kapitel lesen"),
-                        NamedTextColor.GREEN,
-                        target -> {
-                            target.openBook(StoryBookFactory.build(chapter));
-                            storyManager.completeChapter(target, chapter);
-                            lang.send(target, "story.chapter-unlocked", "title", chapter.title());
-                        }
-                )),
+                List.of(dialogueEngine.actionButton(Component.text("Kapitel lesen"), NamedTextColor.GREEN, target -> {
+                    target.openBook(StoryBookFactory.build(chapter));
+                    storyManager.completeChapter(target, chapter);
+                    target.sendMessage(Component.text("Kapitel freigeschaltet: " + chapter.title(), NamedTextColor.GREEN));
+                })),
                 1
         );
     }
