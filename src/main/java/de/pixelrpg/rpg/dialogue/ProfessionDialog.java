@@ -184,11 +184,11 @@ public final class ProfessionDialog {
         boolean unlocked = craftingService.isUnlocked(player, recipe);
         boolean levelAvailable = professionLevel >= recipe.requiredProfessionLevel();
         List<DialogBody> body = new ArrayList<>();
-        body.add(DialogBody.plainMessage(Component.text("Ergebnis: " + prettyMaterial(recipe.resultMaterial().name()), NamedTextColor.WHITE)));
+        body.add(DialogBody.plainMessage(Component.text("Ergebnis: " + QuestText.itemNamePlain(recipe.resultMaterial().name()), NamedTextColor.WHITE)));
         body.add(DialogBody.plainMessage(Component.text("Rezeptart: " + (recipe.vanillaRecipe() ? "Vanilla" : "PixelRPG"), NamedTextColor.WHITE)));
         body.add(DialogBody.plainMessage(Component.text("Benötigt: " + profession.displayName() + " Level " + recipe.requiredProfessionLevel(), NamedTextColor.WHITE)));
         body.add(DialogBody.plainMessage(Component.text("Materialien:", NamedTextColor.WHITE)));
-        for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) body.add(DialogBody.plainMessage(Component.text("• " + cost.getValue() + "x " + prettyMaterial(cost.getKey().name()), NamedTextColor.WHITE)));
+        for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) body.add(DialogBody.plainMessage(Component.text("• " + cost.getValue() + "x " + QuestText.itemNamePlain(cost.getKey().name()), NamedTextColor.WHITE)));
         List<ActionButton> actions = new ArrayList<>();
         if (unlocked && learned) {
             actions.add(dialogueEngine.actionButton(Component.text("Herstellen"), levelAvailable ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY, target -> {
@@ -240,9 +240,4 @@ public final class ProfessionDialog {
     }
 
     public static Component recipeLine(CraftRecipe recipe) { return Component.text(recipe.displayName() + " • Level " + recipe.requiredProfessionLevel()); }
-
-    private static String prettyMaterial(String raw) {
-        String value = raw.toLowerCase().replace('_', ' ');
-        return Character.toUpperCase(value.charAt(0)) + value.substring(1);
-    }
 }
