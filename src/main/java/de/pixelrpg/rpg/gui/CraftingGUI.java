@@ -4,6 +4,7 @@ import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.CraftRecipe;
 import de.pixelrpg.rpg.profession.CraftingService;
 import de.pixelrpg.rpg.profession.Profession;
+import de.pixelrpg.rpg.quest.QuestText;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -65,7 +66,7 @@ public final class CraftingGUI implements Listener {
         lore.add(Component.text("Materialien:", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
         recipe.costs().forEach((material, amount) -> {
             int available = count(player, material);
-            lore.add(Component.text("- " + amount + "x " + pretty(material) + " (" + available + ")",
+            lore.add(Component.text("- " + amount + "x " + QuestText.itemNamePlain(material.name()) + " (" + available + ")",
                     available >= amount ? NamedTextColor.GREEN : NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         });
 
@@ -122,11 +123,6 @@ public final class CraftingGUI implements Listener {
         int count = 0;
         for (ItemStack item : player.getInventory().getStorageContents()) if (item != null && item.getType() == material) count += item.getAmount();
         return count;
-    }
-
-    private static String pretty(Material material) {
-        String raw = material.name().toLowerCase().replace('_', ' ');
-        return Character.toUpperCase(raw.charAt(0)) + raw.substring(1);
     }
 
     private static final class CraftingHolder implements InventoryHolder {
