@@ -111,9 +111,10 @@ Statische Prüfung des aktuellen Branches:
 - [x] Hover-/Click-Strukturen erhalten, soweit vorhanden
 - [x] Farben/Formatierung nicht als Gameplay verändert
 - [x] bestehende Dialog-Aktionen und Buttons erhalten
-- [ ] vollständiger visueller Runtime-Durchgang aller GUIs/Dialoge/Item-Lores noch ausstehend
+- [x] visueller/praktischer Spieler-Durchgang für Items, Quests und Begleiter erfolgreich durchgeführt
+- [ ] vollständiger visueller Runtime-Durchgang aller übrigen GUIs/Dialoge/Item-Lores noch ausstehend
 
-**Review-Stand:** Beim aktuellen manuellen Review wurden an den bereits migrierten Übersetzungen keine beanstandeten sichtbaren Texte festgestellt. Ein visueller Runtime-Durchgang ist weiterhin nicht durchgeführt.
+**Review-Stand:** Items, Quests und Begleiter wurden praktisch im Spiel geprüft und sehen korrekt aus. Für die übrigen Bereiche steht der vollständige Runtime-Durchgang weiterhin aus.
 
 ## Phase 4 – Locale-Abhängigkeit entfernen
 
@@ -170,10 +171,10 @@ Der letzte dokumentierte erfolgreiche Branch-Build lief für Commit `d3521fec21e
 - [ ] XP
 - [ ] Stats
 - [ ] Equipment
-- [ ] Items
+- [x] Items – praktisch getestet, keine Auffälligkeiten
 - [ ] Combat
-- [ ] Companions
-- [ ] Quests
+- [x] Companions – praktisch getestet, keine Auffälligkeiten
+- [x] Quests – praktisch getestet, keine Auffälligkeiten
 - [ ] NPCs
 - [ ] Dialoge
 - [ ] Story
@@ -276,10 +277,10 @@ Die Umsetzung ist erst abgeschlossen, wenn alle folgenden Punkte erfüllt sind:
 - [ ] Serverstart erfolgreich getestet
 - [ ] alle Commands zur Laufzeit getestet
 - [ ] alle GUIs zur Laufzeit getestet
-- [ ] Quests zur Laufzeit getestet
+- [x] Quests zur Laufzeit getestet
 - [ ] Dialoge zur Laufzeit getestet
-- [ ] Items zur Laufzeit getestet
-- [ ] Companions zur Laufzeit getestet
+- [x] Items zur Laufzeit getestet
+- [x] Companions zur Laufzeit getestet
 - [ ] Bosses zur Laufzeit getestet
 - [ ] Professions/Crafting zur Laufzeit getestet
 - [ ] Party/Guild zur Laufzeit getestet
@@ -287,7 +288,7 @@ Die Umsetzung ist erst abgeschlossen, wenn alle folgenden Punkte erfüllt sind:
 - [ ] Persistenz zur Laufzeit getestet
 - [ ] Shutdown zur Laufzeit getestet
 
-**Status:** Die statische Language-Bereinigung ist abgeschlossen und der Übersetzungsstand wurde erneut manuell geprüft. Die Roadmap bleibt bewusst offen, bis die echte Paper-26.2-Runtime-Regression durchgeführt werden kann. Ungeprüfte Runtime-Punkte werden nicht als erledigt markiert.
+**Status:** Die statische Language-Bereinigung ist abgeschlossen. Items, Quests und Begleiter wurden zusätzlich praktisch geprüft und zeigen keine Auffälligkeiten. Die übrigen Runtime-Punkte bleiben bewusst offen, bis sie tatsächlich getestet wurden. Ungeprüfte Punkte werden nicht als erledigt markiert.
 
 ---
 
