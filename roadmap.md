@@ -112,9 +112,10 @@ Statische Prüfung des aktuellen Branches:
 - [x] Farben/Formatierung nicht als Gameplay verändert
 - [x] bestehende Dialog-Aktionen und Buttons erhalten
 - [x] visueller/praktischer Spieler-Durchgang für Items, Quests und Begleiter erfolgreich durchgeführt
-- [ ] vollständiger visueller Runtime-Durchgang aller übrigen GUIs/Dialoge/Item-Lores noch ausstehend
+- [x] praktische Prüfung der Dialogue-Texte erfolgreich durchgeführt
+- [ ] vollständiger visueller Runtime-Durchgang aller übrigen GUIs/Item-Lores noch ausstehend
 
-**Review-Stand:** Items, Quests und Begleiter wurden praktisch im Spiel geprüft und sehen korrekt aus. Für die übrigen Bereiche steht der vollständige Runtime-Durchgang weiterhin aus.
+**Review-Stand:** Items, Quests, Begleiter und Dialogue-Texte wurden praktisch im Spiel geprüft und sehen korrekt aus. Für die übrigen Bereiche steht der vollständige Runtime-Durchgang weiterhin aus.
 
 ## Phase 4 – Locale-Abhängigkeit entfernen
 
@@ -176,7 +177,7 @@ Der letzte dokumentierte erfolgreiche Branch-Build lief für Commit `d3521fec21e
 - [x] Companions – praktisch getestet, keine Auffälligkeiten
 - [x] Quests – praktisch getestet, keine Auffälligkeiten
 - [ ] NPCs
-- [ ] Dialoge
+- [x] Dialoge – praktisch getestet, keine Auffälligkeiten
 - [ ] Story
 - [ ] Professions
 - [ ] Crafting
@@ -278,7 +279,7 @@ Die Umsetzung ist erst abgeschlossen, wenn alle folgenden Punkte erfüllt sind:
 - [ ] alle Commands zur Laufzeit getestet
 - [ ] alle GUIs zur Laufzeit getestet
 - [x] Quests zur Laufzeit getestet
-- [ ] Dialoge zur Laufzeit getestet
+- [x] Dialoge zur Laufzeit getestet
 - [x] Items zur Laufzeit getestet
 - [x] Companions zur Laufzeit getestet
 - [ ] Bosses zur Laufzeit getestet
@@ -288,7 +289,7 @@ Die Umsetzung ist erst abgeschlossen, wenn alle folgenden Punkte erfüllt sind:
 - [ ] Persistenz zur Laufzeit getestet
 - [ ] Shutdown zur Laufzeit getestet
 
-**Status:** Die statische Language-Bereinigung ist abgeschlossen. Items, Quests und Begleiter wurden zusätzlich praktisch geprüft und zeigen keine Auffälligkeiten. Die übrigen Runtime-Punkte bleiben bewusst offen, bis sie tatsächlich getestet wurden. Ungeprüfte Punkte werden nicht als erledigt markiert.
+**Status:** Die statische Language-Bereinigung ist abgeschlossen. Items, Quests, Begleiter und Dialoge wurden zusätzlich praktisch geprüft und zeigen keine Auffälligkeiten. Die übrigen Runtime-Punkte bleiben bewusst offen, bis sie tatsächlich getestet wurden. Ungeprüfte Punkte werden nicht als erledigt markiert.
 
 ---
 
