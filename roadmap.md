@@ -99,7 +99,7 @@ Statische Prüfung des aktuellen Branches:
 - [x] sprachabhängige Actionbar-/Scoreboard-Ausgaben geprüft bzw. umgestellt
 - [x] sprachabhängige Messages geprüft bzw. umgestellt
 
-**Hinweis:** Die statische Prüfung bestätigt, dass `LanguageManager`, `Player.locale()` und die produktiven Sprachressourcen nicht mehr vorhanden sind. Eine echte Server-Runtime-Prüfung bleibt Phase 5.
+**Forensischer Abgleich 29.08.2026:** Die produktiven Language-/Locale-Suchmuster wurden erneut gegen den aktuellen Branch geprüft. Keine verbleibenden `LanguageManager`- oder `Player.locale()`-Verwendungen und keine produktiven `lang/*.yml`-Ressourcen gefunden. Die Übersetzungen wurden beim manuellen Review als unauffällig bewertet. Die echte Server-Runtime bleibt separat offen.
 
 ## Phase 3 – Deutsche Texte festlegen
 
@@ -112,6 +112,8 @@ Statische Prüfung des aktuellen Branches:
 - [x] Farben/Formatierung nicht als Gameplay verändert
 - [x] bestehende Dialog-Aktionen und Buttons erhalten
 - [ ] vollständiger visueller Runtime-Durchgang aller GUIs/Dialoge/Item-Lores noch ausstehend
+
+**Review-Stand:** Beim aktuellen manuellen Review wurden an den bereits migrierten Übersetzungen keine beanstandeten sichtbaren Texte festgestellt. Ein visueller Runtime-Durchgang ist weiterhin nicht durchgeführt.
 
 ## Phase 4 – Locale-Abhängigkeit entfernen
 
@@ -149,7 +151,7 @@ Statische Prüfung des aktuellen Branches:
 - [x] keine fehlenden `lang/*.yml`-Ressourcen im aktuellen Tree
 - [ ] vollständige Runtime-Warnings-Regression noch ausstehend
 
-Der aktuelle Branch-Build `Build / build` lief für Commit `d3521fec21e1713fe61da356005d3cac1e06bb56` erfolgreich durch.
+Der letzte dokumentierte erfolgreiche Branch-Build lief für Commit `d3521fec21e1713fe61da356005d3cac1e06bb56` erfolgreich durch. Änderungen an der Roadmap selbst sind Dokumentation und ersetzen keinen Runtime-Test.
 
 ## Serverstart
 
@@ -285,7 +287,7 @@ Die Umsetzung ist erst abgeschlossen, wenn alle folgenden Punkte erfüllt sind:
 - [ ] Persistenz zur Laufzeit getestet
 - [ ] Shutdown zur Laufzeit getestet
 
-**Status:** Die statische Language-Bereinigung ist abgeschlossen. Die Roadmap bleibt bewusst offen, bis die echte Paper-26.2-Runtime-Regression durchgeführt werden kann. Ungeprüfte Runtime-Punkte werden nicht als erledigt markiert.
+**Status:** Die statische Language-Bereinigung ist abgeschlossen und der Übersetzungsstand wurde erneut manuell geprüft. Die Roadmap bleibt bewusst offen, bis die echte Paper-26.2-Runtime-Regression durchgeführt werden kann. Ungeprüfte Runtime-Punkte werden nicht als erledigt markiert.
 
 ---
 
