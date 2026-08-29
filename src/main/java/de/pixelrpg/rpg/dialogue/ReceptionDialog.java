@@ -4,7 +4,6 @@ import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.item.SoulboundService;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -25,7 +24,6 @@ public final class ReceptionDialog {
     private final Player player;
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
-    private final LanguageManager lang;
     private final PartyManager partyManager;
     private final GuildManager guildManager;
 
@@ -41,7 +39,6 @@ public final class ReceptionDialog {
         this.player = player;
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
         this.partyManager = partyManager;
         this.guildManager = guildManager;
     }
@@ -51,18 +48,18 @@ public final class ReceptionDialog {
         boolean registered = profile != null && profile.isRegistered();
         List<DialogBody> body = new ArrayList<>();
         body.add(DialogBody.plainMessage(Component.text("Willkommen. Hier kannst du dein PixelRPG-Profil registrieren und verwalten.", NamedTextColor.WHITE)));
-        body.add(DialogBody.plainMessage(lang.get("reception.status").append(
-                registered ? lang.get("reception.status-member").color(NamedTextColor.GREEN) : lang.get("reception.status-not-registered").color(NamedTextColor.RED))));
+        body.add(DialogBody.plainMessage(Component.text("Status: ", NamedTextColor.GRAY).append(
+                Component.text(registered ? "Mitglied" : "Nicht registriert", registered ? NamedTextColor.GREEN : NamedTextColor.RED))));
 
         List<ActionButton> actions = new ArrayList<>();
         if (!registered) {
-            actions.add(dialogueEngine.actionButton(lang.get("reception.register-button"), NamedTextColor.GREEN, target -> {
+            actions.add(dialogueEngine.actionButton(Component.text("Registrieren"), NamedTextColor.GREEN, target -> {
                 profileManager.registerPlayer(target);
                 new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager).open();
             }));
         } else {
             // Reception order: Registrieren/Austreten, Party, Gilde, Seelenbindung, Scoreboard.
-            actions.add(dialogueEngine.actionButton(lang.get("reception.resign-button"), NamedTextColor.RED, this::openLeaveConfirmation));
+            actions.add(dialogueEngine.actionButton(Component.text("Aus dem Rathaus austreten"), NamedTextColor.RED, this::openLeaveConfirmation));
             if (partyManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Party", NamedTextColor.AQUA), NamedTextColor.AQUA,
                         target -> new PartyGUI(target, partyManager, profileManager).open(target)));
@@ -71,12 +68,12 @@ public final class ReceptionDialog {
                 actions.add(dialogueEngine.actionButton(Component.text("Gilde", NamedTextColor.GOLD), NamedTextColor.GOLD,
                         target -> new GuildDialog(guildManager, profileManager, dialogueEngine).open(target)));
             }
-            actions.add(dialogueEngine.actionButton(lang.get("blacksmith.soulbind-button"), NamedTextColor.LIGHT_PURPLE, this::openSoulbindSelection));
+            actions.add(dialogueEngine.actionButton(Component.text("Seelenbindung"), NamedTextColor.LIGHT_PURPLE, this::openSoulbindSelection));
             actions.add(dialogueEngine.actionButton(
                     Component.text(profile.isScoreboardEnabled() ? "Scoreboard ausschalten" : "Scoreboard einschalten", NamedTextColor.GOLD),
                     NamedTextColor.GOLD, this::toggleScoreboard));
         }
-        dialogueEngine.openMultiAction(player, lang.get("reception.guild-reception-title"), body, actions, 1);
+        dialogueEngine.openMultiAction(player, Component.text("Rathaus", NamedTextColor.GOLD), body, actions, 1);
     }
 
     private void toggleScoreboard(Player target) {
@@ -100,13 +97,13 @@ public final class ReceptionDialog {
             actions.add(dialogueEngine.actionButton(itemLabel(item, itemSlot), NamedTextColor.LIGHT_PURPLE, player -> openSoulbindConfirmation(player, itemSlot)));
         }
         if (actions.isEmpty()) {
-            dialogueEngine.openNotice(target, lang.get("blacksmith.soulbind-button"), lang.get("blacksmith.place-identified"), lang.get("reception.no-cancel"));
+            dialogueEngine.openNotice(target, Component.text("Seelenbindung", NamedTextColor.GOLD), Component.text("Lege zuerst ein identifiziertes Item in den mittleren Slot.", NamedTextColor.WHITE), Component.text("Abbrechen", NamedTextColor.GRAY));
             return;
         }
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text("Wähle ein identifiziertes PixelRPG-Item aus deinem Inventar. Bereits seelengebundene Items werden nicht angezeigt.", NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text("Verfügbare Items: " + slots.size(), NamedTextColor.GRAY)));
-        dialogueEngine.openMultiAction(target, lang.get("blacksmith.soulbind-button"), body, actions, 1,
+        dialogueEngine.openMultiAction(target, Component.text("Seelenbindung", NamedTextColor.GOLD), body, actions, 1,
                 player -> new ReceptionDialog(player, profileManager, dialogueEngine, partyManager, guildManager).open());
     }
 
@@ -115,8 +112,8 @@ public final class ReceptionDialog {
         if (!isSoulbindCandidate(item)) { openSoulbindSelection(target); return; }
         Component itemName = itemLabel(item, slot);
         ActionButton yes = dialogueEngine.actionButton(Component.text("Seelenbinden", NamedTextColor.LIGHT_PURPLE), NamedTextColor.LIGHT_PURPLE, player -> soulbindItem(player, slot));
-        ActionButton no = dialogueEngine.actionButton(lang.get("reception.no-cancel"), NamedTextColor.GRAY, this::openSoulbindSelection);
-        dialogueEngine.openConfirmation(target, lang.get("blacksmith.soulbind-button"),
+        ActionButton no = dialogueEngine.actionButton(Component.text("Abbrechen"), NamedTextColor.GRAY, this::openSoulbindSelection);
+        dialogueEngine.openConfirmation(target, Component.text("Seelenbindung", NamedTextColor.GOLD),
                 List.of(DialogBody.plainMessage(Component.text("Möchtest du " + plainName(itemName) + " wirklich seelenbinden? Diese Entscheidung kann nicht rückgängig gemacht werden.", NamedTextColor.WHITE))), yes, no);
     }
 
@@ -125,9 +122,9 @@ public final class ReceptionDialog {
         if (!isSoulbindCandidate(item)) { openSoulbindSelection(target); return; }
         SoulboundService.Result result = SoulboundService.apply(item);
         switch (result) {
-            case SUCCESS -> lang.send(target, "blacksmith.now-soulbound");
-            case ALREADY_SOULBOUND -> lang.send(target, "blacksmith.already-soulbound");
-            case NOT_IDENTIFIED -> lang.send(target, "blacksmith.only-identified-soulbind");
+            case SUCCESS -> target.sendMessage(Component.text("Item ist jetzt seelengebunden!", NamedTextColor.GREEN));
+            case ALREADY_SOULBOUND -> target.sendMessage(Component.text("Dieses Item ist bereits seelengebunden.", NamedTextColor.RED));
+            case NOT_IDENTIFIED -> target.sendMessage(Component.text("Nur identifizierte Items können seelengebunden werden.", NamedTextColor.RED));
         }
     }
 
@@ -147,13 +144,13 @@ public final class ReceptionDialog {
     }
 
     private void openLeaveConfirmation(Player target) {
-        ActionButton yes = dialogueEngine.actionButton(lang.get("reception.yes-resign"), NamedTextColor.RED, player -> {
+        ActionButton yes = dialogueEngine.actionButton(Component.text("Ja, unwiderruflich austreten"), NamedTextColor.RED, player -> {
             profileManager.unregisterPlayer(player);
-            lang.send(player, "reception.left-guild");
+            player.sendMessage(Component.text("Du hast das Rathaus verlassen. Dein Fortschritt wurde gelöscht.", NamedTextColor.GREEN));
         });
-        ActionButton no = dialogueEngine.actionButton(lang.get("reception.no-cancel"), NamedTextColor.GREEN,
+        ActionButton no = dialogueEngine.actionButton(Component.text("Nein, abbrechen"), NamedTextColor.GREEN,
                 player -> new ReceptionDialog(player, profileManager, dialogueEngine, partyManager, guildManager).open());
-        dialogueEngine.openConfirmation(target, lang.get("reception.resign-title"),
-                List.of(DialogBody.plainMessage(lang.get("reception.resign-warning").color(NamedTextColor.WHITE))), yes, no);
+        dialogueEngine.openConfirmation(target, Component.text("Austritt bestätigen?", NamedTextColor.GOLD),
+                List.of(DialogBody.plainMessage(Component.text("Warnung: setzt allen Fortschritt zurück!", NamedTextColor.WHITE))), yes, no);
     }
 }
