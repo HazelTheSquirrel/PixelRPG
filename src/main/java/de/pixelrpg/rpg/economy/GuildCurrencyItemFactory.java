@@ -1,8 +1,6 @@
 package de.pixelrpg.rpg.economy;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.core.RPGKeys;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -17,19 +15,14 @@ import java.util.List;
 public final class GuildCurrencyItemFactory {
     private static int maxStackSize = 64;
 
-    private GuildCurrencyItemFactory() {
-    }
+    private GuildCurrencyItemFactory() {}
 
-    public static void configureMaxStackSize(int value) {
-        maxStackSize = Math.max(1, value);
-    }
+    public static void configureMaxStackSize(int value) { maxStackSize = Math.max(1, value); }
 
     public static ItemStack createSingleStack(long amount) {
         int clamped = (int) Math.max(1, Math.min(maxStackSize, amount));
         ItemStack item = new ItemStack(Material.SUNFLOWER, clamped);
         ItemMeta meta = item.getItemMeta();
-
-        LanguageManager lang = PixelRPGPlugin.getInstance().getLanguageManager();
         meta.displayName(Component.text("Goldtaler", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(
                 Component.text("1 Goldtaler = 1 Gold", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false),
@@ -53,13 +46,11 @@ public final class GuildCurrencyItemFactory {
 
     public static boolean isCurrency(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
-        return item.getItemMeta().getPersistentDataContainer()
-                .has(RPGKeys.Economy.guildGold(), PersistentDataType.DOUBLE);
+        return item.getItemMeta().getPersistentDataContainer().has(RPGKeys.Economy.guildGold(), PersistentDataType.DOUBLE);
     }
 
     public static double readAmount(ItemStack item) {
         if (!isCurrency(item)) return 0.0;
-        return item.getItemMeta().getPersistentDataContainer()
-                .getOrDefault(RPGKeys.Economy.guildGold(), PersistentDataType.DOUBLE, 1.0);
+        return item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Economy.guildGold(), PersistentDataType.DOUBLE, 1.0);
     }
 }
