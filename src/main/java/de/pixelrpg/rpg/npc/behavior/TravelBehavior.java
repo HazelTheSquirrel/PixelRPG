@@ -7,7 +7,6 @@ import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -19,27 +18,21 @@ public final class TravelBehavior implements NpcBehavior {
     private final NpcManager npcManager;
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
-    private final LanguageManager lang;
 
     public TravelBehavior(NpcManager npcManager, PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
         this.npcManager = npcManager;
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
-        this.lang = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
-    @Override
-    public NpcType type() {
-        return NpcType.TRAVEL;
-    }
+    @Override public NpcType type() { return NpcType.TRAVEL; }
 
     @Override
     public void onInteract(Player player, RPGNpc npc) {
         if (!profileManager.isRegistered(player.getUniqueId())) {
-            lang.send(player, "npc.not-registered");
+            player.sendMessage(Component.text("Du musst registriertes Rathausmitglied sein.", NamedTextColor.RED));
             return;
         }
-
         var profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         boolean firstTime = profile != null && !profile.hasUnlockedWaypoint(npc.id());
         if (firstTime) {
@@ -52,7 +45,6 @@ public final class TravelBehavior implements NpcBehavior {
             );
             return;
         }
-
         new TravelDialog(npcManager, profileManager, dialogueEngine).open(player, npc.id());
     }
 }
