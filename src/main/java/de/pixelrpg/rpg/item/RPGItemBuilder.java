@@ -99,8 +99,8 @@ public final class RPGItemBuilder {
 
         List<Component> lore = new ArrayList<>();
         lore.add(line(rarity.displayName()));
-        lore.add(line(Component.text("Item Level " + itemLevel, NamedTextColor.YELLOW)));
-        lore.add(line(Component.text("Requires Level " + itemLevel, NamedTextColor.RED)));
+        lore.add(line(Component.text("Gegenstandslevel " + itemLevel, NamedTextColor.YELLOW)));
+        lore.add(line(Component.text("Benötigt Level " + itemLevel, NamedTextColor.RED)));
         lore.add(Component.text(" "));
 
         switch (category.getProfile()) {
@@ -130,9 +130,9 @@ public final class RPGItemBuilder {
         pdc.set(RPGKeys.Item.weaponAbilityCooldownMillis(), PersistentDataType.LONG, Math.max(0L, cooldownMillis));
         List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
         if (!lore.isEmpty() && !lore.getLast().equals(Component.text(" "))) lore.add(Component.text(" "));
-        lore.add(Component.text("Ability", NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("Fähigkeit", NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text(abilityId, NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
-        lore.add(Component.text("Right Click", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("Rechtsklick", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         result.setItemMeta(meta);
         return result;
@@ -176,12 +176,12 @@ public final class RPGItemBuilder {
         pdc.set(RPGKeys.Item.critDamage(), PersistentDataType.DOUBLE, critDamage);
         pdc.set(RPGKeys.Item.reachBonus(), PersistentDataType.DOUBLE, reach);
         pdc.set(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, lifesteal);
-        lore.add(line(Component.text("+" + format(damage) + " Damage", NamedTextColor.RED)));
-        lore.add(line(Component.text("+" + format(damage) + " Attack Power", NamedTextColor.GOLD)));
-        lore.add(line(Component.text("+" + format(critChance) + "% Crit", NamedTextColor.LIGHT_PURPLE)));
-        lore.add(line(Component.text("+" + format(critDamage * 100.0D) + "% Crit-Schaden", NamedTextColor.LIGHT_PURPLE)));
-        lore.add(line(Component.text("+" + format(reach) + " Reach", NamedTextColor.AQUA)));
-        lore.add(line(Component.text("+" + format(lifesteal) + "% Lifesteal", NamedTextColor.DARK_RED)));
+        lore.add(line(Component.text("+" + format(damage) + " Schaden", NamedTextColor.RED)));
+        lore.add(line(Component.text("+" + format(damage) + " Angriffskraft", NamedTextColor.GOLD)));
+        lore.add(line(Component.text("+" + format(critChance) + "% Kritische Trefferchance", NamedTextColor.LIGHT_PURPLE)));
+        lore.add(line(Component.text("+" + format(critDamage * 100.0D) + "% Kritischer Schaden", NamedTextColor.LIGHT_PURPLE)));
+        lore.add(line(Component.text("+" + format(reach) + " Reichweite", NamedTextColor.AQUA)));
+        lore.add(line(Component.text("+" + format(lifesteal) + "% Lebensraub", NamedTextColor.DARK_RED)));
     }
 
     private static void addArmorStats(List<Component> lore, PersistentDataContainer pdc, ItemCategory category,
@@ -192,16 +192,16 @@ public final class RPGItemBuilder {
         pdc.set(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, armor);
         pdc.set(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, health);
         pdc.set(RPGKeys.Item.movementSpeed(), PersistentDataType.DOUBLE, movementSpeed);
-        lore.add(line(Component.text("+" + format(armor) + " Armor", NamedTextColor.BLUE)));
-        if (health > 0.0D) lore.add(line(Component.text("+" + format(health) + " HP", NamedTextColor.GREEN)));
-        if (movementSpeed > 0.0D) lore.add(line(Component.text("+" + format(movementSpeed * 100.0D) + "% Movement Speed", NamedTextColor.WHITE)));
+        lore.add(line(Component.text("+" + format(armor) + " Rüstung", NamedTextColor.BLUE)));
+        if (health > 0.0D) lore.add(line(Component.text("+" + format(health) + " LP", NamedTextColor.GREEN)));
+        if (movementSpeed > 0.0D) lore.add(line(Component.text("+" + format(movementSpeed * 100.0D) + "% Bewegungsgeschwindigkeit", NamedTextColor.WHITE)));
     }
 
     private static void addToolStats(List<Component> lore, PersistentDataContainer pdc,
                                      double multiplier, double levelFactor) {
         double efficiency = round(toolBaseEfficiency * levelFactor * multiplier);
         pdc.set(RPGKeys.Item.toolBonus(), PersistentDataType.DOUBLE, efficiency);
-        lore.add(line(Component.text("+" + format(efficiency) + " Efficiency", NamedTextColor.YELLOW)));
+        lore.add(line(Component.text("+" + format(efficiency) + " Effizienz", NamedTextColor.YELLOW)));
     }
 
     private static double levelScaling(int itemLevel) {
