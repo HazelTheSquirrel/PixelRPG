@@ -13,7 +13,7 @@ public final class StoryNpcDialogue {
     private final DialogueProgressStore progressStore;
 
     public StoryNpcDialogue(PlayerProfileManager profileManager) {
-        this(profileManager, new DialogueEngine(PixelRPGPlugin.getInstance().getLanguageManager()));
+        this(profileManager, new DialogueEngine());
     }
 
     public StoryNpcDialogue(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
