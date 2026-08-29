@@ -3,255 +3,132 @@
 **Repository:** `HazelTheSquirrel/PixelRPG`  
 **Branch:** `refactor/central-content-pipeline-v3`  
 **Audit-Stand:** 29.08.2026  
-**Aktueller Branch-Commit:** `27c6a7bd678b34b1741dd17f4d48d07f06e7ea77`  
-**Letzter Commit:** `docs: document PixelRPG region system idea`  
+**Basis:** vollständiger Branch-Tree, Einzeldatei-/Codeprüfung, vorhandene Runtime-Testmeldungen und aktuelle Korrekturen  
 **Historische Referenz:** `9fadeadefba378361722a16fad66be7f62a70560`
 
-> Dieser Bericht ist der forensische IST-Bericht des Branches. Er beschreibt, was tatsächlich vorhanden ist, was bereits praktisch geprüft wurde, welche offenen Befunde bestehen und was vor bzw. nach dem Beta-Freeze noch auf den Entwickler zukommt.
+> Dieser Audit bewertet den tatsächlich vorhandenen Beta-Scope. Es wurde kein GitHub-DeepSearch als Grundlage verwendet. Neue Features sind ausdrücklich nicht Bestandteil der aktuellen Abschlussphase.
 
 ---
 
-# 1. Prüfgrundlage und Vorgehen
+## 1. Bewertungsregeln
 
-Die Prüfung erfolgte direkt gegen den Branch `refactor/central-content-pipeline-v3` und dessen tatsächlichen Git-Tree. Der aktuelle Tree ist vollständig aufgelöst (`truncated=false`). Er umfasst Projektwurzel, CI, Gradle-Konfiguration, `src/main/java`, Ressourcen und JSON-Daten.
+- **Implementiert:** Code/Datenstruktur ist vorhanden.
+- **Praktisch getestet:** vom Entwickler im echten Serverlauf geprüft.
+- **Statisch behoben:** Codekorrektur ist vorhanden, Runtime-Nachtest steht noch aus.
+- **Offen:** kein belastbarer Fehlernachweis, aber der vollständige Test fehlt.
+- **Nicht implementiert:** bewusst nicht Bestandteil des aktuellen Scopes oder tatsächlich fehlend.
 
-Es wurde **kein GitHub-DeepSearch** als Grundlage des Audits verwendet. Die Prüfung orientiert sich am tatsächlichen Dateibestand und an den konkreten Modul-/Dateigrenzen. Die technische Bewertung wurde mit den vorhandenen Projektdefinitionen, der Roadmap, dem bestehenden Audit sowie den vom Entwickler gemeldeten realen Runtime-Tests abgeglichen.
-
-Wichtig für die Interpretation:
-
-- **statisch geprüft** = aus vorhandenem Code/Tree ableitbar
-- **praktisch geprüft** = vom Entwickler im echten Serverlauf getestet
-- **offen** = noch nicht durch einen vollständigen Runtime-/Regressionstest abgesichert
-- **kein Befund** = im geprüften Bestand kein entsprechender Fehler festgestellt
-
-Der aktuelle letzte Commit verändert ausschließlich die Dokumentation des späteren Region-Systems; die Implementierung des RPG-Kerns wurde dadurch nicht verändert.
+Ein Prozentwert bedeutet hier **Reifegrad des aktuellen Beta-Scopes**, nicht Vollständigkeit des gesamten zukünftigen Spiels.
 
 ---
 
-# 2. Aktueller Repository-Bestand
+# 2. Plattform / Build / CI
 
-Der Branch enthält die folgenden wesentlichen Bereiche:
-
-- Bootstrap / Plugin-Lifecycle
-- öffentliche API und Events
-- Player/Profile/Persistenz
-- Level/XP/Core
-- Stats
-- Combat
-- Weapon Skills
-- Mob Scaling
-- Loot
-- Items
-- Equipment
-- Quests
-- NPC-System
-- Dialog-System
-- Quick Actions / Charakterkarte
-- Professionen
-- Crafting
-- Companions
-- Boss-System
-- Party
-- Guild
-- Economy / Guild Currency
-- Shop
-- Trade Depot
-- Travel
-- Scoreboard
-- Story
-- JSON-Daten
-- YAML-Konfiguration
-- MySQL-/YAML-Persistenz
-- Gradle-Build
-- GitHub Actions
-- `paper-plugin.yml`
-
-Die Java-Struktur ist modular und besitzt getrennte Services, Repositories, Registries, Listener, Controller und Datenmodelle.
-
----
-
-# 3. Plattform / Build-Konfiguration
-
-## Verbindliche Zielplattform
-
-Der Branch verwendet:
+### Zielplattform
 
 - Java 25
-- Paper 26.2 Dev Bundle
+- Paper 26.2
 - `io.papermc.paperweight.userdev` `2.0.0-beta.21`
-- Shadow `9.6.1`
-- Gson `2.13.1`
-- HikariCP `7.0.2`
-- MySQL Connector/J `9.7.0`
+- `paperweight.paperDevBundle("26.2.build.+")`
+- `paper-plugin.yml`
+- Mojang-Mappings
+- ShadowJar
 
-`build.gradle` verwendet `paperweight.paperDevBundle("26.2.build.+")`, Java 25 und baut mit Shadow das Artefakt `Pixel-RPG.jar`. Hikari, MySQL und Gson werden für das Endartefakt relocated. fileciteturn361file0L2-L5
+### Build
 
-## Paper Plugin
+Der Build-Pfad ist vorhanden und war bereits im Projektverlauf funktionierend. Der GitHub-Actions-Workflow baut mit Java 25 und `gradle build --no-daemon --stacktrace`.
 
-`paper-plugin.yml` ist vorhanden und definiert:
-
-- `name: PixelRPG`
-- `main: de.pixelrpg.rpg.PixelRPGPlugin`
-- `bootstrapper: de.pixelrpg.rpg.PixelRPGBootstrap`
-- `api-version: '26.2'`
-- `rpg.admin`
-- `rpg.member`
-
-Damit ist der Branch auf die verbindliche Paper-26.2-Plattform ausgerichtet. fileciteturn362file0L2-L6
+**Status:** 🟢 95 %  
+**Offen:** abschließender Build-/CI-Regressionslauf nach den aktuellen Codeänderungen.
 
 ---
 
-# 4. Build / GitHub Actions
+# 3. Plugin-Kern / Lifecycle
 
-`build.yml` läuft bei Push auf `main` und `refactor/central-content-pipeline-v3` sowie bei Pull Requests.
-
-Der Workflow:
-
-1. checkt das Repository aus,
-2. setzt Temurin Java 25,
-3. verwendet Gradle 9.2.0,
-4. führt `gradle build --no-daemon --stacktrace` aus.
-
-Der Workflow ist damit grundsätzlich auf die Projektvorgaben abgestimmt. fileciteturn360file0L2-L6
-
-**Aktueller forensischer Status:** Der Branch besitzt einen funktionierenden Build-Pfad laut Roadmap und bisherigem Audit. Für den letzten Dokumentationscommit existiert kein neuer Pull-Request-Workflow-Lauf; der Commit selbst enthält ausschließlich Dokumentation. Deshalb wird kein nicht vorhandener CI-Lauf als „grün“ erfunden.
-
----
-
-# 5. Bootstrap / Plugin-Lifecycle
-
-Vorhanden:
+Vorhanden und miteinander verbunden:
 
 - `PixelRPGBootstrap`
 - `PixelRPGPlugin`
 - zentraler Service-Lifecycle
-- Registrierung der Listener/Services/Tasks
-- Shutdown-Pfade
+- Listener-/Task-Registrierung
+- Shutdown
+- API/Event-Schicht
+- Player/Profile
+- Stats
+- Items
+- Equipment
+- Quests
+- NPCs
+- Dialoge
+- Professionen
+- Crafting
+- Begleiter
+- Bosse
+- Party
+- Gilde
+- Economy
+- Shop
+- Travel
+- Scoreboard
+- Story
 
-Die Plugin-Hauptklasse verbindet PlayerProfile, Stats, Professionen, Items, Equipment, Crafting, Quests, Bosse, NPCs, Dialoge, Party, Story, Companions, Scoreboard und weitere Komponenten.
+**Praktischer Befund:** Serverstart mit Datenbank lief beim Entwickler ohne Fehler.
 
-**Status:** strukturell vorhanden und im echten Serverstart bereits erfolgreich angelaufen.
-
-**Runtime-Befund:** Serverstart ohne Fehler; keine Runtime-Exception im getesteten Lauf.
+**Status:** 🟢 95 %
 
 ---
 
-# 6. Player / Profil / Registrierung / Progression
+# 4. Player / Registrierung / Persistenz
 
 Vorhanden:
 
-- `PlayerProfile`
-- `PlayerProfileManager`
+- PlayerProfile
+- PlayerProfileManager
 - MySQL-Repository
 - YAML-Repository
-- Lifecycle Listener
-- Registrierungs-/Unregistrierungs-Events
-- Level/XP
+- Registrierung / Unregistrierung
+- Level / XP
+- Save-/Load-Strukturen
 
-Die Projektdefinition sieht einen opt-in RPG-Layer vor: Ein neuer Spieler kann zunächst wie ein normaler Vanilla-Spieler behandelt werden und wird erst nach Registrierung vollständig in die RPG-Systeme aufgenommen.
+**Praktisch geprüft:** Registrierung und Datenbankverbindung.
 
-**Status:** technisch vorhanden.
+**Offen:** vollständiger Restart-/Save-/Reload-Regressionslauf für alle Systeme.
 
-**Praktischer Befund:** Registrierung/Profil wurde im getesteten Lauf funktional geprüft.
-
-**Offen:** Vollständiger Save/Reload/Restart-Test über alle Persistenzbereiche ist noch nicht abgeschlossen.
+**Status:** 🟢 90 %
 
 ---
 
-# 7. API / Events
-
-Vorhanden sind unter anderem:
-
-- `PixelRPGProvider`
-- `EconomyAPI`
-- `GuildAPI`
-- `ItemAPI`
-- `PartyAPI`
-- `StatisticsAPI`
-- `CharacterStatType`
-- `ApiVersion`
-- Boss-/Combat-/Level-/Quest-/Registration-Events
-
-Damit existiert bereits eine öffentliche interne API-Schicht für zentrale RPG-Funktionen.
-
-**Status:** implementiert.
-
----
-
-# 8. Core / Level / Stats
+# 5. Stats / Combat / Scaling / Loot
 
 Vorhanden:
 
-- Level-/XP-System
-- RPG Keys
-- Statistic Types
-- Stat Engine
+- StatEngine
 - Statistics Service
-- Listener für Mob-Kills, Tode, Quest/Boss-Ereignisse
-
-Aktuelle RPG-Stats umfassen unter anderem:
-
 - HP
-- Armor
-- Movement Speed
-- Reach
-- Damage
-- Crit
-- Crit Damage
-- Lifesteal
-- Attack Power
-
-Es gibt laut Projektdefinition keine Klassen und keine frei verteilbaren Player-Attribute.
-
-**Status:** technisch implementiert.
-
-**Runtime:** noch kein vollständiger End-to-End-Regressionsdurchlauf sämtlicher Stat-Berechnungen abgeschlossen.
-
----
-
-# 9. Combat / Skills / Scaling / Loot
-
-Vorhanden:
-
-- zentrale Schadensberechnung
-- Damage Context
-- Combat Listener
+- Rüstung
+- Bewegungsgeschwindigkeit
+- Reichweite
+- Schaden
+- Kritische Trefferchance
+- Kritischer Schaden
+- Lebensraub
+- Angriffskraft
 - Combat State
-- Mob XP
+- Damage Context
+- Mob Scaling
+- Weapon Abilities
+- Loot
 - Soulbound Death Handling
-- Weapon Ability Engine
-- Skill Input Listener
-- Mob Level Scaling
-- Mob Nameplates
-- Loot Drop Listener
 
-Die Combat-Struktur ist bereits in getrennte Verantwortlichkeiten aufgeteilt.
+**Status:** 🟢 90 %
 
-**Status:** implementiert.
-
-**Offen:** Vollständiger praktischer Regressionstest aller Kombinationen aus Spielerlevel, Moblevel, Ausrüstung, Skills, Crit, Lifesteal, Loot und Tod steht noch aus.
+**Offen:** vollständiger End-to-End-Regressionslauf aller Stat-/Combat-Kombinationen.
 
 ---
 
-# 10. Items / Equipment
+# 6. Items / Waffen / Rüstung
 
-Vorhanden:
-
-- `ItemDefinition`
-- `ItemDefinitionRegistry`
-- `ItemService`
-- `RPGItemBuilder`
-- `ItemRarity`
-- `ItemCategory`
-- Gear Categories
-- Item Economy
-- Soulbound
-- Unique Items
-- Equipment Service
-- Equipment Sets
-- Equipment Slots
-
-Die Item-Identität wird nicht allein über das Vanilla-Material bestimmt, sondern über zusätzliche PixelRPG-Metadaten.
+Das Item-System ist zentral über `ItemDefinition`, `ItemService` und `RPGItemBuilder` aufgebaut.
 
 Raritäten:
 
@@ -262,59 +139,105 @@ Raritäten:
 - Legendary
 - Unique
 
-**Praktischer Befund:** Items wurden getestet und funktionieren grundsätzlich.
+Die Waffenstats wurden bereits auf Deutsch geprüft.
 
-**Offener sichtbarer Befund:** Im nativen `minecraft:quick_actions`-Charakterprofil sind teilweise noch englische Item-Bezeichnungen sichtbar.
+### Aktuelle Korrektur
 
-**Folge:** Kein Kern-Item-Systemfehler, sondern ein Deutsch-only-UI-/Textbefund.
+Die sichtbaren Item-Lore-Reste im `ItemService` wurden ebenfalls auf Deutsch gebracht:
+
+- `Requires Level` → `Benötigt Level`
+- `Soulbound` → `Seelengebunden`
+- `UNIQUE` → `EINZIGARTIG`
+- `Crit` bei Rüstung → `Kritische Trefferchance`
+- `Gearscore` → `Ausrüstungswert`
+- `Crafted Item` → `Hergestellter Gegenstand`
+- `Cooldown` → `Abklingzeit`
+
+Damit betrifft die Deutschbereinigung nicht mehr nur Waffen, sondern auch Rüstungen und die generierten sichtbaren Item-Lore-Zeilen.
+
+**Status:** 🟢 95 %  
+**Offen:** Runtime-Test mit neu erzeugten Waffen und Rüstungen.
 
 ---
 
-# 11. Quests
+# 7. Rüstungssets
+
+In `equipment-sets.json` sind sechs vollständige Sets definiert:
+
+| Set | Teile | Set-Boni | Levelbereich |
+|---|---:|---|---:|
+| Donnerwacht | 4 | Bewegung, Reichweite, Angriffskraft | 10 |
+| Schattengeflecht | 4 | Krit, Lebensraub, Krit-Schaden | 20 |
+| Stahlwall | 4 | Rüstung, HP, Angriffskraft | 30 |
+| Sonnengewand | 4 | Bewegung, Krit-Schaden, Krit | 45 |
+| Kristallwache | 4 | Schaden, Rüstung, Krit-Schaden | 60 |
+| Höllenschmiede | 4 | HP, Schaden, Lebensraub, Angriffskraft | 80 |
+
+Die zugehörigen vier Rüstungsteile pro Set sind in `item-definitions.json` vorhanden und besitzen jeweils die korrekte `setId`.
+
+### Forensischer Befund zur Beschaffung
+
+Die Sets sind **definiert und technisch erzeugbar**, aber in den geprüften Content-Quellen wurde kein normaler Spieler-Beschaffungspfad gefunden:
+
+- keine Set-Items in `crafting-recipes.json`
+- keine Set-Items in `boss-reward-items.json`
+- kein erkennbarer Quest-Reward-Pfad zu den Set-Item-IDs
+
+Damit ist aktuell **nicht nachgewiesen, dass ein normaler Spieler die sechs Rüstungssets im Spiel tatsächlich erhalten kann**.
+
+Das ist ein echter Content-/Gameplay-Befund, aber die korrekte Beschaffungsquelle darf nicht erfunden werden. Vor einer Implementierung muss feststehen, **welcher bereits vorgesehene Erwerbsweg** dafür gelten soll.
+
+**Status:** 🟡 75 %
+
+---
+
+# 8. Equipment / Equipment Sets Runtime
 
 Vorhanden:
 
-- Quest Model
-- Quest Manager
+- sechs Equipment-Slots
+- Slotvalidierung
+- Levelanforderungen
+- Equipment-Persistenz
+- Set-Erkennung
+- Set-Boni
+- Armor-Trims
+- Stat-Recalculation
+
+**Status:** 🟢 90 %
+
+**Offen:** praktischer Kompletttest jedes Sets mit 2/3/4 Teilen und anschließendem Entfernen/Austauschen von Teilen.
+
+---
+
+# 9. Quests
+
+Vorhanden:
+
 - Quest Repository
+- Quest Manager
 - Quest Progress
 - Quest Text
 - Quest Navigation
-- passive Checks
-- Mob-Kill Listener
-- globale Event-Verarbeitung
-- Quest Inventory Tracking
-- mehrere datengetriebene Quest-Dateien
+- Quest Events
+- Mob-Kill-Ziele
+- Collect-Ziele
+- datengetriebene Quest-Dateien
 
-Datenquellen:
+**Praktischer Befund:** Quests wurden vom Entwickler getestet und funktionieren.
 
-- `quests_v2.json`
-- `quests_additional.json`
-- `quests_content_expansion_01.json`
-- `quests_world_expansion.json`
+**Status:** 🟢 95 %
 
-**Praktischer Befund:** Quests wurden getestet; keine vom Entwickler festgestellten Funktionsfehler.
-
-**Status:** funktionsfähig, aber weitere Balancing-/QOL-Anpassungen können während der Qualitätsphase sinnvoll sein. Das zählt nicht als neue Implementierung, solange das bestehende Questkonzept erhalten bleibt.
+Weitere Balancing-/QOL-Anpassungen sind erlaubt, solange das bestehende Questkonzept nicht erweitert wird.
 
 ---
 
-# 12. NPC-System
+# 10. NPC / Reception / Dialogue
 
 Vorhanden:
 
-- `NpcManager`
-- `RPGNpc`
-- `NpcType`
-- `NpcBehaviorRegistry`
-- `NpcInteractListener`
-- `NpcChunkListener`
-- `NpcLookTask`
-- Skin Resolver
-- mehrere konkrete Behaviors
-
-Behaviors umfassen:
-
+- NPC Manager
+- NPC Behaviors
 - Reception
 - Quest
 - Shop
@@ -323,105 +246,30 @@ Behaviors umfassen:
 - Banker
 - Filler
 - Profession Trainer
+- natives Paper-Dialog-System
 
-**Praktischer Befund:** Alle vorhandenen NPCs wurden vom Entwickler durchgetestet. NPC-Interaktionen und Ausgaben funktionieren.
+Die vorhandenen NPCs wurden vom Entwickler praktisch durchgetestet.
 
-### Bekannter früherer Befund: Profession Trainer
+### Reception-Korrektur
 
-Die vier Handwerks-NPCs hatten zunächst falsche Rezeptdarstellung bzw. zeigten nicht sauber nur den eigenen Beruf. Die Ursache wurde identifiziert: Die Trainerlogik öffnete in einem Pfad die allgemeine Profession-Ansicht statt die berufsspezifische Traineransicht.
+Der sichtbare Button
 
-Die bestehende Implementierung wurde daraufhin korrigiert.
+> `Aus dem Rathaus austreten`
 
-**Status:** Codekorrektur vorhanden.  
-**Offen:** abschließender Runtime-Nachtest aller vier Berufslehrer nach der Korrektur.
+wurde ersetzt durch:
 
----
+> `PixelRPG-Registrierung aufheben`
 
-# 13. Dialogue-System
+Auch die Bestätigungs-/Erfolgstexte wurden entsprechend angepasst. Die Bezeichnung beschreibt jetzt die tatsächliche Funktion: Das Aufheben der PixelRPG-Registrierung und das Zurücksetzen des RPG-Fortschritts.
 
-Vorhanden:
-
-- `DialogueEngine`
-- `DialogueTree`
-- `DialogueNode`
-- `DialogueOption`
-- `DialogueCondition`
-- `DialogueCommand`
-- Progress Store
-- Dialogue Tree Service
-- spezialisierte Dialoge für Bank, Begleiter, Gilde, Profession, Reception, Travel, Story und Quick Actions
-
-**Praktischer Befund:** Dialogue-Texte wurden getestet und funktionieren.
-
-**Story-NPC:** Der aktuelle Story-NPC/Mannequin mit Buch ist als vorhandenes Story-Element erkennbar. Die weitergehende Überarbeitung der Story ist konzeptionell geplant, aber kein notwendiger technischer Neubau des Dialogue-Systems.
+**Status:** 🟢 95 %  
+**Offen:** Runtime-Nachtest der geänderten Reception-Texte.
 
 ---
 
-# 14. Quick Actions / Charakterprofil
+# 11. Professionen / Handwerker-NPCs / Crafting
 
-Vorhanden:
-
-- native `minecraft:quick_actions`
-- Quick Actions Service
-- Quick Actions Listener
-- Charakterprofil
-- aktive Quests
-- Begleiter
-- Berufe
-- Gilde
-
-**Praktischer Befund:** Das System funktioniert.
-
-**Offene sichtbare Fehler:**
-
-1. Stat-Namen werden teilweise noch Englisch dargestellt.
-2. Item-Namen werden teilweise noch Englisch dargestellt.
-
-Diese beiden Punkte sind aktuell die klarsten noch sichtbaren Reste der Deutsch-only-Umstellung.
-
----
-
-# 15. Companions / Begleiter
-
-Intern bleibt die technische Bezeichnung **`Companion`** bestehen.
-
-Vorhanden:
-
-- Companion Definition
-- Companion Registry
-- Runtime Registry
-- Service
-- Instance
-- Stats
-- Stats Calculator
-- Progression
-- Rarity
-- Equipment
-- Equipment Store
-- Equipment Listener
-- Follow Task
-- Combat Controller
-- Mount Controller
-- Mount Listener
-- Boss Reward Listener
-- Experience Listener
-- Mannequin Companion Controller
-
-Datenquelle:
-
-- `companions.json`
-
-**Sichtbarer Ingame-Begriff:** `Begleiter`.
-
-**Praktischer Befund:** Begleiter wurden getestet und zeigten im getesteten Lauf keine Auffälligkeiten.
-
-**Status:** technisch umfangreich implementiert und grundsätzlich funktionsfähig.
-
----
-
-# 16. Professionen / Crafting
-
-Die vorhandenen Berufe sind:
+Berufe:
 
 - Blacksmith
 - Provisioner
@@ -430,495 +278,343 @@ Die vorhandenen Berufe sind:
 
 Vorhanden:
 
-- Profession Enum/Model
 - Profession Service
-- Profession System
-- Profession Activity Listener
-- Craft Recipe
+- Profession Trainer
+- Profession Dialog
 - Crafting Recipe Registry
 - Crafting Service
-- Rarity Roller
-- Profession Dialog
-- Profession Trainer Behavior
-- zentrale `crafting-recipes.json`
+- datengetriebene Rezepte
 
-Die Rezeptdatei ist umfangreich und datengetrieben.
+Der zuvor festgestellte Fehler, dass die vier Handwerker nicht sauber ihre eigenen Rezeptbereiche anzeigten, wurde im Code korrigiert.
 
-**Bekannter Befund:** Die Trainer-/Rezeptanzeige war fehlerhaft und wurde im Code korrigiert.
+**Status:** 🟢 90 %
 
-**Noch offen:** Die vier Berufslehrer müssen nach der Korrektur jeweils einzeln vollständig im Runtime-Test geprüft werden. Dabei ist sicherzustellen, dass jeder NPC ausschließlich seinen eigenen Beruf bzw. dessen Rezepte anbietet.
+**Offen:** vier NPCs einzeln im Spiel prüfen:
+
+1. Blacksmith → ausschließlich Blacksmith-Rezepte
+2. Provisioner → ausschließlich Provisioner-Rezepte
+3. Alchemist → ausschließlich Alchemist-Rezepte
+4. Scholar → ausschließlich Scholar-Rezepte
 
 ---
 
-# 17. Boss-System
+# 12. Quick Actions / Charakterprofil
+
+Das native `minecraft:quick_actions`-System ist vorhanden und funktioniert grundsätzlich.
+
+### Korrektur abgeschlossen
+
+Die sichtbaren englischen Stat-Namen im Charakterprofil wurden auf Deutsch geändert:
+
+- Armor → Rüstung
+- Movement Speed → Bewegungsgeschwindigkeit
+- Reach → Reichweite
+- Damage → Schaden
+- Crit → Kritische Trefferchance
+- Crit-Schaden → Kritischer Schaden
+- Lifesteal → Lebensraub
+- Attack Power → Angriffskraft
+- EXP → Erfahrung
+- STATS → WERTE
+- HP → LP
+
+Zusätzlich wird die Item-Rarität in diesem Bereich nicht mehr nur als interner englischer Enum-Name ausgegeben, sondern als deutsche sichtbare Bezeichnung.
+
+**Status:** 🟢 95 %  
+**Offen:** Runtime-Test im tatsächlichen `G`-Menü.
+
+---
+
+# 13. Begleiter
+
+Intern bleibt `Companion` vollständig erhalten.
+
+Sichtbar im Spiel ist **Begleiter**.
+
+### Korrektur abgeschlossen
+
+Der `common-chicken` / „PixelRPG Huhn“-Eintrag wird nicht mehr im nativen `PixelRPG – Begleiter`-Menü aus `minecraft:quick_actions` angezeigt.
+
+Wichtig: Der Companion wurde **nicht aus dem internen Companion-System gelöscht**. Die Änderung betrifft ausschließlich die sichtbare Quick-Action-Liste.
+
+**Status:** 🟢 95 %  
+**Offen:** Runtime-Test der Begleiterliste und Prüfung, dass alle übrigen Begleiter weiterhin angezeigt und bedienbar sind.
+
+---
+
+# 14. Boss-System
 
 Vorhanden:
 
-- `BossDefinition`
-- `BossKind`
-- `BossPhase`
-- `ActiveBoss`
-- `BossManager`
-- `BossRepository`
+- BossDefinition
+- BossManager
+- BossRepository
+- BossPhase
+- ActiveBoss
 - Attack Pattern Registry
-- mehrere konkrete Attack Patterns
 - BossBar
 - Damage Contribution
 - Death Handling
-- Combust Handling
-- Reward Item Listener
-- World Boss Protection
-- datengetriebene Boss Rewards
+- Reward Handling
+- World-Boss-Schutz
+- Biome-/World-Boss-Trennung
 
-Vorhandene Pattern-Beispiele:
+**Status:** 🟢 85 %
 
-- Enrage Buff
-- Projectile Volley
-- Slam Attack
-- Summon Adds
-
-Es gibt eine Trennung zwischen Biome-Bossen und World-Bossen.
-
-**Status:** umfangreich implementiert.
-
-**Offen:** vollständiger praktischer Runtime-Test aller Bossarten, Spawnbedingungen, Phasen, Patterns, Contribution, Loot und Companion-Rewards.
+**Offen:** vollständiger Runtime-Test aller vorhandenen Biome- und World-Bosse einschließlich Phasen, Angriffsmustern, Loot und Companion-Rewards.
 
 ---
 
-# 18. Party-System
+# 15. Party / Guild / Economy / Shop / Trade / Travel
+
+Alle Systeme besitzen konkrete Java-Implementierungen und die dazugehörigen Services/Manager/GUI/Dialoge.
+
+**Status:** 🟢 85–90 % je System.
+
+**Offen:** vollständige Runtime-Regression.
+
+Es besteht aktuell kein belastbarer Befund, dass diese Systeme grundsätzlich kaputt sind. Sie sind lediglich noch nicht in gleicher Tiefe praktisch abgesichert wie NPCs, Dialoge, Quests, Items und Datenbankstart.
+
+---
+
+# 16. Story-System
 
 Vorhanden:
 
-- Party Model
-- Party Manager
-- Disconnect Handling
-- Party API
+- StoryManager
+- StoryChapter
+- StoryBookFactory
+- Story-NPC/Mannequin
+- Dialog-Anbindung
 
-Die Party besitzt gemeinsame Mechaniken für XP/Loot/Quests sowie Mitglieder-/Einladungs-/Leadership-Logik.
+Das System ist vorhanden. Die geplante spätere inhaltliche Überarbeitung des Buch-/Story-NPCs ist Content-Arbeit und kein Grund, den Beta-Freeze aufzubrechen.
 
-**Status:** implementiert.
-
-**Offen:** vollständiger Runtime-Regressionsdurchlauf.
-
----
-
-# 19. Guild-System
-
-Vorhanden:
-
-- Guild Model
-- Guild Manager
-- Guild API
-- Guild Bank
-- Guild Bank Holder
-- Guild Bank Listener
-- Guild Bank Service
-- Guild Bank Storage
-- Guild Compass
-- Gildenmitglieder
-- Gildenmeister
-- Einladungen
-- Gildenbasis/-stadt
-
-Das technische Spielergilden-System existiert bereits.
-
-**Wichtig:** Das spätere freie Polygon-Region-System ist **nicht** implementiert und gehört ausdrücklich nicht zum aktuellen Beta-Freeze.
-
-**Offen:** vollständiger praktischer Test der vorhandenen Gildenfunktionen.
+**Status:** 🟢 85 %
 
 ---
 
-# 20. Economy / Shop / Trade / Travel
+# 17. Sprache / Deutsch-only
 
-Vorhanden:
+Der große Language-Refactor ist abgeschlossen.
 
-### Economy
-- Guild Currency Factory
-- Pickup Listener
+Praktisch getestet wurden bereits:
 
-### Shop
-- Shop Entry
-- Shop Manager
-- Shop GUI
-- Shop Editor GUI
+- NPC-Texte
+- Dialoge
+- Quests
+- Items
+- Begleiter
+- Chat-Nachrichten
+- Serverausgaben
 
-### Trade
-- Trade Depot Listing
-- Trade Depot Manager
-- Trade Depot GUI
-- Sell GUI
+Die noch vorhandenen englischen UI-Reste aus dem letzten Audit wurden jetzt **statisch korrigiert**:
 
-### Travel
-- Guild Compass
-- Travel Listener
-- Travel Dialog
+- Item-Lore
+- Rüstungs-Lore
+- Quick-Actions-Charakterprofil
+- sichtbare Item-Raritäten im Quick-Actions-Kontext
 
-**Status:** technisch vorhanden.
+**Status:** 🟢 95 %
 
-**Offen:** vollständige Runtime-Regression dieser Bereiche.
+**Offen:** einmaliger Runtime-Durchlauf, um sicherzustellen, dass keine weitere sichtbare englische Ausgabe aus diesen Pfaden kommt.
 
 ---
 
-# 21. Scoreboard / Spielzeit
+# 18. Commands
 
-Vorhanden:
-
-- `ScoreboardService`
-- `PlaytimeTracker`
-- Charakterkarten-/Scoreboard-Anbindung
-
-**Status:** implementiert.
-
-**Offen:** vollständiger praktischer Regressionstest.
-
----
-
-# 22. Story-System
-
-Vorhanden:
-
-- `StoryManager`
-- `StoryChapter`
-- `StoryBookFactory`
-- Story-NPC-Dialog
-
-Die Architektur ist ausreichend, um Story-Inhalte schrittweise über vorhandene NPCs/Dialoge/Storybooks zu erzählen.
-
-**Status:** technisch vorhanden.
-
-**Offen:** vollständiger Runtime-Test des gesamten Story-Flows.
-
----
-
-# 23. Datengetriebener Content
-
-Vorhandene JSON-Dateien:
-
-- `boss-reward-items.json`
-- `companions.json`
-- `crafting-recipes.json`
-- `equipment-sets.json`
-- `item-definitions.json`
-- `item-scaling.json`
-- `mob-scaling.json`
-- `quests_additional.json`
-- `quests_content_expansion_01.json`
-- `quests_v2.json`
-- `quests_world_expansion.json`
-- `unique-items.json`
-
-Der Content ist damit weitgehend von der Java-Logik getrennt und zentral editierbar.
-
-**Praktischer Befund:** Items, Quests und Begleiter wurden in der Praxis geprüft.
-
----
-
-# 24. Sprache / Deutsch-only Refactor
-
-Die Roadmap definiert Deutsch als einzige Spielersprache des Projekts.
-
-Bereits erledigt:
-
-- LanguageManager entfernt
-- `lang.*`-Package entfernt
-- Translation-Laufzeitabhängigkeiten entfernt
-- Locale-Abhängigkeiten für Spielertexte entfernt
-- Sprachdateien entfernt
-- Translation Keys entfernt
-- GUI-Texte migriert
-- Dialogtexte migriert
-- Item-Texte migriert
-- Quest-Texte migriert
-- Companion-Texte migriert
-- Boss-/Story-Texte geprüft
-- Command-Ausgaben geprüft
-- Actionbar-/Scoreboard-Ausgaben geprüft
-- Chat-Nachrichten praktisch geprüft
-
-**Praktischer Gesamtbefund:** Die bisher geprüften Übersetzungen funktionieren. Es bestehen keine grundsätzlichen Probleme mit der Deutsch-only-Umstellung.
-
-**Noch offene sichtbare Reste:** Quick-Actions-Stat-Namen und Quick-Actions-Item-Namen.
-
----
-
-# 25. Datenbank / Persistenz
-
-Vorhanden:
-
-- `DatabaseManager`
-- HikariCP
-- MySQL Repository
-- YAML Repository
-- PlayerProfile Repository Abstraktion
-
-**Praktischer Befund:** Datenbankverbindung wurde im echten Serverlauf getestet und funktionierte.
-
-**Noch nicht vollständig bewiesen:**
-
-- kompletter Save/Reload-Zyklus
-- Restart-Persistenz
-- Stats nach Reload
-- Equipment nach Reload
-- Questfortschritt nach Reload
-- Economy nach Reload
-- Professionen nach Reload
-- Companion-Daten nach Reload
-- vollständige Cross-System-Persistenz
-
-Das ist kein gemeldeter Fehler, sondern ein noch fehlender Beweis durch vollständigen Regressionstest.
-
----
-
-# 26. Commands
-
-Vorhanden sind unter anderem:
-
-- Root Command
-- Guild Commands
-- Boss Subcommand
-- Companion Subcommand
-- Debug Subcommand
-- Item Subcommand
-- NPC Subcommand
-- Party Subcommand
-- Player Admin Subcommand
-- Quest Admin Subcommand
-- Quest Log
-- Shop Subcommand
-
-Die gewünschte Benutzerform ist:
+Die gewünschte Benutzerform bleibt:
 
 ```text
 /pixelrpg
 /pixelrpgadmin
 ```
 
-und anschließend die jeweiligen Subcommands/Tab-Completions, nicht eine für Spieler sichtbare Namespace-Schreibweise wie `/pixelrpg:pixelrpgadmin`.
+mit Subcommands und Tab Completion.
 
-**Status:** Command-Registrierung ist vorhanden; der vollständige Runtime-Test aller Commands inklusive Tab Completion ist noch offen.
+Die Namespace-Schreibweise `/pixelrpg:pixelrpgadmin` soll nicht als normale Benutzerbedienung erforderlich sein.
 
-**Technischer Prüfhinweis:** `RootCommand`/Command-Adapter müssen separat gegen die verbindlichen modernen Paper-26.x-Command-Vorgaben geprüft werden. Dieser Punkt darf nicht ungeprüft als Fehler oder als behoben bezeichnet werden, solange kein konkreter Runtime-/API-Befund vorliegt.
+**Status:** 🟢 95 %
 
----
-
-# 27. Sicherheits-/Forensikprüfung
-
-Im bisherigen statischen Audit wurden keine unmittelbaren Hinweise auf folgende problematische Mechanismen festgestellt:
-
-- `Runtime.getRuntime().exec()`
-- `ProcessBuilder`
-- versteckte Reflection-Codeausführung
-- `Unsafe`
-- `URLClassLoader`
-- verdächtige Bytecode-Downloads
-- fest verdrahtete UUID-Hintertüren
-- echte API-Keys im Repository
-- versteckte Konsolenbefehlsausführung
-
-Die Datenbankkonfiguration enthält weiterhin den Platzhalter `CHANGE_ME`. Ein echtes Produktionspasswort darf nicht in Git committed werden.
+**Offen:** vollständiger Runtime-Test aller relevanten Commands und Tab-Completions.
 
 ---
 
-# 28. Aktueller Fehler-/Risikoüberblick
+# 19. Datenbank / Persistenz
 
-## 🟥 Konkrete offene sichtbare Befunde
+Vorhanden:
 
-### 1. Quick Actions – Stat-Namen
+- HikariCP
+- MySQL Connector
+- DatabaseManager
+- MySQL Repository
+- YAML Repository
+- Profile Persistence
 
-Englische Stat-Bezeichnungen im Charakterprofil.
+**Praktischer Befund:** Datenbankverbindung funktionierte im echten Serverlauf.
 
-**Art:** UI/Text  
-**Auswirkung:** sichtbar, funktional nicht kritisch.
+**Offen:** vollständiger Restart-Test mit:
 
-### 2. Quick Actions – Item-Namen
-
-Englische Item-Bezeichnungen im Charakterprofil.
-
-**Art:** UI/Text  
-**Auswirkung:** sichtbar, funktional nicht kritisch.
-
-### 3. Profession Trainer – Nachtest
-
-Die Codekorrektur ist vorhanden, aber der abschließende praktische Test aller vier Trainer steht noch aus.
-
-**Art:** Regression offen.
-
----
-
-## 🟨 Noch nicht ausreichend praktisch abgesichert
-
-- Level/XP vollständig
-- Stats vollständig
-- Equipment vollständig
-- Combat vollständig
-- Story vollständig
-- Professions/Crafting nach Korrektur
-- Economy
-- Shop
-- Party
-- Guild
-- Bosses
-- Scoreboard
-- Trade
-- Travel
-- Commands/Tab Completion
-- vollständige Persistenz
-- Shutdown
-
-Diese Punkte sind **nicht automatisch Bugs**. Sie sind offene Testfälle.
-
----
-
-# 29. Was vor Beta-Übergabe tatsächlich noch auf dich zukommt
-
-Die Reihenfolge sollte nicht neue Features enthalten, sondern nur die vorhandene Implementierung auf möglichst nahe 100 % bringen:
-
-1. Quick-Actions-Stat-Namen auf Deutsch.
-2. Quick-Actions-Item-Namen auf Deutsch.
-3. Vier Profession-Trainer nach der Korrektur einzeln testen.
-4. Rezeptdarstellung je Beruf verifizieren.
-5. Save/Reload/Restart mit Datenbank testen.
-6. Noch nicht getestete Kernsysteme einzeln durchspielen.
-7. Boss-System praktisch testen.
-8. Guild/Party praktisch testen.
-9. Economy/Shop/Trade/Travel praktisch testen.
-10. Commands und Tab Completion praktisch testen.
-11. Shutdown testen.
-12. Alle während dieser Tests gefundenen Fehler beheben.
-13. Danach **keine neuen Systeme** mehr für die Beta einführen.
-
-Balancing, QOL, Textkorrekturen und das Präzisieren bereits vorhandener Systeme bleiben ausdrücklich zulässig, solange das bestehende Feature nicht konzeptionell erweitert wird.
-
----
-
-# 30. Beta-Freeze / Definition of Done
-
-Der Beta-Stand ist erreicht, wenn:
-
-- das geplante Feature-Set vollständig vorhanden ist,
-- alle bekannten konkreten Fehler behoben sind,
-- der Build funktioniert,
-- der Server sauber startet,
-- die Datenbank funktioniert,
-- die wesentlichen Spielerflüsse praktisch getestet wurden,
-- die vorhandenen NPCs/Dialoge funktionieren,
-- Items/Quests/Begleiter funktionieren,
-- die Profession-Trainer nach der Korrektur funktionieren,
-- die sichtbaren Deutsch-only-Reste bereinigt sind,
-- Persistenz ausreichend getestet wurde,
-- keine neuen Features mehr notwendig sind.
-
-**100 % bedeutet hier nicht „perfekt für immer“.**
-
-Es bedeutet:
-
-> **100 % des für diese Beta vorgesehenen Implementierungsumfangs ist vorhanden, funktionsfähig und ausreichend getestet.**
-
-Danach beginnt die Spieler-Testphase:
-
-- Bugs melden
-- Probleme melden
-- positive Erfahrungen sammeln
-- Verbesserungsvorschläge sammeln
-- Wünsche sammeln
-
-Neue Wünsche werden nicht automatisch implementiert. Sie werden nach dem Beta-Feedback bewertet.
-
----
-
-# 31. Strikte Abgrenzung: spätere Ideen
-
-Die folgende Idee wurde bewusst nur dokumentiert und ist **nicht Teil des aktuellen Beta-Umfangs**:
-
-## PixelRPG Region System
-
-Geplantes eigenes Region-System als Mischung aus freier WorldEdit-artiger Polygonmarkierung und WorldGuard-artiger Regionslogik.
-
-Grundidee:
-
-- Stick als Markierungswerkzeug
-- beliebig viele Konturpunkte
-- diagonale und unregelmäßige Grenzen
-- Polygon-Flächenberechnung
-- Min-Y/Max-Y
-- tatsächliche Form statt Bounding Box
-- Wildnis als Default
-- Dörfer, Städte, Ruinen, Gildenstädte, Bossgebiete usw. als eigene Regionen
-- Enter-/Leave-Nachrichten
-- spätere Verknüpfung mit bestehenden PixelRPG-Systemen
-- Minecraft-Biome bleiben von PixelRPG-Regionen getrennt
-
-Die vollständige Idee ist in `docs/ideas/pixelrpg-region-system.md` dokumentiert.
-
-**Status:** reine spätere Idee. Keine Implementierung im aktuellen Freeze.
-
----
-
-# 32. Forensisches Gesamturteil
-
-Der Branch ist kein leerer Prototyp und auch kein loses Sammelsurium von Einzelideen. Er enthält einen bereits umfangreichen, modularen RPG-Kern.
-
-Die wesentlichen Systeme sind vorhanden:
-
-- Player/Profile
+- Profil
 - Level/XP
-- Stats
-- Combat
-- Skills
-- Scaling
-- Items
-- Equipment
 - Quests
-- NPCs
-- Dialoge
-- Quick Actions
-- Berufe
-- Crafting
-- Begleiter
-- Bosse
-- Party
-- Guild
+- Equipment
+- Stats
 - Economy
-- Shop
-- Trade
-- Travel
-- Scoreboard
-- Story
-- Persistenz
+- Professionen
+- Begleiter
+- Gilde
 
-Der aktuelle Hauptrest der gerade abgeschlossenen Deutsch-only-Refactor-Phase besteht nicht aus einer fehlenden Language-Architektur, sondern aus wenigen sichtbaren Textresten und noch ausstehenden Regressionstests.
-
-Der wichtigste konkrete sichtbare Rest ist derzeit das native Quick-Actions-Charakterprofil mit englischen Stat- und Item-Bezeichnungen.
-
-Der wichtigste funktionale offene Testfall ist derzeit die vollständige Regression der Berufslehrer nach der bereits vorgenommenen Korrektur sowie der noch nicht vollständig durchgeführte Persistenz-/Systemdurchlauf.
-
-**Es gibt im aktuellen Audit keinen belastbaren Grund, den bestehenden Beta-Freeze wegen eines neuen Gameplay-Systems aufzubrechen.**
-
-Der richtige nächste Schritt ist deshalb nicht mehr „mehr bauen“, sondern:
-
-> **vorhandenes System für System auf 100 % bringen, Fehler beseitigen, testen, stabilisieren und anschließend den Spielern übergeben.**
+**Status:** 🟢 90 %
 
 ---
 
-# 33. Audit-Schlussstatus
+# 20. Sicherheits-/Forensik-Befund
 
-**Codebestand:** umfangreich implementiert  
-**Language-Refactor:** weitgehend abgeschlossen  
-**Deutsche Runtime-Texte:** bisher praktisch unauffällig  
-**Serverstart:** erfolgreich getestet  
-**Datenbank:** erfolgreich getestet  
-**NPCs:** praktisch getestet  
-**Dialoge:** praktisch getestet  
-**Chat:** praktisch getestet  
-**Items:** praktisch getestet  
-**Quests:** praktisch getestet  
-**Begleiter:** praktisch getestet  
-**Profession Trainer:** Code korrigiert, Nachtest offen  
-**Quick Actions:** funktional, zwei sichtbare englische Textreste offen  
-**Build:** Build-Pfad vorhanden und erfolgreich dokumentiert  
-**CI:** korrekt konfiguriert; für den aktuellen reinen Dokumentationscommit kein neuer PR-Workflow-Lauf vorhanden  
-**Persistenz-Volltest:** offen  
-**Vollständige Runtime-Regression:** offen  
-**Neue Features:** während des Beta-Freeze nicht erforderlich
+Im bisherigen statischen Audit wurden keine unmittelbaren Hinweise auf typische versteckte Ausführungsmechanismen wie `Runtime.exec`, `ProcessBuilder`, verdächtige Bytecode-Downloads, `Unsafe`, `URLClassLoader` oder fest verdrahtete Hintertüren festgestellt.
 
-**Forensisches Fazit:** Der Branch befindet sich realistisch in der Phase **„bestehende Implementierung fertig testen und stabilisieren“**, nicht mehr in der Phase „neue Kernsysteme entwickeln“.
+Produktionspasswörter/Secrets dürfen weiterhin nicht in Git committed werden.
+
+**Status:** 🟢 kein konkreter Befund.
+
+---
+
+# 21. Aktueller Fehler-/Risikoüberblick
+
+## Behobene konkrete Befunde
+
+| Befund | Status |
+|---|---|
+| Englische Stat-Namen im Charakterprofil | ✅ Code behoben |
+| Englische sichtbare Item-Lore-Reste | ✅ Code behoben |
+| Englische sichtbare Item-Raritäten im Quick Actions Kontext | ✅ Code behoben |
+| `Armor` im Charakterprofil | ✅ Rüstung |
+| `Movement Speed` | ✅ Bewegungsgeschwindigkeit |
+| `Reach` | ✅ Reichweite |
+| `Damage` | ✅ Schaden |
+| `Crit` | ✅ Kritische Trefferchance |
+| `Lifesteal` | ✅ Lebensraub |
+| `Attack Power` | ✅ Angriffskraft |
+| `common-chicken` im Quick-Action-Begleitermenü | ✅ ausgeblendet |
+| `Aus dem Rathaus austreten` | ✅ umbenannt |
+| Bestätigungstexte der Reception | ✅ angepasst |
+
+## Noch offen
+
+| Befund | Art | Status |
+|---|---|---|
+| Rüstungssets normal im Spiel erhältlich | Content/Design | 🟡 nicht nachgewiesen |
+| Vier Profession-Trainer nach Korrektur | Runtime-Test | 🟡 offen |
+| Quick Actions nach Textkorrektur | Runtime-Test | 🟡 offen |
+| Begleiterliste nach Chicken-Filter | Runtime-Test | 🟡 offen |
+| Persistenz kompletter Restart | Runtime-Test | 🟡 offen |
+| Boss-Kompletttest | Runtime-Test | 🟡 offen |
+| Party/Gilde/Economy/Shop/Trade/Travel | Runtime-Test | 🟡 offen |
+| vollständige Build-/CI-Regression nach den aktuellen Änderungen | Build/CI | 🟡 offen |
+
+---
+
+# 22. Was jetzt noch auf dem Weg zu 100 % fehlt
+
+Das sind **keine neuen Features**.
+
+Es handelt sich ausschließlich um:
+
+1. die aktuellen Codeänderungen im echten Spiel testen,
+2. die vier Profession-Trainer vollständig testen,
+3. alle sechs Rüstungssets auf tatsächliche Beschaffung prüfen,
+4. vollständigen Persistenz-/Restart-Test durchführen,
+5. Biome-/World-Bosse durchtesten,
+6. Party/Gilde/Economy/Shop/Trade/Travel regressieren,
+7. Commands/Tab Completion regressieren,
+8. Build/CI nach den Änderungen prüfen,
+9. dabei gefundene Bugs beheben,
+10. danach Beta-Freeze halten.
+
+### Rüstungssets – besondere Entscheidung
+
+Hier darf **keine neue Beschaffungsmechanik erfunden werden**, nur damit die Sets „irgendwie“ erhältlich sind. Der aktuelle Befund lautet deshalb bewusst:
+
+> Die sechs Sets existieren technisch und sind mit vollständigen Set-IDs definiert, aber ein regulärer Spieler-Erwerb ist in den geprüften Content-Quellen derzeit nicht nachgewiesen.
+
+Das muss vor der Beta geklärt werden, ohne den bestehenden Scope unnötig zu erweitern.
+
+---
+
+# 23. Beta Definition of Done
+
+Der aktuelle Beta-Scope ist fertig, wenn:
+
+- alle vorgesehenen Systeme vorhanden sind,
+- bekannte konkrete Fehler behoben sind,
+- die aktuellen Textkorrekturen praktisch bestätigt sind,
+- NPCs/Dialoge/Quests/Items/Begleiter funktionieren,
+- Profession-Trainer korrekt funktionieren,
+- die Beschaffung der vorgesehenen Rüstungssets geklärt ist,
+- Persistenz ausreichend getestet ist,
+- Build und CI funktionieren,
+- die offenen Regressionstests abgeschlossen sind.
+
+**100 % bedeutet nicht „für immer perfekt“.**
+
+100 % bedeutet:
+
+> **Alles, was für diese Beta vorgesehen war, ist vorhanden, funktioniert und wurde ausreichend getestet.**
+
+Danach beginnt die Spieler-Testphase.
+
+---
+
+# 24. Beta-Freeze
+
+Der Implementierungsstopp bleibt bestehen.
+
+Erlaubt bleiben:
+
+- Bugfixes
+- Balancing
+- QOL
+- Textkorrekturen
+- Präzisierung bestehender Systeme
+- Korrektur unvollständiger vorhandener Inhalte
+
+Nicht erlaubt als Teil dieses Abschlusses:
+
+- neue Kernsysteme
+- neue große Gameplay-Mechaniken
+- neue Progressionssysteme
+- neue Gildenarchitektur
+- das Region-System
+- sonstige neue Ideen aus der Zukunftsplanung
+
+---
+
+# 25. Spätere Region-System-Idee
+
+`docs/ideas/pixelrpg-region-system.md` bleibt reine Dokumentation.
+
+Die Idee eines eigenen WorldEdit-/WorldGuard-artigen PixelRPG-Systems mit frei geformten Polygonregionen ist **nicht implementiert** und darf den aktuellen Beta-Freeze nicht beeinflussen.
+
+---
+
+# 26. Forensisches Gesamturteil
+
+PixelRPG ist auf diesem Branch kein Prototyp mehr, bei dem grundlegende RPG-Systeme fehlen. Der wesentliche Beta-Scope ist vorhanden und mehrere Kernbereiche wurden bereits real im Server getestet.
+
+Die aktuelle Arbeit ist eindeutig eine **Fertigstellungs-, Test- und Stabilisierungsphase**.
+
+Die zuletzt gemeldeten sichtbaren Deutsch-only-Probleme wurden im Code gezielt bereinigt:
+
+- Rüstung
+- Rüstungs-Lore
+- Rüstungs-/Item-Sichttexte
+- Charakterprofil
+- Begleiterliste
+- Reception
+
+Der einzige neue inhaltliche Befund aus der aktuellen Prüfung betrifft die **Rüstungssets**: Sie sind technisch definiert, aber ein normaler Erwerb durch Spieler ist anhand der geprüften Content-Pfade nicht nachgewiesen.
+
+Das ist kein Grund, jetzt ein neues System zu erfinden. Es ist ein Content-/Beschaffungsbefund, der vor dem Beta-Release geklärt werden muss.
+
+## Schlussurteil
+
+> **PixelRPG befindet sich realistisch bei der Fertigstellung des vorhandenen Beta-Scopes. Die nächste Arbeit ist Testen, Fehlerbehebung, Balancing und Stabilisierung — nicht neue Features entwickeln.**
