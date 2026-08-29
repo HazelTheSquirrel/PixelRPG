@@ -3,7 +3,6 @@ package de.pixelrpg.rpg.quest;
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.item.ItemDefinition;
 import de.pixelrpg.rpg.item.ItemDefinitionRegistry;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
@@ -22,27 +21,25 @@ public final class QuestText {
     }
 
     public static Component title(Player player, Quest quest) {
-        return Component.text(titlePlain(player, quest));
+        return Component.text(titlePlain(quest));
     }
 
     public static String titlePlain(Quest quest) {
         String title = quest.title();
-        return title == null || title.isBlank() ? "Unnamed Quest" : title;
+        return title == null || title.isBlank() ? "Unbenannte Quest" : title;
     }
 
     public static String titlePlain(Player player, Quest quest) {
-        String localized = localizedContent(player, quest, "title");
-        return localized != null ? localized : titlePlain(quest);
+        return titlePlain(quest);
     }
 
     public static Component description(Quest quest) {
         String description = quest.description();
-        return Component.text(description == null || description.isBlank() ? "No description available." : description);
+        return Component.text(description == null || description.isBlank() ? "Keine Beschreibung verfügbar." : description);
     }
 
     public static Component description(Player player, Quest quest) {
-        String localized = localizedContent(player, quest, "description");
-        return localized != null ? Component.text(localized) : description(quest);
+        return description(quest);
     }
 
     public static Component objective(Quest quest) {
@@ -50,18 +47,13 @@ public final class QuestText {
     }
 
     public static Component objective(Player player, Quest quest) {
-        LanguageManager lang = languageManager();
         String amount = String.valueOf(quest.requiredAmount());
         return switch (quest.type()) {
-            case HUNT -> lang.get(player, "quest.objective.hunt", "amount", amount)
-                    .append(Component.text(" "))
-                    .append(entityName(quest.targetKey()));
-            case COLLECT -> lang.get(player, "quest.objective.collect", "amount", amount)
-                    .append(Component.text(" "))
-                    .append(itemName(quest.targetKey()));
-            case TALK_TO_NPC -> lang.get(player, "quest.objective.talk", "target", prettyKey(quest.targetKey()));
-            case REACH_LOCATION -> lang.get(player, "quest.objective.reach");
-            case GLOBAL_EVENT -> lang.get(player, "quest.objective.global", "target", prettyKey(quest.targetKey()));
+            case HUNT -> Component.text("Töte " + amount + "x ", NamedTextColor.WHITE).append(entityName(quest.targetKey()));
+            case COLLECT -> Component.text("Sammle " + amount + "x ", NamedTextColor.WHITE).append(itemName(quest.targetKey()));
+            case TALK_TO_NPC -> Component.text("Sprich mit " + prettyKey(quest.targetKey()), NamedTextColor.WHITE);
+            case REACH_LOCATION -> Component.text("Erreiche den angegebenen Zielort.", NamedTextColor.WHITE);
+            case GLOBAL_EVENT -> Component.text("Beteilige dich am serverweiten Ziel: " + prettyKey(quest.targetKey()), NamedTextColor.WHITE);
         };
     }
 
@@ -72,9 +64,9 @@ public final class QuestText {
     public static Component objectiveWithProgress(Player player, Quest quest, QuestProgress progress) {
         int current = Math.min(Math.max(0, progress.getCurrentAmount()), quest.requiredAmount());
         NamedTextColor color = current >= quest.requiredAmount() ? NamedTextColor.GREEN : NamedTextColor.AQUA;
-        return lang(player).get(player, "quest.objective-label")
+        return Component.text("Ziel: ", NamedTextColor.GRAY)
                 .append(objective(player, quest).color(NamedTextColor.WHITE))
-                .append(lang(player).get(player, "quest.progress-label"))
+                .append(Component.text(" • Fortschritt: ", NamedTextColor.GRAY))
                 .append(Component.text(current + "/" + quest.requiredAmount(), color));
     }
 
@@ -84,8 +76,7 @@ public final class QuestText {
 
     public static Component requiredItem(Player player, Quest quest) {
         if (quest.type() != QuestType.COLLECT) return Component.empty();
-        return lang(player).get(player, "quest.required-item", "amount", String.valueOf(quest.requiredAmount()))
-                .append(Component.text(" "))
+        return Component.text("Benötigt: " + quest.requiredAmount() + "x ", NamedTextColor.AQUA)
                 .append(itemName(quest.targetKey()));
     }
 
@@ -132,24 +123,6 @@ public final class QuestText {
         }
     }
 
-    private static String localizedContent(Player player, Quest quest, String field) {
-        if (player == null || quest.id() == null || quest.id().isBlank()) return null;
-        LanguageManager lang = languageManager();
-        String key = "quest.content." + quest.id() + "." + field;
-        String value = lang.raw(player, key);
-        return value.equals(key) ? null : value;
-    }
-
-    private static LanguageManager languageManager() {
-        LanguageManager manager = PixelRPGPlugin.getInstance().getLanguageManager();
-        if (manager == null) throw new IllegalStateException("LanguageManager is not initialized.");
-        return manager;
-    }
-
-    private static LanguageManager lang(Player player) {
-        return languageManager();
-    }
-
     private static ItemDefinition findDefinition(String key) {
         if (key == null || key.isBlank()) return null;
         try {
@@ -160,7 +133,7 @@ public final class QuestText {
     }
 
     private static String prettyKey(String key) {
-        if (key == null || key.isBlank()) return "Unknown";
+        if (key == null || key.isBlank()) return "Unbekannt";
         String value = key.trim();
         int separator = value.indexOf(':');
         if (separator >= 0 && separator + 1 < value.length()) value = value.substring(separator + 1);
