@@ -4,7 +4,6 @@ import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
 import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.item.ItemService;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfile;
@@ -42,7 +41,6 @@ public final class QuestManager {
     private final PlayerProfileManager profileManager;
     private final GlobalEventState globalEventState;
     private final double partyShareRange;
-    private final LanguageManager lang;
     private final ItemService itemService;
     private final Map<UUID, Map<String, Long>> questTimers = new ConcurrentHashMap<>();
     private BukkitTask timerTask;
@@ -54,7 +52,6 @@ public final class QuestManager {
         this.profileManager = profileManager;
         this.globalEventState = globalEventState;
         this.partyShareRange = partyShareRange;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
         this.itemService = PixelRPGPlugin.getInstance().getItemService();
         if (this.itemService == null) throw new IllegalStateException("ItemService must be initialized before QuestManager.");
     }
@@ -71,7 +68,7 @@ public final class QuestManager {
                     Bukkit.getScheduler().runTask(plugin, () -> {
                         profileManager.getProfile(uuid).ifPresent(profile -> profile.removeActiveQuest(questEntry.getKey()));
                         Player player = Bukkit.getPlayer(uuid);
-                        if (player != null && player.isOnline()) lang.send(player, "quest.expired");
+                        if (player != null && player.isOnline()) player.sendMessage(Component.text("Dein Quest-Vertrag ist abgelaufen!", NamedTextColor.RED));
                     });
                 }
             }
@@ -104,16 +101,17 @@ public final class QuestManager {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered() || !canAccept(profile, quest) || profile.hasActiveQuest(quest.id())) return false;
         if (profile.getActiveQuests().size() >= MAX_ACTIVE_QUESTS) {
-            lang.send(player, "quest.max-active", "max", String.valueOf(MAX_ACTIVE_QUESTS));
+            player.sendMessage(Component.text("Du kannst maximal " + MAX_ACTIVE_QUESTS + " Quests gleichzeitig aktiv haben.", NamedTextColor.RED));
             return false;
         }
         long expiry = quest.hasTimeLimit() ? System.currentTimeMillis() + quest.durationMinutes() * 60_000L : 0L;
         profile.startQuest(new QuestProgress(quest.id(), 0, expiry));
         if (quest.hasTimeLimit()) {
             questTimers.computeIfAbsent(player.getUniqueId(), ignored -> new ConcurrentHashMap<>()).put(quest.id(), expiry);
-            lang.send(player, "quest.time-limit", "minutes", String.valueOf(quest.durationMinutes()));
+            player.sendMessage(Component.text("Zeitlimit: " + quest.durationMinutes() + " Minuten!", NamedTextColor.YELLOW));
         }
-        lang.send(player, "quest.accepted", "title", QuestText.titlePlain(player, quest));
+        player.sendMessage(Component.text("Quest angenommen: ").color(NamedTextColor.GREEN)
+                .append(Component.text(QuestText.titlePlain(player, quest), NamedTextColor.YELLOW)));
         return true;
     }
 
@@ -122,7 +120,7 @@ public final class QuestManager {
         if (profile == null || !profile.isRegistered() || !profile.hasActiveQuest(questId)) return false;
         profile.removeActiveQuest(questId);
         removeTimer(player.getUniqueId(), questId);
-        lang.send(player, "quest.abandoned");
+        player.sendMessage(Component.text("Quest abgebrochen.", NamedTextColor.YELLOW));
         return true;
     }
 
@@ -134,15 +132,15 @@ public final class QuestManager {
         if (progress.isExpired()) {
             profile.removeActiveQuest(questId);
             removeTimer(player.getUniqueId(), quest.id());
-            lang.send(player, "quest.expired");
+            player.sendMessage(Component.text("Dein Quest-Vertrag ist abgelaufen!", NamedTextColor.RED));
             return false;
         }
         if (progress.getCurrentAmount() < quest.requiredAmount()) {
-            lang.send(player, "quest.requirements-not-met");
+            player.sendMessage(Component.text("Anforderungen noch nicht erfüllt.", NamedTextColor.RED));
             return false;
         }
         if (!isAtQuestGiver(player, quest)) {
-            lang.send(player, "quest.requirements-not-met");
+            player.sendMessage(Component.text("Anforderungen noch nicht erfüllt.", NamedTextColor.RED));
             return false;
         }
         return grantCompletion(player, profile, quest);
@@ -175,10 +173,11 @@ public final class QuestManager {
         if (quest.rewardsCompanion()) {
             var companionService = PixelRPGPlugin.getInstance().getCompanionService();
             if (companionService != null && companionService.unlockDefinition(player.getUniqueId(), quest.rewardCompanionId())) {
-                lang.send(player, "companion.unlocked", "name", quest.rewardCompanionId());
+                player.sendMessage(Component.text("Begleiter freigeschaltet: " + quest.rewardCompanionId(), NamedTextColor.GREEN));
             }
         }
-        lang.send(player, "quest.completed", "title", QuestText.titlePlain(player, quest));
+        player.sendMessage(Component.text("Quest abgeschlossen: ").color(NamedTextColor.GREEN)
+                .append(Component.text(QuestText.titlePlain(player, quest), NamedTextColor.YELLOW)));
         player.showTitle(Title.title(QuestText.title(player, quest).color(NamedTextColor.YELLOW), Component.empty(),
                 Title.Times.times(Duration.ofMillis(300), Duration.ofMillis(1800), Duration.ofMillis(300))));
         Bukkit.getPluginManager().callEvent(new QuestCompletedEvent(player, quest.id()));
@@ -274,7 +273,8 @@ public final class QuestManager {
             if (target == null || !player.getWorld().equals(target.getWorld())) continue;
             if (player.getLocation().distanceSquared(target) <= 64.0D) {
                 entry.getValue().setCurrentAmount(quest.requiredAmount());
-                lang.send(player, "quest.location-reached", "title", QuestText.titlePlain(player, quest));
+                player.sendMessage(Component.text("Ort erreicht: ").color(NamedTextColor.GREEN)
+                        .append(Component.text(QuestText.titlePlain(player, quest), NamedTextColor.YELLOW)));
             }
         }
     }
@@ -305,7 +305,7 @@ public final class QuestManager {
             PlayerProfile profile = profileManager.getProfile(online.getUniqueId()).orElse(null);
             if (profile == null || !profile.isRegistered() || !profile.hasActiveQuest(quest.id())) continue;
             profile.getActiveQuests().get(quest.id()).setCurrentAmount(quest.requiredAmount());
-            lang.send(online, "quest.progress", "current", String.valueOf(quest.requiredAmount()), "required", String.valueOf(quest.requiredAmount()));
+            online.sendMessage(Component.text("Fortschritt: " + quest.requiredAmount() + "/" + quest.requiredAmount(), NamedTextColor.GREEN));
         }
     }
 
