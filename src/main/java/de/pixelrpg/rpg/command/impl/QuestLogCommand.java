@@ -1,8 +1,6 @@
 package de.pixelrpg.rpg.command.impl;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.gui.QuestLogGUI;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.QuestManager;
 import net.kyori.adventure.text.Component;
@@ -16,22 +14,20 @@ public final class QuestLogCommand implements CommandExecutor {
 
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
-    private final LanguageManager lang;
 
     public QuestLogCommand(QuestManager questManager, PlayerProfileManager profileManager) {
         this.questManager = questManager;
         this.profileManager = profileManager;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Only players can use this command.", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Nur Spieler können diesen Befehl nutzen.", NamedTextColor.RED));
             return true;
         }
         if (!profileManager.isRegistered(player.getUniqueId())) {
-            lang.send(player, "common.not-registered");
+            player.sendMessage(Component.text("Du musst registriertes Rathausmitglied sein.", NamedTextColor.RED));
             return true;
         }
         new QuestLogGUI(player, questManager, profileManager).open(player);
