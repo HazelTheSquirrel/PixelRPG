@@ -33,7 +33,7 @@ public final class QuickActionsDialogListener implements Listener {
         this.service = service;
         this.companionService = companionService;
         this.guildManager = GuildManager.getInstance(plugin, service.profileManager());
-        DialogueEngine dialogueEngine = new DialogueEngine(plugin.getLanguageManager());
+        DialogueEngine dialogueEngine = new DialogueEngine();
         this.companionDialog = new CompanionDialog(companionService, dialogueEngine, service);
         this.professionDialog = new ProfessionDialog(service.profileManager(), dialogueEngine, service);
         this.characterCardScoreboard = new CharacterCardScoreboardService(plugin, service.profileManager(), service.statEngine());
@@ -42,27 +42,29 @@ public final class QuickActionsDialogListener implements Listener {
 
     public CompanionService companionService() { return companionService; }
 
-    /** Opens the dynamic player-specific character profile from the G quick action. */
+    /** Handles the profile action from the native G character card. */
     @EventHandler
     public void onProfileAction(PlayerCustomClickEvent event) { handlePlayerAction(event, PROFILE_ACTION, player -> service.openCharacterProfile(player, companionDialog, professionDialog)); }
 
-    /** Opens the active-quest section directly from the G quick-actions menu. */
+    /** Handles the active-quests action from the native G character card. */
     @EventHandler
     public void onActiveQuestsAction(PlayerCustomClickEvent event) { handlePlayerAction(event, ACTIVE_QUESTS_ACTION, player -> service.openActiveQuests(player, companionDialog, professionDialog)); }
 
-    /** Opens the companion section from the direct G character card. */
+    /** Handles the companion action from the native G character card. */
     @EventHandler
     public void onCompanionAction(PlayerCustomClickEvent event) { handlePlayerAction(event, COMPANIONS_ACTION, companionDialog::open); }
 
-    /** Opens the profession section from the direct G character card. */
+    /** Handles the profession action from the native G character card. */
     @EventHandler
     public void onProfessionAction(PlayerCustomClickEvent event) { handlePlayerAction(event, PROFESSIONS_ACTION, professionDialog::open); }
 
-    /** Opens guild creation or guild management from the direct G character card. */
+    /** Handles guild creation or guild management from the native G character card. */
     @EventHandler
-    public void onGuildAction(PlayerCustomClickEvent event) { handlePlayerAction(event, GUILD_ACTION, player -> new GuildDialog(guildManager, service.profileManager(), new DialogueEngine(plugin.getLanguageManager()), service).open(player)); }
+    public void onGuildAction(PlayerCustomClickEvent event) {
+        handlePlayerAction(event, GUILD_ACTION, player -> new GuildDialog(guildManager, service.profileManager(), new DialogueEngine(), service).open(player));
+    }
 
-    /** Opens the validated Mannequin companion equipment inventory from its unique dialog action. */
+    /** Handles the validated companion equipment action from its native dialog. */
     @EventHandler
     public void onCompanionEquipAction(PlayerCustomClickEvent event) {
         if (!(event.getCommonConnection() instanceof PlayerGameConnection connection)) return;
@@ -71,19 +73,16 @@ public final class QuickActionsDialogListener implements Listener {
         if (!service.isAvailable(player)) return;
         String companionId = CompanionDialog.companionIdFromEquipAction(event.getIdentifier());
         if (companionId == null) return;
-        Companion companion = companionService.getCompanions(player.getUniqueId()).stream()
-                .filter(candidate -> candidate.id().equals(companionId))
-                .findFirst()
-                .orElse(null);
+        Companion companion = companionService.getCompanions(player.getUniqueId()).stream().filter(candidate -> candidate.id().equals(companionId)).findFirst().orElse(null);
         if (companion == null || companion.entityType() != EntityType.MANNEQUIN) return;
         companionService.openEquipment(player, companion);
     }
 
-    /** Closes the native character card when the player selects the close action. */
+    /** Handles closing the native character card. */
     @EventHandler
     public void onCloseAction(PlayerCustomClickEvent event) { handlePlayerAction(event, CLOSE_ACTION, Player::closeDialog); }
 
-    /** Stops the character-card and companion entity bridges when PixelRPG is disabled. */
+    /** Stops character-card and companion services when PixelRPG is disabled. */
     @EventHandler
     public void onPluginDisable(PluginDisableEvent event) {
         if (event.getPlugin() != plugin) return;
