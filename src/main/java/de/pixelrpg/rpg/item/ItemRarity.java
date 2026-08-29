@@ -6,12 +6,12 @@ import net.kyori.adventure.text.format.NamedTextColor;
 /** PixelRPG item rarity tiers. Unique is reserved for one-of-a-kind items and is never rolled randomly. */
 public enum ItemRarity {
 
-    COMMON(Component.text("Common", NamedTextColor.GRAY), 1.00, 70),
-    UNCOMMON(Component.text("Uncommon", NamedTextColor.GREEN), 1.10, 20),
-    RARE(Component.text("Rare", NamedTextColor.BLUE), 1.22, 8),
-    EPIC(Component.text("Epic", NamedTextColor.LIGHT_PURPLE), 1.38, 2),
-    LEGENDARY(Component.text("Legendary", NamedTextColor.GOLD), 1.60, 0),
-    UNIQUE(Component.text("Unique", NamedTextColor.RED), 1.60, 0);
+    COMMON(Component.text("Gewöhnlich", NamedTextColor.GRAY), 1.00, 70),
+    UNCOMMON(Component.text("Ungewöhnlich", NamedTextColor.GREEN), 1.10, 20),
+    RARE(Component.text("Selten", NamedTextColor.BLUE), 1.22, 8),
+    EPIC(Component.text("Episch", NamedTextColor.LIGHT_PURPLE), 1.38, 2),
+    LEGENDARY(Component.text("Legendär", NamedTextColor.GOLD), 1.60, 0),
+    UNIQUE(Component.text("Einzigartig", NamedTextColor.RED), 1.60, 0);
 
     private final Component displayName;
     private final double statMultiplier;
