@@ -11,14 +11,6 @@ storage:
     pool-size: 20
     connection-timeout-ms: 8000
 
-language:
-  default: "en"
-  supported:
-    - "en"
-    - "de"
-    - "fr"
-    - "es"
-
 items:
   soulbound:
     cost: 200.0
