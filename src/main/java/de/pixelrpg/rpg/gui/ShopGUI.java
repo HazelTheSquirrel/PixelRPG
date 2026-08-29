@@ -1,7 +1,5 @@
 package de.pixelrpg.rpg.gui;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.shop.ShopEntry;
@@ -20,43 +18,33 @@ import java.util.List;
 
 public final class ShopGUI extends AbstractGUI {
     private static final double ADMIN_SELL_RATIO = 0.50D;
-
     private final Player viewer;
     private final String npcId;
     private final ShopManager shopManager;
     private final PlayerProfileManager profileManager;
-    private final LanguageManager lang;
 
     public ShopGUI(Player viewer, String npcId, ShopManager shopManager, PlayerProfileManager profileManager) {
-        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get("shop.gui-title"));
+        super(54, Component.text("Shop", NamedTextColor.GOLD));
         this.viewer = viewer;
         this.npcId = npcId;
         this.shopManager = shopManager;
         this.profileManager = profileManager;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
-    @Override
-    protected void populate() {
+    @Override protected void populate() {
         List<ShopEntry> entries = shopManager.getEntries(npcId);
         int slot = 0;
-
         for (ShopEntry entry : entries) {
             if (slot >= 54) break;
-
             ItemStack display = entry.item().clone();
             ItemMeta meta = display.getItemMeta();
             List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
             lore.add(Component.empty());
-            lore.add(lang.get("shop.price-label", "price", String.valueOf(entry.price()))
-                    .color(NamedTextColor.GOLD)
-                    .decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Preis: " + entry.price() + " Gold", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
             lore.add(Component.text("Linksklick: Kaufen", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
-            lore.add(Component.text("Rechtsklick: Verkaufen für " + format(entry.price() * ADMIN_SELL_RATIO) + " Gold", NamedTextColor.GRAY)
-                    .decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Rechtsklick: Verkaufen für " + format(entry.price() * ADMIN_SELL_RATIO) + " Gold", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
             meta.lore(lore);
             display.setItemMeta(meta);
-
             setItem(slot, display, event -> handleShopClick(event, entry));
             slot++;
         }
@@ -65,7 +53,6 @@ public final class ShopGUI extends AbstractGUI {
     private void handleShopClick(InventoryClickEvent event, ShopEntry entry) {
         PlayerProfile profile = profileManager.getProfile(viewer.getUniqueId()).orElse(null);
         if (profile == null) return;
-
         if (event.isRightClick()) {
             if (!removeOneMatchingItem(viewer, entry.item())) {
                 viewer.sendMessage(Component.text("Du hast dieses Item nicht im Inventar.", NamedTextColor.RED));
@@ -77,16 +64,13 @@ public final class ShopGUI extends AbstractGUI {
             viewer.sendMessage(Component.text("Item für " + format(payout) + " Gold verkauft.", NamedTextColor.GREEN));
             return;
         }
-
         if (!profile.removeMoney(entry.price())) {
-            lang.send(viewer, "shop.insufficient-gold");
+            viewer.sendMessage(Component.text("Du hast nicht genügend Gold.", NamedTextColor.RED));
             return;
         }
-
-        viewer.getInventory().addItem(entry.item().clone()).values()
-                .forEach(remainder -> viewer.getWorld().dropItemNaturally(viewer.getLocation(), remainder));
+        viewer.getInventory().addItem(entry.item().clone()).values().forEach(remainder -> viewer.getWorld().dropItemNaturally(viewer.getLocation(), remainder));
         viewer.playSound(viewer.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 1.0f);
-        lang.send(viewer, "shop.purchased");
+        viewer.sendMessage(Component.text("Gekauft!", NamedTextColor.GREEN));
     }
 
     private boolean removeOneMatchingItem(Player player, ItemStack template) {
@@ -105,7 +89,5 @@ public final class ShopGUI extends AbstractGUI {
         return false;
     }
 
-    private String format(double amount) {
-        return String.format("%.2f", amount);
-    }
+    private String format(double amount) { return String.format("%.2f", amount); }
 }
