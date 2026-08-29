@@ -1,9 +1,7 @@
 package de.pixelrpg.rpg.gui;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.ReceptionDialog;
-import de.pixelrpg.rpg.lang.LanguageManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
@@ -25,14 +23,12 @@ public final class QuestLogGUI extends AbstractGUI {
     private final Player viewer;
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
-    private final LanguageManager lang;
 
     public QuestLogGUI(Player viewer, QuestManager questManager, PlayerProfileManager profileManager) {
-        super(54, PixelRPGPlugin.getInstance().getLanguageManager().get(viewer, "quest.log-title"));
+        super(54, Component.text("Questlog", NamedTextColor.GOLD));
         this.viewer = viewer;
         this.questManager = questManager;
         this.profileManager = profileManager;
-        this.lang = PixelRPGPlugin.getInstance().getLanguageManager();
     }
 
     @Override
@@ -42,7 +38,7 @@ public final class QuestLogGUI extends AbstractGUI {
         if (profile.getActiveQuests().isEmpty()) {
             ItemStack empty = new ItemStack(Material.BARRIER);
             ItemMeta meta = empty.getItemMeta();
-            meta.displayName(lang.get(viewer, "quest.no-active").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+            meta.displayName(Component.text("Keine aktiven Quests", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
             empty.setItemMeta(meta);
             setItem(22, empty);
         } else {
@@ -67,27 +63,26 @@ public final class QuestLogGUI extends AbstractGUI {
                 if (quest.type() == de.pixelrpg.rpg.quest.QuestType.COLLECT) {
                     lore.add(QuestText.requiredItem(viewer, quest).color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
                 }
-                lore.add(lang.get(viewer, "quest.progress", "current", String.valueOf(progress.getCurrentAmount()), "required", String.valueOf(quest.requiredAmount()))
-                        .color(NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false));
+                lore.add(Component.text("Fortschritt: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.GREEN)
+                        .decoration(TextDecoration.ITALIC, false));
                 lore.add(Component.empty());
-                lore.add(lang.get(viewer, "quest.list-hint").color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
+                lore.add(Component.text("Für Details klicken.", NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
                 lore.add(progress.hasExpiry()
-                        ? lang.get(viewer, "quest.time-limited").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)
-                        : lang.get(viewer, "quest.no-time-limit").color(NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
+                        ? Component.text("Zeitlich begrenzte Quest.", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)
+                        : Component.text("Kein Zeitlimit.", NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
                 meta.lore(lore);
                 item.setItemMeta(meta);
                 setItem(slot, item, event -> new QuestDetailGUI(viewer, questManager, profileManager, quest).open(viewer));
                 slot++;
             }
         }
-        setItem(49, backButton(), event -> new ReceptionDialog(viewer, profileManager,
-                new DialogueEngine(PixelRPGPlugin.getInstance().getLanguageManager())).open());
+        setItem(49, backButton(), event -> new ReceptionDialog(viewer, profileManager, new DialogueEngine()).open());
     }
 
     private ItemStack backButton() {
         ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(lang.get(viewer, "common.back").color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(Component.text("Zurück", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
         return item;
     }
