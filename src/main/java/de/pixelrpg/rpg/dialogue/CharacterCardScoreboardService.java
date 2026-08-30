@@ -28,7 +28,6 @@ public final class CharacterCardScoreboardService {
             Map.entry("armor", "px_cc_armor"),
             Map.entry("movementSpeed", "px_cc_speed"),
             Map.entry("reach", "px_cc_reach"),
-            Map.entry("damage", "px_cc_damage"),
             Map.entry("critChance", "px_cc_crit"),
             Map.entry("critDamage", "px_cc_critdmg"),
             Map.entry("lifesteal", "px_cc_lifesteal"),
@@ -94,7 +93,6 @@ public final class CharacterCardScoreboardService {
         set(player, "armor", round(armor));
         set(player, "movementSpeed", round(stats.movementSpeedBonus()));
         set(player, "reach", round(stats.entityReach()));
-        set(player, "damage", round(stats.bonusDamage()));
         set(player, "critChance", round(stats.critChance()));
         set(player, "critDamage", round(stats.critDamageMultiplier()));
         set(player, "lifesteal", round(stats.lifestealBonus()));
