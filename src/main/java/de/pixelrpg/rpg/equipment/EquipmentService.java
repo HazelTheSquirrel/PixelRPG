@@ -24,12 +24,10 @@ import java.util.Map;
 public final class EquipmentService implements Listener {
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
-    private final EquipmentSetService equipmentSetService;
 
     public EquipmentService(PlayerProfileManager profileManager, StatEngine statEngine, ItemService ignoredItemService) {
         this.profileManager = profileManager;
         this.statEngine = statEngine;
-        this.equipmentSetService = new EquipmentSetService(PixelRPGPlugin.getInstance());
     }
 
     /** Creates a defensive snapshot of the six live Minecraft equipment slots. */
@@ -73,10 +71,6 @@ public final class EquipmentService implements Listener {
 
     /** Recalculates all equipment-derived stats from the player's current vanilla equipment slots. */
     public void refresh(Player player) {
-        int playerLevel = profileManager.getProfile(player.getUniqueId())
-                .map(profile -> profile.getLevel())
-                .orElse(1);
-        equipmentSetService.applyArmorTrims(player, Math.clamp(playerLevel, 1, 99));
         statEngine.recalculate(player);
     }
 
@@ -90,7 +84,7 @@ public final class EquipmentService implements Listener {
         return item == null ? null : item.clone();
     }
 
-    /** Tracks armor and offhand ItemStack changes without cancelling or modifying the vanilla transaction. */
+    /** Tracks armor and hand ItemStack changes without cancelling, replacing, or modifying the vanilla transaction. */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventorySlotChange(PlayerInventorySlotChangeEvent event) {
         Player player = event.getPlayer();
