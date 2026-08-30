@@ -245,10 +245,6 @@ public final class EquipmentService implements Listener {
 
     private Optional<EquipmentSlot> vanillaAutoEquipTarget(ItemStack item) {
         if (item == null || item.isEmpty()) return Optional.empty();
-        if (itemService.isRPGItem(item)) {
-            Optional<EquipmentSlot> explicit = explicitEquipmentSlot(item);
-            if (explicit.isPresent()) return explicit;
-        }
 
         org.bukkit.inventory.EquipmentSlot vanillaSlot = item.getType().getEquipmentSlot();
         return switch (vanillaSlot) {
@@ -260,18 +256,6 @@ public final class EquipmentService implements Listener {
             case OFF_HAND -> Optional.of(EquipmentSlot.OFFHAND);
             default -> Optional.empty();
         };
-    }
-
-    private Optional<EquipmentSlot> explicitEquipmentSlot(ItemStack item) {
-        if (!item.hasItemMeta()) return Optional.empty();
-        String explicit = item.getItemMeta().getPersistentDataContainer()
-                .get(RPGKeys.Item.equipmentSlot(), PersistentDataType.STRING);
-        if (explicit == null || explicit.isBlank()) return Optional.empty();
-        try {
-            return Optional.of(EquipmentSlot.valueOf(explicit.trim().toUpperCase()));
-        } catch (IllegalArgumentException ignored) {
-            return Optional.empty();
-        }
     }
 
     private Optional<EquipmentSlot> equipmentSlotForRawSlot(Player player, int rawSlot, org.bukkit.inventory.InventoryView view) {
