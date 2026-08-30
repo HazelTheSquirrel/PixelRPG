@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.command.impl;
 
+import de.pixelrpg.rpg.command.SubCommand;
 import de.pixelrpg.rpg.gui.QuestLogGUI;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.QuestManager;
@@ -10,7 +11,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public final class QuestLogCommand implements CommandExecutor {
+public final class QuestLogCommand implements SubCommand, CommandExecutor {
 
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
@@ -18,6 +19,31 @@ public final class QuestLogCommand implements CommandExecutor {
     public QuestLogCommand(QuestManager questManager, PlayerProfileManager profileManager) {
         this.questManager = questManager;
         this.profileManager = profileManager;
+    }
+
+    @Override
+    public String name() {
+        return "questlog";
+    }
+
+    @Override
+    public String permission() {
+        return "rpg.member";
+    }
+
+    @Override
+    public String description() {
+        return "Öffnet das Questlog";
+    }
+
+    @Override
+    public String usage() {
+        return "/pixelrpg questlog";
+    }
+
+    @Override
+    public boolean execute(CommandSender sender, String[] args) {
+        return onCommand(sender, null, "pixelrpg", args);
     }
 
     @Override
