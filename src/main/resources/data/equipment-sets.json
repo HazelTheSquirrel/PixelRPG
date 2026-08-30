@@ -40,7 +40,7 @@
       "id": "kristallwache",
       "name": "Kristallwache",
       "bonuses": [
-        { "pieces": 2, "stats": { "DAMAGE": 3.0 }, "trim": { "pattern": "minecraft:spire", "material": "minecraft:diamond" } },
+        { "pieces": 2, "stats": { "ATTACK_POWER": 3.0 }, "trim": { "pattern": "minecraft:spire", "material": "minecraft:diamond" } },
         { "pieces": 3, "stats": { "ARMOR": 3.0 } },
         { "pieces": 4, "stats": { "CRIT_DAMAGE": 0.30 } }
       ]
@@ -50,7 +50,7 @@
       "name": "Höllenschmiede",
       "bonuses": [
         { "pieces": 2, "stats": { "HP": 10.0 }, "trim": { "pattern": "minecraft:silence", "material": "minecraft:netherite" } },
-        { "pieces": 3, "stats": { "DAMAGE": 5.0 } },
+        { "pieces": 3, "stats": { "ATTACK_POWER": 5.0 } },
         { "pieces": 4, "stats": { "LIFESTEAL": 4.0, "ATTACK_POWER": 4.0 } }
       ]
     }
