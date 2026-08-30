@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.command;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.command.impl.DebugSubCommand;
 import de.pixelrpg.rpg.command.impl.ItemSubCommand;
 import de.pixelrpg.rpg.command.impl.PlayerAdminSubCommand;
@@ -20,10 +21,10 @@ import java.util.Map;
 public final class RootCommand implements CommandExecutor, TabCompleter {
     private final Map<String, SubCommand> subCommands = new LinkedHashMap<>();
 
-    public RootCommand(ItemService itemService) {
+    public RootCommand(PixelRPGPlugin plugin, ItemService itemService) {
         register(new ItemSubCommand(itemService));
         register(new PlayerAdminSubCommand());
-        register(new DebugSubCommand());
+        register(new DebugSubCommand(plugin));
     }
 
     public void register(SubCommand subCommand) {
