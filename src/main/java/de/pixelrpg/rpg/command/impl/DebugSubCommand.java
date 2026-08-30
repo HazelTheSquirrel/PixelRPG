@@ -1,9 +1,6 @@
 package de.pixelrpg.rpg.command.impl;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.command.SubCommand;
-import de.pixelrpg.rpg.player.PlayerProfile;
-import de.pixelrpg.rpg.quest.Quest;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -12,51 +9,51 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
-/** Developer-only diagnostics for PixelRPG runtime state. */
 public final class DebugSubCommand implements SubCommand {
-    private final PixelRPGPlugin plugin = PixelRPGPlugin.getInstance();
+    private final PixelRPGPlugin plugin;
 
-    @Override public String name() { return "debug"; }
-    @Override public String permission() { return "rpg.admin"; }
-    @Override public String description() { return "Entwickler- und Testwerkzeuge"; }
-    @Override public String usage() { return "/rpgadmin debug <player|npc|quest|boss|stats> ..."; }
+    public DebugSubCommand(PixelRPGPlugin plugin) {
+        this.plugin = plugin;
+    }
 
     @Override
-    public boolean execute(CommandSender sender, String[] args) {
-        if (args.length == 0) return false;
+    public String name() { return "debug"; }
+
+    @Override
+    public String permission() { return "pixelrpg.admin"; }
+
+    @Override
+    public void execute(CommandSender sender, String[] args) {
+        if (args.length < 1) { sender.sendMessage(Component.text("Usage: /rpgadmin debug <player|npc|quest|boss|stats>", NamedTextColor.RED)); return; }
         switch (args[0].toLowerCase()) {
             case "player" -> player(sender, args);
             case "npc" -> npc(sender);
-            case "quest" -> quests(sender);
-            case "boss" -> bosses(sender);
+            case "quest" -> quest(sender);
+            case "boss" -> boss(sender);
             case "stats" -> stats(sender, args);
-            default -> { return false; }
+            default -> sender.sendMessage(Component.text("Unknown debug target.", NamedTextColor.RED));
         }
-        return true;
     }
 
     private void player(CommandSender sender, String[] args) {
         if (args.length < 2) { sender.sendMessage(Component.text("Usage: /rpgadmin debug player <name>", NamedTextColor.RED)); return; }
         Player player = Bukkit.getPlayerExact(args[1]);
         if (player == null) { sender.sendMessage(Component.text("Spieler nicht online.", NamedTextColor.RED)); return; }
-        PlayerProfile profile = plugin.getPlayerProfileManager().getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null) { sender.sendMessage(Component.text("Kein aktives Profil.", NamedTextColor.RED)); return; }
         sender.sendMessage(Component.text("DEBUG PLAYER " + player.getName(), NamedTextColor.GOLD));
-        sender.sendMessage(Component.text("UUID=" + player.getUniqueId() + " registered=" + profile.isRegistered() + " level=" + profile.getLevel() + " xp=" + profile.getExperience(), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("gold=" + profile.getMoney() + " activeQuests=" + profile.getActiveQuests().size() + " dirty=" + profile.isDirty(), NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("UUID=" + player.getUniqueId(), NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("World=" + player.getWorld().getName(), NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("Location=" + player.getLocation(), NamedTextColor.GRAY));
     }
 
     private void npc(CommandSender sender) {
-        sender.sendMessage(Component.text("DEBUG NPC count=" + plugin.getNpcManager().getAll().size(), NamedTextColor.GOLD));
-        plugin.getNpcManager().getAll().forEach(npc -> sender.sendMessage(Component.text(npc.id() + " | " + npc.type() + " | " + npc.name(), NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("DEBUG NPC registered=" + plugin.getNpcManager().getRegisteredCount(), NamedTextColor.GOLD));
     }
 
-    private void quests(CommandSender sender) {
-        sender.sendMessage(Component.text("DEBUG QUEST count=" + plugin.getQuestRepository().getAllQuests().size(), NamedTextColor.GOLD));
-        for (Quest quest : plugin.getQuestRepository().getAllQuests()) sender.sendMessage(Component.text(quest.id() + " | " + quest.type() + " | " + quest.title(), NamedTextColor.GRAY));
+    private void quest(CommandSender sender) {
+        sender.sendMessage(Component.text("DEBUG QUEST loaded=" + plugin.getQuestManager().getRepository().size(), NamedTextColor.GOLD));
     }
 
-    private void bosses(CommandSender sender) {
+    private void boss(CommandSender sender) {
         sender.sendMessage(Component.text("DEBUG BOSS active=" + plugin.getBossManager().getActiveBossCount(), NamedTextColor.GOLD));
     }
 
@@ -67,7 +64,7 @@ public final class DebugSubCommand implements SubCommand {
         plugin.getStatEngine().recalculate(player);
         var stats = plugin.getStatEngine().getCachedStats(player.getUniqueId());
         sender.sendMessage(Component.text("DEBUG STATS " + player.getName(), NamedTextColor.GOLD));
-        sender.sendMessage(Component.text("HP=" + stats.maxHealth() + " Armor=" + stats.armor() + " Damage=" + stats.bonusDamage(), NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("HP=" + stats.maxHealth() + " Armor=" + stats.armor(), NamedTextColor.GRAY));
         sender.sendMessage(Component.text("Crit=" + stats.critChance() + "% CritDamage=" + stats.critDamageMultiplier() + "x Lifesteal=" + stats.lifestealBonus() + "%", NamedTextColor.GRAY));
         sender.sendMessage(Component.text("Reach=" + stats.reach() + " AttackPower=" + stats.attackPower(), NamedTextColor.GRAY));
     }
