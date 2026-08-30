@@ -6,8 +6,8 @@ import de.pixelrpg.rpg.stats.StatEngine;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Fireball;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -61,29 +61,25 @@ public final class FireballWeaponListener implements Listener {
         fireball.setIsIncendiary(false);
         fireball.setGravity(false);
 
-        fireball.getPersistentDataContainer().set(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER,
-                item.getItemMeta().getPersistentDataContainer().getOrDefault(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER, 1));
-
         cooldownExpiry.put(player.getUniqueId(), System.currentTimeMillis() + COOLDOWN_MILLIS);
         player.sendActionBar(Component.text("Feuerball  •  3s Cooldown", NamedTextColor.GOLD));
         event.setCancelled(true);
     }
 
-    // Zuständig für die schadensverursachende Explosion des Feuerballs ohne Blockschaden.
+    // Zuständig für die schadensverursachende Explosion des Feuerballs ohne Blockschaden oder Friendly-Fire.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onExplosion(EntityExplodeEvent event) {
         if (!(event.getEntity() instanceof Fireball fireball)) return;
         if (!(fireball.getShooter() instanceof Player shooter)) return;
 
-        event.blockList().clear();
-        event.setYield(0.0F);
+        event.setCancelled(true);
 
         double attackPower = Math.max(0.5D, statEngine.getCachedStats(shooter.getUniqueId()).attackPower());
-        for (LivingEntity target : fireball.getWorld().getNearbyEntities(
+        for (Entity entity : fireball.getWorld().getNearbyEntities(
                 fireball.getLocation(), EXPLOSION_RADIUS, EXPLOSION_RADIUS, EXPLOSION_RADIUS,
                 entity -> entity instanceof Monster && !entity.equals(shooter))) {
-            if (target.isDead()) continue;
-            target.damage(attackPower, shooter);
+            if (!(entity instanceof Monster monster) || monster.isDead()) continue;
+            monster.damage(attackPower, shooter);
         }
     }
 
