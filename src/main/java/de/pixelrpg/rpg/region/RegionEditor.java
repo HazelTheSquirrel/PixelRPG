@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.region;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -11,7 +12,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.NamespacedKey;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -32,14 +32,8 @@ public final class RegionEditor {
         this.toolKey = new NamespacedKey(plugin, "region_editor_tool");
     }
 
-    public void start() {
-        visualizationTask = plugin.getServer().getScheduler().runTaskTimer(plugin, this::visualize, 1L, 2L);
-    }
-
-    public void shutdown() {
-        if (visualizationTask != null) visualizationTask.cancel();
-        sessions.clear();
-    }
+    public void start() { visualizationTask = plugin.getServer().getScheduler().runTaskTimer(plugin, this::visualize, 1L, 2L); }
+    public void shutdown() { if (visualizationTask != null) visualizationTask.cancel(); sessions.clear(); }
 
     public void begin(Player player, String name, RegionType type, int minY, int maxY) {
         sessions.put(player.getUniqueId(), new Session(UUID.randomUUID(), name, type, minY, maxY));
@@ -60,12 +54,9 @@ public final class RegionEditor {
             return true;
         }
         RegionPoint point = new RegionPoint(clicked.getBlockX() + 0.5D, clicked.getBlockZ() + 0.5D);
-        if (!session.points.isEmpty()) {
-            RegionPoint last = session.points.getLast();
-            if (last.equals(point)) {
-                player.sendMessage(Component.text("Dieser Punkt ist bereits der letzte gesetzte Punkt.", NamedTextColor.RED));
-                return true;
-            }
+        if (!session.points.isEmpty() && session.points.getLast().equals(point)) {
+            player.sendMessage(Component.text("Dieser Punkt ist bereits der letzte gesetzte Punkt.", NamedTextColor.RED));
+            return true;
         }
         session.points.add(point);
         session.finished = false;
@@ -88,19 +79,10 @@ public final class RegionEditor {
     public void confirm(Player player) {
         Session session = sessions.get(player.getUniqueId());
         if (session == null) return;
-        if (!session.finished) {
-            player.sendMessage(Component.text("Bitte zuerst /pixelrpgadmin region finish ausführen.", NamedTextColor.YELLOW));
-            return;
-        }
-        if (session.worldName == null) {
-            player.sendMessage(Component.text("Es wurde noch kein Punkt gesetzt.", NamedTextColor.RED));
-            return;
-        }
+        if (!session.finished) { player.sendMessage(Component.text("Bitte zuerst /pixelrpgadmin region finish ausführen.", NamedTextColor.YELLOW)); return; }
+        if (session.worldName == null) { player.sendMessage(Component.text("Es wurde noch kein Punkt gesetzt.", NamedTextColor.RED)); return; }
         RegionGeometry.ValidationResult result = regions.create(session.id, session.worldName, session.points, session.minY, session.maxY, session.name, session.type);
-        if (!result.valid()) {
-            player.sendMessage(Component.text("Region konnte nicht erstellt werden: " + result.error(), NamedTextColor.RED));
-            return;
-        }
+        if (!result.valid()) { player.sendMessage(Component.text("Region konnte nicht erstellt werden: " + result.error(), NamedTextColor.RED)); return; }
         sessions.remove(player.getUniqueId());
         removeTools(player);
         player.sendMessage(Component.text("Region „" + session.name + "“ erstellt. ID: " + session.id, NamedTextColor.GREEN));
@@ -129,7 +111,10 @@ public final class RegionEditor {
     }
 
     private void removeTools(Player player) {
-        player.getInventory().removeIf(this::isTool);
+        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
+            ItemStack item = player.getInventory().getItem(slot);
+            if (isTool(item)) player.getInventory().setItem(slot, null);
+        }
     }
 
     private void visualize() {
@@ -143,7 +128,7 @@ public final class RegionEditor {
             for (int i = 0; i < session.points.size(); i++) {
                 RegionPoint point = session.points.get(i);
                 Location marker = new Location(world, point.x(), y, point.z());
-                for (int j = 0; j < 6; j++) player.spawnParticle(Particle.END_ROD, marker.clone().add(0, j * 1.0D, 0), 2, 0.05, 0.05, 0.05, 0.0);
+                for (int j = 0; j < 6; j++) player.spawnParticle(Particle.END_ROD, marker.clone().add(0, j, 0), 2, 0.05, 0.05, 0.05, 0.0);
                 if (i > 0) drawLine(player, world, session.points.get(i - 1), point, y);
             }
             if (session.points.size() >= 2) drawLine(player, world, session.points.getLast(), session.points.getFirst(), y);
@@ -151,10 +136,9 @@ public final class RegionEditor {
     }
 
     private void drawLine(Player player, World world, RegionPoint a, RegionPoint b, double y) {
-        double dx = b.x() - a.x();
-        double dz = b.z() - a.z();
+        double dx = b.x() - a.x(), dz = b.z() - a.z();
         double length = Math.sqrt(dx * dx + dz * dz);
-        int steps = Math.max(1, (int) Math.ceil(length * 2.0D));
+        int steps = Math.max(1, (int) Math.ceil(length * 1.5D));
         for (int i = 0; i <= steps; i++) {
             double t = i / (double) steps;
             player.spawnParticle(Particle.END_ROD, new Location(world, a.x() + dx * t, y, a.z() + dz * t), 1, 0, 0, 0, 0);
@@ -170,8 +154,6 @@ public final class RegionEditor {
         private final ArrayList<RegionPoint> points = new ArrayList<>();
         private String worldName;
         private boolean finished;
-        private Session(UUID id, String name, RegionType type, int minY, int maxY) {
-            this.id = id; this.name = name; this.type = type; this.minY = minY; this.maxY = maxY;
-        }
+        private Session(UUID id, String name, RegionType type, int minY, int maxY) { this.id = id; this.name = name; this.type = type; this.minY = minY; this.maxY = maxY; }
     }
 }
