@@ -34,9 +34,9 @@ public final class StatEngine {
     private static final double MAX_CRIT_DAMAGE_MULTIPLIER = 10.0D;
 
     public record CachedStats(double maxHealth, double armor, double movementSpeedBonus, double blockReach,
-                              double entityReach, double bonusDamage, double critChance,
-                              double critDamageMultiplier, double lifestealBonus, double attackPower) {
-        public static final CachedStats EMPTY = new CachedStats(BASE_HEALTH, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D,
+                              double entityReach, double critChance, double critDamageMultiplier,
+                              double lifestealBonus, double attackPower) {
+        public static final CachedStats EMPTY = new CachedStats(BASE_HEALTH, 0.0D, 0.0D, 0.0D, 0.0D,
                 BASE_CRIT_CHANCE, BASE_CRIT_DAMAGE_MULTIPLIER, 0.0D, 0.0D);
         public double reach() { return Math.max(blockReach, entityReach); }
     }
@@ -62,21 +62,20 @@ public final class StatEngine {
         double itemHealth = sum(player, playerLevel, RPGKeys.Item.healthBonus());
         double itemCritChance = sum(player, playerLevel, RPGKeys.Item.critChance());
         double itemCritDamage = sum(player, playerLevel, RPGKeys.Item.critDamage());
-        double itemDamage = sum(player, playerLevel, RPGKeys.Item.bonusDamage());
         double itemLifesteal = sum(player, playerLevel, RPGKeys.Item.lifestealPercent());
         double itemReach = sum(player, playerLevel, RPGKeys.Item.reachBonus());
         double itemMovementSpeed = sum(player, playerLevel, RPGKeys.Item.movementSpeed());
+        double itemAttackPower = sum(player, playerLevel, RPGKeys.Item.attackPower());
 
         Map<String, Double> setBonus = equipmentSets == null ? Map.of() : equipmentSets.bonuses(player, playerLevel);
         itemHealth += setBonus.getOrDefault("HP", 0.0D);
         itemArmor += setBonus.getOrDefault("ARMOR", 0.0D);
         itemMovementSpeed += setBonus.getOrDefault("MOVEMENT_SPEED", 0.0D);
         itemReach += setBonus.getOrDefault("REACH", 0.0D);
-        itemDamage += setBonus.getOrDefault("DAMAGE", 0.0D);
         itemCritChance += setBonus.getOrDefault("CRIT", 0.0D) + setBonus.getOrDefault("CRIT_CHANCE", 0.0D);
         itemCritDamage += setBonus.getOrDefault("CRIT_DAMAGE", 0.0D);
         itemLifesteal += setBonus.getOrDefault("LIFESTEAL", 0.0D);
-        double setAttackPower = setBonus.getOrDefault("ATTACK_POWER", 0.0D);
+        itemAttackPower += setBonus.getOrDefault("ATTACK_POWER", 0.0D);
 
         CompanionPassiveStats companion = activeCompanionPassiveStats(player.getUniqueId());
         double maxHealth = Math.max(BASE_HEALTH, BASE_HEALTH + itemHealth + companion.hp());
@@ -84,14 +83,13 @@ public final class StatEngine {
         double movementSpeedBonus = itemMovementSpeed + companion.movementSpeed();
         double blockReach = itemReach + companion.reach();
         double entityReach = itemReach + companion.reach();
-        double bonusDamage = Math.max(0.0D, itemDamage + companion.damage());
         double critChance = Math.clamp(itemCritChance + companion.crit(), 0.0D, MAX_CRIT_CHANCE);
         double critDamageMultiplier = Math.clamp(BASE_CRIT_DAMAGE_MULTIPLIER + itemCritDamage + companion.critDamage(), 1.0D, MAX_CRIT_DAMAGE_MULTIPLIER);
         double lifestealBonus = Math.max(0.0D, itemLifesteal + companion.lifesteal());
-        double attackPower = Math.max(0.0D, itemDamage + setAttackPower + companion.damage() + companion.attackPower());
+        double attackPower = Math.max(0.0D, itemAttackPower + companion.damage() + companion.attackPower());
 
         CachedStats stats = new CachedStats(maxHealth, armor, movementSpeedBonus, blockReach, entityReach,
-                bonusDamage, critChance, critDamageMultiplier, lifestealBonus, attackPower);
+                critChance, critDamageMultiplier, lifestealBonus, attackPower);
         cache.put(player.getUniqueId(), stats);
         applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), maxHealth - BASE_HEALTH);
         applyModifier(player, Attribute.ARMOR, RPGKeys.Stats.armor(), armor);
@@ -125,7 +123,6 @@ public final class StatEngine {
             case ARMOR -> stats.armor();
             case MOVEMENT_SPEED -> stats.movementSpeedBonus();
             case REACH -> stats.reach();
-            case DAMAGE -> stats.bonusDamage();
             case CRIT -> stats.critChance();
             case CRIT_DAMAGE -> stats.critDamageMultiplier();
             case LIFESTEAL -> stats.lifestealBonus();
