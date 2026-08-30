@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.equipment;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
 import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
@@ -25,7 +26,7 @@ public final class EquipmentService implements Listener {
     private final StatEngine statEngine;
     private final EquipmentSetService equipmentSetService;
 
-    public EquipmentService(PlayerProfileManager profileManager, StatEngine statEngine) {
+    public EquipmentService(PlayerProfileManager profileManager, StatEngine statEngine, ItemService ignoredItemService) {
         this.profileManager = profileManager;
         this.statEngine = statEngine;
         this.equipmentSetService = new EquipmentSetService(PixelRPGPlugin.getInstance());
