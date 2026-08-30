@@ -6,11 +6,12 @@ import de.pixelrpg.rpg.item.ItemCategory;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
-import io.papermc.paper.event.player.PlayerSwapWithEquipmentSlotEvent;
+import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -18,6 +19,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.inventory.EquipmentSlot as BukkitEquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
@@ -26,10 +28,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Validates PixelRPG equipment placement while leaving all actual inventory movement to Minecraft.
- * The live PlayerInventory remains the source of truth for the six stat-bearing equipment slots.
- */
+/** Validates equipment placement while leaving successful inventory movement entirely to Minecraft. */
 public final class EquipmentService implements Listener {
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
@@ -55,11 +54,7 @@ public final class EquipmentService implements Listener {
         return result;
     }
 
-    /**
-     * Checks whether an item is allowed to occupy the supplied PixelRPG equipment slot.
-     * Vanilla items are deliberately accepted here so Minecraft remains responsible for all
-     * native equip rules; PixelRPG only adds restrictions to identified PixelRPG items.
-     */
+    /** Checks whether an item is allowed to occupy the supplied PixelRPG equipment slot. */
     public boolean canUseSlot(ItemStack item, EquipmentSlot slot) {
         if (item == null || item.isEmpty() || !itemService.isRPGItem(item)) return true;
         if (!item.hasItemMeta()) return false;
@@ -106,7 +101,6 @@ public final class EquipmentService implements Listener {
         profileManager.getProfile(player.getUniqueId()).ifPresent(profile -> {
             Map<EquipmentSlot, ItemStack> stored = profile.getEquipment();
             if (stored.isEmpty()) {
-                syncToProfile(player);
                 statEngine.recalculate(player);
                 return;
             }
@@ -122,7 +116,6 @@ public final class EquipmentService implements Listener {
         });
     }
 
-    /** Recalculates equipment-derived state after Minecraft has completed an allowed equipment transaction. */
     public void refresh(Player player) {
         int playerLevel = profileManager.getProfile(player.getUniqueId())
                 .map(profile -> profile.getLevel())
@@ -150,8 +143,111 @@ public final class EquipmentService implements Listener {
         };
     }
 
-    private Optional<EquipmentSlot> pixelRpgSlot(org.bukkit.inventory.EquipmentSlot slot) {
-        return switch (slot) {
+    private boolean validate(ItemStack item, EquipmentSlot target) {
+        return item == null || item.isEmpty() || canUseSlot(item, target);
+    }
+
+    /** Validates F-key mainhand/offhand swaps against their actual destination slots. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onSwapHandItems(PlayerSwapHandItemsEvent event) {
+        if (!validate(event.getMainHandItem(), EquipmentSlot.OFFHAND)
+                || !validate(event.getOffHandItem(), EquipmentSlot.MAINHAND)) {
+            cancelAndResync(event.getPlayer());
+        }
+    }
+
+    /** Validates every inventory click that can put an item into a protected equipment slot. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+
+        if (event.getClick() == ClickType.SWAP_OFFHAND) {
+            ItemStack clicked = event.getCurrentItem();
+            if (!validate(player.getInventory().getItemInOffHand(), EquipmentSlot.MAINHAND)
+                    || !validate(clicked, EquipmentSlot.OFFHAND)) {
+                cancelAndResync(player);
+            }
+            return;
+        }
+
+        Optional<EquipmentSlot> target = event.getClickedInventory() instanceof PlayerInventory
+                ? slotForPlayerInventory(event.getSlot())
+                : Optional.empty();
+
+        if (target.isPresent()) {
+            ItemStack incoming = incomingItemForClick(event, player);
+            if (!validate(incoming, target.get())) {
+                cancelAndResync(player);
+                return;
+            }
+        }
+
+        if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
+                && event.getClickedInventory() instanceof PlayerInventory) {
+            ItemStack source = event.getCurrentItem();
+            Optional<EquipmentSlot> autoEquipTarget = vanillaAutoEquipTarget(source);
+            if (autoEquipTarget.isPresent() && !validate(source, autoEquipTarget.get())) {
+                cancelAndResync(player);
+            }
+        }
+    }
+
+    /** Validates every destination slot affected by an inventory drag before Minecraft applies the drag. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+
+        for (Map.Entry<Integer, ItemStack> entry : event.getNewItems().entrySet()) {
+            Optional<EquipmentSlot> target = equipmentSlotForRawSlot(player, entry.getKey(), event.getView());
+            if (target.isPresent() && !validate(entry.getValue(), target.get())) {
+                cancelAndResync(player);
+                return;
+            }
+        }
+    }
+
+    /** Repairs any invalid PixelRPG item that nevertheless reaches an equipment slot through an unmodelled vanilla action. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onInventorySlotChange(PlayerInventorySlotChangeEvent event) {
+        Optional<EquipmentSlot> target = slotForPlayerInventory(event.getSlot());
+        if (target.isEmpty()) return;
+
+        ItemStack newItem = event.getNewItemStack();
+        if (newItem.isEmpty() || canUseSlot(newItem, target.get())) return;
+
+        Player player = event.getPlayer();
+        player.getScheduler().runDelayed(PixelRPGPlugin.getInstance(), task -> {
+            ItemStack current = player.getInventory().getItem(event.getSlot());
+            if (current.isEmpty() || canUseSlot(current, target.get())) return;
+
+            ItemStack rejected = current.clone();
+            player.getInventory().setItem(event.getSlot(), null);
+            returnToInventory(player, rejected);
+            player.updateInventory();
+        }, null, 1L);
+    }
+
+    private ItemStack incomingItemForClick(InventoryClickEvent event, Player player) {
+        return switch (event.getAction()) {
+            case PLACE_ALL, PLACE_ONE, PLACE_SOME, SWAP_WITH_CURSOR -> event.getCursor();
+            case HOTBAR_SWAP, HOTBAR_MOVE_AND_READD -> {
+                int button = event.getHotbarButton();
+                yield button >= 0 ? player.getInventory().getItem(button) : player.getInventory().getItemInOffHand();
+            }
+            case MOVE_TO_OTHER_INVENTORY -> event.getCurrentItem();
+            default -> null;
+        };
+    }
+
+    private Optional<EquipmentSlot> vanillaAutoEquipTarget(ItemStack item) {
+        if (item == null || item.isEmpty()) return Optional.empty();
+        if (itemService.isRPGItem(item)) {
+            Optional<EquipmentSlot> explicit = explicitEquipmentSlot(item);
+            if (explicit.isPresent()) return explicit;
+        }
+
+        BukkitEquipmentSlot vanillaSlot = item.getType().getEquipmentSlot();
+        return switch (vanillaSlot) {
             case HEAD -> Optional.of(EquipmentSlot.HELMET);
             case CHEST -> Optional.of(EquipmentSlot.CHEST);
             case LEGS -> Optional.of(EquipmentSlot.LEGS);
@@ -162,119 +258,10 @@ public final class EquipmentService implements Listener {
         };
     }
 
-    private boolean validate(ItemStack item, EquipmentSlot target) {
-        return item == null || item.isEmpty() || canUseSlot(item, target);
-    }
-
-    private boolean validateHandSwap(PlayerSwapWithEquipmentSlotEvent event) {
-        EquipmentSlot target = pixelRpgSlot(event.getSlot()).orElse(null);
-        if (target == null) return true;
-
-        if (!validate(event.getItemInHand(), target)) return false;
-
-        // The item currently in the equipment slot is moved back into the hand.
-        // Determine the actual hand from the live inventory because the Paper event intentionally
-        // exposes only that the source is one of the two hand slots.
-        PlayerInventory inventory = event.getPlayer().getInventory();
-        if (inventory.getItemInMainHand().isSimilar(event.getItemInHand())) {
-            return validate(event.getItemToSwap(), EquipmentSlot.MAINHAND);
-        }
-        return validate(event.getItemToSwap(), EquipmentSlot.OFFHAND);
-    }
-
-    /** Validates every Paper equipment-slot swap before Minecraft applies the swap. */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onSwapWithEquipmentSlot(PlayerSwapWithEquipmentSlotEvent event) {
-        if (!validateHandSwap(event)) event.setCancelled(true);
-    }
-
-    /** Validates the native F-key mainhand/offhand transaction without manually changing either slot. */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onSwapHandItems(PlayerSwapHandItemsEvent event) {
-        if (!validate(event.getMainHandItem(), EquipmentSlot.MAINHAND)
-                || !validate(event.getOffHandItem(), EquipmentSlot.OFFHAND)) {
-            event.setCancelled(true);
-        }
-    }
-
-    /** Validates inventory clicks that can place, swap, or hotbar-swap an item into an equipment slot. */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
-
-        EquipmentSlot clickedEquipmentSlot = null;
-        if (event.getClickedInventory() instanceof PlayerInventory) {
-            clickedEquipmentSlot = slotForPlayerInventory(event.getSlot()).orElse(null);
-        }
-
-        if (event.getClick().isKeyboardClick() && event.getClick() == org.bukkit.event.inventory.ClickType.SWAP_OFFHAND) {
-            ItemStack clicked = event.getCurrentItem();
-            if (clickedEquipmentSlot != null) {
-                if (!validate(player.getInventory().getItemInOffHand(), clickedEquipmentSlot)
-                        || !validate(clicked, EquipmentSlot.OFFHAND)) {
-                    event.setCancelled(true);
-                    return;
-                }
-            } else if (!validate(clicked, EquipmentSlot.OFFHAND)) {
-                event.setCancelled(true);
-                return;
-            }
-            return;
-        }
-
-        if (clickedEquipmentSlot != null) {
-            ItemStack incoming = switch (event.getAction()) {
-                case PLACE_ALL, PLACE_ONE, PLACE_SOME, SWAP_WITH_CURSOR -> event.getCursor();
-                case HOTBAR_SWAP, HOTBAR_MOVE_AND_READD -> {
-                    int button = event.getHotbarButton();
-                    yield button >= 0 ? player.getInventory().getItem(button) : player.getInventory().getItemInOffHand();
-                }
-                default -> null;
-            };
-
-            if (incoming != null && !incoming.isEmpty() && !validate(incoming, clickedEquipmentSlot)) {
-                event.setCancelled(true);
-                return;
-            }
-        }
-
-        if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
-                && event.getClickedInventory() != player.getInventory()) {
-            ItemStack source = event.getCurrentItem();
-            if (source != null && !source.isEmpty() && itemService.isRPGItem(source)) {
-                Optional<EquipmentSlot> vanillaTarget = pixelRpgSlot(source.getType().getEquipmentSlot());
-                Optional<EquipmentSlot> pixelTarget = equipmentSlotFor(source);
-                if (vanillaTarget.isPresent() && pixelTarget.isPresent() && vanillaTarget.get() != pixelTarget.get()) {
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-        }
-    }
-
-    /** Validates every raw slot affected by a drag before any of the drag changes are applied. */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onInventoryDrag(InventoryDragEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
-
-        for (Map.Entry<Integer, ItemStack> entry : event.getNewItems().entrySet()) {
-            Optional<EquipmentSlot> target = equipmentSlotForRawSlot(player, entry.getKey(), event.getView());
-            if (target.isPresent() && !validate(entry.getValue(), target.get())) {
-                event.setCancelled(true);
-                return;
-            }
-        }
-    }
-
-    private Optional<EquipmentSlot> equipmentSlotForRawSlot(Player player, int rawSlot, org.bukkit.inventory.InventoryView view) {
-        if (view.getInventory(rawSlot) != player.getInventory()) return Optional.empty();
-        return slotForPlayerInventory(view.convertSlot(rawSlot));
-    }
-
-    private Optional<EquipmentSlot> equipmentSlotFor(ItemStack item) {
-        if (item == null || item.isEmpty() || !itemService.isRPGItem(item)) return Optional.empty();
+    private Optional<EquipmentSlot> explicitEquipmentSlot(ItemStack item) {
         if (!item.hasItemMeta()) return Optional.empty();
-        String explicit = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.equipmentSlot(), PersistentDataType.STRING);
+        String explicit = item.getItemMeta().getPersistentDataContainer()
+                .get(RPGKeys.Item.equipmentSlot(), PersistentDataType.STRING);
         if (explicit == null || explicit.isBlank()) return Optional.empty();
         try {
             return Optional.of(EquipmentSlot.valueOf(explicit.trim().toUpperCase()));
@@ -283,48 +270,30 @@ public final class EquipmentService implements Listener {
         }
     }
 
-    /** Recalculates stats after a non-cancelled inventory click has completed on the next tick. */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onInventoryClickRefresh(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
-        if (!equipmentTransactionMayAffectEquipment(event)) return;
-        scheduleRefresh(player);
+    private Optional<EquipmentSlot> equipmentSlotForRawSlot(Player player, int rawSlot, org.bukkit.inventory.InventoryView view) {
+        if (rawSlot < 0 || rawSlot >= view.countSlots()) return Optional.empty();
+        if (view.getInventory(rawSlot) != player.getInventory()) return Optional.empty();
+        return slotForPlayerInventory(view.convertSlot(rawSlot));
     }
 
-    /** Recalculates stats after a non-cancelled inventory drag has completed on the next tick. */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onInventoryDragRefresh(InventoryDragEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
-        if (event.getNewItems().keySet().stream().noneMatch(raw -> equipmentSlotForRawSlot(player, raw, event.getView()).isPresent())) return;
-        scheduleRefresh(player);
+    private void cancelAndResync(Player player) {
+        if (player.getOpenInventory() != null) {
+            player.getScheduler().runDelayed(PixelRPGPlugin.getInstance(), task -> player.updateInventory(), null, 1L);
+        }
     }
 
-    /** Recalculates stats after a successful mainhand/offhand swap has completed. */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onSwapHandItemsRefresh(PlayerSwapHandItemsEvent event) {
-        scheduleRefresh(event.getPlayer());
+    private void cancelAndResync(InventoryClickEvent event) {
+        event.setCancelled(true);
+        cancelAndResync((Player) event.getWhoClicked());
     }
 
-    /** Recalculates stats after a successful equipment-slot swap has completed. */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onSwapWithEquipmentSlotRefresh(PlayerSwapWithEquipmentSlotEvent event) {
-        scheduleRefresh(event.getPlayer());
-    }
-
-    private boolean equipmentTransactionMayAffectEquipment(InventoryClickEvent event) {
-        if (event.getClick() == org.bukkit.event.inventory.ClickType.SWAP_OFFHAND) return true;
-        if (event.getClickedInventory() instanceof PlayerInventory
-                && slotForPlayerInventory(event.getSlot()).isPresent()) return true;
-        return event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
-                && event.getClickedInventory() != null
-                && !(event.getClickedInventory() instanceof PlayerInventory)
-                && event.getCurrentItem() != null
-                && !event.getCurrentItem().isEmpty()
-                && equipmentSlotFor(event.getCurrentItem()).isPresent();
-    }
-
-    private void scheduleRefresh(Player player) {
-        player.getScheduler().runDelayed(PixelRPGPlugin.getInstance(), task -> refresh(player), null, 1L);
+    private void returnToInventory(Player player, ItemStack item) {
+        Map<Integer, ItemStack> leftovers = player.getInventory().addItem(item);
+        if (!leftovers.isEmpty()) {
+            for (ItemStack leftover : leftovers.values()) {
+                player.getWorld().dropItemNaturally(player.getLocation(), leftover);
+            }
+        }
     }
 
     /** Restores persisted equipment after the player has joined and the vanilla inventory is available. */
