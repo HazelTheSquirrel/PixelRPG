@@ -85,6 +85,11 @@ import de.pixelrpg.rpg.stats.StatisticsService;
 import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryManager;
 import de.pixelrpg.rpg.travel.GuildCompassListener;
+import de.pixelrpg.rpg.guild.GuildManager;
+import de.pixelrpg.rpg.region.RegionEditor;
+import de.pixelrpg.rpg.region.RegionListener;
+import de.pixelrpg.rpg.region.RegionManager;
+import de.pixelrpg.rpg.region.RegionRepository;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
@@ -121,6 +126,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private PlaytimeTracker playtimeTracker;
     private CompanionService companionService;
     private CombatDamageListener combatDamageListener;
+    private RegionManager regionManager;
+    private RegionEditor regionEditor;
 
     @Override
     public void onEnable() {
@@ -159,6 +166,14 @@ public final class PixelRPGPlugin extends JavaPlugin {
         globalEventState.load();
         questManager = new QuestManager(this, questRepository, playerProfileManager, playerProfileManager, globalEventState, partyManager.getShareRange());
         questManager.startTimerCheckTask();
+
+        GuildManager.getInstance(this, playerProfileManager);
+        RegionRepository regionRepository = new RegionRepository(getDataFolder(), getLogger());
+        regionManager = new RegionManager(regionRepository);
+        regionManager.load();
+        regionEditor = new RegionEditor(this, regionManager);
+        regionEditor.start();
+        getServer().getPluginManager().registerEvents(new RegionListener(regionManager, regionEditor), this);
 
         BossAttackPatternRegistry patternRegistry = new BossAttackPatternRegistry();
         patternRegistry.register(new SlamAttackPattern());
@@ -249,6 +264,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         rootCommand.register(new ShopSubCommand(shopManager, shopEditorGUI, npcManager));
         rootCommand.register(new QuestAdminSubCommand(questManager));
         rootCommand.register(new BossSubCommand(bossRepository, bossManager));
+        rootCommand.register(new RegionSubCommandAdapter(regionManager, regionEditor, GuildManager.getInstance()));
         PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
         PaperBasicCommandAdapter rpgAdminCommand = new PaperBasicCommandAdapter("pixelrpgadmin", rootCommand, rootCommand, "rpg.admin");
         PaperBasicCommandAdapter partyAdapter = new PaperBasicCommandAdapter("pixelrpgparty", partyCommand, partyCommand, "rpg.member");
@@ -265,6 +281,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (regionEditor != null) regionEditor.shutdown();
         if (questPassiveCheckTask != null) questPassiveCheckTask.stop();
         if (biomeBossSpawnTask != null) biomeBossSpawnTask.stop();
         if (mobLevelScalingListener != null) mobLevelScalingListener.shutdown();
@@ -278,7 +295,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     }
 
     public static PixelRPGPlugin getInstance() { return instance; }
-
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
     public StatEngine getStatEngine() { return statEngine; }
     public ProfessionSystem getProfessionSystem() { return professionSystem; }
@@ -297,4 +313,19 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public StatisticsService getStatisticsService() { return statisticsService; }
     public ScoreboardService getScoreboardService() { return scoreboardService; }
     public CompanionService getCompanionService() { return companionService; }
+    public RegionManager getRegionManager() { return regionManager; }
+    public RegionEditor getRegionEditor() { return regionEditor; }
+
+    private static final class RegionSubCommandAdapter implements de.pixelrpg.rpg.command.SubCommand {
+        private final de.pixelrpg.rpg.command.impl.RegionSubCommand delegate;
+        private RegionSubCommandAdapter(RegionManager regions, RegionEditor editor, GuildManager guilds) {
+            this.delegate = new de.pixelrpg.rpg.command.impl.RegionSubCommand(regions, editor, guilds);
+        }
+        @Override public String name() { return delegate.name(); }
+        @Override public String permission() { return delegate.permission(); }
+        @Override public String description() { return delegate.description(); }
+        @Override public String usage() { return delegate.usage(); }
+        @Override public boolean execute(org.bukkit.command.CommandSender sender, String[] args) { return delegate.execute(sender, args); }
+        @Override public java.util.List<String> tabComplete(org.bukkit.command.CommandSender sender, String[] args) { return delegate.tabComplete(sender, args); }
+    }
 }
