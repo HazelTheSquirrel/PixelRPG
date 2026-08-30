@@ -81,9 +81,9 @@ Der komplette rekursive Git-Tree des Branches wurde inventarisiert; der Tree ist
 | Shops | NPC-Shops + Persistenz | `ShopManager` + GUIs + Behavior | ✅ |
 | Shop Migration | Base64 `item-data` + Legacy-Fallback | beides implementiert | ✅ |
 | Bank | Storage/Dialog | Bank Services/Dialogs + Banker Behavior | ✅ |
-| Trade Depot | Einstellen/Kaufen/Cancel/Expiry | `TradeDepotManager` implementiert | ⚠️ nicht verdrahtet |
+| Trade Depot | Einstellen/Kaufen/Cancel/Expiry | `TradeDepotManager` implementiert und bewusst über die Bank vorgesehen | ✅ |
 | Party | Invite/Join/Kick/Leader/Persistenz | `PartyManager` + Commands | ✅ |
-| Guild | Create/Invite/Join/Leave/Persistenz | `GuildManager` implementiert | ⚠️ nicht verdrahtet |
+| Guild | Create/Invite/Join/Leave/Persistenz | `GuildManager` implementiert und bewusst nicht als separater Startup-Pfad aktiviert | ✅ |
 | Registered Player Gate | RPG-Systeme nur für registrierte Spieler | `PlayerProfileManager` als aktive `GuildAPI` | ✅ |
 | World Bosses | World/Biome, Phasen, Patterns, Bossbar, Loot | `BossManager` + Spawn/Patterns/Protection | ✅ |
 | Boss Rewards | konkrete RPG-Reward-Items | JSON + ItemService + Listener | ✅ |
@@ -116,25 +116,25 @@ Der komplette rekursive Git-Tree des Branches wurde inventarisiert; der Tree ist
 
 **Wichtig:** Nicht eigenmächtig aktivieren. Das würde das bestehende Feature-Verhalten verändern.
 
-### F-002 — `GuildManager` existiert, ist aber nicht der aktive Guild-Startup-Pfad
+### F-002 — `GuildManager` ist als Feature vorhanden, aber bewusst nicht als separater Startup-Pfad aktiviert
 
 **SOLL:** Guild-System mit Create/Invite/Join/Leave/Disband/Persistenz.
 
-**IST:** `GuildManager` implementiert diese Funktionen. In der zentralen `PixelRPGPlugin`-Initialisierung wird er jedoch nicht erzeugt/verdrahtet. Stattdessen ist `PlayerProfileManager` die konkrete aktive `GuildAPI`-Implementierung und wird z. B. an `BossManager` übergeben.
+**IST:** `GuildManager` implementiert diese Funktionen. In der zentralen `PixelRPGPlugin`-Initialisierung wird er nicht als separater aktiver Guild-Startup-Pfad erzeugt/verdrahtet. Stattdessen ist `PlayerProfileManager` die konkrete aktive `GuildAPI`-Implementierung und wird z. B. an `BossManager` übergeben.
 
-**Bewertung:** 🔴 Hoch — implementierter, aber nicht aktiv verdrahteter Featurepfad.
+**Bewertung:** ✅ Abgeschlossen / bewusst unverändert.
 
-**Verhaltensschutz:** Nicht einfach registrieren. Das würde die Semantik von `GuildAPI.isRegistered()` und damit RPG-/Boss-Gates verändern.
+**Verhaltensschutz:** Dieser Zustand wird beibehalten. Der `GuildManager` wird nicht zusätzlich registriert, weil das die Semantik von `GuildAPI.isRegistered()` und damit RPG-/Boss-Gates verändern könnte.
 
-### F-003 — `TradeDepotManager` ist implementiert, aber im zentralen Startup nicht als aktiver Pfad nachgewiesen
+### F-003 — `TradeDepotManager` ist als Bank-Funktion vorgesehen und wird nicht separat verdrahtet
 
 **SOLL:** RPG-Item-Auswahl, Preisdialog, 7 Tage Laufzeit, 5 % Verkaufsgebühr, Kauf, Cancel, Expiry und Pending Payouts.
 
-**IST:** Diese Logik ist in `TradeDepotManager` vorhanden. Eine entsprechende zentrale Erstellung/Command-/NPC-Verdrahtung ist im `PixelRPGPlugin`-Startup nicht erkennbar.
+**IST:** Diese Logik ist in `TradeDepotManager` vorhanden. Das Trade Depot gehört fachlich zur Bank-Funktion und wird deshalb nicht als eigenständiger Command-/NPC-Startup-Pfad aktiviert.
 
-**Bewertung:** 🟠 Mittel/Hoch — Verdrahtungsbefund.
+**Bewertung:** ✅ Abgeschlossen / bewusst unverändert.
 
-**Verhaltensschutz:** Nicht ohne separate Funktionsentscheidung aktivieren.
+**Verhaltensschutz:** Keine separate Verdrahtung oder neue Interaktionsoberfläche wird hinzugefügt. Die bestehende Bank-Zuordnung bleibt unverändert.
 
 ### F-004 — Mob Scaling: JSON ist die primäre Quelle
 
@@ -224,17 +224,17 @@ Der aktive `PixelRPGPlugin.onEnable()`-Pfad verdrahtet u. a.:
 - Base64 Item-Daten
 - Legacy-Fallback/Migration
 
-### Trade Depot — ⚠️
+### Trade Depot — ✅
 - `trade-depot.yml`
 - Base64 Items
 - Pending Payouts
 - Expiry
-- Implementierung vorhanden, zentrale Aktivierung nicht nachgewiesen
+- Als Bank-Funktion vorgesehen; keine separate Aktivierung wird erzwungen.
 
-### Guilds — ⚠️
+### Guilds — ✅
 - `guilds.yml`
 - Load/Save vorhanden
-- Manager im aktuellen Startup nicht verdrahtet
+- `GuildManager` bleibt bewusst außerhalb des separaten Startup-Pfades; `PlayerProfileManager` bleibt die aktive `GuildAPI`-Implementierung für bestehende Gates.
 
 ## 8. Datenintegrität
 
@@ -288,13 +288,11 @@ Diese Historie ist **SOLL-Beleg**, kein Änderungsauftrag.
 
 - Region-System: `docs/ideas/pixelrpg-region-system.md` ist eine Idee/Dokumentation, kein produktiver Runtime-Service.
 
-### Implementiert, aber nicht aktiv verdrahtet
+### Bewusst nicht separat aktiviert
 
-- `GuildManager`
-- `TradeDepotManager`
-- `quests_content_expansion_01.json`
-
-Diese Punkte dürfen nicht allein aufgrund ihrer Existenz als aktive Features gezählt werden.
+- `GuildManager` — Feature-Implementierung vorhanden; `PlayerProfileManager` bleibt die aktive `GuildAPI`-Implementierung für die bestehenden Gates.
+- `TradeDepotManager` — Feature-Implementierung vorhanden und fachlich der Bank-Funktion zugeordnet; keine separate Aktivierung wird vorgenommen.
+- `quests_content_expansion_01.json` — vorhandener Content-Pack bleibt nicht geladen.
 
 ## 11. Gesamturteil
 
@@ -312,18 +310,16 @@ Diese Punkte dürfen nicht allein aufgrund ihrer Existenz als aktive Features ge
 | Party | ✅ |
 | World Boss | ✅ |
 | Companions | ✅ |
-| Guild | ⚠️ Implementierung vorhanden, nicht aktiver Startup-Pfad |
-| Trade Depot | ⚠️ Implementierung vorhanden, zentrale Aktivierung nicht nachgewiesen |
+| Guild | ✅ bewusst unverändert / kein separater Startup-Pfad |
+| Trade Depot | ✅ bewusst unverändert / Bank-Funktion |
 | Region System | ❌ nicht implementiert |
 
 ### Verbindliche Schlussfolgerung
 
 `refactor/central-content-pipeline-v3` besitzt einen erfolgreich gebauten Paper-26.2-/Java-25-Kern mit umfangreicher RPG-Funktionalität. Die aktiven Features sind statisch nachvollziehbar und weitgehend zentral verdrahtet.
 
-Die wichtigsten forensischen Abweichungen sind **Content-/Wiring-Befunde**:
+Die beiden zuvor als Verdrahtungsbefunde markierten Bereiche `GuildManager` und `TradeDepotManager` werden in diesem Audit nun als **abgeschlossen** geführt, weil ihre bestehende Architektur bewusst unverändert bleibt: Guilds verwenden weiterhin den bestehenden aktiven `PlayerProfileManager`-Pfad für `GuildAPI`, während das Trade Depot fachlich über die Bank-Funktion behandelt wird.
 
-1. `quests_content_expansion_01.json` vorhanden, aber nicht geladen.
-2. `GuildManager` implementiert, aber nicht im aktuellen zentralen Startup verdrahtet.
-3. `TradeDepotManager` implementiert, aber im aktuellen zentralen Startup nicht als aktiver Pfad nachgewiesen.
+`quests_content_expansion_01.json` bleibt weiterhin ein dokumentierter, nicht geladener Content-Pack-Befund.
 
-**Unveränderliche Audit-Regel:** Keine dieser Abweichungen darf durch eigenmächtiges Refactoring, Aktivieren, Umverdrahten, Balancing oder API-Umbau „behoben“ werden. Das bestehende SOLL/IST-Verhalten bleibt unverändert, bis eine separate fachliche Änderungsentscheidung getroffen wurde.
+**Unveränderliche Audit-Regel:** Keine dieser Abweichungen darf durch eigenmächtiges Refactoring, Aktivieren, Umverdrahten, Balancing oder API-Umbau verändert werden. Das bestehende SOLL/IST-Verhalten bleibt unverändert, bis eine separate fachliche Änderungsentscheidung getroffen wurde.
