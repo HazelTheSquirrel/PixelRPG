@@ -102,7 +102,7 @@ public final class LootDropListener implements Listener {
     }
 
     private void applyRandomArmorAffixes(ItemStack item, int itemLevel, ItemRarity rarity, ThreadLocalRandom random) {
-        List<String> candidates = new ArrayList<>(List.of("CRIT", "CRIT_DAMAGE", "LIFESTEAL", "DAMAGE", "REACH"));
+        List<String> candidates = new ArrayList<>(List.of("CRIT", "CRIT_DAMAGE", "LIFESTEAL", "ATTACK_POWER", "REACH"));
         java.util.Collections.shuffle(candidates, new java.util.Random(random.nextLong()));
         int count = 1 + random.nextInt(3);
         ItemMeta meta = item.getItemMeta();
@@ -127,10 +127,10 @@ public final class LootDropListener implements Listener {
                     pdc.set(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, value);
                     lore.add(Component.text("+" + format(value) + "% Lifesteal", NamedTextColor.DARK_RED).decoration(TextDecoration.ITALIC, false));
                 }
-                case "DAMAGE" -> {
+                case "ATTACK_POWER" -> {
                     double value = round((0.5D + random.nextDouble() * 1.5D) * rarityMultiplier * scale / 4.0D);
-                    pdc.set(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, value);
-                    lore.add(Component.text("+" + format(value) + " Damage", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+                    pdc.set(RPGKeys.Item.attackPower(), PersistentDataType.DOUBLE, value);
+                    lore.add(Component.text("+" + format(value) + " Angriffskraft", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
                 }
                 case "REACH" -> {
                     double value = round((0.05D + random.nextDouble() * 0.15D) * rarityMultiplier);
