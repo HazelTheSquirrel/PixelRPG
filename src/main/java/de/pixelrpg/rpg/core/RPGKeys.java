@@ -43,10 +43,6 @@ public final class RPGKeys {
         public static NamespacedKey guildItem() { return of("item_guild_marker"); }
         public static NamespacedKey shopPriceTag() { return of("item_shop_price_tag"); }
         public static NamespacedKey instanceId() { return of("item_instance_id"); }
-
-        /** Compatibility alias: damage is represented exclusively by attack power. */
-        @Deprecated(forRemoval = false)
-        public static NamespacedKey bonusDamage() { return attackPower(); }
     }
 
     public static final class Combat {
