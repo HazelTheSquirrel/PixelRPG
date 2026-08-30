@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.region;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -41,18 +42,13 @@ public final class RegionEditor {
         sessions.clear();
     }
 
-    public void begin(Player player, String name, RegionType type, int minY, int maxY) {
-        sessions.put(player.getUniqueId(), new Session(UUID.randomUUID(), name, type, minY, maxY));
+    public void begin(Player player, String name) {
+        sessions.put(player.getUniqueId(), new Session(UUID.randomUUID(), name));
         removeTools(player);
         player.getInventory().addItem(createTool());
-        player.sendMessage(Component.text(
-                "Region-CREATE gestartet. Rechtsklick auf Blöcke setzt Konturpunkte.",
-                NamedTextColor.GREEN
-        ));
-        player.sendMessage(Component.text(
-                "/pixelrpg region finish → validieren | confirm → speichern | cancel → abbrechen",
-                NamedTextColor.GRAY
-        ));
+        player.sendMessage(Component.text("Region-CREATE gestartet: " + name, NamedTextColor.GREEN));
+        player.sendMessage(Component.text("Rechtsklick auf einen Block setzt P1, P2, P3 ...", NamedTextColor.GRAY));
+        player.sendMessage(Component.text("/pixelrpg region finish → prüfen | confirm → speichern | cancel → abbrechen", NamedTextColor.GRAY));
     }
 
     public boolean isEditing(UUID playerId) {
@@ -64,61 +60,42 @@ public final class RegionEditor {
         if (session == null || clicked.getWorld() == null) return false;
         if (session.worldName == null) session.worldName = clicked.getWorld().getName();
         if (!session.worldName.equals(clicked.getWorld().getName())) {
-            player.sendMessage(Component.text(
-                    "Alle Punkte einer Region müssen in derselben Welt liegen.",
-                    NamedTextColor.RED
-            ));
+            player.sendMessage(Component.text("Alle Punkte müssen in derselben Welt liegen.", NamedTextColor.RED));
             return true;
         }
 
         RegionPoint point = new RegionPoint(clicked.getBlockX() + 0.5D, clicked.getBlockZ() + 0.5D);
-        if (!session.points.isEmpty() && session.points.getLast().equals(point)) {
-            player.sendMessage(Component.text(
-                    "Dieser Punkt ist bereits der letzte gesetzte Punkt.",
-                    NamedTextColor.RED
-            ));
+        if (session.points.contains(point)) {
+            player.sendMessage(Component.text("Dieser Punkt wurde bereits gesetzt.", NamedTextColor.RED));
             return true;
         }
 
         session.points.add(point);
         session.finished = false;
-        player.sendMessage(Component.text(
-                "P" + session.points.size() + " gesetzt: " + point.x() + ", " + point.z(),
-                NamedTextColor.AQUA
-        ));
+        player.sendMessage(Component.text("P" + session.points.size() + " gesetzt: " + point.x() + ", " + point.z(), NamedTextColor.AQUA));
         return true;
     }
 
     public void finish(Player player) {
         Session session = sessions.get(player.getUniqueId());
         if (session == null) return;
-
         RegionGeometry.ValidationResult validation = RegionGeometry.validate(session.points);
         if (!validation.valid()) {
-            player.sendMessage(Component.text(
-                    "Polygon ungültig: " + validation.error(),
-                    NamedTextColor.RED
-            ));
+            player.sendMessage(Component.text("Polygon ungültig: " + validation.error(), NamedTextColor.RED));
             return;
         }
-
         session.finished = true;
-        player.sendMessage(Component.text(
-                "Polygon gültig. Fläche: "
-                        + String.format(java.util.Locale.ROOT, "%.2f", validation.geometry().area())
-                        + " Blöcke². Nutze /pixelrpg region confirm zum Erstellen.",
-                NamedTextColor.GREEN
-        ));
+        player.sendMessage(Component.text("Polygon gültig. " + session.points.size() + " Punkte, Fläche "
+                + String.format(java.util.Locale.ROOT, "%.2f", validation.geometry().area())
+                + " Blöcke².", NamedTextColor.GREEN));
+        player.sendMessage(Component.text("/pixelrpg region confirm zum Erstellen.", NamedTextColor.GRAY));
     }
 
     public void confirm(Player player) {
         Session session = sessions.get(player.getUniqueId());
         if (session == null) return;
         if (!session.finished) {
-            player.sendMessage(Component.text(
-                    "Bitte zuerst /pixelrpg region finish ausführen.",
-                    NamedTextColor.YELLOW
-            ));
+            player.sendMessage(Component.text("Bitte zuerst /pixelrpg region finish ausführen.", NamedTextColor.YELLOW));
             return;
         }
         if (session.worldName == null) {
@@ -126,49 +103,46 @@ public final class RegionEditor {
             return;
         }
 
+        World world = plugin.getServer().getWorld(session.worldName);
+        if (world == null) {
+            player.sendMessage(Component.text("Die Welt der Region ist nicht geladen.", NamedTextColor.RED));
+            return;
+        }
+
         RegionGeometry.ValidationResult result = regions.create(
                 session.id,
                 session.worldName,
                 session.points,
-                session.minY,
-                session.maxY,
+                world.getMinHeight(),
+                world.getMaxHeight() - 1,
                 session.name,
-                session.type
+                RegionType.OTHER
         );
         if (!result.valid()) {
-            player.sendMessage(Component.text(
-                    "Region konnte nicht erstellt werden: " + result.error(),
-                    NamedTextColor.RED
-            ));
+            player.sendMessage(Component.text("Region konnte nicht erstellt werden: " + result.error(), NamedTextColor.RED));
             return;
         }
 
         sessions.remove(player.getUniqueId());
         removeTools(player);
-        player.sendMessage(Component.text(
-                "Region „" + session.name + "“ erstellt. ID: " + session.id,
-                NamedTextColor.GREEN
-        ));
+        player.sendMessage(Component.text("Region „" + session.name + "“ erstellt. ID: " + session.id, NamedTextColor.GREEN));
     }
 
     public void cancel(Player player) {
         if (sessions.remove(player.getUniqueId()) != null) {
             removeTools(player);
-            player.sendMessage(Component.text(
-                    "Region-CREATE abgebrochen. Es wurde keine Region verändert.",
-                    NamedTextColor.YELLOW
-            ));
+            player.sendMessage(Component.text("Region-CREATE abgebrochen. Es wurde keine Region verändert.", NamedTextColor.YELLOW));
         }
     }
 
     public boolean isTool(ItemStack item) {
-        if (item == null || item.getType().isAir()) return false;
+        if (item == null || item.getType() != Material.STICK) return false;
         ItemMeta meta = item.getItemMeta();
         return meta != null && meta.getPersistentDataContainer().has(toolKey, PersistentDataType.BYTE);
     }
 
     private ItemStack createTool() {
-        ItemStack item = new ItemStack(org.bukkit.Material.BLAZE_ROD);
+        ItemStack item = new ItemStack(Material.STICK);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(Component.text("PixelRPG Region-Werkzeug", NamedTextColor.GOLD));
         meta.getPersistentDataContainer().set(toolKey, PersistentDataType.BYTE, (byte) 1);
@@ -187,33 +161,20 @@ public final class RegionEditor {
         for (Map.Entry<UUID, Session> entry : sessions.entrySet()) {
             Player player = plugin.getServer().getPlayer(entry.getKey());
             if (player == null || !player.isOnline()) continue;
-
             Session session = entry.getValue();
-            World world = session.worldName == null
-                    ? player.getWorld()
-                    : plugin.getServer().getWorld(session.worldName);
+            World world = session.worldName == null ? player.getWorld() : plugin.getServer().getWorld(session.worldName);
             if (world == null || session.points.isEmpty()) continue;
 
-            double y = Math.max(player.getLocation().getY(), session.minY) + 1.0D;
+            double y = player.getLocation().getY() + 1.0D;
             for (int i = 0; i < session.points.size(); i++) {
                 RegionPoint point = session.points.get(i);
                 Location marker = new Location(world, point.x(), y, point.z());
                 for (int j = 0; j < 6; j++) {
-                    player.spawnParticle(
-                            Particle.END_ROD,
-                            marker.clone().add(0, j, 0),
-                            2,
-                            0.05,
-                            0.05,
-                            0.05,
-                            0.0
-                    );
+                    player.spawnParticle(Particle.END_ROD, marker.clone().add(0, j, 0), 2, 0.05, 0.05, 0.05, 0.0);
                 }
                 if (i > 0) drawLine(player, world, session.points.get(i - 1), point, y);
             }
-            if (session.points.size() >= 2) {
-                drawLine(player, world, session.points.getLast(), session.points.getFirst(), y);
-            }
+            if (session.points.size() >= 2) drawLine(player, world, session.points.getLast(), session.points.getFirst(), y);
         }
     }
 
@@ -224,34 +185,20 @@ public final class RegionEditor {
         int steps = Math.max(1, (int) Math.ceil(length * 1.5D));
         for (int i = 0; i <= steps; i++) {
             double t = i / (double) steps;
-            player.spawnParticle(
-                    Particle.END_ROD,
-                    new Location(world, a.x() + dx * t, y, a.z() + dz * t),
-                    1,
-                    0,
-                    0,
-                    0,
-                    0
-            );
+            player.spawnParticle(Particle.END_ROD, new Location(world, a.x() + dx * t, y, a.z() + dz * t), 1, 0, 0, 0, 0);
         }
     }
 
     private static final class Session {
         private final UUID id;
         private final String name;
-        private final RegionType type;
-        private final int minY;
-        private final int maxY;
         private final ArrayList<RegionPoint> points = new ArrayList<>();
         private String worldName;
         private boolean finished;
 
-        private Session(UUID id, String name, RegionType type, int minY, int maxY) {
+        private Session(UUID id, String name) {
             this.id = id;
             this.name = name;
-            this.type = type;
-            this.minY = minY;
-            this.maxY = maxY;
         }
     }
 }
