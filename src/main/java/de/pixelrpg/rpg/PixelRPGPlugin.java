@@ -243,7 +243,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         questPassiveCheckTask = new QuestPassiveCheckTask(this, questManager);
         questPassiveCheckTask.start();
 
-        RootCommand rootCommand = new RootCommand(itemService);
+        RootCommand rootCommand = new RootCommand(this, itemService);
         rootCommand.register(new CompanionSubCommand(companionService));
         rootCommand.register(new NpcSubCommand(npcManager));
         rootCommand.register(new ShopSubCommand(shopManager, shopEditorGUI, npcManager));
@@ -278,18 +278,23 @@ public final class PixelRPGPlugin extends JavaPlugin {
     }
 
     public static PixelRPGPlugin getInstance() { return instance; }
+
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
     public StatEngine getStatEngine() { return statEngine; }
     public ProfessionSystem getProfessionSystem() { return professionSystem; }
+    public ItemEconomyConfig getItemEconomyConfig() { return itemEconomyConfig; }
     public ItemService getItemService() { return itemService; }
     public EquipmentService getEquipmentService() { return equipmentService; }
+    public NpcManager getNpcManager() { return npcManager; }
     public ShopManager getShopManager() { return shopManager; }
     public StoryManager getStoryManager() { return storyManager; }
-    public QuestManager getQuestManager() { return questManager; }
-    public QuestRepository getQuestRepository() { return questRepository; }
-    public BossManager getBossManager() { return bossManager; }
-    public CompanionService getCompanionService() { return companionService; }
-    public NpcManager getNpcManager() { return npcManager; }
-    public ScoreboardService getScoreboardService() { return scoreboardService; }
     public PartyManager getPartyManager() { return partyManager; }
+    public QuestRepository getQuestRepository() { return questRepository; }
+    public QuestManager getQuestManager() { return questManager; }
+    public GlobalEventState getGlobalEventState() { return globalEventState; }
+    public BossRepository getBossRepository() { return bossRepository; }
+    public BossManager getBossManager() { return bossManager; }
+    public StatisticsService getStatisticsService() { return statisticsService; }
+    public ScoreboardService getScoreboardService() { return scoreboardService; }
+    public CompanionService getCompanionService() { return companionService; }
 }
