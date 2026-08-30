@@ -23,13 +23,17 @@ import java.util.Locale;
 
 /** Admin-only command for inspecting, generating and tuning concrete PixelRPG items. */
 public final class ItemSubCommand implements SubCommand {
+    private static final String FIREBALL_ADMIN_ID = "pixelrpg:weapons/feuerball/common_1";
+    private static final String FIREBALL_NAME = "Feuerball";
+    private static final long FIREBALL_COOLDOWN_MILLIS = 3_000L;
+
     private final ItemService itemService;
 
     public ItemSubCommand(ItemService itemService) { this.itemService = itemService; }
     @Override public String name() { return "item"; }
     @Override public String permission() { return "rpg.admin"; }
     @Override public String description() { return "PixelRPG-Items verwalten"; }
-    @Override public String usage() { return "/rpgadmin item <list|give|create|inspect|set> ..."; }
+    @Override public String usage() { return "/pixelrpg item <list|give|create|inspect|set> ..."; }
 
     @Override
     public boolean execute(CommandSender sender, String[] args) {
@@ -46,6 +50,7 @@ public final class ItemSubCommand implements SubCommand {
 
     private boolean list(CommandSender sender) {
         itemService.definitions().stream().map(ItemDefinition::id).sorted().forEach(id -> sender.sendMessage(Component.text(id, NamedTextColor.YELLOW)));
+        sender.sendMessage(Component.text(FIREBALL_ADMIN_ID, NamedTextColor.YELLOW));
         return true;
     }
 
@@ -59,6 +64,22 @@ public final class ItemSubCommand implements SubCommand {
             catch (NumberFormatException exception) { sender.sendMessage(Component.text("Ungültige Anzahl.", NamedTextColor.RED)); return true; }
         }
         if (amount < 1 || amount > 64) { sender.sendMessage(Component.text("Anzahl muss zwischen 1 und 64 liegen.", NamedTextColor.RED)); return true; }
+
+        if (isFireballId(args[2])) {
+            if (amount != 1) {
+                sender.sendMessage(Component.text("Der Feuerball wird als einzelne Waffe vergeben.", NamedTextColor.RED));
+                return true;
+            }
+            ItemStack fireball = createAdminFireball();
+            if (fireball == null) {
+                sender.sendMessage(Component.text("Feuerball konnte nicht erstellt werden.", NamedTextColor.RED));
+                return true;
+            }
+            target.getInventory().addItem(fireball).values().forEach(stack -> target.getWorld().dropItemNaturally(target.getLocation(), stack));
+            sender.sendMessage(Component.text("Item vergeben: Feuerball", NamedTextColor.GREEN));
+            return true;
+        }
+
         ItemDefinition definition = itemService.definitions().stream().filter(value -> value.id().equalsIgnoreCase(args[2]) || value.id().equalsIgnoreCase("pixelrpg:" + args[2])).findFirst().orElse(null);
         if (definition == null) { sender.sendMessage(Component.text("Unbekannte Item-ID.", NamedTextColor.RED)); return true; }
         if (definition.unique() && amount != 1) { sender.sendMessage(Component.text("UNIQUE-Items können nur einzeln vergeben werden.", NamedTextColor.RED)); return true; }
@@ -68,6 +89,25 @@ public final class ItemSubCommand implements SubCommand {
         target.getInventory().addItem(item).values().forEach(stack -> target.getWorld().dropItemNaturally(target.getLocation(), stack));
         sender.sendMessage(Component.text("Item vergeben: " + definition.id(), NamedTextColor.GREEN));
         return true;
+    }
+
+    private ItemStack createAdminFireball() {
+        ItemStack item = RPGItemBuilder.createItem(FIREBALL_ADMIN_ID, FIREBALL_NAME, Material.FIRE_CHARGE, ItemRarity.COMMON, 1).orElse(null);
+        if (item == null) return null;
+        item = RPGItemBuilder.withWeaponAbility(item, FIREBALL_NAME, FIREBALL_COOLDOWN_MILLIS);
+        ItemMeta meta = item.getItemMeta();
+        var pdc = meta.getPersistentDataContainer();
+        pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, FIREBALL_ADMIN_ID);
+        pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, true);
+        meta.displayName(Component.text(FIREBALL_NAME, NamedTextColor.WHITE));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static boolean isFireballId(String value) {
+        return value.equalsIgnoreCase("feuerball")
+                || value.equalsIgnoreCase("fireball")
+                || value.equalsIgnoreCase(FIREBALL_ADMIN_ID);
     }
 
     private boolean create(CommandSender sender, String[] args) {
@@ -140,7 +180,9 @@ public final class ItemSubCommand implements SubCommand {
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) return List.of("list", "give", "create", "inspect", "set");
         if (args.length == 2) return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
-        if (args.length == 3 && args[0].equalsIgnoreCase("give")) return itemService.definitions().stream().map(ItemDefinition::id).toList();
+        if (args.length == 3 && args[0].equalsIgnoreCase("give")) {
+            return java.util.stream.Stream.concat(itemService.definitions().stream().map(ItemDefinition::id), java.util.stream.Stream.of("feuerball")).toList();
+        }
         if (args.length == 3 && args[0].equalsIgnoreCase("create")) return Arrays.stream(Material.values()).filter(Material::isItem).map(Enum::name).toList();
         if (args.length == 4 && args[0].equalsIgnoreCase("create")) return Arrays.stream(ItemRarity.values()).map(Enum::name).toList();
         if (args.length == 3 && args[0].equalsIgnoreCase("set")) return List.of("level", "requiredLevel", "attackPower", "crit", "critDamage", "reach", "lifesteal", "armor", "health", "movement", "gearscore");
