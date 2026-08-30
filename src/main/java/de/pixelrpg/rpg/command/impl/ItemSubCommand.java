@@ -115,7 +115,7 @@ public final class ItemSubCommand implements SubCommand {
         switch (key) {
             case "level" -> pdc.set(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER, (int) amount);
             case "requiredlevel" -> pdc.set(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER, (int) amount);
-            case "damage" -> pdc.set(RPGKeys.Item.bonusDamage(), PersistentDataType.DOUBLE, amount);
+            case "attackpower" -> pdc.set(RPGKeys.Item.attackPower(), PersistentDataType.DOUBLE, amount);
             case "crit" -> pdc.set(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, amount);
             case "critdamage" -> pdc.set(RPGKeys.Item.critDamage(), PersistentDataType.DOUBLE, amount);
             case "reach" -> pdc.set(RPGKeys.Item.reachBonus(), PersistentDataType.DOUBLE, amount);
@@ -143,7 +143,7 @@ public final class ItemSubCommand implements SubCommand {
         if (args.length == 3 && args[0].equalsIgnoreCase("give")) return itemService.definitions().stream().map(ItemDefinition::id).toList();
         if (args.length == 3 && args[0].equalsIgnoreCase("create")) return Arrays.stream(Material.values()).filter(Material::isItem).map(Enum::name).toList();
         if (args.length == 4 && args[0].equalsIgnoreCase("create")) return Arrays.stream(ItemRarity.values()).map(Enum::name).toList();
-        if (args.length == 3 && args[0].equalsIgnoreCase("set")) return List.of("level", "requiredLevel", "damage", "crit", "critDamage", "reach", "lifesteal", "armor", "health", "movement", "gearscore");
+        if (args.length == 3 && args[0].equalsIgnoreCase("set")) return List.of("level", "requiredLevel", "attackPower", "crit", "critDamage", "reach", "lifesteal", "armor", "health", "movement", "gearscore");
         return List.of();
     }
 }
