@@ -19,7 +19,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
-import org.bukkit.inventory.EquipmentSlot as BukkitEquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
@@ -152,7 +151,8 @@ public final class EquipmentService implements Listener {
     public void onSwapHandItems(PlayerSwapHandItemsEvent event) {
         if (!validate(event.getMainHandItem(), EquipmentSlot.OFFHAND)
                 || !validate(event.getOffHandItem(), EquipmentSlot.MAINHAND)) {
-            cancelAndResync(event.getPlayer());
+            event.setCancelled(true);
+            resyncNextTick(event.getPlayer());
         }
     }
 
@@ -165,7 +165,8 @@ public final class EquipmentService implements Listener {
             ItemStack clicked = event.getCurrentItem();
             if (!validate(player.getInventory().getItemInOffHand(), EquipmentSlot.MAINHAND)
                     || !validate(clicked, EquipmentSlot.OFFHAND)) {
-                cancelAndResync(player);
+                event.setCancelled(true);
+                resyncNextTick(player);
             }
             return;
         }
@@ -177,7 +178,8 @@ public final class EquipmentService implements Listener {
         if (target.isPresent()) {
             ItemStack incoming = incomingItemForClick(event, player);
             if (!validate(incoming, target.get())) {
-                cancelAndResync(player);
+                event.setCancelled(true);
+                resyncNextTick(player);
                 return;
             }
         }
@@ -187,7 +189,8 @@ public final class EquipmentService implements Listener {
             ItemStack source = event.getCurrentItem();
             Optional<EquipmentSlot> autoEquipTarget = vanillaAutoEquipTarget(source);
             if (autoEquipTarget.isPresent() && !validate(source, autoEquipTarget.get())) {
-                cancelAndResync(player);
+                event.setCancelled(true);
+                resyncNextTick(player);
             }
         }
     }
@@ -200,7 +203,8 @@ public final class EquipmentService implements Listener {
         for (Map.Entry<Integer, ItemStack> entry : event.getNewItems().entrySet()) {
             Optional<EquipmentSlot> target = equipmentSlotForRawSlot(player, entry.getKey(), event.getView());
             if (target.isPresent() && !validate(entry.getValue(), target.get())) {
-                cancelAndResync(player);
+                event.setCancelled(true);
+                resyncNextTick(player);
                 return;
             }
         }
@@ -246,7 +250,7 @@ public final class EquipmentService implements Listener {
             if (explicit.isPresent()) return explicit;
         }
 
-        BukkitEquipmentSlot vanillaSlot = item.getType().getEquipmentSlot();
+        org.bukkit.inventory.EquipmentSlot vanillaSlot = item.getType().getEquipmentSlot();
         return switch (vanillaSlot) {
             case HEAD -> Optional.of(EquipmentSlot.HELMET);
             case CHEST -> Optional.of(EquipmentSlot.CHEST);
@@ -276,15 +280,8 @@ public final class EquipmentService implements Listener {
         return slotForPlayerInventory(view.convertSlot(rawSlot));
     }
 
-    private void cancelAndResync(Player player) {
-        if (player.getOpenInventory() != null) {
-            player.getScheduler().runDelayed(PixelRPGPlugin.getInstance(), task -> player.updateInventory(), null, 1L);
-        }
-    }
-
-    private void cancelAndResync(InventoryClickEvent event) {
-        event.setCancelled(true);
-        cancelAndResync((Player) event.getWhoClicked());
+    private void resyncNextTick(Player player) {
+        player.getScheduler().runDelayed(PixelRPGPlugin.getInstance(), task -> player.updateInventory(), null, 1L);
     }
 
     private void returnToInventory(Player player, ItemStack item) {
