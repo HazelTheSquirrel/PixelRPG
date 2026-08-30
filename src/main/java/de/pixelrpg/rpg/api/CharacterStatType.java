@@ -6,7 +6,6 @@ public enum CharacterStatType {
     ARMOR,
     MOVEMENT_SPEED,
     REACH,
-    DAMAGE,
     CRIT,
     CRIT_DAMAGE,
     LIFESTEAL,
