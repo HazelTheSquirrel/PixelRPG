@@ -36,7 +36,7 @@ public final class LootDropListener implements Listener {
             Material.WOODEN_SWORD, Material.STONE_SWORD, Material.GOLDEN_SWORD, Material.COPPER_AXE, Material.COPPER_SWORD,
             Material.IRON_SWORD, Material.DIAMOND_SWORD, Material.NETHERITE_SWORD, Material.MACE,
             Material.STONE_AXE, Material.IRON_AXE, Material.GOLDEN_AXE, Material.DIAMOND_AXE, Material.NETHERITE_AXE,
-            Material.BOW, Material.CROSSBOW, Material.TRIDENT,
+            Material.BOW, Material.CROSSBOW, Material.TRIDENT, Material.FIRE_CHARGE,
             Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS,
             Material.CHAINMAIL_HELMET, Material.CHAINMAIL_CHESTPLATE, Material.CHAINMAIL_LEGGINGS, Material.CHAINMAIL_BOOTS,
             Material.COPPER_HELMET, Material.COPPER_CHESTPLATE, Material.COPPER_LEGGINGS, Material.COPPER_BOOTS,
@@ -77,7 +77,7 @@ public final class LootDropListener implements Listener {
         if (random.nextDouble() < economyConfig.getItemDropChance()) {
             int lootLevel = rollLootLevel(playerLevel, random);
             Material material = DROP_POOL.get(random.nextInt(DROP_POOL.size()));
-            createLoot(material, lootLevel, playerLevel).ifPresent(event.getDrops()::add);
+            createLoot(material, lootLevel, playerLevel).ifPresent(item -> event.getDrops().add(withFixedName(item, material)));
         }
         if (random.nextDouble() < economyConfig.getCurrencyDropChance()) {
             long min = economyConfig.getCurrencyDropMinAmount();
@@ -85,6 +85,15 @@ public final class LootDropListener implements Listener {
             long amount = min == max ? min : random.nextLong(min, max + 1);
             event.getDrops().addAll(GuildCurrencyItemFactory.createStacks(amount));
         }
+    }
+
+    private ItemStack withFixedName(ItemStack item, Material material) {
+        if (material != Material.FIRE_CHARGE) return item;
+        ItemStack result = item.clone();
+        ItemMeta meta = result.getItemMeta();
+        meta.displayName(Component.text("Feuerball", NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
+        result.setItemMeta(meta);
+        return result;
     }
 
     private void applyArmorStatsToVanillaDrops(List<ItemStack> drops, int playerLevel, ThreadLocalRandom random) {
