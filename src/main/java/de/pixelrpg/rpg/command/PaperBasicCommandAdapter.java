@@ -27,7 +27,7 @@ public final class PaperBasicCommandAdapter implements BasicCommand {
                 return executor.onCommand(sender, this, commandLabel, args);
             }
         };
-        this.permission = permission;
+        this.permission = "pixelrpgadmin".equalsIgnoreCase(name) ? null : permission;
 
         List<String> legacyAliases = legacyAliases(name);
         if (!legacyAliases.isEmpty()) {
@@ -55,11 +55,11 @@ public final class PaperBasicCommandAdapter implements BasicCommand {
 
     private static List<String> legacyAliases(String name) {
         return switch (name.toLowerCase(java.util.Locale.ROOT)) {
-            case "pixelrpgadmin" -> List.of("rpgadmin");
+            case "pixelrpgadmin" -> List.of("rpgadmin", "pixelrpg");
             case "pixelrpgparty" -> List.of("rpgparty");
             case "pixelrpgquestlog" -> List.of("questlog");
             case "pixelrpgdialogue" -> List.of("dialogue");
             default -> List.of();
         };
     }
-}"}
+}
