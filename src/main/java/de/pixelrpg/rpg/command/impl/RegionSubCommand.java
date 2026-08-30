@@ -30,30 +30,14 @@ public final class RegionSubCommand implements SubCommand {
         this.guilds = guilds;
     }
 
-    @Override
-    public String name() {
-        return "region";
-    }
-
-    @Override
-    public String permission() {
-        return "rpg.admin";
-    }
-
-    @Override
-    public String description() {
-        return "Verwaltet PixelRPG-Polygonregionen";
-    }
-
-    @Override
-    public String usage() {
-        return "/pixelrpg region <create|finish|confirm|cancel|delete|info|edit|list> ...";
-    }
+    @Override public String name() { return "region"; }
+    @Override public String permission() { return "rpg.admin"; }
+    @Override public String description() { return "Verwaltet PixelRPG-Polygonregionen"; }
+    @Override public String usage() { return "/pixelrpg region <create|finish|confirm|cancel|delete|info|edit|list> ..."; }
 
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length == 0) return false;
-
         return switch (args[0].toLowerCase(Locale.ROOT)) {
             case "create" -> create(sender, args);
             case "finish" -> playerOnly(sender, editor::finish);
@@ -77,7 +61,6 @@ public final class RegionSubCommand implements SubCommand {
         RegionType type = args.length >= 3 ? RegionType.parse(args[2]) : RegionType.OTHER;
         int minY = args.length >= 4 ? parseInt(args[3], -64) : -64;
         int maxY = args.length >= 5 ? parseInt(args[4], 320) : 320;
-
         if (minY > maxY) {
             sender.sendMessage(Component.text("MinY darf nicht größer als MaxY sein.", NamedTextColor.RED));
             return true;
@@ -90,9 +73,8 @@ public final class RegionSubCommand implements SubCommand {
     private boolean delete(CommandSender sender, String[] args) {
         if (args.length < 2) return false;
 
-        UUID id = parseUuid(args[1]);
         PixelRegion region = resolve(args[1]);
-        if (id == null && region == null) {
+        if (region == null) {
             sender.sendMessage(Component.text("Region nicht gefunden.", NamedTextColor.RED));
             return true;
         }
@@ -117,14 +99,11 @@ public final class RegionSubCommand implements SubCommand {
         sender.sendMessage(Component.text("Region " + region.name(), NamedTextColor.GOLD));
         sender.sendMessage(Component.text("ID: " + region.id(), NamedTextColor.GRAY));
         sender.sendMessage(Component.text(
-                "Welt: " + region.worldName()
-                        + " | Typ: " + region.type()
-                        + " | Punkte: " + region.geometry().points().size(),
+                "Welt: " + region.worldName() + " | Typ: " + region.type() + " | Punkte: " + region.geometry().points().size(),
                 NamedTextColor.GRAY
         ));
         sender.sendMessage(Component.text(
-                "Y: " + region.minY()
-                        + ".." + region.maxY()
+                "Y: " + region.minY() + ".." + region.maxY()
                         + " | Fläche: " + String.format(Locale.ROOT, "%.2f", region.geometry().area())
                         + " | Priorität: " + region.priority(),
                 NamedTextColor.GRAY
@@ -142,11 +121,8 @@ public final class RegionSubCommand implements SubCommand {
             sender.sendMessage(Component.text("Keine PixelRPG-Regionen vorhanden.", NamedTextColor.YELLOW));
             return true;
         }
-
         regions.all().forEach(region -> sender.sendMessage(Component.text(
-                region.id()
-                        + " | " + region.name()
-                        + " | " + region.type()
+                region.id() + " | " + region.name() + " | " + region.type()
                         + " | " + region.geometry().points().size() + " Punkte",
                 NamedTextColor.GRAY
         )));
@@ -175,7 +151,10 @@ public final class RegionSubCommand implements SubCommand {
             case "flag" -> {
                 String[] parts = value.split("\\s+", 2);
                 if (parts.length != 2) {
-                    sender.sendMessage(Component.text("Verwendung: /pixelrpg region edit <region> flag <flag> <true|false>", NamedTextColor.YELLOW));
+                    sender.sendMessage(Component.text(
+                            "Verwendung: /pixelrpg region edit <region> flag <flag> <true|false>",
+                            NamedTextColor.YELLOW
+                    ));
                     return true;
                 }
                 try {
@@ -184,7 +163,10 @@ public final class RegionSubCommand implements SubCommand {
                             parseBoolean(parts[1])
                     );
                 } catch (IllegalArgumentException exception) {
-                    sender.sendMessage(Component.text("Unbekanntes Flag oder Wert. Verwende true oder false.", NamedTextColor.RED));
+                    sender.sendMessage(Component.text(
+                            "Unbekanntes Flag oder Wert. Verwende true oder false.",
+                            NamedTextColor.RED
+                    ));
                     return true;
                 }
             }
@@ -200,14 +182,15 @@ public final class RegionSubCommand implements SubCommand {
             case "property" -> {
                 String[] parts = value.split("\\s+", 2);
                 if (parts.length != 2) {
-                    sender.sendMessage(Component.text("Verwendung: /pixelrpg region edit <region> property <key> <value>", NamedTextColor.YELLOW));
+                    sender.sendMessage(Component.text(
+                            "Verwendung: /pixelrpg region edit <region> property <key> <value>",
+                            NamedTextColor.YELLOW
+                    ));
                     return true;
                 }
                 region.setProperty(parts[0], parts[1]);
             }
-            default -> {
-                return false;
-            }
+            default -> { return false; }
         }
 
         regions.save();
@@ -223,50 +206,27 @@ public final class RegionSubCommand implements SubCommand {
         if (args.length == 1) {
             return List.of("create", "finish", "confirm", "cancel", "delete", "info", "edit", "list");
         }
-
         if (args.length == 2 && args[0].equalsIgnoreCase("create")) {
             return List.of("<name>");
         }
-
         if (args.length == 3 && args[0].equalsIgnoreCase("create")) {
             return Arrays.stream(RegionType.values()).map(Enum::name).toList();
         }
-
         if (args.length == 2 && isRegionSelectorCommand(args[0])) {
             return regions.all().stream()
                     .flatMap(region -> java.util.stream.Stream.of(region.name(), region.id().toString()))
                     .distinct()
                     .toList();
         }
-
         if (args.length == 3 && args[0].equalsIgnoreCase("edit")) {
-            return List.of(
-                    "name",
-                    "type",
-                    "description",
-                    "priority",
-                    "enter",
-                    "leave",
-                    "flag",
-                    "guild",
-                    "unguild",
-                    "property"
-            );
+            return List.of("name", "type", "description", "priority", "enter", "leave", "flag", "guild", "unguild", "property");
         }
-
-        if (args.length == 4 && args[0].equalsIgnoreCase("edit")) {
-            if (args[2].equalsIgnoreCase("flag")) {
-                return Arrays.stream(RegionFlag.values()).map(Enum::name).toList();
-            }
-            if (args[2].equalsIgnoreCase("guild")) {
-                return guilds.getAllGuilds().stream().map(Guild::name).toList();
-            }
+        if (args.length == 4 && args[0].equalsIgnoreCase("edit") && args[2].equalsIgnoreCase("flag")) {
+            return Arrays.stream(RegionFlag.values()).map(Enum::name).toList();
         }
-
         if (args.length == 5 && args[0].equalsIgnoreCase("edit") && args[2].equalsIgnoreCase("flag")) {
             return List.of("true", "false");
         }
-
         return List.of();
     }
 
@@ -279,10 +239,7 @@ public final class RegionSubCommand implements SubCommand {
     private PixelRegion resolve(String text) {
         UUID id = parseUuid(text);
         return id == null
-                ? regions.all().stream()
-                .filter(region -> region.name().equalsIgnoreCase(text))
-                .findFirst()
-                .orElse(null)
+                ? regions.all().stream().filter(region -> region.name().equalsIgnoreCase(text)).findFirst().orElse(null)
                 : regions.get(id).orElse(null);
     }
 
