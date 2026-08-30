@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.command.impl;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.command.SubCommand;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -23,8 +24,11 @@ public final class DebugSubCommand implements SubCommand {
     public String permission() { return "pixelrpg.admin"; }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        if (args.length < 1) { sender.sendMessage(Component.text("Usage: /rpgadmin debug <player|npc|quest|boss|stats>", NamedTextColor.RED)); return; }
+    public boolean execute(CommandSender sender, String[] args) {
+        if (args.length < 1) {
+            sender.sendMessage(Component.text("Usage: /rpgadmin debug <player|npc|quest|boss|stats>", NamedTextColor.RED));
+            return true;
+        }
         switch (args[0].toLowerCase()) {
             case "player" -> player(sender, args);
             case "npc" -> npc(sender);
@@ -33,6 +37,7 @@ public final class DebugSubCommand implements SubCommand {
             case "stats" -> stats(sender, args);
             default -> sender.sendMessage(Component.text("Unknown debug target.", NamedTextColor.RED));
         }
+        return true;
     }
 
     private void player(CommandSender sender, String[] args) {
@@ -46,11 +51,11 @@ public final class DebugSubCommand implements SubCommand {
     }
 
     private void npc(CommandSender sender) {
-        sender.sendMessage(Component.text("DEBUG NPC registered=" + plugin.getNpcManager().getRegisteredCount(), NamedTextColor.GOLD));
+        sender.sendMessage(Component.text("DEBUG NPC registered=" + plugin.getNpcManager().getAll().size(), NamedTextColor.GOLD));
     }
 
     private void quest(CommandSender sender) {
-        sender.sendMessage(Component.text("DEBUG QUEST loaded=" + plugin.getQuestManager().getRepository().size(), NamedTextColor.GOLD));
+        sender.sendMessage(Component.text("DEBUG QUEST loaded=" + plugin.getQuestManager().getRepository().getAllQuests().size(), NamedTextColor.GOLD));
     }
 
     private void boss(CommandSender sender) {
