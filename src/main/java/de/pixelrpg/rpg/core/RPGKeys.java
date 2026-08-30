@@ -28,7 +28,7 @@ public final class RPGKeys {
         public static NamespacedKey unique() { return of("item_unique"); }
         public static NamespacedKey equipmentSlot() { return of("item_equipment_slot"); }
         public static NamespacedKey setId() { return of("item_set_id"); }
-        public static NamespacedKey bonusDamage() { return of("item_bonus_damage"); }
+        public static NamespacedKey attackPower() { return of("item_attack_power"); }
         public static NamespacedKey critChance() { return of("item_crit_chance"); }
         public static NamespacedKey critDamage() { return of("item_crit_damage"); }
         public static NamespacedKey armorValue() { return of("item_armor_value"); }
