@@ -16,7 +16,7 @@ public interface SubCommand {
     }
 
     default String usage() {
-        return "/rpgadmin " + name();
+        return "/pixelrpg " + name();
     }
 
     default List<String> tabComplete(CommandSender sender, String[] args) {
