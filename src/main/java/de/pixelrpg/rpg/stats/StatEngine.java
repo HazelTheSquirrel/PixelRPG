@@ -39,6 +39,10 @@ public final class StatEngine {
         public static final CachedStats EMPTY = new CachedStats(BASE_HEALTH, 0.0D, 0.0D, 0.0D, 0.0D,
                 BASE_CRIT_CHANCE, BASE_CRIT_DAMAGE_MULTIPLIER, 0.0D, 0.0D);
         public double reach() { return Math.max(blockReach, entityReach); }
+
+        /** Compatibility accessor: damage is represented exclusively by attack power. */
+        @Deprecated(forRemoval = false)
+        public double bonusDamage() { return attackPower; }
     }
 
     private final PlayerProfileManager profileManager;
