@@ -32,6 +32,7 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
 
     @Override public String name() { return "party"; }
     @Override public String permission() { return null; }
+    @Override public String usage() { return "/pixelrpg party <invite|accept|leave|kick|transfer|disband|info>"; }
     @Override public boolean onCommand(CommandSender sender, Command command, String label, String[] args) { return execute(sender, args); }
 
     @Override
@@ -56,12 +57,12 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
             case "transfer" -> handleTransfer(player, args);
             case "disband" -> handleDisband(player);
             case "info" -> { new PartyGUI(player, partyManager, profileManager).open(player); yield true; }
-            default -> { player.sendMessage(Component.text("Verwendung: /rpgparty <invite|accept|leave|disband|info>", NamedTextColor.YELLOW)); yield true; }
+            default -> { player.sendMessage(Component.text("Verwendung: /pixelrpg party <invite|accept|leave|kick|transfer|disband|info>", NamedTextColor.YELLOW)); yield true; }
         };
     }
 
     private boolean handleInvite(Player player, String[] args) {
-        if (args.length < 2) { player.sendMessage(Component.text("Verwendung: /rpgparty invite <Spieler>", NamedTextColor.YELLOW)); return true; }
+        if (args.length < 2) { player.sendMessage(Component.text("Verwendung: /pixelrpg party invite <Spieler>", NamedTextColor.YELLOW)); return true; }
         Player target = Bukkit.getPlayerExact(args[1]);
         if (target == null) { player.sendMessage(Component.text("Spieler ist nicht online.", NamedTextColor.RED)); return true; }
         if (target.getUniqueId().equals(player.getUniqueId())) { player.sendMessage(Component.text("Du kannst dich nicht selbst einladen.", NamedTextColor.RED)); return true; }
@@ -71,7 +72,7 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
         if (party.isFull()) { player.sendMessage(Component.text("Deine Gruppe ist voll.", NamedTextColor.RED)); return true; }
         if (!partyManager.addInvite(target.getUniqueId(), player.getUniqueId())) { player.sendMessage(Component.text("Die Einladung konnte nicht gesendet werden.", NamedTextColor.RED)); return true; }
         player.sendMessage(Component.text("Einladung an " + target.getName() + " gesendet.", NamedTextColor.GREEN));
-        target.sendMessage(Component.text(player.getName() + " hat dich in eine Gruppe eingeladen! Nutze /rpgparty accept", NamedTextColor.GREEN));
+        target.sendMessage(Component.text(player.getName() + " hat dich in eine Gruppe eingeladen! Nutze /pixelrpg party accept", NamedTextColor.GREEN));
         return true;
     }
 
@@ -89,7 +90,7 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
     }
 
     private boolean handleKick(Player player, String[] args) {
-        if (args.length < 2) { player.sendMessage(Component.text("Verwendung: /rpgparty kick <Spieler>", NamedTextColor.YELLOW)); return true; }
+        if (args.length < 2) { player.sendMessage(Component.text("Verwendung: /pixelrpg party kick <Spieler>", NamedTextColor.YELLOW)); return true; }
         Player target = Bukkit.getPlayerExact(args[1]);
         if (target == null || !partyManager.kick(player, target.getUniqueId())) { player.sendMessage(Component.text("Spieler konnte nicht aus der Gruppe entfernt werden.", NamedTextColor.RED)); return true; }
         player.sendMessage(Component.text(target.getName() + " wurde aus der Gruppe entfernt.", NamedTextColor.GREEN));
@@ -97,7 +98,7 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
     }
 
     private boolean handleTransfer(Player player, String[] args) {
-        if (args.length < 2) { player.sendMessage(Component.text("Verwendung: /rpgparty transfer <Spieler>", NamedTextColor.YELLOW)); return true; }
+        if (args.length < 2) { player.sendMessage(Component.text("Verwendung: /pixelrpg party transfer <Spieler>", NamedTextColor.YELLOW)); return true; }
         Player target = Bukkit.getPlayerExact(args[1]);
         if (target == null || !partyManager.transferLeadership(player, target.getUniqueId())) { player.sendMessage(Component.text("Die Gruppenleitung konnte nicht übertragen werden.", NamedTextColor.RED)); return true; }
         player.sendMessage(Component.text(target.getName() + " ist jetzt der Gruppenanführer.", NamedTextColor.GREEN));
