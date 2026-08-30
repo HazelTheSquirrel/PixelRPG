@@ -16,6 +16,9 @@ public final class GearCategoryRegistry {
         if (name.equals("SHIELD")) {
             return Optional.of(ItemCategory.SHIELD);
         }
+        if (name.equals("FIRE_CHARGE")) {
+            return Optional.of(ItemCategory.RANGED_WEAPON);
+        }
         if (name.contains("BOW") || name.contains("CROSSBOW") || name.contains("TRIDENT")) {
             return Optional.of(ItemCategory.RANGED_WEAPON);
         }
