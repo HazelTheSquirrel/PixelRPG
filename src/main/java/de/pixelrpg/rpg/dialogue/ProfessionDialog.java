@@ -246,17 +246,17 @@ public final class ProfessionDialog {
     }
 
     private String recipeItemName(String itemId) {
-        return craftingService.find(itemId)
-                .map(CraftRecipe::displayName)
-                .orElseGet(() -> craftingService.find(normalizeRecipeId(itemId))
-                        .map(CraftRecipe::displayName)
-                        .orElse(itemId));
-    }
-
-    private String normalizeRecipeId(String itemId) {
-        String value = itemId == null ? "" : itemId.trim().toLowerCase();
-        if (value.startsWith("pixelrpg:")) value = value.substring("pixelrpg:".length());
-        return value;
+        String normalized = itemId == null ? "" : itemId.trim();
+        for (Profession profession : Profession.values()) {
+            for (CraftRecipe recipe : craftingService.recipes(profession)) {
+                if (!recipe.resultItemId().isBlank() && recipe.resultItemId().equalsIgnoreCase(normalized)) {
+                    return recipe.displayName();
+                }
+            }
+        }
+        String recipeId = normalized.toLowerCase();
+        if (recipeId.startsWith("pixelrpg:")) recipeId = recipeId.substring("pixelrpg:".length());
+        return craftingService.find(recipeId).map(CraftRecipe::displayName).orElse(normalized);
     }
 
     /** Opens the trainer recipe list; every recipe leads to its own detail dialog. */
