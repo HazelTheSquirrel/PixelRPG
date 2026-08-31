@@ -30,7 +30,7 @@ public final class CraftingRecipeRegistry {
 
     public Optional<CraftRecipe> find(String id) {
         if (id == null || id.isBlank()) return Optional.empty();
-        return Optional.ofNullable(recipes.get(id.toLowerCase(Locale.ROOT)));
+        return Optional.ofNullable(recipes.get(canonicalRecipeId(id)));
     }
 
     private void loadDefinitions(Plugin plugin) {
@@ -39,7 +39,7 @@ public final class CraftingRecipeRegistry {
         if (definitions == null) throw new IllegalStateException("crafting-recipes.json requires a 'recipes' array");
         for (var element : definitions) {
             JsonObject json = element.getAsJsonObject();
-            String id = required(json, "id").toLowerCase(Locale.ROOT);
+            String id = canonicalRecipeId(required(json, "id"));
             if (recipes.containsKey(id)) throw new IllegalStateException("Duplicate crafting recipe: " + id);
             Profession profession = enumValue(Profession.class, json, "profession", id);
             Material result = Material.matchMaterial(required(json, "result"));
@@ -54,7 +54,7 @@ public final class CraftingRecipeRegistry {
             String quest = json.has("requiredQuestId") ? json.get("requiredQuestId").getAsString() : "";
             boolean defaultUnlocked = json.has("unlockedByDefault") && json.get("unlockedByDefault").getAsBoolean();
             String label = json.has("label") ? json.get("label").getAsString() : pretty(result);
-            String resultItemId = json.has("resultItemId") ? json.get("resultItemId").getAsString() : "";
+            String resultItemId = json.has("resultItemId") ? canonicalItemId(json.get("resultItemId").getAsString()) : "";
             String potionType = json.has("potionType") ? json.get("potionType").getAsString() : "";
             String enchantment = json.has("enchantment") ? json.get("enchantment").getAsString() : "";
             int enchantmentLevel = json.has("enchantmentLevel") ? json.get("enchantmentLevel").getAsInt() : 0;
@@ -81,12 +81,27 @@ public final class CraftingRecipeRegistry {
         if (costs == null || costs.isEmpty()) return Map.of();
         Map<String, Integer> result = new LinkedHashMap<>();
         for (var entry : costs.entrySet()) {
-            String itemId = entry.getKey().trim().toLowerCase(Locale.ROOT);
+            String itemId = canonicalItemId(entry.getKey());
             int amount = entry.getValue().getAsInt();
             if (itemId.isBlank() || amount <= 0) throw new IllegalStateException("Invalid item cost for " + id + ": " + entry.getKey());
             result.merge(itemId, amount, Integer::sum);
         }
         return result;
+    }
+
+    private static String canonicalRecipeId(String raw) {
+        String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
+        if (value.startsWith("pixelrpg:")) value = value.substring("pixelrpg:".length());
+        return value.replace('/', ':');
+    }
+
+    private static String canonicalItemId(String raw) {
+        String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
+        if (!value.startsWith("pixelrpg:")) value = "pixelrpg:" + value;
+        String body = value.substring("pixelrpg:".length());
+        int slash = body.indexOf('/');
+        if (slash > 0) body = body.substring(0, slash) + ":" + body.substring(slash + 1);
+        return "pixelrpg:" + body;
     }
 
     private static String required(JsonObject json, String key) {
