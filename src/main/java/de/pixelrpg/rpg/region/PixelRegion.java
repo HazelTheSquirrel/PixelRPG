@@ -66,7 +66,12 @@ public final class PixelRegion {
         return y >= minY && y <= maxY && geometry.contains(x, z);
     }
 
-    public boolean flag(RegionFlag flag) { return flags.getOrDefault(flag, false); }
+    /**
+     * Returns whether the supplied rule is enabled for this region.
+     * An unset flag defaults to true, so regions remain permissive unless a rule is explicitly disabled.
+     */
+    public boolean flag(RegionFlag flag) { return flags.getOrDefault(flag, true); }
+
     public void setFlag(RegionFlag flag, boolean enabled) { flags.put(flag, enabled); }
     public void setName(String value) { name = value; }
     public void setType(RegionType value) { type = value; }
