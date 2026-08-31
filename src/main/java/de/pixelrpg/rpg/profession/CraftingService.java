@@ -87,7 +87,7 @@ public final class CraftingService {
     }
 
     private int countItemId(Player player, String rawItemId) {
-        String itemId = normalizeItemId(rawItemId);
+        String itemId = resolveItemId(rawItemId);
         int count = 0;
         for (ItemStack item : player.getInventory().getStorageContents()) {
             if (item == null || item.isEmpty()) continue;
@@ -105,7 +105,7 @@ public final class CraftingService {
     private void removeItemCosts(Player player, Map<String, Integer> costs) {
         for (Map.Entry<String, Integer> cost : costs.entrySet()) {
             int remaining = cost.getValue();
-            String requiredId = normalizeItemId(cost.getKey());
+            String requiredId = resolveItemId(cost.getKey());
             ItemStack[] contents = player.getInventory().getStorageContents();
             for (int slot = 0; slot < contents.length && remaining > 0; slot++) {
                 ItemStack item = contents[slot];
@@ -119,6 +119,14 @@ public final class CraftingService {
             }
             player.getInventory().setStorageContents(contents);
         }
+    }
+
+    private String resolveItemId(String rawItemId) {
+        String normalized = normalizeItemId(rawItemId);
+        String recipeId = normalized.startsWith("pixelrpg:") ? normalized.substring("pixelrpg:".length()) : normalized;
+        CraftRecipe recipe = registry.find(recipeId).orElse(null);
+        if (recipe != null && !recipe.resultItemId().isBlank()) return normalizeItemId(recipe.resultItemId());
+        return normalized;
     }
 
     private String normalizeItemId(String raw) {
