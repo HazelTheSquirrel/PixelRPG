@@ -63,8 +63,12 @@ public final class QuestRepository {
             JsonObject navigation = object(json, "navigation");
             Profession profession = parseProfession(string(json, "profession", ""));
             int requiredProfessionLevel = number(json, "requiredProfessionLevel", profession == null ? 1 : recommendedLevel);
+            if (profession != null) {
+                recommendedLevel = Math.min(recommendedLevel, Level.MAX_NORMAL_LEVEL);
+                categoryLevel = Math.min(categoryLevel, Level.MAX_NORMAL_LEVEL);
+            }
             Quest quest = new Quest(id, string(json, "title", "").strip(), string(json, "description", "").strip(), type,
-                    string(json, "targetKey", "").strip(), requiredAmount, recommendedLevel, categoryLevel,
+                    canonicalItemId(string(json, "targetKey", "")), requiredAmount, recommendedLevel, categoryLevel,
                     numberDouble(reward, "money", 0.0), numberLong(reward, "experience", 0L),
                     number(reward, "durationMinutes", 0), stringList(reward, "items"),
                     string(reward, "companionId", "").strip(), string(json, "questGiverNpcId", "").strip(),
@@ -96,9 +100,10 @@ public final class QuestRepository {
         int level = number(json, "recommendedLevel", 1);
         int category = number(json, "categoryLevel", level);
         int amount = number(json, "requiredAmount", 1);
-        if (level < Level.MIN_LEVEL || level > Level.MAX_NORMAL_LEVEL || category < Level.MIN_LEVEL || category > Level.MAX_NORMAL_LEVEL || amount <= 0) return false;
         Profession profession = parseProfession(string(json, "profession", ""));
         int professionLevel = number(json, "requiredProfessionLevel", profession == null ? 1 : level);
+        if (level < Level.MIN_LEVEL || level > (profession != null ? Profession.MAX_LEVEL : Level.MAX_NORMAL_LEVEL)
+                || category < Level.MIN_LEVEL || category > (profession != null ? Profession.MAX_LEVEL : Level.MAX_NORMAL_LEVEL) || amount <= 0) return false;
         if (profession != null && (professionLevel < Profession.MIN_LEVEL || professionLevel > Profession.MAX_LEVEL)) return false;
         if (type == QuestType.GLOBAL_EVENT && string(json, "targetKey", "").isBlank()) return false;
         if (type == QuestType.TALK_TO_NPC && string(json, "targetKey", "").isBlank()) return false;
@@ -122,16 +127,26 @@ public final class QuestRepository {
         return navigation != null && (!string(navigation, "structure", "").isBlank() || !stringList(navigation, "biomes").isEmpty());
     }
 
-    /** Accepts both normal Minecraft materials and concrete PixelRPG item definition IDs. */
+    /** Accepts normal Minecraft materials and canonical PixelRPG item definition IDs. */
     private boolean isQuestItem(String key) {
         if (key == null || key.isBlank()) return false;
-        String normalized = key.trim();
+        String normalized = canonicalItemId(key);
         try {
-            Material material = Material.matchMaterial(normalized);
-            if (material != null && material.isItem()) return true;
+            Material material = Material.matchMaterial(key.trim());
+            if (material != null && material.isItem() && !normalized.startsWith("pixelrpg:")) return true;
         } catch (IllegalArgumentException ignored) {
         }
-        return itemDefinitions.find(normalized).isPresent();
+        if (itemDefinitions.find(normalized).isPresent()) return true;
+        return normalized.startsWith("pixelrpg:") && normalized.length() > "pixelrpg:".length();
+    }
+
+    private String canonicalItemId(String raw) {
+        String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
+        if (!value.startsWith("pixelrpg:")) return value;
+        String body = value.substring("pixelrpg:".length());
+        int slash = body.indexOf('/');
+        if (slash > 0) body = body.substring(0, slash) + ":" + body.substring(slash + 1);
+        return "pixelrpg:" + body;
     }
 
     private boolean isVanillaEntityType(String key) {
