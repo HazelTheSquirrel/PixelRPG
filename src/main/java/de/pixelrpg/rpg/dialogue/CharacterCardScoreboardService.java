@@ -94,7 +94,7 @@ public final class CharacterCardScoreboardService {
         set(player, "movementSpeed", round(stats.movementSpeedBonus()));
         set(player, "reach", round(stats.entityReach()));
         set(player, "critChance", round(stats.critChance()));
-        set(player, "critDamage", round(stats.critDamageMultiplier()));
+        set(player, "critDamage", round(stats.critDamageBonusPercent()));
         set(player, "lifesteal", round(stats.lifestealBonus()));
         set(player, "attackPower", round(stats.attackPower()));
     }
