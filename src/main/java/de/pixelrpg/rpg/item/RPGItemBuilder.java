@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.item;
 
+import de.pixelrpg.rpg.balance.BalanceModel;
 import de.pixelrpg.rpg.config.JsonDataManager;
 import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.core.RPGKeys;
@@ -24,36 +25,17 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class RPGItemBuilder {
     private static final long WEAPON_ABILITY_COOLDOWN_MILLIS = 6_000L;
-    private static final double MIN_ROLL_FACTOR = 0.50D;
-    private static final double MAX_ROLL_FACTOR = 1.50D;
-    private static double growthMultiplier = 10.0D;
-    private static double weaponBaseDamage = 3.0D;
-    private static double weaponBaseCritChance = 0.5D;
-    private static double weaponBaseCritDamage = 0.05D;
-    private static double weaponBaseReach = 0.10D;
-    private static double weaponBaseLifesteal = 0.25D;
-    private static double armorBase = 0.7D;
-    private static double healthBase = 1.2D;
-    private static double movementSpeedBase = 0.001D;
     private static double toolBaseEfficiency = 1.0D;
 
     private RPGItemBuilder() {
     }
 
-    /** Loads the deterministic item growth curve from the user-editable JSON baseline. */
+    /** Loads user-editable non-combat tool scaling. Combat equipment balance is centralized in BalanceModel. */
     public static void configureScaling(Plugin plugin) {
         try {
             var root = new JsonDataManager(plugin).load("item-scaling.json");
-            growthMultiplier = positive(root, "growthMultiplier", growthMultiplier);
-            var baseStats = root.getAsJsonObject("baseStats");
-            weaponBaseDamage = positive(baseStats, "weaponDamage", weaponBaseDamage);
-            weaponBaseCritChance = positive(baseStats, "weaponCritChance", weaponBaseCritChance);
-            weaponBaseCritDamage = positive(baseStats, "weaponCritDamage", weaponBaseCritDamage);
-            weaponBaseReach = positive(baseStats, "weaponReach", weaponBaseReach);
-            weaponBaseLifesteal = positive(baseStats, "weaponLifesteal", weaponBaseLifesteal);
-            armorBase = positive(baseStats, "armor", armorBase);
-            healthBase = positive(baseStats, "health", healthBase);
-            movementSpeedBase = positive(baseStats, "movementSpeed", movementSpeedBase);
+            var baseStats = root.has("baseStats") && root.get("baseStats").isJsonObject()
+                    ? root.getAsJsonObject("baseStats") : null;
             toolBaseEfficiency = positive(baseStats, "toolEfficiency", toolBaseEfficiency);
         } catch (RuntimeException exception) {
             plugin.getLogger().warning("Unable to load item-scaling.json; using safe deterministic item defaults: " + exception.getMessage());
@@ -97,14 +79,9 @@ public final class RPGItemBuilder {
         pdc.set(RPGKeys.Item.instanceId(), PersistentDataType.STRING, UUID.randomUUID().toString());
         pdc.set(RPGKeys.Item.rarity(), PersistentDataType.STRING, rarity.name());
         pdc.set(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER, itemLevel);
-        // The item level is also the default level requirement for generated equipment.
-        // This keeps the requirement explicit so the stat engine can gate every generated item consistently.
         pdc.set(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER, itemLevel);
         pdc.set(RPGKeys.Item.category(), PersistentDataType.STRING, category.name());
         pdc.set(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN, guildItem);
-
-        double multiplier = rarity.getStatMultiplier();
-        double levelFactor = levelScaling(itemLevel);
 
         List<Component> lore = new ArrayList<>();
         lore.add(line(rarity.displayName()));
@@ -113,8 +90,10 @@ public final class RPGItemBuilder {
         lore.add(Component.text(" "));
 
         switch (category.getProfile()) {
-            case WEAPON, ARMOR, SHIELD -> addRandomEquipmentStats(lore, pdc, category, rarity, multiplier, levelFactor);
-            case TOOL -> addToolStats(lore, pdc, multiplier, levelFactor);
+            case WEAPON -> addRandomEquipmentStats(lore, pdc, BalanceModel.pool(true, false, false), rarity, itemLevel);
+            case ARMOR -> addRandomEquipmentStats(lore, pdc, BalanceModel.pool(false, true, false), rarity, itemLevel);
+            case SHIELD -> addRandomEquipmentStats(lore, pdc, BalanceModel.pool(false, false, true), rarity, itemLevel);
+            case TOOL -> addToolStats(lore, pdc, itemLevel);
         }
 
         meta.displayName(Component.text(displayName, NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
@@ -173,94 +152,53 @@ public final class RPGItemBuilder {
     }
 
     private static void addRandomEquipmentStats(List<Component> lore, PersistentDataContainer pdc,
-                                                ItemCategory category, ItemRarity rarity,
-                                                double multiplier, double levelFactor) {
-        int count = statCount(rarity);
-        List<EquipmentStat> pool = new ArrayList<>(List.of(EquipmentStat.values()));
-        Collections.shuffle(pool, ThreadLocalRandom.current());
-        Set<EquipmentStat> selected = EnumSet.copyOf(pool.subList(0, Math.min(count, pool.size())));
+                                                Set<BalanceModel.EquipmentStat> pool, ItemRarity rarity,
+                                                int itemLevel) {
+        if (pool.isEmpty()) return;
+        int count = Math.min(BalanceModel.maxStatLines(rarity), pool.size());
+        List<BalanceModel.EquipmentStat> candidates = new ArrayList<>(pool);
+        Collections.shuffle(candidates, ThreadLocalRandom.current());
+        Set<BalanceModel.EquipmentStat> selected = EnumSet.copyOf(candidates.subList(0, count));
 
-        for (EquipmentStat stat : selected) {
-            double base = stat.baseValue();
-            double value = roll(base * levelFactor * multiplier);
-            stat.write(pdc, value);
-            lore.add(line(stat.lore(value)));
+        double itemBudget = BalanceModel.itemBudget(itemLevel, rarity);
+        double share = BalanceModel.statBudgetShare(itemBudget, selected.size());
+        for (BalanceModel.EquipmentStat stat : selected) {
+            double value = round(BalanceModel.value(stat, BalanceModel.rollQuality(share)));
+            writeStat(pdc, stat, value);
+            lore.add(line(lore(stat, value)));
         }
     }
 
-    private static int statCount(ItemRarity rarity) {
-        return switch (rarity) {
-            case COMMON -> 2;
-            case UNCOMMON -> 3;
-            case RARE -> 4;
-            case EPIC -> 5;
-            case LEGENDARY, UNIQUE -> 8;
+    private static void writeStat(PersistentDataContainer pdc, BalanceModel.EquipmentStat stat, double value) {
+        switch (stat) {
+            case HP -> pdc.set(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, value);
+            case ARMOR -> pdc.set(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, value);
+            case MOVEMENT_SPEED -> pdc.set(RPGKeys.Item.movementSpeed(), PersistentDataType.DOUBLE, value / 100.0D);
+            case REACH -> pdc.set(RPGKeys.Item.reachBonus(), PersistentDataType.DOUBLE, value);
+            case ATTACK_POWER -> pdc.set(RPGKeys.Item.attackPower(), PersistentDataType.DOUBLE, value);
+            case CRIT -> pdc.set(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, value);
+            case CRIT_DAMAGE -> pdc.set(RPGKeys.Item.critDamage(), PersistentDataType.DOUBLE, value / 100.0D);
+            case LIFESTEAL -> pdc.set(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, value);
+        }
+    }
+
+    private static Component lore(BalanceModel.EquipmentStat stat, double value) {
+        return switch (stat) {
+            case HP -> Component.text("+" + format(value) + " LP", NamedTextColor.GREEN);
+            case ARMOR -> Component.text("+" + format(value) + " Rüstung", NamedTextColor.BLUE);
+            case MOVEMENT_SPEED -> Component.text("+" + format(value) + "% Bewegungsgeschwindigkeit", NamedTextColor.WHITE);
+            case REACH -> Component.text("+" + format(value) + " Reichweite", NamedTextColor.AQUA);
+            case ATTACK_POWER -> Component.text("+" + format(value) + " Angriffskraft", NamedTextColor.GOLD);
+            case CRIT -> Component.text("+" + format(value) + "% Kritische Trefferchance", NamedTextColor.LIGHT_PURPLE);
+            case CRIT_DAMAGE -> Component.text("+" + format(value) + "% Kritischer Schaden", NamedTextColor.LIGHT_PURPLE);
+            case LIFESTEAL -> Component.text("+" + format(value) + "% Lebensraub", NamedTextColor.DARK_RED);
         };
     }
 
-    private static double roll(double deterministicValue) {
-        if (deterministicValue <= 0.0D) return 0.0D;
-        return round(deterministicValue * ThreadLocalRandom.current().nextDouble(MIN_ROLL_FACTOR, Math.nextUp(MAX_ROLL_FACTOR)));
-    }
-
-    private enum EquipmentStat {
-        HP {
-            @Override double baseValue() { return healthBase; }
-            @Override void write(PersistentDataContainer pdc, double value) { pdc.set(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, value); }
-            @Override Component lore(double value) { return Component.text("+" + format(value) + " LP", NamedTextColor.GREEN); }
-        },
-        ARMOR {
-            @Override double baseValue() { return armorBase; }
-            @Override void write(PersistentDataContainer pdc, double value) { pdc.set(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, value); }
-            @Override Component lore(double value) { return Component.text("+" + format(value) + " Rüstung", NamedTextColor.BLUE); }
-        },
-        MOVEMENT_SPEED {
-            @Override double baseValue() { return movementSpeedBase; }
-            @Override void write(PersistentDataContainer pdc, double value) { pdc.set(RPGKeys.Item.movementSpeed(), PersistentDataType.DOUBLE, value); }
-            @Override Component lore(double value) { return Component.text("+" + format(value * 100.0D) + "% Bewegungsgeschwindigkeit", NamedTextColor.WHITE); }
-        },
-        REACH {
-            @Override double baseValue() { return weaponBaseReach; }
-            @Override void write(PersistentDataContainer pdc, double value) { pdc.set(RPGKeys.Item.reachBonus(), PersistentDataType.DOUBLE, value); }
-            @Override Component lore(double value) { return Component.text("+" + format(value) + " Reichweite", NamedTextColor.AQUA); }
-        },
-        ATTACK_POWER {
-            @Override double baseValue() { return weaponBaseDamage; }
-            @Override void write(PersistentDataContainer pdc, double value) { pdc.set(RPGKeys.Item.attackPower(), PersistentDataType.DOUBLE, value); }
-            @Override Component lore(double value) { return Component.text("+" + format(value) + " Angriffskraft", NamedTextColor.GOLD); }
-        },
-        CRIT {
-            @Override double baseValue() { return weaponBaseCritChance; }
-            @Override void write(PersistentDataContainer pdc, double value) { pdc.set(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, value); }
-            @Override Component lore(double value) { return Component.text("+" + format(value) + "% Kritische Trefferchance", NamedTextColor.LIGHT_PURPLE); }
-        },
-        CRIT_DAMAGE {
-            @Override double baseValue() { return weaponBaseCritDamage; }
-            @Override void write(PersistentDataContainer pdc, double value) { pdc.set(RPGKeys.Item.critDamage(), PersistentDataType.DOUBLE, value); }
-            @Override Component lore(double value) { return Component.text("+" + format(value * 100.0D) + "% Kritischer Schaden", NamedTextColor.LIGHT_PURPLE); }
-        },
-        LIFESTEAL {
-            @Override double baseValue() { return weaponBaseLifesteal; }
-            @Override void write(PersistentDataContainer pdc, double value) { pdc.set(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, value); }
-            @Override Component lore(double value) { return Component.text("+" + format(value) + "% Lebensraub", NamedTextColor.DARK_RED); }
-        };
-
-        abstract double baseValue();
-        abstract void write(PersistentDataContainer pdc, double value);
-        abstract Component lore(double value);
-    }
-
-    private static void addToolStats(List<Component> lore, PersistentDataContainer pdc,
-                                     double multiplier, double levelFactor) {
-        double efficiency = round(toolBaseEfficiency * levelFactor * multiplier);
+    private static void addToolStats(List<Component> lore, PersistentDataContainer pdc, int itemLevel) {
+        double efficiency = round(toolBaseEfficiency * Math.max(1.0D, 1.0D + BalanceModel.levelPower(itemLevel) * 9.0D));
         pdc.set(RPGKeys.Item.toolBonus(), PersistentDataType.DOUBLE, efficiency);
         lore.add(line(Component.text("+" + format(efficiency) + " Effizienz", NamedTextColor.YELLOW)));
-    }
-
-    private static double levelScaling(int itemLevel) {
-        if (itemLevel <= Level.MIN_LEVEL) return 1.0D;
-        double progress = (itemLevel - 1.0D) / (Level.MAX_NORMAL_LEVEL - 1.0D);
-        return Math.pow(growthMultiplier, progress);
     }
 
     private static double positive(com.google.gson.JsonObject object, String key, double fallback) {
