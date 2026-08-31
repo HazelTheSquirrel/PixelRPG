@@ -27,16 +27,16 @@ public final class ItemUsageRequirementListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        if (!isBelowRequiredLevel(player, player.getInventory().getItem(event.getHand()))) return;
+        ItemStack item = player.getInventory().getItem(event.getHand());
+        if (!isBelowRequiredLevel(player, item)) return;
         event.setCancelled(true);
-        notifyRequiredLevel(player, player.getInventory().getItem(event.getHand()));
+        notifyRequiredLevel(player, item);
     }
 
-    // Zuständig dafür, dass unterlevelte Fernkampfwaffen auch beim Loslassen der Benutzungstaste keine Fähigkeit auslösen.
+    // Zuständig dafür, dass unterlevelte Fernkampfwaffen beim Loslassen der Benutzungstaste keine Fähigkeit auslösen.
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onStopUsingItem(PlayerStopUsingItemEvent event) {
-        if (!isBelowRequiredLevel(event.getPlayer(), event.getItem())) return;
-        notifyRequiredLevel(event.getPlayer(), event.getItem());
+        if (isBelowRequiredLevel(event.getPlayer(), event.getItem())) notifyRequiredLevel(event.getPlayer(), event.getItem());
     }
 
     // Zuständig dafür, dass unterlevelte Waffen keinen normalen oder RPG-Schaden verursachen können.
@@ -52,7 +52,9 @@ public final class ItemUsageRequirementListener implements Listener {
 
     private boolean isBelowRequiredLevel(Player player, ItemStack item) {
         if (item == null || item.isEmpty() || !item.hasItemMeta()) return false;
-        Integer required = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
+        var pdc = item.getItemMeta().getPersistentDataContainer();
+        Integer required = pdc.get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
+        if (required == null) required = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
         if (required == null || required <= 0) return false;
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         return profile != null && profile.isRegistered() && profile.getLevel() < required;
@@ -60,7 +62,9 @@ public final class ItemUsageRequirementListener implements Listener {
 
     private void notifyRequiredLevel(Player player, ItemStack item) {
         if (item == null || item.isEmpty() || !item.hasItemMeta()) return;
-        Integer required = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
+        var pdc = item.getItemMeta().getPersistentDataContainer();
+        Integer required = pdc.get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
+        if (required == null) required = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
         if (required != null) player.sendActionBar(Component.text("Benötigt Level " + required, NamedTextColor.RED));
     }
 }

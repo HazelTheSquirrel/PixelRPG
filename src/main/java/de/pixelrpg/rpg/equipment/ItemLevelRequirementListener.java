@@ -35,9 +35,10 @@ public final class ItemLevelRequirementListener implements Listener {
             notifyRequiredLevel(player, candidate);
             return;
         }
-        if (event.isShiftClick() && isEquipable(candidateFromClickedInventory(event)) && isBelowRequiredLevel(player, candidateFromClickedInventory(event))) {
+        ItemStack clicked = candidateFromClickedInventory(event);
+        if (event.isShiftClick() && isEquipable(clicked) && isBelowRequiredLevel(player, clicked)) {
             event.setCancelled(true);
-            notifyRequiredLevel(player, candidateFromClickedInventory(event));
+            notifyRequiredLevel(player, clicked);
         }
     }
 
@@ -89,7 +90,9 @@ public final class ItemLevelRequirementListener implements Listener {
 
     private boolean isBelowRequiredLevel(Player player, ItemStack item) {
         if (item == null || item.isEmpty() || !item.hasItemMeta()) return false;
-        Integer required = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
+        var pdc = item.getItemMeta().getPersistentDataContainer();
+        Integer required = pdc.get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
+        if (required == null) required = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
         if (required == null || required <= 0) return false;
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         return profile != null && profile.isRegistered() && profile.getLevel() < required;
@@ -108,7 +111,9 @@ public final class ItemLevelRequirementListener implements Listener {
 
     private void notifyRequiredLevel(Player player, ItemStack item) {
         if (item == null || item.isEmpty() || !item.hasItemMeta()) return;
-        Integer required = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
+        var pdc = item.getItemMeta().getPersistentDataContainer();
+        Integer required = pdc.get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
+        if (required == null) required = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
         if (required != null) player.sendActionBar(Component.text("Benötigt Level " + required, NamedTextColor.RED));
     }
 }
