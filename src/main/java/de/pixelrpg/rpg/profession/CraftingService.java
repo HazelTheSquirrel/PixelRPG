@@ -14,6 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionType;
 
 import java.util.List;
@@ -134,7 +135,11 @@ public final class CraftingService {
             catch (IllegalArgumentException exception) { throw new IllegalStateException("Invalid potion type for recipe " + recipe.id() + ": " + recipe.potionType(), exception); }
             ItemStack potion = new ItemStack(recipe.resultMaterial(), recipe.resultAmount());
             PotionMeta meta = (PotionMeta) potion.getItemMeta();
-            meta.setBasePotionType(potionType); meta.displayName(net.kyori.adventure.text.Component.text(recipe.displayName())); potion.setItemMeta(meta); return potion;
+            meta.setBasePotionType(potionType);
+            meta.displayName(net.kyori.adventure.text.Component.text(recipe.displayName()));
+            tagSpecialCraftResult(meta, recipe.id());
+            potion.setItemMeta(meta);
+            return potion;
         }
         if (!recipe.enchantment().isBlank()) {
             if (recipe.resultMaterial() != Material.ENCHANTED_BOOK) throw new IllegalStateException("Enchanted-book recipe must produce ENCHANTED_BOOK: " + recipe.id());
@@ -143,9 +148,19 @@ public final class CraftingService {
             if (enchantment == null) throw new IllegalStateException("Unknown enchantment for recipe " + recipe.id() + ": " + recipe.enchantment());
             ItemStack book = new ItemStack(Material.ENCHANTED_BOOK, recipe.resultAmount());
             EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
-            meta.addStoredEnchant(enchantment, recipe.enchantmentLevel(), false); meta.displayName(net.kyori.adventure.text.Component.text(recipe.displayName())); book.setItemMeta(meta); return book;
+            meta.addStoredEnchant(enchantment, recipe.enchantmentLevel(), false);
+            meta.displayName(net.kyori.adventure.text.Component.text(recipe.displayName()));
+            tagSpecialCraftResult(meta, recipe.id());
+            book.setItemMeta(meta);
+            return book;
         }
         return itemService.createCraftedItem(recipe.id(), recipe.displayName(), recipe.resultMaterial(), rarity, itemLevel);
+    }
+
+    private void tagSpecialCraftResult(ItemMeta meta, String recipeId) {
+        var pdc = meta.getPersistentDataContainer();
+        pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, normalizeItemId(recipeId));
+        pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, true);
     }
 
     private void makeCraftResultStackable(ItemStack result) {
