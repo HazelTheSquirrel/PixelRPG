@@ -1,428 +1,1082 @@
 {
   "recipes": [
     {
-      "id": "blacksmith:iron_sword",
-      "label": "Eisenschwert – Lehrlingsarbeit",
-      "profession": "BLACKSMITH",
-      "result": "IRON_SWORD",
-      "resultItemId": "pixelrpg:weapons/iron_sword/common_3",
-      "costs": {"IRON_INGOT": 2, "STICK": 1},
+      "id": "scholar:book",
+      "label": "Erstes Lehrbuch",
+      "profession": "SCHOLAR",
+      "result": "BOOK",
+      "resultItemId": "pixelrpg:scholar:book",
+      "costs": {
+        "PAPER": 2,
+        "FEATHER": 1
+      },
       "requiredProfessionLevel": 1,
       "unlockPrice": 100,
       "rarity": "COMMON",
       "unlockedByDefault": false
     },
     {
-      "id": "blacksmith:gold_sword",
-      "label": "Goldklinge – Veredelung",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_SWORD",
-      "resultItemId": "pixelrpg:weapons/gold_sword/uncommon_25",
-      "costs": {"GOLD_INGOT": 2, "STICK": 1},
-      "itemCosts": {"pixelrpg:weapons/iron_sword/common_3": 1},
-      "requiredProfessionLevel": 20,
-      "unlockPrice": 600,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "blacksmith:diamond_sword",
-      "label": "Diamantklinge – Meisterarbeit",
-      "profession": "BLACKSMITH",
-      "result": "DIAMOND_SWORD",
-      "resultItemId": "pixelrpg:weapons/diamond_sword/rare_40",
-      "costs": {"DIAMOND": 2, "STICK": 1},
-      "itemCosts": {"pixelrpg:weapons/gold_sword/uncommon_25": 1},
-      "requiredProfessionLevel": 40,
-      "unlockPrice": 1400,
-      "rarity": "RARE",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "blacksmith:netherite_sword",
-      "label": "Netheritklinge – Meisterschmiede",
-      "profession": "BLACKSMITH",
-      "result": "NETHERITE_SWORD",
-      "resultItemId": "pixelrpg:weapons/netherite_sword/legendary_90",
-      "costs": {"NETHERITE_INGOT": 1, "NETHERITE_UPGRADE_SMITHING_TEMPLATE": 1},
-      "itemCosts": {"pixelrpg:weapons/diamond_sword/rare_40": 1},
-      "requiredProfessionLevel": 80,
-      "unlockPrice": 6000,
-      "rarity": "LEGENDARY",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "blacksmith:copper_chestplate",
-      "label": "Donnerwacht – Ausgangsrüstung",
-      "profession": "BLACKSMITH",
-      "result": "COPPER_CHESTPLATE",
-      "resultItemId": "pixelrpg:armor/copper_chestplate/donnerwacht_10",
-      "costs": {"COPPER_INGOT": 8},
-      "requiredProfessionLevel": 10,
-      "unlockPrice": 300,
+      "id": "scholar:inked_book",
+      "label": "Beschriebenes Lehrbuch",
+      "profession": "SCHOLAR",
+      "result": "WRITABLE_BOOK",
+      "resultItemId": "pixelrpg:scholar/inked_book",
+      "costs": {
+        "INK_SAC": 1,
+        "FEATHER": 1
+      },
+      "itemCosts": {
+        "pixelrpg:scholar:book": 1
+      },
+      "requiredProfessionLevel": 7,
+      "unlockPrice": 220,
       "rarity": "COMMON",
       "unlockedByDefault": false
     },
     {
-      "id": "blacksmith:chainmail_chestplate",
-      "label": "Schattengeflecht – Verstärkung",
-      "profession": "BLACKSMITH",
-      "result": "CHAINMAIL_CHESTPLATE",
-      "resultItemId": "pixelrpg:armor/chainmail_chestplate/schattengeflecht_20",
-      "costs": {"IRON_INGOT": 4, "STRING": 8},
-      "itemCosts": {"pixelrpg:armor/copper_chestplate/donnerwacht_10": 1},
-      "requiredProfessionLevel": 20,
-      "unlockPrice": 600,
+      "id": "scholar:research_notes",
+      "label": "Forschungsnotizen",
+      "profession": "SCHOLAR",
+      "result": "PAPER",
+      "resultItemId": "pixelrpg:scholar/research_notes",
+      "costs": {
+        "LAPIS_LAZULI": 2
+      },
+      "itemCosts": {
+        "pixelrpg:scholar/inked_book": 1
+      },
+      "requiredProfessionLevel": 14,
+      "unlockPrice": 420,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false
     },
     {
-      "id": "blacksmith:iron_chestplate",
-      "label": "Stahlwall – Veredelung",
-      "profession": "BLACKSMITH",
-      "result": "IRON_CHESTPLATE",
-      "resultItemId": "pixelrpg:armor/iron_chestplate/stahlwall_30",
-      "costs": {"IRON_INGOT": 8},
-      "itemCosts": {"pixelrpg:armor/chainmail_chestplate/schattengeflecht_20": 1},
-      "requiredProfessionLevel": 30,
-      "unlockPrice": 1000,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "blacksmith:gold_chestplate",
-      "label": "Sonnengewand – Goldveredelung",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_CHESTPLATE",
-      "resultItemId": "pixelrpg:armor/gold_chestplate/sonnengewand_45",
-      "costs": {"GOLD_INGOT": 8},
-      "itemCosts": {"pixelrpg:armor/iron_chestplate/stahlwall_30": 1},
-      "requiredProfessionLevel": 45,
-      "unlockPrice": 1800,
-      "rarity": "RARE",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "blacksmith:diamond_chestplate",
-      "label": "Kristallwache – Meisterrüstung",
-      "profession": "BLACKSMITH",
-      "result": "DIAMOND_CHESTPLATE",
-      "resultItemId": "pixelrpg:armor/diamond_chestplate/kristallwache_60",
-      "costs": {"DIAMOND": 8},
-      "itemCosts": {"pixelrpg:armor/gold_chestplate/sonnengewand_45": 1},
-      "requiredProfessionLevel": 60,
-      "unlockPrice": 3200,
-      "rarity": "EPIC",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "blacksmith:netherite_chestplate",
-      "label": "Höllenschmiede – Endrüstung",
-      "profession": "BLACKSMITH",
-      "result": "NETHERITE_CHESTPLATE",
-      "resultItemId": "pixelrpg:armor/netherite_chestplate/hoellenschmiede_80",
-      "costs": {"NETHERITE_INGOT": 1, "NETHERITE_UPGRADE_SMITHING_TEMPLATE": 1},
-      "itemCosts": {"pixelrpg:armor/diamond_chestplate/kristallwache_60": 1},
-      "requiredProfessionLevel": 80,
-      "unlockPrice": 6000,
-      "rarity": "LEGENDARY",
-      "unlockedByDefault": false
-    },
-
-    {
-      "id": "provisioner:bread",
-      "label": "Brot des Lehrlings",
-      "profession": "PROVISIONER",
-      "result": "BREAD",
-      "costs": {"WHEAT": 3},
-      "requiredProfessionLevel": 1,
-      "unlockPrice": 100,
-      "rarity": "COMMON",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "provisioner:cake",
-      "label": "Ofenkuchen",
-      "profession": "PROVISIONER",
-      "result": "CAKE",
-      "costs": {"MILK_BUCKET": 3, "SUGAR": 2, "EGG": 1, "WHEAT": 3},
-      "itemCosts": {"pixelrpg:provisioner:bread": 2},
-      "requiredProfessionLevel": 15,
-      "unlockPrice": 500,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "provisioner:pumpkin_pie",
-      "label": "Kürbiskuchen – Festtagsrezept",
-      "profession": "PROVISIONER",
-      "result": "PUMPKIN_PIE",
-      "costs": {"PUMPKIN": 1, "SUGAR": 1, "EGG": 1},
-      "itemCosts": {"pixelrpg:provisioner:cake": 1},
-      "requiredProfessionLevel": 30,
-      "unlockPrice": 1000,
-      "rarity": "RARE",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "provisioner:rabbit_stew",
-      "label": "Haseneintopf – Meisterküche",
-      "profession": "PROVISIONER",
-      "result": "RABBIT_STEW",
-      "costs": {"COOKED_RABBIT": 1, "CARROT": 1, "BAKED_POTATO": 1, "BROWN_MUSHROOM": 1, "BOWL": 1},
-      "itemCosts": {"pixelrpg:provisioner:pumpkin_pie": 1},
-      "requiredProfessionLevel": 50,
-      "unlockPrice": 2200,
-      "rarity": "EPIC",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "provisioner:suspicious_stew",
-      "label": "Kräuter-Eintopf – Starke Wirkung",
-      "profession": "PROVISIONER",
-      "result": "SUSPICIOUS_STEW",
-      "costs": {"RED_MUSHROOM": 1, "BROWN_MUSHROOM": 1, "BOWL": 1, "DANDELION": 1},
-      "itemCosts": {"pixelrpg:provisioner:rabbit_stew": 1},
-      "requiredProfessionLevel": 70,
-      "unlockPrice": 4000,
-      "rarity": "EPIC",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "provisioner:golden_carrot",
-      "label": "Goldene Karotte – Reiseproviant",
-      "profession": "PROVISIONER",
-      "result": "GOLDEN_CARROT",
-      "costs": {"CARROT": 1, "GOLD_NUGGET": 8},
-      "itemCosts": {"pixelrpg:provisioner:suspicious_stew": 1},
-      "requiredProfessionLevel": 85,
-      "unlockPrice": 5500,
-      "rarity": "LEGENDARY",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "provisioner:golden_apple",
-      "label": "Goldener Apfel – Festmahl der Helden",
-      "profession": "PROVISIONER",
-      "result": "GOLDEN_APPLE",
-      "costs": {"GOLD_INGOT": 8, "APPLE": 1},
-      "itemCosts": {"pixelrpg:provisioner:golden_carrot": 1},
-      "requiredProfessionLevel": 100,
-      "unlockPrice": 10000,
-      "rarity": "LEGENDARY",
-      "unlockedByDefault": false
-    },
-
-    {
-      "id": "alchemist:awkward_potion",
-      "label": "Alchemistisches Grundelixier",
-      "profession": "ALCHEMIST",
-      "result": "POTION",
-      "costs": {"WATER_BOTTLE": 1, "NETHER_WART": 1},
-      "potionType": "AWKWARD",
-      "requiredProfessionLevel": 1,
-      "unlockPrice": 100,
-      "rarity": "COMMON",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "alchemist:healing",
-      "label": "Heilelixier",
-      "profession": "ALCHEMIST",
-      "result": "POTION",
-      "costs": {"GLISTERING_MELON_SLICE": 1},
-      "itemCosts": {"pixelrpg:alchemist:awkward_potion": 1},
-      "potionType": "HEALING",
-      "requiredProfessionLevel": 20,
+      "id": "scholar:arcane_tome",
+      "label": "Arkaner Foliant",
+      "profession": "SCHOLAR",
+      "result": "BOOK",
+      "resultItemId": "pixelrpg:scholar/arcane_tome",
+      "costs": {
+        "AMETHYST_SHARD": 2,
+        "GLOW_INK_SAC": 1
+      },
+      "itemCosts": {
+        "pixelrpg:scholar/research_notes": 1
+      },
+      "requiredProfessionLevel": 22,
       "unlockPrice": 700,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false
     },
     {
-      "id": "alchemist:strong_healing",
-      "label": "Großes Heilelixier",
-      "profession": "ALCHEMIST",
-      "result": "POTION",
-      "costs": {"GLOWSTONE_DUST": 1},
-      "itemCosts": {"pixelrpg:alchemist:healing": 1},
-      "potionType": "STRONG_HEALING",
-      "requiredProfessionLevel": 40,
-      "unlockPrice": 1400,
-      "rarity": "RARE",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "alchemist:splash_strong_healing",
-      "label": "Wurf-Heilelixier",
-      "profession": "ALCHEMIST",
-      "result": "SPLASH_POTION",
-      "costs": {"GUNPOWDER": 1},
-      "itemCosts": {"pixelrpg:alchemist:strong_healing": 1},
-      "potionType": "STRONG_HEALING",
-      "requiredProfessionLevel": 60,
-      "unlockPrice": 2400,
-      "rarity": "EPIC",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "alchemist:strength",
-      "label": "Stärketrank",
-      "profession": "ALCHEMIST",
-      "result": "POTION",
-      "costs": {"BLAZE_POWDER": 1},
-      "itemCosts": {"pixelrpg:alchemist:awkward_potion": 1},
-      "potionType": "STRENGTH",
-      "requiredProfessionLevel": 25,
-      "unlockPrice": 900,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "alchemist:long_strength",
-      "label": "Langanhaltender Stärketrank",
-      "profession": "ALCHEMIST",
-      "result": "POTION",
-      "costs": {"REDSTONE": 1},
-      "itemCosts": {"pixelrpg:alchemist:strength": 1},
-      "potionType": "LONG_STRENGTH",
-      "requiredProfessionLevel": 50,
-      "unlockPrice": 1800,
-      "rarity": "RARE",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "alchemist:strong_strength",
-      "label": "Meister-Stärketrank",
-      "profession": "ALCHEMIST",
-      "result": "POTION",
-      "costs": {"GLOWSTONE_DUST": 2},
-      "itemCosts": {"pixelrpg:alchemist:long_strength": 1},
-      "potionType": "STRONG_STRENGTH",
-      "requiredProfessionLevel": 75,
-      "unlockPrice": 4200,
-      "rarity": "EPIC",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "alchemist:lingering_strength",
-      "label": "Meister-Elixier der Stärke",
-      "profession": "ALCHEMIST",
-      "result": "LINGERING_POTION",
-      "costs": {"DRAGON_BREATH": 1},
-      "itemCosts": {"pixelrpg:alchemist:strong_strength": 1},
-      "potionType": "STRONG_STRENGTH",
-      "requiredProfessionLevel": 100,
-      "unlockPrice": 9000,
-      "rarity": "LEGENDARY",
-      "unlockedByDefault": false
-    },
-
-    {
-      "id": "scholar:paper",
-      "label": "Sauberes Papier",
+      "id": "scholar:knowledge_scroll",
+      "label": "Schriftrolle des Wissens",
       "profession": "SCHOLAR",
       "result": "PAPER",
-      "resultAmount": 2,
-      "costs": {"SUGAR_CANE": 3},
-      "requiredProfessionLevel": 1,
-      "unlockPrice": 100,
-      "rarity": "COMMON",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "scholar:book",
-      "label": "Gebundenes Lehrbuch",
-      "profession": "SCHOLAR",
-      "result": "BOOK",
-      "costs": {"LEATHER": 1},
-      "itemCosts": {"pixelrpg:scholar:paper": 2},
-      "requiredProfessionLevel": 15,
-      "unlockPrice": 500,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false
-    },
-    {
-      "id": "scholar:efficiency_iii",
-      "label": "Lehrbuch der Effizienz III",
-      "profession": "SCHOLAR",
-      "result": "ENCHANTED_BOOK",
-      "costs": {"LAPIS_LAZULI": 3},
-      "itemCosts": {"pixelrpg:scholar:book": 1},
-      "enchantment": "efficiency",
-      "enchantmentLevel": 3,
+      "resultItemId": "pixelrpg:scholar/knowledge_scroll",
+      "costs": {
+        "GLOW_INK_SAC": 1,
+        "GOLD_NUGGET": 4
+      },
+      "itemCosts": {
+        "pixelrpg:scholar/arcane_tome": 1
+      },
       "requiredProfessionLevel": 30,
-      "unlockPrice": 1200,
+      "unlockPrice": 1000,
       "rarity": "RARE",
       "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:enchanted_page",
+      "label": "Verzauberte Seite",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "resultItemId": "pixelrpg:scholar/enchanted_page",
+      "costs": {
+        "LAPIS_LAZULI": 3
+      },
+      "itemCosts": {
+        "pixelrpg:scholar/knowledge_scroll": 1
+      },
+      "requiredProfessionLevel": 38,
+      "unlockPrice": 1500,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "enchantment": "efficiency",
+      "enchantmentLevel": 3
     },
     {
       "id": "scholar:efficiency_v",
-      "label": "Meisterwerk der Effizienz V",
+      "label": "Lehrbuch der Effizienz V",
       "profession": "SCHOLAR",
       "result": "ENCHANTED_BOOK",
-      "costs": {"GLOWSTONE_DUST": 4, "LAPIS_LAZULI": 6},
-      "itemCosts": {"pixelrpg:scholar:efficiency_iii": 1},
+      "resultItemId": "pixelrpg:scholar:efficiency_v",
+      "costs": {
+        "LAPIS_LAZULI": 5
+      },
+      "itemCosts": {
+        "pixelrpg:scholar/enchanted_page": 1
+      },
+      "requiredProfessionLevel": 46,
+      "unlockPrice": 2300,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
       "enchantment": "efficiency",
-      "enchantmentLevel": 5,
-      "requiredProfessionLevel": 80,
-      "unlockPrice": 6500,
-      "rarity": "LEGENDARY",
-      "unlockedByDefault": false
+      "enchantmentLevel": 5
     },
     {
       "id": "scholar:protection_iv",
       "label": "Lehrbuch des Schutzes IV",
       "profession": "SCHOLAR",
       "result": "ENCHANTED_BOOK",
-      "costs": {"LAPIS_LAZULI": 4},
-      "itemCosts": {"pixelrpg:scholar:book": 1},
-      "enchantment": "protection",
-      "enchantmentLevel": 4,
+      "resultItemId": "pixelrpg:scholar:protection_iv",
+      "costs": {
+        "LAPIS_LAZULI": 5
+      },
+      "itemCosts": {
+        "pixelrpg:scholar/enchanted_page": 1
+      },
       "requiredProfessionLevel": 55,
-      "unlockPrice": 3200,
+      "unlockPrice": 2800,
       "rarity": "EPIC",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "enchantment": "protection",
+      "enchantmentLevel": 4
     },
     {
       "id": "scholar:sharpness_v",
       "label": "Lehrbuch der Schärfe V",
       "profession": "SCHOLAR",
       "result": "ENCHANTED_BOOK",
-      "costs": {"LAPIS_LAZULI": 5},
-      "itemCosts": {"pixelrpg:scholar:book": 1},
-      "enchantment": "sharpness",
-      "enchantmentLevel": 5,
-      "requiredProfessionLevel": 70,
-      "unlockPrice": 4800,
+      "resultItemId": "pixelrpg:scholar:sharpness_v",
+      "costs": {
+        "LAPIS_LAZULI": 5
+      },
+      "itemCosts": {
+        "pixelrpg:scholar:arcane_tome": 1
+      },
+      "requiredProfessionLevel": 64,
+      "unlockPrice": 3600,
       "rarity": "EPIC",
-      "unlockedByDefault": false
+      "unlockedByDefault": false,
+      "enchantment": "sharpness",
+      "enchantmentLevel": 5
     },
     {
       "id": "scholar:unbreaking_iii",
-      "label": "Lehrbuch der Unzerstörbarkeit III",
+      "label": "Lehrbuch der Haltbarkeit III",
       "profession": "SCHOLAR",
       "result": "ENCHANTED_BOOK",
-      "costs": {"LAPIS_LAZULI": 3},
-      "itemCosts": {"pixelrpg:scholar:book": 1},
+      "resultItemId": "pixelrpg:scholar:unbreaking_iii",
+      "costs": {
+        "LAPIS_LAZULI": 5
+      },
+      "itemCosts": {
+        "pixelrpg:scholar/arcane_tome": 1
+      },
+      "requiredProfessionLevel": 72,
+      "unlockPrice": 4200,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
       "enchantment": "unbreaking",
-      "enchantmentLevel": 3,
-      "requiredProfessionLevel": 45,
-      "unlockPrice": 2200,
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:fortune_iii",
+      "label": "Lehrbuch des Glücks III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "resultItemId": "pixelrpg:scholar/fortune_iii",
+      "costs": {
+        "LAPIS_LAZULI": 6
+      },
+      "itemCosts": {
+        "pixelrpg:scholar:efficiency_v": 1
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 5200,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "fortune",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:mending",
+      "label": "Meisterschrift der Reparatur",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "resultItemId": "pixelrpg:scholar:mending",
+      "costs": {
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 1
+      },
+      "itemCosts": {
+        "pixelrpg:scholar/fortune_iii": 1
+      },
+      "requiredProfessionLevel": 88,
+      "unlockPrice": 7500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "enchantment": "mending",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:ancient_archive",
+      "label": "Altes Archiv",
+      "profession": "SCHOLAR",
+      "result": "WRITABLE_BOOK",
+      "resultItemId": "pixelrpg:scholar/ancient_archive",
+      "costs": {
+        "GOLD_INGOT": 2,
+        "AMETHYST_SHARD": 4
+      },
+      "itemCosts": {
+        "pixelrpg:scholar:mending": 1,
+        "pixelrpg:scholar/research_notes": 1
+      },
+      "requiredProfessionLevel": 94,
+      "unlockPrice": 9000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:world_record",
+      "label": "Weltchronik",
+      "profession": "SCHOLAR",
+      "result": "WRITABLE_BOOK",
+      "resultItemId": "pixelrpg:scholar/world_record",
+      "costs": {
+        "DIAMOND": 2,
+        "GLOW_INK_SAC": 2
+      },
+      "itemCosts": {
+        "pixelrpg:scholar/ancient_archive": 1,
+        "pixelrpg:alchemist/arcane_catalyst": 1
+      },
+      "requiredProfessionLevel": 98,
+      "unlockPrice": 11000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:mob_spawner",
+      "label": "Archiv der Bestien",
+      "profession": "SCHOLAR",
+      "result": "SPAWNER",
+      "resultItemId": "pixelrpg:scholar/mob_spawner",
+      "costs": {
+        "SAPLING": 2,
+        "SUGAR_CANE": 4
+      },
+      "itemCosts": {
+        "pixelrpg:scholar/world_record": 1
+      },
+      "requiredProfessionLevel": 100,
+      "unlockPrice": 15000,
+      "rarity": "UNIQUE",
+      "unlockedByDefault": false
+    },
+
+    {
+      "id": "blacksmith:copper_core",
+      "label": "Kupferkern",
+      "profession": "BLACKSMITH",
+      "result": "COPPER_INGOT",
+      "resultItemId": "pixelrpg:blacksmith/copper_core",
+      "costs": {
+        "COPPER_INGOT": 3
+      },
+      "requiredProfessionLevel": 1,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:copper_blade",
+      "label": "Kupferklinge",
+      "profession": "BLACKSMITH",
+      "result": "COPPER_SWORD",
+      "resultItemId": "pixelrpg:blacksmith/copper_blade",
+      "costs": {
+        "STICK": 1
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/copper_core": 2
+      },
+      "requiredProfessionLevel": 7,
+      "unlockPrice": 220,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:copper_plate",
+      "label": "Kupferplatte",
+      "profession": "BLACKSMITH",
+      "result": "COPPER_INGOT",
+      "resultItemId": "pixelrpg:blacksmith/copper_plate",
+      "costs": {
+        "COPPER_INGOT": 4
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/copper_core": 1
+      },
+      "requiredProfessionLevel": 14,
+      "unlockPrice": 420,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:chainmail_frame",
+      "label": "Kettenrahmen",
+      "profession": "BLACKSMITH",
+      "result": "CHAIN",
+      "resultItemId": "pixelrpg:blacksmith/chainmail_frame",
+      "costs": {
+        "IRON_NUGGET": 12,
+        "STRING": 4
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/copper_plate": 1
+      },
+      "requiredProfessionLevel": 22,
+      "unlockPrice": 700,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:iron_reinforcement",
+      "label": "Eisenverstärkung",
+      "profession": "BLACKSMITH",
+      "result": "IRON_INGOT",
+      "resultItemId": "pixelrpg:blacksmith/iron_reinforcement",
+      "costs": {
+        "IRON_INGOT": 3
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/chainmail_frame": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 1000,
       "rarity": "RARE",
       "unlockedByDefault": false
     },
     {
-      "id": "scholar:mending",
-      "label": "Meisterwerk der Reparatur",
-      "profession": "SCHOLAR",
-      "result": "ENCHANTED_BOOK",
-      "costs": {"DIAMOND": 1, "LAPIS_LAZULI": 8},
-      "itemCosts": {"pixelrpg:scholar:efficiency_v": 1},
-      "enchantment": "mending",
-      "enchantmentLevel": 1,
-      "requiredProfessionLevel": 100,
-      "unlockPrice": 10000,
+      "id": "blacksmith:forged_pickaxe",
+      "label": "Geschmiedete Spitzhacke",
+      "profession": "BLACKSMITH",
+      "result": "IRON_PICKAXE",
+      "resultItemId": "pixelrpg:blacksmith/forged_pickaxe",
+      "costs": {
+        "STICK": 2
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/iron_reinforcement": 2
+      },
+      "requiredProfessionLevel": 38,
+      "unlockPrice": 1500,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:forged_sword",
+      "label": "Geschmiedetes Schwert",
+      "profession": "BLACKSMITH",
+      "result": "IRON_SWORD",
+      "resultItemId": "pixelrpg:blacksmith/forged_sword",
+      "costs": {
+        "STICK": 1
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/iron_reinforcement": 2,
+        "pixelrpg:scholar/research_notes": 1
+      },
+      "requiredProfessionLevel": 46,
+      "unlockPrice": 2300,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:copper_shield",
+      "label": "Kupferschild",
+      "profession": "BLACKSMITH",
+      "result": "SHIELD",
+      "resultItemId": "pixelrpg:blacksmith/copper_shield",
+      "costs": {
+        "COPPER_INGOT": 2
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/copper_plate": 2
+      },
+      "requiredProfessionLevel": 55,
+      "unlockPrice": 2800,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:gold_core",
+      "label": "Goldkern",
+      "profession": "BLACKSMITH",
+      "result": "GOLD_INGOT",
+      "resultItemId": "pixelrpg:blacksmith/gold_core",
+      "costs": {
+        "GOLD_INGOT": 3
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/forged_sword": 1
+      },
+      "requiredProfessionLevel": 64,
+      "unlockPrice": 3600,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_frame",
+      "label": "Diamantrahmen",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND",
+      "resultItemId": "pixelrpg:blacksmith/diamond_frame",
+      "costs": {
+        "DIAMOND": 2
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/gold_core": 1,
+        "pixelrpg:blacksmith/iron_reinforcement": 2
+      },
+      "requiredProfessionLevel": 72,
+      "unlockPrice": 4200,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_sword",
+      "label": "Kristallschneide",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_SWORD",
+      "resultItemId": "pixelrpg:blacksmith/diamond_sword",
+      "costs": {
+        "STICK": 1
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/diamond_frame": 2,
+        "pixelrpg:scholar:sharpness_v": 1
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 5200,
       "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_chestplate",
+      "label": "Kristallpanzer",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_CHESTPLATE",
+      "resultItemId": "pixelrpg:blacksmith/diamond_chestplate",
+      "costs": {
+        "DIAMOND": 4
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/gold_core": 2,
+        "pixelrpg:scholar:protection_iv": 1
+      },
+      "requiredProfessionLevel": 88,
+      "unlockPrice": 7500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:netherite_component",
+      "label": "Netheritkomponente",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_INGOT",
+      "resultItemId": "pixelrpg:blacksmith/netherite_component",
+      "costs": {
+        "NETHERITE_INGOT": 1,
+        "NETHERITE_UPGRADE_SMITHING_TEMPLATE": 1
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/diamond_sword": 1
+      },
+      "requiredProfessionLevel": 94,
+      "unlockPrice": 9000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:legendary_blade",
+      "label": "Klinge des Meisters",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_SWORD",
+      "resultItemId": "pixelrpg:blacksmith/legendary_blade",
+      "costs": {
+        "STICK": 1
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/netherite_component": 2,
+        "pixelrpg:scholar:mending": 1,
+        "pixelrpg:alchemist/master_elixir": 1
+      },
+      "requiredProfessionLevel": 98,
+      "unlockPrice": 11000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:master_armor",
+      "label": "Rüstung des Schmiedemeisters",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_CHESTPLATE",
+      "resultItemId": "pixelrpg:blacksmith/master_armor",
+      "costs": {
+        "NETHERITE_INGOT": 2,
+        "NETHERITE_UPGRADE_SMITHING_TEMPLATE": 1
+      },
+      "itemCosts": {
+        "pixelrpg:blacksmith/diamond_chestplate": 1,
+        "pixelrpg:scholar:protection_iv": 1
+      },
+      "requiredProfessionLevel": 100,
+      "unlockPrice": 15000,
+      "rarity": "UNIQUE",
+      "unlockedByDefault": false
+    },
+
+    {
+      "id": "alchemist:water_flask",
+      "label": "Wasserflasche des Labors",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "resultItemId": "pixelrpg:alchemist/water_flask",
+      "costs": {
+        "GLASS_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 1,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "potionType": "WATER"
+    },
+    {
+      "id": "alchemist:honey_extract",
+      "label": "Honigextrakt",
+      "profession": "ALCHEMIST",
+      "result": "HONEY_BOTTLE",
+      "resultItemId": "pixelrpg:alchemist/honey_extract",
+      "costs": {
+        "HONEYCOMB": 1
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist/water_flask": 1
+      },
+      "requiredProfessionLevel": 7,
+      "unlockPrice": 220,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "alchemist:melon_tonic",
+      "label": "Melonen-Tonikum",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "resultItemId": "pixelrpg:alchemist/melon_tonic",
+      "costs": {
+        "MELON_SLICE": 2
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist/honey_extract": 1
+      },
+      "requiredProfessionLevel": 14,
+      "unlockPrice": 420,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "potionType": "WATER"
+    },
+    {
+      "id": "alchemist:healing_elixir",
+      "label": "Heilelixier",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "resultItemId": "pixelrpg:alchemist:healing",
+      "costs": {
+        "GLISTERING_MELON_SLICE": 1
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist/melon_tonic": 1
+      },
+      "requiredProfessionLevel": 22,
+      "unlockPrice": 700,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "potionType": "HEALING"
+    },
+    {
+      "id": "alchemist:strength_elixir",
+      "label": "Stärkelixier",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "resultItemId": "pixelrpg:alchemist:strength",
+      "costs": {
+        "BLAZE_POWDER": 1
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist/melon_tonic": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 1000,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "potionType": "STRENGTH"
+    },
+    {
+      "id": "alchemist:strong_healing",
+      "label": "Starkes Heilelixier",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "resultItemId": "pixelrpg:alchemist:strong_healing",
+      "costs": {
+        "GLOWSTONE_DUST": 1
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist:healing": 1
+      },
+      "requiredProfessionLevel": 38,
+      "unlockPrice": 1500,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "potionType": "STRONG_HEALING"
+    },
+    {
+      "id": "alchemist:long_strength",
+      "label": "Langanhaltendes Stärkelixier",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "resultItemId": "pixelrpg:alchemist:long_strength",
+      "costs": {
+        "REDSTONE": 1
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist:strength": 1
+      },
+      "requiredProfessionLevel": 46,
+      "unlockPrice": 2300,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "LONG_STRENGTH"
+    },
+    {
+      "id": "alchemist:splash_healing",
+      "label": "Wurf-Heilelixier",
+      "profession": "ALCHEMIST",
+      "result": "SPLASH_POTION",
+      "resultItemId": "pixelrpg:alchemist:splash_strong_healing",
+      "costs": {
+        "GUNPOWDER": 1
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist:strong_healing": 1
+      },
+      "requiredProfessionLevel": 55,
+      "unlockPrice": 2800,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "STRONG_HEALING"
+    },
+    {
+      "id": "alchemist:lingering_strength",
+      "label": "Verweilendes Stärkelixier",
+      "profession": "ALCHEMIST",
+      "result": "LINGERING_POTION",
+      "resultItemId": "pixelrpg:alchemist:lingering_strength",
+      "costs": {
+        "DRAGON_BREATH": 1
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist:long_strength": 1
+      },
+      "requiredProfessionLevel": 64,
+      "unlockPrice": 3600,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "LONG_STRENGTH"
+    },
+    {
+      "id": "alchemist:arcane_catalyst",
+      "label": "Arkaner Katalysator",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "resultItemId": "pixelrpg:alchemist/arcane_catalyst",
+      "costs": {
+        "AMETHYST_SHARD": 2
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist:healing": 1,
+        "pixelrpg:scholar/arcane_tome": 1
+      },
+      "requiredProfessionLevel": 72,
+      "unlockPrice": 4200,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "potionType": "WATER"
+    },
+    {
+      "id": "alchemist:invisibility_elixir",
+      "label": "Elixier der Unsichtbarkeit",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "resultItemId": "pixelrpg:alchemist/invisibility_elixir",
+      "costs": {
+        "FERMENTED_SPIDER_EYE": 1
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist/arcane_catalyst": 1
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 5200,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "INVISIBILITY"
+    },
+    {
+      "id": "alchemist:heroic_elixir",
+      "label": "Heldenelixier",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "resultItemId": "pixelrpg:alchemist/heroic_elixir",
+      "costs": {
+        "GOLDEN_CARROT": 1
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist/arcane_catalyst": 1
+      },
+      "requiredProfessionLevel": 88,
+      "unlockPrice": 7500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "STRENGTH"
+    },
+    {
+      "id": "alchemist:master_elixir",
+      "label": "Meisterelixier",
+      "profession": "ALCHEMIST",
+      "result": "LINGERING_POTION",
+      "resultItemId": "pixelrpg:alchemist/master_elixir",
+      "costs": {
+        "DRAGON_BREATH": 2
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist/heroic_elixir": 1,
+        "pixelrpg:scholar:mending": 1
+      },
+      "requiredProfessionLevel": 94,
+      "unlockPrice": 9000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "STRONG_STRENGTH"
+    },
+    {
+      "id": "alchemist:philosophers_draught",
+      "label": "Trank der Meisterschaft",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "resultItemId": "pixelrpg:alchemist/philosophers_draught",
+      "costs": {
+        "DRAGON_BREATH": 1,
+        "AMETHYST_SHARD": 2
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist/master_elixir": 1,
+        "pixelrpg:blacksmith/gold_core": 1
+      },
+      "requiredProfessionLevel": 98,
+      "unlockPrice": 11000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "potionType": "STRONG_HEALING"
+    },
+    {
+      "id": "alchemist:grand_elixir",
+      "label": "Großes Meisterelixier",
+      "profession": "ALCHEMIST",
+      "result": "LINGERING_POTION",
+      "resultItemId": "pixelrpg:alchemist/grand_elixir",
+      "costs": {
+        "DRAGON_BREATH": 2
+      },
+      "itemCosts": {
+        "pixelrpg:alchemist/philosophers_draught": 1,
+        "pixelrpg:scholar/world_record": 1
+      },
+      "requiredProfessionLevel": 100,
+      "unlockPrice": 15000,
+      "rarity": "UNIQUE",
+      "unlockedByDefault": false,
+      "potionType": "STRONG_STRENGTH"
+    },
+
+    {
+      "id": "provisioner:dough",
+      "label": "Grundteig",
+      "profession": "PROVISIONER",
+      "result": "BREAD",
+      "resultItemId": "pixelrpg:provisioner/dough",
+      "costs": {
+        "WHEAT": 3
+      },
+      "requiredProfessionLevel": 1,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:bread",
+      "label": "Brot des Lehrlings",
+      "profession": "PROVISIONER",
+      "result": "BREAD",
+      "resultItemId": "pixelrpg:provisioner:bread",
+      "costs": {
+        "WHEAT": 1
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner/dough": 1
+      },
+      "requiredProfessionLevel": 7,
+      "unlockPrice": 220,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:sweet_roll",
+      "label": "Süßes Gebäck",
+      "profession": "PROVISIONER",
+      "result": "COOKIE",
+      "resultItemId": "pixelrpg:provisioner/sweet_roll",
+      "costs": {
+        "SUGAR": 2
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner:bread": 1
+      },
+      "requiredProfessionLevel": 14,
+      "unlockPrice": 420,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:hearty_meal",
+      "label": "Herzhafte Mahlzeit",
+      "profession": "PROVISIONER",
+      "result": "COOKED_BEEF",
+      "resultItemId": "pixelrpg:provisioner/hearty_meal",
+      "costs": {
+        "CARROT": 1
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner/sweet_roll": 1
+      },
+      "requiredProfessionLevel": 22,
+      "unlockPrice": 700,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:traveler_stew",
+      "label": "Reiseeintopf",
+      "profession": "PROVISIONER",
+      "result": "RABBIT_STEW",
+      "resultItemId": "pixelrpg:provisioner/traveler_stew",
+      "costs": {
+        "BOWL": 1,
+        "BROWN_MUSHROOM": 1,
+        "CARROT": 1
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner/hearty_meal": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 1000,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:herb_stew",
+      "label": "Kräutereintopf",
+      "profession": "PROVISIONER",
+      "result": "SUSPICIOUS_STEW",
+      "resultItemId": "pixelrpg:provisioner/herb_stew",
+      "costs": {
+        "BOWL": 1,
+        "RED_MUSHROOM": 1,
+        "DANDELION": 1
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner/traveler_stew": 1
+      },
+      "requiredProfessionLevel": 38,
+      "unlockPrice": 1500,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:healing_soup",
+      "label": "Heilsuppe",
+      "profession": "PROVISIONER",
+      "result": "SUSPICIOUS_STEW",
+      "resultItemId": "pixelrpg:provisioner/healing_soup",
+      "costs": {
+        "BOWL": 1,
+        "RED_MUSHROOM": 1
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner/herb_stew": 1,
+        "pixelrpg:alchemist:healing": 1
+      },
+      "requiredProfessionLevel": 46,
+      "unlockPrice": 2300,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:golden_carrot",
+      "label": "Goldene Karotte – Meisterproviant",
+      "profession": "PROVISIONER",
+      "result": "GOLDEN_CARROT",
+      "resultItemId": "pixelrpg:provisioner:golden_carrot",
+      "costs": {
+        "CARROT": 1,
+        "GOLD_NUGGET": 8
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner/healing_soup": 1
+      },
+      "requiredProfessionLevel": 55,
+      "unlockPrice": 2800,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:glow_berry_tart",
+      "label": "Leuchtbeeren-Törtchen",
+      "profession": "PROVISIONER",
+      "result": "PUMPKIN_PIE",
+      "resultItemId": "pixelrpg:provisioner/glow_berry_tart",
+      "costs": {
+        "GLOW_BERRIES": 4
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner:golden_carrot": 1
+      },
+      "requiredProfessionLevel": 64,
+      "unlockPrice": 3600,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:beef_feast",
+      "label": "Rinderfestmahl",
+      "profession": "PROVISIONER",
+      "result": "COOKED_BEEF",
+      "resultItemId": "pixelrpg:provisioner/beef_feast",
+      "costs": {
+        "COOKED_BEEF": 2
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner/glow_berry_tart": 1,
+        "pixelrpg:provisioner/hearty_meal": 1
+      },
+      "requiredProfessionLevel": 72,
+      "unlockPrice": 4200,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:hero_feast",
+      "label": "Heldenmahl",
+      "profession": "PROVISIONER",
+      "result": "GOLDEN_APPLE",
+      "resultItemId": "pixelrpg:provisioner:golden_apple",
+      "costs": {
+        "GOLD_INGOT": 8,
+        "APPLE": 1
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner:golden_carrot": 1,
+        "pixelrpg:alchemist:heroic_elixir": 1
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 5200,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:enchanted_feast",
+      "label": "Verzaubertes Festmahl",
+      "profession": "PROVISIONER",
+      "result": "GOLDEN_APPLE",
+      "resultItemId": "pixelrpg:provisioner/enchanted_feast",
+      "costs": {
+        "GOLD_INGOT": 4
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner:golden_apple": 1,
+        "pixelrpg:scholar:efficiency_v": 1
+      },
+      "requiredProfessionLevel": 88,
+      "unlockPrice": 7500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:champion_feast",
+      "label": "Festmahl des Champions",
+      "profession": "PROVISIONER",
+      "result": "ENCHANTED_GOLDEN_APPLE",
+      "resultItemId": "pixelrpg:provisioner/champion_feast",
+      "costs": {
+        "GOLD_BLOCK": 1
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner/enchanted_feast": 1,
+        "pixelrpg:alchemist:master_elixir": 1
+      },
+      "requiredProfessionLevel": 94,
+      "unlockPrice": 9000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:survival_ration",
+      "label": "Unverwüstliche Reiseration",
+      "profession": "PROVISIONER",
+      "result": "GOLDEN_CARROT",
+      "resultItemId": "pixelrpg:provisioner/survival_ration",
+      "costs": {
+        "GOLD_NUGGET": 4
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner/champion_feast": 1,
+        "pixelrpg:scholar:protection_iv": 1
+      },
+      "requiredProfessionLevel": 98,
+      "unlockPrice": 11000,
+      "rarity": "UNIQUE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "provisioner:legendary_feast",
+      "label": "Festmahl der Legenden",
+      "profession": "PROVISIONER",
+      "result": "ENCHANTED_GOLDEN_APPLE",
+      "resultItemId": "pixelrpg:provisioner/legendary_feast",
+      "costs": {
+        "GOLD_BLOCK": 2
+      },
+      "itemCosts": {
+        "pixelrpg:provisioner/survival_ration": 1,
+        "pixelrpg:alchemist:grand_elixir": 1,
+        "pixelrpg:scholar/world_record": 1
+      },
+      "requiredProfessionLevel": 100,
+      "unlockPrice": 15000,
+      "rarity": "UNIQUE",
       "unlockedByDefault": false
     }
   ]
