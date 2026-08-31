@@ -56,7 +56,6 @@ public final class CraftingService {
         if (professionLevel < recipe.requiredProfessionLevel()) return CraftResult.failure("Dein Berufslevel ist für dieses Rezept zu niedrig.");
         if (!isUnlocked(player, recipe)) return CraftResult.failure("Dieses Rezept wurde noch nicht freigeschaltet.");
         if (recipe.rarity() == ItemRarity.UNIQUE) return CraftResult.failure("Einzigartige Gegenstände können nicht hergestellt werden.");
-
         if (!hasMaterialCosts(player, recipe.costs()) || !hasItemCosts(player, recipe.itemCosts())) {
             return CraftResult.failure("Dir fehlen die benötigten Materialien.");
         }
@@ -128,7 +127,7 @@ public final class CraftingService {
     }
 
     private ItemStack createResult(CraftRecipe recipe, ItemRarity rarity, int itemLevel) {
-        if (!recipe.resultItemId().isBlank()) return itemService.createItem(recipe.resultItemId(), itemLevel).orElseThrow(() -> new IllegalStateException("Unable to create crafting result item: " + recipe.resultItemId()));
+        String itemId = recipe.resultItemId().isBlank() ? recipe.id() : recipe.resultItemId();
         if (!recipe.potionType().isBlank()) {
             PotionType potionType;
             try { potionType = PotionType.valueOf(recipe.potionType().toUpperCase(Locale.ROOT)); }
@@ -137,7 +136,7 @@ public final class CraftingService {
             PotionMeta meta = (PotionMeta) potion.getItemMeta();
             meta.setBasePotionType(potionType);
             meta.displayName(net.kyori.adventure.text.Component.text(recipe.displayName()));
-            tagSpecialCraftResult(meta, recipe.id());
+            tagSpecialCraftResult(meta, itemId);
             potion.setItemMeta(meta);
             return potion;
         }
@@ -150,16 +149,16 @@ public final class CraftingService {
             EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
             meta.addStoredEnchant(enchantment, recipe.enchantmentLevel(), false);
             meta.displayName(net.kyori.adventure.text.Component.text(recipe.displayName()));
-            tagSpecialCraftResult(meta, recipe.id());
+            tagSpecialCraftResult(meta, itemId);
             book.setItemMeta(meta);
             return book;
         }
-        return itemService.createCraftedItem(recipe.id(), recipe.displayName(), recipe.resultMaterial(), rarity, itemLevel);
+        return itemService.createCraftedItem(itemId, recipe.displayName(), recipe.resultMaterial(), rarity, itemLevel);
     }
 
-    private void tagSpecialCraftResult(ItemMeta meta, String recipeId) {
+    private void tagSpecialCraftResult(ItemMeta meta, String itemId) {
         var pdc = meta.getPersistentDataContainer();
-        pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, normalizeItemId(recipeId));
+        pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, normalizeItemId(itemId));
         pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, true);
     }
 
