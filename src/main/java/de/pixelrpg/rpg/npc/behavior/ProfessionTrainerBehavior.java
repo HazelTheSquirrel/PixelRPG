@@ -19,7 +19,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Native profession trainer dialog for learning one profession and opening the same profession menu used by Quick Actions. */
+/** Native profession trainer dialog for learning one profession and browsing all profession recipes. */
 public final class ProfessionTrainerBehavior implements NpcBehavior {
     private final NpcType type;
     private final Profession profession;
@@ -53,7 +53,7 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
         if (profile.hasLearnedProfession(profession)) {
-            professionDialog.openProfession(player, profession);
+            professionDialog.openTrainerRecipes(player, profession);
             return;
         }
 
@@ -63,8 +63,9 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
         List<ActionButton> actions = new ArrayList<>();
         actions.add(dialogueEngine.actionButton(Component.text(profession.displayName() + " erlernen"), NamedTextColor.GREEN,
                 target -> {
-                    professionService.learn(target, profession);
-                    professionDialog.openProfession(target, profession);
+                    if (professionService.learn(target, profession)) {
+                        professionDialog.openTrainerRecipes(target, profession);
+                    }
                 }));
         actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
         dialogueEngine.openMultiAction(player, Component.text(profession.displayName(), NamedTextColor.GOLD), body, actions, 1);
