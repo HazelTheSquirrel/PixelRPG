@@ -39,7 +39,7 @@ public final class QuestRepository {
         loadDefinitionsFrom("quests_v2.json");
         loadDefinitionsFrom("quests_additional.json");
         loadDefinitionsFrom("quests_world_expansion.json");
-        loadDefinitionsFrom("quests_crafting_orders.json");
+        loadDefinitionsFrom("quests/quests_crafting_orders.json");
         validateReferences();
     }
 
