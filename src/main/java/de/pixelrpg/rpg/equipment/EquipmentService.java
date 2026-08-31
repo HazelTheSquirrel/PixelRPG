@@ -20,7 +20,7 @@ import org.bukkit.inventory.PlayerInventory;
 import java.util.EnumMap;
 import java.util.Map;
 
-/** Tracks the live vanilla equipment slots for stat calculation without altering inventory mechanics. */
+/** Tracks the live vanilla equipment slots for stat calculation and installs equipment requirement guards. */
 public final class EquipmentService implements Listener {
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
@@ -28,6 +28,11 @@ public final class EquipmentService implements Listener {
     public EquipmentService(PlayerProfileManager profileManager, StatEngine statEngine, ItemService ignoredItemService) {
         this.profileManager = profileManager;
         this.statEngine = statEngine;
+        PixelRPGPlugin plugin = PixelRPGPlugin.getInstance();
+        if (plugin != null) {
+            plugin.getServer().getPluginManager().registerEvents(new ItemLevelRequirementListener(profileManager), plugin);
+            plugin.getServer().getPluginManager().registerEvents(new ItemUsageRequirementListener(profileManager), plugin);
+        }
     }
 
     /** Creates a defensive snapshot of the six live Minecraft equipment slots. */
@@ -75,44 +80,34 @@ public final class EquipmentService implements Listener {
     }
 
     private void put(Map<EquipmentSlot, ItemStack> map, EquipmentSlot slot, ItemStack item) {
-        if (item != null && !item.isEmpty()) {
-            map.put(slot, item.clone());
-        }
+        if (item != null && !item.isEmpty()) map.put(slot, item.clone());
     }
 
-    private ItemStack copy(ItemStack item) {
-        return item == null ? null : item.clone();
-    }
+    private ItemStack copy(ItemStack item) { return item == null ? null : item.clone(); }
 
-    /** Tracks armor and hand ItemStack changes without cancelling, replacing, or modifying the vanilla transaction. */
+    // Zuständig für die Neuberechnung von Stats nach einer Änderung eines Rüstungs- oder aktiven Hand-Slots.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventorySlotChange(PlayerInventorySlotChangeEvent event) {
         Player player = event.getPlayer();
         int slot = event.getSlot();
-
         boolean equipmentSlotChanged = slot >= 36 && slot <= 40;
-        boolean selectedMainHandChanged = slot >= 0
-                && slot <= 8
-                && player.getInventory().getHeldItemSlot() == slot;
-
-        if (equipmentSlotChanged || selectedMainHandChanged) {
-            refreshNextTick(player);
-        }
+        boolean selectedMainHandChanged = slot >= 0 && slot <= 8 && player.getInventory().getHeldItemSlot() == slot;
+        if (equipmentSlotChanged || selectedMainHandChanged) refreshNextTick(player);
     }
 
-    /** Tracks mainhand changes caused by selecting another hotbar slot without touching the inventory transaction. */
+    // Zuständig für die Neuberechnung der Stats beim Wechsel des aktiven Hotbar-Slots.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onItemHeld(PlayerItemHeldEvent event) {
         refreshNextTick(event.getPlayer());
     }
 
-    /** Observes the vanilla F-key swap and recalculates stats after Minecraft completes the swap. */
+    // Zuständig für die Neuberechnung der Stats nach dem F-Tasten-Tausch zwischen Haupt- und Nebenhand.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSwapHandItems(PlayerSwapHandItemsEvent event) {
         refreshNextTick(event.getPlayer());
     }
 
-    /** Restores persisted equipment after Minecraft has initialized the player's inventory on join. */
+    // Zuständig für die Wiederherstellung des gespeicherten Equipments beim Login.
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
         event.getPlayer().getScheduler().runDelayed(
@@ -123,13 +118,13 @@ public final class EquipmentService implements Listener {
         );
     }
 
-    /** Captures the final live equipment state before the player's profile is deactivated and saved. */
+    // Zuständig für das Persistieren des aktuellen Equipments beim Logout.
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
         syncToProfile(event.getPlayer());
     }
 
-    /** Recalculates equipment-derived stats after Minecraft has rebuilt the player's inventory on respawn. */
+    // Zuständig für die Neuberechnung der Stats nach einem Respawn.
     @EventHandler(priority = EventPriority.MONITOR)
     public void onRespawn(PlayerRespawnEvent event) {
         refreshNextTick(event.getPlayer());

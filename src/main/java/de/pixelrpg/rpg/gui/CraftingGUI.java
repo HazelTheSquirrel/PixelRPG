@@ -69,6 +69,11 @@ public final class CraftingGUI implements Listener {
             lore.add(Component.text("- " + amount + "x " + QuestText.itemNamePlain(material.name()) + " (" + available + ")",
                     available >= amount ? NamedTextColor.GREEN : NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         });
+        recipe.itemCosts().forEach((itemId, amount) -> {
+            int available = countItemId(player, itemId);
+            lore.add(Component.text("- " + amount + "x " + itemId + " (" + available + ")",
+                    available >= amount ? NamedTextColor.GREEN : NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
+        });
 
         lore.add(Component.text(" "));
         if (!unlocked) {
@@ -83,7 +88,7 @@ public final class CraftingGUI implements Listener {
         return item;
     }
 
-    // Verarbeitet Freischaltung und Herstellung, ohne die laufende Crafting-GUI nach erfolgreichem Crafting zu schließen.
+    // Zuständig für Freischaltung und Herstellung eines ausgewählten Berufsrezepts.
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof CraftingHolder holder)) return;
@@ -123,6 +128,22 @@ public final class CraftingGUI implements Listener {
         int count = 0;
         for (ItemStack item : player.getInventory().getStorageContents()) if (item != null && item.getType() == material) count += item.getAmount();
         return count;
+    }
+
+    private int countItemId(Player player, String requiredId) {
+        String normalized = normalizeItemId(requiredId);
+        int count = 0;
+        for (ItemStack item : player.getInventory().getStorageContents()) {
+            if (item == null || item.isEmpty() || !item.hasItemMeta()) continue;
+            String itemId = item.getItemMeta().getPersistentDataContainer().get(de.pixelrpg.rpg.core.RPGKeys.Item.itemId(), org.bukkit.persistence.PersistentDataType.STRING);
+            if (itemId != null && normalizeItemId(itemId).equals(normalized)) count += item.getAmount();
+        }
+        return count;
+    }
+
+    private String normalizeItemId(String value) {
+        String normalized = value == null ? "" : value.trim().toLowerCase(java.util.Locale.ROOT);
+        return normalized.startsWith("pixelrpg:") ? normalized : "pixelrpg:" + normalized;
     }
 
     private static final class CraftingHolder implements InventoryHolder {

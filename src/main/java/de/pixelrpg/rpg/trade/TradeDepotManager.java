@@ -162,8 +162,8 @@ public final class TradeDepotManager {
             buyer.sendMessage(Component.text("Dein Spielerprofil konnte nicht geladen werden.", NamedTextColor.RED));
             return false;
         }
-        if (!canFit(buyer, listing.item())) {
-            buyer.sendMessage(Component.text("Dein Inventar ist voll.", NamedTextColor.RED));
+        if (!canFitTradeGoods(buyer, listing.item())) {
+            buyer.sendMessage(Component.text("Dein Handelsfach ist voll.", NamedTextColor.RED));
             return false;
         }
         if (!buyerProfile.removeMoney(listing.price())) {
@@ -177,9 +177,9 @@ public final class TradeDepotManager {
         if (sellerProfile != null) sellerProfile.addMoney(sellerAmount);
         else pendingPayouts.merge(listing.sellerId(), sellerAmount, Double::sum);
 
-        buyer.getInventory().addItem(listing.itemCopy());
+        bankStorage.addTradeGoods(buyer.getUniqueId(), listing.itemCopy());
         save();
-        buyer.sendMessage(Component.text("Gekauft für " + format(listing.price()) + " Gold.", NamedTextColor.GREEN));
+        buyer.sendMessage(Component.text("Gekauft und ins Handelsfach gelegt für " + format(listing.price()) + " Gold.", NamedTextColor.GREEN));
         buyer.playSound(buyer.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 1.0f);
         return true;
     }
@@ -187,14 +187,14 @@ public final class TradeDepotManager {
     public boolean cancel(Player seller, UUID listingId) {
         TradeDepotListing listing = listings.get(listingId);
         if (listing == null || !listing.sellerId().equals(seller.getUniqueId())) return false;
-        if (!canFit(seller, listing.item())) {
-            seller.sendMessage(Component.text("Dein Inventar ist voll.", NamedTextColor.RED));
+        if (!canFitTradeGoods(seller, listing.item())) {
+            seller.sendMessage(Component.text("Dein Handelsfach ist voll.", NamedTextColor.RED));
             return false;
         }
         listings.remove(listingId);
-        seller.getInventory().addItem(listing.itemCopy());
+        bankStorage.addTradeGoods(seller.getUniqueId(), listing.itemCopy());
         save();
-        seller.sendMessage(Component.text("Handelsangebot zurückgenommen.", NamedTextColor.GREEN));
+        seller.sendMessage(Component.text("Handelsangebot zurückgenommen und ins Handelsfach gelegt.", NamedTextColor.GREEN));
         return true;
     }
 
@@ -231,11 +231,12 @@ public final class TradeDepotManager {
         return item.getType().key().value();
     }
 
-    private boolean canFit(Player player, ItemStack item) {
-        var test = Bukkit.createInventory(null, 45);
-        ItemStack[] source = player.getInventory().getStorageContents();
-        for (int slot = 0; slot < source.length && slot < test.getSize(); slot++) {
-            test.setItem(slot, source[slot] == null ? null : source[slot].clone());
+    private boolean canFitTradeGoods(Player player, ItemStack item) {
+        ItemStack[] contents = bankStorage.loadTradeGoods(player.getUniqueId());
+        org.bukkit.inventory.Inventory test = Bukkit.createInventory(null, BankStorageService.PAGE_SIZE);
+        for (int slot = 0; slot < contents.length; slot++) {
+            ItemStack current = contents[slot];
+            if (current != null && !current.isEmpty()) test.setItem(slot, current.clone());
         }
         return test.addItem(item.clone()).isEmpty();
     }
@@ -286,17 +287,10 @@ public final class TradeDepotManager {
             yaml.set(path + ".expires", listing.expiresAtMillis());
             yaml.set(path + ".item", Base64.getEncoder().encodeToString(listing.item().serializeAsBytes()));
         }
-        for (Map.Entry<UUID, Double> payout : pendingPayouts.entrySet()) {
-            yaml.set("pending-payouts." + payout.getKey(), payout.getValue());
-        }
-        try {
-            yaml.save(file);
-        } catch (IOException exception) {
-            plugin.getLogger().log(Level.SEVERE, "Could not save trade depot", exception);
-        }
+        for (Map.Entry<UUID, Double> payout : pendingPayouts.entrySet()) yaml.set("pending-payouts." + payout.getKey(), payout.getValue());
+        try { yaml.save(file); }
+        catch (IOException exception) { plugin.getLogger().log(Level.SEVERE, "Could not save trade depot", exception); }
     }
 
-    private String format(double amount) {
-        return String.format("%.2f", amount);
-    }
+    private String format(double amount) { return String.format("%.2f", amount); }
 }

@@ -4,6 +4,8 @@ import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.companion.Companion;
 import de.pixelrpg.rpg.companion.CompanionService;
 import de.pixelrpg.rpg.core.Level;
+import de.pixelrpg.rpg.guild.Guild;
+import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -47,6 +49,7 @@ public final class ScoreboardService implements Listener {
         final Team[] teams = new Team[MAX_LINES];
         final Component[] lastPrefixes = new Component[MAX_LINES];
         final boolean[] activeLine = new boolean[MAX_LINES];
+        final Map<UUID, String> guildTeamByPlayer = new ConcurrentHashMap<>();
 
         PlayerScoreboardState(Scoreboard board, Objective objective) {
             this.board = board;
@@ -149,6 +152,48 @@ public final class ScoreboardService implements Listener {
                 state.lastPrefixes[i] = null;
             }
         }
+
+        applyGuildPrefixes(state);
+    }
+
+    private void applyGuildPrefixes(PlayerScoreboardState state) {
+        GuildManager guildManager;
+        try {
+            guildManager = GuildManager.getInstance();
+        } catch (IllegalStateException ignored) {
+            return;
+        }
+
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            UUID playerId = onlinePlayer.getUniqueId();
+            Guild guild = guildManager.getGuild(playerId).orElse(null);
+            String previousTeamName = state.guildTeamByPlayer.get(playerId);
+
+            if (guild == null) {
+                if (previousTeamName != null) {
+                    Team previous = state.board.getTeam(previousTeamName);
+                    if (previous != null) previous.removeEntry(onlinePlayer.getName());
+                    state.guildTeamByPlayer.remove(playerId);
+                }
+                continue;
+            }
+
+            String teamName = guildTeamName(guild.id());
+            Team team = state.board.getTeam(teamName);
+            if (team == null) team = state.board.registerNewTeam(teamName);
+            team.prefix(Component.text("[" + guild.name() + "] ", NamedTextColor.GOLD));
+            team.addEntry(onlinePlayer.getName());
+
+            if (previousTeamName != null && !previousTeamName.equals(teamName)) {
+                Team previous = state.board.getTeam(previousTeamName);
+                if (previous != null) previous.removeEntry(onlinePlayer.getName());
+            }
+            state.guildTeamByPlayer.put(playerId, teamName);
+        }
+    }
+
+    private String guildTeamName(UUID guildId) {
+        return "prg_" + guildId.toString().replace("-", "").substring(0, 11);
     }
 
     private void updateExperienceBar(Player player, PlayerProfile profile) {

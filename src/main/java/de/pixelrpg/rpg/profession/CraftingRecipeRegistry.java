@@ -14,8 +14,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-/** Registry for PixelRPG-only profession recipes. Vanilla recipes are intentionally not registered here. */
+/** Registry for PixelRPG-only profession recipes. Recipe data is kept under data/recipes for clean content separation. */
 public final class CraftingRecipeRegistry {
+    private static final String RECIPE_DATA_PATH = "recipes/crafting-recipes.json";
     private final Map<String, CraftRecipe> recipes = new LinkedHashMap<>();
 
     public void load(Plugin plugin) {
@@ -33,7 +34,7 @@ public final class CraftingRecipeRegistry {
     }
 
     private void loadDefinitions(Plugin plugin) {
-        JsonObject root = new JsonDataManager(plugin).load("crafting-recipes.json");
+        JsonObject root = new JsonDataManager(plugin).load(RECIPE_DATA_PATH);
         JsonArray definitions = root.getAsJsonArray("recipes");
         if (definitions == null) throw new IllegalStateException("crafting-recipes.json requires a 'recipes' array");
         for (var element : definitions) {
@@ -46,6 +47,7 @@ public final class CraftingRecipeRegistry {
             ItemRarity maximumRarity = enumValue(ItemRarity.class, json, "rarity", id);
             if (maximumRarity == ItemRarity.UNIQUE) throw new IllegalStateException("UNIQUE is not valid for craftable recipe " + id);
             Map<Material, Integer> costs = parseCosts(json, id);
+            Map<String, Integer> itemCosts = parseItemCosts(json, id);
             int level = json.has("requiredProfessionLevel") ? json.get("requiredProfessionLevel").getAsInt() : 1;
             int amount = json.has("resultAmount") ? json.get("resultAmount").getAsInt() : 1;
             long price = json.has("unlockPrice") ? json.get("unlockPrice").getAsLong() : 0L;
@@ -56,19 +58,33 @@ public final class CraftingRecipeRegistry {
             String potionType = json.has("potionType") ? json.get("potionType").getAsString() : "";
             String enchantment = json.has("enchantment") ? json.get("enchantment").getAsString() : "";
             int enchantmentLevel = json.has("enchantmentLevel") ? json.get("enchantmentLevel").getAsInt() : 0;
-            recipes.put(id, new CraftRecipe(profession, id, label, result, amount, maximumRarity, costs, level, price, quest, defaultUnlocked, false, resultItemId, potionType, enchantment, enchantmentLevel));
+            recipes.put(id, new CraftRecipe(profession, id, label, result, amount, maximumRarity, costs, itemCosts,
+                    level, price, quest, defaultUnlocked, false, resultItemId, potionType, enchantment, enchantmentLevel));
         }
     }
 
     private static Map<Material, Integer> parseCosts(JsonObject json, String id) {
-        JsonObject costs = json.getAsJsonObject("costs");
-        if (costs == null || costs.isEmpty()) throw new IllegalStateException("Missing costs for " + id);
+        JsonObject costs = json.has("costs") ? json.getAsJsonObject("costs") : null;
+        if (costs == null || costs.isEmpty()) return Map.of();
         Map<Material, Integer> result = new EnumMap<>(Material.class);
         for (var entry : costs.entrySet()) {
             Material material = Material.matchMaterial(entry.getKey());
             int amount = entry.getValue().getAsInt();
             if (material == null || material.isAir() || amount <= 0) throw new IllegalStateException("Invalid cost for " + id + ": " + entry.getKey());
             result.merge(material, amount, Integer::sum);
+        }
+        return result;
+    }
+
+    private static Map<String, Integer> parseItemCosts(JsonObject json, String id) {
+        JsonObject costs = json.has("itemCosts") ? json.getAsJsonObject("itemCosts") : null;
+        if (costs == null || costs.isEmpty()) return Map.of();
+        Map<String, Integer> result = new LinkedHashMap<>();
+        for (var entry : costs.entrySet()) {
+            String itemId = entry.getKey().trim().toLowerCase(Locale.ROOT);
+            int amount = entry.getValue().getAsInt();
+            if (itemId.isBlank() || amount <= 0) throw new IllegalStateException("Invalid item cost for " + id + ": " + entry.getKey());
+            result.merge(itemId, amount, Integer::sum);
         }
         return result;
     }
