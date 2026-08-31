@@ -13,6 +13,7 @@ public record CraftRecipe(
         int resultAmount,
         ItemRarity rarity,
         Map<Material, Integer> costs,
+        Map<String, Integer> itemCosts,
         int requiredProfessionLevel,
         long unlockPrice,
         String requiredQuestId,
@@ -30,9 +31,13 @@ public record CraftRecipe(
         if (resultMaterial == null || resultMaterial.isAir()) throw new IllegalArgumentException("Result material must be valid");
         if (resultAmount <= 0) throw new IllegalArgumentException("Result amount must be positive");
         if (rarity == null) throw new IllegalArgumentException("Recipe rarity must not be null");
-        if (costs == null || costs.isEmpty() || costs.entrySet().stream().anyMatch(entry -> entry.getKey() == null || entry.getValue() == null || entry.getValue() <= 0)) {
-            throw new IllegalArgumentException("Recipe costs must contain positive material amounts");
+        if (costs == null || costs.entrySet().stream().anyMatch(entry -> entry.getKey() == null || entry.getValue() == null || entry.getValue() <= 0)) {
+            throw new IllegalArgumentException("Recipe material costs must contain positive material amounts");
         }
+        if (itemCosts == null || itemCosts.entrySet().stream().anyMatch(entry -> entry.getKey() == null || entry.getKey().isBlank() || entry.getValue() == null || entry.getValue() <= 0)) {
+            throw new IllegalArgumentException("Recipe item costs must contain positive item amounts");
+        }
+        if (costs.isEmpty() && itemCosts.isEmpty()) throw new IllegalArgumentException("Recipe must have at least one cost");
         if (requiredProfessionLevel < Profession.MIN_LEVEL || requiredProfessionLevel > Profession.MAX_LEVEL) {
             throw new IllegalArgumentException("Invalid required profession level");
         }
@@ -43,6 +48,7 @@ public record CraftRecipe(
         if (enchantment == null) enchantment = "";
         if (enchantmentLevel < 0) throw new IllegalArgumentException("Enchantment level must not be negative");
         costs = Map.copyOf(costs);
+        itemCosts = Map.copyOf(itemCosts);
     }
 
     public String displayName() { return label; }
