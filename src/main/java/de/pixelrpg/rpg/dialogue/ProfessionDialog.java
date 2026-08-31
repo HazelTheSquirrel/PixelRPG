@@ -206,11 +206,15 @@ public final class ProfessionDialog {
         boolean unlocked = craftingService.isUnlocked(player, recipe);
         boolean levelAvailable = professionLevel >= recipe.requiredProfessionLevel();
         List<DialogBody> body = new ArrayList<>();
-        body.add(DialogBody.plainMessage(Component.text("Ergebnis: " + QuestText.itemNamePlain(recipe.resultMaterial().name()), NamedTextColor.WHITE)));
-        body.add(DialogBody.plainMessage(Component.text("Rezeptart: " + (recipe.vanillaRecipe() ? "Vanilla" : "PixelRPG"), NamedTextColor.WHITE)));
+        body.add(DialogBody.plainMessage(Component.text("Ergebnis: " + recipe.displayName(), NamedTextColor.WHITE)));
         body.add(DialogBody.plainMessage(Component.text("Benötigt: " + profession.displayName() + " Level " + recipe.requiredProfessionLevel(), NamedTextColor.WHITE)));
         body.add(DialogBody.plainMessage(Component.text("Materialien:", NamedTextColor.WHITE)));
-        for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) body.add(DialogBody.plainMessage(Component.text("• " + cost.getValue() + "x " + QuestText.itemNamePlain(cost.getKey().name()), NamedTextColor.WHITE)));
+        for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) {
+            body.add(DialogBody.plainMessage(Component.text("• " + cost.getValue() + "x " + QuestText.itemNamePlain(cost.getKey().name()), NamedTextColor.WHITE)));
+        }
+        for (Map.Entry<String, Integer> cost : recipe.itemCosts().entrySet()) {
+            body.add(DialogBody.plainMessage(Component.text("• " + cost.getValue() + "x " + recipeItemName(cost.getKey()), NamedTextColor.WHITE)));
+        }
         List<ActionButton> actions = new ArrayList<>();
         if (unlocked && learned) {
             actions.add(dialogueEngine.actionButton(Component.text("Herstellen"), levelAvailable ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY, target -> {
@@ -226,7 +230,6 @@ public final class ProfessionDialog {
                 if (result.success()) openRecipeDetails(target, recipe, true);
             }));
         }
-        if (recipe.vanillaRecipe() && !unlocked) body.add(DialogBody.plainMessage(Component.text("Dieses Vanilla-Rezept muss zuerst im Minecraft-Rezeptbuch entdeckt werden.", NamedTextColor.YELLOW)));
         if (!recipe.requiredQuestId().isBlank() && !unlocked) {
             Quest quest = questManager == null ? null : questManager.getRepository().getQuest(recipe.requiredQuestId());
             Component questLabel = quest == null ? Component.text("Unbekannte Quest", NamedTextColor.RED) : QuestText.title(quest).color(NamedTextColor.AQUA);
@@ -240,6 +243,20 @@ public final class ProfessionDialog {
             else openProfessionRecipes(target, profession);
         };
         dialogueEngine.openMultiAction(player, Component.text(recipe.displayName(), NamedTextColor.GOLD), body, actions, 1, back);
+    }
+
+    private String recipeItemName(String itemId) {
+        return craftingService.find(itemId)
+                .map(CraftRecipe::displayName)
+                .orElseGet(() -> craftingService.find(normalizeRecipeId(itemId))
+                        .map(CraftRecipe::displayName)
+                        .orElse(itemId));
+    }
+
+    private String normalizeRecipeId(String itemId) {
+        String value = itemId == null ? "" : itemId.trim().toLowerCase();
+        if (value.startsWith("pixelrpg:")) value = value.substring("pixelrpg:".length());
+        return value;
     }
 
     /** Opens the trainer recipe list; every recipe leads to its own detail dialog. */
