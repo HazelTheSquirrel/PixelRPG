@@ -6,6 +6,7 @@ import de.pixelrpg.rpg.config.JsonDataManager;
 import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.item.ItemDefinitionRegistry;
 import de.pixelrpg.rpg.player.PlayerProfile;
+import de.pixelrpg.rpg.profession.CraftingRecipeRegistry;
 import de.pixelrpg.rpg.profession.Profession;
 import org.bukkit.Material;
 import org.bukkit.plugin.Plugin;
@@ -19,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class QuestRepository {
     private final Plugin plugin;
     private final ItemDefinitionRegistry itemDefinitions;
+    private final CraftingRecipeRegistry craftingRecipes = new CraftingRecipeRegistry();
     private final Map<String, Quest> questsById = new ConcurrentHashMap<>();
     private final Map<String, List<String>> prerequisitesByQuest = new ConcurrentHashMap<>();
     private final Map<String, List<String>> followUpsByQuest = new ConcurrentHashMap<>();
@@ -33,6 +35,7 @@ public final class QuestRepository {
         questsById.clear();
         prerequisitesByQuest.clear();
         followUpsByQuest.clear();
+        craftingRecipes.load(plugin);
         loadDefinitionsFrom("quests_v2.json");
         loadDefinitionsFrom("quests_additional.json");
         loadDefinitionsFrom("quests_world_expansion.json");
@@ -108,7 +111,10 @@ public final class QuestRepository {
         if (type == QuestType.GLOBAL_EVENT && string(json, "targetKey", "").isBlank()) return false;
         if (type == QuestType.TALK_TO_NPC && string(json, "targetKey", "").isBlank()) return false;
         if (type == QuestType.HUNT && !isVanillaEntityType(string(json, "targetKey", ""))) return false;
-        if (type == QuestType.COLLECT && !isQuestItem(string(json, "targetKey", ""))) return false;
+        if (type == QuestType.COLLECT && !isQuestItem(string(json, "targetKey", ""))) {
+            plugin.getLogger().warning("Ignoring quest '" + id + "': unknown COLLECT target '" + string(json, "targetKey", "") + "'.");
+            return false;
+        }
         if (type == QuestType.REACH_LOCATION && !hasWorldNavigation(object(json, "navigation"))) return false;
         return true;
     }
@@ -127,7 +133,7 @@ public final class QuestRepository {
         return navigation != null && (!string(navigation, "structure", "").isBlank() || !stringList(navigation, "biomes").isEmpty());
     }
 
-    /** Accepts normal Minecraft materials and canonical PixelRPG item definition IDs. */
+    /** Accepts normal Minecraft materials, registered PixelRPG items and profession recipe outputs. */
     private boolean isQuestItem(String key) {
         if (key == null || key.isBlank()) return false;
         String normalized = canonicalItemId(key);
@@ -136,8 +142,9 @@ public final class QuestRepository {
             if (material != null && material.isItem() && !normalized.startsWith("pixelrpg:")) return true;
         } catch (IllegalArgumentException ignored) {
         }
-        if (itemDefinitions.find(normalized).isPresent()) return true;
-        return normalized.startsWith("pixelrpg:") && normalized.length() > "pixelrpg:".length();
+        return itemDefinitions.find(key.trim()).isPresent()
+                || itemDefinitions.find(normalized).isPresent()
+                || craftingRecipes.hasResultItemId(normalized);
     }
 
     private String canonicalItemId(String raw) {
