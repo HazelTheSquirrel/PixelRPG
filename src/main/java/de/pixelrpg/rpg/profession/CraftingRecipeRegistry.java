@@ -33,6 +33,11 @@ public final class CraftingRecipeRegistry {
         return Optional.ofNullable(recipes.get(canonicalRecipeId(id)));
     }
 
+    public boolean hasResultItemId(String itemId) {
+        String canonical = canonicalItemId(itemId);
+        return recipes.values().stream().anyMatch(recipe -> !recipe.resultItemId().isBlank() && canonicalItemId(recipe.resultItemId()).equals(canonical));
+    }
+
     private void loadDefinitions(Plugin plugin) {
         JsonObject root = new JsonDataManager(plugin).load(RECIPE_DATA_PATH);
         JsonArray definitions = root.getAsJsonArray("recipes");
