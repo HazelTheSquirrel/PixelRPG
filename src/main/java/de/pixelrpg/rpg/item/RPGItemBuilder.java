@@ -97,6 +97,9 @@ public final class RPGItemBuilder {
         pdc.set(RPGKeys.Item.instanceId(), PersistentDataType.STRING, UUID.randomUUID().toString());
         pdc.set(RPGKeys.Item.rarity(), PersistentDataType.STRING, rarity.name());
         pdc.set(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER, itemLevel);
+        // The item level is also the default level requirement for generated equipment.
+        // This keeps the requirement explicit so the stat engine can gate every generated item consistently.
+        pdc.set(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER, itemLevel);
         pdc.set(RPGKeys.Item.category(), PersistentDataType.STRING, category.name());
         pdc.set(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN, guildItem);
 
@@ -298,31 +301,28 @@ public final class RPGItemBuilder {
         return prefix + " " + noun + " " + itemLevel;
     }
 
-    private static String normalizeItemId(String itemId) {
-        String normalized = itemId.trim().toLowerCase(Locale.ROOT);
+    private static String prettyMaterial(Material material) {
+        String raw = material.name().toLowerCase(Locale.ROOT).replace('_', ' ');
+        StringBuilder result = new StringBuilder();
+        for (String part : raw.split(" ")) {
+            if (part.isEmpty()) continue;
+            if (!result.isEmpty()) result.append(' ');
+            result.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+        }
+        return result.toString();
+    }
+
+    private static String normalizeItemId(String value) {
+        String normalized = value.trim().toLowerCase(Locale.ROOT);
         return normalized.startsWith("pixelrpg:") ? normalized : "pixelrpg:" + normalized;
     }
 
-    private static String prettyMaterial(Material material) {
-        String raw = material.name().replace('_', ' ').toLowerCase(Locale.ROOT);
-        StringBuilder result = new StringBuilder(raw.length());
-        boolean capitalize = true;
-        for (char character : raw.toCharArray()) {
-            if (capitalize && Character.isLetter(character)) {
-                result.append(Character.toUpperCase(character));
-                capitalize = false;
-            } else result.append(character);
-            if (character == ' ') capitalize = true;
-        }
-        return result.toString();
+    private static double round(double value) {
+        return Math.round(value * 10.0D) / 10.0D;
     }
 
     private static String format(double value) {
         if (Math.abs(value - Math.rint(value)) < 0.0001D) return Long.toString(Math.round(value));
         return String.format(Locale.ROOT, "%.1f", value);
-    }
-
-    private static double round(double value) {
-        return Math.round(value * 10.0D) / 10.0D;
     }
 }
