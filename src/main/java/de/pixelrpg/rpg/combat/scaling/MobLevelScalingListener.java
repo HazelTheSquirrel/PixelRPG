@@ -1,10 +1,9 @@
 package de.pixelrpg.rpg.combat.scaling;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.balance.PlayerPowerIndex;
 import de.pixelrpg.rpg.core.RPGKeys;
-import de.pixelrpg.rpg.player.PlayerProfileManager;
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -18,8 +17,8 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.projectiles.ProjectileSource;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.Map;
 import java.util.UUID;
@@ -31,7 +30,6 @@ public final class MobLevelScalingListener implements Listener {
     private final Plugin plugin;
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
-    private final PlayerProfileManager profileManager;
     private final Map<UUID, Map<UUID, Long>> activeParticipants = new ConcurrentHashMap<>();
     private BukkitTask cleanupTask;
 
@@ -39,7 +37,6 @@ public final class MobLevelScalingListener implements Listener {
         this.plugin = plugin;
         this.guildAPI = guildAPI;
         this.scalingConfig = scalingConfig;
-        this.profileManager = plugin instanceof PixelRPGPlugin pixelRPG ? pixelRPG.getPlayerProfileManager() : null;
     }
 
     public void start() {
@@ -125,15 +122,6 @@ public final class MobLevelScalingListener implements Listener {
         if (!(plugin instanceof PixelRPGPlugin pixelRPG)) return 1.0D;
         if (pixelRPG.getStatEngine() == null) return 1.0D;
         return PlayerPowerIndex.gearMultiplier(pixelRPG.getStatEngine().getCachedStats(player.getUniqueId()));
-    }
-
-    private ItemStack[] equippedItems(Player player) {
-        var armor = player.getInventory().getArmorContents();
-        var result = new ItemStack[armor.length + 2];
-        System.arraycopy(armor, 0, result, 0, armor.length);
-        result[armor.length] = player.getInventory().getItemInMainHand();
-        result[armor.length + 1] = player.getInventory().getItemInOffHand();
-        return result;
     }
 
     private Player findPlayer(UUID uuid) {
