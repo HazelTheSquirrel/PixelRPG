@@ -151,7 +151,7 @@ public final class BossRepository {
         boss(yaml, "jungle_warden", "Der Dschungelwächter", "PANDA", 30, 7.0, 1.9, 1.30, 90, List.of("SLAM"), List.of("JUNGLE", "SPARSE_JUNGLE", "BAMBOO_JUNGLE"), "pixelrpg:boss/dschungel_amulett", 350, 800);
         boss(yaml, "swamp_witch", "Die Sumpfhexe", "WITCH", 32, 7.0, 1.9, 1.30, 85, List.of("PROJECTILE_VOLLEY"), List.of("SWAMP", "MANGROVE_SWAMP"), "pixelrpg:boss/sumpftrank", 400, 900);
         boss(yaml, "husk_king", "Der Husk-König", "HUSK", 34, 7.5, 2.0, 1.30, 90, List.of("SLAM"), List.of("DESERT"), "pixelrpg:boss/husk_siegel", 450, 1000);
-        boss(yaml, "ravager_chief", "Der Ravager-Häuptling", "RAVAGER", 38, 9.0, 2.2, 1.35, 85, List.of("SLAM"), List.of("SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA", "WINDSWEPT_SAVANNA_PLATEAU"), "pixelrpg:boss/ravager_trophaee", 500, 1200);
+        boss(yaml, "ravager_chief", "Der Ravager-Häuptling", "RAVAGER", 38, 9.0, 2.2, 1.35, 85, List.of("SLAM"), List.of("SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA"), "pixelrpg:boss/ravager_trophaee", 500, 1200);
         boss(yaml, "sandstone_colossus", "Der Sandstein-Koloss", "HUSK", 40, 10.0, 2.2, 1.40, 95, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("BADLANDS", "WOODED_BADLANDS", "ERODED_BADLANDS"), "pixelrpg:boss/goldenes_fossil", 550, 1300);
         boss(yaml, "frostwolf", "Der Frostwolf", "WOLF", 42, 10.0, 2.3, 1.35, 75, List.of("SLAM"), List.of("TAIGA", "OLD_GROWTH_PINE_TAIGA", "OLD_GROWTH_SPRUCE_TAIGA", "SNOWY_TAIGA"), "pixelrpg:boss/frostwolf_fang", 600, 1400);
         boss(yaml, "stray_warrior", "Der Streuner-Krieger", "STRAY", 45, 11.0, 2.4, 1.35, 80, List.of("PROJECTILE_VOLLEY"), List.of("SNOWY_PLAINS", "ICE_SPIKES"), "pixelrpg:boss/frostpfeil_koecher", 650, 1600);
@@ -244,6 +244,7 @@ public final class BossRepository {
     private Biome parseBiome(String raw) {
         if (raw == null || raw.isBlank()) return null;
         String normalized = raw.trim().toLowerCase(java.util.Locale.ROOT);
+        if (normalized.equals("windswept_savanna_plateau")) normalized = "windswept_savanna";
         NamespacedKey key = NamespacedKey.fromString(normalized.contains(":") ? normalized : "minecraft:" + normalized);
         if (key == null) return null;
         Biome biome = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME).get(key);
