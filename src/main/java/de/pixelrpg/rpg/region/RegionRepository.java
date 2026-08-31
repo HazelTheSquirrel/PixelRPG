@@ -95,7 +95,12 @@ public final class RegionRepository {
             }
         }
 
-        return List.copyOf(result);
+        List<PixelRegion> loaded = List.copyOf(result);
+        if (formatVersion < CURRENT_FORMAT_VERSION) {
+            save(loaded);
+            logger.info("Migrated regions.yml to format version " + CURRENT_FORMAT_VERSION + ".");
+        }
+        return loaded;
     }
 
     public synchronized void save(Iterable<PixelRegion> regions) {
