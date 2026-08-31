@@ -1,7 +1,10 @@
 package de.pixelrpg.rpg.combat.scaling;
 
 import de.pixelrpg.rpg.api.GuildAPI;
+import de.pixelrpg.rpg.balance.PlayerPowerIndex;
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -13,7 +16,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -29,6 +31,7 @@ public final class MobLevelScalingListener implements Listener {
     private final Plugin plugin;
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
+    private final PlayerProfileManager profileManager;
     private final Map<UUID, Map<UUID, Long>> activeParticipants = new ConcurrentHashMap<>();
     private BukkitTask cleanupTask;
 
@@ -36,6 +39,7 @@ public final class MobLevelScalingListener implements Listener {
         this.plugin = plugin;
         this.guildAPI = guildAPI;
         this.scalingConfig = scalingConfig;
+        this.profileManager = plugin instanceof PixelRPGPlugin pixelRPG ? pixelRPG.getPlayerProfileManager() : null;
     }
 
     public void start() {
@@ -92,16 +96,15 @@ public final class MobLevelScalingListener implements Listener {
                 .max()
                 .orElse(1);
         playerLevel = Math.clamp(playerLevel, 1, 99);
-        final int scalingPlayerLevel = playerLevel;
 
         double gearMultiplier = participants.keySet().stream()
                 .map(this::findPlayer)
                 .filter(player -> player != null)
-                .mapToDouble(player -> gearLevelMultiplier(player, scalingPlayerLevel))
+                .mapToDouble(this::activeGearMultiplier)
                 .max()
                 .orElse(1.0D);
 
-        MobScalingConfig.LevelBaseStats baseStats = scalingConfig.getBaseStats(scalingPlayerLevel);
+        MobScalingConfig.LevelBaseStats baseStats = scalingConfig.getBaseStats(playerLevel);
         double maxHealth = baseStats.hp() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
         double attackDamage = baseStats.damage() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
 
@@ -115,32 +118,22 @@ public final class MobLevelScalingListener implements Listener {
 
         AttributeInstance attack = monster.getAttribute(Attribute.ATTACK_DAMAGE);
         if (attack != null) attack.setBaseValue(attackDamage);
-        monster.getPersistentDataContainer().set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, scalingPlayerLevel);
+        monster.getPersistentDataContainer().set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, playerLevel);
     }
 
-    private double gearLevelMultiplier(Player player, int playerLevel) {
-        int counted = 0;
-        double totalLevel = 0.0D;
-        for (ItemStack item : equippedItems(player)) {
-            if (item == null || !item.hasItemMeta()) continue;
-            Integer itemLevel = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
-            if (itemLevel == null) continue;
-            totalLevel += Math.clamp(itemLevel, 1, 99);
-            counted++;
-        }
-        if (counted == 0) return 1.0D;
-        double averageItemLevel = totalLevel / counted;
-        double ratio = averageItemLevel / Math.max(1.0D, playerLevel);
-        return Math.clamp(ratio, scalingConfig.getMinimumGearMultiplier(), scalingConfig.getMaximumGearMultiplier());
+    private double activeGearMultiplier(Player player) {
+        if (!(plugin instanceof PixelRPGPlugin pixelRPG)) return 1.0D;
+        if (pixelRPG.getStatEngine() == null) return 1.0D;
+        return PlayerPowerIndex.gearMultiplier(pixelRPG.getStatEngine().getCachedStats(player.getUniqueId()));
     }
 
     private ItemStack[] equippedItems(Player player) {
-        ItemStack[] armor = player.getInventory().getArmorContents();
-        ItemStack[] equipped = new ItemStack[armor.length + 2];
-        System.arraycopy(armor, 0, equipped, 0, armor.length);
-        equipped[armor.length] = player.getInventory().getItemInMainHand();
-        equipped[armor.length + 1] = player.getInventory().getItemInOffHand();
-        return equipped;
+        var armor = player.getInventory().getArmorContents();
+        var result = new ItemStack[armor.length + 2];
+        System.arraycopy(armor, 0, result, 0, armor.length);
+        result[armor.length] = player.getInventory().getItemInMainHand();
+        result[armor.length + 1] = player.getInventory().getItemInOffHand();
+        return result;
     }
 
     private Player findPlayer(UUID uuid) {
