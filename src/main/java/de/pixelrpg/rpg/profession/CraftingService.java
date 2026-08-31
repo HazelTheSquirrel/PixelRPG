@@ -91,7 +91,7 @@ public final class CraftingService {
         int count = 0;
         for (ItemStack item : player.getInventory().getStorageContents()) {
             if (item == null || item.isEmpty()) continue;
-            if (itemService.getItemId(item).map(this::normalizeItemId).filter(itemId::equals).isPresent()) count += item.getAmount();
+            if (itemService.getItemId(item).map(this::canonicalItemId).filter(itemId::equals).isPresent()) count += item.getAmount();
         }
         return count;
     }
@@ -110,7 +110,7 @@ public final class CraftingService {
             for (int slot = 0; slot < contents.length && remaining > 0; slot++) {
                 ItemStack item = contents[slot];
                 if (item == null || item.isEmpty()) continue;
-                boolean matches = itemService.getItemId(item).map(this::normalizeItemId).filter(requiredId::equals).isPresent();
+                boolean matches = itemService.getItemId(item).map(this::canonicalItemId).filter(requiredId::equals).isPresent();
                 if (!matches) continue;
                 int moved = Math.min(remaining, item.getAmount());
                 if (moved == item.getAmount()) contents[slot] = null;
@@ -122,20 +122,24 @@ public final class CraftingService {
     }
 
     private String resolveItemId(String rawItemId) {
-        String normalized = normalizeItemId(rawItemId);
+        String normalized = canonicalItemId(rawItemId);
         String recipeId = normalized.startsWith("pixelrpg:") ? normalized.substring("pixelrpg:".length()) : normalized;
         CraftRecipe recipe = registry.find(recipeId).orElse(null);
-        if (recipe != null && !recipe.resultItemId().isBlank()) return normalizeItemId(recipe.resultItemId());
+        if (recipe != null && !recipe.resultItemId().isBlank()) return canonicalItemId(recipe.resultItemId());
         return normalized;
     }
 
-    private String normalizeItemId(String raw) {
+    private String canonicalItemId(String raw) {
         String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
-        return value.startsWith("pixelrpg:") ? value : "pixelrpg:" + value;
+        if (!value.startsWith("pixelrpg:")) value = "pixelrpg:" + value;
+        String body = value.substring("pixelrpg:".length());
+        int slash = body.indexOf('/');
+        if (slash > 0) body = body.substring(0, slash) + ":" + body.substring(slash + 1);
+        return "pixelrpg:" + body;
     }
 
     private ItemStack createResult(CraftRecipe recipe, ItemRarity rarity, int itemLevel) {
-        String itemId = recipe.resultItemId().isBlank() ? recipe.id() : recipe.resultItemId();
+        String itemId = recipe.resultItemId().isBlank() ? "pixelrpg:" + recipe.id() : recipe.resultItemId();
         if (!recipe.potionType().isBlank()) {
             PotionType potionType;
             try { potionType = PotionType.valueOf(recipe.potionType().toUpperCase(Locale.ROOT)); }
@@ -161,12 +165,12 @@ public final class CraftingService {
             book.setItemMeta(meta);
             return book;
         }
-        return itemService.createCraftedItem(itemId, recipe.displayName(), recipe.resultMaterial(), rarity, itemLevel);
+        return itemService.createCraftedItem(canonicalItemId(itemId), recipe.displayName(), recipe.resultMaterial(), rarity, itemLevel);
     }
 
     private void tagSpecialCraftResult(ItemMeta meta, String itemId) {
         var pdc = meta.getPersistentDataContainer();
-        pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, normalizeItemId(itemId));
+        pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, canonicalItemId(itemId));
         pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, true);
     }
 
