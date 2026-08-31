@@ -11,7 +11,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerStopUsingItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -31,12 +30,6 @@ public final class ItemUsageRequirementListener implements Listener {
         if (!isBelowRequiredLevel(player, item)) return;
         event.setCancelled(true);
         notifyRequiredLevel(player, item);
-    }
-
-    // Zuständig dafür, dass unterlevelte Fernkampfwaffen beim Loslassen der Benutzungstaste keine Fähigkeit auslösen.
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onStopUsingItem(PlayerStopUsingItemEvent event) {
-        if (isBelowRequiredLevel(event.getPlayer(), event.getItem())) notifyRequiredLevel(event.getPlayer(), event.getItem());
     }
 
     // Zuständig dafür, dass unterlevelte Waffen keinen normalen oder RPG-Schaden verursachen können.
