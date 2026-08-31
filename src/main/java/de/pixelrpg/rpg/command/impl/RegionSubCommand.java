@@ -73,7 +73,10 @@ public final class RegionSubCommand implements SubCommand {
             return true;
         }
         boolean deleted = regions.delete(region.id());
-        sender.sendMessage(Component.text(deleted ? "Region gelöscht." : "Region konnte nicht gelöscht werden.", deleted ? NamedTextColor.GREEN : NamedTextColor.RED));
+        sender.sendMessage(Component.text(
+                deleted ? "Region „" + region.name() + "“ gelöscht." : "Region konnte nicht gelöscht werden.",
+                deleted ? NamedTextColor.GREEN : NamedTextColor.RED
+        ));
         return true;
     }
 
@@ -84,21 +87,47 @@ public final class RegionSubCommand implements SubCommand {
             sender.sendMessage(Component.text("Region nicht gefunden.", NamedTextColor.RED));
             return true;
         }
-        sender.sendMessage(Component.text("Region " + region.name(), NamedTextColor.GOLD));
-        sender.sendMessage(Component.text("ID: " + region.id(), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("Welt: " + region.worldName() + " | Typ: " + region.type() + " | Punkte: " + region.geometry().points().size(), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("Y: " + region.minY() + ".." + region.maxY() + " | Fläche: " + String.format(Locale.ROOT, "%.2f", region.geometry().area()) + " | Priorität: " + region.priority(), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("Gilde: " + (region.ownerGuildName() == null ? "keine" : region.ownerGuildName()), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("Flags: " + region.flags(), NamedTextColor.GRAY));
+
+        sender.sendMessage(Component.text("Region „" + region.name() + "“", NamedTextColor.GOLD));
+        sender.sendMessage(Component.text("  ID: " + region.id(), NamedTextColor.GRAY));
+        sender.sendMessage(Component.text(
+                "  Welt: " + region.worldName() + " | Typ: " + region.type()
+                        + " | Punkte: " + region.geometry().points().size(),
+                NamedTextColor.GRAY
+        ));
+        sender.sendMessage(Component.text(
+                "  Höhe: " + region.minY() + ".." + region.maxY()
+                        + " | Fläche: " + String.format(Locale.ROOT, "%.2f", region.geometry().area())
+                        + " | Priorität: " + region.priority(),
+                NamedTextColor.GRAY
+        ));
+        sender.sendMessage(Component.text(
+                "  Gilde: " + (region.ownerGuildName() == null ? "keine" : region.ownerGuildName()),
+                NamedTextColor.GRAY
+        ));
+        sender.sendMessage(Component.text("  Regeln:", NamedTextColor.GRAY));
+        for (RegionFlag flag : RegionFlag.values()) {
+            sender.sendMessage(Component.text(
+                    "    " + flag.name() + ": " + (region.flag(flag) ? "erlaubt" : "verboten"),
+                    region.flag(flag) ? NamedTextColor.GREEN : NamedTextColor.RED
+            ));
+        }
         return true;
     }
 
     private boolean list(CommandSender sender) {
-        if (regions.all().isEmpty()) {
+        List<PixelRegion> regionsList = regions.all();
+        if (regionsList.isEmpty()) {
             sender.sendMessage(Component.text("Keine PixelRPG-Regionen vorhanden.", NamedTextColor.YELLOW));
             return true;
         }
-        regions.all().forEach(region -> sender.sendMessage(Component.text(region.id() + " | " + region.name() + " | " + region.type() + " | " + region.geometry().points().size() + " Punkte", NamedTextColor.GRAY)));
+
+        sender.sendMessage(Component.text("PixelRPG-Regionen (" + regionsList.size() + ")", NamedTextColor.GOLD));
+        regionsList.forEach(region -> sender.sendMessage(Component.text(
+                "  " + region.name() + " | " + region.type() + " | "
+                        + region.geometry().points().size() + " Punkte | Priorität " + region.priority(),
+                NamedTextColor.GRAY
+        )));
         return true;
     }
 
@@ -109,6 +138,7 @@ public final class RegionSubCommand implements SubCommand {
             sender.sendMessage(Component.text("Region nicht gefunden.", NamedTextColor.RED));
             return true;
         }
+
         String field = args[2].toLowerCase(Locale.ROOT);
         String value = String.join(" ", Arrays.copyOfRange(args, 3, args.length));
         switch (field) {
@@ -122,9 +152,20 @@ public final class RegionSubCommand implements SubCommand {
                 String[] parts = value.split("\\s+", 2);
                 if (parts.length != 2) return false;
                 try {
-                    region.setFlag(RegionFlag.valueOf(parts[0].toUpperCase(Locale.ROOT)), parseBoolean(parts[1]));
+                    RegionFlag flag = RegionFlag.valueOf(parts[0].toUpperCase(Locale.ROOT));
+                    boolean enabled = parseBoolean(parts[1]);
+                    region.setFlag(flag, enabled);
+                    regions.save();
+                    sender.sendMessage(Component.text(
+                            "Regel " + flag.name() + ": " + (enabled ? "erlaubt" : "verboten") + ".",
+                            enabled ? NamedTextColor.GREEN : NamedTextColor.RED
+                    ));
+                    return true;
                 } catch (IllegalArgumentException exception) {
-                    sender.sendMessage(Component.text("Unbekanntes Flag oder Wert. Verwende true oder false.", NamedTextColor.RED));
+                    sender.sendMessage(Component.text(
+                            "Unbekanntes Flag oder Wert. Verwende true = erlaubt, false = verboten.",
+                            NamedTextColor.RED
+                    ));
                     return true;
                 }
             }
@@ -144,18 +185,30 @@ public final class RegionSubCommand implements SubCommand {
             }
             default -> { return false; }
         }
+
         regions.save();
-        sender.sendMessage(Component.text("Region geändert. Die Polygon-Geometrie wurde nicht verändert.", NamedTextColor.GREEN));
+        sender.sendMessage(Component.text("Region „" + region.name() + "“ geändert. Die Polygon-Geometrie blieb unverändert.", NamedTextColor.GREEN));
         return true;
     }
 
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) return List.of("create", "finish", "confirm", "cancel", "delete", "info", "edit", "list");
-        if (args.length == 2 && isRegionSelectorCommand(args[0])) return regions.all().stream().flatMap(region -> java.util.stream.Stream.of(region.name(), region.id().toString())).distinct().toList();
-        if (args.length == 3 && args[0].equalsIgnoreCase("edit")) return List.of("name", "type", "description", "priority", "enter", "leave", "flag", "guild", "unguild", "property");
-        if (args.length == 4 && args[0].equalsIgnoreCase("edit") && args[2].equalsIgnoreCase("flag")) return Arrays.stream(RegionFlag.values()).map(Enum::name).toList();
-        if (args.length == 5 && args[0].equalsIgnoreCase("edit") && args[2].equalsIgnoreCase("flag")) return List.of("true", "false");
+        if (args.length == 2 && isRegionSelectorCommand(args[0])) {
+            return regions.all().stream()
+                    .flatMap(region -> java.util.stream.Stream.of(region.name(), region.id().toString()))
+                    .distinct()
+                    .toList();
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("edit")) {
+            return List.of("name", "type", "description", "priority", "enter", "leave", "flag", "guild", "unguild", "property");
+        }
+        if (args.length == 4 && args[0].equalsIgnoreCase("edit") && args[2].equalsIgnoreCase("flag")) {
+            return Arrays.stream(RegionFlag.values()).map(Enum::name).toList();
+        }
+        if (args.length == 5 && args[0].equalsIgnoreCase("edit") && args[2].equalsIgnoreCase("flag")) {
+            return List.of("true", "false");
+        }
         return List.of();
     }
 
@@ -165,7 +218,9 @@ public final class RegionSubCommand implements SubCommand {
 
     private PixelRegion resolve(String text) {
         UUID id = parseUuid(text);
-        return id == null ? regions.all().stream().filter(region -> region.name().equalsIgnoreCase(text)).findFirst().orElse(null) : regions.get(id).orElse(null);
+        return id == null
+                ? regions.all().stream().filter(region -> region.name().equalsIgnoreCase(text)).findFirst().orElse(null)
+                : regions.get(id).orElse(null);
     }
 
     private static UUID parseUuid(String value) {
