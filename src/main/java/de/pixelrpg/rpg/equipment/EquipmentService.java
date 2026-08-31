@@ -20,7 +20,7 @@ import org.bukkit.inventory.PlayerInventory;
 import java.util.EnumMap;
 import java.util.Map;
 
-/** Tracks the live vanilla equipment slots for stat calculation and installs equipment requirement guards. */
+/** Tracks the live vanilla equipment slots for stat calculation. */
 public final class EquipmentService implements Listener {
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
@@ -28,11 +28,6 @@ public final class EquipmentService implements Listener {
     public EquipmentService(PlayerProfileManager profileManager, StatEngine statEngine, ItemService ignoredItemService) {
         this.profileManager = profileManager;
         this.statEngine = statEngine;
-        PixelRPGPlugin plugin = PixelRPGPlugin.getInstance();
-        if (plugin != null) {
-            plugin.getServer().getPluginManager().registerEvents(new ItemLevelRequirementListener(profileManager), plugin);
-            plugin.getServer().getPluginManager().registerEvents(new ItemUsageRequirementListener(profileManager), plugin);
-        }
     }
 
     /** Creates a defensive snapshot of the six live Minecraft equipment slots. */
