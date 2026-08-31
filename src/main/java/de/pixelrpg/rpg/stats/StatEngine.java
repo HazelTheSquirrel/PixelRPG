@@ -26,17 +26,20 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Deterministic character-stat calculator, level gate and hard-cap enforcement. */
+/** Central character aggregation and final PixelRPG -> Minecraft attribute bridge. */
 public final class StatEngine {
-    private static final double BASE_HEALTH = 20.0D;
-    private static final double BASE_CRIT_CHANCE = 0.0D;
+    private static final double BASE_MINECRAFT_HEALTH = 20.0D;
+    private static final double BASE_RPG_HEALTH = 100.0D;
     private static final double BASE_CRIT_DAMAGE_MULTIPLIER = 2.0D;
 
     public record CachedStats(double maxHealth, double armor, double movementSpeedBonus, double blockReach,
                               double entityReach, double critChance, double critDamageMultiplier,
                               double lifestealBonus, double attackPower) {
-        public static final CachedStats EMPTY = new CachedStats(BASE_HEALTH, 0.0D, 0.0D, 0.0D, 0.0D,
-                BASE_CRIT_CHANCE, BASE_CRIT_DAMAGE_MULTIPLIER, 0.0D, 0.0D);
+        public static final CachedStats EMPTY = new CachedStats(BASE_MINECRAFT_HEALTH, 0.0D, 0.0D,
+                BalanceModel.BASE_BLOCK_REACH, BalanceModel.BASE_ENTITY_REACH,
+                0.0D, BASE_CRIT_DAMAGE_MULTIPLIER, 0.0D, 0.0D);
+        public double rpgHealth() { return maxHealth * 5.0D; }
+        public double rpgHealthBonus() { return Math.max(0.0D, rpgHealth() - BASE_RPG_HEALTH); }
         public double reach() { return Math.max(blockReach, entityReach); }
         public double critDamageBonusPercent() { return (critDamageMultiplier - BASE_CRIT_DAMAGE_MULTIPLIER) * 100.0D; }
     }
@@ -56,54 +59,55 @@ public final class StatEngine {
     public void recalculate(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) { clear(player); return; }
+        int level = BalanceModel.clampLevel(profile.getLevel());
 
-        int playerLevel = Math.clamp(profile.getLevel(), 1, 99);
-        double itemArmor = sum(player, playerLevel, RPGKeys.Item.armorValue());
-        double itemHealth = sum(player, playerLevel, RPGKeys.Item.healthBonus());
-        double itemCritChance = sum(player, playerLevel, RPGKeys.Item.critChance());
-        double itemCritDamage = sum(player, playerLevel, RPGKeys.Item.critDamage());
-        double itemLifesteal = sum(player, playerLevel, RPGKeys.Item.lifestealPercent());
-        double itemReach = sum(player, playerLevel, RPGKeys.Item.reachBonus());
-        double itemMovementSpeed = sum(player, playerLevel, RPGKeys.Item.movementSpeed());
-        double itemAttackPower = sum(player, playerLevel, RPGKeys.Item.attackPower());
+        double hpBonus = sum(player, level, RPGKeys.Item.healthBonus());
+        double armor = sum(player, level, RPGKeys.Item.armorValue());
+        double crit = sum(player, level, RPGKeys.Item.critChance());
+        double critDamage = sum(player, level, RPGKeys.Item.critDamage());
+        double lifesteal = sum(player, level, RPGKeys.Item.lifestealPercent());
+        double reachBonus = sum(player, level, RPGKeys.Item.reachBonus());
+        double movement = sum(player, level, RPGKeys.Item.movementSpeed());
+        double attack = sum(player, level, RPGKeys.Item.attackPower());
 
-        Map<String, Double> setBonus = equipmentSets == null ? Map.of() : equipmentSets.bonuses(player, playerLevel);
-        itemHealth += setBonus.getOrDefault("HP", 0.0D);
-        itemArmor += setBonus.getOrDefault("ARMOR", 0.0D);
-        itemMovementSpeed += setBonus.getOrDefault("MOVEMENT_SPEED", 0.0D);
-        itemReach += setBonus.getOrDefault("REACH", 0.0D);
-        itemCritChance += setBonus.getOrDefault("CRIT", 0.0D) + setBonus.getOrDefault("CRIT_CHANCE", 0.0D);
-        itemCritDamage += setBonus.getOrDefault("CRIT_DAMAGE", 0.0D);
-        itemLifesteal += setBonus.getOrDefault("LIFESTEAL", 0.0D);
-        itemAttackPower += setBonus.getOrDefault("ATTACK_POWER", 0.0D);
+        Map<String, Double> set = equipmentSets == null ? Map.of() : equipmentSets.bonuses(player, level);
+        hpBonus += set.getOrDefault("HP", 0.0D);
+        armor += set.getOrDefault("ARMOR", 0.0D);
+        movement += set.getOrDefault("MOVEMENT_SPEED", 0.0D);
+        reachBonus += set.getOrDefault("REACH", 0.0D);
+        crit += set.getOrDefault("CRIT", 0.0D) + set.getOrDefault("CRIT_CHANCE", 0.0D);
+        critDamage += set.getOrDefault("CRIT_DAMAGE", 0.0D);
+        lifesteal += set.getOrDefault("LIFESTEAL", 0.0D);
+        attack += set.getOrDefault("ATTACK_POWER", 0.0D);
 
         CompanionPassiveStats companion = activeCompanionPassiveStats(player.getUniqueId());
-        double maxHealth = Math.clamp(BASE_HEALTH + itemHealth + companion.hp(), BASE_HEALTH, BASE_HEALTH + BalanceModel.MAX_HP_BONUS);
-        double armor = Math.clamp(itemArmor + companion.armor(), 0.0D, BalanceModel.MAX_ARMOR);
-        double movementSpeedBonus = Math.clamp((itemMovementSpeed + companion.movementSpeed()) * 100.0D,
-                0.0D, BalanceModel.MAX_MOVEMENT_SPEED_PERCENT);
-        double blockReach = Math.clamp(itemReach + companion.reach(), 0.0D, BalanceModel.MAX_REACH_BONUS);
-        double entityReach = Math.clamp(itemReach + companion.reach(), 0.0D, BalanceModel.MAX_REACH_BONUS);
-        double critChance = Math.clamp(itemCritChance + companion.crit(), 0.0D, BalanceModel.MAX_CRIT_CHANCE);
-        double critDamageBonus = Math.clamp(itemCritDamage + companion.critDamage(), 0.0D, BalanceModel.MAX_CRIT_DAMAGE_BONUS_PERCENT / 100.0D);
-        double critDamageMultiplier = BASE_CRIT_DAMAGE_MULTIPLIER + critDamageBonus;
-        double lifestealBonus = Math.clamp(itemLifesteal + companion.lifesteal(), 0.0D, BalanceModel.MAX_LIFESTEAL_PERCENT);
-        double attackPower = Math.clamp(itemAttackPower + companion.damage() + companion.attackPower(), 0.0D, BalanceModel.MAX_ATTACK_POWER);
+        double rpgHp = Math.clamp(100.0D + hpBonus + companion.hp(), 100.0D, 200.0D);
+        double finalArmor = Math.clamp(armor + companion.armor(), 0.0D, 20.0D);
+        double movePercent = Math.clamp((movement + companion.movementSpeed()) * 100.0D, 0.0D, 30.0D);
+        double entityReach = Math.clamp(3.0D + reachBonus + companion.reach(), 3.0D, 5.0D);
+        double blockReach = Math.clamp(4.5D + reachBonus + companion.reach(), 4.5D, 5.0D);
+        double finalCrit = Math.clamp(crit + companion.crit(), 0.0D, 100.0D);
+        double finalCritDamage = Math.clamp(critDamage + companion.critDamage(), 0.0D, 1.0D);
+        double finalLifesteal = Math.clamp(lifesteal + companion.lifesteal(), 0.0D, 8.0D);
+        double finalAttack = Math.clamp(attack + companion.damage() + companion.attackPower(), 0.0D, 15.0D);
+        double mcHealth = Math.clamp(rpgHp / 5.0D, 20.0D, 40.0D);
 
-        CachedStats stats = new CachedStats(maxHealth, armor, movementSpeedBonus, blockReach, entityReach,
-                critChance, critDamageMultiplier, lifestealBonus, attackPower);
+        CachedStats stats = new CachedStats(mcHealth, finalArmor, movePercent, blockReach, entityReach,
+                finalCrit, BASE_CRIT_DAMAGE_MULTIPLIER + finalCritDamage, finalLifesteal, finalAttack);
         cache.put(player.getUniqueId(), stats);
-        applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), maxHealth - BASE_HEALTH);
-        applyModifier(player, Attribute.ARMOR, RPGKeys.Stats.armor(), armor);
-        applyModifier(player, Attribute.MOVEMENT_SPEED, RPGKeys.Stats.movementSpeed(), movementSpeedBonus / 100.0D, AttributeModifier.Operation.ADD_SCALAR);
-        applyModifier(player, Attribute.BLOCK_INTERACTION_RANGE, RPGKeys.Stats.blockRange(), blockReach);
-        applyModifier(player, Attribute.ENTITY_INTERACTION_RANGE, RPGKeys.Stats.entityRange(), entityReach);
 
-        AttributeInstance healthInstance = player.getAttribute(Attribute.MAX_HEALTH);
-        if (healthInstance != null) {
-            double max = Math.max(1.0D, healthInstance.getValue());
+        applyTotalModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), mcHealth);
+        applyTotalModifier(player, Attribute.ARMOR, RPGKeys.Stats.armor(), finalArmor);
+        applyModifier(player, Attribute.MOVEMENT_SPEED, RPGKeys.Stats.movementSpeed(), movePercent / 100.0D,
+                AttributeModifier.Operation.ADD_SCALAR);
+        applyTotalModifier(player, Attribute.BLOCK_INTERACTION_RANGE, RPGKeys.Stats.blockRange(), blockReach);
+        applyTotalModifier(player, Attribute.ENTITY_INTERACTION_RANGE, RPGKeys.Stats.entityRange(), entityReach);
+
+        AttributeInstance health = player.getAttribute(Attribute.MAX_HEALTH);
+        if (health != null) {
+            double max = Math.clamp(health.getValue(), 20.0D, 40.0D);
             player.setHealthScaled(true);
-            player.setHealthScale(Math.min(40.0D, max));
+            player.setHealthScale(max);
             if (player.getHealth() > max) player.setHealth(max);
         }
     }
@@ -121,7 +125,7 @@ public final class StatEngine {
     public double getCharacterStat(UUID uuid, CharacterStatType type) {
         CachedStats stats = getCachedStats(uuid);
         return switch (type) {
-            case HP -> stats.maxHealth();
+            case HP -> stats.rpgHealth();
             case ARMOR -> stats.armor();
             case MOVEMENT_SPEED -> stats.movementSpeedBonus();
             case REACH -> stats.reach();
@@ -137,19 +141,14 @@ public final class StatEngine {
         if (plugin == null) return CompanionPassiveStats.EMPTY;
         CompanionService service = plugin.getCompanionService();
         if (service == null) return CompanionPassiveStats.EMPTY;
-        UUID activeEntityId = service.getActiveEntity(playerId);
-        if (activeEntityId == null) return CompanionPassiveStats.EMPTY;
-        Entity activeEntity = Bukkit.getEntity(activeEntityId);
-        if (activeEntity == null || activeEntity.isDead()) return CompanionPassiveStats.EMPTY;
+        UUID entityId = service.getActiveEntity(playerId);
+        if (entityId == null) return CompanionPassiveStats.EMPTY;
+        Entity entity = Bukkit.getEntity(entityId);
+        if (entity == null || entity.isDead()) return CompanionPassiveStats.EMPTY;
         Companion active = service.getActive(playerId);
         if (active == null || active.rarity().isUnique()) return CompanionPassiveStats.EMPTY;
         CompanionDefinition definition = service.definition(active.id());
         if (!definition.passive()) return CompanionPassiveStats.EMPTY;
-        return fromMainBranchCompanionStats(definition);
-    }
-
-    /** Mirrors the functional companion passive calculation while the core caps remain enforced above. */
-    private CompanionPassiveStats fromMainBranchCompanionStats(CompanionDefinition definition) {
         CompanionStats configured = definition.baseStats();
         double tier = switch (definition.rarity()) {
             case COMMON -> 1.0D;
@@ -162,20 +161,17 @@ public final class StatEngine {
         return new CompanionPassiveStats(
                 configured.health() > 0.0D ? configured.health() : tier * 2.0D,
                 configured.armor() > 0.0D ? configured.armor() : tier,
-                0.0D,
-                0.0D,
-                0.0D,
+                0.0D, 0.0D, 0.0D,
                 configured.critChance() > 0.0D ? configured.critChance() : tier * 0.5D,
                 configured.critDamage() > 0.0D ? configured.critDamage() : tier * 0.02D,
                 configured.lifesteal() > 0.0D ? configured.lifesteal() : tier * 0.25D,
-                0.0D
-        );
+                0.0D);
     }
 
-    private double sum(Player player, int playerLevel, org.bukkit.NamespacedKey key) {
+    private double sum(Player player, int level, org.bukkit.NamespacedKey key) {
         double total = 0.0D;
         for (ItemStack item : equippedItems(player)) {
-            if (!isUsable(item, playerLevel)) continue;
+            if (!isUsable(item, level)) continue;
             total += item.getItemMeta().getPersistentDataContainer().getOrDefault(key, PersistentDataType.DOUBLE, 0.0D);
         }
         return total;
@@ -183,8 +179,9 @@ public final class StatEngine {
 
     private boolean isUsable(ItemStack item, int playerLevel) {
         if (item == null || !item.hasItemMeta()) return false;
-        Integer requiredLevel = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
-        return requiredLevel == null || playerLevel >= requiredLevel;
+        Integer required = item.getItemMeta().getPersistentDataContainer()
+                .get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
+        return required == null || playerLevel >= required;
     }
 
     private ItemStack[] equippedItems(Player player) {
@@ -197,11 +194,18 @@ public final class StatEngine {
         return equipped;
     }
 
-    private void applyModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key, double value) {
-        applyModifier(player, attribute, key, value, AttributeModifier.Operation.ADD_NUMBER);
+    private void applyTotalModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key, double desired) {
+        AttributeInstance instance = player.getAttribute(attribute);
+        if (instance == null) return;
+        removeModifier(player, attribute, key);
+        double delta = desired - instance.getValue();
+        if (Math.abs(delta) > 1.0E-9D) {
+            instance.addModifier(new AttributeModifier(key, delta, AttributeModifier.Operation.ADD_NUMBER));
+        }
     }
 
-    private void applyModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key, double value, AttributeModifier.Operation operation) {
+    private void applyModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key,
+                               double value, AttributeModifier.Operation operation) {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance == null) return;
         removeModifier(player, attribute, key);

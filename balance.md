@@ -1,1371 +1,2339 @@
-# PixelRPG — Forensische Balance- und Progressionsspezifikation
+# PixelRPG — Balance Specification v2
 
 **Branch:** `test`  
-**Audit-Basis:** `ede67647a1ef9533b673c2ab23cd7a0f13128f28`  
-**Zweck:** Forensische Bestandsaufnahme des aktuellen Equipment-/Combat-/Mob-Scaling-Systems und verbindliche Grundlage für das künftige Level-1–99-Balancing.  
-**Status:** Design-/Balancing-Dokumentation. Dieses Dokument ändert noch keinen Runtime-Code.
+**Design basis:** `balance/v1-foundation` + current `test/balance.md` + requested replacement model  
+**Target:** Paper 26.2 / Java 25  
+**Level range:** 1–99  
+**System type:** classless MMORPG/RPG  
+**Status:** **NEW AUTHORITATIVE BALANCE SPECIFICATION**
+
+> Dieses Dokument ersetzt die vorherige Balance-Spezifikation vollständig. Es ist die verbindliche mathematische Zieldefinition für die nächste Balance-Implementierung. Die Analyse des Branches `balance/v1-foundation` hat gezeigt, dass bereits eine zentrale Item-Pipeline, StatEngine, Level-Gates, Player-Power-Index und dynamisches Mob-Scaling vorhanden sind. Diese Architektur wird nicht blind verworfen; die mathematischen Einheiten und Verantwortlichkeiten werden sauber neu definiert.
 
 ---
 
-## 1. Ziel des Systems
+## 0. Executive Summary
 
-PixelRPG besitzt **keine Klassen**. Die Charakterentwicklung entsteht ausschließlich aus Level, Waffen, Rüstung, Sets und den daraus resultierenden Stats.
+PixelRPG verwendet eine eigene RPG-Skala und darf nicht die Vanilla-Skala mit der RPG-Skala vermischen.
 
-Das System muss deshalb drei Dinge gleichzeitig erfüllen:
+Die wichtigste Grundregel lautet:
 
-1. Ein Spieler muss seinen Fortschritt **spürbar** merken.
-2. Equipment muss sinnvoll skalieren, ohne dass 99 Varianten desselben Items gepflegt werden müssen.
-3. Monster müssen auf die tatsächliche Spieler-/Gear-Power reagieren, ohne den Fortschritt vollständig zu neutralisieren.
+> **Ein registrierter PixelRPG-Spieler lebt intern in PixelRPG-HP. Minecraft erhält nur die technisch notwendige umgerechnete Attributdarstellung.**
 
-Die zentrale Designregel lautet:
-
-> **Level schaltet Progression frei. Equipment erzeugt die PixelRPG-Kampfstärke.**
-
-Ein Spieler ohne PixelRPG-Waffe/Rüstung/Set besitzt **keine PixelRPG-Bonusstats** und verhält sich bezüglich des PixelRPG-Stat-Systems wie ein Vanilla-Spieler.
-
-Vanilla-Basiswerte bleiben dabei selbstverständlich erhalten.
-
----
-
-## 2. Verbindliche Spielerbasis
-
-Ohne aktive PixelRPG-Ausrüstung:
-
-| Stat | PixelRPG-Bonus |
-|---|---:|
-| HP-Bonus | `0.0 LP` |
-| Rüstung-Bonus | `0.0` |
-| Bewegungstempo-Bonus | `0.0 %` |
-| Reichweiten-Bonus | `0.0 Blöcke` |
-| Kritische Trefferchance | `0.0 %` |
-| Kritischer Schaden | `0.0 % Bonus` |
-| Lebensraub | `0.0 %` |
-| Angriffskraft | `0.0` |
-
-Das bedeutet nicht, dass der Spieler keine Vanilla-Werte besitzt. Beispielsweise bleiben die Vanilla-20 HP bestehen. PixelRPG zeigt nur **keinen zusätzlichen PixelRPG-Bonus** an.
-
----
-
-## 3. Endgame-Caps
-
-Diese Werte bilden die aktuelle Designobergrenze für einen normalen Level-99-Endgame-Build.
-
-| Stat | Ziel-Cap | Status |
-|---|---:|---|
-| HP | **200 LP** | verbindlich |
-| Bewegungstempo | **+30.0 %** | verbindlich |
-| Reichweite | **5.0 Blöcke** | verbindlich |
-| Kritische Trefferchance | **100.0 %** | verbindlich |
-| Kritischer Schaden | **+100.0 % Bonus** | verbindliches Ziel |
-| Rüstung | **200.0** | vorläufiges mathematisches Ziel |
-| Lebensraub | **8.0 %** | vorläufiges Balance-Ziel |
-| Angriffskraft | **60.0** | vorläufiges Endgame-Ziel; über TTK/DTK zu validieren |
-
-### 3.1 HP
-
-`10 LP = 1 Herz`.
-
-`200 LP = 20 Herzen` und damit zwei volle Vanilla-Lebensleisten bei der vorgesehenen Skalierung.
-
-Die 200 LP sind ein **Hard Cap** für den normalen PixelRPG-Charakter. Weitere Systeme wie temporäre Effekte, Bossmechaniken oder zukünftige Transzendenz dürfen diesen Wert nicht stillschweigend überschreiben.
-
-### 3.2 Bewegungstempo
-
-Der PixelRPG-Bonus wird als prozentualer Bonus auf das Vanilla-Attribut modelliert.
-
-Vanilla-Spielerbasis: `minecraft:movement_speed = 0.10`.
-
-`+30.0 %` bedeutet daher eine Zielgröße von ungefähr `0.13` auf der Vanilla-Attributbasis.
-
-`0.15` entspricht dagegen ungefähr `+50 %` gegenüber `0.10` und ist **nicht** das PixelRPG-Zielcap.
-
-Die Paper-26.2-API führt `minecraft:movement_speed`, `minecraft:max_health`, `minecraft:armor`, `minecraft:block_interaction_range` und `minecraft:entity_interaction_range` als aktuelle Vanilla-Attribute. Die API dokumentiert diese Attribute als direkte Repräsentation der Vanilla-Spielattribute.  
-Quelle: Paper 26.2 API — `AttributeKeys`.
-
-### 3.3 Reichweite
-
-Block- und Entity-Reichweite sind technisch getrennte Vanilla-Attribute. PixelRPG besitzt aktuell einen gemeinsamen Equipment-Stat und schreibt ihn auf beide Attribute.
-
-Das Balance-Ziel ist:
-
-`0.0 → 5.0 Blöcke PixelRPG-Bonus/Reichweite`.
-
-Die Implementierung muss später eindeutig festlegen, ob `5.0` die **gesamte Reichweite** oder der **PixelRPG-Bonus** ist. Für das Gameplay-Design wird in diesem Dokument `5.0 Blöcke Gesamtziel` verwendet.
-
----
-
-## 4. Aktueller Forensikbefund — Item-Pipeline
-
-### 4.1 Aktuelle Architektur
-
-Der Branch besitzt bereits eine zentrale Item-Pipeline:
-
-`ItemDefinitionRegistry → ItemService → RPGItemBuilder → PDC → StatEngine`.
-
-`RPGItemBuilder` erzeugt Item-Level, Required-Level, Rarität, Item-ID, Instance-ID und die Item-Stats. Die Statwerte werden aktuell über `item-scaling.json`, Raritätsmultiplikator und einen zufälligen Roll-Faktor erzeugt.
-
-Aktuelle Item-Skalierung:
+### Verbindliche HP-Skala
 
 ```text
-levelProgress = (itemLevel - 1) / 98
-levelFactor   = growthMultiplier ^ levelProgress
+10 PixelRPG-Herzen = 100 PixelRPG HP
+1 PixelRPG-Herz   = 10 PixelRPG HP
 ```
 
-Aktuell ist `growthMultiplier = 10.0`.
-
-Zusätzlich wird aktuell ein zufälliger Faktor zwischen `0.50` und `1.50` angewendet.
-
-Quelle: `RPGItemBuilder.java`, `item-scaling.json`.
-
-### 4.2 Aktuelle Basiswerte
-
-Der Branch enthält aktuell:
+Minecraft verwendet intern weiterhin sein natives `minecraft:max_health`-Attribut:
 
 ```text
-weaponDamage       3.0
-weaponCritChance   0.5
-weaponCritDamage   0.05
-weaponReach        0.10
-weaponLifesteal    0.25
-armor              0.7
-health             1.2
-movementSpeed      0.001
-toolEfficiency     1.0
-growthMultiplier  10.0
+20.0 Minecraft max_health = 10 Herzen
+40.0 Minecraft max_health = 20 Herzen
 ```
 
-Diese Werte sind **keine finale Balance**. Insbesondere die Kombination aus exponentieller Levelkurve, Raritätsmultiplikator und 0.50–1.50-Roll macht die tatsächlichen Endwerte derzeit zu aggressiv bzw. uneinheitlich für die gewünschten Caps.
+Daher gilt für registrierte PixelRPG-Spieler:
 
-Quelle: `src/main/resources/data/item-scaling.json`.
+```text
+Minecraft max_health = PixelRPG HP / 5
+```
+
+Beispiele:
+
+```text
+100 PixelRPG HP → 20.0 Minecraft max_health → 10 Herzen
+125 PixelRPG HP → 25.0 Minecraft max_health → 12,5 Herzen
+150 PixelRPG HP → 30.0 Minecraft max_health → 15 Herzen
+200 PixelRPG HP → 40.0 Minecraft max_health → 20 Herzen
+```
+
+**Das alte Modell `200 LP = 200 Minecraft-HP` ist ausdrücklich ungültig.** Es würde 100 Minecraft-Herzen erzeugen und damit die Vanilla-Darstellung zerstören.
+
+### Absolute Endgame-Hard-Caps
+
+| Stat | PixelRPG-Skala | Minecraft-Grenze | Endgame-Cap |
+|---|---:|---:|---:|
+| HP | 100–200 HP | `max_health` 20–40 | **200 PixelRPG HP / 40.0 MC** |
+| Armor | 0–20 Punkte | `armor` 0–20 | **20.0 Armor** |
+| Movement | 0–30 % Bonus | Basis 0.10 → ca. 0.13 | **+30 %** |
+| Reach | Gesamtwert | beide Reach-Attribute | **5.0 Blöcke** |
+| Crit Chance | 0–100 % | RPG-System | **100 %** |
+| Crit Damage | Bonus | 2.0x Basis | **+100 % / 3.0x gesamt** |
+| Lifesteal | 0–8 % | RPG-System | **8 %** |
+| Attack Power | absolut | RPG-Schaden | **15.0** |
+
+Kein normaler Level-99-Build darf einen dieser Caps überschreiten. Caps werden **zentral nach sämtlichen Quellen** angewendet: Equipment, Sets, Companion-Passives, temporäre RPG-Buffs und sonstige aktive Statquellen.
 
 ---
 
-## 5. Aktuelle Raritäten
+# 1. Forensischer Ausgangszustand
 
-Der Branch besitzt:
+## 1.1 Was im Foundation-Branch bereits existiert
 
-```text
-COMMON
-UNCOMMON
-RARE
-EPIC
-LEGENDARY
-UNIQUE
-```
-
-Aktuelle Multiplikatoren:
+Der Branch `balance/v1-foundation` besitzt bereits eine brauchbare technische Grundlage:
 
 ```text
-Common      1.00
-Uncommon    1.10
-Rare        1.22
-Epic        1.38
-Legendary   1.60
-Unique      1.60
-```
-
-Aktuelle zufällige Statanzahl:
-
-```text
-Common      2
-Uncommon    3
-Rare        4
-Epic        5
-Legendary   8
-Unique      8
-```
-
-**Forensischer Befund:** Der aktuelle Stat-Pool enthält ebenfalls genau acht normale Equipment-Stats. Ein Legendary mit acht Rolls erhält damit aktuell zwangsläufig alle acht Stattypen. Das ist für ein klassenloses RPG langfristig zu wenig Build-Diversität.
-
-### Designentscheidung
-
-`8` bleibt die **maximale Anzahl sichtbarer Stat-Linien** eines normalen Legendary-Items.
-
-Es darf aber nicht bedeuten, dass jedes Legendary zwangsläufig alle acht Kernstats besitzt. Die spätere Implementierung soll zwischen **Stat-Budget** und **Stat-Anzahl** unterscheiden.
-
----
-
-## 6. Zentrales Balance-Modell
-
-Die bisherige Idee „Level 1–99 braucht 99 Itemdefinitionen“ wird ausdrücklich verworfen.
-
-Ein Item wird weiterhin parametrisch erzeugt:
-
-```text
-ItemDefinition
-+ Item-Level
-+ Rarität
-+ Stat-Rolls
+ItemDefinitionRegistry
         ↓
-Stat-Budget
+ItemService
         ↓
-Finale Itemwerte
+RPGItemBuilder
+        ↓
+PDC Item Stats
+        ↓
+StatEngine
+        ↓
+CachedStats
+        ↓
+Combat / Mob Scaling
 ```
 
-Ein Schwert kann deshalb Level 12, 47 oder 99 sein, ohne dass dafür jeweils eine eigene Definition erforderlich ist.
+Die `StatEngine` berücksichtigt bereits registrierte Spieler, Equipment, Set-Boni und Companion-Passives und erzwingt bereits Maximalwerte. Außerdem existiert ein `PlayerPowerIndex`, der aus den aktiven `CachedStats` berechnet wird. fileciteturn21file0 fileciteturn9file0
 
-### 6.1 Neue Zielstruktur
+Die Equipment-Erzeugung verwendet bereits einen zentralen `BalanceModel`, Raritäten, Item-Level und zufällige Stat-Auswahl. fileciteturn19file0 fileciteturn8file0
+
+Das Mob-System erkennt registrierte Spieler als Teilnehmer und passt Mob-HP und Mob-Schaden anhand von Level und einem Gear-Multiplikator an. fileciteturn17file0
+
+## 1.2 Die entscheidenden mathematischen Fehler
+
+### F-BAL-001 — Exponentielles Wachstum
+
+Der bisherige Ansatz nutzte:
 
 ```text
-Item-Level
-    ↓
-Level Power Curve
-    ↓
-Rarity Budget
-    ↓
-Slot Budget
-    ↓
-Stat Budget
-    ↓
-Roll Quality
-    ↓
-Item Stat
+levelFactor = growthMultiplier ^ levelProgress
 ```
 
-Der entscheidende Unterschied zum aktuellen System ist:
+mit:
 
-> **Nicht jeder Stat wird unabhängig bis zum maximalen Einzelwert hochmultipliziert. Das Item besitzt ein begrenztes Gesamtbudget.**
+```text
+growthMultiplier = 10.0
+```
 
-Dadurch kann ein Legendary acht Stats besitzen, ohne automatisch acht Endgame-Caps gleichzeitig zu erreichen.
+Das erzeugt eine aggressive exponentielle Skalierung und macht niedrige und hohe Level schwer sauber aufeinander abzustimmen. Die aktuelle Datenquelle enthält diesen Wert weiterhin. fileciteturn22file0
+
+**Entscheidung:** `growthMultiplier` ist keine gültige Combat-Balance-Variable mehr.
+
+### F-BAL-002 — Kein gemeinsames Stat-Budget
+
+Das Foundation-Modell teilt das Item-Budget zwar bereits auf ausgewählte Stats auf, verwendet aber noch normalisierte Einzel-Caps als direkte Umrechnung. Dadurch ist das mathematische Verhältnis der Stats nicht ausreichend definiert. fileciteturn8file0
+
+**Entscheidung:** Jedes Item erhält ein explizites Budget. Jeder Stat besitzt einen exakt definierten Budgetpreis. Das Budget wird zuerst auf Stat-Linien verteilt und erst danach in Spielwerte umgerechnet.
+
+### F-BAL-003 — Zu viele Stat-Linien
+
+Foundation erlaubt aktuell für Legendary/Unique bis zu 8 Linien. Da der Kernpool ebenfalls 8 Stats enthält, kann ein Item alle 8 Stats erhalten. Der Builder wählt die Linien aktuell zufällig aus dem vollständigen Pool und teilt das Budget anschließend auf. fileciteturn19file0
+
+**Entscheidung:** Kein normales Legendary/Unique darf mehr automatisch alle acht Kernstats tragen.
+
+### F-BAL-004 — HP-Einheit falsch definiert
+
+Foundation behandelt `MAX_HP_BONUS = 180` als direkten Minecraft-Health-Bonus. Zusammen mit `BASE_HEALTH = 20` führt das bis zu 200 Minecraft-HP. fileciteturn8file0 fileciteturn21file0
+
+**Entscheidung:** PixelRPG HP und Minecraft `max_health` werden strikt getrennt.
+
+### F-BAL-005 — Armor-Einheit falsch dimensioniert
+
+Foundation definiert bis zu 200 Armor und überträgt diesen Wert direkt auf Minecrafts Armor-Attribut. fileciteturn8file0
+
+**Entscheidung:** Das absolute Minecraft-Cap ist 20 Armor-Punkte. PixelRPG darf diesen Wert nicht überschreiten.
+
+### F-BAL-006 — Mob Scaling ist zwar PPI-basiert, aber mathematisch zu grob
+
+Foundation verwendet bereits aktive Stats für den PPI und nimmt den höchsten Gear-Multiplikator der aktiven Teilnehmer. fileciteturn9file0 fileciteturn17file0
+
+Das ist architektonisch richtig, aber der PPI mittelt acht unterschiedlich wertvolle Stats mit gleicher Gewichtung. Außerdem liegt die aktuelle Mob-Skalierung bei einem linearen `5 HP/Level` und `0.30 Damage/Level` plus Gear-Multiplikator. fileciteturn23file0 fileciteturn24file0
+
+**Entscheidung:** PPI wird als gewichtete Kampfkraft modelliert und nicht als einfacher Mittelwert aller Caps.
 
 ---
 
-## 7. Empfohlene Levelkurve 1–99
+# 2. Grundprinzipien des neuen Systems
 
-Die erste Balance-Version verwendet eine weiche, spät stärker werdende Kurve:
+## 2.1 Drei getrennte Ebenen
+
+Jeder Wert muss genau einer Ebene zugeordnet werden:
+
+### Ebene A — RPG-Wert
+
+Die Einheit, die das Game Design verwendet.
+
+Beispiele:
 
 ```text
-progress = (itemLevel - 1) / 98
-power    = 0.05 + 0.95 * progress^1.35
+100 HP
+14 Armor
+25 % Crit
+6 % Lifesteal
+10 Attack Power
 ```
 
-Damit erhält Level 1 einen kleinen, aber spürbaren Einstieg und Level 99 erreicht 100 % der vorgesehenen Item-Level-Power.
+### Ebene B — Balance-Wert
 
-### Referenzwerte
+Normalisierte Größe für Budget und PPI:
 
-| Item-Level | Power-Faktor |
+```text
+0.00 = 0 % des Caps
+1.00 = 100 % des Caps
+```
+
+### Ebene C — Minecraft-Attribut
+
+Nur die technische Darstellung im Server:
+
+```text
+PixelRPG HP 100 → minecraft:max_health 20.0
+PixelRPG HP 200 → minecraft:max_health 40.0
+```
+
+**Keine mathematische Balanceformel darf Ebene A und Ebene C direkt vermischen.**
+
+## 2.2 Registrierung ist die Systemgrenze
+
+Nicht registriert:
+
+```text
+Vanilla Minecraft
+```
+
+Registriert:
+
+```text
+PixelRPG Character System
+```
+
+Sobald ein Spieler als PixelRPG-Spieler registriert ist, werden die PixelRPG-Basiswerte aktiv:
+
+```text
+100 HP
+0 Armor Bonus
+0 % Crit
+0 % Lifesteal
+0 Attack Power
+```
+
+Wichtig: `100 PixelRPG HP` entspricht technisch `20.0 minecraft:max_health`. Der Spieler hat also weiterhin 10 sichtbare Herzen, aber PixelRPG arbeitet intern mit 100 HP.
+
+Beim Unregister müssen PixelRPG-Modifier vollständig entfernt und Vanilla-Werte wiederhergestellt werden.
+
+---
+
+# 3. Level-Progression 1–99
+
+## 3.1 Power-Funktion
+
+Die neue Levelkurve lautet:
+
+\[
+x = \frac{L-1}{98}
+\]
+
+\[
+P(L)=0.04+0.96\cdot x^{1.15}
+\]
+
+mit:
+
+```text
+L ∈ [1,99]
+P(1)  = 0.04
+P(99) = 1.00
+```
+
+Die Funktion ist monoton steigend, vermeidet die alte exponentielle Explosion und legt trotzdem einen größeren Teil der sichtbaren Power in die höheren Level.
+
+### 3.2 Referenztabelle
+
+| Level | Power-Faktor |
 |---:|---:|
-| 1 | 5.0 % |
-| 10 | 8.8 % |
-| 20 | 15.4 % |
-| 30 | 23.4 % |
-| 40 | 32.4 % |
-| 50 | 42.3 % |
-| 60 | 52.9 % |
-| 70 | 64.2 % |
-| 80 | 76.0 % |
-| 90 | 88.4 % |
+| 1 | 4.0 % |
+| 10 | 10.2 % |
+| 20 | 18.6 % |
+| 30 | 27.7 % |
+| 40 | 37.3 % |
+| 50 | 47.3 % |
+| 60 | 57.6 % |
+| 70 | 68.1 % |
+| 80 | 78.9 % |
+| 90 | 89.9 % |
 | 99 | 100.0 % |
 
-Diese Kurve ist bewusst **nicht linear**. Die ersten Level sollen nicht durch minimale Rundungswerte wie `+0.1 %` entwertet werden, während die höheren Level deutlich mehr spürbare Progression liefern.
+## 3.3 Designinterpretation
 
-Die Kurve ist ein Startmodell und wird durch Simulation gegen komplette Builds und Monster-TTK/DTK validiert.
+Level ist **kein direkter Schadensmultiplikator**.
+
+Level bestimmt, wie viel Item-/Character-Power verfügbar ist.
+
+Damit gilt:
+
+```text
+Level → Progressionsfreigabe
+Gear  → tatsächliche Kampfkraft
+PPI   → Skalierungsreferenz für Encounter
+```
+
+Das verhindert, dass ein Level-99-Spieler automatisch stark ist, wenn er schlechte Ausrüstung trägt.
 
 ---
 
-## 8. Stat-Definitionen
+# 4. Stat-System und Hard Caps
 
-### HP
+## 4.1 HP
 
-PixelRPG-HP ist ein absoluter Wert.
+### PixelRPG-Einheit
 
 ```text
-Vanilla: 20 LP
-PixelRPG: +0 bis +180 LP
-Final: 20 bis 200 LP
+1 Herz = 10 PixelRPG HP
+10 Herzen = 100 PixelRPG HP
+20 Herzen = 200 PixelRPG HP
 ```
 
-Die Lore zeigt ausschließlich den PixelRPG-Bonus, während das Profil zusätzlich den aktuellen/maximalen Gesamtwert anzeigen darf.
+### Vanilla-Konvertierung
 
-Beispiel:
+\[
+MCHealth = \frac{RPGHP}{5}
+\]
+
+### Werte
+
+| RPG HP | MC max_health | Herzen |
+|---:|---:|---:|
+| 100 | 20.0 | 10 |
+| 110 | 22.0 | 11 |
+| 120 | 24.0 | 12 |
+| 150 | 30.0 | 15 |
+| 180 | 36.0 | 18 |
+| 200 | 40.0 | 20 |
+
+### Hard Cap
 
 ```text
-Lore:     +18.0 LP
-Profil:   138.0 / 200 LP
+RPG HP ≤ 200
+MC max_health ≤ 40.0
+```
+
+Die normale PixelRPG-Ausrüstung darf maximal **+100 RPG HP** gegenüber der registrierten Basis von 100 HP erzeugen.
+
+Damit ist die vom Nutzer gewünschte Semantik eindeutig:
+
+```text
+registriert: 100 / 100 HP = 10 Herzen
+Endgame:     200 / 200 HP = 20 Herzen
+```
+
+## 4.2 Armor
+
+Hard Cap:
+
+```text
+0 ≤ Armor ≤ 20
+```
+
+Minecraft:
+
+```text
+20 Armor = 10 Rüstungssymbole
+```
+
+PixelRPG behandelt Armor als tatsächlichen aktiven Gesamtwert, nicht als `+200`-Pseudo-Ressource.
+
+Die Balanceformel für PixelRPG-Schaden lautet:
+
+\[
+D_{after}=D\cdot\frac{100}{100+A}
+\]
+
+mit:
+
+```text
+A = aktiver PixelRPG Armor-Wert
+```
+
+Referenz:
+
+| Armor | Multiplikator | Reduktion |
+|---:|---:|---:|
+| 0 | 1.000 | 0.0 % |
+| 5 | 0.952 | 4.8 % |
+| 10 | 0.909 | 9.1 % |
+| 15 | 0.870 | 13.0 % |
+| 20 | 0.833 | 16.7 % |
+
+**Hinweis:** Das ist die PixelRPG-Kampfmitigation. Native Vanilla-Rüstungsmechaniken müssen im Runtime-Design so behandelt werden, dass sie nicht unkontrolliert zusätzlich auf dieselbe RPG-Schadensberechnung wirken. Ein Stat darf nicht doppelt gewertet werden.
+
+## 4.3 Movement Speed
+
+```text
+Cap = +30.0 %
+```
+
+\[
+Speed=0.10\cdot(1+Bonus)
+\]
+
+Bei +30 %:
+
+```text
+0.10 × 1.30 = 0.13
+```
+
+## 4.4 Reach
+
+Reach ist ein **Gesamtzielwert**, kein frei addierbarer Bonus ohne Grenze.
+
+```text
+0.0–5.0 Blöcke Gesamt-Reichweite
+```
+
+Die Runtime muss `block_interaction_range` und `entity_interaction_range` getrennt setzen und jeweils auf `5.0` begrenzen.
+
+Das Balance-Modell verwendet:
+
+\[
+ReachNorm=\frac{Reach-BaseReach}{5.0-BaseReach}
+\]
+
+Die tatsächlichen Vanilla-Basiswerte werden nicht als zusätzlicher RPG-Stat ausgegeben.
+
+## 4.5 Crit Chance
+
+```text
+0–100 %
+```
+
+\[
+C=\min(100,\sum C_i)
+\]
+
+## 4.6 Crit Damage
+
+Basis:
+
+```text
+2.0×
+```
+
+PixelRPG-Bonus:
+
+```text
+0–100 %
+```
+
+Gesamt:
+
+\[
+CritMultiplier=2.0+\frac{Bonus}{100}
+\]
+
+Beispiele:
+
+| Bonus | Multiplikator |
+|---:|---:|
+| 0 % | 2.00× |
+| 25 % | 2.25× |
+| 50 % | 2.50× |
+| 75 % | 2.75× |
+| 100 % | 3.00× |
+
+## 4.7 Lifesteal
+
+\[
+Heal=DealtDamage\cdot\frac{Lifesteal}{100}
+\]
+
+Hard Cap:
+
+```text
+8.0 %
+```
+
+Lifesteal wird auf tatsächlich verursachten Schaden angewendet, nicht auf Rohschaden vor Mitigation.
+
+## 4.8 Attack Power
+
+Attack Power ist ein flacher absoluter Bonus:
+
+\[
+RawDamage=WeaponDamage+AttackPower
+\]
+
+Hard Cap:
+
+```text
+15.0 Attack Power
+```
+
+Der Wert ist bewusst deutlich kleiner als der bisherige Wert 60.0, weil das neue HP-/Armor-System wesentlich kompakter ist.
+
+---
+
+# 5. Stat-Pool
+
+Der normale Kernpool besitzt acht Stats:
+
+```text
+HP
+ARMOR
+MOVEMENT_SPEED
+REACH
+ATTACK_POWER
+CRIT_CHANCE
+CRIT_DAMAGE
+LIFESTEAL
+```
+
+Ein Item darf nur Stats aus seinem zulässigen Slot-Pool erhalten.
+
+### Waffe
+
+```text
+ATTACK_POWER
+CRIT_CHANCE
+CRIT_DAMAGE
+LIFESTEAL
+REACH
+HP
 ```
 
 ### Rüstung
 
-PixelRPG-Rüstung ist ein zusätzlicher Armor-Wert auf dem Vanilla-Attribut.
-
-Die aktuelle eigene Damage-Mitigation lautet:
-
 ```text
-damageAfterArmor = damage * (100 / (100 + armor))
+HP
+ARMOR
+MOVEMENT_SPEED
+REACH
+CRIT_CHANCE
+LIFESTEAL
 ```
 
-Bei dieser Formel ergeben sich ungefähr:
-
-| Armor | Schadensreduktion |
-|---:|---:|
-| 25 | 20.0 % |
-| 50 | 33.3 % |
-| 100 | 50.0 % |
-| 150 | 60.0 % |
-| 200 | 66.7 % |
-
-**Vorläufiges Cap: 200 Armor.**
-
-Das muss gegen echte Vanilla-Rüstung und alle weiteren Schadensquellen auf einem Testserver validiert werden.
-
-### Bewegungstempo
-
-PixelRPG speichert den Bonus logisch als Prozentwert.
+### Schild
 
 ```text
-0.0 % → Vanilla
-10.0 % → Vanilla-Basis × 1.10
-20.0 % → Vanilla-Basis × 1.20
-30.0 % → Vanilla-Basis × 1.30
+HP
+ARMOR
+REACH
+LIFESTEAL
 ```
 
-Hard Cap: `30.0 %`.
-
-### Reichweite
-
-Zielwert: `5.0 Blöcke Gesamt-Reichweite`.
-
-Die interne Darstellung muss zwischen Vanilla-Basis und PixelRPG-Bonus unterscheiden.
-
-### Kritische Trefferchance
-
-Crit Chance ist ein Prozentwert von `0.0–100.0 %`.
-
-Hard Cap: `100.0 %`.
-
-100 % darf ein echter Best-in-Slot-Build erreichen.
-
-### Kritischer Schaden
-
-Der aktuelle Combat-Code behandelt `2.0` als Basis-Kritmultiplikator und addiert den PixelRPG-Wert darauf.
-
-Daher soll das System künftig klar definieren:
-
-```text
-Vanilla/PX Basis-Crit-Multiplikator: 2.0x
-PixelRPG Crit-Damage-Bonus: 0.0–100.0 %
-```
-
-Beispiele:
-
-```text
-0.0 % Bonus  → 2.0x
-25.0 % Bonus → 2.25x
-50.0 % Bonus → 2.50x
-100.0 % Bonus → 3.00x
-```
-
-**Wichtig:** Die Lore darf nicht einfach `2.50x` als `250 % Kritischer Schaden` ausgeben, wenn der Spieler eigentlich `+50.0 % Bonus` besitzt. Bonus und Gesamtmultiplikator müssen getrennt dargestellt werden.
-
-### Lebensraub
-
-Der aktuelle Code heilt:
-
-```text
-heal = dealtDamage * lifestealPercent / 100
-```
-
-Da maximal 200 LP vorgesehen sind, ist Lifesteal besonders gefährlich für das Balance-System.
-
-**Startwert für die erste Balance-Version: 8.0 % Hard Cap.**
-
-Das ist bewusst niedriger als Crit und Crit Damage.
-
-Lebensraub muss außerdem anhand von realem Schaden, Angriffstempo und maximaler HP getestet werden. Ein hoher Lifesteal-Wert darf keinen Build erzeugen, der bei jedem Treffer praktisch vollständig geheilt wird.
-
-### Angriffskraft
-
-Angriffskraft ist ein **absoluter flacher Schadensbonus**, kein Prozentwert.
-
-Aktuell:
-
-```text
-rawDamage = vanillaDamage + attackPower
-```
-
-Crit wird anschließend angewendet.
-
-Das vorläufige Endgame-Ziel lautet:
-
-```text
-~60 PixelRPG Attack Power
-```
-
-Dieses Ziel ist **kein blindes Hard Cap**. Es wird anhand der tatsächlichen Monster-HP, Vanilla-Waffenschäden, Rüstung und gewünschten Trefferzahl validiert.
+Tools sind vom Combat-Budget getrennt.
 
 ---
 
-## 9. Endgame-Referenzkurve
+# 6. Stat-Linien pro Rarität
 
-Die folgenden Werte sind die **Zielgröße für einen sehr starken, vollständig ausgerüsteten Level-99-Build**, nicht die Werte eines nackten Level-99-Spielers.
+Die Anzahl der Linien ist eine Designentscheidung und kein Budgetersatz.
 
-| Level | HP gesamt | Armor | Move | Reach | Crit | Crit Dmg Bonus | Lifesteal | Attack Power |
-|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | ~29 | ~10 | ~1.5 % | ~0.25 | ~5 % | ~5 % | ~0.4 % | ~3 |
-| 10 | ~36 | ~18 | ~2.6 % | ~0.44 | ~9 % | ~9 % | ~0.7 % | ~5 |
-| 20 | ~48 | ~31 | ~4.6 % | ~0.77 | ~15 % | ~15 % | ~1.2 % | ~9 |
-| 30 | ~62 | ~47 | ~7.0 % | ~1.17 | ~23 % | ~23 % | ~1.9 % | ~14 |
-| 40 | ~78 | ~65 | ~9.7 % | ~1.62 | ~32 % | ~32 % | ~2.6 % | ~19 |
-| 50 | ~96 | ~85 | ~12.7 % | ~2.12 | ~42 % | ~42 % | ~3.4 % | ~25 |
-| 60 | ~115 | ~106 | ~15.9 % | ~2.65 | ~53 % | ~53 % | ~4.2 % | ~32 |
-| 70 | ~136 | ~128 | ~19.3 % | ~3.21 | ~64 % | ~64 % | ~5.1 % | ~39 |
-| 80 | ~157 | ~152 | ~22.8 % | ~3.80 | ~76 % | ~76 % | ~6.1 % | ~46 |
-| 90 | ~179 | ~177 | ~26.5 % | ~4.42 | ~88 % | ~88 % | ~7.1 % | ~53 |
-| 99 | **200** | **200** | **30.0 %** | **5.0** | **100 %** | **100 %** | **8.0 %** | **60** |
+| Rarität | Stat-Linien |
+|---|---:|
+| Common | 1–2 |
+| Uncommon | 2–3 |
+| Rare | 3–4 |
+| Epic | 4–5 |
+| Legendary | **4–5** |
+| Unique | **4–5** |
 
-**Interpretation:** Das sind keine automatischen Level-Boni. Sie bilden eine Zielhülle dafür, was ein außergewöhnlich gut ausgerüsteter Build ungefähr erreichen können soll.
+**Absolute Regel:** Kein normales Item darf alle acht Kernstats besitzen.
 
-Ein normaler Spieler auf demselben Level muss darunter liegen.
+Legendary bedeutet nicht „alle Stats“. Legendary bedeutet „hohes Budget auf wenige, bewusst ausgewählte Stats“.
+
+Das ermöglicht z. B.:
+
+```text
+Berserker:
+Attack Power + Crit + Crit Damage + Lifesteal
+
+Juggernaut:
+HP + Armor + HP + Movement/Reach
+
+Duelist:
+Attack Power + Crit + Reach + Movement
+```
+
+Die Build-Identität entsteht durch die Auswahl der Stat-Linien, nicht durch Klassen.
 
 ---
 
-## 10. Equipment-Builds statt Klassen
+# 7. Rarity Multipliers
 
-Da PixelRPG keine Klassen besitzt, entstehen Archetypen aus Stat-Verteilungen.
+Die Rarität multipliziert das verfügbare Item-Budget.
 
-Beispiele:
+| Rarität | Multiplier |
+|---|---:|
+| Common | 0.55 |
+| Uncommon | 0.70 |
+| Rare | 0.82 |
+| Epic | 0.92 |
+| Legendary | 1.00 |
+| Unique | 1.05 |
 
-### Berserker
+Unique ist nur geringfügig stärker als Legendary. Der Abstand soll nicht die gesamte Progression ersetzen.
+
+Unique bleibt außerdem entsprechend der bestehenden Item-Regeln admin-/Content-gesteuert und ist kein zufälliger Massenroll.
+
+---
+
+# 8. Slot Weights
+
+Das normale Endgame besteht für die Balance aus sechs Combat-Slots:
+
+```text
+1 × Weapon
+5 × defensive slots
+```
+
+Für die Budgetrechnung werden folgende Gewichte verwendet:
+
+| Slot | Gewicht |
+|---|---:|
+| Weapon | 1.50 |
+| Chest | 1.50 |
+| Legs | 1.25 |
+| Helmet | 1.15 |
+| Boots | 1.15 |
+| Shield / 5. defensive slot | 1.45 |
+| **Summe** | **8.00** |
+
+Diese Summe ist absichtlich 8.00, weil die acht Kernstats jeweils als ein vollständiger Cap-Anteil normiert werden können.
+
+Ein anderer Equipment-Layout-Typ darf diese Gesamtbudgetgrenze nicht umgehen. Wenn ein Server kein Schild verwendet, muss der fünfte defensive Slot durch ein anderes eindeutig definiertes Equipment-Segment ersetzt werden; es darf kein zusätzliches Budget entstehen.
+
+---
+
+# 9. Neues Item-Stat-Budget
+
+## 9.1 Grundformel
+
+\[
+B_{item}=P(L)\cdot RarityMultiplier\cdot SlotWeight
+\]
+
+mit:
+
+```text
+P(L)             = Level Power Factor
+RarityMultiplier = Raritätswert
+SlotWeight       = Slotgewicht
+```
+
+Bei Level 99 Legendary Weapon:
+
+\[
+B=1.00\cdot1.00\cdot1.50=1.50
+\]
+
+Bei Level 99 Common Weapon:
+
+\[
+B=1.00\cdot0.55\cdot1.50=0.825
+\]
+
+---
+
+# 10. Exakte Stat-Kosten
+
+Die Budgeteinheit ist ein **Cap-Anteil**.
+
+Ein vollständiger Cap eines Stats kostet exakt `1.0 Budget Unit`.
+
+## 10.1 Kosten je Einheit
+
+| Stat | Endgame-Cap | Budgetkosten pro Einheit |
+|---|---:|---:|
+| 1 RPG HP | 100 Bonus-HP | **0.01000** |
+| 1 Armor | 20 Armor | **0.05000** |
+| 1 % Movement | 30 % | **0.03333** |
+| 1 Reach-Budgetpunkt | 2.0 norm. Bonus | **0.50000** |
+| 1 Attack Power | 15 | **0.06667** |
+| 1 % Crit Chance | 100 % | **0.01000** |
+| 1 % Crit Damage Bonus | 100 % | **0.01000** |
+| 1 % Lifesteal | 8 % | **0.12500** |
+
+Die Kosten sind mathematisch äquivalent zu:
+
+\[
+Cost(statValue)=\frac{statValue}{statCap}
+\]
+
+mit Ausnahme von Reach, weil Reach technisch in einen Gesamtwert konvertiert wird.
+
+## 10.2 Budgetprüfung
+
+Für ein Item mit Statwerten \(s_i\):
+
+\[
+B_{used}=\sum_i Cost(s_i)
+\]
+
+Es muss gelten:
+
+\[
+B_{used}\le B_{item}
+\]
+
+Ein Item darf niemals durch Rundung, Random Roll oder Mehrfachquellen über sein Budget kommen.
+
+---
+
+# 11. Budget Allocation statt unabhängiger Max-Rolls
+
+Der Erzeugungsprozess lautet verbindlich:
+
+```text
+Item Level
+   ↓
+Level Power
+   ↓
+Rarity Multiplier
+   ↓
+Slot Weight
+   ↓
+TOTAL ITEM BUDGET
+   ↓
+Stat-Line Count
+   ↓
+Stat Pool Selection
+   ↓
+Weighted Budget Allocation
+   ↓
+Roll Quality
+   ↓
+Final Stat Values
+   ↓
+Budget Validation
+   ↓
+PDC
+```
+
+## 11.1 Kein gleiches Max-Roll für alle Stats
+
+Das alte Prinzip:
+
+```text
+jeder Stat = eigener Maximalwert × Level × Rarity
+```
+
+ist verboten.
+
+Ein Item besitzt **ein Gesamtbudget**.
+
+Wenn ein Legendary vier Linien besitzt und sein Budget 1.50 beträgt, können beispielsweise folgende Cap-Anteile entstehen:
+
+```text
+Attack Power   0.55
+Crit Chance    0.40
+Crit Damage    0.35
+Lifesteal      0.20
+--------------------
+Summe          1.50
+```
+
+Das Item kann nicht zusätzlich kostenlos 0.80 HP oder 0.50 Armor erhalten.
+
+---
+
+# 12. Roll Quality
+
+Der Random-Faktor darf nicht mehr zwischen `0.50` und `1.50` frei skalieren.
+
+Neue Roll Quality:
+
+```text
+Minimum = 0.85
+Maximum = 1.00
+```
+
+Empfohlen:
+
+\[
+Q\in[0.85,1.00]
+\]
+
+Die Quality verändert nur die Verteilung innerhalb des bereits zugewiesenen Budgets.
+
+Sie darf niemals:
+
+```text
+Budget überschreiten
+Hard Cap überschreiten
+```
+
+Ein schlechter Roll soll schlechter sein, aber kein mathematischer Ausreißer darf ein komplettes Itemsystem zerstören.
+
+---
+
+# 13. Endgame-Budget und Hard-Cap-Erreichbarkeit
+
+Bei sechs Level-99-Unique-Slots wäre das theoretische Rohbudget:
+
+\[
+B_{total}=8.00\cdot1.05=8.40
+\]
+
+Dieses Rohbudget darf nicht automatisch in mehr als acht vollständige Cap-Einheiten umgewandelt werden.
+
+Der Character Layer führt deshalb einen zweiten globalen Cap:
+
+\[
+B_{character}\le8.00
+\]
+
+Das bedeutet:
+
+```text
+Item Budget ≠ Charakterbudget
+```
+
+Item-Budgets erzeugen Gear.
+
+Der Character Aggregator summiert aktive Werte und clamp't anschließend jeden Stat auf seinen individuellen Hard Cap.
+
+Dadurch ist ein perfekter Build mathematisch in der Lage, die gewünschten Endgame-Caps zu erreichen, aber niemals darüber hinaus.
+
+---
+
+# 14. Character Stat Aggregation
+
+## 14.1 Aktive Quellen
+
+Der Character Aggregator berücksichtigt:
+
+```text
+Equipped Items
++ Set Bonuses
++ Active Companion Passive
++ sonstige explizit freigegebene RPG-Statquellen
+```
+
+Level selbst erzeugt keine direkten Combat-Stats.
+
+## 14.2 Aggregation
+
+Für jeden Stat:
+
+\[
+S_{raw}=\sum_{source=1}^{n}S_{source}
+\]
+
+Danach:
+
+\[
+S_{final}=clamp(S_{raw},0,S_{cap})
+\]
+
+Beispiel HP:
+
+```text
+Basis = 100 RPG HP
+Items = +82 HP
+Set   = +12 HP
+Comp. = +10 HP
+----------------
+Raw   = 204 HP
+Final = 200 HP
+```
+
+Der Spieler erhält niemals 204 HP.
+
+---
+
+# 15. Level-Gate
+
+Ein Item darf weiterhin angelegt werden, aber seine Stats und Fähigkeiten werden erst aktiv, wenn das benötigte Level erreicht wurde.
+
+```text
+requiredLevel <= playerLevel
+```
+
+Nur dann zählt das Item in:
+
+```text
+StatEngine
+PPI
+Combat
+Set Activation
+Ability Activation
+```
+
+Ein Item unter dem Required Level ist technisch ausgerüstet, aber statistisch **inaktiv**.
+
+Das schützt das Balance-System davor, dass ein Level-1-Spieler ein Level-99-Item als versteckten Stat-Stick verwendet.
+
+---
+
+# 16. Player Power Index (PPI)
+
+## 16.1 Ziel
+
+PPI beschreibt die **tatsächlich aktive Kampfkraft** eines Spielers.
+
+Nicht:
+
+```text
+Item Level
+Gearscore
+Rarity
+Anzahl Items
+```
+
+sondern ausschließlich aktive, bereits angewendete Character Stats.
+
+## 16.2 Normierte Statwerte
+
+Für jeden Stat wird zunächst normalisiert:
+
+\[
+N_i=clamp\left(\frac{S_i}{Cap_i},0,1\right)
+\]
+
+## 16.3 Stat-Gewichte
+
+Nicht jeder Stat besitzt dieselbe Kampfrelevanz.
+
+Verbindliche Startgewichte:
+
+| Stat | Gewicht |
+|---|---:|
+| HP | 0.16 |
+| Armor | 0.16 |
+| Movement | 0.06 |
+| Reach | 0.05 |
+| Attack Power | 0.22 |
+| Crit Chance | 0.14 |
+| Crit Damage | 0.14 |
+| Lifesteal | 0.07 |
+| **Summe** | **1.00** |
+
+## 16.4 PPI-Formel
+
+\[
+PPI=\sum_i w_iN_i
+\]
+
+Damit:
+
+```text
+0.00 = keinerlei aktive RPG-Kampfkraft
+1.00 = vollständiger Cap-Build
+```
+
+## 16.5 Warum kein einfacher Mittelwert?
+
+Ein Punkt Crit Chance ist nicht dieselbe Kampfkraft wie ein Punkt Attack Power.
+
+Ein Tank mit hoher HP und Armor soll einen hohen PPI erhalten, aber nicht so behandelt werden, als hätte er denselben offensiven Output wie ein DPS-Build.
+
+Der PPI ist deshalb eine **Encounter-Referenz**, kein Damage-Wert.
+
+---
+
+# 17. Offensive und Defensive PPI-Komponenten
+
+Für feinere Encounter-Entscheidungen werden zusätzlich zwei Teilindizes geführt.
+
+### Offensive Power Index
+
+\[
+OPI=0.45N_{Attack}+0.25N_{Crit}+0.20N_{CritDamage}+0.10N_{Lifesteal}
+\]
+
+### Defensive Power Index
+
+\[
+DPI=0.55N_{HP}+0.35N_{Armor}+0.10N_{Movement}
+\]
+
+### Utility Index
+
+\[
+UI=0.60N_{Reach}+0.40N_{Movement}
+\]
+
+Der Gesamt-PPI bleibt:
+
+\[
+PPI=0.55OPI+0.35DPI+0.10UI
+\]
+
+Diese Form kann später durch Telemetrie angepasst werden, ohne die eigentlichen Stat-Caps zu verändern.
+
+---
+
+# 18. Monster Scaling
+
+## 18.1 Grundprinzip
+
+Ein Monster wird nicht anhand des Item-Levels skaliert.
+
+Es erhält:
+
+```text
+Encounter Level
++ Player Level
++ Player PPI
+```
+
+Die vorhandene Foundation-Architektur erfasst bereits registrierte Teilnehmer und wendet Level/Gear Scaling auf Monsterattribute an. fileciteturn17file0
+
+Die mathematische Berechnung wird jedoch ersetzt.
+
+## 18.2 Level-Faktor
+
+Für Spielerlevel `L`:
+
+\[
+F_L=P(L)
+\]
+
+## 18.3 Gear-Faktor
+
+\[
+F_G=0.85+0.30\cdot PPI
+\]
+
+Damit gilt:
+
+```text
+PPI 0.00 → 0.85
+PPI 0.50 → 1.00
+PPI 1.00 → 1.15
+```
+
+Das ist absichtlich enger als die bisherige Spanne 0.75–1.25. fileciteturn9file0
+
+Der Grund: Das Monster soll Gear nicht vollständig neutralisieren.
+
+---
+
+# 19. Monster HP Formel
+
+Für einen normalen Mob-Archetyp mit Basiswert `H0`:
+
+\[
+MobHP=H_0\cdot(1+1.80\cdot P(L))\cdot F_G
+\]
+
+Das erzeugt eine klare Levelprogression, ohne exponentielle Explosion.
+
+Beispiel mit `H0 = 20`:
+
+| Spielerlevel | P(L) | PPI | HP ungefähr |
+|---:|---:|---:|---:|
+| 1 | 0.04 | 0.00 | 20.7 |
+| 20 | 0.19 | 0.25 | 31.5 |
+| 50 | 0.47 | 0.50 | 50.9 |
+| 80 | 0.79 | 0.75 | 72.7 |
+| 99 | 1.00 | 1.00 | 80.5 |
+
+Die tatsächlichen H0-Werte werden pro Mob-Archetyp definiert. Diese Formel ist die Skalierungsbasis, nicht die endgültige HP jedes Vanilla-Mobs.
+
+---
+
+# 20. Monster Damage Formel
+
+Für Basis-Mob-Schaden `D0`:
+
+\[
+MobDamage=D_0\cdot(1+1.20\cdot P(L))\cdot(0.90+0.20\cdot PPI)
+\]
+
+Bei Level 99:
+
+```text
+PPI 0.00 → 2.20 × 0.90 = 1.98 × D0
+PPI 0.50 → 2.20 × 1.00 = 2.20 × D0
+PPI 1.00 → 2.20 × 1.10 = 2.42 × D0
+```
+
+Der Unterschied zwischen schlechtem und perfektem Gear bleibt damit spürbar, aber das Monster erhält keinen 1:1-Ausgleich für jeden Gear-Fortschritt.
+
+---
+
+# 21. Warum Mob Scaling den Gear-Fortschritt nicht neutralisieren darf
+
+Falsches System:
+
+```text
+Spieler wird 50 % stärker
+Monster wird ebenfalls 50 % stärker
+→ Fortschritt fühlt sich nicht an
+```
+
+Neues Ziel:
+
+```text
+Spieler Gear ↑
+    ↓
+PPI ↑
+    ↓
+Monster etwas stärker
+    ↓
+Spieler bleibt netto stärker
+    ↓
+TTK sinkt
+DTK steigt
+```
+
+Das ist eine zentrale Designanforderung.
+
+---
+
+# 22. TTK / DTK Zielwerte
+
+## 22.1 Definition
+
+\[
+TTK=\frac{EffectiveMobHP}{AveragePlayerDPS}
+\]
+
+\[
+DTK=\frac{EffectivePlayerHP}{AverageIncomingDPS}
+\]
+
+Für diskrete Nahkampfangriffe:
+
+\[
+HitsToKill=ceil\left(\frac{MobHP}{AverageHitDamage}\right)
+\]
+
+## 22.2 Level-99 Standard-Mob Ziel
+
+Für einen normalen Level-99-Mob werden folgende Zielbereiche verwendet:
+
+### Berserker/DPS-Build
+
+```text
+4–7 Treffer
+~4–6 Sekunden TTK
+```
+
+### Balanced Build
+
+```text
+6–9 Treffer
+~6–9 Sekunden TTK
+```
+
+### Tank Build
+
+```text
+8–12 Treffer
+~8–12 Sekunden TTK
+```
+
+Ein Tank darf langsamer töten, muss aber deutlich länger überleben.
+
+## 22.3 DTK Ziel
+
+Ein Standard-Mob soll einen vollständigen Endgame-Build nicht innerhalb eines einzelnen normalen Angriffs töten.
+
+Ziel:
+
+```text
+mindestens 8–15 normale Treffer
+```
+
+je nach Mob-Archetyp.
+
+Elite-Mobs dürfen deutlich gefährlicher sein.
+
+---
+
+# 23. Build-Archetypen ohne Klassen
+
+PixelRPG bleibt klassenlos.
+
+Stats erzeugen implizite Spielstile.
+
+## Berserker
+
+Priorität:
 
 ```text
 Attack Power
 Crit Chance
 Crit Damage
+Lifesteal
 ```
 
-### Juggernaut
+Ziel:
+
+```text
+hoher Burst
+niedrige bis mittlere Defensive
+```
+
+## Juggernaut
+
+Priorität:
 
 ```text
 HP
 Armor
+Lifesteal
+Movement
 ```
 
-### Vampire
+Ziel:
+
+```text
+hohe DTK
+niedrigere DPS
+```
+
+## Duelist
+
+Priorität:
+
+```text
+Attack Power
+Crit
+Movement
+Reach
+```
+
+Ziel:
+
+```text
+hoher konstanter Schaden
+Positionierung
+```
+
+## Sustained DPS
+
+Priorität:
 
 ```text
 Attack Power
 Crit
 Lifesteal
-```
-
-### Ranger
-
-```text
-Reach
-Crit
 Crit Damage
 ```
-
-### Swift
-
-```text
-Movement Speed
-Reach
-Crit
-```
-
-Diese Bezeichnungen sind **keine Klassen**. Sie sind nur Beschreibungen von Builds.
-
-Das ist wichtig: Der Spieler darf seine Rolle durch sein Gear selbst erzeugen.
-
----
-
-## 11. Stat-Budget-System
-
-Das zukünftige Item-System soll nicht mehr jeden Stat unabhängig maximal skalieren.
-
-Ein Item erhält ein Gesamtbudget:
-
-```text
-Item-Level
-× Rarity Budget
-× Slot Budget
-= Item Stat Budget
-```
-
-Jeder Stat-Roll verbraucht einen Teil dieses Budgets.
-
-Dadurch gilt:
-
-> Ein Item mit acht Stats ist vielseitig, aber nicht automatisch achtmal so stark.
-
-### Raritätsrichtung
-
-Die aktuelle Raritätsordnung bleibt erhalten:
-
-```text
-Common
-Uncommon
-Rare
-Epic
-Legendary
-Unique
-```
-
-Die Rarität darf sowohl die Anzahl der möglichen Stats als auch das Gesamtbudget beeinflussen.
-
-Die aktuellen Multiplikatoren `1.00 / 1.10 / 1.22 / 1.38 / 1.60` sind nur der historische Ist-Stand und werden durch die neue Budgetsimulation ersetzt bzw. neu kalibriert.
-
-### Stat-Anzahl
-
-Aktuelle Zielrichtung:
-
-```text
-Common      2
-Uncommon    3
-Rare        4
-Epic        5
-Legendary   bis zu 8
-```
-
-„Bis zu 8“ ist absichtlich gewählt. Ein Legendary soll nicht allein durch die Anzahl der Zeilen automatisch alle Endgame-Caps erreichen.
-
----
-
-## 12. Best-in-Slot und Werte über 100 %
-
-Nicht jeder Wert muss dieselbe Semantik besitzen.
-
-### Harte Gameplay-Caps
-
-Diese dürfen nicht überschritten werden:
-
-```text
-HP               200 LP
-Movement Speed     30.0 %
-Reach               5.0 Blöcke
-Crit Chance       100.0 %
-```
-
-### Werte mit möglichem Overcap
-
-Bei bestimmten Stats kann ein zukünftiges internes Overcap erlaubt werden, wenn es gameplayseitig sinnvoll ist.
-
-Beispielsweise könnte ein Item einen besonders guten Roll besitzen, der rechnerisch über einem Soft Target liegt.
-
-Die Engine muss trotzdem zwischen:
-
-```text
-Raw Roll
-Final Effective Value
-```
-
-unterscheiden.
-
-Ein Best-in-Slot-Item darf also außergewöhnlich gut sein, ohne dass dadurch ein harter Gameplay-Cap wie Bewegungstempo oder Reichweite gebrochen wird.
-
----
-
-## 13. Sets
-
-Sets sind Teil der Equipment-Power und keine zweite Charakterklasse.
-
-Der aktuelle `EquipmentSetService` zählt nur verwendbare Set-Teile, also Teile, deren Required-Level erfüllt ist. Die Set-Boni werden anschließend in die `StatEngine` integriert.
-
-Das Grundprinzip bleibt:
-
-```text
-Item Stats
-+
-Set Bonuses
-=
-Equipment Power
-```
-
-Set-Boni sollen einen Build spezialisieren, nicht die normalen Item-Caps umgehen.
-
-Für die erste Balance-Version wird empfohlen, Set-Boni aus einem **separaten, kleinen Bonusbudget** zu finanzieren. Sie sollen einen Build abrunden und nicht alleine den größten Teil eines Stats erzeugen.
-
----
-
-## 14. Level-Gating
-
-Das gewünschte Verhalten bleibt verbindlich:
-
-```text
-Item kann angelegt werden
-        ↓
-Required Level nicht erreicht?
-        ↓
-Item bleibt im Slot
-        ↓
-PixelRPG-Stats werden nicht aktiviert
-        ↓
-Set-Teil zählt nicht
-        ↓
-Weapon Ability darf nicht aktiviert werden
-```
-
-Das ist bereits teilweise umgesetzt: `StatEngine` und `EquipmentSetService` prüfen das Required-Level.
-
-Der Weapon-Ability-Pfad muss zusätzlich zentral gegen dieselbe Nutzbarkeitsprüfung abgesichert werden.
-
----
-
-## 15. Forensischer Befund — Monster Scaling
-
-Der aktuelle Branch besitzt eine echte Mob-Level-Skalierung.
-
-Aktuelle Basisformel:
-
-```text
-Mob HP     = 20 + playerLevel * hpPerLevel
-Mob Damage =  2 + playerLevel * damagePerLevel
-```
-
-Aktuelle JSON-Werte:
-
-```text
-hpPerLevel       = 5.0
-damagePerLevel   = 0.30
-playerParity     = 1.00
-gearMultiplier   = 0.75–1.25
-```
-
-Dadurch entstehen beispielsweise:
-
-| Spielerlevel | Mob HP | Mob Damage |
-|---:|---:|---:|
-| 1 | 25 | 2.3 |
-| 10 | 70 | 5.0 |
-| 20 | 120 | 8.0 |
-| 50 | 270 | 17.0 |
-| 80 | 420 | 26.0 |
-| 99 | 515 | 31.7 |
-
-Die Werte werden aktuell durch den Gear-Multiplier beeinflusst.
-
-### Kritischer Forensikbefund
-
-Der aktuelle Gear-Multiplier basiert **nicht auf der tatsächlichen finalen Stat-Power** des Spielers. Er verwendet den Durchschnitt der Item-Level der getragenen Items und vergleicht diesen mit dem Spielerlevel.
-
-Damit gilt derzeit vereinfacht:
-
-```text
-Mob Scaling
-← Spielerlevel
-← durchschnittliches Item-Level
-```
-
-und nicht:
-
-```text
-Mob Scaling
-← tatsächliche Spieler-Power
-```
-
-Das ist für das endgültige Balance-System nicht ausreichend.
-
-Ein Level-99-Spieler mit schlechtem Gear und ein Level-99-Spieler mit perfektem Best-in-Slot-Gear können derzeit trotz stark unterschiedlicher tatsächlicher Stats ähnlich behandelt werden.
-
-### Zielzustand
-
-Die Monster-Skalierung soll langfristig einen **Power Index** verwenden:
-
-```text
-Player Power Index
-    ↓
-Mob Scaling
-```
-
-Der Index basiert auf den tatsächlich aktivierten Equipment-Stats, nicht nur auf Item-Level.
-
----
-
-## 16. Monster müssen Fortschritt zulassen
-
-Monster dürfen nicht exakt im gleichen Verhältnis wachsen wie der Spieler.
-
-Schlechtes Design wäre:
-
-```text
-Spieler +50 % Power
-Monster +50 % Power
-```
-
-Dann fühlt sich der Fortschritt nicht existent an.
-
-Gewünscht ist:
-
-```text
-Spieler wächst deutlich
-Monster wächst kontrolliert
-Spieler gewinnt netto an Effizienz
-```
-
-Der wichtigste Balance-Messwert wird deshalb:
-
-```text
-TTK = Time To Kill
-DTK = Time To Die
-```
-
-Ein Spieler soll mit besserem Gear:
-
-- Monster schneller töten.
-- mehr Fehler verzeihen können.
-- stärkere Gebiete erreichen.
-- neue Builds ausprobieren können.
-
-Monster Scaling soll diese Vorteile dämpfen, aber nicht eliminieren.
-
----
-
-## 17. Mob Scaling — Zielarchitektur
-
-Langfristig:
-
-```text
-Player Level
-      +
-Equipment Power Index
-      +
-Region / Mob Tier
-      ↓
-Target Mob Level
-      ↓
-Mob Base HP / Damage
-      ↓
-Controlled Player-Parity Multiplier
-```
-
-Dabei muss das System weiterhin berücksichtigen:
-
-- Spielerlevel
-- Region
-- Mob-Tier
-- Gruppen-/Teilnehmer-Situation
-- Gear-Power
-
-Der aktuelle höchste Teilnehmerlevel darf nicht einfach als alleinige Wahrheit für alle Werte verwendet werden, wenn unterschiedliche Spieler mit stark unterschiedlichem Gear beteiligt sind.
-
----
-
-## 18. Combat-Balance
-
-Der aktuelle Player-Damage-Pfad lautet vereinfacht:
-
-```text
-Vanilla Weapon Damage
-+
-PixelRPG Attack Power
-=
-Raw Damage
-```
-
-Dann:
-
-```text
-Crit?
-    ↓
-Raw × Crit Multiplier
-```
-
-Dann:
-
-```text
-Armor Mitigation
-    ↓
-Final Damage
-```
-
-Lifesteal basiert anschließend auf dem tatsächlich verursachten Final Damage.
-
-Das ist als Grundarchitektur brauchbar.
-
-### Zielwerte für Tests
-
-Ein normaler Level-99-Endgame-Build soll nicht jeden normalen Level-99-Mob in einem Treffer töten.
-
-Als erste Testziele:
-
-```text
-Normaler Mob:
-~8–12 normale Treffer
-~3–6 kritische Treffer, abhängig vom Build
-```
-
-Ein reiner Crit-Build darf schneller töten, bezahlt dafür aber mit weniger defensiven Stats.
-
-Ein Tank-Build soll deutlich länger überleben, aber weniger Schaden verursachen.
-
-Ein Lifesteal-Build soll zwischen diesen Extremen liegen.
-
-Diese Zahlen sind **Testziele**, keine unveränderlichen Gameplay-Garantien.
-
----
-
-## 19. Armor-Balance
-
-Die aktuelle eigene Formel ist:
-
-```text
-mitigation = 100 / (100 + armor)
-```
-
-Das ist für ein RPG gut geeignet, weil jeder weitere Armor-Punkt immer weniger zusätzliche Reduktion liefert.
-
-Beispiel:
-
-```text
-100 Armor → 50.0 % weniger Schaden
-200 Armor → 66.7 % weniger Schaden
-300 Armor → 75.0 % weniger Schaden
-```
-
-Deshalb ist `200 Armor` ein sinnvoller erster Test-Cap.
-
-Das System darf nicht gleichzeitig eine unkontrollierte zweite Armor-Mitigation in der Vanilla-Schadensberechnung erzeugen. Die bestehende Combat-Pipeline versucht bereits, den gewünschten Custom-Schaden über die Vanilla-Mitigation zurückzurechnen; dies muss bei der Implementierung exakt erhalten bzw. gegen Paper 26.2 getestet werden.
-
----
-
-## 20. Lebensraub-Balance
-
-Lebensraub wird nicht anhand eines beliebigen Prozentwerts entschieden.
-
-Er wird anhand folgender Kombination getestet:
-
-```text
-Attack Power
-× Crit
-× Attack Speed / Trefferfrequenz
-× Lifesteal
-× Max HP
-```
-
-Beispiel bei 200 LP:
-
-```text
-50 Schaden × 8 % = 4 LP Heilung pro Treffer
-100 Schaden × 8 % = 8 LP Heilung pro Treffer
-```
-
-100 Schaden pro Treffer bei 8 % Lifesteal würde bereits 8 LP pro Treffer zurückgeben. Deshalb ist Lifesteal absichtlich deutlich niedriger zu behandeln als Crit Chance.
-
-Vorläufiges Cap: **8.0 %**.
-
----
-
-## 21. Lore und Profil — eine einzige Wahrheit
-
-Das System darf niemals drei verschiedene Stat-Berechnungen besitzen.
 
 Ziel:
 
 ```text
-Equipment
-   ↓
-StatEngine
-   ↓
-Final CachedStats
-   ├── Gameplay
-   ├── Item Lore
-   ├── Profil
-   └── Debug/API
+hoher Schaden + Selbstheilung
 ```
 
-### Lore
+Es gibt keine Klassenrestriktion. Ein Spieler baut diese Profile ausschließlich über Gear.
 
-Jeder Wert muss mit der richtigen Einheit und konsistenten Nachkommastellen erscheinen.
+---
 
-Beispiele:
+# 24. Set-Boni
 
-```text
-+12.0 LP
-+24.5 Rüstung
-+7.5 % Bewegungstempo
-+1.25 Reichweite
-+18.0 % Kritische Trefferchance
-+35.0 % Kritischer Schaden
-+3.0 % Lebensraub
-+27.0 Angriffskraft
-```
+Set-Boni sind **zusätzliche Statquellen**, kein Weg um Item-Budgets zu umgehen.
 
-`0` darf bei Dezimalstats nicht plötzlich als `0.0` oder `0 %` inkonsistent erscheinen.
-
-### Profil
-
-Das Profil muss die **finalen aktiven Werte** zeigen.
+Ein Setbonus wird zuerst als normale Statquelle aggregiert und anschließend durch denselben Character Hard-Cap begrenzt.
 
 Beispiel:
 
 ```text
-Leben              142.0 / 200.0 LP
-Rüstung              96.5
-Bewegungstempo       +18.5 %
-Reichweite             3.25 Blöcke
-Kritische Chance      54.0 %
-Kritischer Schaden    +62.0 %
-Lebensraub             4.5 %
-Angriffskraft         38.0
+Items:
+HP +90
+
+Set:
+HP +20
+
+Companion:
+HP +10
+
+Raw = 120
+Cap = 100 Bonus
+Final Bonus = 100
 ```
 
-### Aktueller Profil-Befund
-
-`CharacterCardScoreboardService` rundet aktuell praktisch alle Werte auf ganze Zahlen. Außerdem wird Crit Damage aktuell als Gesamtmultiplikator gespeichert/angezeigt und nicht sauber als separater Bonuswert.
-
-Das muss im späteren Implementierungsschritt korrigiert werden, damit der Spieler seine tatsächlichen Werte sehen kann.
-
----
-
-## 22. Companion-Befund
-
-Der aktuelle `StatEngine` kann zusätzlich passive Stats eines aktiven Companions in die Spielerwerte einrechnen.
-
-Das steht im Konflikt mit der aktuellen Balance-Anforderung:
-
-> **Stats werden nur über Waffen und Rüstung erzeugt.**
-
-Für die neue Equipment-Balance gilt daher:
-
-- Companion-Passivstats dürfen nicht heimlich den Equipment-Balance-Budgetrahmen sprengen.
-- Entweder werden Companion-Kampfstats als separates zukünftiges System behandelt oder explizit aus der Kern-Equipment-Statkurve herausgenommen.
-- Die Balance dieses Dokuments betrachtet die Kernstats zunächst **ohne Companion-Boni**.
-
-Companion-System und Equipment-System dürfen später bewusst kombiniert werden, aber nur mit einem eigenen Power-Budget.
-
----
-
-## 23. Wichtiger Unterschied: Item-Level vs. Player-Level
-
-Ein Spielerlevel und ein Itemlevel sind zwei verschiedene Größen.
+Bei HP:
 
 ```text
-Player Level
-→ bestimmt, was benutzt werden darf
-
-Item Level
-→ bestimmt, wie stark ein Item rollen kann
-
-Rarity
-→ bestimmt Budget / Qualität / Statanzahl
-
-Roll
-→ bestimmt die konkrete Itemqualität
-```
-
-Ein Level-50-Spieler darf also beispielsweise ein Level-40-Item tragen, wenn dessen Required-Level erfüllt ist.
-
-Ein Level-20-Spieler kann ein Level-50-Item besitzen/tragen, aber dessen PixelRPG-Stats bleiben deaktiviert, solange das Required-Level nicht erfüllt ist.
-
----
-
-## 24. Best-in-Slot
-
-Best-in-Slot bedeutet nicht:
-
-```text
-jedes Item maximal
-```
-
-sondern:
-
-```text
-passende Stat-Kombination
-+
-hohes Item-Level
-+
-hohe Rarität
-+
-guter Roll
-+
-passende Set-Boni
-=
-Best-in-Slot
-```
-
-Das erzeugt einen echten Grund, Items auszutauschen und zu vergleichen.
-
-Ein schlechter Legendary-Roll darf daher schlechter sein als ein perfekter Epic-Roll für einen bestimmten Build.
-
-Das ist gewollt.
-
----
-
-## 25. Keine Klassen — dafür echte Build-Entscheidungen
-
-Die wichtigsten Balancefragen werden deshalb nicht lauten:
-
-> „Ist Klasse A stärker als Klasse B?“
-
-sondern:
-
-> „Ist dieser Stat-Mix stärker als jener Stat-Mix für diese Spielsituation?“
-
-Ein Spieler soll beispielsweise zwischen:
-
-```text
-+30 LP
-+5 Armor
-```
-
-und
-
-```text
-+8 % Crit
-+6 % Crit Damage
-```
-
-eine echte Entscheidung treffen können.
-
-Das ist der Kern des klassenlosen Systems.
-
----
-
-## 26. Balance-Matrix für die Entwicklung
-
-Jede Änderung an einem Stat muss mindestens diese Levelstufen prüfen:
-
-```text
-1
-10
-20
-30
-40
-50
-60
-70
-80
-90
-99
-```
-
-Für jede Stufe werden mindestens drei Builds simuliert:
-
-```text
-Defensiv
-Offensiv
-Hybrid
-```
-
-Zusätzlich:
-
-```text
-Worst Roll
-Average Roll
-Best Roll
-```
-
-Und für Endgame:
-
-```text
-Normal Legendary
-Strong Legendary
-Best-in-Slot Legendary
-Set Build
+100 Basis + 100 Bonus = 200 RPG HP
 ```
 
 ---
 
-## 27. Pflicht-Simulationen vor Runtime-Änderungen
+# 25. Companion-Regel
 
-Vor der Implementierung der neuen Kurve müssen folgende Fragen rechnerisch beantwortet werden:
+Companion-Passives werden wie aktive Character-Statquellen behandelt.
 
-### A — Progression
+Sie dürfen nicht den globalen Character-Cap umgehen.
+
+Ein Companion kann einen Build vervollständigen, aber niemals:
 
 ```text
-Ist Level 20 spürbar stärker als Level 10?
-Ist Level 50 spürbar stärker als Level 30?
-Ist Level 80 spürbar stärker als Level 60?
-Ist Level 99 deutlich stärker als Level 80?
+200 HP → 230 HP
+20 Armor → 25 Armor
+100 % Crit → 115 % Crit
 ```
 
-### B — Gear
+erzeugen.
+
+Die Foundation-StatEngine bindet Companion-Passives bereits in die Statberechnung ein und clamp't anschließend auf die zentralen Caps. fileciteturn21file0
+
+Diese zentrale Aggregation bleibt das gewünschte Architekturprinzip.
+
+---
+
+# 26. Combat-Reihenfolge
+
+Die Kampfberechnung wird strikt in dieser Reihenfolge definiert:
 
 ```text
-Ist ein besseres Item spürbar?
-Ist ein Legendary wirklich interessant?
-Kann ein schlechter Legendary-Roll schlechter als ein guter Epic-Roll sein?
+1. Angriff erkennen
+2. registrierten PixelRPG-Spieler bestimmen
+3. aktive CachedStats lesen
+4. Weapon Damage bestimmen
+5. Attack Power addieren
+6. Crit prüfen
+7. Crit Damage anwenden
+8. Ziel-Armor bestimmen
+9. PixelRPG-Mitigation anwenden
+10. finalen Schaden bestimmen
+11. Lifesteal aus realem Schaden berechnen
+12. HP clampen
+13. Combat Events / Statistics auslösen
 ```
 
-### C — Combat
+Formell:
+
+\[
+D_0=W+AP
+\]
+
+\[
+D_1=D_0\cdot CritMultiplier
+\]
+
+\[
+D_2=D_1\cdot\frac{100}{100+A}
+\]
+
+\[
+Heal=D_2\cdot\frac{LS}{100}
+\]
+
+---
+
+# 27. Crit-Erwartungswert
+
+Für Balance-Simulationen ist der durchschnittliche Crit-Schaden wichtiger als ein einzelner Max-Hit.
+
+Mit Crit Chance `C` und Crit Multiplier `M`:
+
+\[
+ExpectedDamage=D\cdot((1-C)+C\cdot M)
+\]
+
+mit `C` als Dezimalwert.
+
+Bei:
 
 ```text
-Wie viele Treffer benötigt ein Spieler?
-Wie viele Treffer überlebt er?
-Wie stark ist ein Crit wirklich?
-Wie viel Heilung liefert Lifesteal?
+C = 50 %
+M = 2.50
 ```
 
-### D — Monster
+gilt:
+
+\[
+ED=D\cdot(0.5+0.5\cdot2.5)=1.75D
+\]
+
+Das ist die relevante Größe für TTK-Simulationen.
+
+---
+
+# 28. Attack Power Cap Begründung
+
+Der alte Wert von 60 Attack Power ist für das neue HP-System zu hoch.
+
+Bei:
 
 ```text
-Wie stark skaliert ein Monster mit dem Spieler?
-Wie stark mit dem Gear?
-Bleibt der Spieler trotz Scaling stärker?
+100 RPG HP = 10 Herzen
+200 RPG HP = 20 Herzen
 ```
 
-### E — Caps
+muss ein einzelner normaler Hit nicht plötzlich einen großen Teil der gesamten Lebensleiste entfernen.
+
+`15 Attack Power` ist deshalb der neue Start-Hard-Cap.
+
+Der Cap darf erst nach realen TTK-Simulationen geändert werden.
+
+Wenn die Simulation zeigt, dass:
 
 ```text
-Kann ein normaler Build den Cap erreichen?
-Kann nur Best-in-Slot ihn erreichen?
-Kann ein einzelnes Item den Cap brechen?
+DPS zu niedrig → Weapon Base Damage anpassen
+DPS zu hoch   → Attack Power Budgetkosten erhöhen
+```
+
+und nicht einfach das HP-Cap erhöhen.
+
+---
+
+# 29. Reach-Balance
+
+Reach ist extrem stark, obwohl es keinen direkten Schaden verursacht.
+
+Deshalb wird Reach mit einem eigenen Budgetpreis bewertet und erhält keine kostenlose Synergie aus mehreren Items.
+
+Ein Spieler darf maximal:
+
+```text
+5.0 Blöcke Block Reach
+5.0 Blöcke Entity Reach
+```
+
+erreichen.
+
+Die zwei technischen Minecraft-Attribute werden getrennt verwaltet.
+
+Der Character Stat bleibt aber ein gemeinsamer Gameplay-Wert.
+
+---
+
+# 30. Rarity + Stat-Line Design
+
+Rarität bestimmt **wie viel Budget** ein Item besitzt.
+
+Stat-Lines bestimmen **wie konzentriert** das Budget verteilt wird.
+
+Das erzeugt einen wichtigen Unterschied:
+
+### Common
+
+```text
+wenig Budget
+wenige Linien
+```
+
+### Legendary
+
+```text
+viel Budget
+4–5 Linien
+```
+
+Ein Legendary mit vier Linien kann deshalb auf seinen gewählten Stats deutlich stärker sein als ein Legendary mit fünf Linien.
+
+Das ist beabsichtigt.
+
+Ein Spieler soll echte Entscheidungen zwischen:
+
+```text
+breitem Item
+vs.
+konzentriertem Item
+```
+
+treffen können.
+
+---
+
+# 31. Stat-Auswahl
+
+Die Auswahl der Stat-Linien darf nicht einfach zufällig gleichverteilt über alle acht Stats erfolgen.
+
+Sie muss mindestens diese Regeln einhalten:
+
+1. Kein Duplikat desselben Stat-Typs auf einem Item.
+2. Keine ungültigen Slot-Stats.
+3. Keine acht Stats auf einem Item.
+4. Stat-Auswahl zuerst, Budgetverteilung danach.
+5. Ein Item darf nicht mehr als 100 % seines eigenen Stat-Caps ausgeben.
+6. Das Gesamtbudget des Items darf nicht überschritten werden.
+
+Optional kann später eine Affinitätstabelle eingeführt werden, z. B.:
+
+```text
+Weapon → offensive Stats bevorzugen
+Chest  → HP/Armor bevorzugen
+Boots  → Movement/Reach bevorzugen
+```
+
+Die Affinität darf aber nur die Wahrscheinlichkeit beeinflussen, nicht das Budget umgehen.
+
+---
+
+# 32. Item Budget Beispiel
+
+Level 50 Legendary Chest:
+
+\[
+P(50)=0.4726
+\]
+
+\[
+B=0.4726\cdot1.00\cdot1.50=0.7089
+\]
+
+Vier Stat-Linien könnten das Budget beispielsweise so verwenden:
+
+```text
+HP       0.30
+Armor    0.25
+Movement 0.08
+Lifesteal 0.0789
+----------------
+Summe    0.7089
+```
+
+Umrechnung:
+
+```text
+HP:        0.30 × 100 = 30 RPG HP Bonus
+Armor:     0.25 × 20  = 5 Armor
+Movement:  0.08 × 30  = 2.4 %
+Lifesteal: 0.0789 × 8 = 0.6312 %
+```
+
+Das Item erhält nicht zusätzlich noch einen kostenlosen fünften Stat.
+
+---
+
+# 33. Perfect Endgame Beispiel
+
+Ein theoretischer Perfect-Build kann folgende Caps erreichen:
+
+```text
+200 RPG HP
+20 Armor
++30 % Movement
+5.0 Reach
+100 % Crit
++100 % Crit Damage
+8 % Lifesteal
+15 Attack Power
+```
+
+Das bedeutet nicht, dass jedes einzelne Item diese Werte besitzt.
+
+Die Werte werden über sechs Slots verteilt.
+
+Beispiel einer extremen Buildverteilung:
+
+```text
+Weapon:
+Attack Power + Crit + Crit Damage + Lifesteal
+
+Chest:
+HP + Armor + HP + Armor
+
+Legs:
+HP + Armor + Movement + HP
+
+Helmet:
+HP + Crit + Lifesteal + Movement
+
+Boots:
+Movement + Reach + HP + Crit
+
+Shield:
+Armor + HP + Reach + Lifesteal
+```
+
+Der Character Aggregator entscheidet am Ende ausschließlich über die tatsächlich aktiven Summen.
+
+---
+
+# 34. PPI und Builds
+
+Zwei Level-99-Spieler können denselben PPI besitzen und trotzdem völlig unterschiedlich spielen.
+
+Beispiel:
+
+```text
+Tank:
+DPI hoch
+OPI mittel
+
+DPS:
+OPI hoch
+DPI niedrig
+```
+
+Der Gesamt-PPI ist daher nur eine Encounter-Skalierungsreferenz.
+
+Monster dürfen nicht anhand des PPI plötzlich immun gegen den bevorzugten Build werden.
+
+---
+
+# 35. Multiplayer Scaling
+
+Wenn mehrere registrierte Spieler ein Monster bekämpfen, darf nicht blind der höchste PPI eines Spielers verwendet werden.
+
+Die Teilnehmerliste wird gewichtet.
+
+Empfohlene Gruppenpower:
+
+\[
+PPI_{group}=0.70\cdot PPI_{highest}+0.30\cdot PPI_{average}
+\]
+
+Der höchste Spieler verhindert Unter-Skalierung.
+
+Der Durchschnitt verhindert, dass ein einzelner Endgame-Spieler eine Gruppe aus schwachen Spielern vollständig hochskaliert.
+
+Für `n` Spieler:
+
+```text
+highest = max(PPI_i)
+average  = sum(PPI_i)/n
+```
+
+Dann:
+
+\[
+PPI_{group}=0.70highest+0.30average
+\]
+
+---
+
+# 36. Combat Timeout
+
+Die Foundation verwendet bereits einen Combat-Teilnehmer-Timeout von fünf Sekunden. fileciteturn17file0
+
+Dieses Verhalten ist für die neue Mathematik sinnvoll:
+
+```text
+Damage / Target / Combat Activity
+        ↓
+Teilnehmer aktiv
+        ↓
+Mob scaled
+        ↓
+5 Sekunden ohne Aktivität
+        ↓
+Teilnehmer entfernt
+        ↓
+Scaling neu berechnet / Vanilla restore
+```
+
+Die fünf Sekunden sind ein technischer Timeout und kein Balancewert.
+
+---
+
+# 37. Mob Archetypes
+
+Normale Mobs sollten nicht alle identische Werte erhalten.
+
+Empfohlene Archetypen:
+
+| Archetyp | HP | Damage | Ziel |
+|---|---:|---:|---|
+| Normal | 1.00× | 1.00× | Standardkampf |
+| Bruiser | 1.35× | 1.10× | zäher Nahkämpfer |
+| Glass Cannon | 0.75× | 1.45× | hoher Druck |
+| Tank | 1.80× | 0.75× | langer Kampf |
+| Elite | 2.50× | 1.60× | Endgame-Herausforderung |
+
+Die Multiplikatoren werden nach der Level-/PPI-Skalierung angewendet.
+
+---
+
+# 38. Bosses
+
+Bosses verwenden nicht automatisch die normalen Mob-Werte.
+
+Die bestehende Boss-Pipeline besitzt bereits einen separaten Boss-Schadensschutz und weitere Bossmechaniken. Der Audit bestätigt, dass Boss-Hit-Cap und Boss-Scaling als eigene Systeme existieren. fileciteturn12file0
+
+Für normale Boss-Balance gilt:
+
+```text
+Boss HP = Mob HP × Boss Archetype Multiplier
+Boss Damage = Mob Damage × Boss Archetype Multiplier
+```
+
+Boss-Phasen, Fähigkeiten und spezielle Mechaniken dürfen zusätzlich wirken, müssen aber ihre Schadenswirkung auf die 200-RPG-HP-Hard-Cap-Skala abstimmen.
+
+---
+
+# 39. XP
+
+XP darf nicht direkt proportional zu beliebig aufgeblasenen Monster-HP werden.
+
+Das Foundation-System besitzt aktuell `xpPerMaxHealth = 4.0` in der JSON-Konfiguration. fileciteturn23file0
+
+Für das neue System gilt:
+
+\[
+XP=BaseXP\cdot LevelFactor\cdot DifficultyFactor
+\]
+
+Monster-HP darf höchstens indirekt Einfluss nehmen.
+
+Sonst entsteht der Exploit:
+
+```text
+Monster bekommt extrem viel HP
+→ XP explodiert
+→ künstliche Farm
 ```
 
 ---
 
-## 28. Forensische Probleme des aktuellen Systems
+# 40. Rundung und Präzision
 
-### F-BAL-001 — Exponentielle 1–99-Kurve ist zu grob
-
-`growthMultiplier = 10.0` spannt eine zehnfache End-to-End-Skalierung auf, bevor Rarität und Roll berücksichtigt werden.
-
-**Folge:** Die Basiswerte sind derzeit nicht zuverlässig auf die gewünschten Endgame-Caps kalibriert.
-
-**Ziel:** neue Power-Kurve + Stat-Budget.
-
-### F-BAL-002 — Einzelstat-Rolls besitzen kein gemeinsames Budget
-
-Jeder gewählte Stat wird unabhängig aus `base × level × rarity × roll` berechnet.
-
-**Folge:** Mehr Stats können gleichzeitig extrem groß werden.
-
-**Ziel:** gemeinsames Item-Budget.
-
-### F-BAL-003 — Legendary mit 8 Stats nutzt aktuell alle 8 Stattypen
-
-Der aktuelle Pool enthält acht Stattypen und Legendary wählt acht.
-
-**Folge:** Legendary ist nicht wirklich ein Build-Roll, sondern eine fast vollständige Stat-Sammlung.
-
-**Ziel:** bis zu acht Stat-Linien aus einem erweiterbaren/gewichteten Pool und begrenztem Budget.
-
-### F-BAL-004 — Profilanzeige verliert Dezimalpräzision
-
-Die Character-Card-Synchronisierung rundet Werte auf Integer.
-
-**Folge:** echte Werte wie `12.5 %` werden nicht sichtbar.
-
-**Ziel:** Profilanzeige verwendet dieselben finalen `CachedStats` mit definierter Formatierung.
-
-### F-BAL-005 — Crit Damage ist semantisch uneinheitlich
-
-Intern wird ein Multiplikator verwendet, während die Item-Lore teilweise Prozentwerte aus Rohwerten ableitet.
-
-**Ziel:** intern klar trennen zwischen `critDamageBonusPercent` und `critMultiplier`.
-
-### F-BAL-006 — Mob Gear Scaling basiert auf Item-Level statt tatsächlicher Power
-
-Aktuell wird ein durchschnittliches Item-Level verwendet.
-
-**Folge:** zwei Spieler mit gleichem Item-Level, aber stark unterschiedlichen Rolls können für Monster nahezu gleich stark wirken.
-
-**Ziel:** Player Power Index aus finalen aktiven Stats.
-
-### F-BAL-007 — Mob Scaling ist ereignisgetrieben, nicht primär Spawn-getrieben
-
-Der vorhandene `MobLevelScalingListener` aktiviert/aktualisiert die Skalierung beim Targeting bzw. bei RPG-Schaden und stellt sie nach Timeout wieder her.
-
-**Folge:** Der aktuelle Branch ist nicht als vollständige „Spawn-Skalierung anhand des Spielers“ zu verstehen.
-
-**Ziel:** Spawn-/Region-System und Combat-Scaling später bewusst zusammenführen, ohne ungewollte Vanilla-Mobs zu verändern.
-
-### F-BAL-008 — Companion-Passivstats beeinflussen aktuell dieselbe StatEngine
-
-**Folge:** Equipment ist aktuell nicht die einzige Quelle für aktive Spielerstats.
-
-**Ziel:** klare Power-Budgets für Equipment und zukünftige Companion-Boni.
-
----
-
-## 29. Implementierungsreihenfolge
-
-Die Balance wird **nicht** durch einzelne Multiplikatoränderungen gefixt.
-
-Reihenfolge:
+Intern:
 
 ```text
-1. Stat-Semantik festlegen
-2. Einheitliche CachedStats definieren
-3. Levelkurve implementieren
-4. Item-Stat-Budget implementieren
-5. Raritätsbudget kalibrieren
-6. Slot-Gewichtung kalibrieren
-7. HP validieren
-8. Angriffskraft + Monster-TTK validieren
-9. Rüstung + Monster-DTK validieren
-10. Crit validieren
-11. Crit Damage validieren
-12. Lifesteal validieren
-13. Movement validieren
-14. Reach validieren
-15. Set-Budget validieren
-16. Mob Power Index implementieren
-17. Lore aus Finalstats generieren
-18. Profil aus Finalstats generieren
-19. Level-Gate für Abilities zentralisieren
-20. automatisierte Balance-Tests ergänzen
+Double
+```
+
+Für PDC und Lore gelten getrennte Darstellungen.
+
+Empfehlung:
+
+```text
+HP          → 0.1
+Armor       → 0.1
+Movement    → 0.1 %
+Reach       → 0.1
+Crit        → 0.1 %
+CritDamage  → 0.1 %
+Lifesteal   → 0.1 %
+Attack      → 0.1
+```
+
+Rundung darf erst nach der Budgetberechnung erfolgen.
+
+**Nie:**
+
+```text
+round(each stat)
+→ budget check
+```
+
+Sondern:
+
+```text
+budget calculation
+→ exact values
+→ cap
+→ final rounding
+→ PDC/Lore
 ```
 
 ---
 
-## 30. Testfälle, die zwingend bestehen müssen
+# 41. Anti-Exploit-Regeln
 
-### Vanilla-Zustand
+Folgende Fälle müssen zentral abgefangen werden:
+
+### E-001 — Over-cap Item
+
+Wenn ein Item nach Laden/Import über einen Cap liegt:
 
 ```text
-Spieler ohne PixelRPG-Gear
-→ PixelRPG-Bonusstats überall 0
-→ Vanilla-Verhalten unverändert
+clamp + warning
 ```
 
-### Level-Gate
+### E-002 — Over-budget Item
+
+Wenn:
+
+\[
+B_{used}>B_{item}
+\]
+
+ist das Item ungültig und darf nicht als gültiges Balance-Item behandelt werden.
+
+### E-003 — Level-Gate Bypass
+
+Item unter Required Level:
 
 ```text
-Spieler Level 10
-Item Required Level 20
-→ Item bleibt tragbar
-→ Stats = 0
-→ Set-Teil = nicht aktiv
-→ Ability = nicht aktiv
+Stats = 0
+Abilities = inactive
+Set contribution = 0
+PPI contribution = 0
 ```
 
-### Aktivierung
+### E-004 — Companion Cap Bypass
+
+Companion wird nach Aggregation gecapped.
+
+### E-005 — Set Cap Bypass
+
+Set wird nach Aggregation gecapped.
+
+### E-006 — Multiple Attribute Modifiers
+
+Es darf immer nur der zentrale PixelRPG-Modifier für ein Attribut existieren.
+
+Die Foundation-StatEngine entfernt bereits den vorhandenen Modifier anhand des Keys, bevor ein neuer gesetzt wird. fileciteturn21file0
+
+Dieses Prinzip bleibt verbindlich.
+
+---
+
+# 42. Minecraft Attribute Bridge
+
+Die Attribute Bridge ist die einzige Stelle, die PixelRPG-Werte in Minecraft-Werte übersetzt.
+
+## HP
+
+\[
+MCMaxHealth=RPGHP/5
+\]
+
+## Movement
+
+\[
+MCMovement=0.10\cdot(1+RPGMovement/100)
+\]
+
+## Armor
 
 ```text
-Spieler Level 20
-Item Required Level 20
-→ Stats aktiv
-→ Set zählt
-→ Ability darf funktionieren
+MC Armor = clamp(RPG Armor, 0, 20)
 ```
 
-### Unequip
+## Reach
 
 ```text
-Gear entfernt
-→ Stats verschwinden
-→ Vanilla-Basis bleibt
-→ Profil/Lore/Gameplay synchron
+MC Block Reach  = clamp(targetBlockReach, 0, 5)
+MC Entity Reach = clamp(targetEntityReach, 0, 5)
 ```
 
-### Cap
+Diese Bridge darf keine Balanceentscheidungen treffen.
+
+Sie konvertiert nur.
+
+---
+
+# 43. HP UI
+
+Die interne RPG-Anzeige sollte immer PixelRPG-Einheiten verwenden:
 
 ```text
-Gear erzeugt mehr als Cap
-→ Finaler Wert wird korrekt begrenzt
-→ Lore zeigt effektiven Wert
-→ Profil zeigt effektiven Wert
-→ Gameplay verwendet effektiven Wert
+HP: 137 / 200
 ```
 
-### Best-in-Slot
+Die Vanilla-Herzleiste bleibt sichtbar und wird über Minecrafts Health Scale dargestellt.
+
+Wichtig:
 
 ```text
-Perfekter Level-99-Build
-→ sehr stark
-→ darf relevante Soft Targets erreichen
-→ darf harte Gameplay-Caps nicht brechen
+100 RPG HP = 10 Herzen
 ```
 
-### Monster
+nicht:
 
 ```text
-Besseres Gear
-→ Monster dürfen stärker werden
-→ Spieler muss trotzdem einen Netto-Fortschritt spüren
+100 RPG HP = 50 Herzen
+```
+
+Die Foundation verwendet bereits `setHealthScaled(true)` und begrenzt die Health Scale auf maximal 40.0. fileciteturn21file0
+
+Das ist mit der neuen Zieldefinition kompatibel, sofern `max_health` auf maximal 40.0 begrenzt wird.
+
+---
+
+# 44. Legacy-Werte — ausdrücklich ungültig
+
+Die folgenden Werte dürfen nicht als neue Balance verwendet werden:
+
+```text
+growthMultiplier = 10.0
+MAX_HP_BONUS = 180 Minecraft HP
+MAX_ARMOR = 200
+MAX_ATTACK_POWER = 60
+MAX_REACH_BONUS = 0.5 als Gesamtmodell
+Legendary = 8 Stats
+Unique = 8 Stats
+0.50–1.50 unbounded roll
+```
+
+Sie gehören zur historischen Forensik und nicht zur neuen Balance.
+
+Die vorhandene `item-scaling.json` enthält diese Legacy-Werte noch. fileciteturn22file0
+
+Die neue Runtime muss sie ignorieren oder durch die zentrale neue Balance-Konfiguration ersetzen.
+
+---
+
+# 45. Code-Blueprint
+
+Der folgende Blueprint beschreibt die gewünschte Architektur. Er ist bewusst kein vollständiger Runtime-Patch.
+
+```java
+public record CharacterStats(
+        double hp,
+        double armor,
+        double movementPercent,
+        double reach,
+        double attackPower,
+        double critChance,
+        double critDamageBonusPercent,
+        double lifesteal
+) {}
+
+public final class BalanceModel {
+
+    public static double levelPower(int level) {
+        int safe = Math.clamp(level, 1, 99);
+        double x = (safe - 1.0) / 98.0;
+        return 0.04 + 0.96 * Math.pow(x, 1.15);
+    }
+
+    public static double itemBudget(
+            int itemLevel,
+            double rarityMultiplier,
+            double slotWeight
+    ) {
+        return levelPower(itemLevel)
+                * rarityMultiplier
+                * slotWeight;
+    }
+
+    public static double statCost(Stat stat, double value) {
+        return switch (stat) {
+            case HP -> value / 100.0;
+            case ARMOR -> value / 20.0;
+            case MOVEMENT -> value / 30.0;
+            case REACH -> value / 2.0;
+            case ATTACK_POWER -> value / 15.0;
+            case CRIT_CHANCE -> value / 100.0;
+            case CRIT_DAMAGE -> value / 100.0;
+            case LIFESTEAL -> value / 8.0;
+        };
+    }
+
+    public static CharacterStats cap(CharacterStats raw) {
+        return new CharacterStats(
+                Math.clamp(raw.hp(), 100.0, 200.0),
+                Math.clamp(raw.armor(), 0.0, 20.0),
+                Math.clamp(raw.movementPercent(), 0.0, 30.0),
+                Math.clamp(raw.reach(), 0.0, 5.0),
+                Math.clamp(raw.attackPower(), 0.0, 15.0),
+                Math.clamp(raw.critChance(), 0.0, 100.0),
+                Math.clamp(raw.critDamageBonusPercent(), 0.0, 100.0),
+                Math.clamp(raw.lifesteal(), 0.0, 8.0)
+        );
+    }
+}
+```
+
+## PPI Blueprint
+
+```java
+public static double ppi(CharacterStats stats) {
+    double hp       = (stats.hp() - 100.0) / 100.0;
+    double armor    = stats.armor() / 20.0;
+    double move     = stats.movementPercent() / 30.0;
+    double reach    = stats.reach() / 5.0;
+    double attack   = stats.attackPower() / 15.0;
+    double crit     = stats.critChance() / 100.0;
+    double critDmg  = stats.critDamageBonusPercent() / 100.0;
+    double lifesteal= stats.lifesteal() / 8.0;
+
+    return 0.16 * hp
+         + 0.16 * armor
+         + 0.06 * move
+         + 0.05 * reach
+         + 0.22 * attack
+         + 0.14 * crit
+         + 0.14 * critDmg
+         + 0.07 * lifesteal;
+}
+```
+
+## Mob Blueprint
+
+```java
+public static double gearFactor(double ppi) {
+    return 0.85 + 0.30 * Math.clamp(ppi, 0.0, 1.0);
+}
+
+public static double mobHealth(
+        double baseHealth,
+        int playerLevel,
+        double ppi
+) {
+    double level = BalanceModel.levelPower(playerLevel);
+    return baseHealth * (1.0 + 1.80 * level) * gearFactor(ppi);
+}
+
+public static double mobDamage(
+        double baseDamage,
+        int playerLevel,
+        double ppi
+) {
+    double level = BalanceModel.levelPower(playerLevel);
+    return baseDamage
+            * (1.0 + 1.20 * level)
+            * (0.90 + 0.20 * Math.clamp(ppi, 0.0, 1.0));
+}
 ```
 
 ---
 
-## 31. Balance-Philosophie
+# 46. Implementation Responsibilities
 
-PixelRPG soll nicht versuchen, Zahlen möglichst groß zu machen.
+## BalanceModel
 
-Die richtige Frage lautet:
-
-> **Wie viel stärker fühlt sich ein besser ausgerüsteter Spieler tatsächlich an?**
-
-Ein guter Stat ist einer, dessen Wirkung der Spieler bemerkt.
-
-Ein schlechter Stat ist einer, der mathematisch existiert, aber im Spiel praktisch nichts verändert.
-
-Deshalb sind Werte wie:
+Verantwortlich für:
 
 ```text
-+0.1 %
-+0.2 %
-+0.3 %
+Level curve
+Rarity multiplier
+Slot weight
+Stat cost
+Hard caps
+Budget validation
 ```
 
-bei den meisten sichtbaren Kernstats im frühen/mittleren Spiel unerwünscht, wenn der Unterschied nicht spürbar ist.
+## RPGItemBuilder
 
-Die Progression soll stattdessen klar lesbare Sprünge liefern:
+Verantwortlich für:
 
 ```text
-schlechtes Gear
-→ brauchbares Gear
-→ gutes Gear
-→ sehr gutes Gear
-→ Endgame Gear
-→ Best-in-Slot
+Stat selection
+Budget allocation
+Roll quality
+PDC serialization
+Lore
+```
+
+Nicht verantwortlich für Character Caps.
+
+## StatEngine
+
+Verantwortlich für:
+
+```text
+Registration gate
+Level gate
+Equipped items
+Set bonuses
+Companion passives
+Character aggregation
+Global hard caps
+Minecraft attribute bridge
+CachedStats
+```
+
+## PlayerPowerIndex
+
+Verantwortlich für:
+
+```text
+active CachedStats → PPI
+```
+
+Nicht für Item-Level.
+
+## MobLevelScalingListener
+
+Verantwortlich für:
+
+```text
+participants
+Group PPI
+Mob scaling
+Timeout
+Restore
+```
+
+Nicht für die Definition der Stat-Caps.
+
+---
+
+# 47. Determinismus
+
+Das Item-System soll zufällige Items erzeugen, aber die Balanceprüfung muss deterministisch sein.
+
+Jedes Item benötigt weiterhin eine stabile Instance-ID.
+
+Für Debugging sollte ein Item intern nachvollziehbar machen können:
+
+```text
+itemLevel
+rarity
+slot
+selectedStats
+budget
+budgetUsed
+rollQuality
+finalValues
+```
+
+Damit kann ein fehlerhaftes Item exakt reproduziert werden.
+
+---
+
+# 48. Balance Test Matrix
+
+Vor einer Freigabe müssen mindestens folgende Szenarien simuliert werden:
+
+### Spieler
+
+```text
+Level 1 naked
+Level 1 starter gear
+Level 10 average
+Level 30 average
+Level 50 average
+Level 70 average
+Level 80 strong
+Level 90 strong
+Level 99 BIS
+```
+
+### Builds
+
+```text
+DPS
+Crit
+Tank
+Balanced
+Lifesteal
+Reach/Utility
+```
+
+### Mobs
+
+```text
+Normal
+Bruiser
+Glass Cannon
+Tank
+Elite
+Boss
+```
+
+### Prüfgrößen
+
+```text
+Average Hit
+Crit Hit
+Expected Hit
+DPS
+TTK
+Incoming DPS
+DTK
+Lifesteal per second
+PPI
+Mob HP
+Mob Damage
 ```
 
 ---
 
-## 32. Endgültige Designregel
+# 49. Balance Acceptance Criteria
 
-> **PixelRPG ist ein klassenloses Equipment-RPG.**
->
-> Der Spieler wird nicht durch eine Klasse definiert, sondern durch die Kombination seiner Ausrüstung.
->
-> Level 1–99 liefert die langfristige Progressionsachse. Item-Level bestimmt die mögliche Stärke. Rarität bestimmt Budget und Vielfalt. Rolls bestimmen die konkrete Qualität. Sets spezialisieren Builds. Monster reagieren auf Spieler-Power, dürfen den Fortschritt aber nicht vollständig neutralisieren.
->
-> Alle sichtbaren und spielrelevanten Werte müssen aus derselben finalen Stat-Berechnung stammen.
+Die neue Balance gilt erst als akzeptiert, wenn alle folgenden Regeln erfüllt sind:
 
----
-
-## 33. Was dieses Dokument bewusst NICHT macht
-
-Dieses Dokument ist die **Balance-Grundlage**, keine Freigabe für blindes Überschreiben des aktuellen Codes.
-
-Insbesondere werden folgende Werte erst nach Simulation endgültig festgeschrieben:
-
-- exakte Armor-Obergrenze
-- endgültiger Lifesteal-Cap
-- endgültiger Attack-Power-Cap
-- exakte Rarity-Budgets
-- exakte Slot-Budgets
-- exakte Roll-Spannen
-- exakte Monster-Parity
-- exakte TTK/DTK-Ziele pro Region/Mob-Tier
-
-Die vorläufigen Zahlen in diesem Dokument sind bewusst so gewählt, dass sie **mathematisch miteinander funktionieren können** und anschließend durch Simulation und echte Paper-26.2-Tests validiert werden.
-
----
-
-## 34. Quellen / geprüfte Repository-Komponenten
-
-Die Forensik dieses Dokuments basiert auf dem Branch `test` und insbesondere auf:
-
-- `src/main/java/de/pixelrpg/rpg/core/Level.java`
-- `src/main/java/de/pixelrpg/rpg/item/RPGItemBuilder.java`
-- `src/main/java/de/pixelrpg/rpg/item/ItemRarity.java`
-- `src/main/resources/data/item-scaling.json`
-- `src/main/java/de/pixelrpg/rpg/stats/StatEngine.java`
-- `src/main/java/de/pixelrpg/rpg/equipment/EquipmentSetService.java`
-- `src/main/java/de/pixelrpg/rpg/combat/CombatDamageCalculator.java`
-- `src/main/java/de/pixelrpg/rpg/combat/CombatDamageListener.java`
-- `src/main/java/de/pixelrpg/rpg/combat/scaling/MobLevelScalingListener.java`
-- `src/main/java/de/pixelrpg/rpg/combat/scaling/MobScalingConfig.java`
-- `src/main/resources/data/mob-scaling.json`
-- `src/main/java/de/pixelrpg/rpg/dialogue/CharacterCardScoreboardService.java`
-- bestehender `audit.md`
-
-Die aktuelle Paper-26.2-API bestätigt die relevanten Vanilla-Attribute `MAX_HEALTH`, `ARMOR`, `MOVEMENT_SPEED`, `BLOCK_INTERACTION_RANGE` und `ENTITY_INTERACTION_RANGE` als aktuelle Attribute der Plattform.
+- [ ] Level 1–99 ist monoton und ohne Sprungexplosion.
+- [ ] Level 99 erreicht exakt Power 1.00.
+- [ ] Kein Item überschreitet sein Stat-Budget.
+- [ ] Kein normales Item besitzt mehr als 5 Stat-Linien.
+- [ ] Kein normales Item besitzt alle 8 Kernstats.
+- [ ] Kein registrierter Spieler überschreitet 200 RPG HP.
+- [ ] Kein registrierter Spieler überschreitet `minecraft:max_health = 40.0`.
+- [ ] 100 RPG HP entsprechen exakt 20.0 Minecraft max_health.
+- [ ] 200 RPG HP entsprechen exakt 40.0 Minecraft max_health.
+- [ ] 20 Armor werden niemals überschritten.
+- [ ] +30 % Movement werden niemals überschritten.
+- [ ] Reach 5.0 wird niemals überschritten.
+- [ ] Crit Chance 100 % wird niemals überschritten.
+- [ ] Crit Damage Bonus 100 % wird niemals überschritten.
+- [ ] Lifesteal 8 % wird niemals überschritten.
+- [ ] Attack Power 15 wird niemals überschritten.
+- [ ] Level-Gated Items liefern unter Required Level keine Stats.
+- [ ] PPI verwendet ausschließlich aktive Stats.
+- [ ] Mob Scaling verwendet PPI, nicht Item-Level als Gear Proxy.
+- [ ] Besseres Gear führt netto zu besserer Kampfkraft.
+- [ ] TTK sinkt bei besserem Gear.
+- [ ] DTK steigt bei besserem Gear.
+- [ ] Ein Tank kann länger überleben, ohne DPS automatisch zu maximieren.
+- [ ] Ein DPS-Build kann schneller töten, ohne unsterblich zu werden.
+- [ ] Lifesteal erzeugt keine Vollheilungs-Schleife.
+- [ ] Set- und Companion-Boni können Caps nicht umgehen.
 
 ---
 
-## 35. Abschlussstatus
+# 50. Migration von Foundation v1
 
-**Forensische Bestandsaufnahme:** abgeschlossen für die für Balance relevanten Kernpfade.  
-**Balance-Architektur:** definiert.  
-**Level-1–99-Modell:** definiert.  
-**Endgame-Caps:** definiert bzw. bei Armor/Lifesteal/Attack Power zunächst als validierbare Zielwerte markiert.  
-**Monster-Interaktion:** berücksichtigt.  
-**Lore/Profil-Konsistenz:** berücksichtigt.  
-**Klassenloses Build-System:** berücksichtigt.  
-**Runtime-Code verändert:** **Nein.**
+Die vorhandene Foundation-Implementierung darf nicht mit der neuen Mathematik vermischt werden.
 
-Der nächste technische Schritt ist eine **reine Balance-Simulation**, bevor die neuen Werte in `RPGItemBuilder`, `StatEngine`, Mob Scaling, Lore und Profil übernommen werden.
+Migration:
+
+```text
+FOUNDATION v1
+     ↓
+forensisch erhalten
+     ↓
+NEW BALANCE v2
+```
+
+Nicht:
+
+```text
+v1 Werte einzeln weiterdrehen
+```
+
+Folgende Runtime-Werte müssen durch das neue zentrale Modell ersetzt werden:
+
+```text
+MAX_HP_BONUS
+MAX_ARMOR
+MAX_REACH_BONUS
+MAX_ATTACK_POWER
+growthMultiplier
+Rarity budgets
+Stat line limits
+Roll quality
+PPI weights
+Mob gear multiplier
+```
+
+Die übrige technische Pipeline soll möglichst erhalten bleiben, sofern sie die neuen mathematischen Einheiten korrekt transportieren kann.
+
+---
+
+# 51. Verbindliche Designentscheidungen
+
+## D-001
+
+**PixelRPG HP ist nicht Minecraft HP.**
+
+## D-002
+
+**100 RPG HP = 10 Herzen.**
+
+## D-003
+
+**200 RPG HP = 20 Herzen und ist das absolute normale Endgame-Cap.**
+
+## D-004
+
+**Minecraft `max_health` darf für normale PixelRPG-Spieler niemals über 40.0 steigen.**
+
+## D-005
+
+**Armor ist maximal 20 Minecraft Armor-Punkte.**
+
+## D-006
+
+**Ein Item besitzt ein Gesamtbudget.**
+
+## D-007
+
+**Ein Legendary/Unique besitzt maximal 4–5 Stat-Linien.**
+
+## D-008
+
+**Kein Item besitzt automatisch alle acht Stats.**
+
+## D-009
+
+**PPI wird aus tatsächlich aktiven Character Stats berechnet.**
+
+## D-010
+
+**Monster dürfen Gear-Fortschritt nicht vollständig neutralisieren.**
+
+## D-011
+
+**Level bestimmt Progressionszugang; Gear bestimmt Kampfkraft.**
+
+## D-012
+
+**Alle Hard Caps werden zentral nach der Aggregation erzwungen.**
+
+---
+
+# 52. Finales Modell in einer Übersicht
+
+```text
+                         PLAYER
+                           │
+                    Registered Gate
+                           │
+                           ▼
+                    Level 1–99
+                           │
+                           ▼
+                  Level Power Curve
+                           │
+                           ▼
+                     EQUIPMENT
+                           │
+              ┌────────────┴────────────┐
+              ▼                         ▼
+           Rarity                   Slot Weight
+              │                         │
+              └────────────┬────────────┘
+                           ▼
+                      ITEM BUDGET
+                           │
+                           ▼
+                   4–5 STAT LINES
+                           │
+                           ▼
+                   STAT ALLOCATION
+                           │
+                           ▼
+                    ROLL QUALITY
+                           │
+                           ▼
+                     ITEM VALUES
+                           │
+                           ▼
+                  LEVEL-GATE CHECK
+                           │
+                           ▼
+                  CHARACTER AGGREGATOR
+                           │
+            ┌──────────────┼──────────────┐
+            ▼              ▼              ▼
+         Items          Sets         Companion
+            └──────────────┼──────────────┘
+                           ▼
+                     HARD CAP LAYER
+                           │
+                           ▼
+                    CharacterStats
+                           │
+              ┌────────────┴────────────┐
+              ▼                         ▼
+       Minecraft Bridge                 PPI
+              │                         │
+              ▼                         ▼
+      Vanilla Attributes         Encounter Scaling
+                                      │
+                                      ▼
+                                  Mob HP/Damage
+                                      │
+                                      ▼
+                              TTK / DTK Validation
+```
+
+---
+
+# 53. Schlussdefinition
+
+PixelRPG ist kein Vanilla-Stat-System mit großen Zahlen. Es ist ein RPG-System, das Minecraft als technische Präsentations- und Simulationsplattform verwendet.
+
+Deshalb ist die wichtigste mathematische Trennung:
+
+```text
+PIXELRPG-WELT
+
+100 HP = 10 Herzen
+200 HP = 20 Herzen
+
+        ↓ Conversion
+
+MINECRAFT-WELT
+
+20.0 max_health = 10 Herzen
+40.0 max_health = 20 Herzen
+```
+
+Die alte Spezifikation hat diese beiden Ebenen vermischt. Genau daraus entstanden die überhöhten HP- und Armor-Werte.
+
+Die neue Spezifikation korrigiert das Grundproblem nicht durch einen einzelnen Zahlenwechsel, sondern durch eine klare Einheitentrennung, ein gemeinsames Item-Budget, begrenzte Stat-Linien, gewichtete Kampfkraft und PPI-basiertes Encounter Scaling.
+
+**Dieses Dokument ist ab jetzt die alleinige mathematische Balance-Referenz für die weitere PixelRPG-Balance-Implementierung.**

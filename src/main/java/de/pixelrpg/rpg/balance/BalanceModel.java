@@ -6,85 +6,122 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
-/** Centralized, unit-aware budget model for generated PixelRPG equipment. */
+/**
+ * Single source of truth for the PixelRPG v2 balance model.
+ * All values are PixelRPG gameplay units; Minecraft conversion belongs to StatEngine.
+ */
 public final class BalanceModel {
-    public static final double MAX_HP_BONUS = 180.0D;
-    public static final double MAX_ARMOR = 200.0D;
+    public static final double BASE_RPG_HP = 100.0D;
+    public static final double MAX_RPG_HP = 200.0D;
+    public static final double MAX_HP_BONUS = 100.0D;
+    public static final double MAX_ARMOR = 20.0D;
     public static final double MAX_MOVEMENT_SPEED_PERCENT = 30.0D;
-    public static final double MAX_REACH_BONUS = 0.5D;
+    public static final double MAX_REACH = 5.0D;
+    public static final double BASE_ENTITY_REACH = 3.0D;
+    public static final double BASE_BLOCK_REACH = 4.5D;
+    public static final double MAX_REACH_BONUS = 2.0D;
     public static final double MAX_CRIT_CHANCE = 100.0D;
     public static final double MAX_CRIT_DAMAGE_BONUS_PERCENT = 100.0D;
     public static final double MAX_LIFESTEAL_PERCENT = 8.0D;
-    public static final double MAX_ATTACK_POWER = 60.0D;
-
-    private static final double MIN_ROLL_QUALITY = 0.75D;
+    public static final double MAX_ATTACK_POWER = 15.0D;
+    private static final double MIN_ROLL_QUALITY = 0.85D;
     private static final double MAX_ROLL_QUALITY = 1.00D;
 
-    private BalanceModel() {
+    private BalanceModel() {}
+
+    public static int clampLevel(int level) { return Math.clamp(level, 1, 99); }
+
+    /** P(L)=0.04+0.96*((L-1)/98)^1.15. */
+    public static double levelPower(int level) {
+        int safe = clampLevel(level);
+        double x = (safe - 1.0D) / 98.0D;
+        return 0.04D + 0.96D * Math.pow(x, 1.15D);
     }
 
-    /** Returns the target item power in the range 0.05..1.00 for item levels 1..99. */
-    public static double levelPower(int itemLevel) {
-        if (itemLevel <= 1) return 0.05D;
-        if (itemLevel >= 99) return 1.00D;
-        double progress = (itemLevel - 1.0D) / 98.0D;
-        return 0.05D + 0.95D * Math.pow(progress, 1.35D);
-    }
-
-    /** Returns the normalized rarity budget used before stat-specific allocation. */
-    public static double rarityBudget(ItemRarity rarity) {
+    public static double rarityMultiplier(ItemRarity rarity) {
         return switch (rarity) {
-            case COMMON -> 0.35D;
-            case UNCOMMON -> 0.50D;
-            case RARE -> 0.68D;
-            case EPIC -> 0.84D;
-            case LEGENDARY, UNIQUE -> 1.00D;
+            case COMMON -> 0.55D;
+            case UNCOMMON -> 0.70D;
+            case RARE -> 0.82D;
+            case EPIC -> 0.92D;
+            case LEGENDARY -> 1.00D;
+            case UNIQUE -> 1.05D;
         };
     }
 
-    /** Returns the maximum number of stat lines permitted by the rarity. */
+    public static double rarityBudget(ItemRarity rarity) { return rarityMultiplier(rarity); }
+
+    public static int minStatLines(ItemRarity rarity) {
+        return switch (rarity) {
+            case COMMON, UNCOMMON -> 2;
+            case RARE -> 3;
+            case EPIC, LEGENDARY, UNIQUE -> 4;
+        };
+    }
+
     public static int maxStatLines(ItemRarity rarity) {
         return switch (rarity) {
             case COMMON -> 2;
             case UNCOMMON -> 3;
             case RARE -> 4;
-            case EPIC -> 5;
-            case LEGENDARY, UNIQUE -> 8;
+            case EPIC, LEGENDARY, UNIQUE -> 5;
         };
     }
 
-    /** Calculates the normalized budget available to one generated item. */
+    public static double slotWeight(String profile) {
+        return switch (profile) {
+            case "WEAPON", "CHEST" -> 1.50D;
+            case "LEGS" -> 1.25D;
+            case "HELMET", "BOOTS" -> 1.15D;
+            case "SHIELD" -> 1.45D;
+            default -> 1.0D;
+        };
+    }
+
+    public static double itemBudget(int itemLevel, ItemRarity rarity, double slotWeight) {
+        return levelPower(itemLevel) * rarityMultiplier(rarity) * slotWeight;
+    }
+
     public static double itemBudget(int itemLevel, ItemRarity rarity) {
-        return levelPower(itemLevel) * rarityBudget(rarity);
+        return itemBudget(itemLevel, rarity, 1.0D);
     }
 
-    /** Splits an item's normalized budget evenly across its selected stats. */
     public static double statBudgetShare(double itemBudget, int statCount) {
-        if (statCount <= 0) return 0.0D;
-        return itemBudget / statCount;
+        return statCount <= 0 ? 0.0D : itemBudget / statCount;
     }
 
-    /** Applies a bounded quality roll without allowing a roll to exceed the allocated budget. */
     public static double rollQuality(double budgetShare) {
         if (budgetShare <= 0.0D) return 0.0D;
         return budgetShare * ThreadLocalRandom.current().nextDouble(MIN_ROLL_QUALITY, Math.nextUp(MAX_ROLL_QUALITY));
     }
 
-    /** Converts a normalized stat share into the stat's native gameplay unit. */
     public static double value(EquipmentStat stat, double budgetShare) {
         return switch (stat) {
-            case HP -> MAX_HP_BONUS * budgetShare;
-            case ARMOR -> MAX_ARMOR * budgetShare;
-            case MOVEMENT_SPEED -> MAX_MOVEMENT_SPEED_PERCENT * budgetShare;
-            case REACH -> MAX_REACH_BONUS * budgetShare;
-            case ATTACK_POWER -> MAX_ATTACK_POWER * budgetShare;
-            case CRIT -> MAX_CRIT_CHANCE * budgetShare;
-            case CRIT_DAMAGE -> MAX_CRIT_DAMAGE_BONUS_PERCENT * budgetShare;
-            case LIFESTEAL -> MAX_LIFESTEAL_PERCENT * budgetShare;
+            case HP -> 100.0D * budgetShare;
+            case ARMOR -> 20.0D * budgetShare;
+            case MOVEMENT_SPEED -> 30.0D * budgetShare;
+            case REACH -> 2.0D * budgetShare;
+            case ATTACK_POWER -> 15.0D * budgetShare;
+            case CRIT, CRIT_DAMAGE -> 100.0D * budgetShare;
+            case LIFESTEAL -> 8.0D * budgetShare;
         };
     }
 
-    /** Returns the sensible stat pool for the equipment category. */
+    public static double statCap(EquipmentStat stat) {
+        return switch (stat) {
+            case HP -> 100.0D;
+            case ARMOR -> 20.0D;
+            case MOVEMENT_SPEED -> 30.0D;
+            case REACH -> 2.0D;
+            case ATTACK_POWER -> 15.0D;
+            case CRIT, CRIT_DAMAGE -> 100.0D;
+            case LIFESTEAL -> 8.0D;
+        };
+    }
+
+    public static double statCost(EquipmentStat stat, double value) { return value / statCap(stat); }
+    public static boolean budgetValid(double budget, double used) { return used <= budget + 1.0E-9D; }
+
     public static Set<EquipmentStat> pool(boolean weapon, boolean armor, boolean shield) {
         EnumSet<EquipmentStat> result = EnumSet.noneOf(EquipmentStat.class);
         if (weapon) result.addAll(EnumSet.of(EquipmentStat.ATTACK_POWER, EquipmentStat.CRIT,
@@ -96,14 +133,5 @@ public final class BalanceModel {
         return result;
     }
 
-    public enum EquipmentStat {
-        HP,
-        ARMOR,
-        MOVEMENT_SPEED,
-        REACH,
-        ATTACK_POWER,
-        CRIT,
-        CRIT_DAMAGE,
-        LIFESTEAL
-    }
+    public enum EquipmentStat { HP, ARMOR, MOVEMENT_SPEED, REACH, ATTACK_POWER, CRIT, CRIT_DAMAGE, LIFESTEAL }
 }

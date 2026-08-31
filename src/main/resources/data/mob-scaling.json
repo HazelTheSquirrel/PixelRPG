@@ -1,9 +1,9 @@
 {
   "nameplateDurationTicks": 120,
-  "xpPerMaxHealth": 4.0,
-  "hpPerLevel": 5.0,
-  "damagePerLevel": 0.30,
-  "playerParityMultiplier": 1.00,
-  "minimumGearMultiplier": 0.75,
-  "maximumGearMultiplier": 1.25
+  "xpPerMaxHealth": 0.6,
+  "baseHp": 20.0,
+  "baseDamage": 2.0,
+  "playerParityMultiplier": 1.0,
+  "minimumGearMultiplier": 0.85,
+  "maximumGearMultiplier": 1.15
 }
