@@ -147,7 +147,6 @@ public final class QuestManager {
     }
 
     private boolean isAtQuestGiver(Player player, Quest quest) {
-        // Profession quests are explicitly turned in through the profession trainer dialog.
         if (quest.isProfessionQuest()) return true;
         if (quest.questGiverNpcId() == null || quest.questGiverNpcId().isBlank()) {
             return PixelRPGPlugin.getInstance().getNpcManager().getAll().stream()
@@ -190,7 +189,7 @@ public final class QuestManager {
             String rewardId = parts[0].trim();
             if (rewardId.toLowerCase(Locale.ROOT).startsWith("pixelrpg:")) {
                 int itemLevel = parts.length >= 2 ? Integer.parseInt(parts[1].trim()) : fallbackLevel;
-                itemService.createItem(rewardId, Math.max(1, itemLevel))
+                itemService.createItem(canonicalItemId(rewardId), Math.max(1, itemLevel))
                         .ifPresent(item -> player.getInventory().addItem(item));
                 return;
             }
@@ -241,7 +240,7 @@ public final class QuestManager {
 
     private int countQuestItems(Player player, String targetKey) {
         Material material = Material.matchMaterial(targetKey);
-        String normalizedTarget = normalizeItemId(targetKey);
+        String normalizedTarget = canonicalItemId(targetKey);
         int amount = 0;
         for (ItemStack item : player.getInventory().getContents()) {
             if (item == null || item.isEmpty()) continue;
@@ -249,7 +248,7 @@ public final class QuestManager {
                 amount += item.getAmount();
                 continue;
             }
-            if (itemService.getItemId(item).map(id -> normalizeItemId(id).equals(normalizedTarget)).orElse(false)) amount += item.getAmount();
+            if (itemService.getItemId(item).map(id -> canonicalItemId(id).equals(normalizedTarget)).orElse(false)) amount += item.getAmount();
         }
         return amount;
     }
@@ -258,9 +257,13 @@ public final class QuestManager {
         return normalizedTarget.startsWith("pixelrpg:");
     }
 
-    private String normalizeItemId(String key) {
+    private String canonicalItemId(String key) {
         String normalized = key == null ? "" : key.trim().toLowerCase(Locale.ROOT);
-        return normalized.startsWith("pixelrpg:") ? normalized : "pixelrpg:" + normalized;
+        if (!normalized.startsWith("pixelrpg:")) return normalized;
+        String body = normalized.substring("pixelrpg:".length());
+        int slash = body.indexOf('/');
+        if (slash > 0) body = body.substring(0, slash) + ":" + body.substring(slash + 1);
+        return "pixelrpg:" + body;
     }
 
     public void checkReachLocationQuests(Player player) {
