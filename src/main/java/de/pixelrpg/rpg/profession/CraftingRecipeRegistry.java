@@ -47,8 +47,8 @@ public final class CraftingRecipeRegistry {
             String id = canonicalRecipeId(required(json, "id"));
             if (recipes.containsKey(id)) throw new IllegalStateException("Duplicate crafting recipe: " + id);
             Profession profession = enumValue(Profession.class, json, "profession", id);
-            Material result = Material.matchMaterial(required(json, "result"));
-            if (result == null || result.isAir()) throw new IllegalStateException("Unknown crafting result for " + id);
+            Material result = resolveResultMaterial(required(json, "result"));
+            if (result == null || result.isAir()) throw new IllegalStateException("Unknown crafting result for " + id + ": " + required(json, "result"));
             ItemRarity maximumRarity = enumValue(ItemRarity.class, json, "rarity", id);
             if (maximumRarity == ItemRarity.UNIQUE) throw new IllegalStateException("UNIQUE is not valid for craftable recipe " + id);
             Map<Material, Integer> costs = parseCosts(json, id);
@@ -66,6 +66,12 @@ public final class CraftingRecipeRegistry {
             recipes.put(id, new CraftRecipe(profession, id, label, result, amount, maximumRarity, costs, itemCosts,
                     level, price, quest, defaultUnlocked, false, resultItemId, potionType, enchantment, enchantmentLevel));
         }
+    }
+
+    private static Material resolveResultMaterial(String raw) {
+        String value = raw.trim().toUpperCase(Locale.ROOT);
+        if (value.equals("CHAIN")) value = "IRON_CHAIN";
+        return Material.matchMaterial(value);
     }
 
     private static Map<Material, Integer> parseCosts(JsonObject json, String id) {
