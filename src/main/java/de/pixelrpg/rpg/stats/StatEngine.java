@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.stats;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.CharacterStatType;
+import de.pixelrpg.rpg.balance.BalanceModel;
 import de.pixelrpg.rpg.companion.Companion;
 import de.pixelrpg.rpg.companion.CompanionDefinition;
 import de.pixelrpg.rpg.companion.CompanionPassiveStats;
@@ -25,14 +26,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Deterministic character-stat calculator and runtime cache. */
+/** Deterministic character-stat calculator, level gate and hard-cap enforcement. */
 public final class StatEngine {
     private static final double BASE_HEALTH = 20.0D;
     private static final double BASE_CRIT_CHANCE = 0.0D;
     private static final double BASE_CRIT_DAMAGE_MULTIPLIER = 2.0D;
-    private static final double MAX_CRIT_CHANCE = 100.0D;
-    private static final double MAX_CRIT_DAMAGE_MULTIPLIER = 10.0D;
-    private static final double MAX_MOVEMENT_SPEED_PERCENT = 30.0D;
 
     public record CachedStats(double maxHealth, double armor, double movementSpeedBonus, double blockReach,
                               double entityReach, double critChance, double critDamageMultiplier,
@@ -40,6 +38,7 @@ public final class StatEngine {
         public static final CachedStats EMPTY = new CachedStats(BASE_HEALTH, 0.0D, 0.0D, 0.0D, 0.0D,
                 BASE_CRIT_CHANCE, BASE_CRIT_DAMAGE_MULTIPLIER, 0.0D, 0.0D);
         public double reach() { return Math.max(blockReach, entityReach); }
+        public double critDamageBonusPercent() { return (critDamageMultiplier - BASE_CRIT_DAMAGE_MULTIPLIER) * 100.0D; }
     }
 
     private final PlayerProfileManager profileManager;
@@ -79,16 +78,17 @@ public final class StatEngine {
         itemAttackPower += setBonus.getOrDefault("ATTACK_POWER", 0.0D);
 
         CompanionPassiveStats companion = activeCompanionPassiveStats(player.getUniqueId());
-        double maxHealth = Math.max(BASE_HEALTH, BASE_HEALTH + itemHealth + companion.hp());
-        double armor = Math.max(0.0D, itemArmor + companion.armor());
+        double maxHealth = Math.clamp(BASE_HEALTH + itemHealth + companion.hp(), BASE_HEALTH, BASE_HEALTH + BalanceModel.MAX_HP_BONUS);
+        double armor = Math.clamp(itemArmor + companion.armor(), 0.0D, BalanceModel.MAX_ARMOR);
         double movementSpeedBonus = Math.clamp((itemMovementSpeed + companion.movementSpeed()) * 100.0D,
-                0.0D, MAX_MOVEMENT_SPEED_PERCENT);
-        double blockReach = itemReach + companion.reach();
-        double entityReach = itemReach + companion.reach();
-        double critChance = Math.clamp(itemCritChance + companion.crit(), 0.0D, MAX_CRIT_CHANCE);
-        double critDamageMultiplier = Math.clamp(BASE_CRIT_DAMAGE_MULTIPLIER + itemCritDamage + companion.critDamage(), 1.0D, MAX_CRIT_DAMAGE_MULTIPLIER);
-        double lifestealBonus = Math.max(0.0D, itemLifesteal + companion.lifesteal());
-        double attackPower = Math.max(0.0D, itemAttackPower + companion.damage() + companion.attackPower());
+                0.0D, BalanceModel.MAX_MOVEMENT_SPEED_PERCENT);
+        double blockReach = Math.clamp(itemReach + companion.reach(), 0.0D, BalanceModel.MAX_REACH_BONUS);
+        double entityReach = Math.clamp(itemReach + companion.reach(), 0.0D, BalanceModel.MAX_REACH_BONUS);
+        double critChance = Math.clamp(itemCritChance + companion.crit(), 0.0D, BalanceModel.MAX_CRIT_CHANCE);
+        double critDamageBonus = Math.clamp(itemCritDamage + companion.critDamage(), 0.0D, BalanceModel.MAX_CRIT_DAMAGE_BONUS_PERCENT / 100.0D);
+        double critDamageMultiplier = BASE_CRIT_DAMAGE_MULTIPLIER + critDamageBonus;
+        double lifestealBonus = Math.clamp(itemLifesteal + companion.lifesteal(), 0.0D, BalanceModel.MAX_LIFESTEAL_PERCENT);
+        double attackPower = Math.clamp(itemAttackPower + companion.damage() + companion.attackPower(), 0.0D, BalanceModel.MAX_ATTACK_POWER);
 
         CachedStats stats = new CachedStats(maxHealth, armor, movementSpeedBonus, blockReach, entityReach,
                 critChance, critDamageMultiplier, lifestealBonus, attackPower);
@@ -126,7 +126,7 @@ public final class StatEngine {
             case MOVEMENT_SPEED -> stats.movementSpeedBonus();
             case REACH -> stats.reach();
             case CRIT -> stats.critChance();
-            case CRIT_DAMAGE -> stats.critDamageMultiplier();
+            case CRIT_DAMAGE -> stats.critDamageBonusPercent();
             case LIFESTEAL -> stats.lifestealBonus();
             case ATTACK_POWER -> stats.attackPower();
         };
@@ -148,7 +148,7 @@ public final class StatEngine {
         return fromMainBranchCompanionStats(definition);
     }
 
-    /** Mirrors the functional main-branch companion bonus calculation exactly. */
+    /** Mirrors the functional companion passive calculation while the core caps remain enforced above. */
     private CompanionPassiveStats fromMainBranchCompanionStats(CompanionDefinition definition) {
         CompanionStats configured = definition.baseStats();
         double tier = switch (definition.rarity()) {
