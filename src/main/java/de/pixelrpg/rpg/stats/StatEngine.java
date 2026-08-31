@@ -32,6 +32,7 @@ public final class StatEngine {
     private static final double BASE_CRIT_DAMAGE_MULTIPLIER = 2.0D;
     private static final double MAX_CRIT_CHANCE = 100.0D;
     private static final double MAX_CRIT_DAMAGE_MULTIPLIER = 10.0D;
+    private static final double MAX_MOVEMENT_SPEED_PERCENT = 30.0D;
 
     public record CachedStats(double maxHealth, double armor, double movementSpeedBonus, double blockReach,
                               double entityReach, double critChance, double critDamageMultiplier,
@@ -80,7 +81,8 @@ public final class StatEngine {
         CompanionPassiveStats companion = activeCompanionPassiveStats(player.getUniqueId());
         double maxHealth = Math.max(BASE_HEALTH, BASE_HEALTH + itemHealth + companion.hp());
         double armor = Math.max(0.0D, itemArmor + companion.armor());
-        double movementSpeedBonus = itemMovementSpeed + companion.movementSpeed();
+        double movementSpeedBonus = Math.clamp((itemMovementSpeed + companion.movementSpeed()) * 100.0D,
+                0.0D, MAX_MOVEMENT_SPEED_PERCENT);
         double blockReach = itemReach + companion.reach();
         double entityReach = itemReach + companion.reach();
         double critChance = Math.clamp(itemCritChance + companion.crit(), 0.0D, MAX_CRIT_CHANCE);
@@ -93,7 +95,7 @@ public final class StatEngine {
         cache.put(player.getUniqueId(), stats);
         applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), maxHealth - BASE_HEALTH);
         applyModifier(player, Attribute.ARMOR, RPGKeys.Stats.armor(), armor);
-        applyModifier(player, Attribute.MOVEMENT_SPEED, RPGKeys.Stats.movementSpeed(), movementSpeedBonus);
+        applyModifier(player, Attribute.MOVEMENT_SPEED, RPGKeys.Stats.movementSpeed(), movementSpeedBonus / 100.0D, AttributeModifier.Operation.ADD_SCALAR);
         applyModifier(player, Attribute.BLOCK_INTERACTION_RANGE, RPGKeys.Stats.blockRange(), blockReach);
         applyModifier(player, Attribute.ENTITY_INTERACTION_RANGE, RPGKeys.Stats.entityRange(), entityReach);
 
@@ -196,10 +198,14 @@ public final class StatEngine {
     }
 
     private void applyModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key, double value) {
+        applyModifier(player, attribute, key, value, AttributeModifier.Operation.ADD_NUMBER);
+    }
+
+    private void applyModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key, double value, AttributeModifier.Operation operation) {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance == null) return;
         removeModifier(player, attribute, key);
-        if (value != 0.0D) instance.addModifier(new AttributeModifier(key, value, AttributeModifier.Operation.ADD_NUMBER));
+        if (value != 0.0D) instance.addModifier(new AttributeModifier(key, value, operation));
     }
 
     private void removeModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key) {
