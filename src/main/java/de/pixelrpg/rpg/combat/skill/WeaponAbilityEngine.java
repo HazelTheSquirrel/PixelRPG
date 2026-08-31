@@ -68,9 +68,12 @@ public final class WeaponAbilityEngine {
         if (!isPixelRPGWeapon(weapon)) return false;
 
         var pdc = weapon.getItemMeta().getPersistentDataContainer();
-        Integer itemLevel = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
-        if (itemLevel != null && profile.getLevel() < itemLevel) {
-            player.sendActionBar(Component.text("Benötigt Level " + itemLevel, NamedTextColor.RED));
+        Integer requiredLevel = pdc.get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
+        if (requiredLevel == null) {
+            requiredLevel = pdc.get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
+        }
+        if (requiredLevel != null && profile.getLevel() < requiredLevel) {
+            player.sendActionBar(Component.text("Benötigt Level " + requiredLevel, NamedTextColor.RED));
             return true;
         }
 
