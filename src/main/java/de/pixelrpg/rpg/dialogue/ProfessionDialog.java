@@ -83,10 +83,12 @@ public final class ProfessionDialog {
             actions.add(dialogueEngine.actionButton(Component.text("Berufsquests (" + professionQuests.size() + ")"), NamedTextColor.YELLOW,
                     target -> openProfessionQuests(target, profession)));
         }
-        for (CraftRecipe recipe : craftingService.recipes(profession)) {
-            if (!craftingService.isUnlocked(player, recipe)) continue;
-            actions.add(dialogueEngine.actionButton(Component.text(recipe.displayName()), NamedTextColor.GREEN,
-                    target -> openRecipeDetails(target, recipe, false)));
+        List<CraftRecipe> recipes = craftingService.recipes(profession).stream()
+                .filter(recipe -> craftingService.isUnlocked(player, recipe))
+                .toList();
+        if (!recipes.isEmpty()) {
+            actions.add(dialogueEngine.actionButton(Component.text("Rezepte (" + recipes.size() + ")"), NamedTextColor.GREEN,
+                    target -> openProfessionRecipes(target, profession)));
         }
         if (actions.isEmpty()) body.add(DialogBody.plainMessage(Component.text("Du hast noch keine Inhalte freigeschaltet.", NamedTextColor.WHITE)));
         dialogueEngine.openMultiAction(player, Component.text(profession.displayName(), NamedTextColor.GOLD), body, actions, 1,
@@ -122,6 +124,26 @@ public final class ProfessionDialog {
         }
         if (actions.isEmpty()) body.add(DialogBody.plainMessage(Component.text("Aktuell sind keine Berufsquests vorhanden.", NamedTextColor.WHITE)));
         dialogueEngine.openMultiAction(player, Component.text(profession.displayName() + " – Berufsquests", NamedTextColor.GOLD), body, actions, 1,
+                target -> openProfession(target, profession));
+    }
+
+    private void openProfessionRecipes(Player player, Profession profession) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered()) return;
+        int professionLevel = professionService.getLevel(player.getUniqueId(), profession);
+        List<CraftRecipe> recipes = craftingService.recipes(profession).stream()
+                .filter(recipe -> craftingService.isUnlocked(player, recipe))
+                .toList();
+        List<DialogBody> body = new ArrayList<>();
+        body.add(DialogBody.plainMessage(Component.text("Rezepte für " + profession.displayName(), NamedTextColor.WHITE)));
+        body.add(DialogBody.plainMessage(Component.text("Dein Beruflevel: " + professionLevel + "/" + Profession.MAX_LEVEL, NamedTextColor.AQUA)));
+        List<ActionButton> actions = new ArrayList<>();
+        for (CraftRecipe recipe : recipes) {
+            actions.add(dialogueEngine.actionButton(Component.text(recipe.displayName()), NamedTextColor.GREEN,
+                    target -> openRecipeDetails(target, recipe, false)));
+        }
+        if (actions.isEmpty()) body.add(DialogBody.plainMessage(Component.text("Aktuell sind keine Rezepte freigeschaltet.", NamedTextColor.WHITE)));
+        dialogueEngine.openMultiAction(player, Component.text(profession.displayName() + " – Rezepte", NamedTextColor.GOLD), body, actions, 1,
                 target -> openProfession(target, profession));
     }
 
@@ -215,7 +237,7 @@ public final class ProfessionDialog {
         if (!learned) body.add(DialogBody.plainMessage(Component.text("Du musst diesen Beruf zuerst erlernen.", NamedTextColor.WHITE)));
         Consumer<Player> back = target -> {
             if (allowPurchase) openTrainerRecipes(target, profession);
-            else openProfession(target, profession);
+            else openProfessionRecipes(target, profession);
         };
         dialogueEngine.openMultiAction(player, Component.text(recipe.displayName(), NamedTextColor.GOLD), body, actions, 1, back);
     }
