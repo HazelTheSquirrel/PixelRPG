@@ -5,7 +5,6 @@ import org.bukkit.World;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,20 +28,42 @@ public final class RegionManager {
     }
 
     public Optional<PixelRegion> get(UUID id) { return Optional.ofNullable(regions.get(id)); }
-    public List<PixelRegion> all() { return regions.values().stream().sorted(Comparator.comparing(PixelRegion::name, String.CASE_INSENSITIVE_ORDER)).toList(); }
 
-    public synchronized RegionGeometry.ValidationResult create(UUID id, String worldName, List<RegionPoint> points, int minY, int maxY,
-                                                                 String name, RegionType type) {
+    public List<PixelRegion> all() {
+        return regions.values().stream()
+                .sorted(Comparator.comparing(PixelRegion::name, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+    }
+
+    public synchronized RegionGeometry.ValidationResult create(UUID id, String worldName, List<RegionPoint> points,
+                                                                 int minY, int maxY, String name, RegionType type) {
         if (regions.containsKey(id)) return RegionGeometry.ValidationResult.invalid("Eine Region mit dieser ID existiert bereits.");
         if (worldName == null || worldName.isBlank()) return RegionGeometry.ValidationResult.invalid("Eine Welt ist erforderlich.");
         if (minY > maxY) return RegionGeometry.ValidationResult.invalid("MinY darf nicht größer als MaxY sein.");
+
         var validation = RegionGeometry.validate(points);
         if (!validation.valid()) return validation;
-        PixelRegion region = new PixelRegion(id, worldName, validation.geometry(), minY, maxY,
-                name == null || name.isBlank() ? id.toString() : name, type == null ? RegionType.OTHER : type,
-                "", null, null, "", "", 0, Map.of(), Map.of());
+
+        PixelRegion region = new PixelRegion(
+                id,
+                worldName,
+                validation.geometry(),
+                minY,
+                maxY,
+                name == null || name.isBlank() ? id.toString() : name,
+                type == null ? RegionType.OTHER : type,
+                "",
+                null,
+                null,
+                "",
+                "",
+                0,
+                Map.of(),
+                Map.of()
+        );
+
         regions.put(id, region);
-        rebuildIndex();
+        addToIndex(region);
         save();
         return RegionGeometry.ValidationResult.valid(validation.geometry());
     }
@@ -50,7 +71,8 @@ public final class RegionManager {
     public synchronized boolean delete(UUID id) {
         PixelRegion removed = regions.remove(id);
         if (removed == null) return false;
-        rebuildIndex();
+
+        removeFromIndex(removed);
         save();
         return true;
     }
@@ -59,8 +81,15 @@ public final class RegionManager {
 
     public Optional<PixelRegion> find(World world, double x, int y, double z) {
         if (world == null) return Optional.empty();
-        List<UUID> candidates = index.getOrDefault(new ChunkKey(world.getName(), floorChunk(x), floorChunk(z)), List.of());
-        return candidates.stream().map(regions::get).filter(java.util.Objects::nonNull)
+
+        List<UUID> candidates = index.getOrDefault(
+                new ChunkKey(world.getName(), floorChunk(x), floorChunk(z)),
+                List.of()
+        );
+
+        return candidates.stream()
+                .map(regions::get)
+                .filter(java.util.Objects::nonNull)
                 .filter(region -> region.contains(x, y, z))
                 .max(Comparator.comparingInt(PixelRegion::priority).thenComparing(PixelRegion::id));
     }
@@ -71,7 +100,7 @@ public final class RegionManager {
     }
 
     public boolean hasFlag(Location location, RegionFlag flag) {
-        return find(location).map(region -> region.flag(flag)).orElse(false);
+        return find(location).map(region -> region.flag(flag)).orElse(true);
     }
 
     private void registerLoaded(PixelRegion region) {
@@ -79,23 +108,48 @@ public final class RegionManager {
         addToIndex(region);
     }
 
-    private void rebuildIndex() {
-        index.clear();
-        regions.values().forEach(this::addToIndex);
-    }
-
+    /** Adds a region only to the chunks covered by its bounding box. */
     private void addToIndex(PixelRegion region) {
         int minChunkX = floorChunk(region.geometry().minX());
         int maxChunkX = floorChunk(region.geometry().maxX());
         int minChunkZ = floorChunk(region.geometry().minZ());
         int maxChunkZ = floorChunk(region.geometry().maxZ());
+
         for (int x = minChunkX; x <= maxChunkX; x++) {
             for (int z = minChunkZ; z <= maxChunkZ; z++) {
-                index.computeIfAbsent(new ChunkKey(region.worldName(), x, z), ignored -> new ArrayList<>()).add(region.id());
+                ChunkKey key = new ChunkKey(region.worldName(), x, z);
+                index.compute(key, (ignored, current) -> {
+                    List<UUID> updated = current == null ? new ArrayList<>() : new ArrayList<>(current);
+                    updated.add(region.id());
+                    return List.copyOf(updated);
+                });
             }
         }
     }
 
-    private static int floorChunk(double coordinate) { return Math.floorDiv((int) Math.floor(coordinate), 16); }
+    /** Removes one region from the spatial index without rebuilding unrelated chunks. */
+    private void removeFromIndex(PixelRegion region) {
+        int minChunkX = floorChunk(region.geometry().minX());
+        int maxChunkX = floorChunk(region.geometry().maxX());
+        int minChunkZ = floorChunk(region.geometry().minZ());
+        int maxChunkZ = floorChunk(region.geometry().maxZ());
+
+        for (int x = minChunkX; x <= maxChunkX; x++) {
+            for (int z = minChunkZ; z <= maxChunkZ; z++) {
+                ChunkKey key = new ChunkKey(region.worldName(), x, z);
+                index.computeIfPresent(key, (ignored, current) -> {
+                    List<UUID> updated = current.stream()
+                            .filter(existingId -> !existingId.equals(region.id()))
+                            .toList();
+                    return updated.isEmpty() ? null : updated;
+                });
+            }
+        }
+    }
+
+    private static int floorChunk(double coordinate) {
+        return Math.floorDiv((int) Math.floor(coordinate), 16);
+    }
+
     private record ChunkKey(String world, int x, int z) { }
 }
