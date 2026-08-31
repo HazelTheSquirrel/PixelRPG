@@ -11,7 +11,7 @@ public final class BalanceModel {
     public static final double MAX_HP_BONUS = 180.0D;
     public static final double MAX_ARMOR = 200.0D;
     public static final double MAX_MOVEMENT_SPEED_PERCENT = 30.0D;
-    public static final double MAX_REACH_BONUS = 3.5D;
+    public static final double MAX_REACH_BONUS = 0.5D;
     public static final double MAX_CRIT_CHANCE = 100.0D;
     public static final double MAX_CRIT_DAMAGE_BONUS_PERCENT = 100.0D;
     public static final double MAX_LIFESTEAL_PERCENT = 8.0D;
@@ -23,7 +23,7 @@ public final class BalanceModel {
     private BalanceModel() {
     }
 
-    /** Returns the target item power in the range 0.05..1.00 for normal item levels 1..99. */
+    /** Returns the target item power in the range 0.05..1.00 for item levels 1..99. */
     public static double levelPower(int itemLevel) {
         if (itemLevel <= 1) return 0.05D;
         if (itemLevel >= 99) return 1.00D;
