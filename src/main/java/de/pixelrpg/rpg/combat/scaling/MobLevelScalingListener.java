@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.combat.scaling;
 
 import de.pixelrpg.rpg.api.GuildAPI;
+import de.pixelrpg.rpg.api.events.PlayerLevelUpEvent;
 import de.pixelrpg.rpg.core.RPGKeys;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
@@ -75,6 +76,26 @@ public final class MobLevelScalingListener implements Listener {
         }
         if (attacker == null || !guildAPI.isRegistered(attacker.getUniqueId())) return;
         markParticipant(monster, attacker);
+    }
+
+    /**
+     * Recalculates every currently active monster when a participant levels up.
+     * Previously scaling was only recalculated on target/damage events, so an
+     * already engaged monster could keep its old HP until another interaction.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerLevelUp(PlayerLevelUpEvent event) {
+        UUID playerUuid = event.getPlayer().getUniqueId();
+        activeParticipants.forEach((mobUuid, participants) -> {
+            if (!participants.containsKey(playerUuid)) return;
+            var entity = Bukkit.getEntity(mobUuid);
+            if (!(entity instanceof Monster monster) || !monster.isValid() || monster.isDead()) {
+                activeParticipants.remove(mobUuid);
+                return;
+            }
+            participants.put(playerUuid, System.currentTimeMillis());
+            applyScaling(monster);
+        });
     }
 
     private void markParticipant(Monster monster, Player player) {
