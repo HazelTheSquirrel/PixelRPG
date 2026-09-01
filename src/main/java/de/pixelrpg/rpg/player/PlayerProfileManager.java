@@ -27,8 +27,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
- * Owns the live player-profile state and serializes every storage operation per player.
- * Live Bukkit/domain state remains on the server thread; repositories only receive immutable-by-convention snapshots.
+ * Owns live player-profile state and serializes storage operations per player.
+ * Snapshots are created synchronously before crossing the thread boundary so the I/O thread never observes live mutable state.
  */
 public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     private final Plugin plugin;
@@ -86,8 +86,9 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         if (shuttingDown) return;
         shuttingDown = true;
 
+        // Capture all live state on the owning server thread before any shutdown I/O starts.
         List<CompletableFuture<Void>> pending = activeProfiles.values().stream()
-                .map(profile -> enqueueVoid(profile.getUuid(), () -> persistSync(profile)))
+                .map(profile -> captureAndEnqueue(profile.getUuid(), profile))
                 .toList();
         try {
             CompletableFuture.allOf(pending.toArray(CompletableFuture[]::new)).get(30, TimeUnit.SECONDS);
@@ -192,31 +193,44 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         if (profile != null) persistAsync(profile);
     }
 
-    /** Queues at most one storage operation per player and automatically schedules a follow-up when a new mutation arrived during the save. */
+    /** Captures a profile snapshot on the owning thread and queues only the immutable snapshot for storage. */
     private void persistAsync(PlayerProfile profile) {
         if (shuttingDown || saveExecutor == null || saveExecutor.isShutdown()) return;
-        UUID uuid = profile.getUuid();
-        if (!saveRequested.add(uuid)) return;
+        captureAndEnqueue(profile.getUuid(), profile);
+    }
 
-        CompletableFuture<Void> future = enqueueVoid(uuid, () -> persistSync(profile));
+    /**
+     * Takes the deep snapshot before scheduling asynchronous work. The repository thread therefore never reads the live profile.
+     * A dirty mutation occurring after this snapshot is preserved by PlayerProfile#dirty and causes a follow-up save.
+     */
+    private CompletableFuture<Void> captureAndEnqueue(UUID uuid, PlayerProfile profile) {
+        if (saveExecutor == null || saveExecutor.isShutdown()) return CompletableFuture.failedFuture(
+                new IllegalStateException("Profile I/O executor is not running"));
+        if (!saveRequested.add(uuid)) return CompletableFuture.completedFuture(null);
+
+        PlayerProfile snapshot = profile.snapshotForSave();
+        if (snapshot == null) {
+            saveRequested.remove(uuid);
+            return CompletableFuture.completedFuture(null);
+        }
+
+        CompletableFuture<Void> future = enqueueVoid(uuid, () -> persistSnapshot(snapshot));
         future.whenComplete((ignored, throwable) -> {
             saveRequested.remove(uuid);
             if (!shuttingDown && profile.isDirty() && saveExecutor != null && !saveExecutor.isShutdown()) {
                 persistAsync(profile);
             }
         });
+        return future;
     }
 
-    /** Takes a synchronized, deep persistence snapshot before any blocking storage operation. */
-    private void persistSync(PlayerProfile profile) {
-        PlayerProfile snapshot = profile.snapshotForSave();
-        if (snapshot == null || repository == null) return;
+    private void persistSnapshot(PlayerProfile snapshot) {
+        if (repository == null) return;
         try {
             repository.save(snapshot);
         } catch (Exception exception) {
-            profile.markDirty();
             plugin.getLogger().log(java.util.logging.Level.SEVERE,
-                    "Failed to save profile for " + profile.getUuid(), exception);
+                    "Failed to save profile for " + snapshot.getUuid(), exception);
             if (storageType == StorageType.MYSQL) writeEmergencyBackup(snapshot);
         }
     }
