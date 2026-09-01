@@ -33,6 +33,7 @@ public final class PlayerProfile {
     private boolean partyHudEnabled;
     private boolean questTrackerEnabled;
     private long playtimeMillis;
+    private long persistenceRevision;
     private boolean dirty;
 
     public PlayerProfile(UUID uuid) {
@@ -45,6 +46,7 @@ public final class PlayerProfile {
         this.partyHudEnabled = false;
         this.questTrackerEnabled = false;
         this.playtimeMillis = 0L;
+        this.persistenceRevision = 0L;
         this.dirty = false;
         for (Profession profession : Profession.values()) {
             professionLevels.put(profession, Profession.MIN_LEVEL);
@@ -53,58 +55,26 @@ public final class PlayerProfile {
     }
 
     public UUID getUuid() { return uuid; }
+    public synchronized long getPersistenceRevision() { return persistenceRevision; }
+    synchronized void setPersistenceRevision(long revision) { persistenceRevision = Math.max(0L, revision); }
     public synchronized boolean isRegistered() { return registered; }
     public synchronized void setRegistered(boolean value) { registered = value; dirty = true; }
-    @Deprecated(forRemoval = true)
-    public synchronized boolean isRegisteredInGuild() { return isRegistered(); }
-    @Deprecated(forRemoval = true)
-    public synchronized void setRegisteredInGuild(boolean value) { setRegistered(value); }
+    @Deprecated(forRemoval = true) public synchronized boolean isRegisteredInGuild() { return isRegistered(); }
+    @Deprecated(forRemoval = true) public synchronized void setRegisteredInGuild(boolean value) { setRegistered(value); }
     public synchronized long getExperience() { return experience; }
     public synchronized void setExperience(long value) { experience = Math.max(0L, value); dirty = true; }
-    public synchronized void addExperience(long amount) {
-        if (amount <= 0L) return;
-        experience = amount > Long.MAX_VALUE - experience ? Long.MAX_VALUE : experience + amount;
-        dirty = true;
-    }
+    public synchronized void addExperience(long amount) { if (amount <= 0L) return; experience = amount > Long.MAX_VALUE - experience ? Long.MAX_VALUE : experience + amount; dirty = true; }
     public synchronized int getLevel() { return Level.fromExperience(experience); }
     public synchronized double getMoney() { return money; }
-    public synchronized void setMoney(double value) {
-        if (!Double.isFinite(value)) throw new IllegalArgumentException("Money must be finite");
-        money = Math.max(0.0, value);
-        dirty = true;
-    }
-    public synchronized void addMoney(double amount) {
-        if (!Double.isFinite(amount) || amount <= 0.0) return;
-        double updated = money + amount;
-        money = Double.isFinite(updated) ? updated : Double.MAX_VALUE;
-        dirty = true;
-    }
-    public synchronized boolean removeMoney(double amount) {
-        if (!Double.isFinite(amount) || amount <= 0.0 || money < amount) return false;
-        money -= amount;
-        dirty = true;
-        return true;
-    }
+    public synchronized void setMoney(double value) { if (!Double.isFinite(value)) throw new IllegalArgumentException("Money must be finite"); money = Math.max(0.0, value); dirty = true; }
+    public synchronized void addMoney(double amount) { if (!Double.isFinite(amount) || amount <= 0.0) return; double updated = money + amount; money = Double.isFinite(updated) ? updated : Double.MAX_VALUE; dirty = true; }
+    public synchronized boolean removeMoney(double amount) { if (!Double.isFinite(amount) || amount <= 0.0 || money < amount) return false; money -= amount; dirty = true; return true; }
     public synchronized int getProfessionLevel(Profession profession) { return professionLevels.getOrDefault(profession, Profession.MIN_LEVEL); }
-    public synchronized void setProfessionLevel(Profession profession, int level) {
-        if (profession == null) return;
-        int clamped = Math.max(Profession.MIN_LEVEL, Math.min(Profession.MAX_LEVEL, level));
-        professionLevels.put(profession, clamped);
-        dirty = true;
-    }
+    public synchronized void setProfessionLevel(Profession profession, int level) { if (profession == null) return; professionLevels.put(profession, Math.clamp(level, Profession.MIN_LEVEL, Profession.MAX_LEVEL)); dirty = true; }
     public synchronized Map<Profession, Integer> getProfessionLevels() { return Collections.unmodifiableMap(new EnumMap<>(professionLevels)); }
     public synchronized long getProfessionExperience(Profession profession) { return professionExperience.getOrDefault(profession, 0L); }
-    public synchronized void setProfessionExperience(Profession profession, long value) {
-        if (profession == null) return;
-        professionExperience.put(profession, Math.max(0L, value));
-        dirty = true;
-    }
-    public synchronized void addProfessionExperience(Profession profession, long amount) {
-        if (profession == null || amount <= 0L) return;
-        long current = professionExperience.getOrDefault(profession, 0L);
-        professionExperience.put(profession, amount > Long.MAX_VALUE - current ? Long.MAX_VALUE : current + amount);
-        dirty = true;
-    }
+    public synchronized void setProfessionExperience(Profession profession, long value) { if (profession == null) return; professionExperience.put(profession, Math.max(0L, value)); dirty = true; }
+    public synchronized void addProfessionExperience(Profession profession, long amount) { if (profession == null || amount <= 0L) return; long current = professionExperience.getOrDefault(profession, 0L); professionExperience.put(profession, amount > Long.MAX_VALUE - current ? Long.MAX_VALUE : current + amount); dirty = true; }
     public synchronized Map<Profession, Long> getProfessionExperiences() { return Collections.unmodifiableMap(new EnumMap<>(professionExperience)); }
     public synchronized boolean hasLearnedProfession(Profession profession) { return profession != null && learnedProfessions.contains(profession); }
     public synchronized void learnProfession(Profession profession) { if (profession != null && learnedProfessions.add(profession)) dirty = true; }
@@ -129,29 +99,10 @@ public final class PlayerProfile {
     public synchronized void setCompletedQuests(Set<String> ids) { completedQuests.clear(); if (ids != null) completedQuests.addAll(ids); dirty = true; }
     public synchronized long getStatistic(String key) { return statistics.getOrDefault(key, 0L); }
     public synchronized void setStatistic(String key, long value) { if (key == null) return; statistics.put(key, value); dirty = true; }
-    public synchronized void incrementStatistic(String key, long amount) {
-        if (key == null || amount == 0L) return;
-        long current = statistics.getOrDefault(key, 0L);
-        statistics.put(key, amount > 0L && current > Long.MAX_VALUE - amount ? Long.MAX_VALUE
-                : amount < 0L && current < Long.MIN_VALUE - amount ? Long.MIN_VALUE : current + amount);
-        dirty = true;
-    }
+    public synchronized void incrementStatistic(String key, long amount) { if (key == null || amount == 0L) return; long current = statistics.getOrDefault(key, 0L); statistics.put(key, amount > 0L && current > Long.MAX_VALUE - amount ? Long.MAX_VALUE : amount < 0L && current < Long.MIN_VALUE - amount ? Long.MIN_VALUE : current + amount); dirty = true; }
     public synchronized Map<String, Long> getAllStatistics() { return Collections.unmodifiableMap(new HashMap<>(statistics)); }
-
-    public synchronized Map<EquipmentSlot, ItemStack> getEquipment() {
-        Map<EquipmentSlot, ItemStack> copy = new EnumMap<>(EquipmentSlot.class);
-        equipment.forEach((slot, item) -> copy.put(slot, item.clone()));
-        return Collections.unmodifiableMap(copy);
-    }
-
-    public synchronized void setEquipment(Map<EquipmentSlot, ItemStack> values) {
-        equipment.clear();
-        if (values != null) values.forEach((slot, item) -> {
-            if (slot != null && item != null && !item.isEmpty()) equipment.put(slot, item.clone());
-        });
-        dirty = true;
-    }
-
+    public synchronized Map<EquipmentSlot, ItemStack> getEquipment() { Map<EquipmentSlot, ItemStack> copy = new EnumMap<>(EquipmentSlot.class); equipment.forEach((slot, item) -> copy.put(slot, item.clone())); return Collections.unmodifiableMap(copy); }
+    public synchronized void setEquipment(Map<EquipmentSlot, ItemStack> values) { equipment.clear(); if (values != null) values.forEach((slot, item) -> { if (slot != null && item != null && !item.isEmpty()) equipment.put(slot, item.clone()); }); dirty = true; }
     public synchronized boolean isScoreboardEnabled() { return scoreboardEnabled; }
     public synchronized void setScoreboardEnabled(boolean value) { scoreboardEnabled = value; dirty = true; }
     public synchronized boolean isPartyHudEnabled() { return partyHudEnabled; }
@@ -159,11 +110,7 @@ public final class PlayerProfile {
     public synchronized boolean isQuestTrackerEnabled() { return questTrackerEnabled; }
     public synchronized void setQuestTrackerEnabled(boolean value) { questTrackerEnabled = value; dirty = true; }
     public synchronized long getPlaytimeMillis() { return playtimeMillis; }
-    public synchronized void addPlaytimeMillis(long amount) {
-        if (amount <= 0L) return;
-        playtimeMillis = amount > Long.MAX_VALUE - playtimeMillis ? Long.MAX_VALUE : playtimeMillis + amount;
-        dirty = true;
-    }
+    public synchronized void addPlaytimeMillis(long amount) { if (amount <= 0L) return; playtimeMillis = amount > Long.MAX_VALUE - playtimeMillis ? Long.MAX_VALUE : playtimeMillis + amount; dirty = true; }
     public synchronized void setPlaytimeMillis(long value) { playtimeMillis = Math.max(0L, value); dirty = true; }
     public synchronized boolean isDirty() { return dirty; }
 
@@ -173,18 +120,13 @@ public final class PlayerProfile {
         snapshot.registered = registered;
         snapshot.experience = experience;
         snapshot.money = money;
-        snapshot.professionLevels.clear();
-        snapshot.professionLevels.putAll(professionLevels);
-        snapshot.professionExperience.clear();
-        snapshot.professionExperience.putAll(professionExperience);
+        snapshot.professionLevels.clear(); snapshot.professionLevels.putAll(professionLevels);
+        snapshot.professionExperience.clear(); snapshot.professionExperience.putAll(professionExperience);
         snapshot.learnedProfessions.addAll(learnedProfessions);
         snapshot.unlockedRecipes.addAll(unlockedRecipes);
         snapshot.unlockedWaypoints.addAll(unlockedWaypoints);
         snapshot.storyChapterIndex = storyChapterIndex;
-        for (QuestProgress progress : activeQuests.values()) {
-            snapshot.activeQuests.put(progress.getQuestId(), new QuestProgress(
-                    progress.getQuestId(), progress.getCurrentAmount(), progress.getExpiryTimestampMillis()));
-        }
+        for (QuestProgress progress : activeQuests.values()) snapshot.activeQuests.put(progress.getQuestId(), new QuestProgress(progress.getQuestId(), progress.getCurrentAmount(), progress.getExpiryTimestampMillis()));
         snapshot.completedQuests.addAll(completedQuests);
         snapshot.statistics.putAll(statistics);
         equipment.forEach((slot, item) -> snapshot.equipment.put(slot, item.clone()));
@@ -192,6 +134,7 @@ public final class PlayerProfile {
         snapshot.partyHudEnabled = partyHudEnabled;
         snapshot.questTrackerEnabled = questTrackerEnabled;
         snapshot.playtimeMillis = playtimeMillis;
+        snapshot.persistenceRevision = persistenceRevision;
         snapshot.dirty = false;
         dirty = false;
         return snapshot;
@@ -199,25 +142,5 @@ public final class PlayerProfile {
 
     public synchronized void markDirty() { dirty = true; }
     public synchronized void markClean() { dirty = false; }
-
-    public synchronized void resetProgress() {
-        registered = false;
-        experience = 0L;
-        money = 0.0;
-        storyChapterIndex = -1;
-        scoreboardEnabled = true;
-        partyHudEnabled = false;
-        questTrackerEnabled = false;
-        learnedProfessions.clear();
-        unlockedRecipes.clear();
-        unlockedWaypoints.clear();
-        activeQuests.clear();
-        completedQuests.clear();
-        equipment.clear();
-        for (Profession profession : Profession.values()) {
-            professionLevels.put(profession, Profession.MIN_LEVEL);
-            professionExperience.put(profession, 0L);
-        }
-        dirty = true;
-    }
+    public synchronized void resetProgress() { registered = false; experience = 0L; money = 0.0; storyChapterIndex = -1; scoreboardEnabled = true; partyHudEnabled = false; questTrackerEnabled = false; learnedProfessions.clear(); unlockedRecipes.clear(); unlockedWaypoints.clear(); activeQuests.clear(); completedQuests.clear(); equipment.clear(); for (Profession profession : Profession.values()) { professionLevels.put(profession, Profession.MIN_LEVEL); professionExperience.put(profession, 0L); } dirty = true; }
 }
