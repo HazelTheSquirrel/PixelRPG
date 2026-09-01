@@ -59,7 +59,7 @@ public final class CraftingRecipeRegistry {
             JsonObject json = element.getAsJsonObject();
             String id = canonicalRecipeId(required(json, "id"));
             if (recipes.containsKey(id)) throw new IllegalStateException("Duplicate crafting recipe: " + id);
-            Profession profession = enumValue(Profession.class, json, "profession", id);
+            Profession profession = parseProfession(json, id);
             Material result = resolveResultMaterial(required(json, "result"));
             if (result == null || result.isAir()) throw new IllegalStateException("Unknown crafting result for " + id + ": " + required(json, "result"));
             ItemRarity maximumRarity = enumValue(ItemRarity.class, json, "rarity", id);
@@ -78,6 +78,16 @@ public final class CraftingRecipeRegistry {
             int enchantmentLevel = json.has("enchantmentLevel") ? json.get("enchantmentLevel").getAsInt() : 0;
             recipes.put(id, new CraftRecipe(profession, id, label, result, amount, maximumRarity, costs, itemCosts,
                     level, price, quest, defaultUnlocked, false, resultItemId, potionType, enchantment, enchantmentLevel));
+        }
+    }
+
+    private static Profession parseProfession(JsonObject json, String id) {
+        String raw = required(json, "profession").trim().toUpperCase(Locale.ROOT);
+        if (raw.equals("PROVISIONER")) return Profession.COOK;
+        try {
+            return Profession.valueOf(raw);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalStateException("Invalid profession for " + id + ": " + raw, exception);
         }
     }
 
