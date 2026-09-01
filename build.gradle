@@ -64,6 +64,7 @@ tasks.shadowJar {
     relocate 'com.google.gson', 'de.pixelrpg.rpg.libs.gson'
     relocate 'com.zaxxer.hikari', 'de.pixelrpg.rpg.libs.hikari'
     relocate 'com.mysql', 'de.pixelrpg.rpg.libs.mysql'
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     mergeServiceFiles()
     exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
 }
@@ -73,7 +74,7 @@ tasks.register('verifyPixelRpgShadedDependencies') {
     description = 'Verifies that bundled third-party runtime classes are actually relocated.'
     dependsOn tasks.named('shadowJar')
     doLast {
-        def jarFile = tasks.shadowJar.get().archiveFile.get().asFile
+        def jarFile = tasks.shadowJar.archiveFile.get().asFile
         if (!jarFile.isFile()) throw new GradleException("Shadow JAR not found: ${jarFile}")
 
         def forbiddenPrefixes = [
