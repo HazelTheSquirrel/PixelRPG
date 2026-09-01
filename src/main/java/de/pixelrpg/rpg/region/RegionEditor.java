@@ -15,6 +15,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +25,7 @@ public final class RegionEditor {
     private final JavaPlugin plugin;
     private final RegionManager regions;
     private final NamespacedKey toolKey;
+    private final NamespacedKey spawnToolKey;
     private final Map<UUID, Session> sessions = new ConcurrentHashMap<>();
     private BukkitTask visualizationTask;
 
@@ -31,6 +33,7 @@ public final class RegionEditor {
         this.plugin = plugin;
         this.regions = regions;
         this.toolKey = new NamespacedKey(plugin, "region_editor_tool");
+        this.spawnToolKey = new NamespacedKey(plugin, "region_spawn_tool");
     }
 
     public void start() {
@@ -76,6 +79,59 @@ public final class RegionEditor {
         return true;
     }
 
+    /** Enables the temporary arrow tool for placing one hostile-mob type in the current region creation session. */
+    public boolean beginSpawnMode(Player player, String mobType) {
+        Session session = sessions.get(player.getUniqueId());
+        if (session == null) {
+            player.sendMessage(Component.text("Du musst zuerst eine Region mit /pixelrpg region create <name> erstellen.", NamedTextColor.RED));
+            return false;
+        }
+        if (!SpawnMobType.isHostileMob(mobType)) {
+            player.sendMessage(Component.text("Unbekannter oder nicht feindlicher Mob: " + mobType, NamedTextColor.RED));
+            return false;
+        }
+        session.spawnMobType = SpawnMobType.normalize(mobType);
+        removeSpawnTools(player);
+        player.getInventory().addItem(createSpawnTool(session.spawnMobType));
+        player.sendMessage(Component.text("Spawn-Editor: " + session.spawnMobType, NamedTextColor.GREEN));
+        player.sendMessage(Component.text("Rechtsklick auf einen Block setzt einen Spawnpunkt. Die Region muss anschließend bestätigt werden.", NamedTextColor.GRAY));
+        return true;
+    }
+
+    public boolean isSpawnTool(ItemStack item) {
+        if (item == null || item.getType() != Material.ARROW) return false;
+        ItemMeta meta = item.getItemMeta();
+        return meta != null && meta.getPersistentDataContainer().has(spawnToolKey, PersistentDataType.STRING);
+    }
+
+    public boolean addSpawnPoint(Player player, Location clicked) {
+        Session session = sessions.get(player.getUniqueId());
+        if (session == null || session.spawnMobType == null || clicked.getWorld() == null) return false;
+        if (session.worldName == null) session.worldName = clicked.getWorld().getName();
+        if (!session.worldName.equals(clicked.getWorld().getName())) {
+            player.sendMessage(Component.text("Der Spawnpunkt muss in derselben Welt wie die Region liegen.", NamedTextColor.RED));
+            return true;
+        }
+
+        RegionSpawnPoint point = new RegionSpawnPoint(
+                session.spawnMobType,
+                session.worldName,
+                clicked.getBlockX() + 0.5D,
+                clicked.getBlockY() + 1.0D,
+                clicked.getBlockZ() + 0.5D
+        );
+        if (session.spawnPoints.contains(point)) {
+            player.sendMessage(Component.text("Dieser Spawnpunkt wurde bereits gesetzt.", NamedTextColor.RED));
+            return true;
+        }
+        session.spawnPoints.add(point);
+        player.sendMessage(Component.text(
+                "Spawnpunkt für " + session.spawnMobType + " gesetzt: "
+                        + clicked.getBlockX() + ", " + (clicked.getBlockY() + 1) + ", " + clicked.getBlockZ(),
+                NamedTextColor.AQUA));
+        return true;
+    }
+
     public void finish(Player player) {
         Session session = sessions.get(player.getUniqueId());
         if (session == null) return;
@@ -86,8 +142,11 @@ public final class RegionEditor {
         }
         session.finished = true;
         player.sendMessage(Component.text("Polygon gültig. " + session.points.size() + " Punkte, Fläche "
-                + String.format(java.util.Locale.ROOT, "%.2f", validation.geometry().area())
+                + String.format(Locale.ROOT, "%.2f", validation.geometry().area())
                 + " Blöcke².", NamedTextColor.GREEN));
+        if (!session.spawnPoints.isEmpty()) {
+            player.sendMessage(Component.text("Spawnpunkte: " + session.spawnPoints.size(), NamedTextColor.AQUA));
+        }
         player.sendMessage(Component.text("/pixelrpg region confirm zum Erstellen.", NamedTextColor.GRAY));
     }
 
@@ -116,7 +175,8 @@ public final class RegionEditor {
                 world.getMinHeight(),
                 world.getMaxHeight() - 1,
                 session.name,
-                RegionType.OTHER
+                RegionType.OTHER,
+                session.spawnPoints
         );
         if (!result.valid()) {
             player.sendMessage(Component.text("Region konnte nicht erstellt werden: " + result.error(), NamedTextColor.RED));
@@ -150,10 +210,27 @@ public final class RegionEditor {
         return item;
     }
 
+    private ItemStack createSpawnTool(String mobType) {
+        ItemStack item = new ItemStack(Material.ARROW);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(Component.text("Spawnpunkt: " + mobType, NamedTextColor.GOLD));
+        meta.lore(java.util.List.of(Component.text("Rechtsklick: Spawnpunkt setzen", NamedTextColor.GRAY)));
+        meta.getPersistentDataContainer().set(spawnToolKey, PersistentDataType.STRING, mobType);
+        item.setItemMeta(meta);
+        return item;
+    }
+
     private void removeTools(Player player) {
         for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
             ItemStack item = player.getInventory().getItem(slot);
-            if (isTool(item)) player.getInventory().setItem(slot, null);
+            if (isTool(item) || isSpawnTool(item)) player.getInventory().setItem(slot, null);
+        }
+    }
+
+    private void removeSpawnTools(Player player) {
+        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
+            ItemStack item = player.getInventory().getItem(slot);
+            if (isSpawnTool(item)) player.getInventory().setItem(slot, null);
         }
     }
 
@@ -163,7 +240,7 @@ public final class RegionEditor {
             if (player == null || !player.isOnline()) continue;
             Session session = entry.getValue();
             World world = session.worldName == null ? player.getWorld() : plugin.getServer().getWorld(session.worldName);
-            if (world == null || session.points.isEmpty()) continue;
+            if (world == null) continue;
 
             double y = player.getLocation().getY() + 1.0D;
             for (int i = 0; i < session.points.size(); i++) {
@@ -175,6 +252,12 @@ public final class RegionEditor {
                 if (i > 0) drawLine(player, world, session.points.get(i - 1), point, y);
             }
             if (session.points.size() >= 2) drawLine(player, world, session.points.getLast(), session.points.getFirst(), y);
+
+            for (RegionSpawnPoint spawnPoint : session.spawnPoints) {
+                Location marker = spawnPoint.location(world);
+                if (marker == null) continue;
+                player.spawnParticle(Particle.FLAME, marker, 4, 0.12, 0.2, 0.12, 0.0);
+            }
         }
     }
 
@@ -193,7 +276,9 @@ public final class RegionEditor {
         private final UUID id;
         private final String name;
         private final ArrayList<RegionPoint> points = new ArrayList<>();
+        private final ArrayList<RegionSpawnPoint> spawnPoints = new ArrayList<>();
         private String worldName;
+        private String spawnMobType;
         private boolean finished;
 
         private Session(UUID id, String name) {
