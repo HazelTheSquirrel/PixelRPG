@@ -230,11 +230,21 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new FillerBehavior(questManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_BLACKSMITH, Profession.BLACKSMITH,
                 playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
-        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_PROVISIONER, Profession.PROVISIONER,
-                playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_SCHOLAR, Profession.SCHOLAR,
                 playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FARMER, Profession.FARMER,
+                playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_COOK, Profession.COOK,
+                playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_TAILOR, Profession.TAILOR,
+                playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_ALCHEMIST, Profession.ALCHEMIST,
+                playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_MASON, Profession.MASON,
+                playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FISHERMAN, Profession.FISHERMAN,
+                playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_WOODCUTTER, Profession.WOODCUTTER,
                 playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
 
         getServer().getPluginManager().registerEvents(equipmentService, this);
