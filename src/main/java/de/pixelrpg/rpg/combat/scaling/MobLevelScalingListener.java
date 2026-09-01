@@ -4,6 +4,7 @@ import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.api.events.PlayerLevelUpEvent;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.core.WakeScheduler;
+import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -16,12 +17,15 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
+import org.bukkit.event.entity.EntityUnloadEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,6 +38,8 @@ public final class MobLevelScalingListener implements Listener {
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
     private final Map<UUID, Map<UUID, Long>> activeParticipants = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<UUID>> mobsByParticipant = new ConcurrentHashMap<>();
+    private final Map<UUID, Double> gearMultiplierCache = new ConcurrentHashMap<>();
     private final WakeScheduler<ParticipantKey> expiryScheduler;
 
     public MobLevelScalingListener(Plugin plugin, GuildAPI guildAPI, MobScalingConfig scalingConfig) {
@@ -48,6 +54,8 @@ public final class MobLevelScalingListener implements Listener {
     public void shutdown() {
         expiryScheduler.clear();
         activeParticipants.clear();
+        mobsByParticipant.clear();
+        gearMultiplierCache.clear();
     }
 
     // Zuständig dafür, dass die Skalierung beim Zielwechsel auf einen registrierten Spieler aktiviert wird.
@@ -73,22 +81,47 @@ public final class MobLevelScalingListener implements Listener {
         markParticipant(monster, attacker);
     }
 
-    // Zuständig dafür, dass eine bereits aktive Monstergruppe nach einem Level-Up sofort neu skaliert wird.
+    // Zuständig dafür, dass ein Level-Up nur die tatsächlich betroffenen aktiven Mobs neu skaliert.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerLevelUp(PlayerLevelUpEvent event) {
         UUID playerUuid = event.getPlayer().getUniqueId();
-        activeParticipants.forEach((mobUuid, participants) -> {
-            if (!participants.containsKey(playerUuid)) return;
+        Set<UUID> affectedMobs = mobsByParticipant.getOrDefault(playerUuid, Set.of());
+        for (UUID mobUuid : Set.copyOf(affectedMobs)) {
+            Map<UUID, Long> participants = activeParticipants.get(mobUuid);
+            if (participants == null || !participants.containsKey(playerUuid)) {
+                affectedMobs.remove(mobUuid);
+                continue;
+            }
             var entity = Bukkit.getEntity(mobUuid);
             if (!(entity instanceof Monster monster) || !monster.isValid() || monster.isDead()) {
-                activeParticipants.remove(mobUuid);
-                cancelParticipant(mobUuid, playerUuid);
-                return;
+                removeMob(mobUuid, participants);
+                continue;
             }
             participants.put(playerUuid, System.currentTimeMillis());
             scheduleExpiry(mobUuid, playerUuid);
             applyScaling(monster);
-        });
+        }
+    }
+
+    // Zuständig dafür, dass Equipmentänderungen nur die Gear-Cachewerte und betroffene Mobs invalidieren.
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onInventorySlotChange(PlayerInventorySlotChangeEvent event) {
+        UUID playerUuid = event.getPlayer().getUniqueId();
+        gearMultiplierCache.remove(playerUuid);
+        Set<UUID> affectedMobs = mobsByParticipant.getOrDefault(playerUuid, Set.of());
+        for (UUID mobUuid : Set.copyOf(affectedMobs)) {
+            Map<UUID, Long> participants = activeParticipants.get(mobUuid);
+            if (participants == null || !participants.containsKey(playerUuid)) continue;
+            var entity = Bukkit.getEntity(mobUuid);
+            if (entity instanceof Monster monster && monster.isValid() && !monster.isDead()) applyScaling(monster);
+        }
+    }
+
+    // Zuständig für die Freigabe des spielerbezogenen Scaling-Caches beim Disconnect.
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        gearMultiplierCache.remove(event.getPlayer().getUniqueId());
+        mobsByParticipant.remove(event.getPlayer().getUniqueId());
     }
 
     // Zuständig für die sofortige Freigabe aller Skalierungsdaten beim Tod eines verwalteten Monsters.
@@ -97,6 +130,17 @@ public final class MobLevelScalingListener implements Listener {
         if (!(event.getEntity() instanceof Monster monster)) return;
         Map<UUID, Long> participants = activeParticipants.remove(monster.getUniqueId());
         if (participants == null) return;
+        removeReverseIndex(monster.getUniqueId(), participants.keySet());
+        participants.keySet().forEach(playerUuid -> cancelParticipant(monster.getUniqueId(), playerUuid));
+    }
+
+    // Zuständig dafür, dass entladene Mobs keine Spieler- oder Scheduler-Referenzen im Scaling-System behalten.
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onMonsterUnload(EntityUnloadEvent event) {
+        if (!(event.getEntity() instanceof Monster monster)) return;
+        Map<UUID, Long> participants = activeParticipants.remove(monster.getUniqueId());
+        if (participants == null) return;
+        removeReverseIndex(monster.getUniqueId(), participants.keySet());
         participants.keySet().forEach(playerUuid -> cancelParticipant(monster.getUniqueId(), playerUuid));
     }
 
@@ -104,6 +148,7 @@ public final class MobLevelScalingListener implements Listener {
         UUID mobUuid = monster.getUniqueId();
         UUID playerUuid = player.getUniqueId();
         activeParticipants.computeIfAbsent(mobUuid, ignored -> new ConcurrentHashMap<>()).put(playerUuid, System.currentTimeMillis());
+        mobsByParticipant.computeIfAbsent(playerUuid, ignored -> ConcurrentHashMap.newKeySet()).add(mobUuid);
         scheduleExpiry(mobUuid, playerUuid);
         applyScaling(monster);
     }
@@ -124,6 +169,11 @@ public final class MobLevelScalingListener implements Listener {
             return;
         }
         participants.remove(key.playerUuid());
+        Set<UUID> reverse = mobsByParticipant.get(key.playerUuid());
+        if (reverse != null) {
+            reverse.remove(key.mobUuid());
+            if (reverse.isEmpty()) mobsByParticipant.remove(key.playerUuid(), reverse);
+        }
         if (participants.isEmpty()) {
             activeParticipants.remove(key.mobUuid(), participants);
             var entity = Bukkit.getEntity(key.mobUuid());
@@ -142,8 +192,7 @@ public final class MobLevelScalingListener implements Listener {
         int playerLevel = participants.keySet().stream().mapToInt(guildAPI::getLevel).max().orElse(1);
         playerLevel = Math.clamp(playerLevel, 1, 99);
         final int scalingPlayerLevel = playerLevel;
-        double gearMultiplier = participants.keySet().stream().map(this::findPlayer).filter(player -> player != null)
-                .mapToDouble(player -> gearLevelMultiplier(player, scalingPlayerLevel)).max().orElse(1.0D);
+        double gearMultiplier = participants.keySet().stream().map(this::gearLevelMultiplierCached).max(Double::compare).orElse(1.0D);
         MobScalingConfig.LevelBaseStats baseStats = scalingConfig.getBaseStats(scalingPlayerLevel);
         double maxHealth = baseStats.hp() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
         double attackDamage = baseStats.damage() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
@@ -159,13 +208,24 @@ public final class MobLevelScalingListener implements Listener {
         monster.getPersistentDataContainer().set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, scalingPlayerLevel);
     }
 
+    private double gearLevelMultiplierCached(UUID playerUuid) {
+        return gearMultiplierCache.computeIfAbsent(playerUuid, uuid -> {
+            Player player = findPlayer(uuid);
+            if (player == null) return 1.0D;
+            int playerLevel = Math.clamp(guildAPI.getLevel(uuid), 1, 99);
+            return gearLevelMultiplier(player, playerLevel);
+        });
+    }
+
     private double gearLevelMultiplier(Player player, int playerLevel) {
-        int counted = 0; double totalLevel = 0.0D;
+        int counted = 0;
+        double totalLevel = 0.0D;
         for (ItemStack item : equippedItems(player)) {
             if (item == null || !item.hasItemMeta()) continue;
             Integer itemLevel = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
             if (itemLevel == null) continue;
-            totalLevel += Math.clamp(itemLevel, 1, 99); counted++;
+            totalLevel += Math.clamp(itemLevel, 1, 99);
+            counted++;
         }
         if (counted == 0) return 1.0D;
         double averageItemLevel = totalLevel / counted;
@@ -183,6 +243,21 @@ public final class MobLevelScalingListener implements Listener {
     }
 
     private Player findPlayer(UUID uuid) { Player player = Bukkit.getPlayer(uuid); return player != null && player.isOnline() ? player : null; }
+
+    private void removeMob(UUID mobUuid, Map<UUID, Long> participants) {
+        activeParticipants.remove(mobUuid, participants);
+        removeReverseIndex(mobUuid, participants.keySet());
+        participants.keySet().forEach(playerUuid -> cancelParticipant(mobUuid, playerUuid));
+    }
+
+    private void removeReverseIndex(UUID mobUuid, Set<UUID> participants) {
+        for (UUID playerUuid : participants) {
+            Set<UUID> reverse = mobsByParticipant.get(playerUuid);
+            if (reverse == null) continue;
+            reverse.remove(mobUuid);
+            if (reverse.isEmpty()) mobsByParticipant.remove(playerUuid, reverse);
+        }
+    }
 
     private void rememberOriginalAttributes(Monster monster) {
         var pdc = monster.getPersistentDataContainer();
