@@ -39,7 +39,9 @@ public final class QuestRepository {
         loadDefinitionsFrom("quests_v2.json");
         loadDefinitionsFrom("quests_additional.json");
         loadDefinitionsFrom("quests_world_expansion.json");
-        loadDefinitionsFrom("quests/quests_crafting_orders.json");
+        // The old crafting-order dataset belongs to the removed legacy recipe set.
+        // It is deliberately not loaded: its item IDs and prerequisite chains no longer
+        // describe the current nine-profession recipe system.
         validateReferences();
     }
 
@@ -87,6 +89,12 @@ public final class QuestRepository {
     private boolean validateDefinition(JsonObject json) {
         String id = string(json, "id", "").strip();
         if (id.isBlank() || questsById.containsKey(id)) return false;
+
+        // These entries are from the former crafting system. Their target IDs no longer
+        // exist in the current recipe registry, so loading them would only create invalid
+        // quests and broken prerequisite chains.
+        if (isLegacyCraftingQuest(id)) return false;
+
         String title = string(json, "title", "").strip();
         String description = string(json, "description", "").strip();
         if (title.isBlank() || description.isBlank()) {
@@ -119,10 +127,17 @@ public final class QuestRepository {
         return true;
     }
 
+    private boolean isLegacyCraftingQuest(String id) {
+        return id.startsWith("crafting_") || id.startsWith("craft_order_");
+    }
+
     private Profession parseProfession(String value) {
         if (value == null || value.isBlank()) return null;
+        String normalized = value.trim().toUpperCase(Locale.ROOT);
+        // PROVISIONER was the old name for the current COOK profession.
+        if (normalized.equals("PROVISIONER")) return Profession.COOK;
         try {
-            return Profession.valueOf(value.trim().toUpperCase(Locale.ROOT));
+            return Profession.valueOf(normalized);
         } catch (IllegalArgumentException exception) {
             plugin.getLogger().warning("Unknown quest profession '" + value + "'.");
             return null;
@@ -177,11 +192,11 @@ public final class QuestRepository {
 
     private void validateReferences() {
         for (Map.Entry<String, List<String>> entry : prerequisitesByQuest.entrySet()) {
-            entry.getValue().stream().filter(id -> !questsById.containsKey(id))
+            entry.getValue().stream().filter(id -> !questsById.containsKey(id) && !isLegacyCraftingQuest(id))
                     .forEach(id -> plugin.getLogger().warning("Quest '" + entry.getKey() + "' references unknown prerequisite '" + id + "'."));
         }
         for (Map.Entry<String, List<String>> entry : followUpsByQuest.entrySet()) {
-            entry.getValue().stream().filter(id -> !questsById.containsKey(id))
+            entry.getValue().stream().filter(id -> !questsById.containsKey(id) && !isLegacyCraftingQuest(id))
                     .forEach(id -> plugin.getLogger().warning("Quest '" + entry.getKey() + "' references unknown follow-up quest '" + id + "'."));
         }
         for (String questId : questsById.keySet()) {
