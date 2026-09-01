@@ -32,6 +32,34 @@ java {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release.set(25)
+    options.compilerArgs.addAll(['-Xlint:all'])
+}
+
+tasks.register('verifyPixelRpgSourceBoundaries') {
+    group = 'verification'
+    description = 'Rejects legacy Bukkit/NMS APIs and static live-server references.'
+    doLast {
+        def sourceRoot = file('src/main/java')
+        def forbidden = [
+                ~/org\.bukkit\.ChatColor/,
+                ~/net\.md_5\.bungee\.api\.ChatColor/,
+                ~/net\.minecraft\.server\.v[0-9_]+/,
+                ~/org\.bukkit\.craftbukkit/,
+                ~/static\s+[^\n]*(Player|Entity|World)\s+\w+/
+        ]
+        fileTree(sourceRoot).matching { include '**/*.java' }.each { sourceFile ->
+            def text = sourceFile.getText('UTF-8')
+            forbidden.each { pattern ->
+                if (pattern.matcher(text).find()) {
+                    throw new GradleException("Forbidden API boundary in ${sourceFile}: ${pattern}")
+                }
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn tasks.named('verifyPixelRpgSourceBoundaries')
 }
 
 tasks.shadowJar {
