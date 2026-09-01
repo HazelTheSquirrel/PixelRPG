@@ -3,12 +3,6 @@ package de.pixelrpg.rpg.region;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.entity.Creeper;
-import org.bukkit.entity.Enderman;
-import org.bukkit.entity.Fireball;
-import org.bukkit.entity.Ghast;
-import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -32,17 +26,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Runtime integration for region editing, rules and enter/leave transitions. */
+/** Thin Paper adapter for region editor input, policy decisions and transitions. */
 public final class RegionListener implements Listener {
     private final RegionManager regions;
     private final RegionEditor editor;
-    private final RegionSpawnService spawnService;
+    private final RegionPolicyService policy;
     private final Map<UUID, UUID> currentRegions = new HashMap<>();
 
     public RegionListener(RegionManager regions, RegionEditor editor, RegionSpawnService spawnService) {
         this.regions = regions;
         this.editor = editor;
-        this.spawnService = spawnService;
+        this.policy = new RegionPolicyService(regions, spawnService);
     }
 
     /** Handles admin clicks with the temporary polygon creation tool. */
@@ -63,75 +57,60 @@ public final class RegionListener implements Listener {
         editor.addSpawnPoint(event.getPlayer(), event.getClickedBlock().getLocation());
     }
 
-    /** Prevents PvP when either participant is inside a region that explicitly disables PvP. */
+    /** Applies the region PvP policy to player-versus-player damage. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPvp(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player victim)) return;
         if (!(event.getDamager() instanceof Player attacker)) return;
-        if (!regions.hasFlag(victim.getLocation(), RegionFlag.PVP) || !regions.hasFlag(attacker.getLocation(), RegionFlag.PVP)) event.setCancelled(true);
+        if (!policy.allowsPvp(attacker, victim)) event.setCancelled(true);
     }
 
-    /** Prevents normal monster spawning; explicit PixelRPG region spawn points override the region flag. */
+    /** Applies the region monster-spawn policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMonsterSpawn(CreatureSpawnEvent event) {
-        if (!(event.getEntity() instanceof Monster)) return;
-        if (spawnService.isManagedSpawn(event.getEntity())
-                || regions.isExplicitSpawnPoint(event.getLocation(), event.getEntityType().name())) return;
-        if (!regions.hasFlag(event.getLocation(), RegionFlag.MONSTER_SPAWN)) event.setCancelled(true);
+        if (!policy.allowsMonsterSpawn(event)) event.setCancelled(true);
     }
 
-    /** Prevents block breaking inside regions that explicitly disable it. */
+    /** Applies the region block-break policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (!regions.hasFlag(event.getBlock().getLocation(), RegionFlag.BLOCK_BREAK)) event.setCancelled(true);
+        if (!policy.allowsBlockBreak(event.getBlock().getLocation())) event.setCancelled(true);
     }
 
-    /** Prevents block placement inside regions that explicitly disable it. */
+    /** Applies the region block-place policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (!regions.hasFlag(event.getBlock().getLocation(), RegionFlag.BLOCK_PLACE)) event.setCancelled(true);
+        if (!policy.allowsBlockPlace(event.getBlock().getLocation())) event.setCancelled(true);
     }
 
-    /** Prevents fire and soul fire from spreading when the containing region disables fire spread. */
+    /** Applies the region fire-spread policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onFireSpread(BlockSpreadEvent event) {
-        Material type = event.getNewState().getType();
-        if ((type == Material.FIRE || type == Material.SOUL_FIRE) && !regions.hasFlag(event.getBlock().getLocation(), RegionFlag.FIRE_SPREAD)) event.setCancelled(true);
+        if (!policy.allowsFireSpread(event)) event.setCancelled(true);
     }
 
-    /** Prevents lava flow when the containing region disables lava flow. */
+    /** Applies the region lava-flow policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onLavaFlow(BlockFromToEvent event) {
-        Material source = event.getBlock().getType();
-        if (source == Material.LAVA && !regions.hasFlag(event.getToBlock().getLocation(), RegionFlag.LAVA_FLOW)) event.setCancelled(true);
+        if (!policy.allowsLavaFlow(event)) event.setCancelled(true);
     }
 
-    /** Prevents every block-changing entity explosion when the containing region disables explosions. */
+    /** Applies the region entity-explosion policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityExplosion(EntityExplodeEvent event) {
-        Location location = event.getLocation();
-        if (!regions.hasFlag(location, RegionFlag.EXPLOSION)) {
-            event.setCancelled(true);
-            return;
-        }
-        if (event.getEntity() instanceof Creeper && !regions.hasFlag(location, RegionFlag.CREEPER_EXPLOSION)) {
-            event.setCancelled(true);
-            return;
-        }
-        if (isGhastFireball(event) && !regions.hasFlag(location, RegionFlag.GHAST_FIREBALL)) event.setCancelled(true);
+        if (!policy.allowsEntityExplosion(event)) event.setCancelled(true);
     }
 
-    /** Prevents block explosions when the containing region disables explosions. */
+    /** Applies the region block-explosion policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockExplosion(BlockExplodeEvent event) {
-        if (!regions.hasFlag(event.getBlock().getLocation(), RegionFlag.EXPLOSION)) event.setCancelled(true);
+        if (!policy.allowsBlockExplosion(event)) event.setCancelled(true);
     }
 
-    /** Prevents Endermen from picking up and moving blocks when the region disables Enderman griefing. */
+    /** Applies the region Enderman-grief policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEndermanGrief(EntityChangeBlockEvent event) {
-        if (!(event.getEntity() instanceof Enderman)) return;
-        if (!regions.hasFlag(event.getBlock().getLocation(), RegionFlag.ENDERMAN_GRIEF)) event.setCancelled(true);
+        if (!policy.allowsEndermanGrief(event)) event.setCancelled(true);
     }
 
     /** Detects region enter and leave transitions for players. */
@@ -158,14 +137,9 @@ public final class RegionListener implements Listener {
         UUID newId = regions.find(location).map(PixelRegion::id).orElse(null);
         if (Objects.equals(oldId, newId)) return;
         if (oldId != null) regions.get(oldId).ifPresent(region -> showRegionTitle(player, region.name(), region.leaveMessage(), false));
-        if (newId != null) regions.find(location).ifPresent(region -> showRegionTitle(player, region.name(), region.enterMessage(), true));
+        if (newId != null) regions.get(newId).ifPresent(region -> showRegionTitle(player, region.name(), region.enterMessage(), true));
         if (newId == null) currentRegions.remove(player.getUniqueId());
         else currentRegions.put(player.getUniqueId(), newId);
-    }
-
-    private static boolean isGhastFireball(EntityExplodeEvent event) {
-        if (!(event.getEntity() instanceof Fireball fireball)) return false;
-        return fireball.getShooter() instanceof Ghast;
     }
 
     private static void showRegionTitle(Player player, String regionName, String message, boolean entering) {
@@ -175,6 +149,9 @@ public final class RegionListener implements Listener {
     }
 
     private static boolean sameBlock(Location a, Location b) {
-        return a.getWorld() == b.getWorld() && a.getBlockX() == b.getBlockX() && a.getBlockY() == b.getBlockY() && a.getBlockZ() == b.getBlockZ();
+        return a.getWorld() == b.getWorld()
+                && a.getBlockX() == b.getBlockX()
+                && a.getBlockY() == b.getBlockY()
+                && a.getBlockZ() == b.getBlockZ();
     }
 }
