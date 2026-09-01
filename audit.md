@@ -4,13 +4,11 @@
 **Zielplattform:** Paper 26.x, aktuell Paper 26.2
 **Java:** 25
 **Mappings:** Mojang
-**Stand:** zweiter forensischer Stabilisierungslauf
+**Stand:** dritter forensischer Stabilisierungslauf
 
 ## Urteil
 
-Der Branch ist nach dem bisherigen Umbau strukturell deutlich belastbarer als der ursprüngliche Stand. Ein grüner CI-Build bleibt jedoch nur ein statisches Build-Gate und ist kein Beweis für 50/100-Spieler-TPS, Datenbankausfallsicherheit oder vollständige Datenintegrität.
-
-Der zweite Durchlauf hat insbesondere einen weiteren echten Hotpath-Befund bestätigt: Party- und Guild-Persistenz schrieb YAML synchron aus Gameplay-Aktionen. Beide Pfade wurden auf Snapshot → sequenzielle Async-Persistenz umgestellt und besitzen jetzt einen kontrollierten Shutdown-Flush.
+Der Branch ist nach den bisherigen Umbauten deutlich belastbarer. Ein grüner CI-Build bleibt aber ein statisches Gate und beweist weder 50/100-Spieler-TPS noch vollständige Persistenz- und Recovery-Sicherheit.
 
 ## Bereits umgesetzt
 
@@ -45,33 +43,33 @@ Der zweite Durchlauf hat insbesondere einen weiteren echten Hotpath-Befund best�
 - begrenzter, instanzgebundener Skin-Cache.
 - Entity-Mutation auf dem Serverthread.
 
-### Guild
+### Guild / Party
 
-- Guild-State wird beim Gameplay weiterhin synchron als Domain-State verändert.
-- Persistenz erzeugt eine YAML-Repräsentation unter dem Synchronisationsschutz.
-- Tatsächliches Dateisystem-I/O läuft jetzt über einen einzelnen `PixelRPG-GuildIO` Executor.
-- Saves werden sequenziell abgearbeitet.
-- Schreiben erfolgt atomar über temporäre Datei + Move.
-- Shutdown wartet auf ausstehende Writes und beendet den Executor.
-- Statischer Singleton ist noch vorhanden und bleibt ein Architektur-P1.
+- Runtime-State bleibt serverthreadgebunden.
+- Persistenz läuft über eigene sequenzielle I/O-Executors.
+- Snapshots vor Dateisystem-I/O.
+- Atomische YAML-Writes.
+- Kontrollierter Shutdown-Flush.
 
-### Party
+### Build / Dependency Isolation
 
-- Party-State bleibt serverthreadgebunden.
-- Persistenz erzeugt einen Snapshot und schreibt diesen über einen eigenen `PixelRPG-PartyIO` Executor.
-- Atomisches Schreiben.
-- Shutdown beendet Maintenance-Task und wartet auf ausstehende Persistenz.
-- Runtime-Queries verwenden keine Dateisystemzugriffe.
+- Java 25 Toolchain.
+- Paper 26.2 Dev-Bundle.
+- Legacy-NMS/CraftBukkit/ChatColor Source-Gates.
+- Gson, HikariCP und MySQL werden im Shadow-JAR relocated.
+- `mergeServiceFiles()` für JDBC-Service-Provider.
+- CI prüft jetzt zusätzlich das erzeugte Shadow-JAR auf unrelocierte Drittanbieter-Klassen.
+- CI prüft `META-INF/services/java.sql.Driver` auf einen tatsächlich relocatierten MySQL-Treiber und verhindert den alten `com.mysql.cj.jdbc.Driver`-Eintrag.
 
-## Neue/noch offene Befunde nach Durchlauf 2
+## Neue/noch offene Befunde
 
 ### P0/P1
 
-1. **PlayerProfile Save-Revision:** DB-seitige monotone Revision fehlt weiterhin. Die Prozess-interne UUID-Sequenz verhindert parallele Rückwärts-Saves, schützt aber nicht gegen externe Prozesse/Recovery-Replays.
-2. **CompanionService:** `load()` und `CompanionEquipmentStore` führen weiterhin synchrone YAML-Lese-/Schreiboperationen aus Gameplay-Aufrufen aus. Das ist der nächste harte Runtime-I/O-Punkt.
-3. **CompanionService:** `shutdown()` persistiert Companion-Daten weiterhin über den synchronen `save()`-Pfad; dieser muss auf einen Snapshot-/Executor-Lifecycle umgestellt werden.
-4. **GuildManager:** statischer Singleton bleibt bestehen; direkte globale Zugänglichkeit erschwert Isolation und Tests.
-5. **Party:** `Party` ist mutable und wird in Runtime-Maps geteilt. Für den Main-Thread ist das aktuell konsistent, eine explizite Domain-Actor-Grenze fehlt aber.
+1. **PlayerProfile Save-Revision:** DB-seitige monotone Revision fehlt weiterhin. Die Prozess-interne UUID-Sequenz verhindert parallele Rückwärts-Saves, schützt aber nicht gegen externe Prozesse oder Recovery-Replays.
+2. **CompanionService:** `load()` und `CompanionEquipmentStore` führen weiterhin synchrone YAML-Lese-/Schreiboperationen aus Gameplay-Aufrufen aus. Das bleibt ein harter Runtime-I/O-Punkt.
+3. **CompanionService Shutdown:** Companion-Persistenz verwendet weiterhin den synchronen Save-Pfad.
+4. **Companion Domain Ownership:** mutable Companion-Listen sind noch nicht über ein klares Actor-/Snapshot-Modell gekapselt.
+5. **GuildManager:** statischer Singleton bleibt bestehen und erschwert Isolation und Tests.
 6. **Quest/Shop/Boss/Combat:** vollständige Hotpath-Analyse muss weiterhin mit konkreten Runtime-Profilen verifiziert werden.
 7. **Economy:** `double` als Geldmodell ist weiterhin vorhanden. Langfristig `long` in kleinster Währungseinheit.
 8. **RPGItemBuilder:** globale mutable Scaling-Konfiguration bleibt bestehen.
@@ -140,7 +138,7 @@ Result
 Paper side effect
 ```
 
-Der Region-Listener ist in diesem Punkt bereits deutlich verbessert. Die gleiche Trennung muss für Combat, Quest, NPC, Boss und Inventory konsequent weitergeführt werden.
+Region ist in diesem Punkt verbessert. Dieselbe Trennung muss für Combat, Quest, NPC, Boss und Inventory konsequent weitergeführt werden.
 
 ## Economy-Vertrag
 
@@ -157,7 +155,8 @@ Ein grüner CI-Build bedeutet:
 - Java-25-Kompilierung erfolgreich.
 - Paper-Dev-Bundle auflösbar.
 - Source-Boundary-Regeln eingehalten.
-- Artifact-Prüfungen erfolgreich.
+- Shadow-JAR-Relocation geprüft.
+- JDBC-Service-Descriptor geprüft.
 
 Er bedeutet **nicht** automatisch:
 
@@ -181,4 +180,11 @@ Production-Ready erst nach Nachweis von:
 - alle Executor/HTTP/DB-Lifecycle sauber beendet.
 - 50–100-Spieler-Lasttest ohne kritische Tick-Spikes.
 
-**Nächster Codeblock:** Companion-Persistenz vollständig vom Gameplay-Thread lösen; danach Boss-/Quest-/Shop-Hotpaths und Economy-Atomizität erneut forensisch prüfen.
+## Nächster Codeblock
+
+1. Companion-Persistenz vollständig aus dem Gameplay-Thread entfernen.
+2. PlayerProfile persistente Revision einführen.
+3. Economy auf atomare Mutation + Ganzzahl-Währung umstellen.
+4. Quest/Shop/Boss/Combat-Hotpaths erneut prüfen.
+5. Release-Dependency-Versionen exakt pinnen.
+6. Erst danach realen 50-/100-Spieler-Lasttest durchführen.
