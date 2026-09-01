@@ -1,18 +1,14 @@
 package de.pixelrpg.rpg.npc;
 
-import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.plugin.Plugin;
 
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Resolves Mojang player names and direct external skin URLs for mannequins. */
+/** Resolves Mojang player names and external skin URLs for mannequins. */
 public final class MannequinSkinResolver {
     private MannequinSkinResolver() {
     }
@@ -24,10 +20,15 @@ public final class MannequinSkinResolver {
             logger.warning("Cannot resolve mannequin skin '" + skinSource + "': PixelRPG plugin is not loaded.");
             return;
         }
+
         try {
             String source = skinSource.trim();
             if (source.startsWith("http://") || source.startsWith("https://")) {
-                applySkinUrl(mannequin, source, plugin);
+                new ExternalSkinService(plugin).apply(mannequin, source)
+                        .exceptionally(exception -> {
+                            logger.log(Level.WARNING, "Failed to resolve external mannequin skin '" + source + "'", exception);
+                            return null;
+                        });
             } else {
                 applyPlayerName(mannequin, source, plugin, logger);
             }
@@ -45,29 +46,5 @@ public final class MannequinSkinResolver {
             logger.log(Level.WARNING, "Failed to resolve player skin for mannequin '" + playerName + "'", exception);
             return null;
         });
-    }
-
-    /** Creates an unsigned Minecraft textures property that points directly at the supplied PNG URL. */
-    private static void applySkinUrl(Mannequin mannequin, String skinUrl, Plugin plugin) {
-        URI uri = URI.create(skinUrl);
-        String scheme = uri.getScheme();
-        if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
-            throw new IllegalArgumentException("Skin URL must use http or https");
-        }
-
-        String json = "{\"textures\":{\"SKIN\":{\"url\":\"" + escapeJson(skinUrl) + "\"}}}";
-        String encoded = Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
-        ProfileProperty textures = new ProfileProperty("textures", encoded);
-        ResolvableProfile profile = ResolvableProfile.resolvableProfile()
-                .addProperty(textures)
-                .build();
-
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            if (mannequin.isValid()) mannequin.setProfile(profile);
-        });
-    }
-
-    private static String escapeJson(String value) {
-        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }
