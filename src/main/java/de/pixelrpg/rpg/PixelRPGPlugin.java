@@ -301,7 +301,12 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (questManager != null) questManager.shutdown();
         if (bossManager != null) bossManager.shutdown();
         if (npcLookTask != null) npcLookTask.stop();
+        if (npcManager != null) npcManager.shutdown();
+        if (regionManager != null) regionManager.shutdown();
         if (playerProfileManager != null) playerProfileManager.shutdown();
+        Bukkit.getServicesManager().unregister(StatisticsAPI.class, statisticsService);
+        Bukkit.getServicesManager().unregister(de.pixelrpg.rpg.api.ItemAPI.class, itemService);
+        Bukkit.getServicesManager().unregister(de.pixelrpg.rpg.api.PartyAPI.class, partyManager);
         if (instance == this) instance = null;
     }
 
