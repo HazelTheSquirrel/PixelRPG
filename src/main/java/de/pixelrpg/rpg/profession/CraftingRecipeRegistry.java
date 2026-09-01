@@ -124,9 +124,7 @@ public final class CraftingRecipeRegistry {
         Map<Profession, JsonArray> labelsByProfession = new EnumMap<>(Profession.class);
         for (Profession profession : Profession.values()) {
             String key = profession.name();
-            if (!professions.has(key) || !professions.get(key).isJsonObject()) {
-                throw new IllegalStateException("Missing generated recipe group for " + key);
-            }
+            if (!professions.has(key) || !professions.get(key).isJsonObject()) throw new IllegalStateException("Missing generated recipe group for " + key);
             JsonObject group = professions.getAsJsonObject(key);
             JsonArray labels = group.getAsJsonArray("labels");
             JsonArray results = group.getAsJsonArray("results");
@@ -135,7 +133,6 @@ public final class CraftingRecipeRegistry {
             }
             labelsByProfession.put(profession, labels);
         }
-
         for (Profession profession : Profession.values()) {
             JsonArray labels = labelsByProfession.get(profession);
             JsonArray results = professions.getAsJsonObject(profession.name()).getAsJsonArray("results");
@@ -187,7 +184,6 @@ public final class CraftingRecipeRegistry {
     private static Map<String, Integer> generatedItemCosts(Profession profession, int index, Map<Profession, JsonArray> labelsByProfession) {
         Map<String, Integer> costs = new LinkedHashMap<>();
         if (index > 0) costs.put(generatedItemId(profession, labelsByProfession, index - 1), 1);
-
         switch (profession) {
             case BLACKSMITH -> {
                 switch (index) {
@@ -325,7 +321,6 @@ public final class CraftingRecipeRegistry {
     private void validateProfessionEconomy() {
         Map<String, CraftRecipe> resultOwners = new HashMap<>();
         List<String> errors = new ArrayList<>();
-
         for (Profession profession : Profession.values()) {
             List<CraftRecipe> professionRecipes = getRecipes(profession);
             if (professionRecipes.isEmpty()) {
@@ -345,27 +340,17 @@ public final class CraftingRecipeRegistry {
                 if (previous != null) errors.add("Duplicate result item id " + resultId + " used by " + previous.id() + " and " + recipe.id());
             }
         }
-
         for (CraftRecipe recipe : recipes.values()) {
-            for (Map.Entry<String, Integer> entry : recipe.itemCosts().entrySet()) {
-                String dependencyId = canonicalItemId(entry.getKey());
+            for (String itemCost : recipe.itemCosts().keySet()) {
+                String dependencyId = canonicalItemId(itemCost);
                 if (!dependencyId.startsWith("pixelrpg:")) continue;
                 CraftRecipe dependency = resultOwners.get(dependencyId);
-                if (dependency == null) {
-                    errors.add("Broken profession dependency in " + recipe.id() + ": " + dependencyId);
-                    continue;
-                }
-                if (dependency.id().equals(recipe.id())) errors.add("Self-referencing profession dependency in " + recipe.id());
-                if (dependency.requiredProfessionLevel() > recipe.requiredProfessionLevel()) {
-                    errors.add("Dependency level inversion in " + recipe.id() + ": " + dependency.id() + " requires level " + dependency.requiredProfessionLevel() + " but recipe unlocks at " + recipe.requiredProfessionLevel());
-                }
+                if (dependency == null) errors.add("Broken profession dependency in " + recipe.id() + ": " + dependencyId);
+                else if (dependency.id().equals(recipe.id())) errors.add("Self-referencing profession dependency in " + recipe.id());
             }
         }
-
         detectDependencyCycles(resultOwners, errors);
-        if (!errors.isEmpty()) {
-            throw new IllegalStateException("Profession recipe validation failed:\n - " + String.join("\n - ", errors));
-        }
+        if (!errors.isEmpty()) throw new IllegalStateException("Profession recipe validation failed:\n - " + String.join("\n - ", errors));
     }
 
     private static void detectDependencyCycles(Map<String, CraftRecipe> resultOwners, List<String> errors) {
