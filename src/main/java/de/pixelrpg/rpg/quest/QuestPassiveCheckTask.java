@@ -2,7 +2,6 @@ package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -14,6 +13,7 @@ public final class QuestPassiveCheckTask {
     private BukkitTask task;
     private QuestNavigationService navigationService;
     private QuestInventoryTracker inventoryTracker;
+    private QuestNavigationLifecycleListener navigationLifecycleListener;
 
     public QuestPassiveCheckTask(Plugin plugin, QuestManager questManager) {
         this(plugin, questManager, 40);
@@ -31,9 +31,11 @@ public final class QuestPassiveCheckTask {
         navigationService = new QuestNavigationService(plugin, questManager.getRepository(),
                 pixelRPG.getPlayerProfileManager(), pixelRPG.getNpcManager());
         inventoryTracker = new QuestInventoryTracker(questManager);
+        navigationLifecycleListener = new QuestNavigationLifecycleListener(navigationService);
         plugin.getServer().getPluginManager().registerEvents(inventoryTracker, plugin);
+        plugin.getServer().getPluginManager().registerEvents(navigationLifecycleListener, plugin);
         task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
+            for (var player : Bukkit.getOnlinePlayers()) {
                 inventoryTracker.refresh(player);
                 questManager.checkReachLocationQuests(player);
                 navigationService.refresh(player);
@@ -41,7 +43,7 @@ public final class QuestPassiveCheckTask {
         }, intervalTicks, intervalTicks);
     }
 
-    public void clear(Player player) {
+    public void clear(org.bukkit.entity.Player player) {
         if (navigationService != null) navigationService.clear(player);
     }
 
@@ -53,6 +55,10 @@ public final class QuestPassiveCheckTask {
         if (inventoryTracker != null) {
             HandlerList.unregisterAll(inventoryTracker);
             inventoryTracker = null;
+        }
+        if (navigationLifecycleListener != null) {
+            HandlerList.unregisterAll(navigationLifecycleListener);
+            navigationLifecycleListener = null;
         }
         if (navigationService != null) navigationService.clearAll();
         navigationService = null;
