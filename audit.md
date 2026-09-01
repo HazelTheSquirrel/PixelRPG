@@ -1,14 +1,14 @@
 # PixelRPG — Stabilitäts-, Architektur- und Security-Audit
 
-**Branch:** `test`  
-**Zielplattform:** Paper 26.x, aktuell Paper 26.2  
-**Java:** 25  
-**Mappings:** Mojang  
-**Status:** laufende Stabilisierung für 50–100+ Spieler
+**Branch:** `test`
+**Zielplattform:** Paper 26.x, aktuell Paper 26.2
+**Java:** 25
+**Mappings:** Mojang
+**Status:** aktive Core-Härtung für 50–100+ Spieler
 
 ## Ziel
 
-Der funktionierende Gameplay-Zustand ist die Referenz. Stabilisierung bedeutet: Datenintegrität, Thread-Sicherheit, Lifecycle, Performance und Security verbessern, ohne funktionierende Systeme unnötig neu zu erfinden.
+Der funktionierende Gameplay-Zustand bleibt die Referenz. Stabilisierung bedeutet: Datenintegrität, Thread-Sicherheit, Lifecycle, Performance und Security verbessern, ohne funktionierende Systeme unnötig neu zu erfinden.
 
 ## Prioritäten
 
@@ -17,14 +17,17 @@ Der funktionierende Gameplay-Zustand ist die Referenz. Stabilisierung bedeutet: 
 - **P2:** Architektur, Testbarkeit, Dependency-Reproduzierbarkeit
 - **P3:** Komfort und kosmetisches Refactoring
 
-## Bereits gehärtet
+## Aktuell umgesetzt
 
 ### PlayerProfile
 
-- Persistenz arbeitet mit Snapshots statt einer gleichzeitig mutierten Live-Instanz.
+- Persistenz arbeitet mit synchronisiert erzeugten Deep-Snapshots statt einer gleichzeitig serialisierten Live-Instanz.
 - Dirty-State bleibt bei Änderungen während eines Saves erhalten.
+- Per-UUID-Save-Queues verhindern parallele Saves desselben Spielers.
+- Load- und Save-Operationen desselben UUIDs laufen über dieselbe Sequenz und verhindern damit ein einfaches Quit/Rejoin-Read-Before-Write-Rennen.
+- Shutdown ist idempotent und verhindert neue Saves während des Abbaus.
+- Emergency-YAML-Repositories werden nach Verwendung wieder geschlossen.
 - Equipment und Quest-State werden beim Snapshot berücksichtigt.
-- Aktive Profile und zugehörige Services werden beim Shutdown bereinigt.
 
 ### Region
 
@@ -38,6 +41,7 @@ Der funktionierende Gameplay-Zustand ist die Referenz. Stabilisierung bedeutet: 
 - YAML-Persistenz läuft über einen eigenen I/O-Executor.
 - Saves werden über temporäre Datei und Move robuster ausgeführt.
 - NPC-Lifecycle wird beim Shutdown beendet.
+- **Offen:** Companion-/NPC-nahe Runtime-Pfade müssen noch vollständig auf synchrones YAML-I/O geprüft werden.
 
 ### Externe Skins / HTTP
 
@@ -56,13 +60,17 @@ Der funktionierende Gameplay-Zustand ist die Referenz. Stabilisierung bedeutet: 
 - Prepared Statements sind Pflicht.
 - TLS darf nicht pauschal deaktiviert werden.
 - `autoReconnect` ist kein Ersatz für sauberes Connection-Lifecycle-Handling.
-- Shaded JDBC-Driver-Discovery wurde explizit gehärtet.
+- Shaded JDBC-Driver-Discovery wird über Service-Datei-Merging geprüft.
 
-### ShadowJar
+### ShadowJar / Build
 
 - Service-Dateien werden beim Shading berücksichtigt.
 - Signaturdateien werden aus dem Fat-JAR ausgeschlossen.
 - Gson/Hikari/MySQL-Relocation bleibt eine bewusst zu testende Runtime-Grenze.
+- Java 25 ist als Toolchain und `--release 25` festgelegt.
+- Der Gradle-Check besitzt jetzt einen Source-Boundary-Validator gegen `ChatColor`, Legacy-NMS, CraftBukkit und statische Live-Bukkit-Referenzen.
+- CI führt Clean Build, Source-Boundary-Prüfung und Fat-JAR-Prüfungen aus.
+- CI prüft zusätzlich, dass der JDBC-Service-Descriptor im Fat-JAR vorhanden ist.
 
 ### Quest-Navigation
 
@@ -77,12 +85,11 @@ Der funktionierende Gameplay-Zustand ist die Referenz. Stabilisierung bedeutet: 
 
 ## Noch zu erledigen — P0
 
-1. Jede Profilmutation muss auf dem vorgesehenen Serverthread erfolgen.
-2. Snapshot-Erzeugung braucht eine monotone Revision.
-3. Ein älterer Snapshot darf niemals einen neueren Persistenzstand überschreiben.
-4. Join/Quit/Shutdown müssen gegen gleichzeitige Load/Save-Rennen abgesichert werden.
-5. Jeder Repository-Pfad muss garantiert Connection, Statement und ResultSet schließen.
-6. Kein synchrones DB-, HTTP- oder schweres Filesystem-I/O in Event-/Tick-Hotpaths.
+1. Monotone Persistenzrevision pro Profil einführen, sofern Repository-Schema dies benötigt, und rückwärts gerichtete Saves technisch ausschließen.
+2. Join/Quit/Shutdown unter realer Konkurrenz mit Tests verifizieren.
+3. Jeden Repository-Pfad vollständig auf garantiertes Connection-/Statement-/ResultSet-Schließen prüfen.
+4. Kein synchrones DB-, HTTP- oder schweres Filesystem-I/O in Event-/Tick-Hotpaths.
+5. Companion-/Guild-/Trade-/Bank-Persistenz auf dasselbe I/O-Modell wie PlayerProfile umstellen, wo aktuell noch synchrones Runtime-I/O existiert.
 
 ## Noch zu erledigen — P1
 
@@ -98,6 +105,8 @@ Der funktionierende Gameplay-Zustand ist die Referenz. Stabilisierung bedeutet: 
 10. SSRF-Schutz gegen Redirect- und DNS-Rebinding-Umgehungen weiter prüfen.
 11. Economy-Operationen serverautoritativ und logisch atomar durchführen.
 12. `PixelRPGPlugin` weiter zum Composition Root reduzieren, ohne funktionierende Registrierung zu brechen.
+13. Companion runtime maps (`companions`, `equipment`, `activeEntities`) auf harte Lifecycle-Grenzen und Größenwachstum prüfen.
+14. NPC- und Companion-Follow-/Look-Ticks auf unnötige Arbeit pro Spieler/Entity untersuchen.
 
 ## Architektur-Soll
 
@@ -124,6 +133,7 @@ Infrastructure
 - Mutable Domain-State nicht zwischen Main und I/O teilen.
 - Async Persistenz erhält immutable Snapshots.
 - Async Code hält keine dauerhaften Live-Entity-Referenzen.
+- Ein I/O-Executor darf nicht nach Plugin-Shutdown weiterarbeiten.
 
 ## Item-Vertrag
 
