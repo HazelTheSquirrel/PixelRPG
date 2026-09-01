@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.equipment.EquipmentSlot;
+import de.pixelrpg.rpg.economy.Money;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.quest.QuestProgress;
 import org.bukkit.configuration.ConfigurationSection;
@@ -32,7 +33,8 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         PlayerProfile profile = new PlayerProfile(uuid);
         profile.setRegistered(yaml.getBoolean("registered", false));
         profile.setExperience(yaml.getLong("experience", 0L));
-        profile.setMoney(yaml.getDouble("money", 0.0));
+        if (yaml.contains("money-minor-units")) profile.setMoneyMinorUnits(yaml.getLong("money-minor-units", 0L));
+        else profile.setMoney(yaml.getDouble("money", 0.0D));
         ConfigurationSection professionSection = yaml.getConfigurationSection("professions");
         if (professionSection != null) loadProfessions(profile, professionSection);
         profile.setUnlockedRecipes(new HashSet<>(yaml.getStringList("unlocked-recipes")));
@@ -70,7 +72,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
     @Override
     public long save(PlayerProfile profile) throws IOException {
         YamlConfiguration yaml = new YamlConfiguration();
-        yaml.set("registered", profile.isRegistered()); yaml.set("experience", profile.getExperience()); yaml.set("money", profile.getMoney());
+        yaml.set("registered", profile.isRegistered()); yaml.set("experience", profile.getExperience()); yaml.set("money-minor-units", profile.getMoneyMinorUnits());
         for (Profession profession : Profession.values()) { String key = profession.name().toLowerCase(); yaml.set("professions." + key + ".level", profile.getProfessionLevel(profession)); yaml.set("professions." + key + ".experience", profile.getProfessionExperience(profession)); yaml.set("professions." + key + ".learned", profile.hasLearnedProfession(profession)); }
         yaml.set("unlocked-recipes", new ArrayList<>(profile.getUnlockedRecipes())); yaml.set("unlocked-waypoints", new ArrayList<>(profile.getUnlockedWaypoints())); yaml.set("story-chapter-index", profile.getStoryChapterIndex()); yaml.set("completed-quests", new ArrayList<>(profile.getCompletedQuests()));
         for (QuestProgress progress : profile.getActiveQuests().values()) { String path = "active-quests." + progress.getQuestId(); yaml.set(path + ".amount", progress.getCurrentAmount()); yaml.set(path + ".expiry", progress.getExpiryTimestampMillis()); }
