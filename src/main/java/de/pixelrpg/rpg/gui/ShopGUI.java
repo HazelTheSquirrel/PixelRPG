@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.economy.Money;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.shop.ShopEntry;
@@ -15,6 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public final class ShopGUI extends AbstractGUI {
     private static final double ADMIN_SELL_RATIO = 0.50D;
@@ -40,7 +42,7 @@ public final class ShopGUI extends AbstractGUI {
             ItemMeta meta = display.getItemMeta();
             List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
             lore.add(Component.empty());
-            lore.add(Component.text("Preis: " + entry.price() + " Gold", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Preis: " + format(entry.price()) + " Gold", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
             lore.add(Component.text("Linksklick: Kaufen", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
             lore.add(Component.text("Rechtsklick: Verkaufen für " + format(entry.price() * ADMIN_SELL_RATIO) + " Gold", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
             meta.lore(lore);
@@ -52,25 +54,48 @@ public final class ShopGUI extends AbstractGUI {
 
     private void handleShopClick(InventoryClickEvent event, ShopEntry entry) {
         PlayerProfile profile = profileManager.getProfile(viewer.getUniqueId()).orElse(null);
-        if (profile == null) return;
+        if (profile == null || !profile.isRegistered()) return;
+        long priceMinorUnits = Money.fromMajor(entry.price());
         if (event.isRightClick()) {
             if (!removeOneMatchingItem(viewer, entry.item())) {
                 viewer.sendMessage(Component.text("Du hast dieses Item nicht im Inventar.", NamedTextColor.RED));
                 return;
             }
-            double payout = entry.price() * ADMIN_SELL_RATIO;
-            profile.addMoney(payout);
+            long payoutMinorUnits = Math.round(priceMinorUnits * ADMIN_SELL_RATIO);
+            profile.setMoneyMinorUnits(safeAdd(profile.getMoneyMinorUnits(), payoutMinorUnits));
             viewer.playSound(viewer.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 0.9f);
-            viewer.sendMessage(Component.text("Item für " + format(payout) + " Gold verkauft.", NamedTextColor.GREEN));
+            viewer.sendMessage(Component.text("Item für " + format(Money.toMajor(payoutMinorUnits)) + " Gold verkauft.", NamedTextColor.GREEN));
             return;
         }
-        if (!profile.removeMoney(entry.price())) {
+
+        if (!canFit(viewer, entry.item())) {
+            viewer.sendMessage(Component.text("Dein Inventar ist voll.", NamedTextColor.RED));
+            return;
+        }
+        if (profile.getMoneyMinorUnits() < priceMinorUnits) {
             viewer.sendMessage(Component.text("Du hast nicht genügend Gold.", NamedTextColor.RED));
             return;
         }
-        viewer.getInventory().addItem(entry.item().clone()).values().forEach(remainder -> viewer.getWorld().dropItemNaturally(viewer.getLocation(), remainder));
+
+        profile.setMoneyMinorUnits(profile.getMoneyMinorUnits() - priceMinorUnits);
+        viewer.getInventory().addItem(entry.item().clone());
         viewer.playSound(viewer.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 1.0f);
         viewer.sendMessage(Component.text("Gekauft!", NamedTextColor.GREEN));
+    }
+
+    private boolean canFit(Player player, ItemStack incoming) {
+        int remaining = incoming.getAmount();
+        for (ItemStack current : player.getInventory().getStorageContents()) {
+            if (current == null || current.isEmpty()) {
+                remaining -= incoming.getMaxStackSize();
+                if (remaining <= 0) return true;
+                continue;
+            }
+            if (!current.isSimilar(incoming)) continue;
+            remaining -= Math.max(0, current.getMaxStackSize() - current.getAmount());
+            if (remaining <= 0) return true;
+        }
+        return false;
     }
 
     private boolean removeOneMatchingItem(Player player, ItemStack template) {
@@ -89,5 +114,9 @@ public final class ShopGUI extends AbstractGUI {
         return false;
     }
 
-    private String format(double amount) { return String.format("%.2f", amount); }
+    private long safeAdd(long current, long delta) {
+        return delta > 0L && current > Long.MAX_VALUE - delta ? Long.MAX_VALUE : current + delta;
+    }
+
+    private String format(double amount) { return String.format(Locale.ROOT, "%.2f", amount); }
 }
