@@ -183,7 +183,7 @@ public final class QuestNavigationService {
         }
 
         if (!quest.targetBiomeKeys().isEmpty()) {
-            var registry = io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(io.papmc.paper.registry.RegistryKey.BIOME);
+            var registry = io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(io.papermc.paper.registry.RegistryKey.BIOME);
             var biomes = quest.targetBiomeKeys().stream()
                     .map(NamespacedKey::fromString)
                     .filter(java.util.Objects::nonNull)
