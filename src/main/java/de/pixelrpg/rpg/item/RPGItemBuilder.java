@@ -26,7 +26,7 @@ public final class RPGItemBuilder {
     private static final long WEAPON_ABILITY_COOLDOWN_MILLIS = 6_000L;
     private static final double MIN_ROLL_FACTOR = 0.50D;
     private static final double MAX_ROLL_FACTOR = 1.50D;
-    private static double growthMultiplier = 10.0D;
+    private static double growthMultiplier = 2.0D;
     private static double weaponBaseDamage = 3.0D;
     private static double weaponBaseCritChance = 0.5D;
     private static double weaponBaseCritDamage = 0.05D;
@@ -40,7 +40,7 @@ public final class RPGItemBuilder {
     private RPGItemBuilder() {
     }
 
-    /** Loads the deterministic item growth curve from the user-editable JSON baseline. */
+    /** Loads the bounded item growth curve from the user-editable JSON baseline. */
     public static void configureScaling(Plugin plugin) {
         try {
             var root = new JsonDataManager(plugin).load("item-scaling.json");
@@ -97,8 +97,6 @@ public final class RPGItemBuilder {
         pdc.set(RPGKeys.Item.instanceId(), PersistentDataType.STRING, UUID.randomUUID().toString());
         pdc.set(RPGKeys.Item.rarity(), PersistentDataType.STRING, rarity.name());
         pdc.set(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER, itemLevel);
-        // The item level is also the default level requirement for generated equipment.
-        // This keeps the requirement explicit so the stat engine can gate every generated item consistently.
         pdc.set(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER, itemLevel);
         pdc.set(RPGKeys.Item.category(), PersistentDataType.STRING, category.name());
         pdc.set(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN, guildItem);
@@ -121,10 +119,7 @@ public final class RPGItemBuilder {
         meta.lore(lore);
         item.setItemMeta(meta);
 
-        if (category.getProfile() == ItemStatProfile.WEAPON) {
-            item = applyMaterialWeaponAbility(item).orElse(item);
-        }
-
+        if (category.getProfile() == ItemStatProfile.WEAPON) item = applyMaterialWeaponAbility(item).orElse(item);
         return java.util.Optional.of(item);
     }
 
@@ -179,10 +174,8 @@ public final class RPGItemBuilder {
         List<EquipmentStat> pool = new ArrayList<>(List.of(EquipmentStat.values()));
         Collections.shuffle(pool, ThreadLocalRandom.current());
         Set<EquipmentStat> selected = EnumSet.copyOf(pool.subList(0, Math.min(count, pool.size())));
-
         for (EquipmentStat stat : selected) {
-            double base = stat.baseValue();
-            double value = roll(base * levelFactor * multiplier);
+            double value = roll(stat.baseValue() * levelFactor * multiplier);
             stat.write(pdc, value);
             lore.add(line(stat.lore(value)));
         }
@@ -194,7 +187,7 @@ public final class RPGItemBuilder {
             case UNCOMMON -> 3;
             case RARE -> 4;
             case EPIC -> 5;
-            case LEGENDARY, UNIQUE -> 8;
+            case LEGENDARY, UNIQUE -> 6;
         };
     }
 
@@ -260,7 +253,7 @@ public final class RPGItemBuilder {
     private static double levelScaling(int itemLevel) {
         if (itemLevel <= Level.MIN_LEVEL) return 1.0D;
         double progress = (itemLevel - 1.0D) / (Level.MAX_NORMAL_LEVEL - 1.0D);
-        return Math.pow(growthMultiplier, progress);
+        return 1.0D + Math.max(0.0D, growthMultiplier - 1.0D) * Math.clamp(progress, 0.0D, 1.0D);
     }
 
     private static double positive(com.google.gson.JsonObject object, String key, double fallback) {
@@ -318,11 +311,10 @@ public final class RPGItemBuilder {
     }
 
     private static double round(double value) {
-        return Math.round(value * 10.0D) / 10.0D;
+        return Math.round(value * 100.0D) / 100.0D;
     }
 
     private static String format(double value) {
-        if (Math.abs(value - Math.rint(value)) < 0.0001D) return Long.toString(Math.round(value));
-        return String.format(Locale.ROOT, "%.1f", value);
+        return String.format(Locale.ROOT, "%.2f", value);
     }
 }
