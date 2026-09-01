@@ -13,7 +13,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +25,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-/** Facade/orchestrator for companion ownership, persistence, progression and runtime lifecycle. */
+/** Facade/orchestrator for companion ownership, persistence, progression and reactive runtime lifecycle. */
 public final class CompanionService {
     private final Plugin plugin;
     private final File storageFolder;
@@ -38,7 +37,7 @@ public final class CompanionService {
     private final CompanionEquipmentStore equipmentStore;
     private final CompanionEquipmentListener equipmentListener;
     private final CompanionMountController mountController = new CompanionMountController();
-    private final BukkitTask followTask;
+    private final CompanionFollowTask runtimeTask;
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor(runnable -> {
         Thread thread = new Thread(runnable, "PixelRPG-CompanionIO");
         thread.setDaemon(true);
@@ -53,8 +52,8 @@ public final class CompanionService {
         this.progression = new CompanionProgression(registry);
         this.equipmentStore = new CompanionEquipmentStore(plugin.getDataFolder(), plugin.getLogger());
         this.equipmentListener = new CompanionEquipmentListener(plugin, this);
-        CompanionFollowTask runtimeTask = new CompanionFollowTask(plugin, activeEntities, this);
-        this.followTask = plugin.getServer().getScheduler().runTaskTimer(plugin, runtimeTask, 1L, 2L);
+        this.runtimeTask = new CompanionFollowTask(plugin, activeEntities, this);
+        plugin.getServer().getPluginManager().registerEvents(runtimeTask, plugin);
         plugin.getServer().getPluginManager().registerEvents(equipmentListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(new CompanionBossRewardListener(this), plugin);
         plugin.getServer().getPluginManager().registerEvents(new CompanionMountListener(this, registry, mountController), plugin);
@@ -65,16 +64,15 @@ public final class CompanionService {
     public CompanionDefinition definition(String id) { return registry.require(id); }
     public void ensureTestWolf(UUID playerId) { load(playerId); }
 
+    /** Wakes one active companion after an external state change. */
+    public void wakeRuntime(UUID playerId) { runtimeTask.wakeOwner(playerId); }
+
     /** Unlocks the companion configured for a defeated boss. */
     public boolean unlockFromBoss(UUID playerId, String bossId) {
         if (bossId == null || bossId.isBlank()) return false;
-        return registry.definitions().values().stream()
-                .filter(definition -> "BOSS".equalsIgnoreCase(definition.unlock().type()))
-                .filter(definition -> definition.unlock().data().has("bossId")
-                        && bossId.equalsIgnoreCase(definition.unlock().data().get("bossId").getAsString()))
-                .findFirst()
-                .map(definition -> grantDefinition(playerId, definition))
-                .orElse(false);
+        return registry.definitions().values().stream().filter(definition -> "BOSS".equalsIgnoreCase(definition.unlock().type()))
+                .filter(definition -> definition.unlock().data().has("bossId") && bossId.equalsIgnoreCase(definition.unlock().data().get("bossId").getAsString()))
+                .findFirst().map(definition -> grantDefinition(playerId, definition)).orElse(false);
     }
 
     /** Grants a companion directly through an administrative command. */
@@ -195,6 +193,7 @@ public final class CompanionService {
         CompanionEquipment copy = value == null ? CompanionEquipment.empty() : value.copy();
         equipment.computeIfAbsent(playerId, ignored -> new ConcurrentHashMap<>()).put(companionId, copy.copy());
         equipmentStore.save(playerId, companionId, copy);
+        wakeRuntime(playerId);
     }
 
     public void applyEquipmentToEntity(UUID playerId, String companionId, LivingEntity entity) {
@@ -214,6 +213,7 @@ public final class CompanionService {
         List<Companion> updated = current.stream().map(companion -> companion.id().equals(companionId) ? companion.withName(cleaned) : companion).toList();
         companions.put(playerId, updated); save(playerId, updated);
         UUID entityId = activeEntities.get(playerId); if (entityId != null) { Entity entity = plugin.getServer().getEntity(entityId); if (entity instanceof LivingEntity living) living.customName(Component.text(cleaned)); }
+        wakeRuntime(playerId);
         return true;
     }
 
@@ -226,6 +226,7 @@ public final class CompanionService {
         CompanionInstance progressed = progression.addExperience(definition, instance, baseExperience); if (progressed.experience() == active.experience()) return false;
         List<Companion> updated = current.stream().map(companion -> companion.id().equals(active.id()) ? companion.withProgress(progressed.level(), progressed.experience()) : companion).toList();
         companions.put(playerId, updated); save(playerId, updated); refreshActiveMetadata(playerId, updated.stream().filter(Companion::active).findFirst().orElse(null));
+        wakeRuntime(playerId);
         return progressed.level() != active.level();
     }
 
@@ -235,7 +236,7 @@ public final class CompanionService {
     public long experienceNeededForCurrentLevel(Companion companion) { CompanionDefinition definition = registry.find(companion.id()).orElse(null); return definition == null ? Long.MAX_VALUE : progression.experienceToNextLevel(definition, companion.level()); }
 
     public void shutdown() {
-        followTask.cancel();
+        runtimeTask.shutdown();
         for (UUID entityId : activeEntities.values()) removeEntity(entityId);
         activeEntities.clear();
         for (Map.Entry<UUID, List<Companion>> entry : companions.entrySet()) save(entry.getKey(), entry.getValue());
@@ -243,14 +244,8 @@ public final class CompanionService {
         equipment.clear();
         ioExecutor.shutdown();
         try {
-            if (!ioExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
-                plugin.getLogger().warning("Companion I/O did not finish within 10 seconds; forcing shutdown.");
-                ioExecutor.shutdownNow();
-            }
-        } catch (InterruptedException exception) {
-            Thread.currentThread().interrupt();
-            ioExecutor.shutdownNow();
-        }
+            if (!ioExecutor.awaitTermination(10, TimeUnit.SECONDS)) { plugin.getLogger().warning("Companion I/O did not finish within 10 seconds; forcing shutdown."); ioExecutor.shutdownNow(); }
+        } catch (InterruptedException exception) { Thread.currentThread().interrupt(); ioExecutor.shutdownNow(); }
         equipmentStore.close();
     }
 
@@ -266,6 +261,7 @@ public final class CompanionService {
             applyEquipmentToEntity(player.getUniqueId(), selected.id(), living);
             mountController.prepare(living, definition.mount(), player);
             activeEntities.put(player.getUniqueId(), entity.getUniqueId());
+            wakeRuntime(player.getUniqueId());
         } catch (RuntimeException exception) { plugin.getLogger().warning("Unable to spawn companion '" + selected.id() + "': " + exception.getMessage()); }
     }
 
@@ -306,10 +302,7 @@ public final class CompanionService {
             yaml.set(path + ".experience", companion.experience());
             yaml.set(path + ".active", companion.active());
         }
-        try {
-            yaml.save(file);
-        } catch (IOException exception) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to save companions for " + playerId, exception);
-        }
+        try { yaml.save(file); }
+        catch (IOException exception) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to save companions for " + playerId, exception); }
     }
 }
