@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Locale;
 
 public final class ShopGUI extends AbstractGUI {
-    private static final double ADMIN_SELL_RATIO = 0.50D;
     private final Player viewer;
     private final String npcId;
     private final ShopManager shopManager;
@@ -33,7 +32,8 @@ public final class ShopGUI extends AbstractGUI {
         this.profileManager = profileManager;
     }
 
-    @Override protected void populate() {
+    @Override
+    protected void populate() {
         List<ShopEntry> entries = shopManager.getEntries(npcId);
         int slot = 0;
         for (ShopEntry entry : entries) {
@@ -42,9 +42,14 @@ public final class ShopGUI extends AbstractGUI {
             ItemMeta meta = display.getItemMeta();
             List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
             lore.add(Component.empty());
-            lore.add(Component.text("Preis: " + format(entry.price()) + " Gold", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
-            lore.add(Component.text("Linksklick: Kaufen", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
-            lore.add(Component.text("Rechtsklick: Verkaufen für " + format(entry.price() * ADMIN_SELL_RATIO) + " Gold", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Kaufen: " + format(entry.buyPrice()) + " Gold", NamedTextColor.GOLD)
+                    .decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Verkaufen: " + format(entry.sellPrice()) + " Gold", NamedTextColor.GREEN)
+                    .decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Linksklick: Kaufen", NamedTextColor.YELLOW)
+                    .decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text("Rechtsklick: Verkaufen", NamedTextColor.GRAY)
+                    .decoration(TextDecoration.ITALIC, false));
             meta.lore(lore);
             display.setItemMeta(meta);
             setItem(slot, display, event -> handleShopClick(event, entry));
@@ -55,19 +60,20 @@ public final class ShopGUI extends AbstractGUI {
     private void handleShopClick(InventoryClickEvent event, ShopEntry entry) {
         PlayerProfile profile = profileManager.getProfile(viewer.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) return;
-        long priceMinorUnits = Money.fromMajor(entry.price());
+
         if (event.isRightClick()) {
+            long payoutMinorUnits = Money.fromMajor(entry.sellPrice());
             if (!removeOneMatchingItem(viewer, entry.item())) {
                 viewer.sendMessage(Component.text("Du hast dieses Item nicht im Inventar.", NamedTextColor.RED));
                 return;
             }
-            long payoutMinorUnits = Math.round(priceMinorUnits * ADMIN_SELL_RATIO);
             profile.setMoneyMinorUnits(safeAdd(profile.getMoneyMinorUnits(), payoutMinorUnits));
             viewer.playSound(viewer.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 0.9f);
             viewer.sendMessage(Component.text("Item für " + format(Money.toMajor(payoutMinorUnits)) + " Gold verkauft.", NamedTextColor.GREEN));
             return;
         }
 
+        long priceMinorUnits = Money.fromMajor(entry.buyPrice());
         if (!canFit(viewer, entry.item())) {
             viewer.sendMessage(Component.text("Dein Inventar ist voll.", NamedTextColor.RED));
             return;
@@ -118,5 +124,7 @@ public final class ShopGUI extends AbstractGUI {
         return delta > 0L && current > Long.MAX_VALUE - delta ? Long.MAX_VALUE : current + delta;
     }
 
-    private String format(double amount) { return String.format(Locale.ROOT, "%.2f", amount); }
+    private String format(double amount) {
+        return String.format(Locale.ROOT, "%.2f", amount);
+    }
 }
