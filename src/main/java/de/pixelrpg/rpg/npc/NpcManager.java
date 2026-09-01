@@ -337,23 +337,32 @@ public final class NpcManager {
     private NpcType parseType(String raw) {
         if (raw == null) return null;
         String normalized = raw.trim().toUpperCase();
-        if (normalized.equals("BLACKSMITH")) return NpcType.PROFESSION_BLACKSMITH;
+        if (normalized.equals("BLACKSMITH") || normalized.equals("PROFESSION_BLACKSMITH")) return NpcType.PROFESSION_BLACKSMITH;
+        if (normalized.equals("PROFESSION_PROVISIONER")) return NpcType.PROFESSION_COOK;
+        if (normalized.equals("PROFESSION_COOK")) return NpcType.PROFESSION_COOK;
         try { return NpcType.valueOf(normalized); }
         catch (IllegalArgumentException e) { return null; }
     }
 
     private Profession parseProfession(String raw) {
         if (raw == null || raw.isBlank()) return null;
-        try { return Profession.valueOf(raw.trim().toUpperCase()); }
+        String normalized = raw.trim().toUpperCase();
+        if (normalized.equals("PROVISIONER")) return Profession.COOK;
+        try { return Profession.valueOf(normalized); }
         catch (IllegalArgumentException e) { return null; }
     }
 
     private Profession professionFor(NpcType type) {
         return switch (type) {
             case PROFESSION_BLACKSMITH -> Profession.BLACKSMITH;
-            case PROFESSION_PROVISIONER -> Profession.PROVISIONER;
             case PROFESSION_SCHOLAR -> Profession.SCHOLAR;
+            case PROFESSION_FARMER -> Profession.FARMER;
+            case PROFESSION_COOK -> Profession.COOK;
+            case PROFESSION_TAILOR -> Profession.TAILOR;
             case PROFESSION_ALCHEMIST -> Profession.ALCHEMIST;
+            case PROFESSION_MASON -> Profession.MASON;
+            case PROFESSION_FISHERMAN -> Profession.FISHERMAN;
+            case PROFESSION_WOODCUTTER -> Profession.WOODCUTTER;
             default -> null;
         };
     }
