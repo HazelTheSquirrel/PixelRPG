@@ -25,6 +25,9 @@ import java.util.List;
 public final class CraftingGUI implements Listener {
     private static final int SIZE = 54;
     private static final int RECIPE_SLOTS = 45;
+    private static final int LAST_PAGE_SLOT = 45;
+    private static final int PAGE_INFO_SLOT = 49;
+    private static final int NEXT_PAGE_SLOT = 53;
 
     private final CraftingService craftingService;
     private final PlayerProfileManager profileManager;
@@ -35,7 +38,11 @@ public final class CraftingGUI implements Listener {
     }
 
     public void open(Player player, Profession profession) {
-        CraftingHolder holder = new CraftingHolder(profession);
+        open(player, profession, 0);
+    }
+
+    private void open(Player player, Profession profession, int page) {
+        CraftingHolder holder = new CraftingHolder(profession, Math.max(0, page));
         Inventory inventory = Bukkit.createInventory(holder, SIZE,
                 Component.text("PixelRPG Crafting – " + profession.name(), NamedTextColor.GOLD));
         holder.inventory = inventory;
@@ -47,7 +54,26 @@ public final class CraftingGUI implements Listener {
         Inventory inventory = holder.inventory;
         inventory.clear();
         List<CraftRecipe> recipes = craftingService.recipes(holder.profession);
-        for (int i = 0; i < recipes.size() && i < RECIPE_SLOTS; i++) inventory.setItem(i, displayRecipe(recipes.get(i), player));
+        int pageCount = Math.max(1, (recipes.size() + RECIPE_SLOTS - 1) / RECIPE_SLOTS);
+        holder.page = Math.min(holder.page, pageCount - 1);
+
+        int from = holder.page * RECIPE_SLOTS;
+        int to = Math.min(from + RECIPE_SLOTS, recipes.size());
+        for (int i = from; i < to; i++) {
+            inventory.setItem(i - from, displayRecipe(recipes.get(i), player));
+        }
+
+        if (holder.page > 0) inventory.setItem(LAST_PAGE_SLOT, navigationItem("← Vorherige Seite", Material.ARROW));
+        inventory.setItem(PAGE_INFO_SLOT, navigationItem("Seite " + (holder.page + 1) + " / " + pageCount, Material.PAPER));
+        if (holder.page + 1 < pageCount) inventory.setItem(NEXT_PAGE_SLOT, navigationItem("Nächste Seite →", Material.ARROW));
+    }
+
+    private ItemStack navigationItem(String name, Material material) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(Component.text(name, NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+        item.setItemMeta(meta);
+        return item;
     }
 
     private ItemStack displayRecipe(CraftRecipe recipe, Player player) {
@@ -88,18 +114,35 @@ public final class CraftingGUI implements Listener {
         return item;
     }
 
-    // Zuständig für Freischaltung und Herstellung eines ausgewählten Berufsrezepts.
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof CraftingHolder holder)) return;
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (event.getClickedInventory() != event.getView().getTopInventory()) return;
+
+        if (event.getSlot() == LAST_PAGE_SLOT) {
+            if (holder.page > 0) {
+                holder.page--;
+                render(player, holder);
+            }
+            return;
+        }
+        if (event.getSlot() == NEXT_PAGE_SLOT) {
+            List<CraftRecipe> recipes = craftingService.recipes(holder.profession);
+            int pageCount = Math.max(1, (recipes.size() + RECIPE_SLOTS - 1) / RECIPE_SLOTS);
+            if (holder.page + 1 < pageCount) {
+                holder.page++;
+                render(player, holder);
+            }
+            return;
+        }
         if (event.getSlot() < 0 || event.getSlot() >= RECIPE_SLOTS) return;
 
         List<CraftRecipe> recipes = craftingService.recipes(holder.profession);
-        if (event.getSlot() >= recipes.size()) return;
-        CraftRecipe recipe = recipes.get(event.getSlot());
+        int recipeIndex = holder.page * RECIPE_SLOTS + event.getSlot();
+        if (recipeIndex < 0 || recipeIndex >= recipes.size()) return;
+        CraftRecipe recipe = recipes.get(recipeIndex);
         var profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
 
@@ -148,8 +191,12 @@ public final class CraftingGUI implements Listener {
 
     private static final class CraftingHolder implements InventoryHolder {
         private final Profession profession;
+        private int page;
         private Inventory inventory;
-        private CraftingHolder(Profession profession) { this.profession = profession; }
+        private CraftingHolder(Profession profession, int page) {
+            this.profession = profession;
+            this.page = page;
+        }
         @Override public Inventory getInventory() { return inventory; }
     }
 }
