@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /** Facade/orchestrator for companion ownership, persistence, progression and runtime lifecycle. */
 public final class CompanionService {
@@ -36,6 +39,11 @@ public final class CompanionService {
     private final CompanionEquipmentListener equipmentListener;
     private final CompanionMountController mountController = new CompanionMountController();
     private final BukkitTask followTask;
+    private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "PixelRPG-CompanionIO");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     public CompanionService(Plugin plugin) {
         this.plugin = plugin;
@@ -226,7 +234,26 @@ public final class CompanionService {
     public long experienceWithinLevel(Companion companion) { CompanionDefinition definition = registry.find(companion.id()).orElse(null); if (definition == null) return 0L; CompanionInstance instance = new CompanionInstance(UUID.randomUUID(), companion.id(), companion.level(), companion.experience(), true, companion.active(), CompanionEquipment.empty()); return progression.experienceWithinLevel(definition, instance); }
     public long experienceNeededForCurrentLevel(Companion companion) { CompanionDefinition definition = registry.find(companion.id()).orElse(null); return definition == null ? Long.MAX_VALUE : progression.experienceToNextLevel(definition, companion.level()); }
 
-    public void shutdown() { followTask.cancel(); for (UUID entityId : activeEntities.values()) removeEntity(entityId); activeEntities.clear(); for (UUID playerId : companions.keySet()) { List<Companion> current = companions.get(playerId); if (current != null) save(playerId, current); } companions.clear(); equipment.clear(); }
+    public void shutdown() {
+        followTask.cancel();
+        for (UUID entityId : activeEntities.values()) removeEntity(entityId);
+        activeEntities.clear();
+        for (Map.Entry<UUID, List<Companion>> entry : companions.entrySet()) save(entry.getKey(), entry.getValue());
+        companions.clear();
+        equipment.clear();
+        ioExecutor.shutdown();
+        try {
+            if (!ioExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                plugin.getLogger().warning("Companion I/O did not finish within 10 seconds; forcing shutdown.");
+                ioExecutor.shutdownNow();
+            }
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            ioExecutor.shutdownNow();
+        }
+        equipmentStore.close();
+    }
+
     private Companion toCompanion(CompanionDefinition definition) { return new Companion(definition.id(), definition.displayName(), 1, 0L, definition.rarity(), definition.visual().entityType(), false); }
 
     private void spawnPassiveCompanion(Player player, Companion selected) {
@@ -263,5 +290,26 @@ public final class CompanionService {
         if (changed) { companions.put(playerId, updated); save(playerId, updated); }
     }
 
-    private void save(UUID playerId, List<Companion> values) { File file = new File(storageFolder, playerId + ".yml"); YamlConfiguration yaml = new YamlConfiguration(); for (Companion companion : values) { String path = "companions." + companion.id(); yaml.set(path + ".name", companion.name()); yaml.set(path + ".level", companion.level()); yaml.set(path + ".experience", companion.experience()); yaml.set(path + ".active", companion.active()); } try { yaml.save(file); } catch (IOException exception) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to save companions for " + playerId, exception); } }
+    /** Queues a detached companion snapshot for YAML serialization outside the Paper thread. */
+    private void save(UUID playerId, List<Companion> values) {
+        List<Companion> snapshot = List.copyOf(values);
+        ioExecutor.execute(() -> saveBlocking(playerId, snapshot));
+    }
+
+    private void saveBlocking(UUID playerId, List<Companion> values) {
+        File file = new File(storageFolder, playerId + ".yml");
+        YamlConfiguration yaml = new YamlConfiguration();
+        for (Companion companion : values) {
+            String path = "companions." + companion.id();
+            yaml.set(path + ".name", companion.name());
+            yaml.set(path + ".level", companion.level());
+            yaml.set(path + ".experience", companion.experience());
+            yaml.set(path + ".active", companion.active());
+        }
+        try {
+            yaml.save(file);
+        } catch (IOException exception) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to save companions for " + playerId, exception);
+        }
+    }
 }
