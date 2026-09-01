@@ -45,7 +45,8 @@ tasks.register('verifyPixelRpgSourceBoundaries') {
                 ~/net\.md_5\.bungee\.api\.ChatColor/,
                 ~/net\.minecraft\.server\.v[0-9_]+/,
                 ~/org\.bukkit\.craftbukkit/,
-                ~/static\s+[^\n]*(Player|Entity|World)\s+\w+/
+                ~/static\s+(?:final\s+)?(?:Player|Entity|World)\s+\w+\s*(?:=|;)/,
+                ~/static\s+(?:final\s+)?[\w<>?, .]+\s+\w*(?:Player|Entity|World)\w*\s*(?:=|;)/
         ]
         fileTree(sourceRoot).matching { include '**/*.java' }.each { sourceFile ->
             def text = sourceFile.getText('UTF-8')
@@ -64,7 +65,7 @@ tasks.check {
 
 tasks.shadowJar {
     archiveFileName = "Pixel-RPG.jar"
-    relocate 'com.google.gson', 'de.pixelrpg.rpg.libs.gson'
+    relocate 'com.google.code.gson', 'de.pixelrpg.rpg.libs.gson'
     relocate 'com.zaxxer.hikari', 'de.pixelrpg.rpg.libs.hikari'
     relocate 'com.mysql', 'de.pixelrpg.rpg.libs.mysql'
     mergeServiceFiles()
