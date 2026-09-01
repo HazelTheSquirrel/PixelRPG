@@ -83,9 +83,7 @@ public final class ProfessionDialog {
             actions.add(dialogueEngine.actionButton(Component.text("Berufsquests (" + professionQuests.size() + ")"), NamedTextColor.YELLOW,
                     target -> openProfessionQuests(target, profession)));
         }
-        List<CraftRecipe> recipes = craftingService.recipes(profession).stream()
-                .filter(recipe -> craftingService.isUnlocked(player, recipe))
-                .toList();
+        List<CraftRecipe> recipes = craftingService.recipes(profession);
         if (!recipes.isEmpty()) {
             actions.add(dialogueEngine.actionButton(Component.text("Rezepte (" + recipes.size() + ")"), NamedTextColor.GREEN,
                     target -> openProfessionRecipes(target, profession)));
@@ -131,19 +129,21 @@ public final class ProfessionDialog {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) return;
         int professionLevel = professionService.getLevel(player.getUniqueId(), profession);
-        List<CraftRecipe> recipes = craftingService.recipes(profession).stream()
-                .filter(recipe -> craftingService.isUnlocked(player, recipe))
-                .toList();
+        List<CraftRecipe> recipes = craftingService.recipes(profession);
         List<DialogBody> body = new ArrayList<>();
         body.add(DialogBody.plainMessage(Component.text("Rezepte für " + profession.displayName(), NamedTextColor.WHITE)));
         body.add(DialogBody.plainMessage(Component.text("Dein Beruflevel: " + professionLevel + "/" + Profession.MAX_LEVEL, NamedTextColor.AQUA)));
+        body.add(DialogBody.plainMessage(Component.text("Alle Rezepte werden angezeigt. Gesperrte Rezepte zeigen ihre Anforderungen.", NamedTextColor.GRAY)));
         List<ActionButton> actions = new ArrayList<>();
         for (CraftRecipe recipe : recipes) {
-            actions.add(dialogueEngine.actionButton(Component.text(recipe.displayName()), NamedTextColor.GREEN,
+            boolean unlocked = craftingService.isUnlocked(player, recipe);
+            String state = unlocked ? " • freigeschaltet" : " • gesperrt";
+            actions.add(dialogueEngine.actionButton(Component.text(recipe.displayName() + state),
+                    unlocked ? NamedTextColor.GREEN : NamedTextColor.YELLOW,
                     target -> openRecipeDetails(target, recipe, false)));
         }
-        if (actions.isEmpty()) body.add(DialogBody.plainMessage(Component.text("Aktuell sind keine Rezepte freigeschaltet.", NamedTextColor.WHITE)));
-        dialogueEngine.openMultiAction(player, Component.text(profession.displayName() + " – Rezepte", NamedTextColor.GOLD), body, actions, 1,
+        if (actions.isEmpty()) body.add(DialogBody.plainMessage(Component.text("Aktuell sind keine Rezepte vorhanden.", NamedTextColor.WHITE)));
+        dialogueEngine.openMultiAction(player, Component.text(profession.displayName() + " – Rezepte", NamedTextColor.GOLD), body, actions, 2,
                 target -> openProfession(target, profession));
     }
 
@@ -275,7 +275,7 @@ public final class ProfessionDialog {
             actions.add(dialogueEngine.actionButton(Component.text(recipe.displayName() + state), unlocked ? NamedTextColor.GREEN : NamedTextColor.YELLOW,
                     target -> openRecipeDetails(target, recipe, true)));
         }
-        dialogueEngine.openMultiAction(player, Component.text(profession.displayName() + "-Lehrer", NamedTextColor.GOLD), body, actions, 1);
+        dialogueEngine.openMultiAction(player, Component.text(profession.displayName() + "-Lehrer", NamedTextColor.GOLD), body, actions, 2);
     }
 
     public static Component recipeLine(CraftRecipe recipe) { return Component.text(recipe.displayName() + " • Level " + recipe.requiredProfessionLevel()); }
