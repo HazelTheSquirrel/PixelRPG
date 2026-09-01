@@ -4,19 +4,19 @@
 **Zielplattform:** Paper 26.x, aktuell Paper 26.2
 **Java:** 25
 **Mappings:** Mojang
-**Stand:** vollständiger Stabilisierungslauf — Implementierungsdurchlauf 1 abgeschlossen
+**Stand:** Stabilisierungslauf fortgesetzt — PlayerProfile-Revisionsschutz gehärtet
 
 ## Urteil
 
-Der Branch ist nach dem Stabilisierungslauf deutlich belastbarer und die CI-Gates sind grün. Der Code ist damit in einem guten Zustand für die nächste Testphase, aber ein grüner Build beweist weiterhin keine reale 50-/100-Spieler-Last oder externe Datenbank-Recovery.
+Der Branch ist nach den bisherigen Stabilisierungsläufen deutlich belastbarer und die CI-Gates sind grün. Das ist weiterhin **kein Beweis für 50-/100-Spieler-TPS oder externe Datenbank-Recovery**.
 
-**Wichtig:** Dieses Dokument trennt bewusst zwischen bereits technisch umgesetzten Maßnahmen und Punkten, die nur durch einen echten Laufzeittest bzw. Produktionsähnliche Infrastruktur verifiziert werden können.
+Dieses Audit trennt bewusst zwischen tatsächlich implementierten Maßnahmen und Punkten, die nur durch reale Laufzeit-/Lasttests bewiesen werden können.
 
 ---
 
-# 1. Umgesetzte Stabilisierung
+# 1. PlayerProfile / Persistenz
 
-## PlayerProfile / Persistenz
+## Umgesetzt
 
 - Deep-Snapshots vor Async-Handoffs.
 - Kein Live-`PlayerProfile` im Repository-Thread.
@@ -25,14 +25,27 @@ Der Branch ist nach dem Stabilisierungslauf deutlich belastbarer und die CI-Gate
 - Per-UUID Save-Sequenz.
 - Idempotenter Shutdown.
 - Equipment- und Quest-State werden gesnapshottet.
+- Persistente `persistence_revision` in der MySQL-Persistenz.
+- MySQL-Saves verwenden jetzt `SELECT persistence_revision ... FOR UPDATE`.
+- Ein Save darf nur auf der erwarteten Revision aufbauen.
+- Stale Profile aus einer zweiten Serverinstanz werden abgewiesen, bevor Child-State überschrieben wird.
+- Revision wird erst nach erfolgreichem Commit am Live-Profil gesetzt.
+- Der komplette Save bleibt eine Datenbanktransaktion.
+
+### Wichtiger Befund
+
+Das frühere Modell „Revision erhöhen und speichern“ war alleine nicht ausreichend: Zwei Serverinstanzen konnten theoretisch denselben alten Snapshot speichern. Der Save-Pfad besitzt jetzt einen pessimistischen Row-Lock und einen Revision-Compare, wodurch konkurrierende Saves serialisiert und veraltete Snapshots abgewiesen werden.
 
 ### Noch offen
 
-- Persistente DB-Revision fehlt. Die Prozess-interne Save-Reihenfolge schützt nicht gegen externe Prozesse, Restore-Replays oder mehrere Serverinstanzen.
+- Konflikt-Recovery für eine tatsächlich abgewiesene Revision ist noch eine Produktentscheidung: Reload/merge/retry darf nicht blind implementiert werden, weil dadurch Gameplay-Mutationen verloren gehen könnten.
+- YAML und MySQL sind weiterhin unterschiedliche Persistence-Backends und haben keinen gemeinsamen verteilten Lock.
 
 ---
 
-## Region
+# 2. Region
+
+## Umgesetzt
 
 - Welt-/Chunk-Index für Region-Lookups.
 - Welt-/Chunk-Index für explizite Spawnpunkte.
@@ -48,7 +61,9 @@ Der ursprüngliche lineare Region-Scan im Spawn-/Lookup-Hotpath ist architektoni
 
 ---
 
-## NPC / HTTP / Skins
+# 3. NPC / HTTP / Skins
+
+## Umgesetzt
 
 - NPC-Chunk-Index.
 - NPC-Persistenz asynchron.
@@ -66,7 +81,9 @@ DNS-Rebinding ist bei externen HTTP-Zielen grundsätzlich ein gesondertes Infras
 
 ---
 
-## Guild / Party
+# 4. Guild / Party
+
+## Umgesetzt
 
 - Runtime-State bleibt serverthreadgebunden.
 - Persistenz über eigene sequenzielle I/O-Executors.
@@ -77,11 +94,11 @@ DNS-Rebinding ist bei externen HTTP-Zielen grundsätzlich ein gesondertes Infras
 
 ---
 
-## Companion
+# 5. Companion
 
-Der Companion-Bereich wurde in diesem Durchlauf weiter stabilisiert.
+## Umgesetzt
 
-- Companion-YAML-Saves laufen jetzt über einen eigenen sequenziellen `PixelRPG-CompanionIO` Executor.
+- Companion-YAML-Saves laufen über einen eigenen sequenziellen `PixelRPG-CompanionIO` Executor.
 - Gespeichert werden detached `List.copyOf(...)`-Snapshots statt mutable Runtime-Listen.
 - Companion-Equipment wird über einen eigenen `PixelRPG-CompanionEquipmentIO` Executor geschrieben.
 - Beide Executor werden beim Shutdown kontrolliert beendet und warten auf ausstehende Writes.
@@ -90,12 +107,14 @@ Der Companion-Bereich wurde in diesem Durchlauf weiter stabilisiert.
 
 ### Noch offen
 
-- `CompanionService.load()` liest beim ersten Zugriff weiterhin synchron YAML. Das ist kein periodischer Hotpath, kann bei sehr großen Dateien aber Join-/GUI-Latenz verursachen. Der nächste sinnvolle Schritt ist ein asynchroner Player-Load mit Main-Thread-Handoff.
+- `CompanionService.load()` liest beim ersten Zugriff weiterhin synchron YAML. Das ist kein periodischer Hotpath, kann bei sehr großen Dateien aber Join-/GUI-Latenz verursachen.
 - Companion-Listen sind weiterhin mutable Collections hinter einer Service-Fassade. Ein echtes Actor-/Mailbox-Modell wäre die stärkere Langzeitarchitektur.
 
 ---
 
-# 2. Build / Dependency Isolation
+# 6. Build / Dependency Isolation
+
+## Umgesetzt
 
 - Java 25 Toolchain.
 - Paper 26.2 Dev-Bundle.
@@ -105,7 +124,7 @@ Der Companion-Bereich wurde in diesem Durchlauf weiter stabilisiert.
 - CI prüft erzeugte Shadow-JARs auf unrelocierte Drittanbieter-Klassen.
 - CI prüft `META-INF/services/java.sql.Driver` auf den relocatierten MySQL-Treiber.
 - CI verhindert den alten `com.mysql.cj.jdbc.Driver` Service-Eintrag.
-- Build-Gate verwendet die tatsächliche `Set<File>`-Semantik des Gradle-ZipTree-Ergebnisses; kein ungültiger `.singleFile`-Zugriff mehr.
+- Build-Gate verwendet die tatsächliche `Set<File>`-Semantik des Gradle-ZipTree-Ergebnisses.
 
 ### Noch offen
 
@@ -113,9 +132,9 @@ Der Companion-Bereich wurde in diesem Durchlauf weiter stabilisiert.
 
 ---
 
-# 3. Threading-Vertrag
+# 7. Threading-Vertrag
 
-Verbindliche Regeln für den Branch:
+Verbindlich:
 
 - Paper-/Minecraft-Live-API nur auf dem vorgesehenen Serverthread.
 - DB-I/O niemals Main Thread.
@@ -127,13 +146,9 @@ Verbindliche Regeln für den Branch:
 - Jeder Executor wird beim Shutdown beendet.
 - Async Tasks dürfen keine langlebigen Live-Entity-Referenzen halten.
 
-Der Companion-Stabilisierungslauf erfüllt jetzt zusätzlich den Filesystem-Teil für Companion-Saves.
-
 ---
 
-# 4. Persistenz-Vertrag
-
-Zielmodell:
+# 8. Persistenz-Vertrag
 
 ```text
 Main-thread mutation
@@ -145,19 +160,25 @@ ordered persistence queue
 atomic repository write
 ```
 
-Für PlayerProfile zusätzlich:
+Für MySQL-PlayerProfile zusätzlich:
 
 ```text
-revision 41
-revision 42
-revision 43
+expected revision N
+        ↓
+SELECT ... FOR UPDATE
+        ↓
+compare database revision == N
+        ↓
+transactional write
+        ↓
+commit revision N+1
 ```
 
-Ein Save mit Revision 42 darf niemals einen bereits gespeicherten Zustand 43 überschreiben.
+Ein Snapshot mit Revision 42 darf keinen bereits gespeicherten Zustand 43 überschreiben.
 
 ---
 
-# 5. Listener-Vertrag
+# 9. Listener-Vertrag
 
 Listener dürfen keine vollständige Business-Logik enthalten.
 
@@ -173,11 +194,13 @@ Result
 Paper side effect
 ```
 
-Region wurde entsprechend aufgeteilt. Combat, Quest, NPC, Boss und Inventory müssen bei weiteren Durchläufen weiterhin auf versteckte Business-Logik geprüft werden.
+Region wurde entsprechend aufgeteilt. Combat, Quest, NPC, Boss und Inventory müssen weiterhin auf versteckte Business-Logik geprüft werden.
 
 ---
 
-# 6. Economy-Vertrag
+# 10. Economy-Vertrag
+
+## Noch offen — nächster Implementierungsblock
 
 - Server ist autoritativ.
 - Clientdaten bestimmen niemals Preis oder Kontostand.
@@ -185,23 +208,45 @@ Region wurde entsprechend aufgeteilt. Combat, Quest, NPC, Boss und Inventory mü
 - Kaufen/Verkaufen/Bank/Guild müssen bei Fehlern atomar sein.
 - `double` ist für ein dauerhaftes Geldmodell zu vermeiden.
 
-## Offener technischer Punkt
+### Aktueller Befund
 
-Die Economy benötigt weiterhin eine endgültige Prüfung auf Ganzzahl-Währung und atomare Transaktionen. Das wird nicht durch einen erfolgreichen Build bewiesen.
+`PlayerProfile` verwendet weiterhin `double money`. Das ist für ein langlebiges Wirtschaftssystem technisch nicht akzeptabel, sobald exakte Währungswerte garantiert werden müssen. Dieser Teil wird bewusst nicht durch kosmetische Validierung als „gelöst“ markiert.
+
+Der richtige nächste Schritt ist ein zentraler Money-/Transaction-Typ mit Ganzzahl-Untereinheiten und eine atomare Economy-Service-Schicht, bevor Shops und Bank weiter ausgebaut werden.
 
 ---
 
-# 7. Hotpath- und Skalierungsprüfung
+# 11. Quest / Recipe / Displayname Single Source of Truth
+
+## Bereits vorhanden
+
+- Crafting-Rezepte werden über `CraftingRecipeRegistry` zentral geladen.
+- Recipe-IDs werden kanonisiert.
+- Item-IDs werden kanonisiert.
+- `CraftingRecipeRegistry.findDisplayNameByResultItemId(...)` liefert den kanonischen player-facing Namen eines eindeutigen Rezeptoutputs.
+- Quest-`COLLECT`-Validierung akzeptiert Vanilla-Materialien, registrierte PixelRPG-Items und bekannte Recipe-Outputs.
+- Quest- und Recipe-Referenzen werden beim Load validiert.
+- Unbekannte Prerequisites und Follow-Ups werden erkannt.
+- Prerequisite-Zyklen werden erkannt.
+
+### Noch offen
+
+Die gesamte UI-/Quest-/Shop-Kette muss noch auf tatsächlich ausschließlich kanonische `CraftRecipe.displayName()`-/Item-Definition-Namen geprüft werden. Legacy-Stringfragmente dürfen nicht stillschweigend als Fallback weiterleben.
+
+---
+
+# 12. Hotpath- und Skalierungsprüfung
 
 ## Bereits entschärft
 
-- Region-Spawn-Lookups wurden indexiert.
-- NPC-Lookups wurden indexiert.
-- Region-/NPC-/Companion-Persistenz wurde aus kritischen Runtime-Schreibpfaden herausgezogen.
+- Region-Spawn-Lookups indexiert.
+- NPC-Lookups indexiert.
+- Region-/NPC-/Companion-Persistenz aus kritischen Runtime-Schreibpfaden herausgezogen.
 - HTTP-Skin-Auflösung blockiert den Serverthread nicht.
 - Skin-Cache ist begrenzt.
+- PlayerProfile-DB-Saves besitzen jetzt konkurrierenden Revisionsschutz.
 
-## Noch zu profilieren
+## Nächster Profiling-Block
 
 - Boss-Tick-Logik und Entity-Scans.
 - Combat-/Skill-Hotpaths.
@@ -211,11 +256,11 @@ Die Economy benötigt weiterhin eine endgültige Prüfung auf Ganzzahl-Währung 
 - Scoreboard-Updates.
 - World-/Biome-Boss-Spawning.
 
-Ohne Spark-/Timings-Daten wäre jede Aussage über 100-Spieler-TPS an dieser Stelle Spekulation.
+Ohne Spark-/Timings-Daten wäre jede Aussage über 100-Spieler-TPS Spekulation.
 
 ---
 
-# 8. Cache-Vertrag
+# 13. Cache-Vertrag
 
 Jeder langlebige Cache benötigt:
 
@@ -230,7 +275,7 @@ Andere Cache-Strukturen müssen bei einem weiteren Repository-weiten Durchlauf a
 
 ---
 
-# 9. Security-Vertrag
+# 14. Security-Vertrag
 
 Verbindlich:
 
@@ -247,68 +292,37 @@ Verbindlich:
 
 ---
 
-# 10. Vollständiger Durchlauf — Statusmatrix
+# 15. Priorisierte Restarbeiten
 
-| Phase | Bereich | Status | Aussage |
-|---|---|---:|---|
-| 1 | Architektur / Package-Schnitt | 🟡 | Struktur verbessert; God-Object bleibt als Composition Root bestehen |
-| 2 | Lifecycle / Shutdown | 🟢 | zentrale Shutdown-Aufrufe und Executor-Cleanup vorhanden |
-| 3 | PlayerProfile | 🟡 | Snapshot-Persistenz umgesetzt; persistente Revision offen |
-| 4 | Region | 🟢 | Index + Policy + Async/Atomic Persistence umgesetzt |
-| 5 | NPC | 🟢 | Index + Async Persistence + Lifecycle-Härtung umgesetzt |
-| 6 | External Skin / HTTP | 🟢 | Async + Limits + SSRF-Basis + bounded cache |
-| 7 | Guild | 🟢 | sequenzielle Async-Persistenz + Flush |
-| 8 | Party | 🟢 | sequenzielle Async-Persistenz + Flush |
-| 9 | Companion | 🟡 | Saves async; initiales Laden noch synchron |
-| 10 | Build / ShadowJar | 🟢 | Relocation- und JDBC-Service-Gates aktiv |
-| 11 | Listener SoC | 🟡 | Region verbessert; weitere Domänen noch zu entkoppeln |
-| 12 | Economy | 🟡 | Architekturprüfung offen; `double`/Atomizität weiter prüfen |
-| 13 | Quest / Recipe / Names | 🟡 | Resolver vorhanden; vollständige Kanonisierung offen |
-| 14 | Combat / Boss | 🟡 | Code vorhanden; Hotpath-Profiling offen |
-| 15 | Release Reproducibility | 🔴 | `26.2.build.+` muss für Release gepinnt werden |
-| 16 | 50/100 Player Load | 🔴 | realer Lasttest fehlt |
+| Priorität | Bereich | Status |
+|---|---|---|
+| P0 | PlayerProfile Cross-Instance Revision | umgesetzt |
+| P0 | Economy Money-Typ + atomare Transaktionen | offen |
+| P0 | Reale DB-Recovery-/Rollback-Tests | offen |
+| P1 | Quest/Recipe/Displayname Single Source of Truth | teilweise umgesetzt |
+| P1 | Companion Async Initial Load | offen |
+| P1 | Boss/Combat Hotpath Profiling | offen |
+| P1 | Shop/Trade/Bank Atomizität | offen |
+| P2 | Scoreboard Update-Budgetierung | offen |
+| P2 | Companion Actor/Mailbox-Modell | offen |
+| P2 | Exakter Paper-26.2-Build für Release | offen |
+| P2 | Kontrollierter HTTP-Resolver/Outbound-Proxy | offen |
 
 ---
 
-# 11. Production-Ready-Gate
+# 16. Definition of Done für den Stabilitätsumbau
 
-Der Branch darf erst als Production-Ready bezeichnet werden, wenn alle folgenden Punkte nachgewiesen sind:
+Der Branch gilt erst dann als stabilisierungsseitig abgeschlossen, wenn:
 
-- [x] Java-25 Clean Build.
-- [x] Paper-26.2-Dev-Bundle auflösbar.
-- [x] Source-Boundary-Gates grün.
-- [x] Shadow-JAR-Relocation-Gates grün.
-- [x] JDBC-Service-Descriptor validiert.
-- [x] Companion-Saves laufen nicht mehr synchron.
-- [x] Companion-Equipment-Saves laufen nicht mehr synchron.
-- [ ] Companion-Initialload vollständig asynchron.
-- [ ] PlayerProfile persistente Revision.
-- [ ] Economy auf atomare Ganzzahl-Währung umgestellt.
-- [ ] Quest-/Recipe-Kanonisierung vollständig.
-- [ ] Combat-/Boss-/Shop-Hotpaths profiliert.
-- [ ] Release-Dependency-Versionen exakt gepinnt.
-- [ ] Fat-JAR auf einem echten Paper-26.2-Server gestartet.
-- [ ] MySQL/Hikari real getestet (`SELECT 1`).
-- [ ] Join → Load → Mutation → Save → Quit → Reload ohne Datenverlust getestet.
-- [ ] Concurrent-save-Recovery getestet.
-- [ ] 50-Spieler-Lasttest.
-- [ ] 100-Spieler-Lasttest.
+1. CI reproduzierbar grün ist.
+2. PlayerProfile-Saves unter konkurrierenden Instanzen keine stale Writes zulassen.
+3. Economy-Transaktionen atomar sind.
+4. Geld nicht über `double` als fachliche Wahrheit geführt wird.
+5. Shop-/Sell-/Buy-Operationen bei Fehlern vollständig rollbackfähig sind.
+6. Quest-/Recipe-/Item-Namen aus einer kanonischen Quelle stammen.
+7. Boss-/Combat-/Quest-/Companion-/Scoreboard-Hotpaths real profiliert wurden.
+8. 50-Spieler- und 100-Spieler-Tests mit realistischem Gameplay durchgeführt wurden.
+9. DB-Ausfall, Reconnect und Save-Queue-Stau getestet wurden.
+10. Der Release-Build einen exakt gepinnten Paper-Dev-Bundle-Build verwendet.
 
----
-
-# 12. Nächster technischer Durchlauf
-
-Nach dem grünen CI-Build ist die richtige Reihenfolge:
-
-1. Companion-Initialload asynchron machen.
-2. PlayerProfile persistente Revision einführen.
-3. Economy-Atomizität und Währungstyp endgültig härten.
-4. Quest-/Recipe-/Displayname-Single-Source-of-Truth erzwingen.
-5. Combat/Boss/Shop/Quest/Scoreboard-Hotpaths mit realen Profiling-Daten prüfen.
-6. Release-Build auf exakten Paper-Dev-Bundle-Build pinnen.
-7. Echtes Paper-26.2-Server-Smoke-Testprofil.
-8. MySQL-Recovery-/Restart-Test.
-9. 50-Spieler-Test.
-10. 100-Spieler-Test.
-
-**Kein weiterer großer Umbau sollte diese Reihenfolge überspringen.** Nach diesem Punkt ist reale Laufzeitmessung wertvoller als weitere theoretische Architekturkritik.
+**Kein grüner Compile allein darf einen dieser Punkte automatisch auf „erledigt“ setzen.**
