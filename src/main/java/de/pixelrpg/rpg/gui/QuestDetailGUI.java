@@ -1,5 +1,7 @@
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
@@ -16,6 +18,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public final class QuestDetailGUI extends AbstractGUI {
     private final Player viewer;
@@ -61,6 +64,11 @@ public final class QuestDetailGUI extends AbstractGUI {
         info.setItemMeta(meta);
         setItem(22, info);
 
+        if (quest.type() == QuestType.COLLECT) {
+            ItemStack requested = requestedItem();
+            if (requested != null && !requested.isEmpty()) setItem(20, requested);
+        }
+
         if (profile.hasActiveQuest(quest.id())) {
             ItemStack abandon = new ItemStack(Material.BARRIER);
             ItemMeta abandonMeta = abandon.getItemMeta();
@@ -78,5 +86,20 @@ public final class QuestDetailGUI extends AbstractGUI {
         backMeta.displayName(Component.text("Zurück", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
         back.setItemMeta(backMeta);
         setItem(49, back, event -> new QuestLogGUI(viewer, questManager, profileManager).open(viewer));
+    }
+
+    private ItemStack requestedItem() {
+        String target = quest.targetKey();
+        if (target == null || target.isBlank()) return null;
+        ItemService itemService = PixelRPGPlugin.getInstance().getItemService();
+        if (target.toLowerCase(Locale.ROOT).startsWith("pixelrpg:")) {
+            return itemService.createItem(target).map(item -> {
+                item.setAmount(Math.min(quest.requiredAmount(), item.getMaxStackSize()));
+                return item;
+            }).orElse(null);
+        }
+        Material material = Material.matchMaterial(target);
+        if (material == null || material.isAir()) return null;
+        return new ItemStack(material, Math.min(quest.requiredAmount(), material.getMaxStackSize()));
     }
 }
