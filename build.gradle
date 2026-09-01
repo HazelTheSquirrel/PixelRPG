@@ -65,7 +65,7 @@ tasks.check {
 
 tasks.shadowJar {
     archiveFileName = "Pixel-RPG.jar"
-    relocate 'com.google.code.gson', 'de.pixelrpg.rpg.libs.gson'
+    relocate 'com.google.gson', 'de.pixelrpg.rpg.libs.gson'
     relocate 'com.zaxxer.hikari', 'de.pixelrpg.rpg.libs.hikari'
     relocate 'com.mysql', 'de.pixelrpg.rpg.libs.mysql'
     mergeServiceFiles()
