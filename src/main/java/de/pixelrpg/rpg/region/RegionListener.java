@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Enderman;
+import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Ghast;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
@@ -78,20 +79,21 @@ public final class RegionListener implements Listener {
         if (!regions.hasFlag(event.getBlock().getLocation(), RegionFlag.BLOCK_PLACE)) event.setCancelled(true);
     }
 
-    /** Prevents fire from spreading when the containing region disables fire spread. */
+    /** Prevents fire and soul fire from spreading when the containing region disables fire spread. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onFireSpread(BlockSpreadEvent event) {
-        if (event.getNewState().getType() == Material.FIRE && !regions.hasFlag(event.getBlock().getLocation(), RegionFlag.FIRE_SPREAD)) event.setCancelled(true);
+        Material type = event.getNewState().getType();
+        if ((type == Material.FIRE || type == Material.SOUL_FIRE) && !regions.hasFlag(event.getBlock().getLocation(), RegionFlag.FIRE_SPREAD)) event.setCancelled(true);
     }
 
     /** Prevents lava flow when the containing region disables lava flow. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onLavaFlow(BlockFromToEvent event) {
         Material source = event.getBlock().getType();
-        if ((source == Material.LAVA || source == Material.LAVA_CAULDRON) && !regions.hasFlag(event.getToBlock().getLocation(), RegionFlag.LAVA_FLOW)) event.setCancelled(true);
+        if (source == Material.LAVA && !regions.hasFlag(event.getToBlock().getLocation(), RegionFlag.LAVA_FLOW)) event.setCancelled(true);
     }
 
-    /** Prevents every block-changing explosion when the containing region disables explosions. */
+    /** Prevents every block-changing entity explosion when the containing region disables explosions. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityExplosion(EntityExplodeEvent event) {
         Location location = event.getLocation();
@@ -99,8 +101,11 @@ public final class RegionListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        if (event.getEntity() instanceof Creeper && !regions.hasFlag(location, RegionFlag.CREEPER_EXPLOSION)) event.setCancelled(true);
-        if (event.getEntity() instanceof Ghast && !regions.hasFlag(location, RegionFlag.GHAST_FIREBALL)) event.setCancelled(true);
+        if (event.getEntity() instanceof Creeper && !regions.hasFlag(location, RegionFlag.CREEPER_EXPLOSION)) {
+            event.setCancelled(true);
+            return;
+        }
+        if (isGhastFireball(event) && !regions.hasFlag(location, RegionFlag.GHAST_FIREBALL)) event.setCancelled(true);
     }
 
     /** Prevents block explosions when the containing region disables explosions. */
@@ -142,18 +147,19 @@ public final class RegionListener implements Listener {
 
         if (oldId != null) {
             regions.get(oldId).ifPresent(region -> showRegionTitle(player, region.name(), region.leaveMessage(), false));
-            if (oldId.equals(regions.globalRegion(player.getWorld().getName()).id())) {
-                // Global regions are a world-wide fallback and do not need a separate leave message.
-            }
         }
 
         if (newId != null) {
-            PixelRegion newRegion = regions.find(location).orElse(null);
-            if (newRegion != null) showRegionTitle(player, newRegion.name(), newRegion.enterMessage(), true);
+            regions.find(location).ifPresent(region -> showRegionTitle(player, region.name(), region.enterMessage(), true));
         }
 
         if (newId == null) currentRegions.remove(player.getUniqueId());
         else currentRegions.put(player.getUniqueId(), newId);
+    }
+
+    private static boolean isGhastFireball(EntityExplodeEvent event) {
+        if (!(event.getEntity() instanceof Fireball fireball)) return false;
+        return fireball.getShooter() instanceof Ghast;
     }
 
     private static void showRegionTitle(Player player, String regionName, String message, boolean entering) {
