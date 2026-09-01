@@ -43,48 +43,30 @@ public final class CraftingRecipeRegistry {
         List<String> labels = recipes.values().stream()
                 .filter(recipe -> !recipe.resultItemId().isBlank())
                 .filter(recipe -> canonicalItemId(recipe.resultItemId()).equals(canonical))
-                .map(CraftRecipe::displayName)
-                .distinct()
-                .toList();
+                .map(CraftRecipe::displayName).distinct().toList();
         return labels.size() == 1 ? Optional.of(labels.getFirst()) : Optional.empty();
     }
 
     public boolean hasResultItemId(String itemId) {
         String canonical = canonicalItemId(itemId);
-        return recipes.values().stream()
-                .anyMatch(recipe -> !recipe.resultItemId().isBlank()
-                        && canonicalItemId(recipe.resultItemId()).equals(canonical));
+        return recipes.values().stream().anyMatch(recipe -> !recipe.resultItemId().isBlank()
+                && canonicalItemId(recipe.resultItemId()).equals(canonical));
     }
 
     private void loadDefinitions(Plugin plugin) {
         JsonObject root = new JsonDataManager(plugin).load(RECIPE_DATA_PATH);
         mergeMissingGeneratedProfessionGroups(plugin, root);
-
-        if (root.has("generatedProfessionRecipes")) {
-            loadGeneratedDefinitions(root.getAsJsonObject("generatedProfessionRecipes"));
-        }
-        if (root.has("recipes")) {
-            loadExplicitDefinitions(root.getAsJsonArray("recipes"));
-        }
-        if (recipes.isEmpty()) {
-            throw new IllegalStateException("crafting-recipes.json requires 'recipes' or 'generatedProfessionRecipes'");
-        }
+        if (root.has("generatedProfessionRecipes")) loadGeneratedDefinitions(root.getAsJsonObject("generatedProfessionRecipes"));
+        if (root.has("recipes")) loadExplicitDefinitions(root.getAsJsonArray("recipes"));
+        if (recipes.isEmpty()) throw new IllegalStateException("crafting-recipes.json requires 'recipes' or 'generatedProfessionRecipes'");
     }
 
-    /**
-     * Keeps existing server-side recipe data editable while repairing stale installations that
-     * predate one or more bundled profession groups. Missing groups are restored from the current
-     * bundled defaults; existing groups are never overwritten.
-     */
+    /** Repairs missing profession groups in an existing editable server data file without overwriting custom groups. */
     private void mergeMissingGeneratedProfessionGroups(Plugin plugin, JsonObject root) {
-        if (!root.has("generatedProfessionRecipes") || !root.get("generatedProfessionRecipes").isJsonObject()) {
-            return;
-        }
-
+        if (!root.has("generatedProfessionRecipes") || !root.get("generatedProfessionRecipes").isJsonObject()) return;
         JsonObject configured = root.getAsJsonObject("generatedProfessionRecipes");
         JsonObject bundled = loadBundledRecipeDefaults(plugin).getAsJsonObject("generatedProfessionRecipes");
         boolean changed = false;
-
         for (Profession profession : Profession.values()) {
             String key = profession.name();
             if (!configured.has(key) && bundled.has(key)) {
@@ -92,7 +74,6 @@ public final class CraftingRecipeRegistry {
                 changed = true;
             }
         }
-
         if (changed) {
             new JsonDataManager(plugin).save(RECIPE_DATA_PATH, root);
             plugin.getLogger().warning("Repaired missing profession recipe groups in " + RECIPE_DATA_PATH + " from bundled defaults.");
@@ -101,14 +82,10 @@ public final class CraftingRecipeRegistry {
 
     private static JsonObject loadBundledRecipeDefaults(Plugin plugin) {
         try (var input = plugin.getResource("data/" + RECIPE_DATA_PATH)) {
-            if (input == null) {
-                throw new IllegalStateException("Missing bundled JSON resource: data/" + RECIPE_DATA_PATH);
-            }
+            if (input == null) throw new IllegalStateException("Missing bundled JSON resource: data/" + RECIPE_DATA_PATH);
             try (var reader = new InputStreamReader(input, StandardCharsets.UTF_8)) {
                 var element = JsonParser.parseReader(reader);
-                if (!element.isJsonObject()) {
-                    throw new IllegalStateException("Bundled crafting recipe root must be an object");
-                }
+                if (!element.isJsonObject()) throw new IllegalStateException("Bundled crafting recipe root must be an object");
                 return element.getAsJsonObject();
             }
         } catch (Exception exception) {
@@ -124,9 +101,7 @@ public final class CraftingRecipeRegistry {
             if (recipes.containsKey(id)) throw new IllegalStateException("Duplicate crafting recipe: " + id);
             Profession profession = parseProfession(json, id);
             Material result = resolveResultMaterial(required(json, "result"));
-            if (result == null || result.isAir()) {
-                throw new IllegalStateException("Unknown crafting result for " + id + ": " + required(json, "result"));
-            }
+            if (result == null || result.isAir()) throw new IllegalStateException("Unknown crafting result for " + id + ": " + required(json, "result"));
             addRecipe(id, json.has("label") ? json.get("label").getAsString() : pretty(result), profession, result,
                     json.has("resultAmount") ? json.get("resultAmount").getAsInt() : 1,
                     enumValue(ItemRarity.class, json, "rarity", id), parseCosts(json, id), parseItemCosts(json, id),
@@ -155,23 +130,20 @@ public final class CraftingRecipeRegistry {
                 int level = index == 0 ? 1 : Math.min(100, index * 5);
                 String label = labels.get(index).getAsString();
                 Material result = resolveResultMaterial(results.get(index).getAsString());
-                if (result == null || result.isAir()) {
-                    throw new IllegalStateException("Unknown generated result for " + key + " #" + (index + 1));
-                }
+                if (result == null || result.isAir()) throw new IllegalStateException("Unknown generated result for " + key + " #" + (index + 1));
                 String recipeId = key.toLowerCase(Locale.ROOT) + ":" + String.format(Locale.ROOT, "%02d_%s", index + 1, slug(label));
-                String resultItemId = "pixelrpg:" + recipeId;
                 addRecipe(recipeId, label, profession, result, generatedResultAmount(profession, index), generatedRarity(index),
                         generatedMaterialCosts(profession, index), generatedItemCosts(profession, index, labels), level,
-                        generatedUnlockPrice(index), "", index == 0, resultItemId, generatedPotionType(profession, index),
-                        generatedEnchantment(profession, index), generatedEnchantmentLevel(profession, index));
+                        generatedUnlockPrice(index), "", index == 0, "pixelrpg:" + recipeId,
+                        generatedPotionType(profession, index), generatedEnchantment(profession, index), generatedEnchantmentLevel(profession, index));
             }
         }
     }
 
-    private void addRecipe(String id, String label, Profession profession, Material result, int resultAmount,
-                           ItemRarity rarity, Map<Material, Integer> costs, Map<String, Integer> itemCosts, int level,
-                           long unlockPrice, String requiredQuestId, boolean unlockedByDefault, String resultItemId,
-                           String potionType, String enchantment, int enchantmentLevel) {
+    private void addRecipe(String id, String label, Profession profession, Material result, int resultAmount, ItemRarity rarity,
+                           Map<Material, Integer> costs, Map<String, Integer> itemCosts, int level, long unlockPrice,
+                           String requiredQuestId, boolean unlockedByDefault, String resultItemId, String potionType,
+                           String enchantment, int enchantmentLevel) {
         recipes.put(id, new CraftRecipe(profession, id, label, result, resultAmount, rarity, costs, itemCosts, level,
                 unlockPrice, requiredQuestId, unlockedByDefault, false, resultItemId, potionType, enchantment, enchantmentLevel));
     }
@@ -200,7 +172,7 @@ public final class CraftingRecipeRegistry {
     private static Map<String, Integer> generatedItemCosts(Profession profession, int index, JsonArray labels) {
         if (index == 0) return Map.of();
         Map<String, Integer> costs = new LinkedHashMap<>();
-        String ownPrevious = generatedItemId(profession, labels.get(index - 1).getAsString(), index - 1);
+        String ownPrevious = generatedItemId(profession, labels, index - 1);
         switch (profession) {
             case BLACKSMITH -> {
                 switch (index) {
@@ -232,8 +204,12 @@ public final class CraftingRecipeRegistry {
                 if (index == 2 || index == 3 || index == 5 || index == 7 || index == 10 || index == 13 || index == 15) {
                     costs.put(farmerDependency(index), 1);
                 }
-                if (index == 0 || index == 1 || index == 11 || index == 12) {
-                    costs.put("pixelrpg:fisherman:" + String.format(Locale.ROOT, "%02d_%s", index + 1, slug(labels.get(index).getAsString())), 1);
+                switch (index) {
+                    case 0 -> costs.put("pixelrpg:fisherman:02_kabeljaupaket", 1);
+                    case 1 -> costs.put("pixelrpg:fisherman:03_lachspaket", 1);
+                    case 11 -> costs.put("pixelrpg:fisherman:12_anglermahlzeit", 1);
+                    case 12 -> costs.put("pixelrpg:fisherman:13_lachsteller", 1);
+                    default -> { }
                 }
                 if (index == 16) costs.put("pixelrpg:alchemist:04_heilelixier", 1);
             }
@@ -266,11 +242,17 @@ public final class CraftingRecipeRegistry {
     }
 
     private static String ownItemId(Profession profession, JsonArray labels, int oneBasedIndex) {
-        return generatedItemId(profession, labels.get(oneBasedIndex - 1).getAsString(), oneBasedIndex - 1);
+        if (oneBasedIndex < 1 || oneBasedIndex > labels.size()) {
+            throw new IllegalStateException("Profession " + profession + " recipe dependency references missing recipe #" + oneBasedIndex + " (available: " + labels.size() + ")");
+        }
+        return generatedItemId(profession, labels, oneBasedIndex - 1);
     }
 
-    private static String generatedItemId(Profession profession, String label, int zeroBasedIndex) {
-        return "pixelrpg:" + profession.name().toLowerCase(Locale.ROOT) + ":" + String.format(Locale.ROOT, "%02d_%s", zeroBasedIndex + 1, slug(label));
+    private static String generatedItemId(Profession profession, JsonArray labels, int zeroBasedIndex) {
+        if (zeroBasedIndex < 0 || zeroBasedIndex >= labels.size()) {
+            throw new IllegalStateException("Profession " + profession + " recipe dependency references missing recipe #" + (zeroBasedIndex + 1) + " (available: " + labels.size() + ")");
+        }
+        return "pixelrpg:" + profession.name().toLowerCase(Locale.ROOT) + ":" + String.format(Locale.ROOT, "%02d_%s", zeroBasedIndex + 1, slug(labels.get(zeroBasedIndex).getAsString()));
     }
 
     private static Map<Material, Integer> generatedMaterialCosts(Profession profession, int index) {
@@ -278,67 +260,38 @@ public final class CraftingRecipeRegistry {
         switch (profession) {
             case BLACKSMITH -> {
                 Material raw = index < 8 ? Material.IRON_INGOT : index < 10 ? Material.GOLD_INGOT : index < 15 ? Material.DIAMOND : Material.NETHERITE_INGOT;
-                costs.put(raw, index < 4 ? 2 : index < 10 ? 3 : 4);
-                costs.put(Material.COAL, Math.min(4, 1 + index / 6));
-                if (index >= 10 && index < 15) costs.put(Material.IRON_INGOT, 2);
-                if (index >= 15) costs.put(Material.DIAMOND, 2);
+                costs.put(raw, index < 4 ? 2 : index < 10 ? 3 : 4); costs.put(Material.COAL, Math.min(4, 1 + index / 6));
+                if (index >= 10 && index < 15) costs.put(Material.IRON_INGOT, 2); if (index >= 15) costs.put(Material.DIAMOND, 2);
             }
             case SCHOLAR -> {
-                costs.put(Material.PAPER, 2 + Math.min(6, index / 4));
-                if (index % 3 == 0) costs.put(Material.INK_SAC, 1);
-                if (index >= 4) costs.put(Material.LAPIS_LAZULI, 2 + Math.min(5, index / 4));
-                if (index >= 14) costs.put(Material.AMETHYST_SHARD, 2);
+                costs.put(Material.PAPER, 2 + Math.min(6, index / 4)); if (index % 3 == 0) costs.put(Material.INK_SAC, 1);
+                if (index >= 4) costs.put(Material.LAPIS_LAZULI, 2 + Math.min(5, index / 4)); if (index >= 14) costs.put(Material.AMETHYST_SHARD, 2);
             }
             case FARMER -> {
-                Material raw = switch (index % 6) {
-                    case 0 -> Material.WHEAT; case 1 -> Material.CARROT; case 2 -> Material.POTATO;
-                    case 3 -> Material.BEETROOT; case 4 -> Material.PUMPKIN; default -> Material.MELON_SLICE;
-                };
-                costs.put(raw, 3 + Math.min(6, index / 3));
-                if (index >= 10) costs.put(Material.BONE_MEAL, 2);
+                Material raw = switch (index % 6) { case 0 -> Material.WHEAT; case 1 -> Material.CARROT; case 2 -> Material.POTATO; case 3 -> Material.BEETROOT; case 4 -> Material.PUMPKIN; default -> Material.MELON_SLICE; };
+                costs.put(raw, 3 + Math.min(6, index / 3)); if (index >= 10) costs.put(Material.BONE_MEAL, 2);
             }
             case COOK -> {
-                Material raw = switch (index % 6) {
-                    case 0 -> Material.COD; case 1 -> Material.SALMON; case 2 -> Material.WHEAT;
-                    case 3 -> Material.CARROT; case 4 -> Material.BEEF; default -> Material.CHICKEN;
-                };
-                costs.put(raw, 2 + Math.min(5, index / 4));
-                if (index >= 5) costs.put(Material.SUGAR, 1);
+                Material raw = switch (index % 6) { case 0 -> Material.COD; case 1 -> Material.SALMON; case 2 -> Material.WHEAT; case 3 -> Material.CARROT; case 4 -> Material.BEEF; default -> Material.CHICKEN; };
+                costs.put(raw, 2 + Math.min(5, index / 4)); if (index >= 5) costs.put(Material.SUGAR, 1);
             }
-            case TAILOR -> {
-                Material raw = index < 8 ? Material.LEATHER : Material.WHITE_WOOL;
-                costs.put(raw, 3 + Math.min(6, index / 3));
-                costs.put(Material.STRING, 1 + Math.min(4, index / 5));
-            }
+            case TAILOR -> { costs.put(index < 8 ? Material.LEATHER : Material.WHITE_WOOL, 3 + Math.min(6, index / 3)); costs.put(Material.STRING, 1 + Math.min(4, index / 5)); }
             case ALCHEMIST -> {
                 costs.put(Material.GLASS_BOTTLE, 1);
-                Material reagent = switch (index % 8) {
-                    case 0 -> Material.HONEY_BOTTLE; case 1 -> Material.MELON_SLICE; case 2 -> Material.SUGAR;
-                    case 3 -> Material.GLISTERING_MELON_SLICE; case 4 -> Material.BLAZE_POWDER;
-                    case 5 -> Material.MAGMA_CREAM; case 6 -> Material.GOLDEN_CARROT; default -> Material.GHAST_TEAR;
-                };
+                Material reagent = switch (index % 8) { case 0 -> Material.HONEY_BOTTLE; case 1 -> Material.MELON_SLICE; case 2 -> Material.SUGAR; case 3 -> Material.GLISTERING_MELON_SLICE; case 4 -> Material.BLAZE_POWDER; case 5 -> Material.MAGMA_CREAM; case 6 -> Material.GOLDEN_CARROT; default -> Material.GHAST_TEAR; };
                 costs.put(reagent, 1 + Math.min(2, index / 8));
             }
             case MASON -> {
-                Material raw = switch (index % 6) {
-                    case 0 -> Material.STONE; case 1 -> Material.ANDESITE; case 2 -> Material.DIORITE;
-                    case 3 -> Material.GRANITE; case 4 -> Material.DEEPSLATE; default -> Material.SANDSTONE;
-                };
+                Material raw = switch (index % 6) { case 0 -> Material.STONE; case 1 -> Material.ANDESITE; case 2 -> Material.DIORITE; case 3 -> Material.GRANITE; case 4 -> Material.DEEPSLATE; default -> Material.SANDSTONE; };
                 costs.put(raw, 4 + Math.min(8, index / 3));
             }
             case FISHERMAN -> {
-                Material raw = switch (index % 5) {
-                    case 0, 1 -> Material.COD; case 2 -> Material.SALMON; case 3 -> Material.TROPICAL_FISH; default -> Material.PUFFERFISH;
-                };
+                Material raw = switch (index % 5) { case 0, 1 -> Material.COD; case 2 -> Material.SALMON; case 3 -> Material.TROPICAL_FISH; default -> Material.PUFFERFISH; };
                 costs.put(raw, 2 + Math.min(8, index / 3));
             }
             case WOODCUTTER -> {
-                Material raw = switch (index % 6) {
-                    case 0 -> Material.OAK_LOG; case 1 -> Material.SPRUCE_LOG; case 2 -> Material.BIRCH_LOG;
-                    case 3 -> Material.JUNGLE_LOG; case 4 -> Material.ACACIA_LOG; default -> Material.DARK_OAK_LOG;
-                };
-                costs.put(raw, 3 + Math.min(8, index / 3));
-                if (index >= 16) costs.put(Material.IRON_NUGGET, 4);
+                Material raw = switch (index % 6) { case 0 -> Material.OAK_LOG; case 1 -> Material.SPRUCE_LOG; case 2 -> Material.BIRCH_LOG; case 3 -> Material.JUNGLE_LOG; case 4 -> Material.ACACIA_LOG; default -> Material.DARK_OAK_LOG; };
+                costs.put(raw, 3 + Math.min(8, index / 3)); if (index >= 16) costs.put(Material.IRON_NUGGET, 4);
             }
         }
         return costs;
@@ -347,50 +300,32 @@ public final class CraftingRecipeRegistry {
     private static String generatedPotionType(Profession profession, int index) {
         if (profession != Profession.ALCHEMIST) return "";
         return switch (index) {
-            case 0, 2, 15, 16 -> "WATER"; case 1, 3, 12, 19 -> "HEALING"; case 4 -> "SPEED";
-            case 5, 13, 18 -> "STRENGTH"; case 6 -> "FIRE_RESISTANCE"; case 7 -> "NIGHT_VISION";
-            case 8, 17 -> "REGENERATION"; case 9 -> "WATER_BREATHING"; case 10 -> "LEAPING";
-            case 11 -> "INVISIBILITY"; case 14 -> "RESISTANCE"; default -> "WATER";
+            case 0, 2, 15, 16 -> "WATER"; case 1, 3, 12, 19 -> "HEALING"; case 4 -> "SPEED"; case 5, 13, 18 -> "STRENGTH";
+            case 6 -> "FIRE_RESISTANCE"; case 7 -> "NIGHT_VISION"; case 8, 17 -> "REGENERATION"; case 9 -> "WATER_BREATHING";
+            case 10 -> "LEAPING"; case 11 -> "INVISIBILITY"; case 14 -> "RESISTANCE"; default -> "WATER";
         };
     }
 
     private static String generatedEnchantment(Profession profession, int index) {
         if (profession != Profession.SCHOLAR) return "";
-        return switch (index) {
-            case 8 -> "efficiency"; case 9 -> "protection"; case 10 -> "sharpness"; case 11 -> "unbreaking";
-            case 12 -> "fortune"; case 13 -> "mending"; case 16 -> "unbreaking"; default -> "";
-        };
+        return switch (index) { case 8 -> "efficiency"; case 9 -> "protection"; case 10 -> "sharpness"; case 11 -> "unbreaking"; case 12 -> "fortune"; case 13 -> "mending"; case 16 -> "unbreaking"; default -> ""; };
     }
 
     private static int generatedEnchantmentLevel(Profession profession, int index) {
         if (profession != Profession.SCHOLAR) return 0;
-        return switch (index) {
-            case 8, 9, 10, 11, 12, 16 -> 3; case 13 -> 1; default -> 0;
-        };
+        return switch (index) { case 8, 9, 10, 11, 12, 16 -> 3; case 13 -> 1; default -> 0; };
     }
 
     private void validateProfessionEconomy() {
         for (Profession profession : Profession.values()) {
             List<CraftRecipe> professionRecipes = getRecipes(profession);
-            if (professionRecipes.isEmpty()) {
-                throw new IllegalStateException("Profession " + profession + " has no recipes after loading " + RECIPE_DATA_PATH);
-            }
+            if (professionRecipes.isEmpty()) throw new IllegalStateException("Profession " + profession + " has no recipes after loading " + RECIPE_DATA_PATH);
             for (CraftRecipe recipe : professionRecipes) {
-                if (recipe.requiredProfessionLevel() < 1 || recipe.requiredProfessionLevel() > 100) {
-                    throw new IllegalStateException("Invalid profession level for " + recipe.id());
-                }
-                if (recipe.rarity() == ItemRarity.UNIQUE) {
-                    throw new IllegalStateException("Generated profession recipe cannot be UNIQUE: " + recipe.id());
-                }
-                if (recipe.resultItemId().isBlank() || !recipe.resultItemId().startsWith("pixelrpg:")) {
-                    throw new IllegalStateException("Generated recipe requires RPG result identity: " + recipe.id());
-                }
-                if (recipe.requiredProfessionLevel() > Profession.MAX_LEVEL) {
-                    throw new IllegalStateException("Profession level exceeds maximum for " + recipe.id());
-                }
+                if (recipe.requiredProfessionLevel() < 1 || recipe.requiredProfessionLevel() > Profession.MAX_LEVEL) throw new IllegalStateException("Invalid profession level for " + recipe.id());
+                if (recipe.rarity() == ItemRarity.UNIQUE) throw new IllegalStateException("Generated profession recipe cannot be UNIQUE: " + recipe.id());
+                if (recipe.resultItemId().isBlank() || !recipe.resultItemId().startsWith("pixelrpg:")) throw new IllegalStateException("Generated recipe requires RPG result identity: " + recipe.id());
             }
         }
-
         for (CraftRecipe recipe : recipes.values()) {
             for (String itemCost : recipe.itemCosts().keySet()) {
                 if (itemCost.startsWith("pixelrpg:") && !hasResultItemId(itemCost)) {
@@ -403,86 +338,61 @@ public final class CraftingRecipeRegistry {
     private static Profession parseProfession(JsonObject json, String id) {
         String raw = required(json, "profession").trim().toUpperCase(Locale.ROOT);
         if (raw.equals("PROVISIONER")) return Profession.COOK;
-        try {
-            return Profession.valueOf(raw);
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalStateException("Invalid profession for " + id + ": " + raw, exception);
-        }
+        try { return Profession.valueOf(raw); }
+        catch (IllegalArgumentException exception) { throw new IllegalStateException("Invalid profession for " + id + ": " + raw, exception); }
     }
 
     private static Material resolveResultMaterial(String raw) {
-        String value = raw.trim().toUpperCase(Locale.ROOT);
-        if (value.equals("CHAIN")) value = "IRON_CHAIN";
-        return Material.matchMaterial(value);
+        String value = raw.trim().toUpperCase(Locale.ROOT); if (value.equals("CHAIN")) value = "IRON_CHAIN"; return Material.matchMaterial(value);
     }
 
     private static Map<Material, Integer> parseCosts(JsonObject json, String id) {
-        JsonObject costs = json.has("costs") ? json.getAsJsonObject("costs") : null;
-        if (costs == null || costs.isEmpty()) return Map.of();
+        JsonObject costs = json.has("costs") ? json.getAsJsonObject("costs") : null; if (costs == null || costs.isEmpty()) return Map.of();
         Map<Material, Integer> result = new EnumMap<>(Material.class);
         for (var entry : costs.entrySet()) {
-            Material material = Material.matchMaterial(entry.getKey());
-            int amount = entry.getValue().getAsInt();
-            if (material == null || material.isAir() || amount <= 0) {
-                throw new IllegalStateException("Invalid cost for " + id + ": " + entry.getKey());
-            }
+            Material material = Material.matchMaterial(entry.getKey()); int amount = entry.getValue().getAsInt();
+            if (material == null || material.isAir() || amount <= 0) throw new IllegalStateException("Invalid cost for " + id + ": " + entry.getKey());
             result.merge(material, amount, Integer::sum);
         }
         return result;
     }
 
     private static Map<String, Integer> parseItemCosts(JsonObject json, String id) {
-        JsonObject costs = json.has("itemCosts") ? json.getAsJsonObject("itemCosts") : null;
-        if (costs == null || costs.isEmpty()) return Map.of();
+        JsonObject costs = json.has("itemCosts") ? json.getAsJsonObject("itemCosts") : null; if (costs == null || costs.isEmpty()) return Map.of();
         Map<String, Integer> result = new LinkedHashMap<>();
         for (var entry : costs.entrySet()) {
-            String itemId = canonicalItemId(entry.getKey());
-            int amount = entry.getValue().getAsInt();
-            if (itemId.isBlank() || amount <= 0) {
-                throw new IllegalStateException("Invalid item cost for " + id + ": " + entry.getKey());
-            }
+            String itemId = canonicalItemId(entry.getKey()); int amount = entry.getValue().getAsInt();
+            if (itemId.isBlank() || amount <= 0) throw new IllegalStateException("Invalid item cost for " + id + ": " + entry.getKey());
             result.merge(itemId, amount, Integer::sum);
         }
         return result;
     }
 
     private static String canonicalRecipeId(String raw) {
-        String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
-        if (value.startsWith("pixelrpg:")) value = value.substring("pixelrpg:".length());
-        return value.replace('/', ':');
+        String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT); if (value.startsWith("pixelrpg:")) value = value.substring(9); return value.replace('/', ':');
     }
 
     private static String canonicalItemId(String raw) {
-        String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
-        if (!value.startsWith("pixelrpg:")) value = "pixelrpg:" + value;
-        String body = value.substring("pixelrpg:".length()).replace('/', ':');
-        while (body.contains("::")) body = body.replace("::", ":");
-        return "pixelrpg:" + body;
+        String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT); if (!value.startsWith("pixelrpg:")) value = "pixelrpg:" + value;
+        String body = value.substring(9).replace('/', ':'); while (body.contains("::")) body = body.replace("::", ":"); return "pixelrpg:" + body;
     }
 
     private static String slug(String raw) {
-        String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
-        value = value.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss");
+        String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT).replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss");
         return value.replaceAll("[^a-z0-9]+", "_").replaceAll("^_+|_+$", "");
     }
 
     private static String required(JsonObject json, String key) {
-        if (!json.has(key) || json.get(key).getAsString().isBlank()) {
-            throw new IllegalStateException("Missing '" + key + "' in crafting recipe");
-        }
+        if (!json.has(key) || json.get(key).getAsString().isBlank()) throw new IllegalStateException("Missing '" + key + "' in crafting recipe");
         return json.get(key).getAsString();
     }
 
     private static <E extends Enum<E>> E enumValue(Class<E> type, JsonObject json, String key, String id) {
-        try {
-            return Enum.valueOf(type, required(json, key).toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalStateException("Invalid " + key + " for " + id, exception);
-        }
+        try { return Enum.valueOf(type, required(json, key).toUpperCase(Locale.ROOT)); }
+        catch (IllegalArgumentException exception) { throw new IllegalStateException("Invalid " + key + " for " + id, exception); }
     }
 
     private static String pretty(Material material) {
-        String raw = material.name().toLowerCase(Locale.ROOT).replace('_', ' ');
-        return Character.toUpperCase(raw.charAt(0)) + raw.substring(1);
+        String raw = material.name().toLowerCase(Locale.ROOT).replace('_', ' '); return Character.toUpperCase(raw.charAt(0)) + raw.substring(1);
     }
 }
