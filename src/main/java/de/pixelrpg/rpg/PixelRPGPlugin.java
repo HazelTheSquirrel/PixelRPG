@@ -274,7 +274,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         rootCommand.register(new ShopSubCommand(shopManager, shopEditorGUI, npcManager));
         rootCommand.register(new QuestAdminSubCommand(questManager));
         rootCommand.register(new BossSubCommand(bossRepository, bossManager));
-        rootCommand.register(new de.pixelrpg.rpg.command.impl.RegionSubCommand(regionManager, regionEditor, GuildManager.getInstance()));
+        rootCommand.register(new de.pixelrpg.rpg.command.impl.RegionSubCommand(regionManager, regionEditor, guildManager));
         rootCommand.register(new EditSubCommand(regionEditor));
         PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
         PaperBasicCommandAdapter rpgCommand = new PaperBasicCommandAdapter("pixelrpg", rootCommand, rootCommand, "rpg.admin");
@@ -305,21 +305,17 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (npcManager != null) npcManager.shutdown();
         if (regionManager != null) regionManager.shutdown();
         if (guildManager != null) guildManager.shutdown();
+        if (partyManager != null) partyManager.shutdown();
+        if (companionService != null) companionService.shutdown();
         if (playerProfileManager != null) playerProfileManager.shutdown();
         unregisterServices();
         if (instance == this) instance = null;
     }
 
     private void unregisterServices() {
-        if (statisticsService != null) {
-            Bukkit.getServicesManager().unregister(StatisticsAPI.class, statisticsService);
-        }
-        if (itemService != null) {
-            Bukkit.getServicesManager().unregister(de.pixelrpg.rpg.api.ItemAPI.class, itemService);
-        }
-        if (partyManager != null) {
-            Bukkit.getServicesManager().unregister(de.pixelrpg.rpg.api.PartyAPI.class, partyManager);
-        }
+        if (statisticsService != null) Bukkit.getServicesManager().unregister(StatisticsAPI.class, statisticsService);
+        if (itemService != null) Bukkit.getServicesManager().unregister(de.pixelrpg.rpg.api.ItemAPI.class, itemService);
+        if (partyManager != null) Bukkit.getServicesManager().unregister(de.pixelrpg.rpg.api.PartyAPI.class, partyManager);
     }
 
     public static PixelRPGPlugin getInstance() { return instance; }
