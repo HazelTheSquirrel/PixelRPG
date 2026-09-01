@@ -17,11 +17,18 @@ import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
@@ -32,10 +39,17 @@ public final class NpcManager {
     private final Map<String, UUID> spawnedEntityByNpcId = new ConcurrentHashMap<>();
     private final Map<UUID, String> entityToId = new ConcurrentHashMap<>();
     private final AtomicInteger nextId = new AtomicInteger(1);
+    private final ExecutorService persistenceExecutor;
+    private CompletableFuture<Void> persistenceChain = CompletableFuture.completedFuture(null);
 
     public NpcManager(Plugin plugin) {
         this.plugin = plugin;
         this.file = new File(plugin.getDataFolder(), "npcs.yml");
+        this.persistenceExecutor = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-NpcIO");
+            thread.setDaemon(true);
+            return thread;
+        });
     }
 
     public void loadAll() {
@@ -83,8 +97,10 @@ public final class NpcManager {
     public RPGNpc createWithId(String id, NpcType type, String name, Location location, String skinSource, Profession profession) {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("NPC id must not be blank");
         if (npcsById.containsKey(id)) throw new IllegalArgumentException("NPC id already exists: " + id);
+        if (type == null) throw new IllegalArgumentException("NPC type must not be null");
+        if (location == null || location.getWorld() == null) throw new IllegalArgumentException("NPC location must have a world");
         Profession effectiveProfession = profession == null ? professionFor(type) : profession;
-        RPGNpc npc = new RPGNpc(id, type, name, location.clone(), skinSource, effectiveProfession);
+        RPGNpc npc = new RPGNpc(id, type, name == null || name.isBlank() ? "NPC" : name, location.clone(), skinSource, effectiveProfession);
         npcsById.put(id, npc);
         spawnEntityFor(npc);
         saveAll();
@@ -185,15 +201,16 @@ public final class NpcManager {
     }
 
     public boolean rename(String id, String newName) {
+        if (newName == null || newName.isBlank()) return false;
         RPGNpc existing = npcsById.get(id);
         if (existing == null) return false;
-        RPGNpc updated = new RPGNpc(existing.id(), existing.type(), newName, existing.location(), existing.skinSource(), existing.profession());
+        RPGNpc updated = new RPGNpc(existing.id(), existing.type(), newName.trim(), existing.location(), existing.skinSource(), existing.profession());
         npcsById.put(id, updated);
         saveAll();
         UUID entityUuid = spawnedEntityByNpcId.get(id);
         if (entityUuid != null) {
             Entity entity = Bukkit.getEntity(entityUuid);
-            if (entity != null) entity.customName(Component.text(newName, existing.type().getColor()));
+            if (entity != null) entity.customName(Component.text(newName.trim(), existing.type().getColor()));
         }
         return true;
     }
@@ -204,36 +221,71 @@ public final class NpcManager {
     }
 
     public Optional<RPGNpc> getById(String id) { return Optional.ofNullable(npcsById.get(id)); }
-    public Collection<RPGNpc> getAll() { return npcsById.values(); }
-    public Collection<UUID> getSpawnedEntityUuids() { return spawnedEntityByNpcId.values(); }
+    public Collection<RPGNpc> getAll() { return java.util.List.copyOf(npcsById.values()); }
+    public Collection<UUID> getSpawnedEntityUuids() { return java.util.List.copyOf(spawnedEntityByNpcId.values()); }
 
     public void shutdown() {
+        saveAll();
+        persistenceExecutor.shutdown();
+        try {
+            if (!persistenceExecutor.awaitTermination(10, TimeUnit.SECONDS)) persistenceExecutor.shutdownNow();
+        } catch (InterruptedException exception) {
+            persistenceExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
         despawnAllTracked();
         npcsById.clear();
     }
 
-    public void saveAll() {
-        YamlConfiguration yaml = new YamlConfiguration();
-        yaml.set("next-id", nextId.get());
+    /** Captures the complete NPC state on the server thread and serializes it off-thread. */
+    public synchronized void saveAll() {
+        Map<String, NpcSnapshot> snapshot = new java.util.HashMap<>();
         for (RPGNpc npc : npcsById.values()) {
-            String path = "npcs." + npc.id();
-            yaml.set(path + ".type", npc.type().name());
-            yaml.set(path + ".name", npc.name());
-            yaml.set(path + ".world", npc.location().getWorld().getName());
-            yaml.set(path + ".x", npc.location().getX());
-            yaml.set(path + ".y", npc.location().getY());
-            yaml.set(path + ".z", npc.location().getZ());
-            yaml.set(path + ".yaw", (double) npc.location().getYaw());
-            yaml.set(path + ".pitch", (double) npc.location().getPitch());
-            if (npc.hasCustomSkin()) yaml.set(path + ".skin-source", npc.skinSource());
-            if (npc.profession() != null) yaml.set(path + ".profession", npc.profession().name());
+            Location location = npc.location();
+            snapshot.put(npc.id(), new NpcSnapshot(
+                    npc.id(), npc.type().name(), npc.name(), location.getWorld().getName(),
+                    location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch(),
+                    npc.skinSource(), npc.profession() == null ? null : npc.profession().name()));
         }
+        int next = nextId.get();
+        persistenceChain = persistenceChain.handle((ignored, throwable) -> null)
+                .thenRunAsync(() -> writeSnapshot(next, snapshot), persistenceExecutor);
+    }
+
+    private void writeSnapshot(int next, Map<String, NpcSnapshot> snapshot) {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.set("next-id", next);
+        for (NpcSnapshot npc : snapshot.values()) {
+            String path = "npcs." + npc.id();
+            yaml.set(path + ".type", npc.type());
+            yaml.set(path + ".name", npc.name());
+            yaml.set(path + ".world", npc.world());
+            yaml.set(path + ".x", npc.x());
+            yaml.set(path + ".y", npc.y());
+            yaml.set(path + ".z", npc.z());
+            yaml.set(path + ".yaw", (double) npc.yaw());
+            yaml.set(path + ".pitch", (double) npc.pitch());
+            if (npc.skinSource() != null && !npc.skinSource().isBlank()) yaml.set(path + ".skin-source", npc.skinSource());
+            if (npc.profession() != null) yaml.set(path + ".profession", npc.profession());
+        }
+
+        Path target = file.toPath();
+        Path temporary = target.resolveSibling(file.getName() + ".tmp");
         try {
-            yaml.save(file);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save npcs.yml", e);
+            yaml.save(temporary.toFile());
+            try {
+                Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException atomicMoveUnsupported) {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException exception) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to save npcs.yml", exception);
+            try { Files.deleteIfExists(temporary); } catch (IOException ignored) { }
         }
     }
+
+    private record NpcSnapshot(String id, String type, String name, String world, double x, double y, double z,
+                               float yaw, float pitch, String skinSource, String profession) { }
 
     private void removeSpawnedEntity(String id) {
         UUID entityUuid = spawnedEntityByNpcId.remove(id);
