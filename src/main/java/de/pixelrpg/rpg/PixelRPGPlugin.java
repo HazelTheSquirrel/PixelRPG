@@ -16,6 +16,7 @@ import de.pixelrpg.rpg.command.PaperBasicCommandAdapter;
 import de.pixelrpg.rpg.command.RootCommand;
 import de.pixelrpg.rpg.command.impl.BossSubCommand;
 import de.pixelrpg.rpg.command.impl.CompanionSubCommand;
+import de.pixelrpg.rpg.command.impl.EditSubCommand;
 import de.pixelrpg.rpg.command.impl.NpcSubCommand;
 import de.pixelrpg.rpg.command.impl.PartySubCommand;
 import de.pixelrpg.rpg.command.impl.QuestAdminSubCommand;
@@ -90,6 +91,7 @@ import de.pixelrpg.rpg.region.RegionEditor;
 import de.pixelrpg.rpg.region.RegionListener;
 import de.pixelrpg.rpg.region.RegionManager;
 import de.pixelrpg.rpg.region.RegionRepository;
+import de.pixelrpg.rpg.region.RegionSpawnService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
@@ -128,6 +130,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private CombatDamageListener combatDamageListener;
     private RegionManager regionManager;
     private RegionEditor regionEditor;
+    private RegionSpawnService regionSpawnService;
 
     @Override
     public void onEnable() {
@@ -173,7 +176,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         regionManager.load();
         regionEditor = new RegionEditor(this, regionManager);
         regionEditor.start();
-        getServer().getPluginManager().registerEvents(new RegionListener(regionManager, regionEditor), this);
+        regionSpawnService = new RegionSpawnService(this, regionManager);
+        regionSpawnService.start();
+        getServer().getPluginManager().registerEvents(new RegionListener(regionManager, regionEditor, regionSpawnService), this);
 
         BossAttackPatternRegistry patternRegistry = new BossAttackPatternRegistry();
         patternRegistry.register(new SlamAttackPattern());
@@ -265,6 +270,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         rootCommand.register(new QuestAdminSubCommand(questManager));
         rootCommand.register(new BossSubCommand(bossRepository, bossManager));
         rootCommand.register(new de.pixelrpg.rpg.command.impl.RegionSubCommand(regionManager, regionEditor, GuildManager.getInstance()));
+        rootCommand.register(new EditSubCommand(regionEditor));
         PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
         PaperBasicCommandAdapter rpgCommand = new PaperBasicCommandAdapter("pixelrpg", rootCommand, rootCommand, "rpg.admin");
         PaperBasicCommandAdapter partyAdapter = new PaperBasicCommandAdapter("pixelrpgparty", partyCommand, partyCommand, "rpg.member");
@@ -281,6 +287,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (regionSpawnService != null) regionSpawnService.stop();
         if (regionEditor != null) regionEditor.shutdown();
         if (questPassiveCheckTask != null) questPassiveCheckTask.stop();
         if (biomeBossSpawnTask != null) biomeBossSpawnTask.stop();
