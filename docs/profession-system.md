@@ -2,7 +2,7 @@
 
 ## Ziel
 
-Die neun Berufe sind keine voneinander isolierten Minispiele. Sie bilden eine gemeinsame Produktionswirtschaft. Jeder Spieler kann alle neun Berufe lernen und jeden Beruf von Level 1 bis 100 entwickeln.
+Die neun Berufe sind keine voneinander isolierten Minispiele. Jeder Spieler kann alle neun Berufe lernen und jeden Beruf von Level 1 bis 100 entwickeln.
 
 Die Berufe sind bewusst asymmetrisch: Sammelberufe liefern Rohstoffe, Verarbeitungsberufe veredeln sie und Herstellungsberufe machen daraus Ausrüstung, Verbrauchsgüter oder Infrastruktur.
 
@@ -22,21 +22,11 @@ Die Berufe sind bewusst asymmetrisch: Sammelberufe liefern Rohstoffe, Verarbeitu
 
 ## Progression
 
-Jeder Beruf besitzt 20 Rezept-Meilensteine:
+Berufslevel und Rezeptanzahl sind bewusst voneinander entkoppelt. Ein Beruf kann jederzeit neue Rezepte erhalten, vorhandene Rezepte verlieren oder zusätzliche Zwischenstufen bekommen, ohne dass die Berufsprogression angepasst werden muss.
 
-`1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95`
+Rezepte werden über ihre eigene `requiredProfessionLevel`-Angabe in die Progression eingeordnet. Es gibt keine feste Mindest- oder Höchstanzahl an Rezepten pro Beruf.
 
-Die Berufslevel gehen weiterhin bis 100. Level 96–100 ist damit bewusst ein Endgame-Abschnitt für XP, Quests und zukünftige Meisterrezepte statt einer künstlichen Pflicht, exakt 20 Rezepte auf Level 100 zu verteilen.
-
-Raritäten steigen in fünf Vierergruppen:
-
-- Level 1–15: Common
-- Level 20–35: Uncommon
-- Level 40–55: Rare
-- Level 60–75: Epic
-- Level 80–95: Legendary
-
-`Unique` bleibt außerhalb des normalen Craftings und ist für besondere Drops, Bossbelohnungen und einzigartige Inhalte reserviert.
+Raritäten steigen grundsätzlich mit der Wertigkeit der Produktkette. `Unique` bleibt außerhalb des normalen Craftings und ist für besondere Drops, Bossbelohnungen und einzigartige Inhalte reserviert.
 
 ## Produktionsketten
 
@@ -103,7 +93,7 @@ Der Berufstrainer verwendet dieselbe Kette. Es gibt keine zweite Rezeptlogik fü
 
 ## Inhaltliche Leitlinie
 
-Die Rezepte sollen nicht bloß 20 zufällige Vanilla-Items über Level 1–100 verteilen. Jeder Schritt muss entweder:
+Die Rezepte sollen nicht bloß zufällige Vanilla-Items über die Berufslevel verteilen. Jeder Schritt sollte entweder:
 
 - einen neuen Rohstoff erschließen,
 - einen bestehenden Rohstoff veredeln,
@@ -111,4 +101,4 @@ Die Rezepte sollen nicht bloß 20 zufällige Vanilla-Items über Level 1–100 v
 - eine neue Produktklasse eröffnen oder
 - einen klaren Endgame-Meilenstein darstellen.
 
-Wenn ein Rezept diese Funktion nicht erfüllt, wird es entfernt oder ersetzt.
+Die Rezeptmenge pro Beruf ist dabei flexibel. Neue Inhalte dürfen jederzeit ergänzt werden, ohne eine künstliche feste Rezeptanzahl einhalten zu müssen.
