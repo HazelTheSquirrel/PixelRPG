@@ -48,6 +48,11 @@ mob-scaling:
 npc:
   look-radius: 8.0
   look-interval-ticks: 5
+  skin:
+    mineskin:
+      # Required only for arbitrary external skin-image URLs.
+      # Prefer PIXELRPG_MINESKIN_API_KEY as an environment variable for production servers.
+      api-key: ""
 
 quests:
   party-share-range: 24.0
