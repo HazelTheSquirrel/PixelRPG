@@ -134,6 +134,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private RegionManager regionManager;
     private RegionEditor regionEditor;
     private RegionSpawnService regionSpawnService;
+    private GuildManager guildManager;
 
     @Override
     public void onEnable() {
@@ -174,7 +175,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         questManager = new QuestManager(this, questRepository, playerProfileManager, playerProfileManager, globalEventState, partyManager.getShareRange());
         questManager.startTimerCheckTask();
 
-        GuildManager.getInstance(this, playerProfileManager);
+        guildManager = GuildManager.getInstance(this, playerProfileManager);
         RegionRepository regionRepository = new RegionRepository(getDataFolder(), getLogger());
         regionManager = new RegionManager(regionRepository);
         regionManager.load();
@@ -303,6 +304,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (npcLookTask != null) npcLookTask.stop();
         if (npcManager != null) npcManager.shutdown();
         if (regionManager != null) regionManager.shutdown();
+        if (guildManager != null) guildManager.shutdown();
         if (playerProfileManager != null) playerProfileManager.shutdown();
         unregisterServices();
         if (instance == this) instance = null;
