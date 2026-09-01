@@ -22,7 +22,9 @@ Der funktionierende Gameplay-Zustand bleibt die Referenz. Stabilisierung bedeute
 ### PlayerProfile
 
 - Persistenz arbeitet mit synchron erzeugten Deep-Snapshots statt einer gleichzeitig serialisierten Live-Instanz.
+- Snapshots werden **vor** dem Übergang auf den I/O-Executor erzeugt.
 - Dirty-State bleibt bei Änderungen während eines Saves erhalten.
+- Bei einem fehlgeschlagenen Storage-Save wird der Live-State wieder als dirty markiert.
 - Per-UUID-Save-Queues verhindern parallele Saves desselben Spielers.
 - Load- und Save-Operationen desselben UUIDs laufen über dieselbe Sequenz.
 - Shutdown ist idempotent und verhindert neue Saves während des Abbaus.
