@@ -25,6 +25,7 @@ public final class RegionManager {
     private final Map<ChunkKey, List<RegionSpawnPoint>> spawnPointIndex = new ConcurrentHashMap<>();
     private final ExecutorService persistenceExecutor;
     private CompletableFuture<Void> persistenceChain = CompletableFuture.completedFuture(null);
+    private volatile boolean shuttingDown;
 
     public RegionManager(RegionRepository repository) {
         this.repository = repository;
@@ -35,7 +36,8 @@ public final class RegionManager {
         });
     }
 
-    public void load() {
+    public synchronized void load() {
+        if (shuttingDown) return;
         regions.clear();
         globalRegions.clear();
         index.clear();
@@ -43,6 +45,7 @@ public final class RegionManager {
         repository.load().forEach(this::registerLoaded);
         repository.loadGlobalFlags().forEach((world, flags) -> globalRegions.put(world, PixelRegion.global(world, flags)));
         Bukkit.getWorlds().forEach(world -> globalRegion(world.getName()));
+        if (repository.consumeMigrationNeeded()) save();
     }
 
     public Optional<PixelRegion> get(UUID id) { return Optional.ofNullable(regions.get(id)); }
@@ -91,13 +94,14 @@ public final class RegionManager {
 
     /** Captures the current region state on the server thread and persists it sequentially off-thread. */
     public synchronized void save() {
+        if (shuttingDown || persistenceExecutor.isShutdown()) return;
         List<PixelRegion> snapshot = regions.values().stream().map(RegionManager::snapshot).toList();
         enqueuePersistence(() -> repository.save(snapshot));
     }
 
     /** Captures global region flags before persisting them on the dedicated region I/O executor. */
     public synchronized void setGlobalFlag(String worldName, RegionFlag flag, boolean enabled) {
-        if (worldName == null || worldName.isBlank() || flag == null) return;
+        if (shuttingDown || worldName == null || worldName.isBlank() || flag == null) return;
         PixelRegion global = globalRegions.computeIfAbsent(worldName, world -> PixelRegion.global(world, defaultGlobalFlags()));
         global.setFlag(flag, enabled);
         Map<String, Map<RegionFlag, Boolean>> snapshot = globalRegions.entrySet().stream()
@@ -155,7 +159,9 @@ public final class RegionManager {
         return globalRegions.computeIfAbsent(worldName, world -> PixelRegion.global(world, defaultGlobalFlags()));
     }
 
-    public void shutdown() {
+    public synchronized void shutdown() {
+        if (shuttingDown) return;
+        shuttingDown = true;
         persistenceExecutor.shutdown();
         try {
             if (!persistenceExecutor.awaitTermination(10, TimeUnit.SECONDS)) persistenceExecutor.shutdownNow();
