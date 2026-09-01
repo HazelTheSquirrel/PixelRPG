@@ -75,7 +75,8 @@ public final class RegionListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMonsterSpawn(CreatureSpawnEvent event) {
         if (!(event.getEntity() instanceof Monster)) return;
-        if (spawnService.isManagedSpawn(event.getEntity())) return;
+        if (spawnService.isManagedSpawn(event.getEntity())
+                || regions.isExplicitSpawnPoint(event.getLocation(), event.getEntityType().name())) return;
         if (!regions.hasFlag(event.getLocation(), RegionFlag.MONSTER_SPAWN)) event.setCancelled(true);
     }
 
