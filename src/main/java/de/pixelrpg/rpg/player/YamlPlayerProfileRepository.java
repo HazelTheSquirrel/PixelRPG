@@ -61,13 +61,32 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
     private void loadProfessions(PlayerProfile profile, ConfigurationSection section) {
         for (Profession profession : Profession.values()) {
             String key = profession.name().toLowerCase();
-            if (section.contains(key + ".level")) { profile.setProfessionLevel(profession, section.getInt(key + ".level", Profession.MIN_LEVEL)); profile.setProfessionExperience(profession, section.getLong(key + ".experience", 0L)); if (section.getBoolean(key + ".learned", false)) profile.learnProfession(profession); continue; }
-            String[] legacyKeys = switch (profession) { case BLACKSMITH -> new String[]{"blacksmithing"}; case PROVISIONER -> new String[]{"cooking", "fishing", "skinning", "herbalism"}; case ALCHEMIST -> new String[]{"alchemy", "herbalism"}; case SCHOLAR -> new String[0]; };
-            int level = maxLegacyLevel(section, legacyKeys); long experience = maxLegacyExperience(section, legacyKeys); profile.setProfessionLevel(profession, level); profile.setProfessionExperience(profession, experience); if (level > Profession.MIN_LEVEL) profile.learnProfession(profession);
+            if (section.contains(key + ".level")) {
+                profile.setProfessionLevel(profession, section.getInt(key + ".level", Profession.MIN_LEVEL));
+                profile.setProfessionExperience(profession, section.getLong(key + ".experience", 0L));
+                if (section.getBoolean(key + ".learned", false)) profile.learnProfession(profession);
+                continue;
+            }
+            String legacyKey = legacyKey(profession);
+            if (legacyKey == null) continue;
+            int level = section.getInt(legacyKey + ".level", section.getInt(legacyKey, Profession.MIN_LEVEL));
+            long experience = section.getLong(legacyKey + ".experience", 0L);
+            profile.setProfessionLevel(profession, level);
+            profile.setProfessionExperience(profession, experience);
+            if (level > Profession.MIN_LEVEL) profile.learnProfession(profession);
         }
     }
-    private int maxLegacyLevel(ConfigurationSection section, String[] keys) { int max = Profession.MIN_LEVEL; for (String key : keys) max = Math.max(max, section.getInt(key + ".level", section.getInt(key, Profession.MIN_LEVEL))); return max; }
-    private long maxLegacyExperience(ConfigurationSection section, String[] keys) { long max = 0L; for (String key : keys) max = Math.max(max, section.getLong(key + ".experience", 0L)); return max; }
+
+    private String legacyKey(Profession profession) {
+        return switch (profession) {
+            case BLACKSMITH -> "blacksmithing";
+            case COOK -> "cooking";
+            case FISHERMAN -> "fishing";
+            case TAILOR -> "skinning";
+            case ALCHEMIST -> "alchemy";
+            case SCHOLAR, FARMER, MASON, WOODCUTTER -> null;
+        };
+    }
 
     @Override
     public long save(PlayerProfile profile) throws IOException {
