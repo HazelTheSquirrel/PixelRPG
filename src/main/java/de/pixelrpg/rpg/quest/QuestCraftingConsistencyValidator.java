@@ -6,10 +6,8 @@ import de.pixelrpg.rpg.profession.CraftingRecipeRegistry;
 import de.pixelrpg.rpg.profession.Profession;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Cross-validates quest and crafting content after both registries are loaded.
@@ -29,7 +27,7 @@ public final class QuestCraftingConsistencyValidator {
 
         for (Profession profession : Profession.values()) {
             for (CraftRecipe recipe : recipes.getRecipes(profession)) {
-                String previous = recipesById.put(recipe.id(), recipe.id());
+                CraftRecipe previous = recipesById.put(recipe.id(), recipe);
                 if (previous != null) {
                     throw new IllegalStateException("Duplicate recipe ID after normalization: " + recipe.id());
                 }
@@ -54,10 +52,6 @@ public final class QuestCraftingConsistencyValidator {
                     if (!itemId.startsWith("pixelrpg:")) {
                         throw new IllegalStateException("Recipe '" + recipe.id()
                                 + "' has invalid custom item cost '" + itemCost + "'.");
-                    }
-                    if (!itemDefinitions.find(itemId).isPresent() && !recipeByResult.containsKey(itemId)) {
-                        // Earlier recipes are already indexed. Later references are
-                        // checked in the second pass below.
                     }
                 }
             }
