@@ -1,167 +1,184 @@
-# PixelRPG — Stabilitäts-, Architektur- und Security-Audit
+# PixelRPG — Forensisches Stabilitäts-, Architektur- und Security-Audit
 
 **Branch:** `test`
 **Zielplattform:** Paper 26.x, aktuell Paper 26.2
 **Java:** 25
 **Mappings:** Mojang
-**Status:** Stabilisierungslauf 1 abgeschlossen; CI-Gate läuft nach dem letzten Commit
+**Stand:** zweiter forensischer Stabilisierungslauf
 
-## Ziel
+## Urteil
 
-Der funktionierende Gameplay-Zustand bleibt die Referenz. Stabilisierung bedeutet: Datenintegrität, Thread-Sicherheit, Lifecycle, Performance und Security verbessern, ohne funktionierende Systeme unnötig neu zu erfinden.
+Der Branch ist nach dem bisherigen Umbau strukturell deutlich belastbarer als der ursprüngliche Stand. Ein grüner CI-Build bleibt jedoch nur ein statisches Build-Gate und ist kein Beweis für 50/100-Spieler-TPS, Datenbankausfallsicherheit oder vollständige Datenintegrität.
 
-## Stabilisierungslauf 1 — umgesetzt
+Der zweite Durchlauf hat insbesondere einen weiteren echten Hotpath-Befund bestätigt: Party- und Guild-Persistenz schrieb YAML synchron aus Gameplay-Aktionen. Beide Pfade wurden auf Snapshot → sequenzielle Async-Persistenz umgestellt und besitzen jetzt einen kontrollierten Shutdown-Flush.
+
+## Bereits umgesetzt
 
 ### PlayerProfile / Persistenz
 
-- Persistenz arbeitet mit synchron erzeugten Deep-Snapshots statt einer gleichzeitig serialisierten Live-Instanz.
-- Snapshots werden vor dem Übergang auf den I/O-Executor erzeugt.
-- Dirty-State bleibt bei Änderungen während eines Saves erhalten.
-- Fehlgeschlagene Storage-Saves markieren den Live-State erneut als dirty.
-- Per-UUID-Save-Queues verhindern parallele Saves desselben Spielers.
-- Load- und Save-Operationen derselben UUID laufen über dieselbe Sequenz.
-- Shutdown ist idempotent.
-- Emergency-Repositories werden geschlossen.
-- Equipment und Quest-State werden im Snapshot berücksichtigt.
+- Deep-Snapshots vor dem Async-Handoff.
+- Kein Live-`PlayerProfile` im Repository-Thread.
+- Dirty-State wird bei Änderungen während eines laufenden Saves erneut persistiert.
+- Fehler markieren den Live-State wieder als dirty.
+- Per-UUID Save-Sequenz.
+- Idempotenter Shutdown.
+- Equipment- und Quest-State werden gesnapshottet.
 
-**Verbleibend:** Eine explizite persistente Save-Revision ist noch nicht als DB-Spalte eingeführt. Die aktuelle per-UUID-Sequenz verhindert parallele Rückwärts-Saves innerhalb dieses Prozesses; eine DB-seitige Revision ist für Multi-Process-/Recovery-Szenarien weiterhin ein P1/P0-Hardening.
+### Region
 
-### Region-System
+- Welt/Chunk-Index für Region-Lookups.
+- Welt/Chunk-Index für explizite Spawnpunkte.
+- Region-Regelentscheidungen im `RegionPolicyService`.
+- Region-I/O auf eigenem Executor.
+- Snapshot vor Async-I/O.
+- Atomisches YAML-Schreiben.
+- Migration wird nur markiert und außerhalb des Load-Hotpaths persistiert.
 
-- Regionabfragen verwenden einen Welt/Chunk-Index.
-- Explizite Spawnpunkte verwenden einen eigenen Welt/Chunk-Index und keinen globalen Region-Scan.
-- Region-Regelentscheidungen liegen im `RegionPolicyService` statt im Listener.
-- Region-Persistenz läuft über einen eigenen I/O-Executor.
-- Region-Snapshots werden vor Async-I/O erzeugt.
-- Region-YAML wird atomar über temporäre Datei + Move geschrieben.
-- Formatmigrationen werden beim Laden nur markiert und anschließend über den asynchronen Persistenzpfad gespeichert; Migration verursacht dadurch kein direktes YAML-Schreiben im Load-Hotpath.
-- Region-Persistenz besitzt einen kontrollierten Executor-Lifecycle.
+### NPC / HTTP / Skins
 
-### NPC-System
+- NPC-Chunk-Index.
+- NPC-Persistenz asynchron.
+- PDC-Identität.
+- Skin-I/O asynchron.
+- URL- und SSRF-Validierung.
+- Redirect-/Responsegrößenbegrenzung.
+- begrenzter, instanzgebundener Skin-Cache.
+- Entity-Mutation auf dem Serverthread.
 
-- NPC-Persistenz läuft asynchron.
-- NPC-Saves verwenden temporäre Dateien und atomaren Move, soweit verfügbar.
-- NPC-Entities werden per PDC identifiziert.
-- NPC-Chunk-Load verarbeitet nur NPCs des betroffenen Chunks statt alle NPCs der Welt zu scannen.
-- NPC-Chunk-Index wird beim Load/Create/Delete gepflegt.
-- Shutdown ist idempotent.
+### Guild
 
-### Externe Skins / HTTP
+- Guild-State wird beim Gameplay weiterhin synchron als Domain-State verändert.
+- Persistenz erzeugt eine YAML-Repräsentation unter dem Synchronisationsschutz.
+- Tatsächliches Dateisystem-I/O läuft jetzt über einen einzelnen `PixelRPG-GuildIO` Executor.
+- Saves werden sequenziell abgearbeitet.
+- Schreiben erfolgt atomar über temporäre Datei + Move.
+- Shutdown wartet auf ausstehende Writes und beendet den Executor.
+- Statischer Singleton ist noch vorhanden und bleibt ein Architektur-P1.
 
-- Skin-Download läuft asynchron.
-- Externe URLs werden validiert.
-- HTTPS ist für externe Quellen erforderlich.
-- Redirects werden kontrolliert.
-- Loopback/private/link-local/multicast Ziele werden blockiert.
-- Responsegrößen sind begrenzt.
-- Skin-Cache besitzt TTL und Größenbegrenzung.
-- Skin-Cache ist nicht mehr JVM-global statisch.
-- Paper-Mannequin-Mutation bleibt auf dem Serverthread.
+### Party
 
-### Datenbank / JDBC
+- Party-State bleibt serverthreadgebunden.
+- Persistenz erzeugt einen Snapshot und schreibt diesen über einen eigenen `PixelRPG-PartyIO` Executor.
+- Atomisches Schreiben.
+- Shutdown beendet Maintenance-Task und wartet auf ausstehende Persistenz.
+- Runtime-Queries verwenden keine Dateisystemzugriffe.
 
-- DB-I/O ist aus den normalen Gameplay-Hotpaths herauszuhalten.
-- Connection/Statement/ResultSet werden über Try-with-Resources behandelt.
-- Prepared Statements sind der verbindliche SQL-Weg.
-- `autoReconnect` wird nicht als Fehlerbehandlung verwendet.
-- TLS wird nicht pauschal deaktiviert; die Konfiguration besitzt einen expliziten SSL-Modus.
-- JDBC-Service-Discovery wird beim Shading berücksichtigt.
+## Neue/noch offene Befunde nach Durchlauf 2
 
-### Build / ShadowJar / CI
+### P0/P1
 
-- Java 25 Toolchain und `--release 25`.
-- Paper 26.2 Dev Bundle als aktuelle Entwicklungsbasis.
-- Gson wird korrekt über `com.google.gson` relocated; interne Gson-Nutzung wird nicht fälschlich als API-Verstoß gewertet.
-- HikariCP und MySQL werden relocated.
-- JDBC-Service-Dateien werden gemerged.
-- Signaturdateien werden aus dem Fat-JAR entfernt.
-- Source-Boundary-Checks verbieten Legacy-NMS, CraftBukkit, ChatColor und statische Live-Paper-Referenzen.
-- CI prüft Source-Boundaries und das erzeugte Artifact.
-
-### Paper/API
-
-- Adventure Components statt `ChatColor`.
-- PDC bleibt die primäre Plugin-Metadatenebene für RPG-Items.
-- Keine Legacy-NMS-Pakete.
-- Keine CraftBukkit-Namen.
-- Keine alten 1.21.x-Implementierungen.
-- Native Paper-Dialogmechanik bleibt die Zielarchitektur.
-
-## Noch offen nach Stabilisierungslauf 1
-
-### P0/P1 — nächste harte Runde
-
-1. Persistente Save-Revision für PlayerProfile einführen und DB-seitig gegen Rückwärts-Saves absichern.
-2. Join/Quit/Rejoin/Shutdown-Concurrency mit automatisierten Tests abdecken.
-3. Alle Companion-, Guild-, Trade- und Bank-Persistenzpfade auf Main-Thread-I/O und Lifecycle prüfen.
-4. Alle verbleibenden synchronen Repository-/YAML-Aufrufe im Runtime-Code erfassen und entfernen.
-5. Companion-Runtime-Maps auf Lifecycle und Größenwachstum prüfen.
-6. Companion-Follow-/Combat-/Look-Ticks auf unnötige Entity-/Player-Arbeit reduzieren.
-7. Boss-Manager und Boss-Tasks auf globale Entity-Scans und Tick-Budget prüfen.
-8. Quest-Manager auf globale Vollscans bei Kill-/Inventory-/Passive-Events prüfen.
-9. Scoreboard-Guild-Update auf vermeidbare Spieler×Spieler-Arbeit prüfen.
-10. Economy-Operationen logisch atomar machen.
-11. Geldmodell langfristig von `double` auf kleinste Währungseinheit (`long`) migrieren.
-12. MySQL-Schema versionieren und Migrationen nicht mehr über ad-hoc DDL erweitern.
-13. `PixelRPGPlugin` schrittweise weiter zum reinen Composition Root reduzieren.
-14. `RPGItemBuilder` von global mutable Scaling-Statik auf immutable `ItemScalingConfig` umstellen.
-15. Quest-Text vollständig auf eine einzige `DisplayNameService`-Quelle umstellen.
-16. Rezept-IDs vollständig kanonisieren.
-17. Paper-Dev-Bundle für Releases auf einen exakten Build pinnen statt `26.2.build.+`.
-18. Reale 50-/100-Spieler-Lasttests durchführen; CI-Kompilierung allein beweist keine TPS-Sicherheit.
-
-## Architektur-Soll
-
-```text
-Paper Listener / Command / GUI
-            ↓
-Application / Use Case
-            ↓
-Domain State / Domain Service
-            ↓
-Repository Interface
-            ↓
-Infrastructure
-```
-
-Listener extrahieren Eventdaten, rufen einen Use Case auf und wenden dessen Ergebnis an. Business-Regeln gehören in Services/Domain-Logik.
+1. **PlayerProfile Save-Revision:** DB-seitige monotone Revision fehlt weiterhin. Die Prozess-interne UUID-Sequenz verhindert parallele Rückwärts-Saves, schützt aber nicht gegen externe Prozesse/Recovery-Replays.
+2. **CompanionService:** `load()` und `CompanionEquipmentStore` führen weiterhin synchrone YAML-Lese-/Schreiboperationen aus Gameplay-Aufrufen aus. Das ist der nächste harte Runtime-I/O-Punkt.
+3. **CompanionService:** `shutdown()` persistiert Companion-Daten weiterhin über den synchronen `save()`-Pfad; dieser muss auf einen Snapshot-/Executor-Lifecycle umgestellt werden.
+4. **GuildManager:** statischer Singleton bleibt bestehen; direkte globale Zugänglichkeit erschwert Isolation und Tests.
+5. **Party:** `Party` ist mutable und wird in Runtime-Maps geteilt. Für den Main-Thread ist das aktuell konsistent, eine explizite Domain-Actor-Grenze fehlt aber.
+6. **Quest/Shop/Boss/Combat:** vollständige Hotpath-Analyse muss weiterhin mit konkreten Runtime-Profilen verifiziert werden.
+7. **Economy:** `double` als Geldmodell ist weiterhin vorhanden. Langfristig `long` in kleinster Währungseinheit.
+8. **RPGItemBuilder:** globale mutable Scaling-Konfiguration bleibt bestehen.
+9. **Quest-Text:** vollständige Single-Source-of-Truth für Displaynamen ist noch nicht garantiert.
+10. **Rezept-IDs:** vollständige Kanonisierung muss weiterhin durchgesetzt werden.
+11. **Paper Dev Bundle:** `26.2.build.+` ist für Entwicklung zulässig, für reproduzierbare Releases aber zu breit. Release-Builds müssen pinnen.
+12. **Lasttest:** keine echte 50-/100-Spieler-Verifikation durch CI.
 
 ## Threading-Vertrag
 
 - Paper-/Minecraft-Live-API nur auf dem vorgesehenen Serverthread.
 - DB-I/O niemals Main Thread.
 - HTTP-I/O niemals Main Thread.
-- Schweres Filesystem-I/O niemals Main Thread.
-- Mutable Domain-State nicht zwischen Main- und I/O-Threads teilen.
-- Async Persistenz erhält immutable Snapshots.
-- Async Tasks halten keine langlebigen Live-Entity-Referenzen.
-- Jeder Executor besitzt einen eindeutigen Owner und wird beim Shutdown beendet.
+- schweres Filesystem-I/O niemals Main Thread.
+- mutable Domain-State nicht zwischen Main- und I/O-Threads teilen.
+- Async Persistenz erhält Snapshots.
+- Executor besitzt eindeutigen Owner und wird beim Shutdown beendet.
+- Async Tasks dürfen keine langlebigen Live-Entity-Referenzen halten.
+
+## Persistenz-Vertrag
+
+Jeder persistente Runtime-State benötigt:
+
+```text
+Main-thread mutation
+        ↓
+immutable snapshot
+        ↓
+ordered persistence queue
+        ↓
+atomic repository write
+```
+
+Für PlayerProfile muss zusätzlich eine persistente Revision eingeführt werden:
+
+```text
+revision 41
+revision 42
+revision 43
+```
+
+Ein Save mit Revision 42 darf niemals einen bereits gespeicherten Zustand 43 überschreiben.
 
 ## Cache-Vertrag
 
-Jeder langlebige Cache braucht mindestens:
+Jeder langlebige Cache braucht:
 
 - maximale Größe,
-- TTL oder definierte Eviction,
+- TTL oder andere definierte Eviction,
 - eindeutigen Owner,
-- Cleanup beim Shutdown.
+- Shutdown-Cleanup.
+
+## Listener-Vertrag
+
+Listener dürfen keine vollständige Business-Logik enthalten.
+
+```text
+Paper Event
+   ↓
+Adapter
+   ↓
+Use Case / Domain Service
+   ↓
+Result
+   ↓
+Paper side effect
+```
+
+Der Region-Listener ist in diesem Punkt bereits deutlich verbessert. Die gleiche Trennung muss für Combat, Quest, NPC, Boss und Inventory konsequent weitergeführt werden.
 
 ## Economy-Vertrag
 
-Ankauf/Verkauf und Bank-/Guild-Operationen müssen serverautoritativ sein. Clientdaten dürfen weder Preis noch Kontostand bestimmen. Item- und Geldmutation müssen gegen doppelte Ausführung und Teiltransaktionen geschützt werden.
+- Server ist autoritativ.
+- Clientdaten bestimmen niemals Preis oder Kontostand.
+- Geldmutation und Itemmutation müssen gegen doppelte Ausführung geschützt sein.
+- Kaufen/Verkaufen/Bank/Guild müssen bei Fehlern atomar sein.
+- `double` ist für dauerhaftes Geldmodell zu vermeiden.
+
+## Build-/Runtime-Gate
+
+Ein grüner CI-Build bedeutet:
+
+- Java-25-Kompilierung erfolgreich.
+- Paper-Dev-Bundle auflösbar.
+- Source-Boundary-Regeln eingehalten.
+- Artifact-Prüfungen erfolgreich.
+
+Er bedeutet **nicht** automatisch:
+
+- Paper-Server startet mit dem Fat-JAR.
+- MySQL/Hikari verbindet sich real.
+- `SELECT 1` funktioniert.
+- Join/Quit/Rejoin verliert keine Daten.
+- 100 Spieler verursachen keine kritischen Tick-Spikes.
 
 ## Release-Gate
 
-Production-Ready ist erst erreicht, wenn zusätzlich zum grünen Build nachgewiesen ist:
+Production-Ready erst nach Nachweis von:
 
-- Java-25 Clean Build erfolgreich
-- Fat-JAR startet auf Paper 26.2
-- MySQL/Hikari startet und `SELECT 1` funktioniert
-- Join → Load → Mutation → Save → Quit → Reload ohne Datenverlust
-- konkurrierende Saves überschreiben sich nicht rückwärts
-- keine DB/HTTP/Filesystem-Blockierung im Main-Thread-Hotpath
-- keine unbounded Caches
-- alle Executor/HTTP/DB-Lifecycle sauber beendet
-- 50–100 Spieler Lasttest ohne kritische Tick-Spikes
+- Java-25 Clean Build.
+- Fat-JAR startet auf Paper 26.2.
+- MySQL/Hikari startet und `SELECT 1` funktioniert.
+- Join → Load → Mutation → Save → Quit → Reload ohne Datenverlust.
+- konkurrierende Saves können nicht rückwärts schreiben.
+- keine DB/HTTP/Filesystem-Blockierung im Main-Thread-Hotpath.
+- keine unbounded Caches.
+- alle Executor/HTTP/DB-Lifecycle sauber beendet.
+- 50–100-Spieler-Lasttest ohne kritische Tick-Spikes.
 
-**Grundsatz:** Ein grüner CI-Build beweist Kompilierbarkeit. Er beweist nicht automatisch Datenintegrität oder TPS-Stabilität. Diese beiden Dinge werden in der nächsten Runde separat verifiziert.
+**Nächster Codeblock:** Companion-Persistenz vollständig vom Gameplay-Thread lösen; danach Boss-/Quest-/Shop-Hotpaths und Economy-Atomizität erneut forensisch prüfen.
