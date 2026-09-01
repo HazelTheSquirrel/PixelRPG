@@ -16,10 +16,13 @@ public final class QuestProgress {
     public String getQuestId() { return questId; }
     public synchronized int getCurrentAmount() { return currentAmount; }
 
-    public synchronized void setCurrentAmount(int currentAmount) {
-        if (this.currentAmount == currentAmount) return;
-        this.currentAmount = currentAmount;
-        Runnable callback = dirtyCallback;
+    public void setCurrentAmount(int currentAmount) {
+        Runnable callback;
+        synchronized (this) {
+            if (this.currentAmount == currentAmount) return;
+            this.currentAmount = currentAmount;
+            callback = dirtyCallback;
+        }
         if (callback != null) callback.run();
     }
 
