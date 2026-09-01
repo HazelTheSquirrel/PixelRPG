@@ -34,6 +34,7 @@ import de.pixelrpg.rpg.combat.skill.SkillInputListener;
 import de.pixelrpg.rpg.combat.skill.WeaponAbilityEngine;
 import de.pixelrpg.rpg.companion.CompanionExperienceListener;
 import de.pixelrpg.rpg.companion.CompanionService;
+import de.pixelrpg.rpg.core.LifecycleCoordinator;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.dialogue.DialogueCommand;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
@@ -101,6 +102,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class PixelRPGPlugin extends JavaPlugin {
     private static PixelRPGPlugin instance;
+    private final LifecycleCoordinator lifecycle = new LifecycleCoordinator();
     private PlayerProfileManager playerProfileManager;
     private StatEngine statEngine;
     private ProfessionSystem professionSystem;
@@ -268,6 +270,23 @@ public final class PixelRPGPlugin extends JavaPlugin {
         questPassiveCheckTask = new QuestPassiveCheckTask(this, questManager);
         questPassiveCheckTask.start();
 
+        lifecycle.register(() -> playerProfileManager.shutdown());
+        lifecycle.register(() -> companionService.shutdown());
+        lifecycle.register(() -> partyManager.shutdown());
+        lifecycle.register(() -> guildManager.shutdown());
+        lifecycle.register(() -> regionManager.shutdown());
+        lifecycle.register(() -> npcManager.shutdown());
+        lifecycle.register(() -> npcLookTask.stop());
+        lifecycle.register(() -> bossManager.shutdown());
+        lifecycle.register(() -> questManager.shutdown());
+        lifecycle.register(() -> scoreboardService.shutdown());
+        lifecycle.register(() -> playtimeTracker.shutdown());
+        lifecycle.register(() -> mobLevelScalingListener.shutdown());
+        lifecycle.register(() -> biomeBossSpawnTask.stop());
+        lifecycle.register(() -> questPassiveCheckTask.stop());
+        lifecycle.register(() -> regionEditor.shutdown());
+        lifecycle.register(() -> regionSpawnService.stop());
+
         RootCommand rootCommand = new RootCommand(this, itemService);
         rootCommand.register(new CompanionSubCommand(companionService));
         rootCommand.register(new NpcSubCommand(npcManager));
@@ -292,24 +311,12 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (regionSpawnService != null) regionSpawnService.stop();
-        if (regionEditor != null) regionEditor.shutdown();
-        if (questPassiveCheckTask != null) questPassiveCheckTask.stop();
-        if (biomeBossSpawnTask != null) biomeBossSpawnTask.stop();
-        if (mobLevelScalingListener != null) mobLevelScalingListener.shutdown();
-        if (playtimeTracker != null) playtimeTracker.shutdown();
-        if (scoreboardService != null) scoreboardService.shutdown();
-        if (questManager != null) questManager.shutdown();
-        if (bossManager != null) bossManager.shutdown();
-        if (npcLookTask != null) npcLookTask.stop();
-        if (npcManager != null) npcManager.shutdown();
-        if (regionManager != null) regionManager.shutdown();
-        if (guildManager != null) guildManager.shutdown();
-        if (partyManager != null) partyManager.shutdown();
-        if (companionService != null) companionService.shutdown();
-        if (playerProfileManager != null) playerProfileManager.shutdown();
-        unregisterServices();
-        if (instance == this) instance = null;
+        try {
+            lifecycle.close();
+        } finally {
+            unregisterServices();
+            if (instance == this) instance = null;
+        }
     }
 
     private void unregisterServices() {
