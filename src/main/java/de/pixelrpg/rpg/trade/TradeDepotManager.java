@@ -35,6 +35,7 @@ import java.util.logging.Level;
 public final class TradeDepotManager {
     public static final long LISTING_DURATION_MILLIS = 7L * 24L * 60L * 60L * 1000L;
     public static final double SALE_FEE = 0.05D;
+    private static final long EXPIRY_RETRY_DELAY_TICKS = 200L;
 
     private final JavaPlugin plugin;
     private final PlayerProfileManager profileManager;
@@ -192,11 +193,21 @@ public final class TradeDepotManager {
         expiryTasks.put(listing.id(), task);
     }
 
+    private void scheduleExpiryRetry(UUID listingId) {
+        cancelExpiry(listingId);
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> expireListing(listingId), EXPIRY_RETRY_DELAY_TICKS);
+        expiryTasks.put(listingId, task);
+    }
+
     private void expireListing(UUID listingId) {
         TradeDepotListing listing = listings.get(listingId);
         if (listing == null) { cancelExpiry(listingId); return; }
         if (!listing.expired(System.currentTimeMillis())) { scheduleExpiry(listing); return; }
-        if (!bankStorage.addTradeGoods(listing.sellerId(), listing.itemCopy())) return;
+        if (!bankStorage.addTradeGoods(listing.sellerId(), listing.itemCopy())) {
+            // The listing remains claimable; retry later instead of leaving an expired item stranded forever.
+            scheduleExpiryRetry(listingId);
+            return;
+        }
         listings.remove(listingId);
         cancelExpiry(listingId);
         save();
