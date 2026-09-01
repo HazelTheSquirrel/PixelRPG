@@ -12,6 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -20,10 +21,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class QuestRepository {
     private final Plugin plugin;
     private final ItemDefinitionRegistry itemDefinitions;
-    private final CraftingRecipeRegistry craftingRecipes = new CraftingRecipeRegistry();
     private final Map<String, Quest> questsById = new ConcurrentHashMap<>();
     private final Map<String, List<String>> prerequisitesByQuest = new ConcurrentHashMap<>();
     private final Map<String, List<String>> followUpsByQuest = new ConcurrentHashMap<>();
+    private final CraftingRecipeRegistry craftingRecipes = new CraftingRecipeRegistry();
     private static final int MAX_ACTIVE_QUESTS = 5;
 
     public QuestRepository(Plugin plugin) {
@@ -48,15 +49,14 @@ public final class QuestRepository {
         try {
             root = new JsonDataManager(plugin).load(resourceName);
         } catch (RuntimeException exception) {
-            plugin.getLogger().warning("Unable to load quest data '" + resourceName + "': " + exception.getMessage());
-            return;
+            throw new IllegalStateException("Unable to load mandatory quest data '" + resourceName + "'", exception);
         }
         JsonArray definitions = root.getAsJsonArray("definitions");
-        if (definitions == null) return;
+        if (definitions == null) throw new IllegalStateException("Quest data '" + resourceName + "' requires a 'definitions' array");
         for (var element : definitions) {
-            if (!element.isJsonObject()) continue;
+            if (!element.isJsonObject()) throw new IllegalStateException("Quest data '" + resourceName + "' contains a non-object definition");
             JsonObject json = element.getAsJsonObject();
-            if (!validateDefinition(json)) continue;
+            if (!validateDefinition(json)) throw new IllegalStateException("Invalid quest definition in '" + resourceName + "': " + string(json, "id", "<missing-id>"));
             String id = string(json, "id", "").strip();
             QuestType type = parseType(string(json, "type", "HUNT"));
             int recommendedLevel = number(json, "recommendedLevel", 1);
@@ -89,17 +89,10 @@ public final class QuestRepository {
         if (id.isBlank() || questsById.containsKey(id)) return false;
         String title = string(json, "title", "").strip();
         String description = string(json, "description", "").strip();
-        if (title.isBlank() || description.isBlank()) {
-            plugin.getLogger().warning("Ignoring quest '" + id + "': title and description are required.");
-            return false;
-        }
+        if (title.isBlank() || description.isBlank()) return false;
         QuestType type;
-        try {
-            type = QuestType.valueOf(string(json, "type", "HUNT").trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException exception) {
-            plugin.getLogger().warning("Ignoring quest '" + id + "': unknown quest type.");
-            return false;
-        }
+        try { type = QuestType.valueOf(string(json, "type", "HUNT").trim().toUpperCase(Locale.ROOT)); }
+        catch (IllegalArgumentException exception) { return false; }
         int level = number(json, "recommendedLevel", 1);
         int category = number(json, "categoryLevel", level);
         int amount = number(json, "requiredAmount", 1);
@@ -111,22 +104,15 @@ public final class QuestRepository {
         if (type == QuestType.GLOBAL_EVENT && string(json, "targetKey", "").isBlank()) return false;
         if (type == QuestType.TALK_TO_NPC && string(json, "targetKey", "").isBlank()) return false;
         if (type == QuestType.HUNT && !isVanillaEntityType(string(json, "targetKey", ""))) return false;
-        if (type == QuestType.COLLECT && !isQuestItem(string(json, "targetKey", ""))) {
-            plugin.getLogger().warning("Ignoring quest '" + id + "': unknown COLLECT target '" + string(json, "targetKey", "") + "'.");
-            return false;
-        }
+        if (type == QuestType.COLLECT && !isQuestItem(string(json, "targetKey", ""))) return false;
         if (type == QuestType.REACH_LOCATION && !hasWorldNavigation(object(json, "navigation"))) return false;
         return true;
     }
 
     private Profession parseProfession(String value) {
         if (value == null || value.isBlank()) return null;
-        try {
-            return Profession.valueOf(value.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException exception) {
-            plugin.getLogger().warning("Unknown quest profession '" + value + "'.");
-            return null;
-        }
+        try { return Profession.valueOf(value.trim().toUpperCase(Locale.ROOT)); }
+        catch (IllegalArgumentException exception) { return null; }
     }
 
     private boolean hasWorldNavigation(JsonObject navigation) {
@@ -140,8 +126,7 @@ public final class QuestRepository {
         try {
             Material material = Material.matchMaterial(key.trim());
             if (material != null && material.isItem() && !normalized.startsWith("pixelrpg:")) return true;
-        } catch (IllegalArgumentException ignored) {
-        }
+        } catch (IllegalArgumentException ignored) { }
         return itemDefinitions.find(key.trim()).isPresent()
                 || itemDefinitions.find(normalized).isPresent()
                 || craftingRecipes.hasResultItemId(normalized);
@@ -150,9 +135,8 @@ public final class QuestRepository {
     private String canonicalItemId(String raw) {
         String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
         if (!value.startsWith("pixelrpg:")) return value;
-        String body = value.substring("pixelrpg:".length());
-        int slash = body.indexOf('/');
-        if (slash > 0) body = body.substring(0, slash) + ":" + body.substring(slash + 1);
+        String body = value.substring("pixelrpg:".length()).replace(':', '/');
+        while (body.contains("//")) body = body.replace("//", "/");
         return "pixelrpg:" + body;
     }
 
@@ -160,9 +144,7 @@ public final class QuestRepository {
         try {
             var type = org.bukkit.entity.EntityType.valueOf(key.trim().toUpperCase(Locale.ROOT));
             return type.isAlive() && type != org.bukkit.entity.EntityType.PLAYER;
-        } catch (IllegalArgumentException exception) {
-            return false;
-        }
+        } catch (IllegalArgumentException exception) { return false; }
     }
 
     private List<String> mergePrerequisites(JsonObject json) {
@@ -178,25 +160,20 @@ public final class QuestRepository {
     private void validateReferences() {
         for (Map.Entry<String, List<String>> entry : prerequisitesByQuest.entrySet()) {
             entry.getValue().stream().filter(id -> !questsById.containsKey(id))
-                    .forEach(id -> plugin.getLogger().warning("Quest '" + entry.getKey() + "' references unknown prerequisite '" + id + "'."));
+                    .findFirst().ifPresent(id -> { throw new IllegalStateException("Quest '" + entry.getKey() + "' references unknown prerequisite '" + id + "'."); });
         }
         for (Map.Entry<String, List<String>> entry : followUpsByQuest.entrySet()) {
             entry.getValue().stream().filter(id -> !questsById.containsKey(id))
-                    .forEach(id -> plugin.getLogger().warning("Quest '" + entry.getKey() + "' references unknown follow-up quest '" + id + "'."));
+                    .findFirst().ifPresent(id -> { throw new IllegalStateException("Quest '" + entry.getKey() + "' references unknown follow-up quest '" + id + "'."); });
         }
         for (String questId : questsById.keySet()) {
-            if (hasPrerequisiteCycle(questId, new java.util.HashSet<>(), new java.util.HashSet<>())) {
-                plugin.getLogger().warning("Quest '" + questId + "' participates in a prerequisite cycle.");
-            }
+            if (hasPrerequisiteCycle(questId, new HashSet<>(), new HashSet<>())) throw new IllegalStateException("Quest '" + questId + "' participates in a prerequisite cycle.");
         }
     }
 
     private boolean hasPrerequisiteCycle(String questId, java.util.Set<String> visiting, java.util.Set<String> visited) {
         if (!visiting.add(questId)) return true;
-        if (visited.contains(questId)) {
-            visiting.remove(questId);
-            return false;
-        }
+        if (visited.contains(questId)) { visiting.remove(questId); return false; }
         for (String prerequisite : prerequisitesByQuest.getOrDefault(questId, List.of())) {
             if (questsById.containsKey(prerequisite) && hasPrerequisiteCycle(prerequisite, visiting, visited)) return true;
         }
