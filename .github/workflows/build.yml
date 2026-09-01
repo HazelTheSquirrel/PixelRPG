@@ -37,14 +37,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -RInE --include='*.java' 'org\.bukkit\.ChatColor|net\.md_5\.bungee\.api\.ChatColor|net\.minecraft\.server\.v[0-9_]+|org\.bukkit\.craftbukkit|com\.google\.gson' src/main/java; then
-            echo 'Forbidden legacy/API-boundary usage detected.'
+
+          forbidden_legacy='org\.bukkit\.ChatColor|net\.md_5\.bungee\.api\.ChatColor|net\.minecraft\.server\.v[0-9_]+|org\.bukkit\.craftbukkit'
+          if grep -RInE --include='*.java' "$forbidden_legacy" src/main/java; then
+            echo 'Forbidden legacy API usage detected.'
             exit 1
           fi
-          if grep -RInE --include='*.java' 'static[[:space:]]+[^;]*(Player|Entity|World)[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[[:space:]]*[;=]' src/main/java; then
+
+          if grep -RInE --include='*.java' 'static[[:space:]]+(final[[:space:]]+)?[^;]*(Player|Entity|World)[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[[:space:]]*[;=]' src/main/java; then
             echo 'Static live Bukkit reference detected.'
             exit 1
           fi
+
+          echo 'Gson is permitted internally and is verified through ShadowJar relocation below.'
           echo 'Source API boundary validation passed.'
 
       - name: Verify plugin artifact
@@ -55,12 +60,28 @@ jobs:
           test -f "$artifact"
           jar tf "$artifact" | grep -q '^paper-plugin.yml$'
           jar tf "$artifact" | grep -q '^de/pixelrpg/rpg/'
+
           if jar tf "$artifact" | grep -qE '^(com/google/gson|com/zaxxer/hikari|com/mysql)/'; then
             echo 'Unrelocated bundled dependency package detected.'
             exit 1
           fi
+
+          if ! jar tf "$artifact" | grep -q '^de/pixelrpg/rpg/libs/gson/'; then
+            echo 'Relocated Gson package missing from shaded artifact.'
+            exit 1
+          fi
+          if ! jar tf "$artifact" | grep -q '^de/pixelrpg/rpg/libs/hikari/'; then
+            echo 'Relocated Hikari package missing from shaded artifact.'
+            exit 1
+          fi
+          if ! jar tf "$artifact" | grep -q '^de/pixelrpg/rpg/libs/mysql/'; then
+            echo 'Relocated MySQL package missing from shaded artifact.'
+            exit 1
+          fi
+
           if ! jar tf "$artifact" | grep -q '^META-INF/services/java.sql.Driver$'; then
             echo 'Shaded JDBC service descriptor missing.'
             exit 1
           fi
+
           echo 'PixelRPG artifact validation passed.'
