@@ -5,6 +5,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -19,6 +23,7 @@ public final class RegionRepository {
 
     private final File file;
     private final Logger logger;
+    private volatile boolean migrationNeeded;
 
     public RegionRepository(File dataFolder, Logger logger) {
         if (!dataFolder.exists()) dataFolder.mkdirs();
@@ -31,7 +36,7 @@ public final class RegionRepository {
         int formatVersion = yaml.getInt("format-version", 1);
         ConfigurationSection root = yaml.getConfigurationSection("regions");
         if (root == null) {
-            migrateFormatIfNeeded(formatVersion, List.of(), yaml);
+            migrateFormatIfNeeded(formatVersion);
             return List.of();
         }
 
@@ -60,17 +65,14 @@ public final class RegionRepository {
                         try {
                             boolean value = flagSection.getBoolean(key);
                             flags.put(RegionFlag.valueOf(key), formatVersion < 3 ? !value : value);
-                        } catch (IllegalArgumentException ignored) {
-                            // Unknown flags are intentionally ignored for forward compatibility.
-                        }
+                        } catch (IllegalArgumentException ignored) { }
                     }
                 }
 
                 Map<String, String> properties = new HashMap<>();
                 ConfigurationSection propertySection = yaml.getConfigurationSection(base + ".properties");
                 if (propertySection != null) {
-                    propertySection.getKeys(false).forEach(key ->
-                            properties.put(key, propertySection.getString(key, "")));
+                    propertySection.getKeys(false).forEach(key -> properties.put(key, propertySection.getString(key, "")));
                 }
 
                 List<RegionSpawnPoint> spawnPoints = new ArrayList<>();
@@ -80,37 +82,30 @@ public final class RegionRepository {
                     Object y = entry.get("y");
                     Object z = entry.get("z");
                     if (mob == null || x == null || y == null || z == null) continue;
-                    spawnPoints.add(new RegionSpawnPoint(
-                            String.valueOf(mob), world, number(x), number(y), number(z)));
+                    spawnPoints.add(new RegionSpawnPoint(String.valueOf(mob), world, number(x), number(y), number(z)));
                 }
 
                 UUID guildId = parseUuid(root.getString(idText + ".owner-guild-id"));
-                PixelRegion region = new PixelRegion(
-                        id,
-                        world,
-                        validation.geometry(),
-                        root.getInt(idText + ".min-y"),
-                        root.getInt(idText + ".max-y"),
-                        root.getString(idText + ".name", idText),
-                        RegionType.parse(root.getString(idText + ".type", "OTHER")),
-                        root.getString(idText + ".description", ""),
-                        guildId,
-                        root.getString(idText + ".owner-guild-name"),
-                        root.getString(idText + ".enter-message", ""),
-                        root.getString(idText + ".leave-message", ""),
-                        root.getInt(idText + ".priority", 0),
-                        flags,
-                        properties,
-                        spawnPoints
-                );
-                result.add(region);
+                result.add(new PixelRegion(
+                        id, world, validation.geometry(), root.getInt(idText + ".min-y"), root.getInt(idText + ".max-y"),
+                        root.getString(idText + ".name", idText), RegionType.parse(root.getString(idText + ".type", "OTHER")),
+                        root.getString(idText + ".description", ""), guildId, root.getString(idText + ".owner-guild-name"),
+                        root.getString(idText + ".enter-message", ""), root.getString(idText + ".leave-message", ""),
+                        root.getInt(idText + ".priority", 0), flags, properties, spawnPoints));
             } catch (Exception exception) {
                 logger.warning("Skipping malformed region " + idText + ": " + exception.getMessage());
             }
         }
 
-        migrateFormatIfNeeded(formatVersion, result, yaml);
+        migrateFormatIfNeeded(formatVersion);
         return List.copyOf(result);
+    }
+
+    /** Returns and clears the migration marker so the caller can schedule persistence off-thread. */
+    public boolean consumeMigrationNeeded() {
+        if (!migrationNeeded) return false;
+        migrationNeeded = false;
+        return true;
     }
 
     /** Loads world-wide defaults from the global region section. */
@@ -124,11 +119,8 @@ public final class RegionRepository {
             EnumMap<RegionFlag, Boolean> values = defaultGlobalFlags();
             if (flags != null) {
                 for (String key : flags.getKeys(false)) {
-                    try {
-                        values.put(RegionFlag.valueOf(key), flags.getBoolean(key));
-                    } catch (IllegalArgumentException ignored) {
-                        // Unknown future flags are ignored.
-                    }
+                    try { values.put(RegionFlag.valueOf(key), flags.getBoolean(key)); }
+                    catch (IllegalArgumentException ignored) { }
                 }
             }
             result.put(world, Map.copyOf(values));
@@ -146,11 +138,7 @@ public final class RegionRepository {
                 yaml.set("global-regions." + world.getKey() + ".flags." + flag.getKey().name(), flag.getValue());
             }
         }
-        try {
-            yaml.save(file);
-        } catch (IOException exception) {
-            throw new IllegalStateException("Could not save regions.yml", exception);
-        }
+        writeAtomically(yaml);
     }
 
     public synchronized void save(Iterable<PixelRegion> regions) {
@@ -167,46 +155,44 @@ public final class RegionRepository {
             yaml.set(base + ".min-y", region.minY());
             yaml.set(base + ".max-y", region.maxY());
             yaml.set(base + ".priority", region.priority());
-
             if (region.ownerGuildId() != null) yaml.set(base + ".owner-guild-id", region.ownerGuildId().toString());
             if (region.ownerGuildName() != null) yaml.set(base + ".owner-guild-name", region.ownerGuildName());
-
-            List<Map<String, Double>> points = region.geometry().points().stream()
-                    .map(point -> Map.of("x", point.x(), "z", point.z()))
-                    .toList();
-            yaml.set(base + ".points", points);
-
+            yaml.set(base + ".points", region.geometry().points().stream()
+                    .map(point -> Map.of("x", point.x(), "z", point.z())).toList());
             for (Map.Entry<RegionFlag, Boolean> flag : region.flags().entrySet()) {
                 yaml.set(base + ".flags." + flag.getKey().name(), flag.getValue());
             }
             for (Map.Entry<String, String> property : region.properties().entrySet()) {
                 yaml.set(base + ".properties." + property.getKey(), property.getValue());
             }
-
-            List<Map<String, Object>> spawnPoints = region.spawnPoints().stream()
-                    .map(point -> Map.<String, Object>of(
-                            "mob", point.mobType(),
-                            "x", point.x(),
-                            "y", point.y(),
-                            "z", point.z()))
-                    .toList();
-            yaml.set(base + ".spawn-points", spawnPoints);
-
+            yaml.set(base + ".spawn-points", region.spawnPoints().stream()
+                    .map(point -> Map.<String, Object>of("mob", point.mobType(), "x", point.x(), "y", point.y(), "z", point.z())).toList());
             yaml.set(base + ".enter-message", region.enterMessage());
             yaml.set(base + ".leave-message", region.leaveMessage());
         }
-
-        try {
-            yaml.save(file);
-        } catch (IOException exception) {
-            throw new IllegalStateException("Could not save regions.yml", exception);
-        }
+        writeAtomically(yaml);
     }
 
-    private void migrateFormatIfNeeded(int formatVersion, List<PixelRegion> regions, YamlConfiguration yaml) {
+    private void migrateFormatIfNeeded(int formatVersion) {
         if (formatVersion >= CURRENT_FORMAT_VERSION) return;
-        save(regions);
-        logger.info("Migrated regions.yml to format version " + CURRENT_FORMAT_VERSION + ".");
+        migrationNeeded = true;
+        logger.info("regions.yml requires migration to format version " + CURRENT_FORMAT_VERSION + "; migration will be persisted asynchronously.");
+    }
+
+    private void writeAtomically(YamlConfiguration yaml) {
+        Path target = file.toPath();
+        Path temporary = target.resolveSibling(file.getName() + ".tmp");
+        try {
+            yaml.save(temporary.toFile());
+            try {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException exception) {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException exception) {
+            try { Files.deleteIfExists(temporary); } catch (IOException ignored) { }
+            throw new IllegalStateException("Could not save regions.yml", exception);
+        }
     }
 
     private static EnumMap<RegionFlag, Boolean> defaultGlobalFlags() {
@@ -225,11 +211,8 @@ public final class RegionRepository {
     }
 
     private static UUID parseUuid(String value) {
-        try {
-            return value == null ? null : UUID.fromString(value);
-        } catch (IllegalArgumentException ignored) {
-            return null;
-        }
+        try { return value == null ? null : UUID.fromString(value); }
+        catch (IllegalArgumentException ignored) { return null; }
     }
 
     private static double number(Object value) {
