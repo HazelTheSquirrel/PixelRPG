@@ -41,7 +41,9 @@ public final class RPGKeys {
         public static NamespacedKey weaponAbility() { return of("item_weapon_ability"); }
         public static NamespacedKey weaponAbilityCooldownMillis() { return of("item_weapon_ability_cooldown"); }
         public static NamespacedKey guildItem() { return of("item_guild_marker"); }
-        public static NamespacedKey shopPriceTag() { return of("item_shop_price_tag"); }
+        public static NamespacedKey shopBuyPriceTag() { return of("item_shop_buy_price_tag"); }
+        public static NamespacedKey shopSellPriceTag() { return of("item_shop_sell_price_tag"); }
+        public static NamespacedKey shopPriceTag() { return shopBuyPriceTag(); }
         public static NamespacedKey instanceId() { return of("item_instance_id"); }
     }
 
