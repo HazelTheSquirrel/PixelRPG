@@ -52,6 +52,15 @@ public final class RegionListener implements Listener {
         editor.addPoint(event.getPlayer(), event.getClickedBlock().getLocation());
     }
 
+    /** Handles admin clicks with the temporary hostile-mob spawn arrow. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onSpawnToolUse(PlayerInteractEvent event) {
+        if (!editor.isSpawnTool(event.getItem()) || !editor.isEditing(event.getPlayer().getUniqueId())) return;
+        if (!event.getAction().isRightClick() || event.getClickedBlock() == null) return;
+        event.setCancelled(true);
+        editor.addSpawnPoint(event.getPlayer(), event.getClickedBlock().getLocation());
+    }
+
     /** Prevents PvP when either participant is inside a region that explicitly disables PvP. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPvp(EntityDamageByEntityEvent event) {
