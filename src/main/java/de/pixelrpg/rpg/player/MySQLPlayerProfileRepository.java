@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -62,15 +63,31 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 ON DUPLICATE KEY UPDATE
                     registered = VALUES(registered), experience = VALUES(experience), money = VALUES(money), waypoints = VALUES(waypoints), story_chapter = VALUES(story_chapter), completed_quests = VALUES(completed_quests), scoreboard_enabled = VALUES(scoreboard_enabled), party_hud_enabled = VALUES(party_hud_enabled), quest_tracker_enabled = VALUES(quest_tracker_enabled), playtime_millis = VALUES(playtime_millis), persistence_revision = VALUES(persistence_revision)
                 """;
+        String lockRevisionSql = "SELECT persistence_revision FROM pixelrpg_players WHERE uuid = ? FOR UPDATE";
         String deleteQuestsSql = "DELETE FROM pixelrpg_active_quests WHERE uuid = ?";
         String insertQuestSql = "INSERT INTO pixelrpg_active_quests (uuid, quest_id, amount, expiry) VALUES (?, ?, ?, ?)";
         String deleteEquipmentSql = "DELETE FROM pixelrpg_player_equipment WHERE uuid = ?";
         String insertEquipmentSql = "INSERT INTO pixelrpg_player_equipment (uuid, slot, item_yaml) VALUES (?, ?, ?)";
         String upsertStatSql = "INSERT INTO pixelrpg_player_stats (uuid, stat_key, value) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)";
-        long nextRevision = profile.getPersistenceRevision() + 1L;
+        long expectedRevision = profile.getPersistenceRevision();
+        long nextRevision = expectedRevision + 1L;
+        if (nextRevision < 0L) throw new SQLException("Player persistence revision overflow for " + profile.getUuid());
         try (Connection connection = databaseManager.getDataSource().getConnection()) {
             connection.setAutoCommit(false);
             try {
+                Long databaseRevision = null;
+                try (PreparedStatement statement = connection.prepareStatement(lockRevisionSql)) {
+                    statement.setString(1, profile.getUuid().toString());
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        if (resultSet.next()) databaseRevision = resultSet.getLong(1);
+                    }
+                }
+                if (databaseRevision != null && databaseRevision.longValue() != expectedRevision) {
+                    throw new SQLException("Stale player profile revision for " + profile.getUuid() + ": memory=" + expectedRevision + ", database=" + databaseRevision);
+                }
+                if (databaseRevision == null && expectedRevision != 0L) {
+                    throw new SQLException("Player profile revision " + expectedRevision + " exists in memory but the database row is missing for " + profile.getUuid());
+                }
                 try (PreparedStatement statement = connection.prepareStatement(upsertPlayerSql)) { statement.setString(1, profile.getUuid().toString()); statement.setBoolean(2, profile.isRegistered()); statement.setLong(3, profile.getExperience()); statement.setDouble(4, profile.getMoney()); statement.setString(5, String.join(",", profile.getUnlockedWaypoints())); statement.setInt(6, profile.getStoryChapterIndex()); statement.setString(7, String.join(",", profile.getCompletedQuests())); statement.setBoolean(8, profile.isScoreboardEnabled()); statement.setBoolean(9, profile.isPartyHudEnabled()); statement.setBoolean(10, profile.isQuestTrackerEnabled()); statement.setLong(11, profile.getPlaytimeMillis()); statement.setLong(12, nextRevision); statement.executeUpdate(); }
                 try (PreparedStatement statement = connection.prepareStatement(deleteQuestsSql)) { statement.setString(1, profile.getUuid().toString()); statement.executeUpdate(); }
                 if (!profile.getActiveQuests().isEmpty()) try (PreparedStatement statement = connection.prepareStatement(insertQuestSql)) { for (QuestProgress progress : profile.getActiveQuests().values()) { statement.setString(1, profile.getUuid().toString()); statement.setString(2, progress.getQuestId()); statement.setInt(3, progress.getCurrentAmount()); statement.setLong(4, progress.getExpiryTimestampMillis()); statement.addBatch(); } statement.executeBatch(); }
