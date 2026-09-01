@@ -51,7 +51,37 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
     }
     private Set<String> splitCsv(String raw) { Set<String> result = new HashSet<>(); if (raw != null && !raw.isBlank()) result.addAll(Arrays.asList(raw.split(","))); return result; }
     private void loadActiveQuests(Connection connection, UUID uuid, PlayerProfile profile) throws SQLException { String sql = "SELECT quest_id, amount, expiry FROM pixelrpg_active_quests WHERE uuid = ?"; try (PreparedStatement statement = connection.prepareStatement(sql)) { statement.setString(1, uuid.toString()); try (ResultSet resultSet = statement.executeQuery()) { while (resultSet.next()) profile.startQuest(new QuestProgress(resultSet.getString("quest_id"), resultSet.getInt("amount"), resultSet.getLong("expiry"))); } } }
-    private void loadStatistics(Connection connection, UUID uuid, PlayerProfile profile) throws SQLException { String sql = "SELECT stat_key, value FROM pixelrpg_player_stats WHERE uuid = ?"; try (PreparedStatement statement = connection.prepareStatement(sql)) { statement.setString(1, uuid.toString()); try (ResultSet resultSet = statement.executeQuery()) { while (resultSet.next()) { String key = resultSet.getString("stat_key"); long value = resultSet.getLong("value"); if (key.startsWith(PROFESSION_XP_PREFIX)) { try { profile.setProfessionExperience(Profession.valueOf(key.substring(PROFESSION_XP_PREFIX.length()).toUpperCase()), value); } catch (IllegalArgumentException ignored) { } } else if (key.startsWith(PROFESSION_LEARNED_PREFIX)) { try { if (value > 0L) profile.learnProfession(Profession.valueOf(key.substring(PROFESSION_LEARNED_PREFIX.length()).toUpperCase())); } catch (IllegalArgumentException ignored) { } } else if (key.startsWith(PROFESSION_LEVEL_PREFIX)) { try { profile.setProfessionLevel(Profession.valueOf(key.substring(PROFESSION_LEVEL_PREFIX.length()).toUpperCase()), (int) value); } catch (IllegalArgumentException ignored) { } } else if (key.startsWith(RECIPE_UNLOCK_PREFIX)) { if (value > 0L) profile.unlockRecipe(key.substring(RECIPE_UNLOCK_PREFIX.length())); } else profile.setStatistic(key, value); } } } }
+    private void loadStatistics(Connection connection, UUID uuid, PlayerProfile profile) throws SQLException {
+        String sql = "SELECT stat_key, value FROM pixelrpg_player_stats WHERE uuid = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, uuid.toString());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String key = resultSet.getString("stat_key");
+                    long value = resultSet.getLong("value");
+                    if (key.startsWith(PROFESSION_XP_PREFIX)) {
+                        Profession profession = parseProfessionKey(key.substring(PROFESSION_XP_PREFIX.length()));
+                        if (profession != null) profile.setProfessionExperience(profession, value);
+                    } else if (key.startsWith(PROFESSION_LEARNED_PREFIX)) {
+                        Profession profession = parseProfessionKey(key.substring(PROFESSION_LEARNED_PREFIX.length()));
+                        if (profession != null && value > 0L) profile.learnProfession(profession);
+                    } else if (key.startsWith(PROFESSION_LEVEL_PREFIX)) {
+                        Profession profession = parseProfessionKey(key.substring(PROFESSION_LEVEL_PREFIX.length()));
+                        if (profession != null) profile.setProfessionLevel(profession, (int) value);
+                    } else if (key.startsWith(RECIPE_UNLOCK_PREFIX)) {
+                        if (value > 0L) profile.unlockRecipe(key.substring(RECIPE_UNLOCK_PREFIX.length()));
+                    } else profile.setStatistic(key, value);
+                }
+            }
+        }
+    }
+    private Profession parseProfessionKey(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        String normalized = raw.trim().toUpperCase();
+        if (normalized.equals("PROVISIONER")) return Profession.COOK;
+        try { return Profession.valueOf(normalized); }
+        catch (IllegalArgumentException ignored) { return null; }
+    }
     private void loadEquipment(Connection connection, UUID uuid, PlayerProfile profile) throws SQLException { MapBuilder equipment = new MapBuilder(); String sql = "SELECT slot, item_yaml FROM pixelrpg_player_equipment WHERE uuid = ?"; try (PreparedStatement statement = connection.prepareStatement(sql)) { statement.setString(1, uuid.toString()); try (ResultSet resultSet = statement.executeQuery()) { while (resultSet.next()) { try { EquipmentSlot slot = EquipmentSlot.valueOf(resultSet.getString("slot")); YamlConfiguration yaml = YamlConfiguration.loadConfiguration(new StringReader(resultSet.getString("item_yaml"))); ItemStack item = yaml.getItemStack("item"); if (item != null && !item.isEmpty()) equipment.put(slot, item); } catch (IllegalArgumentException ignored) { } } } } profile.setEquipment(equipment.values()); }
 
     @Override
