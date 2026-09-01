@@ -18,8 +18,8 @@ public final class DatabaseManager {
         int port = config.getInt("storage.mysql.port", 3306);
         if (port < 1 || port > 65535) throw new IllegalArgumentException("storage.mysql.port must be between 1 and 65535");
         String database = requireIdentifier(config.getString("storage.mysql.database", "pixelrpg"), "storage.mysql.database");
-        String username = config.getString("storage.mysql.username", "root", String.class);
-        String password = config.getString("storage.mysql.password", "", String.class);
+        String username = config.getString("storage.mysql.username", "root");
+        String password = config.getString("storage.mysql.password", "");
         int poolSize = Math.max(2, config.getInt("storage.mysql.pool-size", 10));
         long connectionTimeoutMs = Math.max(2_000L, config.getLong("storage.mysql.connection-timeout-ms", 8000L));
         String sslMode = config.getString("storage.mysql.ssl-mode", "REQUIRED");
