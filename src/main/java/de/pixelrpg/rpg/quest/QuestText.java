@@ -12,35 +12,6 @@ import java.util.Map;
 
 /** Centralized player-facing text for every quest screen and notification. */
 public final class QuestText {
-    private static final Map<String, String> GERMAN_ITEM_NAMES = Map.ofEntries(
-            Map.entry("OAK_LOG", "Eichenstamm"), Map.entry("HONEYCOMB", "Honigwabe"),
-            Map.entry("COPPER_ORE", "Kupfererz"), Map.entry("IRON_INGOT", "Eisenbarren"),
-            Map.entry("GOLD_INGOT", "Goldbarren"), Map.entry("BLAZE_ROD", "Lohenrute"),
-            Map.entry("ENDER_PEARL", "Enderperle"), Map.entry("CHORUS_FRUIT", "Chorusfrucht"),
-            Map.entry("NETHERITE_SCRAP", "Netherit-Schrott"), Map.entry("DIAMOND", "Diamant"),
-            Map.entry("COAL", "Kohle"), Map.entry("WHEAT", "Weizen"),
-            Map.entry("BEEF", "Rindfleisch"), Map.entry("COD", "Kabeljau"),
-            Map.entry("SUGAR", "Zucker"), Map.entry("APPLE", "Apfel"),
-            Map.entry("DANDELION", "Löwenzahn"), Map.entry("RED_DYE", "Roter Farbstoff"),
-            Map.entry("GLOW_BERRIES", "Leuchtbeeren"), Map.entry("SPIDER_EYE", "Spinnenauge"),
-            Map.entry("GHAST_TEAR", "Ghastträne"), Map.entry("PAPER", "Papier"),
-            Map.entry("INK_SAC", "Tintenbeutel"), Map.entry("BOOK", "Buch"),
-            Map.entry("OBSIDIAN", "Obsidian"), Map.entry("SLIME_BALL", "Schleimball"),
-            Map.entry("REDSTONE", "Redstone"), Map.entry("LAPIS_LAZULI", "Lapislazuli"),
-            Map.entry("QUARTZ", "Netherquarz"), Map.entry("ANCIENT_DEBRIS", "Antiker Schrott"),
-            Map.entry("GLOWSTONE_DUST", "Leuchtsteinstaub"), Map.entry("PRISMARINE_SHARD", "Prismarinscherbe"),
-            Map.entry("PRISMARINE_CRYSTALS", "Prismarinkristall"), Map.entry("SOUL_SAND", "Seelensand"),
-            Map.entry("EMERALD", "Smaragd"), Map.entry("ENDER_EYE", "Enderauge"),
-            Map.entry("NETHERITE_INGOT", "Netheritbarren"), Map.entry("DRAGON_BREATH", "Drachenatem"),
-            Map.entry("AMETHYST_SHARD", "Amethystscherbe"), Map.entry("NETHER_STAR", "Netherstern"),
-            Map.entry("MAGMA_CREAM", "Magmacreme"), Map.entry("FIRE_CHARGE", "Feuerkugel"),
-            Map.entry("GUNPOWDER", "Schießpulver"), Map.entry("TORCH", "Fackel"),
-            Map.entry("ARROW", "Pfeil"), Map.entry("STRING", "Faden"), Map.entry("SLIME", "Schleim"),
-            Map.entry("PHANTOM_MEMBRANE", "Phantomhaut"), Map.entry("SHULKER_SHELL", "Shulkerschale"),
-            Map.entry("COOKED_BEEF", "Gebratenes Rindfleisch"), Map.entry("COOKED_PORKCHOP", "Gebratenes Schweinefleisch"),
-            Map.entry("EYE_OF_ENDER", "Enderauge"), Map.entry("BAMBOO", "Bambus")
-    );
-
     private static final Map<String, String> GERMAN_ENTITY_NAMES = Map.ofEntries(
             Map.entry("ZOMBIE", "Zombie"), Map.entry("SKELETON", "Skelett"), Map.entry("SPIDER", "Spinne"),
             Map.entry("WITCH", "Hexe"), Map.entry("CHICKEN", "Huhn"), Map.entry("COW", "Kuh"),
@@ -112,16 +83,13 @@ public final class QuestText {
         return quest.requiredAmount() + "x " + itemNamePlain(quest.targetKey());
     }
 
-    /** Resolves a quest item through the central item/recipe display-name pipeline. */
+    /** Resolves a quest item exclusively through the central item definition/recipe pipeline before vanilla fallback. */
     public static Component itemName(String key) {
         return Component.text(itemNamePlain(key));
     }
 
     public static String itemNamePlain(String key) {
         if (key == null || key.isBlank()) return "Unbekannt";
-        String normalized = key.trim().toUpperCase(Locale.ROOT);
-        String known = GERMAN_ITEM_NAMES.get(normalized);
-        if (known != null) return known;
 
         ItemDisplayNameResolver resolver = PixelRPGPlugin.getInstance() == null
                 ? null
