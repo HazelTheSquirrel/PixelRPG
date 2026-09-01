@@ -82,15 +82,31 @@ tasks.register('verifyPixelRpgShadedDependencies') {
                 'com/mysql/'
         ]
 
-        zipTree(jarFile).matching { include '**/*.class' }.files.each { entry ->
+        def classEntries = zipTree(jarFile).matching { include '**/*.class' }.files
+        classEntries.each { entry ->
             def normalized = entry.path.replace('\\', '/')
-            def marker = normalized.substring(normalized.lastIndexOf('/') + 1)
             if (forbiddenPrefixes.any { prefix -> normalized.contains("/${prefix}") || normalized.startsWith(prefix) }) {
                 throw new GradleException("Unrelocated third-party class in shadow JAR: ${normalized}")
             }
         }
 
-        def serviceFile = new File(jarFile.toURI().resolve('jar:file:${jarFile.absolutePath}!/META-INF/services/java.sql.Driver'))
+        def serviceEntries = zipTree(jarFile).matching { include 'META-INF/services/java.sql.Driver' }.files
+        if (serviceEntries.size() != 1) {
+            throw new GradleException("Expected exactly one merged JDBC driver service descriptor, found ${serviceEntries.size()}")
+        }
+
+        def serviceText = serviceEntries.singleFile.getText('UTF-8').readLines()
+                .collect { it.trim() }
+                .findAll { !it.isEmpty() && !it.startsWith('#') }
+        if (serviceText.isEmpty()) {
+            throw new GradleException('Merged JDBC driver service descriptor is empty')
+        }
+        if (serviceText.any { it == 'com.mysql.cj.jdbc.Driver' }) {
+            throw new GradleException('JDBC service descriptor still exposes the pre-relocation MySQL driver class')
+        }
+        if (!serviceText.any { it == 'de.pixelrpg.rpg.libs.mysql.cj.jdbc.Driver' }) {
+            throw new GradleException('Relocated MySQL JDBC driver is missing from META-INF/services/java.sql.Driver')
+        }
     }
 }
 
