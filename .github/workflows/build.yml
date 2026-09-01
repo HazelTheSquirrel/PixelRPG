@@ -31,4 +31,13 @@ jobs:
           gradle-version: '9.2.0'
 
       - name: Build PixelRPG
-        run: gradle build --no-daemon --stacktrace
+        run: gradle clean build --no-daemon --stacktrace
+
+      - name: Verify plugin artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f build/libs/Pixel-RPG.jar
+          jar tf build/libs/Pixel-RPG.jar | grep -q '^paper-plugin.yml$'
+          ! jar tf build/libs/Pixel-RPG.jar | grep -q '^META-INF/versions/'
+          echo "PixelRPG artifact validation passed."
