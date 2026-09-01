@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+/** Owns shop definitions and persists independent buy/sell prices per offer. */
 public final class ShopManager {
     private final Plugin plugin;
     private final File file;
@@ -25,8 +26,7 @@ public final class ShopManager {
         this.file = new File(plugin.getDataFolder(), "shops.yml");
     }
 
-    // Lädt Shop-Items primär aus dem neuen Base64-NBT-Format ("item-data").
-    // Fallback auf den alten YAML-nativen Schlüssel ("item") für Bestandsschutz.
+    // Lädt Shop-Items und unterstützt sowohl das alte einzelne "price"-Feld als auch die neuen Kauf-/Verkaufspreise.
     public void load() {
         shopsByNpcId.clear();
         if (!file.exists()) return;
@@ -44,15 +44,27 @@ public final class ShopManager {
             ConfigurationSection entriesSection = section.getConfigurationSection("entries");
             if (entriesSection != null) {
                 for (String key : entriesSection.getKeys(false)) {
-                    double price = entriesSection.getDouble(key + ".price", 0.0);
+                    boolean hasBuyPrice = entriesSection.contains(key + ".buy-price");
+                    double buyPrice = hasBuyPrice
+                            ? entriesSection.getDouble(key + ".buy-price", 0.0D)
+                            : entriesSection.getDouble(key + ".price", 0.0D);
+                    double sellPrice = entriesSection.contains(key + ".sell-price")
+                            ? entriesSection.getDouble(key + ".sell-price", 0.0D)
+                            : buyPrice * 0.50D;
                     ItemStack item = readItem(entriesSection, key);
                     if (item != null && item.getType() != Material.AIR) {
-                        entries.add(new ShopEntry(item, price));
-                        if (!entriesSection.contains(key + ".item-data")) migratedAny = true;
+                        try {
+                            entries.add(new ShopEntry(item, buyPrice, sellPrice));
+                        } catch (IllegalArgumentException ignored) {
+                            plugin.getLogger().warning("Ignoring invalid shop price at " + npcId + ".entries." + key);
+                        }
+                        if (!hasBuyPrice || !entriesSection.contains(key + ".sell-price") || !entriesSection.contains(key + ".item-data")) {
+                            migratedAny = true;
+                        }
                     }
                 }
             }
-            shopsByNpcId.put(npcId, entries);
+            shopsByNpcId.put(npcId, List.copyOf(entries));
         }
 
         if (migratedAny) save();
@@ -77,7 +89,7 @@ public final class ShopManager {
         }
     }
 
-    public void save() {
+    public synchronized void save() {
         YamlConfiguration yaml = new YamlConfiguration();
         for (Map.Entry<String, List<ShopEntry>> mapEntry : shopsByNpcId.entrySet()) {
             String basePath = "shops." + mapEntry.getKey() + ".entries";
@@ -85,7 +97,8 @@ public final class ShopManager {
             for (ShopEntry entry : mapEntry.getValue()) {
                 String itemBase64 = Base64.getEncoder().encodeToString(entry.item().serializeAsBytes());
                 yaml.set(basePath + "." + index + ".item-data", itemBase64);
-                yaml.set(basePath + "." + index + ".price", entry.price());
+                yaml.set(basePath + "." + index + ".buy-price", entry.buyPrice());
+                yaml.set(basePath + "." + index + ".sell-price", entry.sellPrice());
                 index++;
             }
         }
@@ -100,23 +113,29 @@ public final class ShopManager {
         save();
     }
 
-    public List<ShopEntry> getEntries(String npcId) { return shopsByNpcId.getOrDefault(npcId, List.of()); }
+    public List<ShopEntry> getEntries(String npcId) {
+        return shopsByNpcId.getOrDefault(npcId, List.of());
+    }
 
-    public void addEntry(String npcId, ShopEntry entry) {
-        shopsByNpcId.computeIfAbsent(npcId, k -> new ArrayList<>()).add(entry);
+    public synchronized void addEntry(String npcId, ShopEntry entry) {
+        List<ShopEntry> entries = new ArrayList<>(getEntries(npcId));
+        entries.add(entry);
+        shopsByNpcId.put(npcId, List.copyOf(entries));
         save();
     }
 
-    public boolean removeEntry(String npcId, int index) {
-        List<ShopEntry> entries = shopsByNpcId.get(npcId);
-        if (entries == null || index < 0 || index >= entries.size()) return false;
+    public synchronized boolean removeEntry(String npcId, int index) {
+        List<ShopEntry> existing = shopsByNpcId.get(npcId);
+        if (existing == null || index < 0 || index >= existing.size()) return false;
+        List<ShopEntry> entries = new ArrayList<>(existing);
         entries.remove(index);
+        shopsByNpcId.put(npcId, List.copyOf(entries));
         save();
         return true;
     }
 
-    public void replaceEntries(String npcId, List<ShopEntry> entries) {
-        shopsByNpcId.put(npcId, entries);
+    public synchronized void replaceEntries(String npcId, List<ShopEntry> entries) {
+        shopsByNpcId.put(npcId, List.copyOf(entries));
         save();
     }
 }
