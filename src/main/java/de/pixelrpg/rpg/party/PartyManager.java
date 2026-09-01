@@ -12,6 +12,10 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +23,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class PartyManager implements PartyAPI {
@@ -33,11 +41,19 @@ public final class PartyManager implements PartyAPI {
     private final Map<UUID, PendingInvite> pendingInvites = new ConcurrentHashMap<>();
     private final Map<UUID, Long> emptySince = new ConcurrentHashMap<>();
     private final File storageFile;
+    private final ExecutorService persistenceExecutor;
+    private CompletableFuture<Void> persistenceChain = CompletableFuture.completedFuture(null);
     private BukkitTask maintenanceTask;
+    private volatile boolean shuttingDown;
 
     public PartyManager(PixelRPGPlugin plugin) {
         this.plugin = plugin;
         this.storageFile = new File(plugin.getDataFolder(), "parties.yml");
+        this.persistenceExecutor = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-PartyIO");
+            thread.setDaemon(true);
+            return thread;
+        });
         load();
         maintenanceTask = Bukkit.getScheduler().runTaskTimer(plugin, this::maintenance, 20L, 20L * 30L);
     }
@@ -48,6 +64,7 @@ public final class PartyManager implements PartyAPI {
     }
 
     public Party createParty(UUID leader) {
+        if (shuttingDown) throw new IllegalStateException("PartyManager is shutting down");
         getParty(leader).ifPresent(this::disbandParty);
         Party party = new Party(UUID.randomUUID(), leader);
         partiesById.put(party.getId(), party);
@@ -57,6 +74,7 @@ public final class PartyManager implements PartyAPI {
     }
 
     public boolean addInvite(UUID target, UUID leader) {
+        if (shuttingDown) return false;
         Party party = getParty(leader).orElse(null);
         if (party == null || !party.isLeader(leader) || party.isFull() || party.isMember(target) || getParty(target).isPresent()) return false;
         pendingInvites.put(target, new PendingInvite(leader, System.currentTimeMillis() + INVITE_TIMEOUT_MILLIS));
@@ -134,6 +152,7 @@ public final class PartyManager implements PartyAPI {
     }
 
     public void disbandParty(Party party) {
+        if (party == null) return;
         for (UUID member : new HashSet<>(party.getMembers())) {
             partyIdByMember.remove(member);
             Player memberPlayer = Bukkit.getPlayer(member);
@@ -168,12 +187,8 @@ public final class PartyManager implements PartyAPI {
         if (player != null) player.sendMessage(Component.text("Du bist jetzt der Gruppenanführer.", NamedTextColor.GOLD));
     }
 
-    private String name(UUID uuid) {
-        OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
-        return player.getName() == null ? uuid.toString() : player.getName();
-    }
-
     private void maintenance() {
+        if (shuttingDown) return;
         long now = System.currentTimeMillis();
         pendingInvites.entrySet().removeIf(entry -> entry.getValue().expiresAt <= now || getParty(entry.getValue().leader).isEmpty());
         boolean changed = false;
@@ -216,27 +231,50 @@ public final class PartyManager implements PartyAPI {
         }
     }
 
+    /** Captures the party state on the server thread and persists that immutable snapshot off-thread. */
     private void save() {
-        YamlConfiguration config = new YamlConfiguration();
+        if (shuttingDown || persistenceExecutor.isShutdown()) return;
+        YamlConfiguration snapshot = new YamlConfiguration();
         List<String> ids = new ArrayList<>();
         for (Party party : partiesById.values()) {
             ids.add(party.getId().toString());
             String path = "parties." + party.getId();
-            config.set(path + ".leader", party.getLeader().toString());
-            config.set(path + ".members", party.getMembers().stream().map(UUID::toString).toList());
+            snapshot.set(path + ".leader", party.getLeader().toString());
+            snapshot.set(path + ".members", party.getMembers().stream().map(UUID::toString).toList());
         }
-        config.set("parties.ids", ids);
+        snapshot.set("parties.ids", ids);
+        persistenceChain = persistenceChain.handle((ignored, throwable) -> null)
+                .thenRunAsync(() -> writeAtomically(snapshot), persistenceExecutor);
+    }
+
+    private void writeAtomically(YamlConfiguration snapshot) {
+        Path target = storageFile.toPath();
+        Path temporary = target.toPath().resolveSibling(storageFile.getName() + ".tmp");
         try {
             storageFile.getParentFile().mkdirs();
-            config.save(storageFile);
+            snapshot.save(temporary.toFile());
+            try {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException exception) {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+            }
         } catch (IOException exception) {
+            try { Files.deleteIfExists(temporary); } catch (IOException ignored) { }
             plugin.getLogger().warning("Could not save parties.yml: " + exception.getMessage());
         }
     }
 
-    public void shutdown() {
+    public synchronized void shutdown() {
+        if (shuttingDown) return;
+        shuttingDown = true;
         if (maintenanceTask != null) maintenanceTask.cancel();
-        save();
+        persistenceExecutor.shutdown();
+        try {
+            if (!persistenceExecutor.awaitTermination(10, TimeUnit.SECONDS)) persistenceExecutor.shutdownNow();
+        } catch (InterruptedException exception) {
+            persistenceExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
         pendingInvites.clear();
         partyIdByMember.clear();
         partiesById.clear();
