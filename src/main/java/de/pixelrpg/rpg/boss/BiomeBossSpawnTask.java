@@ -11,7 +11,8 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class BiomeBossSpawnTask {
-    private static final double SPAWN_CHANCE_PERCENT = 10.0D;
+    /** Biome bosses are intentionally rare world encounters rather than routine mob spawns. */
+    private static final double SPAWN_CHANCE_PERCENT = 2.0D;
 
     private final Plugin plugin;
     private final BossRepository bossRepository;
