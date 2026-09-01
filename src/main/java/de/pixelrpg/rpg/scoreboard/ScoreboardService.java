@@ -103,7 +103,6 @@ public final class ScoreboardService implements Listener {
         stateByPlayer.clear();
     }
 
-    // Zuständig für den initialen PixelRPG-HUD-Aufbau beim Login.
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         profileManager.getProfile(event.getPlayer().getUniqueId()).ifPresent(profile -> {
@@ -111,7 +110,6 @@ public final class ScoreboardService implements Listener {
         });
     }
 
-    // Zuständig für das Entfernen des zwischengespeicherten HUD-Zustands beim Logout.
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         stateByPlayer.remove(event.getPlayer().getUniqueId());
@@ -128,28 +126,30 @@ public final class ScoreboardService implements Listener {
         updateExperienceBar(player, profile);
         List<Component> lines = buildLines(player, profile);
         PlayerScoreboardState state = stateByPlayer.computeIfAbsent(player.getUniqueId(), ignored -> createState(player));
-        if (lines.equals(state.lastLines)) return;
-        state.lastLines = List.copyOf(lines);
+        if (!lines.equals(state.lastLines)) {
+            state.lastLines = List.copyOf(lines);
 
-        int size = Math.min(lines.size(), MAX_LINES);
-        for (int i = 0; i < size; i++) {
-            Component line = lines.get(i);
-            Team team = state.teams[i];
-            if (team == null) team = registerLineTeam(state, i);
-            team.prefix(line);
-            if (!state.activeLine[i]) {
-                state.objective.getScore(entryFor(i)).setScore(MAX_LINES - i);
-                state.activeLine[i] = true;
+            int size = Math.min(lines.size(), MAX_LINES);
+            for (int i = 0; i < size; i++) {
+                Component line = lines.get(i);
+                Team team = state.teams[i];
+                if (team == null) team = registerLineTeam(state, i);
+                team.prefix(line);
+                if (!state.activeLine[i]) {
+                    state.objective.getScore(entryFor(i)).setScore(MAX_LINES - i);
+                    state.activeLine[i] = true;
+                }
+            }
+
+            for (int i = size; i < MAX_LINES; i++) {
+                if (state.activeLine[i]) {
+                    state.board.resetScores(entryFor(i));
+                    state.activeLine[i] = false;
+                }
             }
         }
 
-        for (int i = size; i < MAX_LINES; i++) {
-            if (state.activeLine[i]) {
-                state.board.resetScores(entryFor(i));
-                state.activeLine[i] = false;
-            }
-        }
-
+        // Guild prefixes are separate from sidebar line caching and therefore must be refreshed every tick.
         applyGuildPrefixes(state);
     }
 
@@ -224,7 +224,6 @@ public final class ScoreboardService implements Listener {
         return team;
     }
 
-    /** Uses unique zero-width Unicode entries as scoreboard keys; legacy section-sign formatting is intentionally avoided. */
     private String entryFor(int index) {
         return "\u200B".repeat(index + 1);
     }
@@ -234,6 +233,7 @@ public final class ScoreboardService implements Listener {
         lines.add(Component.text(" "));
         lines.add(Component.text(player.getName(), NamedTextColor.WHITE));
         lines.add(Component.text("Level: ", NamedTextColor.GRAY).append(Component.text(profile.getLevel(), NamedTextColor.GOLD)));
+        appendGuildLine(lines, player);
         appendPartyLine(lines, player);
         lines.add(Component.text(" "));
         CompanionService companionService = PixelRPGPlugin.getInstance().getCompanionService();
@@ -241,10 +241,20 @@ public final class ScoreboardService implements Listener {
         lines.add(Component.text("Companion:", NamedTextColor.GRAY));
         lines.add(Component.text(activeCompanion == null ? "Keiner" : activeCompanion.name(), activeCompanion == null ? NamedTextColor.DARK_GRAY : NamedTextColor.AQUA));
         lines.add(Component.text(" "));
-        lines.add(Component.text(" "));
         lines.add(Component.text("Gold: ", NamedTextColor.GRAY).append(Component.text(formatGold(profile.getMoney()), NamedTextColor.GOLD)));
         lines.add(Component.text("Tode: ", NamedTextColor.GRAY).append(Component.text(profile.getStatistic("DEATHS"), NamedTextColor.DARK_RED)));
         return lines;
+    }
+
+    private void appendGuildLine(List<Component> lines, Player player) {
+        Guild guild;
+        try {
+            guild = GuildManager.getInstance().getGuild(player.getUniqueId()).orElse(null);
+        } catch (IllegalStateException ignored) {
+            guild = null;
+        }
+        lines.add(Component.text("Gilde: ", NamedTextColor.GRAY)
+                .append(Component.text(guild == null ? "Keine" : guild.name(), guild == null ? NamedTextColor.DARK_GRAY : NamedTextColor.GOLD)));
     }
 
     private void appendPartyLine(List<Component> lines, Player player) {
