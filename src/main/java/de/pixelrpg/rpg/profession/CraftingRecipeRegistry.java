@@ -14,7 +14,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-/** Registry for PixelRPG-only profession recipes. Recipe data is kept under data/recipes for clean content separation. */
+/** Registry for PixelRPG-only profession recipes with one canonical ID format. */
 public final class CraftingRecipeRegistry {
     private static final String RECIPE_DATA_PATH = "recipes/crafting-recipes.json";
     private final Map<String, CraftRecipe> recipes = new LinkedHashMap<>();
@@ -116,15 +116,14 @@ public final class CraftingRecipeRegistry {
     private static String canonicalRecipeId(String raw) {
         String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
         if (value.startsWith("pixelrpg:")) value = value.substring("pixelrpg:".length());
-        return value.replace('/', ':');
+        return value.replace(':', '/');
     }
 
     private static String canonicalItemId(String raw) {
         String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
         if (!value.startsWith("pixelrpg:")) value = "pixelrpg:" + value;
-        String body = value.substring("pixelrpg:".length());
-        int slash = body.indexOf('/');
-        if (slash > 0) body = body.substring(0, slash) + ":" + body.substring(slash + 1);
+        String body = value.substring("pixelrpg:".length()).replace(':', '/');
+        while (body.contains("//")) body = body.replace("//", "/");
         return "pixelrpg:" + body;
     }
 
