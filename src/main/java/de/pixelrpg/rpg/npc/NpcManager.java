@@ -20,7 +20,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,9 +40,11 @@ public final class NpcManager {
     private final Map<String, RPGNpc> npcsById = new ConcurrentHashMap<>();
     private final Map<String, UUID> spawnedEntityByNpcId = new ConcurrentHashMap<>();
     private final Map<UUID, String> entityToId = new ConcurrentHashMap<>();
+    private final Map<NpcChunkKey, List<String>> npcChunkIndex = new ConcurrentHashMap<>();
     private final AtomicInteger nextId = new AtomicInteger(1);
     private final ExecutorService persistenceExecutor;
     private CompletableFuture<Void> persistenceChain = CompletableFuture.completedFuture(null);
+    private volatile boolean shuttingDown;
 
     public NpcManager(Plugin plugin) {
         this.plugin = plugin;
@@ -52,9 +56,11 @@ public final class NpcManager {
         });
     }
 
-    public void loadAll() {
+    public synchronized void loadAll() {
+        shuttingDown = false;
         despawnAllTracked();
         npcsById.clear();
+        npcChunkIndex.clear();
         if (!file.exists()) return;
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
@@ -80,6 +86,7 @@ public final class NpcManager {
 
             RPGNpc npc = new RPGNpc(id, type, name, location, skinSource, profession);
             npcsById.put(id, npc);
+            addToChunkIndex(npc);
             if (world.isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) spawnEntityFor(npc);
         }
     }
@@ -94,7 +101,7 @@ public final class NpcManager {
     }
 
     /** Creates an NPC with a stable administrator-defined id for data-driven quest targets. */
-    public RPGNpc createWithId(String id, NpcType type, String name, Location location, String skinSource, Profession profession) {
+    public synchronized RPGNpc createWithId(String id, NpcType type, String name, Location location, String skinSource, Profession profession) {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("NPC id must not be blank");
         if (npcsById.containsKey(id)) throw new IllegalArgumentException("NPC id already exists: " + id);
         if (type == null) throw new IllegalArgumentException("NPC type must not be null");
@@ -102,6 +109,7 @@ public final class NpcManager {
         Profession effectiveProfession = profession == null ? professionFor(type) : profession;
         RPGNpc npc = new RPGNpc(id, type, name == null || name.isBlank() ? "NPC" : name, location.clone(), skinSource, effectiveProfession);
         npcsById.put(id, npc);
+        addToChunkIndex(npc);
         spawnEntityFor(npc);
         saveAll();
         return npc;
@@ -161,7 +169,7 @@ public final class NpcManager {
         }
     }
 
-    public boolean updateSkin(String npcId, String newSkinSource) {
+    public synchronized boolean updateSkin(String npcId, String newSkinSource) {
         RPGNpc existing = npcsById.get(npcId);
         if (existing == null) return false;
         RPGNpc updated = new RPGNpc(existing.id(), existing.type(), existing.name(), existing.location(), newSkinSource, existing.profession());
@@ -183,24 +191,23 @@ public final class NpcManager {
     }
 
     public void handleChunkLoad(Chunk chunk) {
-        int chunkX = chunk.getX();
-        int chunkZ = chunk.getZ();
-        String worldName = chunk.getWorld().getName();
-        for (RPGNpc npc : npcsById.values()) {
-            if (!npc.location().getWorld().getName().equals(worldName)) continue;
-            if ((npc.location().getBlockX() >> 4) == chunkX && (npc.location().getBlockZ() >> 4) == chunkZ) spawnEntityFor(npc);
+        NpcChunkKey key = new NpcChunkKey(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
+        for (String npcId : npcChunkIndex.getOrDefault(key, List.of())) {
+            RPGNpc npc = npcsById.get(npcId);
+            if (npc != null) spawnEntityFor(npc);
         }
     }
 
-    public boolean removeById(String id) {
+    public synchronized boolean removeById(String id) {
         RPGNpc npc = npcsById.remove(id);
         if (npc == null) return false;
+        removeFromChunkIndex(npc);
         removeSpawnedEntity(id);
         saveAll();
         return true;
     }
 
-    public boolean rename(String id, String newName) {
+    public synchronized boolean rename(String id, String newName) {
         if (newName == null || newName.isBlank()) return false;
         RPGNpc existing = npcsById.get(id);
         if (existing == null) return false;
@@ -221,10 +228,12 @@ public final class NpcManager {
     }
 
     public Optional<RPGNpc> getById(String id) { return Optional.ofNullable(npcsById.get(id)); }
-    public Collection<RPGNpc> getAll() { return java.util.List.copyOf(npcsById.values()); }
-    public Collection<UUID> getSpawnedEntityUuids() { return java.util.List.copyOf(spawnedEntityByNpcId.values()); }
+    public Collection<RPGNpc> getAll() { return List.copyOf(npcsById.values()); }
+    public Collection<UUID> getSpawnedEntityUuids() { return List.copyOf(spawnedEntityByNpcId.values()); }
 
-    public void shutdown() {
+    public synchronized void shutdown() {
+        if (shuttingDown) return;
+        shuttingDown = true;
         saveAll();
         persistenceExecutor.shutdown();
         try {
@@ -235,10 +244,12 @@ public final class NpcManager {
         }
         despawnAllTracked();
         npcsById.clear();
+        npcChunkIndex.clear();
     }
 
     /** Captures the complete NPC state on the server thread and serializes it off-thread. */
     public synchronized void saveAll() {
+        if (persistenceExecutor.isShutdown()) return;
         Map<String, NpcSnapshot> snapshot = new java.util.HashMap<>();
         for (RPGNpc npc : npcsById.values()) {
             Location location = npc.location();
@@ -287,6 +298,25 @@ public final class NpcManager {
     private record NpcSnapshot(String id, String type, String name, String world, double x, double y, double z,
                                float yaw, float pitch, String skinSource, String profession) { }
 
+    private void addToChunkIndex(RPGNpc npc) {
+        Location location = npc.location();
+        NpcChunkKey key = new NpcChunkKey(location.getWorld().getName(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
+        npcChunkIndex.compute(key, (ignored, current) -> {
+            List<String> updated = current == null ? new ArrayList<>() : new ArrayList<>(current);
+            if (!updated.contains(npc.id())) updated.add(npc.id());
+            return List.copyOf(updated);
+        });
+    }
+
+    private void removeFromChunkIndex(RPGNpc npc) {
+        Location location = npc.location();
+        NpcChunkKey key = new NpcChunkKey(location.getWorld().getName(), location.getBlockX() >> 4, location.getBlockZ() >> 4);
+        npcChunkIndex.computeIfPresent(key, (ignored, current) -> {
+            List<String> updated = current.stream().filter(id -> !id.equals(npc.id())).toList();
+            return updated.isEmpty() ? null : updated;
+        });
+    }
+
     private void removeSpawnedEntity(String id) {
         UUID entityUuid = spawnedEntityByNpcId.remove(id);
         if (entityUuid == null) return;
@@ -327,4 +357,6 @@ public final class NpcManager {
             default -> null;
         };
     }
+
+    private record NpcChunkKey(String world, int x, int z) { }
 }
