@@ -21,7 +21,7 @@ Der funktionierende Gameplay-Zustand bleibt die Referenz. Stabilisierung bedeute
 
 ### PlayerProfile
 
-- Persistenz arbeitet mit synchronisiert erzeugten Deep-Snapshots statt einer gleichzeitig serialisierten Live-Instanz.
+- Persistenz arbeitet mit synchron erzeugten Deep-Snapshots statt einer gleichzeitig serialisierten Live-Instanz.
 - Dirty-State bleibt bei Änderungen während eines Saves erhalten.
 - Per-UUID-Save-Queues verhindern parallele Saves desselben Spielers.
 - Load- und Save-Operationen desselben UUIDs laufen über dieselbe Sequenz und verhindern damit ein einfaches Quit/Rejoin-Read-Before-Write-Rennen.
@@ -66,9 +66,10 @@ Der funktionierende Gameplay-Zustand bleibt die Referenz. Stabilisierung bedeute
 
 - Service-Dateien werden beim Shading berücksichtigt.
 - Signaturdateien werden aus dem Fat-JAR ausgeschlossen.
-- Gson/Hikari/MySQL-Relocation bleibt eine bewusst zu testende Runtime-Grenze.
+- Gson/Hikari/MySQL werden im Fat-JAR relocated.
 - Java 25 ist als Toolchain und `--release 25` festgelegt.
-- Der Gradle-Check besitzt jetzt einen Source-Boundary-Validator gegen `ChatColor`, Legacy-NMS, CraftBukkit und statische Live-Bukkit-Referenzen.
+- Der Gradle-Check besitzt einen Source-Boundary-Validator gegen `ChatColor`, Legacy-NMS, CraftBukkit und statische Live-Bukkit-Referenzen.
+- **Wichtig:** Gson darf intern verwendet werden. Die CI darf `com.google.gson` deshalb nicht als Legacy-API behandeln; stattdessen wird die korrekte Shading-Relocation im Artifact geprüft.
 - CI führt Clean Build, Source-Boundary-Prüfung und Fat-JAR-Prüfungen aus.
 - CI prüft zusätzlich, dass der JDBC-Service-Descriptor im Fat-JAR vorhanden ist.
 
