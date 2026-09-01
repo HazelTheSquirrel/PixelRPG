@@ -46,7 +46,7 @@ public final class ScoreboardService implements Listener {
         final Scoreboard board;
         final Objective objective;
         final Team[] teams = new Team[MAX_LINES];
-        final Component[] lastPrefixes = new Component[MAX_LINES];
+        List<Component> lastLines = List.of();
         final boolean[] activeLine = new boolean[MAX_LINES];
         final Map<UUID, String> guildTeamByPlayer = new ConcurrentHashMap<>();
 
@@ -127,17 +127,16 @@ public final class ScoreboardService implements Listener {
     private void apply(Player player, PlayerProfile profile) {
         updateExperienceBar(player, profile);
         List<Component> lines = buildLines(player, profile);
-        int size = Math.min(lines.size(), MAX_LINES);
         PlayerScoreboardState state = stateByPlayer.computeIfAbsent(player.getUniqueId(), ignored -> createState(player));
+        if (lines.equals(state.lastLines)) return;
+        state.lastLines = List.copyOf(lines);
 
+        int size = Math.min(lines.size(), MAX_LINES);
         for (int i = 0; i < size; i++) {
             Component line = lines.get(i);
             Team team = state.teams[i];
             if (team == null) team = registerLineTeam(state, i);
-            if (!line.equals(state.lastPrefixes[i])) {
-                team.prefix(line);
-                state.lastPrefixes[i] = line;
-            }
+            team.prefix(line);
             if (!state.activeLine[i]) {
                 state.objective.getScore(entryFor(i)).setScore(MAX_LINES - i);
                 state.activeLine[i] = true;
@@ -148,7 +147,6 @@ public final class ScoreboardService implements Listener {
             if (state.activeLine[i]) {
                 state.board.resetScores(entryFor(i));
                 state.activeLine[i] = false;
-                state.lastPrefixes[i] = null;
             }
         }
 
