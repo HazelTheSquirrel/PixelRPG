@@ -67,7 +67,8 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     }
 
     public void shutdown() {
-        List<CompletableFuture<Void>> pending = activeProfiles.values().stream().map(profile -> enqueueVoid(profile.getUuid(), () -> persistSync(profile))).toList();
+        List<CompletableFuture<Void>> pending = activeProfiles.values().stream()
+                .map(profile -> enqueueVoid(profile.getUuid(), () -> persistSync(profile))).toList();
         try { CompletableFuture.allOf(pending.toArray(new CompletableFuture[0])).get(30, TimeUnit.SECONDS); }
         catch (Exception e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Not all player profiles could be flushed cleanly on shutdown.", e); }
         if (saveExecutor != null) {
@@ -82,7 +83,10 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         saveChain.clear();
         saveRequested.clear();
         loadingCache.clear();
+        activeProfiles.clear();
         if (repository != null) repository.shutdown();
+        Bukkit.getServicesManager().unregister(GuildAPI.class, this);
+        Bukkit.getServicesManager().unregister(EconomyAPI.class, this);
     }
 
     public enum LoadOutcome { SUCCESS, FAILED }
@@ -157,13 +161,15 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         });
     }
 
+    /** Takes a synchronized, deep persistence snapshot before any blocking storage operation. */
     private void persistSync(PlayerProfile profile) {
-        if (!profile.beginSave()) return;
-        try { repository.save(profile); }
+        PlayerProfile snapshot = profile.snapshotForSave();
+        if (snapshot == null) return;
+        try { repository.save(snapshot); }
         catch (Exception e) {
             profile.markDirty();
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to save profile for " + profile.getUuid(), e);
-            if (storageType == StorageType.MYSQL) writeEmergencyBackup(profile);
+            if (storageType == StorageType.MYSQL) writeEmergencyBackup(snapshot);
         }
     }
 
