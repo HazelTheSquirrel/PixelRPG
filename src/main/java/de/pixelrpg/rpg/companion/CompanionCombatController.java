@@ -1,6 +1,8 @@
 package de.pixelrpg.rpg.companion;
 
 import de.pixelrpg.rpg.core.RPGKeys;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mannequin;
@@ -12,6 +14,7 @@ import org.bukkit.util.Vector;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /** Generic companion combat controller shared by normal entities and Unique Mannequin companions. */
 public final class CompanionCombatController {
@@ -118,8 +121,24 @@ public final class CompanionCombatController {
         double damage = Math.max(0.0D, stats.damage());
         if (damage <= 0.0D) return;
 
-        target.damage(damage, attacker);
+        double critChance = Math.clamp(stats.critChance(), 0.0D, 100.0D);
+        boolean critical = critChance > 0.0D && ThreadLocalRandom.current().nextDouble(100.0D) < critChance;
+        double critMultiplier = 2.0D + Math.max(0.0D, stats.critDamage());
+        double finalDamage = critical ? damage * critMultiplier : damage;
+
+        target.damage(finalDamage, attacker);
         attacker.swingMainHand();
+
+        double lifesteal = Math.clamp(stats.lifesteal(), 0.0D, 100.0D);
+        if (lifesteal > 0.0D && attacker.getHealth() > 0.0D) {
+            attacker.setHealth(Math.min(attacker.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue(),
+                    attacker.getHealth() + finalDamage * (lifesteal / 100.0D)));
+        }
+
+        if (critical) {
+            attacker.getWorld().spawnParticle(Particle.CRIT, attacker.getLocation().add(0.0D, 1.0D, 0.0D), 12, 0.35D, 0.35D, 0.35D, 0.05D);
+            attacker.getWorld().playSound(attacker.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.45F, 1.15F);
+        }
     }
 
     private static void moveTowards(LivingEntity entity, Entity target, double speed) {
