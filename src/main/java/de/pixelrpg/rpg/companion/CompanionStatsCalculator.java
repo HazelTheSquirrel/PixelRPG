@@ -27,25 +27,26 @@ public final class CompanionStatsCalculator {
                 Math.max(1.0D, health * healthMultiplier),
                 Math.max(0.0D, damage * damageMultiplier),
                 Math.max(0.01D, speed * speedMultiplier),
-                base.armor(),
-                base.critChance(),
-                base.critDamage(),
-                base.lifesteal(),
-                base.abilityDamage(),
-                base.mana());
+                Math.max(0.0D, base.armor()),
+                Math.max(0.0D, base.critChance()),
+                Math.max(0.0D, base.critDamage()),
+                Math.max(0.0D, base.lifesteal()),
+                Math.max(0.0D, base.abilityDamage()),
+                Math.max(0.0D, base.mana()));
     }
 
     public void apply(CompanionStats stats, LivingEntity entity) {
         set(entity, Attribute.MAX_HEALTH, stats.health());
         set(entity, Attribute.ATTACK_DAMAGE, stats.damage());
         set(entity, Attribute.MOVEMENT_SPEED, stats.movementSpeed());
+        set(entity, Attribute.ARMOR, stats.armor());
         AttributeInstance maxHealth = entity.getAttribute(Attribute.MAX_HEALTH);
         if (maxHealth != null) entity.setHealth(Math.min(entity.getHealth(), maxHealth.getValue()));
     }
 
     private static void set(LivingEntity entity, Attribute attribute, double value) {
         AttributeInstance instance = entity.getAttribute(attribute);
-        if (instance != null && Double.isFinite(value) && value > 0.0D) instance.setBaseValue(value);
+        if (instance != null && Double.isFinite(value) && value >= 0.0D) instance.setBaseValue(value);
     }
 
     private static double attributeBase(LivingEntity entity, Attribute attribute, double fallback) {
