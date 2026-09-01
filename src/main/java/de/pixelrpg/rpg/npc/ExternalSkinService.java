@@ -29,18 +29,19 @@ public final class ExternalSkinService {
     private static final int MAX_CACHE_ENTRIES = 512;
     private static final int MAX_RESPONSE_BYTES = 256 * 1024;
     private static final long CACHE_TTL_MILLIS = Duration.ofHours(12).toMillis();
-    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
-            .connectTimeout(REQUEST_TIMEOUT)
-            .followRedirects(HttpClient.Redirect.NEVER)
-            .build();
-    private static final Map<String, CacheEntry> CACHE = new LinkedHashMap<>(64, 0.75f, true);
 
     private final Plugin plugin;
     private final Logger logger;
+    private final HttpClient httpClient;
+    private final Map<String, CacheEntry> cache = new LinkedHashMap<>(64, 0.75f, true);
 
     public ExternalSkinService(Plugin plugin) {
         this.plugin = plugin;
         this.logger = plugin.getLogger();
+        this.httpClient = HttpClient.newBuilder()
+                .connectTimeout(REQUEST_TIMEOUT)
+                .followRedirects(HttpClient.Redirect.NEVER)
+                .build();
     }
 
     public CompletableFuture<Void> apply(Mannequin mannequin, String skinUrl) {
@@ -77,7 +78,7 @@ public final class ExternalSkinService {
                 .POST(HttpRequest.BodyPublishers.ofString(requestJson.toString(), StandardCharsets.UTF_8))
                 .build();
 
-        return HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
                 .thenApply(response -> {
                     if (response.statusCode() != 200) {
                         throw new IllegalStateException("MineSkin returned HTTP " + response.statusCode());
@@ -189,19 +190,19 @@ public final class ExternalSkinService {
         }
     }
 
-    private static synchronized ProfileProperty getCached(String key) {
-        CacheEntry entry = CACHE.get(key);
+    private synchronized ProfileProperty getCached(String key) {
+        CacheEntry entry = cache.get(key);
         if (entry == null) return null;
         if (System.currentTimeMillis() - entry.createdAtMillis() > CACHE_TTL_MILLIS) {
-            CACHE.remove(key);
+            cache.remove(key);
             return null;
         }
         return entry.property();
     }
 
-    private static synchronized void putCached(String key, ProfileProperty property) {
-        CACHE.put(key, new CacheEntry(property, System.currentTimeMillis()));
-        while (CACHE.size() > MAX_CACHE_ENTRIES) CACHE.remove(CACHE.keySet().iterator().next());
+    private synchronized void putCached(String key, ProfileProperty property) {
+        cache.put(key, new CacheEntry(property, System.currentTimeMillis()));
+        while (cache.size() > MAX_CACHE_ENTRIES) cache.remove(cache.keySet().iterator().next());
     }
 
     private static String escapeJson(String value) {
