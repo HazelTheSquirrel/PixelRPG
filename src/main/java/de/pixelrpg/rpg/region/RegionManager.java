@@ -47,7 +47,6 @@ public final class RegionManager {
         if (regions.containsKey(id)) return RegionGeometry.ValidationResult.invalid("Eine Region mit dieser ID existiert bereits.");
         if (worldName == null || worldName.isBlank()) return RegionGeometry.ValidationResult.invalid("Eine Welt ist erforderlich.");
         if (minY > maxY) return RegionGeometry.ValidationResult.invalid("MinY darf nicht größer als MaxY sein.");
-
         var validation = RegionGeometry.validate(points);
         if (!validation.valid()) return validation;
 
@@ -57,7 +56,6 @@ public final class RegionManager {
                 type == null ? RegionType.OTHER : type, "", null, null, "", "", 0,
                 Map.of(), Map.of(), spawnPoints
         );
-
         regions.put(id, region);
         addToIndex(region);
         save();
@@ -104,6 +102,19 @@ public final class RegionManager {
         Optional<PixelRegion> local = findLocal(location);
         if (local.isPresent() && local.get().hasFlag(flag)) return local.get().flag(flag);
         return globalRegion(location.getWorld().getName()).flag(flag);
+    }
+
+    /** Returns whether a location is an explicitly configured spawn point for the supplied hostile mob. */
+    public boolean isExplicitSpawnPoint(Location location, String mobType) {
+        if (location == null || location.getWorld() == null || mobType == null) return false;
+        String normalized = SpawnMobType.normalize(mobType);
+        return regions.values().stream()
+                .filter(region -> region.worldName().equals(location.getWorld().getName()))
+                .flatMap(region -> region.spawnPoints().stream())
+                .filter(point -> point.mobType().equalsIgnoreCase(normalized))
+                .anyMatch(point -> Math.abs(point.x() - location.getX()) < 0.01D
+                        && Math.abs(point.y() - location.getY()) < 0.01D
+                        && Math.abs(point.z() - location.getZ()) < 0.01D);
     }
 
     private Optional<PixelRegion> findLocal(Location location) {
