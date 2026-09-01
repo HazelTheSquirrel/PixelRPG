@@ -8,33 +8,30 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.plugin.Plugin;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-/**
- * Converts arbitrary external skin-image URLs into Minecraft texture properties.
- *
- * <p>Minecraft clients do not treat an arbitrary web URL as a valid profile
- * texture source. External images therefore have to be converted into signed
- * Minecraft texture data first. MineSkin is used as the conversion backend;
- * the backend is isolated here so the NPC/profile code does not depend on it.</p>
- */
+/** Resolves external image URLs into Minecraft texture properties. */
 public final class ExternalSkinService {
     private static final URI MINESKIN_GENERATE_URI = URI.create("https://api.mineskin.org/v2/generate");
     private static final String TEXTURES_HOST = "textures.minecraft.net";
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(15);
+    private static final int MAX_CACHE_ENTRIES = 512;
+    private static final long CACHE_TTL_MILLIS = Duration.ofHours(12).toMillis();
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .connectTimeout(REQUEST_TIMEOUT)
+            .followRedirects(HttpClient.Redirect.NEVER)
             .build();
-    private static final Map<String, ProfileProperty> CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, CacheEntry> CACHE = new LinkedHashMap<>(64, 0.75f, true);
 
     private final Plugin plugin;
     private final Logger logger;
@@ -44,20 +41,16 @@ public final class ExternalSkinService {
         this.logger = plugin.getLogger();
     }
 
-    /**
-     * Resolves a skin URL asynchronously and applies it on the server thread.
-     * Direct textures.minecraft.net URLs do not require an external generator.
-     */
     public CompletableFuture<Void> apply(Mannequin mannequin, String skinUrl) {
         String normalized = normalizeUrl(skinUrl);
         if (normalized == null) return CompletableFuture.failedFuture(new IllegalArgumentException("Invalid skin URL"));
 
-        ProfileProperty cached = CACHE.get(normalized);
+        ProfileProperty cached = getCached(normalized);
         if (cached != null) return applyOnMainThread(mannequin, cached);
 
         if (isMinecraftTextureUrl(normalized)) {
             ProfileProperty property = unsignedTextureProperty(normalized);
-            CACHE.put(normalized, property);
+            putCached(normalized, property);
             return applyOnMainThread(mannequin, property);
         }
 
@@ -65,6 +58,10 @@ public final class ExternalSkinService {
         if (apiKey.isBlank()) {
             return CompletableFuture.failedFuture(new IllegalStateException(
                     "External mannequin skins require an NPC MineSkin API key. Configure npc.skin.mineskin.api-key or PIXELRPG_MINESKIN_API_KEY."));
+        }
+
+        if (!isSafeExternalHost(normalized)) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Skin URL resolves to a private or reserved network address"));
         }
 
         JsonObject requestJson = new JsonObject();
@@ -81,12 +78,12 @@ public final class ExternalSkinService {
         return HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(response -> {
                     if (response.statusCode() != 200) {
-                        throw new IllegalStateException("MineSkin returned HTTP " + response.statusCode() + ": " + response.body());
+                        throw new IllegalStateException("MineSkin returned HTTP " + response.statusCode());
                     }
                     return parseTextureProperty(response.body());
                 })
                 .thenApply(property -> {
-                    CACHE.put(normalized, property);
+                    putCached(normalized, property);
                     return property;
                 })
                 .thenCompose(property -> applyOnMainThread(mannequin, property))
@@ -128,9 +125,7 @@ public final class ExternalSkinService {
 
     private static ProfileProperty parseTextureProperty(String responseBody) {
         JsonObject root = JsonParser.parseString(responseBody).getAsJsonObject();
-        JsonObject textureData = root.getAsJsonObject("skin")
-                .getAsJsonObject("texture")
-                .getAsJsonObject("data");
+        JsonObject textureData = root.getAsJsonObject("skin").getAsJsonObject("texture").getAsJsonObject("data");
         String value = textureData.get("value").getAsString();
         String signature = textureData.get("signature").getAsString();
         if (value.isBlank() || signature.isBlank()) throw new IllegalStateException("MineSkin returned incomplete texture data");
@@ -145,9 +140,7 @@ public final class ExternalSkinService {
 
     private static boolean isMinecraftTextureUrl(String url) {
         URI uri = URI.create(url);
-        return TEXTURES_HOST.equalsIgnoreCase(uri.getHost())
-                && uri.getPath() != null
-                && uri.getPath().startsWith("/texture/");
+        return TEXTURES_HOST.equalsIgnoreCase(uri.getHost()) && uri.getPath() != null && uri.getPath().startsWith("/texture/");
     }
 
     private static String normalizeUrl(String raw) {
@@ -165,6 +158,34 @@ public final class ExternalSkinService {
         return uri.toString();
     }
 
+    private static boolean isSafeExternalHost(String value) {
+        try {
+            InetAddress[] addresses = InetAddress.getAllByName(URI.create(value).getHost());
+            for (InetAddress address : addresses) {
+                if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
+                        || address.isSiteLocalAddress() || address.isMulticastAddress()) return false;
+            }
+            return true;
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
+    private static synchronized ProfileProperty getCached(String key) {
+        CacheEntry entry = CACHE.get(key);
+        if (entry == null) return null;
+        if (System.currentTimeMillis() - entry.createdAtMillis() > CACHE_TTL_MILLIS) {
+            CACHE.remove(key);
+            return null;
+        }
+        return entry.property();
+    }
+
+    private static synchronized void putCached(String key, ProfileProperty property) {
+        CACHE.put(key, new CacheEntry(property, System.currentTimeMillis()));
+        while (CACHE.size() > MAX_CACHE_ENTRIES) CACHE.remove(CACHE.keySet().iterator().next());
+    }
+
     private static String escapeJson(String value) {
         return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
@@ -174,4 +195,6 @@ public final class ExternalSkinService {
         while (current.getCause() != null) current = current.getCause();
         return current.getMessage() == null ? current.getClass().getSimpleName() : current.getMessage();
     }
+
+    private record CacheEntry(ProfileProperty property, long createdAtMillis) { }
 }
