@@ -8,11 +8,13 @@ import org.bukkit.Material;
 import org.bukkit.plugin.Plugin;
 
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /** Registry for PixelRPG-only profession recipes. Recipe data is kept under data/recipes for clean content separation. */
 public final class CraftingRecipeRegistry {
@@ -22,6 +24,7 @@ public final class CraftingRecipeRegistry {
     public void load(Plugin plugin) {
         recipes.clear();
         loadDefinitions(plugin);
+        validateDependencies();
     }
 
     public List<CraftRecipe> getRecipes(Profession profession) {
@@ -55,30 +58,81 @@ public final class CraftingRecipeRegistry {
         JsonObject root = new JsonDataManager(plugin).load(RECIPE_DATA_PATH);
         JsonArray definitions = root.getAsJsonArray("recipes");
         if (definitions == null) throw new IllegalStateException("crafting-recipes.json requires a 'recipes' array");
+
         for (var element : definitions) {
+            if (!element.isJsonObject()) throw new IllegalStateException("Each crafting recipe definition must be a JSON object");
             JsonObject json = element.getAsJsonObject();
             String id = canonicalRecipeId(required(json, "id"));
             if (recipes.containsKey(id)) throw new IllegalStateException("Duplicate crafting recipe: " + id);
+
             Profession profession = enumValue(Profession.class, json, "profession", id);
             Material result = resolveResultMaterial(required(json, "result"));
             if (result == null || result.isAir()) throw new IllegalStateException("Unknown crafting result for " + id + ": " + required(json, "result"));
+
             ItemRarity maximumRarity = enumValue(ItemRarity.class, json, "rarity", id);
             if (maximumRarity == ItemRarity.UNIQUE) throw new IllegalStateException("UNIQUE is not valid for craftable recipe " + id);
+
             Map<Material, Integer> costs = parseCosts(json, id);
             Map<String, Integer> itemCosts = parseItemCosts(json, id);
             int level = json.has("requiredProfessionLevel") ? json.get("requiredProfessionLevel").getAsInt() : 1;
+            if (level < Profession.MIN_LEVEL || level > Profession.MAX_LEVEL) {
+                throw new IllegalStateException("Invalid requiredProfessionLevel for " + id + ": " + level);
+            }
+
             int amount = json.has("resultAmount") ? json.get("resultAmount").getAsInt() : 1;
+            if (amount <= 0) throw new IllegalStateException("Invalid resultAmount for " + id + ": " + amount);
+
             long price = json.has("unlockPrice") ? json.get("unlockPrice").getAsLong() : 0L;
+            if (price < 0L) throw new IllegalStateException("Invalid unlockPrice for " + id + ": " + price);
+
             String quest = json.has("requiredQuestId") ? json.get("requiredQuestId").getAsString() : "";
             boolean defaultUnlocked = json.has("unlockedByDefault") && json.get("unlockedByDefault").getAsBoolean();
             String label = json.has("label") ? json.get("label").getAsString() : pretty(result);
-            String resultItemId = json.has("resultItemId") ? canonicalItemId(json.get("resultItemId").getAsString()) : "";
+            String resultItemId = json.has("resultItemId")
+                    ? canonicalItemId(json.get("resultItemId").getAsString())
+                    : canonicalItemId(id);
             String potionType = json.has("potionType") ? json.get("potionType").getAsString() : "";
             String enchantment = json.has("enchantment") ? json.get("enchantment").getAsString() : "";
             int enchantmentLevel = json.has("enchantmentLevel") ? json.get("enchantmentLevel").getAsInt() : 0;
+
             recipes.put(id, new CraftRecipe(profession, id, label, result, amount, maximumRarity, costs, itemCosts,
                     level, price, quest, defaultUnlocked, false, resultItemId, potionType, enchantment, enchantmentLevel));
         }
+    }
+
+    private void validateDependencies() {
+        for (CraftRecipe recipe : recipes.values()) {
+            for (String rawDependency : recipe.itemCosts().keySet()) {
+                String dependencyId = canonicalRecipeId(rawDependency);
+                if (!recipes.containsKey(dependencyId)) {
+                    throw new IllegalStateException("Unknown recipe dependency for " + recipe.id() + ": " + rawDependency);
+                }
+                if (dependencyId.equals(recipe.id())) {
+                    throw new IllegalStateException("Recipe cannot depend on itself: " + recipe.id());
+                }
+            }
+        }
+
+        Set<String> visiting = new HashSet<>();
+        Set<String> visited = new HashSet<>();
+        for (String recipeId : recipes.keySet()) {
+            validateDependencyPath(recipeId, visiting, visited);
+        }
+    }
+
+    private void validateDependencyPath(String recipeId, Set<String> visiting, Set<String> visited) {
+        if (visited.contains(recipeId)) return;
+        if (!visiting.add(recipeId)) throw new IllegalStateException("Circular crafting recipe dependency detected at " + recipeId);
+
+        CraftRecipe recipe = recipes.get(recipeId);
+        if (recipe != null) {
+            for (String rawDependency : recipe.itemCosts().keySet()) {
+                validateDependencyPath(canonicalRecipeId(rawDependency), visiting, visited);
+            }
+        }
+
+        visiting.remove(recipeId);
+        visited.add(recipeId);
     }
 
     private static Material resolveResultMaterial(String raw) {
