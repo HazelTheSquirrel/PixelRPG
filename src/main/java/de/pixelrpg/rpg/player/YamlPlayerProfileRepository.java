@@ -21,7 +21,6 @@ import java.util.UUID;
 
 public final class YamlPlayerProfileRepository implements PlayerProfileRepository {
     private final File playersFolder;
-
     public YamlPlayerProfileRepository(File dataFolder) { this.playersFolder = new File(dataFolder, "players"); }
     @Override public void init() { if (!playersFolder.exists()) playersFolder.mkdirs(); }
 
@@ -46,15 +45,13 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         if (statsSection != null) for (String key : statsSection.getKeys(false)) profile.setStatistic(key, statsSection.getLong(key));
         Map<EquipmentSlot, ItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
         ConfigurationSection equipmentSection = yaml.getConfigurationSection("equipment");
-        if (equipmentSection != null) for (EquipmentSlot slot : EquipmentSlot.values()) {
-            ItemStack item = equipmentSection.getItemStack(slot.name().toLowerCase());
-            if (item != null && !item.isEmpty()) equipment.put(slot, item);
-        }
+        if (equipmentSection != null) for (EquipmentSlot slot : EquipmentSlot.values()) { ItemStack item = equipmentSection.getItemStack(slot.name().toLowerCase()); if (item != null && !item.isEmpty()) equipment.put(slot, item); }
         profile.setEquipment(equipment);
         profile.setScoreboardEnabled(yaml.getBoolean("scoreboard-enabled", true));
         profile.setPartyHudEnabled(yaml.getBoolean("party-hud-enabled", false));
         profile.setQuestTrackerEnabled(yaml.getBoolean("quest-tracker-enabled", false));
         profile.setPlaytimeMillis(yaml.getLong("playtime-millis", 0L));
+        profile.setPersistenceRevision(yaml.getLong("persistence-revision", 0L));
         profile.markClean();
         return Optional.of(profile);
     }
@@ -62,72 +59,29 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
     private void loadProfessions(PlayerProfile profile, ConfigurationSection section) {
         for (Profession profession : Profession.values()) {
             String key = profession.name().toLowerCase();
-            if (section.contains(key + ".level")) {
-                profile.setProfessionLevel(profession, section.getInt(key + ".level", Profession.MIN_LEVEL));
-                profile.setProfessionExperience(profession, section.getLong(key + ".experience", 0L));
-                if (section.getBoolean(key + ".learned", false)) profile.learnProfession(profession);
-                continue;
-            }
-            String[] legacyKeys = switch (profession) {
-                case BLACKSMITH -> new String[]{"blacksmithing"};
-                case PROVISIONER -> new String[]{"cooking", "fishing", "skinning", "herbalism"};
-                case ALCHEMIST -> new String[]{"alchemy", "herbalism"};
-                case SCHOLAR -> new String[0];
-            };
-            int level = maxLegacyLevel(section, legacyKeys);
-            long experience = maxLegacyExperience(section, legacyKeys);
-            profile.setProfessionLevel(profession, level);
-            profile.setProfessionExperience(profession, experience);
-            if (level > Profession.MIN_LEVEL) profile.learnProfession(profession);
+            if (section.contains(key + ".level")) { profile.setProfessionLevel(profession, section.getInt(key + ".level", Profession.MIN_LEVEL)); profile.setProfessionExperience(profession, section.getLong(key + ".experience", 0L)); if (section.getBoolean(key + ".learned", false)) profile.learnProfession(profession); continue; }
+            String[] legacyKeys = switch (profession) { case BLACKSMITH -> new String[]{"blacksmithing"}; case PROVISIONER -> new String[]{"cooking", "fishing", "skinning", "herbalism"}; case ALCHEMIST -> new String[]{"alchemy", "herbalism"}; case SCHOLAR -> new String[0]; };
+            int level = maxLegacyLevel(section, legacyKeys); long experience = maxLegacyExperience(section, legacyKeys); profile.setProfessionLevel(profession, level); profile.setProfessionExperience(profession, experience); if (level > Profession.MIN_LEVEL) profile.learnProfession(profession);
         }
     }
-
-    private int maxLegacyLevel(ConfigurationSection section, String[] keys) {
-        int max = Profession.MIN_LEVEL;
-        for (String key : keys) max = Math.max(max, section.getInt(key + ".level", section.getInt(key, Profession.MIN_LEVEL)));
-        return max;
-    }
-
-    private long maxLegacyExperience(ConfigurationSection section, String[] keys) {
-        long max = 0L;
-        for (String key : keys) max = Math.max(max, section.getLong(key + ".experience", 0L));
-        return max;
-    }
+    private int maxLegacyLevel(ConfigurationSection section, String[] keys) { int max = Profession.MIN_LEVEL; for (String key : keys) max = Math.max(max, section.getInt(key + ".level", section.getInt(key, Profession.MIN_LEVEL))); return max; }
+    private long maxLegacyExperience(ConfigurationSection section, String[] keys) { long max = 0L; for (String key : keys) max = Math.max(max, section.getLong(key + ".experience", 0L)); return max; }
 
     @Override
-    public void save(PlayerProfile profile) throws IOException {
+    public long save(PlayerProfile profile) throws IOException {
         YamlConfiguration yaml = new YamlConfiguration();
-        yaml.set("registered", profile.isRegistered());
-        yaml.set("experience", profile.getExperience());
-        yaml.set("money", profile.getMoney());
-        for (Profession profession : Profession.values()) {
-            String key = profession.name().toLowerCase();
-            yaml.set("professions." + key + ".level", profile.getProfessionLevel(profession));
-            yaml.set("professions." + key + ".experience", profile.getProfessionExperience(profession));
-            yaml.set("professions." + key + ".learned", profile.hasLearnedProfession(profession));
-        }
-        yaml.set("unlocked-recipes", new ArrayList<>(profile.getUnlockedRecipes()));
-        yaml.set("unlocked-waypoints", new ArrayList<>(profile.getUnlockedWaypoints()));
-        yaml.set("story-chapter-index", profile.getStoryChapterIndex());
-        yaml.set("completed-quests", new ArrayList<>(profile.getCompletedQuests()));
-        for (QuestProgress progress : profile.getActiveQuests().values()) {
-            String path = "active-quests." + progress.getQuestId();
-            yaml.set(path + ".amount", progress.getCurrentAmount());
-            yaml.set(path + ".expiry", progress.getExpiryTimestampMillis());
-        }
+        yaml.set("registered", profile.isRegistered()); yaml.set("experience", profile.getExperience()); yaml.set("money", profile.getMoney());
+        for (Profession profession : Profession.values()) { String key = profession.name().toLowerCase(); yaml.set("professions." + key + ".level", profile.getProfessionLevel(profession)); yaml.set("professions." + key + ".experience", profile.getProfessionExperience(profession)); yaml.set("professions." + key + ".learned", profile.hasLearnedProfession(profession)); }
+        yaml.set("unlocked-recipes", new ArrayList<>(profile.getUnlockedRecipes())); yaml.set("unlocked-waypoints", new ArrayList<>(profile.getUnlockedWaypoints())); yaml.set("story-chapter-index", profile.getStoryChapterIndex()); yaml.set("completed-quests", new ArrayList<>(profile.getCompletedQuests()));
+        for (QuestProgress progress : profile.getActiveQuests().values()) { String path = "active-quests." + progress.getQuestId(); yaml.set(path + ".amount", progress.getCurrentAmount()); yaml.set(path + ".expiry", progress.getExpiryTimestampMillis()); }
         for (var entry : profile.getAllStatistics().entrySet()) yaml.set("statistics." + entry.getKey(), entry.getValue());
         for (var entry : profile.getEquipment().entrySet()) yaml.set("equipment." + entry.getKey().name().toLowerCase(), entry.getValue());
-        yaml.set("scoreboard-enabled", profile.isScoreboardEnabled());
-        yaml.set("party-hud-enabled", profile.isPartyHudEnabled());
-        yaml.set("quest-tracker-enabled", profile.isQuestTrackerEnabled());
-        yaml.set("playtime-millis", profile.getPlaytimeMillis());
+        yaml.set("scoreboard-enabled", profile.isScoreboardEnabled()); yaml.set("party-hud-enabled", profile.isPartyHudEnabled()); yaml.set("quest-tracker-enabled", profile.isQuestTrackerEnabled()); yaml.set("playtime-millis", profile.getPlaytimeMillis());
+        long nextRevision = profile.getPersistenceRevision() + 1L; yaml.set("persistence-revision", nextRevision);
         if (!playersFolder.exists()) playersFolder.mkdirs();
-        File target = new File(playersFolder, profile.getUuid() + ".yml");
-        File tempFile = new File(playersFolder, profile.getUuid() + ".yml.tmp");
-        yaml.save(tempFile);
-        try { Files.move(tempFile.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE); }
-        catch (AtomicMoveNotSupportedException e) { Files.move(tempFile.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING); }
+        File target = new File(playersFolder, profile.getUuid() + ".yml"); File tempFile = new File(playersFolder, profile.getUuid() + ".yml.tmp"); yaml.save(tempFile);
+        try { Files.move(tempFile.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE); } catch (AtomicMoveNotSupportedException e) { Files.move(tempFile.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING); }
+        return nextRevision;
     }
-
     @Override public void shutdown() { }
 }
