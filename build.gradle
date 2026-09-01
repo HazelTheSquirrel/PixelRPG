@@ -40,6 +40,8 @@ tasks.shadowJar {
     relocate 'com.google.gson', 'de.pixelrpg.rpg.libs.gson'
     relocate 'com.zaxxer.hikari', 'de.pixelrpg.rpg.libs.hikari'
     relocate 'com.mysql', 'de.pixelrpg.rpg.libs.mysql'
+    mergeServiceFiles()
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
 }
 
 tasks.jar {
