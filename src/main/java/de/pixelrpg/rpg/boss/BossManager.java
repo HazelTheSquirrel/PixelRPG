@@ -33,6 +33,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class BossManager {
+    private static final double WORLD_BOSS_CLEANUP_RADIUS = 256.0D;
+
     private final Plugin plugin;
     private final BossAttackPatternRegistry patternRegistry;
     private final GuildAPI guildAPI;
@@ -132,7 +134,7 @@ public final class BossManager {
         double maxHp = hpAttribute != null ? hpAttribute.getValue() : 20.0;
         activeBoss.getBossBar().progress((float) Math.max(0.0, Math.min(1.0, entity.getHealth() / maxHp)));
         Location location = entity.getLocation();
-        for (Player player : location.getWorld().getPlayers()) {
+        for (Player player : location.getNearbyPlayers(barRadius)) {
             UUID uuid = player.getUniqueId();
             boolean isViewer = activeBoss.getViewers().contains(uuid);
             if (!guildAPI.isRegistered(uuid)) { if (isViewer) { player.hideBossBar(activeBoss.getBossBar()); activeBoss.getViewers().remove(uuid); } continue; }
@@ -140,6 +142,15 @@ public final class BossManager {
             if (inRange && !isViewer) { player.showBossBar(activeBoss.getBossBar()); activeBoss.getViewers().add(uuid); }
             else if (!inRange && isViewer) { player.hideBossBar(activeBoss.getBossBar()); activeBoss.getViewers().remove(uuid); }
         }
+        activeBoss.getViewers().removeIf(uuid -> {
+            Player viewer = Bukkit.getPlayer(uuid);
+            if (viewer == null || !viewer.isOnline()) return true;
+            if (viewer.getWorld() != location.getWorld() || viewer.getLocation().distanceSquared(location) > barRadius * barRadius) {
+                viewer.hideBossBar(activeBoss.getBossBar());
+                return true;
+            }
+            return false;
+        });
     }
 
     private void checkPhaseTransition(ActiveBoss activeBoss, LivingEntity entity) {
@@ -274,7 +285,8 @@ public final class BossManager {
     private List<Entity> activeBossEntityWorldEntities(ActiveBoss activeBoss) {
         Entity bossEntity = Bukkit.getEntity(activeBoss.getEntityUuid());
         if (bossEntity == null || bossEntity.getWorld() == null) return List.of();
-        return bossEntity.getWorld().getEntities();
+        Location location = bossEntity.getLocation();
+        return new ArrayList<>(location.getNearbyEntities(WORLD_BOSS_CLEANUP_RADIUS, WORLD_BOSS_CLEANUP_RADIUS, WORLD_BOSS_CLEANUP_RADIUS));
     }
 
     public boolean hasActiveBossOfType(String bossId) { return activeBosses.values().stream().anyMatch(active -> active.getDefinition().getId().equals(bossId)); }
