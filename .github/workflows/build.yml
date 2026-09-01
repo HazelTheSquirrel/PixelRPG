@@ -33,10 +33,30 @@ jobs:
       - name: Build PixelRPG
         run: gradle clean build --no-daemon --stacktrace
 
+      - name: Verify source API boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE --include='*.java' 'org\.bukkit\.ChatColor|net\.md_5\.bungee\.api\.ChatColor|net\.minecraft\.server\.v[0-9_]+|org\.bukkit\.craftbukkit|com\.google\.gson' src/main/java; then
+            echo 'Forbidden legacy/API-boundary usage detected.'
+            exit 1
+          fi
+          if grep -RIn --include='*.java' 'static[[:space:]].*Player\|static[[:space:]].*Entity\|static[[:space:]].*World' src/main/java; then
+            echo 'Static live Bukkit reference detected.'
+            exit 1
+          fi
+          echo 'Source API boundary validation passed.'
+
       - name: Verify plugin artifact
         shell: bash
         run: |
           set -euo pipefail
-          test -f build/libs/Pixel-RPG.jar
-          jar tf build/libs/Pixel-RPG.jar | grep -q '^paper-plugin.yml$'
-          echo "PixelRPG artifact validation passed."
+          artifact='build/libs/Pixel-RPG.jar'
+          test -f "$artifact"
+          jar tf "$artifact" | grep -q '^paper-plugin.yml$'
+          jar tf "$artifact" | grep -q '^de/pixelrpg/rpg/'
+          if jar tf "$artifact" | grep -qE '^(com/google/gson|com/zaxxer/hikari|com/mysql)/'; then
+            echo 'Unrelocated bundled dependency package detected.'
+            exit 1
+          fi
+          echo 'PixelRPG artifact validation passed.'
