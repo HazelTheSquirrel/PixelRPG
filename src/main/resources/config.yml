@@ -10,6 +10,7 @@ storage:
     password: "CHANGE_ME"
     pool-size: 20
     connection-timeout-ms: 8000
+    ssl-mode: "REQUIRED"
 
 items:
   soulbound:
