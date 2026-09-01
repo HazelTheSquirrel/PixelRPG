@@ -46,48 +46,34 @@ public final class QuestBehavior implements NpcBehavior {
         openQuestRanges(player);
     }
 
-    private int unlockBuffer() {
-        return questManager.getRepository().unlockEarlyLevels();
-    }
+    private int unlockBuffer() { return questManager.getRepository().unlockEarlyLevels(); }
 
-    private boolean isWorldQuest(Quest quest) {
-        return quest.profession() == null && quest.type() != QuestType.GLOBAL_EVENT;
-    }
+    private boolean isWorldQuest(Quest quest) { return quest.profession() == null && quest.type() != QuestType.GLOBAL_EVENT; }
 
     private void openQuestRanges(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
 
         List<Integer> categoryLevels = new TreeSet<>(questManager.getRepository().getAllQuests().stream()
-                .filter(this::isWorldQuest)
-                .map(Quest::categoryLevel)
-                .toList()).stream().toList();
-
+                .filter(this::isWorldQuest).map(Quest::categoryLevel).toList()).stream().toList();
         List<DialogBody> body = List.of(
-                DialogBody.plainMessage(Component.text(
-                        "Wähle zuerst deinen gewünschten Levelbereich. Danach siehst du die Quests dieses Bereichs.", NamedTextColor.WHITE)),
-                DialogBody.plainMessage(Component.text(
-                        "Dein aktuelles Level: " + profile.getLevel(), NamedTextColor.AQUA))
+                DialogBody.plainMessage(Component.text("Wähle zuerst deinen gewünschten Levelbereich. Danach siehst du die Quests dieses Bereichs.", NamedTextColor.WHITE)),
+                DialogBody.plainMessage(Component.text("Dein aktuelles Level: " + profile.getLevel(), NamedTextColor.AQUA))
         );
 
         List<ActionButton> actions = new ArrayList<>();
         for (int index = 0; index < categoryLevels.size(); index++) {
             int start = categoryLevels.get(index);
-            int end = index + 1 < categoryLevels.size()
-                    ? Math.min(MAX_NORMAL_LEVEL, categoryLevels.get(index + 1) - 1)
-                    : MAX_NORMAL_LEVEL;
+            int end = index + 1 < categoryLevels.size() ? Math.min(MAX_NORMAL_LEVEL, categoryLevels.get(index + 1) - 1) : MAX_NORMAL_LEVEL;
             boolean current = profile.getLevel() >= start && profile.getLevel() <= end;
             boolean unlocked = profile.getLevel() >= Math.max(1, start - unlockBuffer());
-            actions.add(dialogueEngine.actionButton(
-                    Component.text("Level " + start + "–" + end),
-                    current ? NamedTextColor.GREEN : unlocked ? NamedTextColor.YELLOW : NamedTextColor.DARK_GRAY,
+            actions.add(dialogueEngine.actionButton(Component.text("Level " + start + "–" + end),
+                    current ? NamedTextColor.GREEN : unlocked ? NamedTextColor.YELLOW : NamedTextColor.RED,
                     target -> openQuestCategory(target, start, end)));
         }
-
         if (actions.isEmpty()) {
             dialogueEngine.openNotice(player, Component.text("Questgeber", NamedTextColor.GOLD),
-                    Component.text("Aktuell sind keine Questbereiche konfiguriert.", NamedTextColor.WHITE),
-                    Component.text("Schließen", NamedTextColor.GRAY));
+                    Component.text("Aktuell sind keine Questbereiche konfiguriert.", NamedTextColor.WHITE), Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
         dialogueEngine.openMultiAction(player, Component.text("Questgeber", NamedTextColor.GOLD), body, actions, 2);
@@ -98,63 +84,58 @@ public final class QuestBehavior implements NpcBehavior {
         if (profile == null) return;
 
         List<Quest> quests = questManager.getRepository().getAllQuests().stream()
-                .filter(this::isWorldQuest)
-                .filter(quest -> quest.categoryLevel() == start)
-                .sorted(Comparator.comparingInt(Quest::requiredLevel).thenComparing(Quest::title))
-                .toList();
-
+                .filter(this::isWorldQuest).filter(quest -> quest.categoryLevel() == start)
+                .sorted(Comparator.comparingInt(Quest::requiredLevel).thenComparing(Quest::title)).toList();
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text("Questbereich Level " + start + "–" + end, NamedTextColor.AQUA)),
-                DialogBody.plainMessage(Component.text(
-                        "Quests werden bis zu " + unlockBuffer() + " Level vor ihrem empfohlenen Level freigeschaltet.", NamedTextColor.WHITE))
+                DialogBody.plainMessage(Component.text("Quests werden bis zu " + unlockBuffer() + " Level vor ihrem empfohlenen Level freigeschaltet.", NamedTextColor.WHITE))
         );
 
         List<ActionButton> actions = new ArrayList<>();
         for (Quest quest : quests) {
-            boolean active = profile.hasActiveQuest(quest.id());
-            boolean levelAvailable = profile.getLevel() >= Math.max(1, quest.requiredLevel() - unlockBuffer());
-            Component label = Component.text(active ? "[Aktiv] " : "")
+            QuestStatus status = status(profile, quest);
+            Component label = Component.text(status.prefix())
                     .append(QuestText.title(quest))
                     .append(Component.text(" • Level " + quest.requiredLevel(), NamedTextColor.GRAY));
-            actions.add(dialogueEngine.actionButton(label,
-                    active ? NamedTextColor.YELLOW : levelAvailable ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
-                    target -> openQuestDetails(target, quest, start, end)));
+            actions.add(dialogueEngine.actionButton(label, status.color(), target -> openQuestDetails(target, quest, start, end)));
         }
-
-        if (actions.isEmpty()) body = List.of(DialogBody.plainMessage(Component.text(
-                "In diesem Bereich sind aktuell keine Quests verfügbar.", NamedTextColor.WHITE)));
+        if (actions.isEmpty()) body = List.of(DialogBody.plainMessage(Component.text("In diesem Bereich sind aktuell keine Quests verfügbar.", NamedTextColor.WHITE)));
         actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, this::openQuestRanges));
         dialogueEngine.openMultiAction(player, Component.text("Level " + start + "–" + end, NamedTextColor.GOLD), body, actions, 2);
+    }
+
+    private QuestStatus status(PlayerProfile profile, Quest quest) {
+        if (profile.hasCompletedQuest(quest.id())) return QuestStatus.COMPLETED;
+        if (profile.hasActiveQuest(quest.id())) return QuestStatus.ACTIVE;
+        if (questManager.canAccept(profile, quest)) return QuestStatus.AVAILABLE;
+        return QuestStatus.UNAVAILABLE;
     }
 
     private void openQuestDetails(Player player, Quest quest, int start, int end) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
-
-        boolean active = profile.hasActiveQuest(quest.id());
-        boolean completed = profile.hasCompletedQuest(quest.id());
+        QuestStatus status = status(profile, quest);
         int unlockLevel = Math.max(1, quest.requiredLevel() - unlockBuffer());
-        boolean levelAvailable = profile.getLevel() >= unlockLevel;
-        String status = completed ? "Bereits abgeschlossen" : active ? "Aktiv" : levelAvailable ? "Verfügbar" : "Noch nicht verfügbar";
 
         List<DialogBody> body = new ArrayList<>();
         body.add(DialogBody.plainMessage(QuestText.description(quest).color(NamedTextColor.WHITE)));
-        if (active) body.add(DialogBody.plainMessage(QuestText.objectiveWithProgress(quest, profile.getActiveQuests().get(quest.id()))));
+        if (profile.hasActiveQuest(quest.id())) body.add(DialogBody.plainMessage(QuestText.objectiveWithProgress(quest, profile.getActiveQuests().get(quest.id()))));
         else body.add(DialogBody.plainMessage(QuestText.objective(quest).color(NamedTextColor.AQUA)));
+        if (quest.type() == QuestType.COLLECT) body.add(DialogBody.plainMessage(QuestText.requiredItem(quest).color(NamedTextColor.AQUA)));
         body.add(DialogBody.plainMessage(Component.text(
-                "Empfohlen ab Level " + quest.requiredLevel() + " • Freigeschaltet ab Level " + unlockLevel + " • " + status,
-                levelAvailable ? NamedTextColor.AQUA : NamedTextColor.RED)));
-        body.add(DialogBody.plainMessage(Component.text(
-                "Belohnung: " + quest.rewardMoney() + " Gold, " + quest.rewardExp() + " EP", NamedTextColor.GOLD)));
+                "Empfohlen ab Level " + quest.requiredLevel() + " • Freigeschaltet ab Level " + unlockLevel,
+                status == QuestStatus.UNAVAILABLE ? NamedTextColor.RED : NamedTextColor.AQUA)));
+        body.add(DialogBody.plainMessage(Component.text("Status: " + status.label(), status.color())));
+        body.add(DialogBody.plainMessage(Component.text("Belohnung: " + quest.rewardMoney() + " Gold, " + quest.rewardExp() + " EP", NamedTextColor.GOLD)));
 
         List<ActionButton> actions = new ArrayList<>();
-        if (!active && !completed && levelAvailable && questManager.canAccept(profile, quest)) {
+        if (status == QuestStatus.AVAILABLE) {
             actions.add(dialogueEngine.actionButton(Component.text("Quest annehmen"), NamedTextColor.GREEN, target -> {
                 questManager.acceptQuest(target, quest);
                 openQuestCategory(target, start, end);
             }));
         }
-        if (active) {
+        if (status == QuestStatus.ACTIVE) {
             actions.add(dialogueEngine.actionButton(Component.text("Quest abgeben"), NamedTextColor.YELLOW, target -> {
                 questManager.completeQuest(target, quest.id());
                 openQuestCategory(target, start, end);
@@ -164,8 +145,28 @@ public final class QuestBehavior implements NpcBehavior {
                 openQuestCategory(target, start, end);
             }));
         }
-        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE,
-                target -> openQuestCategory(target, start, end)));
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, target -> openQuestCategory(target, start, end)));
         dialogueEngine.openMultiAction(player, QuestText.title(quest).color(NamedTextColor.GOLD), body, actions, 2);
+    }
+
+    private enum QuestStatus {
+        AVAILABLE("", "Verfügbar", NamedTextColor.GREEN),
+        ACTIVE("[Aktiv] ", "Angenommen", NamedTextColor.YELLOW),
+        UNAVAILABLE("", "Nicht verfügbar", NamedTextColor.RED),
+        COMPLETED("", "Abgeschlossen", NamedTextColor.GRAY);
+
+        private final String prefix;
+        private final String label;
+        private final NamedTextColor color;
+
+        QuestStatus(String prefix, String label, NamedTextColor color) {
+            this.prefix = prefix;
+            this.label = label;
+            this.color = color;
+        }
+
+        String prefix() { return prefix; }
+        String label() { return label; }
+        NamedTextColor color() { return color; }
     }
 }
