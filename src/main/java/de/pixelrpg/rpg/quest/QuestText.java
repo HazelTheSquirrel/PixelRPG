@@ -1,8 +1,7 @@
 package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.item.ItemDefinition;
-import de.pixelrpg.rpg.item.ItemDefinitionRegistry;
+import de.pixelrpg.rpg.item.ItemDisplayNameResolver;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
@@ -113,10 +112,8 @@ public final class QuestText {
         return quest.requiredAmount() + "x " + itemNamePlain(quest.targetKey());
     }
 
-    /** Resolves a quest item to the actual PixelRPG display name or a fixed German vanilla name. */
+    /** Resolves a quest item through the central item/recipe display-name pipeline. */
     public static Component itemName(String key) {
-        ItemDefinition definition = findDefinition(key);
-        if (definition != null) return Component.text(definition.name());
         return Component.text(itemNamePlain(key));
     }
 
@@ -125,8 +122,15 @@ public final class QuestText {
         String normalized = key.trim().toUpperCase(Locale.ROOT);
         String known = GERMAN_ITEM_NAMES.get(normalized);
         if (known != null) return known;
-        ItemDefinition definition = findDefinition(key);
-        if (definition != null) return definition.name();
+
+        ItemDisplayNameResolver resolver = PixelRPGPlugin.getInstance() == null
+                ? null
+                : PixelRPGPlugin.getInstance().getItemDisplayNameResolver();
+        if (resolver != null) {
+            var resolved = resolver.resolve(key);
+            if (resolved.isPresent()) return resolved.get();
+        }
+
         Material material = Material.matchMaterial(key.trim());
         if (material != null) return prettyKey(material.name());
         return prettyKey(key);
@@ -138,15 +142,6 @@ public final class QuestText {
         if (key == null || key.isBlank()) return "Unbekannte Kreatur";
         String known = GERMAN_ENTITY_NAMES.get(key.trim().toUpperCase(Locale.ROOT));
         return known != null ? known : prettyKey(key);
-    }
-
-    private static ItemDefinition findDefinition(String key) {
-        if (key == null || key.isBlank()) return null;
-        try {
-            return new ItemDefinitionRegistry(PixelRPGPlugin.getInstance()).find(key).orElse(null);
-        } catch (RuntimeException ignored) {
-            return null;
-        }
     }
 
     private static String prettyKey(String key) {
