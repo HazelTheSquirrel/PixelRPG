@@ -1,1 +1,40 @@
-PLACEHOLDER
+{
+  "generatedProfessionRecipes": {
+    "BLACKSMITH": {
+      "labels": ["Kohlenbarren", "Eisenbarren", "Eisenkern", "Geschmiedete Klinge", "Werkzeugkopf", "Eisenaxt", "Eisenschaufel", "Eisenhacke", "Eisenschild", "Goldkern", "Goldklinge", "Diamantkern", "Diamantspitzhacke", "Diamantschwert", "Diamantaxt", "Diamantbrustplatte", "Netheritkomponente", "Netheritspitzhacke", "Meisterklinge", "Meisterrüstung"],
+      "results": ["COAL", "IRON_INGOT", "IRON_INGOT", "IRON_SWORD", "IRON_PICKAXE", "IRON_AXE", "IRON_SHOVEL", "IRON_HOE", "SHIELD", "GOLD_INGOT", "GOLDEN_SWORD", "DIAMOND", "DIAMOND_PICKAXE", "DIAMOND_SWORD", "DIAMOND_AXE", "DIAMOND_CHESTPLATE", "NETHERITE_INGOT", "NETHERITE_PICKAXE", "NETHERITE_SWORD", "NETHERITE_CHESTPLATE"]
+    },
+    "SCHOLAR": {
+      "labels": ["Papierbündel", "Notizheft", "Tintenbuch", "Forschungspaket", "Forschungsmappe", "Landkarte", "Erkundungskarte", "Arkaner Foliant", "Lehrbuch der Effizienz", "Lehrbuch des Schutzes", "Lehrbuch der Schärfe", "Lehrbuch der Haltbarkeit", "Lehrbuch des Glücks", "Meisterschrift der Reparatur", "Archivband", "Chronik der Welt", "Kompass der Gelehrten", "Enderatlas", "Meisterarchiv", "Große Weltchronik"],
+      "results": ["PAPER", "BOOK", "BOOK", "PAPER", "WRITABLE_BOOK", "MAP", "MAP", "ENCHANTED_BOOK", "ENCHANTED_BOOK", "ENCHANTED_BOOK", "ENCHANTED_BOOK", "ENCHANTED_BOOK", "ENCHANTED_BOOK", "ENCHANTED_BOOK", "WRITABLE_BOOK", "WRITABLE_BOOK", "COMPASS", "MAP", "BOOK", "WRITABLE_BOOK"]
+    },
+    "FARMER": {
+      "labels": ["Saatgutbündel", "Weizenbund", "Karottenkorb", "Kartoffelsack", "Rübenkorb", "Kürbissaat", "Melonensaat", "Heuballen", "Süße Beeren", "Kakaobohnenpaket", "Brotvorrat", "Kürbisernte", "Melonenernte", "Apfelkorb", "Honigwabe", "Komposterde", "Goldene Ernte", "Großer Heuballen", "Meisterernte", "Erntekorb"],
+      "results": ["WHEAT_SEEDS", "WHEAT", "CARROT", "POTATO", "BEETROOT", "PUMPKIN_SEEDS", "MELON_SEEDS", "HAY_BLOCK", "SWEET_BERRIES", "COCOA_BEANS", "BREAD", "PUMPKIN", "MELON", "APPLE", "HONEYCOMB", "BONE_MEAL", "GOLDEN_CARROT", "HAY_BLOCK", "GOLDEN_CARROT", "BREAD"]
+    },
+    "COOK": {
+      "labels": ["Gebratener Fisch", "Gegrillter Lachs", "Brotmahlzeit", "Kartoffelgericht", "Pilzsuppe", "Kürbiskuchen", "Kuchenstück", "Honigbrot", "Kaninchenragout", "Pilzragout", "Goldene Karotte", "Goldener Apfel", "Kaninchenmahlzeit", "Steakplatte", "Schweinebraten", "Hühnergericht", "Meistermahlzeit", "Festmahl", "Königsmahl", "Großes Festmahl"],
+      "results": ["COOKED_COD", "COOKED_SALMON", "BREAD", "BAKED_POTATO", "MUSHROOM_STEW", "PUMPKIN_PIE", "CAKE", "BREAD", "RABBIT_STEW", "RABBIT_STEW", "GOLDEN_CARROT", "GOLDEN_APPLE", "COOKED_RABBIT", "COOKED_BEEF", "COOKED_PORKCHOP", "COOKED_CHICKEN", "SUSPICIOUS_STEW", "GOLDEN_CARROT", "GOLDEN_APPLE", "CAKE"]
+    },
+    "TAILOR": {
+      "labels": ["Fadenrolle", "Wollstoff", "Lederstück", "Lederkappe", "Lederschuhe", "Lederhose", "Lederweste", "Ledertunika", "Wollmantel", "Bündel", "Schafwollstoff", "Rucksack", "Verstärkte Kappe", "Verstärkte Schuhe", "Verstärkte Hose", "Verstärkte Weste", "Meisterstoff", "Meisterrüstung", "Seidenmantel", "Meistergewand"],
+      "results": ["STRING", "WHITE_WOOL", "LEATHER", "LEATHER_HELMET", "LEATHER_BOOTS", "LEATHER_LEGGINGS", "LEATHER_CHESTPLATE", "LEATHER_CHESTPLATE", "WHITE_WOOL", "BUNDLE", "WHITE_WOOL", "BUNDLE", "LEATHER_HELMET", "LEATHER_BOOTS", "LEATHER_LEGGINGS", "LEATHER_CHESTPLATE", "WHITE_WOOL", "LEATHER_CHESTPLATE", "WHITE_WOOL", "LEATHER_CHESTPLATE"]
+    },
+    "ALCHEMIST": {
+      "labels": ["Laborfläschchen", "Honigextrakt", "Melonen-Tonikum", "Heilelixier", "Geschwindigkeitstrank", "Stärketrank", "Feuerresistenztrank", "Nachtsichttrank", "Regenerationstrank", "Wasseratmungstrank", "Sprungkrafttrank", "Unsichtbarkeitstrank", "Meisterheilung", "Meisterstärke", "Meisterresistenz", "Drachenatem-Elixier", "Arkankatalysator", "Großes Elixier", "Meisterelixier", "Alchemistenphiole"],
+      "results": ["POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION", "POTION"]
+    },
+    "MASON": {
+      "labels": ["Steinziegel", "Polierter Stein", "Andesitziegel", "Dioritziegel", "Granitziegel", "Tiefenschieferziegel", "Tiefenschieferfliesen", "Ziegelblock", "Sandsteinblock", "Roter Sandstein", "Quarzblock", "Prismarinblock", "Basaltblock", "Schwarzsteinblock", "Polierter Schwarzstein", "Endsteinziegel", "Netheritblock", "Amethystblock", "Meistermauer", "Monumentstein"],
+      "results": ["STONE_BRICKS", "SMOOTH_STONE", "ANDESITE", "DIORITE", "GRANITE", "DEEPSLATE_BRICKS", "DEEPSLATE_TILES", "BRICKS", "SANDSTONE", "RED_SANDSTONE", "QUARTZ_BLOCK", "PRISMARINE", "BASALT", "BLACKSTONE", "POLISHED_BLACKSTONE", "END_STONE_BRICKS", "NETHERITE_BLOCK", "AMETHYST_BLOCK", "POLISHED_BLACKSTONE_BRICKS", "PRISMARINE_BRICKS"]
+    },
+    "FISHERMAN": {
+      "labels": ["Angelköder", "Kabeljaupaket", "Lachspaket", "Tropenfischfang", "Kugelfischfang", "Gebratener Kabeljau", "Gebratener Lachs", "Fischkiste", "Meereskorb", "Tropenfang", "Kugelfischvorrat", "Anglermahlzeit", "Lachsteller", "Spezialfang", "Ködervorrat", "Schatzfang", "Meeresjuwel", "Tiefseefang", "Meisterfang", "Legendärer Fang"],
+      "results": ["COD", "COD", "SALMON", "TROPICAL_FISH", "PUFFERFISH", "COOKED_COD", "COOKED_SALMON", "COD", "SALMON", "TROPICAL_FISH", "PUFFERFISH", "COOKED_COD", "COOKED_SALMON", "TROPICAL_FISH", "COD", "NAUTILUS_SHELL", "PRISMARINE_CRYSTALS", "TROPICAL_FISH", "NAUTILUS_SHELL", "HEART_OF_THE_SEA"]
+    },
+    "WOODCUTTER": {
+      "labels": ["Brennholz", "Eichenbretter", "Fichtenbretter", "Birkenbretter", "Dschungelbretter", "Akazienbretter", "Dunkleichenbretter", "Mangrovenbretter", "Kirschbretter", "Bambusbrett", "Holzkiste", "Holzfass", "Werkbank", "Leiterbündel", "Holztür", "Holzschilder", "Holzboot", "Verstärkte Kiste", "Meisterholz", "Meisterwerkbank"],
+      "results": ["OAK_LOG", "OAK_PLANKS", "SPRUCE_PLANKS", "BIRCH_PLANKS", "JUNGLE_PLANKS", "ACACIA_PLANKS", "DARK_OAK_PLANKS", "MANGROVE_PLANKS", "CHERRY_PLANKS", "BAMBOO_PLANKS", "CHEST", "BARREL", "CRAFTING_TABLE", "LADDER", "OAK_DOOR", "OAK_SIGN", "OAK_BOAT", "CHEST", "OAK_LOG", "CRAFTING_TABLE"]
+    }
+  }
+}
