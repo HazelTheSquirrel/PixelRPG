@@ -65,7 +65,7 @@ public final class PixelRegion {
         this.ownerGuildName = ownerGuildName;
         this.enterMessage = enterMessage == null ? "" : enterMessage;
         this.leaveMessage = leaveMessage == null ? "" : leaveMessage;
-        this.priority = priority;
+        this.priority = global ? 0 : priority;
         this.flags = new EnumMap<>(RegionFlag.class);
         if (flags != null) this.flags.putAll(flags);
         this.properties = new java.util.HashMap<>();
@@ -77,7 +77,7 @@ public final class PixelRegion {
     public static PixelRegion global(String worldName, Map<RegionFlag, Boolean> flags) {
         return new PixelRegion(UUID.nameUUIDFromBytes(("pixelrpg:global:" + worldName).getBytes(StandardCharsets.UTF_8)),
                 worldName, null, true, Integer.MIN_VALUE, Integer.MAX_VALUE, "Wildnis", RegionType.OTHER,
-                "Globale Standardregion", null, null, "", "", Integer.MIN_VALUE, flags, Map.of(), List.of());
+                "Globale Standardregion", null, null, "", "", 0, flags, Map.of(), List.of());
     }
 
     public UUID id() { return id; }
@@ -116,7 +116,7 @@ public final class PixelRegion {
     public void clearOwner() { ownerGuildId = null; ownerGuildName = null; }
     public void setEnterMessage(String value) { enterMessage = value == null ? "" : value; }
     public void setLeaveMessage(String value) { leaveMessage = value == null ? "" : value; }
-    public void setPriority(int value) { priority = value; }
+    public void setPriority(int value) { priority = global ? 0 : value; }
     public void setProperty(String key, String value) { properties.put(key, value); }
     public void removeProperty(String key) { properties.remove(key); }
     public void addSpawnPoint(RegionSpawnPoint point) { spawnPoints.add(point); }
