@@ -60,12 +60,21 @@ public final class CraftingService {
             return CraftResult.failure("Dir fehlen die benötigten Materialien.");
         }
 
+        // Build the result before consuming anything. Invalid potion/enchantment/item
+        // configuration must never burn player materials. Content validation also runs
+        // at startup, but this keeps the runtime operation failure-safe.
+        ItemRarity rolledRarity = CraftingRarityRoller.roll(recipe.rarity());
+        ItemStack result;
+        try {
+            result = createResult(recipe, rolledRarity, Math.min(99, professionLevel));
+            makeCraftResultStackable(result);
+        } catch (RuntimeException exception) {
+            return CraftResult.failure("Dieses Rezept ist momentan nicht korrekt konfiguriert.");
+        }
+
         removeMaterialCosts(player, recipe.costs());
         removeItemCosts(player, recipe.itemCosts());
 
-        ItemRarity rolledRarity = CraftingRarityRoller.roll(recipe.rarity());
-        ItemStack result = createResult(recipe, rolledRarity, Math.min(99, professionLevel));
-        makeCraftResultStackable(result);
         player.getInventory().addItem(result).values().forEach(stack -> player.getWorld().dropItemNaturally(player.getLocation(), stack));
         long experience = craftExperience(recipe);
         professionService.addExperience(player, recipe.profession(), experience);
@@ -132,9 +141,8 @@ public final class CraftingService {
     private String canonicalItemId(String raw) {
         String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
         if (!value.startsWith("pixelrpg:")) value = "pixelrpg:" + value;
-        String body = value.substring("pixelrpg:".length());
-        int slash = body.indexOf('/');
-        if (slash > 0) body = body.substring(0, slash) + ":" + body.substring(slash + 1);
+        String body = value.substring("pixelrpg:".length()).replace('/', ':');
+        while (body.contains("::")) body = body.replace("::", ":");
         return "pixelrpg:" + body;
     }
 
