@@ -187,6 +187,11 @@ public final class PartyManager implements PartyAPI {
         if (player != null) player.sendMessage(Component.text("Du bist jetzt der Gruppenanführer.", NamedTextColor.GOLD));
     }
 
+    private String name(UUID uuid) {
+        OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+        return player.getName() == null ? uuid.toString() : player.getName();
+    }
+
     private void maintenance() {
         if (shuttingDown) return;
         long now = System.currentTimeMillis();
@@ -249,7 +254,7 @@ public final class PartyManager implements PartyAPI {
 
     private void writeAtomically(YamlConfiguration snapshot) {
         Path target = storageFile.toPath();
-        Path temporary = target.toPath().resolveSibling(storageFile.getName() + ".tmp");
+        Path temporary = target.resolveSibling(storageFile.getName() + ".tmp");
         try {
             storageFile.getParentFile().mkdirs();
             snapshot.save(temporary.toFile());
