@@ -6,9 +6,11 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 /** Adapts the existing command implementations to Paper's current BasicCommand API. */
 public final class PaperBasicCommandAdapter implements BasicCommand {
@@ -27,6 +29,11 @@ public final class PaperBasicCommandAdapter implements BasicCommand {
             }
         };
         this.permission = permission;
+
+        List<String> aliases = legacyAliases(name);
+        if (!aliases.isEmpty()) {
+            JavaPlugin.getProvidingPlugin(PaperBasicCommandAdapter.class).registerCommand(name, aliases, this);
+        }
     }
 
     @Override
@@ -44,5 +51,15 @@ public final class PaperBasicCommandAdapter implements BasicCommand {
     @Override
     public String permission() {
         return permission;
+    }
+
+    private static List<String> legacyAliases(String name) {
+        return switch (name.toLowerCase(Locale.ROOT)) {
+            case "pixelrpg" -> List.of("rpgadmin");
+            case "pixelrpgparty" -> List.of("rpgparty");
+            case "pixelrpgquestlog" -> List.of("questlog");
+            case "pixelrpgdialogue" -> List.of("dialogue");
+            default -> List.of();
+        };
     }
 }
