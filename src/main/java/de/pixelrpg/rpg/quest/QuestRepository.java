@@ -111,7 +111,9 @@ public final class QuestRepository {
 
     private Profession parseProfession(String value) {
         if (value == null || value.isBlank()) return null;
-        try { return Profession.valueOf(value.trim().toUpperCase(Locale.ROOT)); }
+        String normalized = value.trim().toUpperCase(Locale.ROOT);
+        if (normalized.equals("PROVISIONER")) return Profession.COOK;
+        try { return Profession.valueOf(normalized); }
         catch (IllegalArgumentException exception) { return null; }
     }
 
