@@ -11,9 +11,10 @@ public final class Money {
     }
 
     public static long fromMajor(double amount) {
-        if (!Double.isFinite(amount) || amount < 0.0D) {
-            throw new IllegalArgumentException("Money must be finite and non-negative");
+        if (!Double.isFinite(amount)) {
+            throw new IllegalArgumentException("Money must be finite");
         }
+        if (amount <= 0.0D) return 0L;
         BigDecimal minorUnits = BigDecimal.valueOf(amount)
                 .movePointRight(2)
                 .setScale(0, RoundingMode.HALF_UP);
