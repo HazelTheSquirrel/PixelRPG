@@ -64,14 +64,11 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     }
 
     /** Registers a lightweight callback invoked when an active profile changes. */
-    public void addProfileChangeListener(Consumer<UUID> listener) {
-        if (listener != null) profileChangeListeners.addIfAbsent(listener);
-    }
-
+    public void addProfileChangeListener(Consumer<UUID> listener) { if (listener != null) profileChangeListeners.addIfAbsent(listener); }
     /** Removes a previously registered reactive profile listener. */
-    public void removeProfileChangeListener(Consumer<UUID> listener) {
-        if (listener != null) profileChangeListeners.remove(listener);
-    }
+    public void removeProfileChangeListener(Consumer<UUID> listener) { if (listener != null) profileChangeListeners.remove(listener); }
+    /** Wakes listeners without marking persistence state dirty; used by external domain services such as guilds and parties. */
+    public void notifyExternalStateChange(UUID uuid) { if (uuid == null || !activeProfiles.containsKey(uuid)) return; for (Consumer<UUID> listener : profileChangeListeners) listener.accept(uuid); }
 
     public void shutdown() {
         if (shuttingDown) return; shuttingDown = true;
@@ -82,7 +79,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         saveChain.clear(); saveRequested.clear(); loadingCache.clear(); activeProfiles.clear(); profileChangeListeners.clear();
         if (repository != null) { try { repository.shutdown(); } catch (RuntimeException exception) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to close player-profile repository.", exception); } }
         repository = null; databaseManager = null;
-        Bukkit.getServicesManager().unregister(GuildAPI.class, this); Bukkit.getServicesManager().unregister(EconomyAPI.class);
+        Bukkit.getServicesManager().unregister(GuildAPI.class, this); Bukkit.getServicesManager().unregister(EconomyAPI.class, this);
     }
 
     public enum LoadOutcome { SUCCESS, FAILED }
@@ -91,15 +88,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         try { return enqueue(uuid, () -> { try { PlayerProfile profile = repository.load(uuid).orElseGet(() -> new PlayerProfile(uuid)); loadingCache.put(uuid, profile); return LoadOutcome.SUCCESS; } catch (Exception exception) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to load profile for " + uuid, exception); return LoadOutcome.FAILED; } }).get(loadTimeoutSeconds, TimeUnit.SECONDS); }
         catch (Exception exception) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Profile load timed out or failed for " + uuid, exception); return LoadOutcome.FAILED; }
     }
-
-    public void activateOnJoin(Player player) {
-        UUID uuid = player.getUniqueId();
-        PlayerProfile profile = loadingCache.remove(uuid);
-        if (profile == null) profile = new PlayerProfile(uuid);
-        wireProfile(profile);
-        activeProfiles.put(uuid, profile);
-    }
-
+    public void activateOnJoin(Player player) { UUID uuid = player.getUniqueId(); PlayerProfile profile = loadingCache.remove(uuid); if (profile == null) profile = new PlayerProfile(uuid); wireProfile(profile); activeProfiles.put(uuid, profile); }
     public void deactivateOnQuit(UUID uuid) { PlayerProfile profile = activeProfiles.remove(uuid); if (profile != null) { profile.setDirtyCallback(null); persistAsync(profile); } }
     public Optional<PlayerProfile> getProfile(UUID uuid) { return Optional.ofNullable(activeProfiles.get(uuid)); }
     public void registerPlayer(Player player) { PlayerProfile profile = activeProfiles.computeIfAbsent(player.getUniqueId(), ignored -> { PlayerProfile created = new PlayerProfile(player.getUniqueId()); wireProfile(created); return created; }); if (profile.isRegistered()) return; profile.setRegistered(true); persistAsync(profile); Bukkit.getPluginManager().callEvent(new PlayerRegistrationEvent(player)); }
@@ -108,13 +97,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     public void saveProfileAsync(UUID uuid) { PlayerProfile profile = activeProfiles.get(uuid); if (profile != null) persistAsync(profile); }
     private void persistAsync(PlayerProfile profile) { if (shuttingDown || saveExecutor == null || saveExecutor.isShutdown()) return; captureAndEnqueue(profile.getUuid(), profile); }
 
-    private void wireProfile(PlayerProfile profile) {
-        profile.setDirtyCallback(() -> {
-            UUID uuid = profile.getUuid();
-            for (Consumer<UUID> listener : profileChangeListeners) listener.accept(uuid);
-        });
-    }
-
+    private void wireProfile(PlayerProfile profile) { profile.setDirtyCallback(() -> { UUID uuid = profile.getUuid(); for (Consumer<UUID> listener : profileChangeListeners) listener.accept(uuid); }); }
     private CompletableFuture<Void> captureAndEnqueue(UUID uuid, PlayerProfile profile) {
         if (saveExecutor == null || saveExecutor.isShutdown()) return CompletableFuture.failedFuture(new IllegalStateException("Profile I/O executor is not running"));
         if (!saveRequested.add(uuid)) return CompletableFuture.completedFuture(null);
@@ -124,26 +107,9 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         future.whenComplete((ignored, throwable) -> { saveRequested.remove(uuid); if (!shuttingDown && profile.isDirty() && saveExecutor != null && !saveExecutor.isShutdown()) persistAsync(profile); });
         return future;
     }
-
-    private void persistSnapshot(PlayerProfile snapshot, PlayerProfile liveProfile) {
-        if (repository == null) return;
-        try { long savedRevision = repository.save(snapshot); liveProfile.setPersistenceRevision(savedRevision); }
-        catch (Exception exception) { liveProfile.markDirty(); plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to save profile for " + snapshot.getUuid(), exception); if (storageType == StorageType.MYSQL) writeEmergencyBackup(snapshot); }
-    }
-
-    private void writeEmergencyBackup(PlayerProfile profile) {
-        YamlPlayerProfileRepository emergency = null;
-        try { File folder = new File(plugin.getDataFolder(), "emergency"); emergency = new YamlPlayerProfileRepository(folder); emergency.init(); emergency.save(profile); }
-        catch (Exception exception) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Emergency backup failed for " + profile.getUuid(), exception); }
-        finally { if (emergency != null) try { emergency.shutdown(); } catch (RuntimeException exception) { plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to close emergency profile repository.", exception); } }
-    }
-
-    private <T> CompletableFuture<T> enqueue(UUID uuid, Supplier<T> task) {
-        CompletableFuture<T> result = new CompletableFuture<>(); ExecutorService executor = saveExecutor;
-        if (executor == null || executor.isShutdown()) { result.completeExceptionally(new IllegalStateException("Profile I/O executor is not running")); return result; }
-        CompletableFuture<Void> chain = saveChain.compute(uuid, (id, previous) -> { CompletableFuture<Void> base = previous != null ? previous : CompletableFuture.completedFuture(null); return base.exceptionally(ignored -> null).thenRunAsync(() -> { try { result.complete(task.get()); } catch (Throwable throwable) { result.completeExceptionally(throwable); } }, executor); });
-        chain.whenComplete((ignored, throwable) -> saveChain.remove(uuid, chain)); return result;
-    }
+    private void persistSnapshot(PlayerProfile snapshot, PlayerProfile liveProfile) { if (repository == null) return; try { long savedRevision = repository.save(snapshot); liveProfile.setPersistenceRevision(savedRevision); } catch (Exception exception) { liveProfile.markDirty(); plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to save profile for " + snapshot.getUuid(), exception); if (storageType == StorageType.MYSQL) writeEmergencyBackup(snapshot); } }
+    private void writeEmergencyBackup(PlayerProfile profile) { YamlPlayerProfileRepository emergency = null; try { File folder = new File(plugin.getDataFolder(), "emergency"); emergency = new YamlPlayerProfileRepository(folder); emergency.init(); emergency.save(profile); } catch (Exception exception) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Emergency backup failed for " + profile.getUuid(), exception); } finally { if (emergency != null) try { emergency.shutdown(); } catch (RuntimeException exception) { plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to close emergency profile repository.", exception); } } }
+    private <T> CompletableFuture<T> enqueue(UUID uuid, Supplier<T> task) { CompletableFuture<T> result = new CompletableFuture<>(); ExecutorService executor = saveExecutor; if (executor == null || executor.isShutdown()) { result.completeExceptionally(new IllegalStateException("Profile I/O executor is not running")); return result; } CompletableFuture<Void> chain = saveChain.compute(uuid, (id, previous) -> { CompletableFuture<Void> base = previous != null ? previous : CompletableFuture.completedFuture(null); return base.exceptionally(ignored -> null).thenRunAsync(() -> { try { result.complete(task.get()); } catch (Throwable throwable) { result.completeExceptionally(throwable); } }, executor); }); chain.whenComplete((ignored, throwable) -> saveChain.remove(uuid, chain)); return result; }
     private CompletableFuture<Void> enqueueVoid(UUID uuid, Runnable task) { return enqueue(uuid, () -> { task.run(); return null; }); }
 
     @Override public boolean isRegistered(UUID uuid) { PlayerProfile profile = activeProfiles.get(uuid); return profile != null && profile.isRegistered(); }
