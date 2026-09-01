@@ -24,7 +24,7 @@ Der funktionierende Gameplay-Zustand bleibt die Referenz. Stabilisierung bedeute
 - Persistenz arbeitet mit synchron erzeugten Deep-Snapshots statt einer gleichzeitig serialisierten Live-Instanz.
 - Dirty-State bleibt bei Änderungen während eines Saves erhalten.
 - Per-UUID-Save-Queues verhindern parallele Saves desselben Spielers.
-- Load- und Save-Operationen desselben UUIDs laufen über dieselbe Sequenz und verhindern damit ein einfaches Quit/Rejoin-Read-Before-Write-Rennen.
+- Load- und Save-Operationen desselben UUIDs laufen über dieselbe Sequenz.
 - Shutdown ist idempotent und verhindert neue Saves während des Abbaus.
 - Emergency-YAML-Repositories werden nach Verwendung wieder geschlossen.
 - Equipment und Quest-State werden beim Snapshot berücksichtigt.
@@ -35,12 +35,15 @@ Der funktionierende Gameplay-Zustand bleibt die Referenz. Stabilisierung bedeute
 - Region-Snapshots werden vor Async-I/O erstellt.
 - Spawnpunkte werden räumlich über Welt/Chunk indiziert statt global durchsucht.
 - Region-I/O besitzt einen definierten Executor-Lifecycle.
+- Region-Regelentscheidungen wurden aus dem Event-Listener in `RegionPolicyService` ausgelagert.
 
 ### NPC
 
 - YAML-Persistenz läuft über einen eigenen I/O-Executor.
 - Saves werden über temporäre Datei und Move robuster ausgeführt.
 - NPC-Lifecycle wird beim Shutdown beendet.
+- `ExternalSkinService` besitzt keinen JVM-weiten statischen Skin-Cache mehr; HTTP-Client und Cache gehören zur Service-Instanz.
+- Skin-Cache besitzt weiterhin TTL und harte Größenbegrenzung.
 - **Offen:** Companion-/NPC-nahe Runtime-Pfade müssen noch vollständig auf synchrones YAML-I/O geprüft werden.
 
 ### Externe Skins / HTTP
@@ -50,8 +53,9 @@ Der funktionierende Gameplay-Zustand bleibt die Referenz. Stabilisierung bedeute
 - HTTPS ist für externe Quellen erforderlich.
 - Redirects werden nicht blind verfolgt.
 - Loopback, private, link-local und multicast Ziele werden blockiert.
-- Cache besitzt TTL und Größenbegrenzung.
+- Cache besitzt TTL und Größenbegrenzung und ist an den Service-Lifecycle gebunden.
 - Externe Response-Bodies werden nicht vollständig geloggt.
+- HTTP-Verarbeitung bleibt asynchron; Paper-Mannequin-Mutation erfolgt wieder auf dem Serverthread.
 
 ### Datenbank / JDBC
 
@@ -69,7 +73,7 @@ Der funktionierende Gameplay-Zustand bleibt die Referenz. Stabilisierung bedeute
 - Gson/Hikari/MySQL werden im Fat-JAR relocated.
 - Java 25 ist als Toolchain und `--release 25` festgelegt.
 - Der Gradle-Check besitzt einen Source-Boundary-Validator gegen `ChatColor`, Legacy-NMS, CraftBukkit und statische Live-Bukkit-Referenzen.
-- **Wichtig:** Gson darf intern verwendet werden. Die CI darf `com.google.gson` deshalb nicht als Legacy-API behandeln; stattdessen wird die korrekte Shading-Relocation im Artifact geprüft.
+- Gson darf intern verwendet werden; die CI prüft die tatsächliche Artifact-Relocation statt legitime interne Gson-Nutzung pauschal zu verbieten.
 - CI führt Clean Build, Source-Boundary-Prüfung und Fat-JAR-Prüfungen aus.
 - CI prüft zusätzlich, dass der JDBC-Service-Descriptor im Fat-JAR vorhanden ist.
 
