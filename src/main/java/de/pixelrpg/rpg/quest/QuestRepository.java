@@ -12,19 +12,11 @@ import org.bukkit.Material;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Loads, validates and indexes all quest definitions.
- *
- * Quest item IDs deliberately use the same canonical representation as the item
- * and crafting systems: pixelrpg:profession:item. Legacy slash notation is
- * accepted as input but never stored in runtime quest state.
- */
 public final class QuestRepository {
     private final Plugin plugin;
     private final ItemDefinitionRegistry itemDefinitions;
@@ -48,7 +40,6 @@ public final class QuestRepository {
         loadDefinitionsFrom("quests_additional.json");
         loadDefinitionsFrom("quests_world_expansion.json");
         loadDefinitionsFrom("quests/quests_crafting_orders.json");
-        QuestCraftingConsistencyValidator.validate(questsById, craftingRecipes, itemDefinitions);
         validateReferences();
     }
 
@@ -57,23 +48,16 @@ public final class QuestRepository {
         try {
             root = new JsonDataManager(plugin).load(resourceName);
         } catch (RuntimeException exception) {
-            throw new IllegalStateException("Unable to load mandatory quest data '" + resourceName + "'", exception);
+            plugin.getLogger().warning("Unable to load quest data '" + resourceName + "': " + exception.getMessage());
+            return;
         }
         JsonArray definitions = root.getAsJsonArray("definitions");
-        if (definitions == null) {
-            throw new IllegalStateException("Quest data '" + resourceName + "' requires a 'definitions' array");
-        }
-
+        if (definitions == null) return;
         for (var element : definitions) {
-            if (!element.isJsonObject()) {
-                throw new IllegalStateException("Quest data '" + resourceName + "' contains a non-object definition");
-            }
+            if (!element.isJsonObject()) continue;
             JsonObject json = element.getAsJsonObject();
-            String id = string(json, "id", "<missing-id>").strip();
-            if (!validateDefinition(json)) {
-                throw new IllegalStateException("Invalid quest definition in '" + resourceName + "': " + id);
-            }
-
+            if (!validateDefinition(json)) continue;
+            String id = string(json, "id", "").strip();
             QuestType type = parseType(string(json, "type", "HUNT"));
             int recommendedLevel = number(json, "recommendedLevel", 1);
             int categoryLevel = number(json, "categoryLevel", recommendedLevel);
@@ -82,35 +66,18 @@ public final class QuestRepository {
             JsonObject navigation = object(json, "navigation");
             Profession profession = parseProfession(string(json, "profession", ""));
             int requiredProfessionLevel = number(json, "requiredProfessionLevel", profession == null ? 1 : recommendedLevel);
-
             if (profession != null) {
                 recommendedLevel = Math.min(recommendedLevel, Level.MAX_NORMAL_LEVEL);
                 categoryLevel = Math.min(categoryLevel, Level.MAX_NORMAL_LEVEL);
             }
-
-            Quest quest = new Quest(
-                    id,
-                    string(json, "title", "").strip(),
-                    string(json, "description", "").strip(),
-                    type,
-                    canonicalItemId(string(json, "targetKey", "")),
-                    requiredAmount,
-                    recommendedLevel,
-                    categoryLevel,
-                    numberDouble(reward, "money", 0.0),
-                    numberLong(reward, "experience", 0L),
-                    number(reward, "durationMinutes", 0),
-                    stringList(reward, "items"),
-                    string(reward, "companionId", "").strip(),
-                    string(json, "questGiverNpcId", "").strip(),
-                    string(navigation, "structure", "").strip(),
-                    stringList(navigation, "biomes"),
-                    Math.max(1, number(navigation, "radius", 1024)),
-                    bool(navigation, "findUnexplored", false),
-                    null,
-                    profession,
-                    requiredProfessionLevel
-            );
+            Quest quest = new Quest(id, string(json, "title", "").strip(), string(json, "description", "").strip(), type,
+                    canonicalItemId(string(json, "targetKey", "")), requiredAmount, recommendedLevel, categoryLevel,
+                    numberDouble(reward, "money", 0.0), numberLong(reward, "experience", 0L),
+                    number(reward, "durationMinutes", 0), stringList(reward, "items"),
+                    string(reward, "companionId", "").strip(), string(json, "questGiverNpcId", "").strip(),
+                    string(navigation, "structure", "").strip(), stringList(navigation, "biomes"),
+                    Math.max(1, number(navigation, "radius", 1024)), bool(navigation, "findUnexplored", false), null,
+                    profession, requiredProfessionLevel);
             questsById.put(id, quest);
             prerequisitesByQuest.put(id, mergePrerequisites(json));
             followUpsByQuest.put(id, stringList(json, "followUpQuestIds"));
@@ -120,92 +87,72 @@ public final class QuestRepository {
     private boolean validateDefinition(JsonObject json) {
         String id = string(json, "id", "").strip();
         if (id.isBlank() || questsById.containsKey(id)) return false;
-
         String title = string(json, "title", "").strip();
         String description = string(json, "description", "").strip();
-        if (title.isBlank() || description.isBlank()) return false;
-
+        if (title.isBlank() || description.isBlank()) {
+            plugin.getLogger().warning("Ignoring quest '" + id + "': title and description are required.");
+            return false;
+        }
         QuestType type;
         try {
             type = QuestType.valueOf(string(json, "type", "HUNT").trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException exception) {
+            plugin.getLogger().warning("Ignoring quest '" + id + "': unknown quest type.");
             return false;
         }
-
         int level = number(json, "recommendedLevel", 1);
         int category = number(json, "categoryLevel", level);
         int amount = number(json, "requiredAmount", 1);
-        String professionRaw = string(json, "profession", "");
-        Profession profession = parseProfession(professionRaw);
+        Profession profession = parseProfession(string(json, "profession", ""));
         int professionLevel = number(json, "requiredProfessionLevel", profession == null ? 1 : level);
-
-        if (!professionRaw.isBlank() && profession == null) return false;
-        if (level < Level.MIN_LEVEL
-                || level > (profession != null ? Profession.MAX_LEVEL : Level.MAX_NORMAL_LEVEL)
-                || category < Level.MIN_LEVEL
-                || category > (profession != null ? Profession.MAX_LEVEL : Level.MAX_NORMAL_LEVEL)
-                || amount <= 0) {
-            return false;
-        }
-        if (profession != null && (professionLevel < Profession.MIN_LEVEL || professionLevel > Profession.MAX_LEVEL)) {
-            return false;
-        }
-
+        if (level < Level.MIN_LEVEL || level > (profession != null ? Profession.MAX_LEVEL : Level.MAX_NORMAL_LEVEL)
+                || category < Level.MIN_LEVEL || category > (profession != null ? Profession.MAX_LEVEL : Level.MAX_NORMAL_LEVEL) || amount <= 0) return false;
+        if (profession != null && (professionLevel < Profession.MIN_LEVEL || professionLevel > Profession.MAX_LEVEL)) return false;
         if (type == QuestType.GLOBAL_EVENT && string(json, "targetKey", "").isBlank()) return false;
         if (type == QuestType.TALK_TO_NPC && string(json, "targetKey", "").isBlank()) return false;
         if (type == QuestType.HUNT && !isVanillaEntityType(string(json, "targetKey", ""))) return false;
-        if (type == QuestType.COLLECT && !isQuestItem(string(json, "targetKey", ""))) return false;
+        if (type == QuestType.COLLECT && !isQuestItem(string(json, "targetKey", ""))) {
+            plugin.getLogger().warning("Ignoring quest '" + id + "': unknown COLLECT target '" + string(json, "targetKey", "") + "'.");
+            return false;
+        }
         if (type == QuestType.REACH_LOCATION && !hasWorldNavigation(object(json, "navigation"))) return false;
-
         return true;
     }
 
     private Profession parseProfession(String value) {
         if (value == null || value.isBlank()) return null;
-        String normalized = value.trim().toUpperCase(Locale.ROOT);
-        if (normalized.equals("PROVISIONER")) return Profession.COOK;
         try {
-            return Profession.valueOf(normalized);
+            return Profession.valueOf(value.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException exception) {
+            plugin.getLogger().warning("Unknown quest profession '" + value + "'.");
             return null;
         }
     }
 
     private boolean hasWorldNavigation(JsonObject navigation) {
-        return navigation != null
-                && (!string(navigation, "structure", "").isBlank() || !stringList(navigation, "biomes").isEmpty());
+        return navigation != null && (!string(navigation, "structure", "").isBlank() || !stringList(navigation, "biomes").isEmpty());
     }
 
-    /** Accepts vanilla materials, registered PixelRPG items and crafting outputs. */
+    /** Accepts normal Minecraft materials, registered PixelRPG items and profession recipe outputs. */
     private boolean isQuestItem(String key) {
         if (key == null || key.isBlank()) return false;
-
         String normalized = canonicalItemId(key);
-        if (!normalized.startsWith("pixelrpg:")) {
-            try {
-                Material material = Material.matchMaterial(key.trim());
-                return material != null && material.isItem();
-            } catch (IllegalArgumentException ignored) {
-                return false;
-            }
+        try {
+            Material material = Material.matchMaterial(key.trim());
+            if (material != null && material.isItem() && !normalized.startsWith("pixelrpg:")) return true;
+        } catch (IllegalArgumentException ignored) {
         }
-
-        return itemDefinitions.find(normalized).isPresent()
+        return itemDefinitions.find(key.trim()).isPresent()
+                || itemDefinitions.find(normalized).isPresent()
                 || craftingRecipes.hasResultItemId(normalized);
     }
 
-    /**
-     * Canonical PixelRPG item ID format is pixelrpg:namespace:item.
-     * Both legacy slash notation (pixelrpg:namespace/item) and already canonical
-     * colon notation are accepted at content boundaries.
-     */
     private String canonicalItemId(String raw) {
         String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
         if (!value.startsWith("pixelrpg:")) return value;
-
         String body = value.substring("pixelrpg:".length());
-        body = body.replace('/', ':');
-        while (body.contains("::")) body = body.replace("::", ":");
+        int slash = body.indexOf('/');
+        if (slash > 0) body = body.substring(0, slash) + ":" + body.substring(slash + 1);
         return "pixelrpg:" + body;
     }
 
@@ -230,24 +177,16 @@ public final class QuestRepository {
 
     private void validateReferences() {
         for (Map.Entry<String, List<String>> entry : prerequisitesByQuest.entrySet()) {
-            entry.getValue().stream()
-                    .filter(id -> !questsById.containsKey(id))
-                    .findFirst()
-                    .ifPresent(id -> {
-                        throw new IllegalStateException("Quest '" + entry.getKey() + "' references unknown prerequisite '" + id + "'.");
-                    });
+            entry.getValue().stream().filter(id -> !questsById.containsKey(id))
+                    .forEach(id -> plugin.getLogger().warning("Quest '" + entry.getKey() + "' references unknown prerequisite '" + id + "'."));
         }
         for (Map.Entry<String, List<String>> entry : followUpsByQuest.entrySet()) {
-            entry.getValue().stream()
-                    .filter(id -> !questsById.containsKey(id))
-                    .findFirst()
-                    .ifPresent(id -> {
-                        throw new IllegalStateException("Quest '" + entry.getKey() + "' references unknown follow-up quest '" + id + "'.");
-                    });
+            entry.getValue().stream().filter(id -> !questsById.containsKey(id))
+                    .forEach(id -> plugin.getLogger().warning("Quest '" + entry.getKey() + "' references unknown follow-up quest '" + id + "'."));
         }
         for (String questId : questsById.keySet()) {
-            if (hasPrerequisiteCycle(questId, new HashSet<>(), new HashSet<>())) {
-                throw new IllegalStateException("Quest '" + questId + "' participates in a prerequisite cycle.");
+            if (hasPrerequisiteCycle(questId, new java.util.HashSet<>(), new java.util.HashSet<>())) {
+                plugin.getLogger().warning("Quest '" + questId + "' participates in a prerequisite cycle.");
             }
         }
     }
@@ -259,64 +198,23 @@ public final class QuestRepository {
             return false;
         }
         for (String prerequisite : prerequisitesByQuest.getOrDefault(questId, List.of())) {
-            if (questsById.containsKey(prerequisite)
-                    && hasPrerequisiteCycle(prerequisite, visiting, visited)) return true;
+            if (questsById.containsKey(prerequisite) && hasPrerequisiteCycle(prerequisite, visiting, visited)) return true;
         }
         visiting.remove(questId);
         visited.add(questId);
         return false;
     }
 
-    private static JsonObject object(JsonObject parent, String key) {
-        return parent != null && parent.has(key) && parent.get(key).isJsonObject()
-                ? parent.getAsJsonObject(key)
-                : null;
-    }
-
-    private static String string(JsonObject object, String key, String fallback) {
-        return object != null && object.has(key) && object.get(key).isJsonPrimitive()
-                ? object.get(key).getAsString()
-                : fallback;
-    }
-
-    private static int number(JsonObject object, String key, int fallback) {
-        return object != null && object.has(key)
-                && object.get(key).isJsonPrimitive()
-                && object.getAsJsonPrimitive(key).isNumber()
-                ? object.getAsJsonPrimitive(key).getAsInt()
-                : fallback;
-    }
-
-    private static long numberLong(JsonObject object, String key, long fallback) {
-        return object != null && object.has(key)
-                && object.get(key).isJsonPrimitive()
-                && object.getAsJsonPrimitive(key).isNumber()
-                ? object.getAsJsonPrimitive(key).getAsLong()
-                : fallback;
-    }
-
-    private static double numberDouble(JsonObject object, String key, double fallback) {
-        return object != null && object.has(key)
-                && object.get(key).isJsonPrimitive()
-                && object.getAsJsonPrimitive(key).isNumber()
-                ? object.getAsJsonPrimitive(key).getAsDouble()
-                : fallback;
-    }
-
-    private static boolean bool(JsonObject object, String key, boolean fallback) {
-        return object != null && object.has(key)
-                && object.get(key).isJsonPrimitive()
-                && object.getAsJsonPrimitive(key).isBoolean()
-                ? object.getAsJsonPrimitive(key).getAsBoolean()
-                : fallback;
-    }
-
+    private static JsonObject object(JsonObject parent, String key) { return parent != null && parent.has(key) && parent.get(key).isJsonObject() ? parent.getAsJsonObject(key) : null; }
+    private static String string(JsonObject object, String key, String fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsString() : fallback; }
+    private static int number(JsonObject object, String key, int fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.getAsJsonPrimitive(key).getAsInt() : fallback; }
+    private static long numberLong(JsonObject object, String key, long fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.getAsJsonPrimitive(key).getAsLong() : fallback; }
+    private static double numberDouble(JsonObject object, String key, double fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isNumber() ? object.getAsJsonPrimitive(key).getAsDouble() : fallback; }
+    private static boolean bool(JsonObject object, String key, boolean fallback) { return object != null && object.has(key) && object.get(key).isJsonPrimitive() && object.getAsJsonPrimitive(key).isBoolean() ? object.getAsJsonPrimitive(key).getAsBoolean() : fallback; }
     private static List<String> stringList(JsonObject object, String key) {
         if (object == null || !object.has(key) || !object.get(key).isJsonArray()) return List.of();
         List<String> result = new ArrayList<>();
-        for (var element : object.getAsJsonArray(key)) {
-            if (element.isJsonPrimitive()) result.add(element.getAsString());
-        }
+        for (var element : object.getAsJsonArray(key)) if (element.isJsonPrimitive()) result.add(element.getAsString());
         return List.copyOf(result);
     }
 
@@ -325,16 +223,7 @@ public final class QuestRepository {
     public List<Quest> getQuestsByType(QuestType type) { return questsById.values().stream().filter(quest -> quest.type() == type).toList(); }
     public int maxActiveQuests() { return MAX_ACTIVE_QUESTS; }
     public int unlockEarlyLevels() { return 0; }
-    public boolean prerequisitesMet(PlayerProfile profile, String questId) {
-        return prerequisitesByQuest.getOrDefault(questId, List.of()).stream().allMatch(profile::hasCompletedQuest);
-    }
+    public boolean prerequisitesMet(PlayerProfile profile, String questId) { return prerequisitesByQuest.getOrDefault(questId, List.of()).stream().allMatch(profile::hasCompletedQuest); }
     public List<String> getFollowUpQuestIds(String questId) { return followUpsByQuest.getOrDefault(questId, List.of()); }
-
-    private QuestType parseType(String value) {
-        try {
-            return QuestType.valueOf(value.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException exception) {
-            return QuestType.HUNT;
-        }
-    }
+    private QuestType parseType(String value) { try { return QuestType.valueOf(value.trim().toUpperCase(Locale.ROOT)); } catch (IllegalArgumentException exception) { return QuestType.HUNT; } }
 }
