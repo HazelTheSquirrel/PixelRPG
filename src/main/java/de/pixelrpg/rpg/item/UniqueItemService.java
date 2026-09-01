@@ -21,15 +21,21 @@ public final class UniqueItemService {
         load();
     }
 
-    public boolean claim(ItemDefinition definition) {
+    public synchronized boolean claim(ItemDefinition definition) {
         if (!definition.unique()) return false;
-        if (claimedDefinitions.contains(definition.id())) return false;
-        claimedDefinitions.add(definition.id());
+        if (!claimedDefinitions.add(definition.id())) return false;
         save();
         return true;
     }
 
-    public boolean isClaimed(ItemDefinition definition) {
+    /** Rolls back a claim when the unique item could not be materialized for delivery. */
+    public synchronized void release(ItemDefinition definition) {
+        if (!definition.unique()) return;
+        if (!claimedDefinitions.remove(definition.id())) return;
+        save();
+    }
+
+    public synchronized boolean isClaimed(ItemDefinition definition) {
         return claimedDefinitions.contains(definition.id());
     }
 
