@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Coalesces file snapshots so gameplay threads never block on disk writes. */
@@ -36,14 +37,16 @@ public final class AsyncFileWriter {
         if (path == null || contents == null || closed.get()) return;
         Path normalized = path.toAbsolutePath().normalize();
         pending.put(normalized, contents);
-        if (draining.compareAndSet(false, true)) {
-            try {
-                executor.execute(this::drain);
-            } catch (RuntimeException exception) {
-                draining.set(false);
-                pending.remove(normalized, contents);
-                plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to schedule async file write " + normalized, exception);
-            }
+        scheduleDrain();
+    }
+
+    private void scheduleDrain() {
+        if (!draining.compareAndSet(false, true)) return;
+        try {
+            executor.execute(this::drain);
+        } catch (RuntimeException exception) {
+            draining.set(false);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to schedule async file drain", exception);
         }
     }
 
@@ -57,6 +60,8 @@ public final class AsyncFileWriter {
             }
         } finally {
             draining.set(false);
+            // A submit can race the final empty check. Re-check after publishing the idle state.
+            if (!pending.isEmpty() && !closed.get()) scheduleDrain();
         }
     }
 
@@ -90,20 +95,24 @@ public final class AsyncFileWriter {
     /** Stops the writer after flushing all snapshots already queued before shutdown. */
     public void shutdown() {
         if (!closed.compareAndSet(false, true)) return;
-        if (!pending.isEmpty() && draining.compareAndSet(false, true)) {
-            try {
-                executor.execute(this::drain);
-            } catch (RuntimeException exception) {
-                draining.set(false);
-                plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to schedule final async file drain", exception);
+        if (!pending.isEmpty()) {
+            // Shutdown must not race a second executor submission. The existing drain owns the queue.
+            if (draining.compareAndSet(false, true)) {
+                try {
+                    executor.execute(this::drain);
+                } catch (RuntimeException exception) {
+                    draining.set(false);
+                    plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to schedule final async file drain", exception);
+                }
             }
         }
         executor.shutdown();
         try {
-            if (!executor.awaitTermination(10, java.util.concurrent.TimeUnit.SECONDS)) executor.shutdownNow();
+            if (!executor.awaitTermination(10, TimeUnit.SECONDS)) executor.shutdownNow();
         } catch (InterruptedException exception) {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
+        pending.clear();
     }
 }
