@@ -193,7 +193,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         if (profile != null) persistAsync(profile);
     }
 
-    /** Captures a profile snapshot on the owning thread and queues only the immutable snapshot for storage. */
+    /** Captures a profile snapshot on the owning thread and queues only the snapshot for storage. */
     private void persistAsync(PlayerProfile profile) {
         if (shuttingDown || saveExecutor == null || saveExecutor.isShutdown()) return;
         captureAndEnqueue(profile.getUuid(), profile);
@@ -201,7 +201,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
 
     /**
      * Takes the deep snapshot before scheduling asynchronous work. The repository thread therefore never reads the live profile.
-     * A dirty mutation occurring after this snapshot is preserved by PlayerProfile#dirty and causes a follow-up save.
+     * A mutation occurring after this snapshot remains dirty and causes a follow-up save after the queued snapshot completes.
      */
     private CompletableFuture<Void> captureAndEnqueue(UUID uuid, PlayerProfile profile) {
         if (saveExecutor == null || saveExecutor.isShutdown()) return CompletableFuture.failedFuture(
@@ -214,7 +214,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
             return CompletableFuture.completedFuture(null);
         }
 
-        CompletableFuture<Void> future = enqueueVoid(uuid, () -> persistSnapshot(snapshot));
+        CompletableFuture<Void> future = enqueueVoid(uuid, () -> persistSnapshot(snapshot, profile));
         future.whenComplete((ignored, throwable) -> {
             saveRequested.remove(uuid);
             if (!shuttingDown && profile.isDirty() && saveExecutor != null && !saveExecutor.isShutdown()) {
@@ -224,11 +224,12 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         return future;
     }
 
-    private void persistSnapshot(PlayerProfile snapshot) {
+    private void persistSnapshot(PlayerProfile snapshot, PlayerProfile liveProfile) {
         if (repository == null) return;
         try {
             repository.save(snapshot);
         } catch (Exception exception) {
+            liveProfile.markDirty();
             plugin.getLogger().log(java.util.logging.Level.SEVERE,
                     "Failed to save profile for " + snapshot.getUuid(), exception);
             if (storageType == StorageType.MYSQL) writeEmergencyBackup(snapshot);
