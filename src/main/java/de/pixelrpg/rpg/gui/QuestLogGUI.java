@@ -39,7 +39,7 @@ public final class QuestLogGUI extends AbstractGUI {
         if (profile == null) return;
 
         List<Quest> quests = questManager.getRepository().getAllQuests().stream()
-                .sorted(Comparator.comparingInt(quest -> statusOrder(profile, quest))
+                .sorted(Comparator.comparingInt((Quest quest) -> statusOrder(profile, quest))
                         .thenComparing(QuestText::titlePlain, String.CASE_INSENSITIVE_ORDER))
                 .toList();
 
