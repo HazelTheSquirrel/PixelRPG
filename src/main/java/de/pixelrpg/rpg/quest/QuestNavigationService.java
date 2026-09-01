@@ -4,6 +4,7 @@ import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
