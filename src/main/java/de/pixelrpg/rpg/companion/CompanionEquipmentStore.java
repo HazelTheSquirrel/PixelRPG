@@ -6,13 +6,21 @@ import org.bukkit.inventory.ItemStack;
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /** Persists equipment independently from companion progression. */
-public final class CompanionEquipmentStore {
+public final class CompanionEquipmentStore implements AutoCloseable {
     private final File folder;
     private final Logger logger;
+    private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "PixelRPG-CompanionEquipmentIO");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     public CompanionEquipmentStore(File pluginDataFolder, Logger logger) {
         this.folder = new File(pluginDataFolder, "companions/equipment");
@@ -37,7 +45,13 @@ public final class CompanionEquipmentStore {
         );
     }
 
+    /** Queues an immutable item snapshot so YAML serialization never blocks the Paper thread. */
     public void save(UUID playerId, String companionId, CompanionEquipment equipment) {
+        CompanionEquipment snapshot = equipment == null ? CompanionEquipment.empty() : equipment.copy();
+        ioExecutor.execute(() -> saveBlocking(playerId, companionId, snapshot));
+    }
+
+    private void saveBlocking(UUID playerId, String companionId, CompanionEquipment equipment) {
         YamlConfiguration yaml = loadFile(playerId);
         String path = "companions." + companionId;
         yaml.set(path + ".initialized", true);
@@ -70,5 +84,20 @@ public final class CompanionEquipmentStore {
 
     private static void set(YamlConfiguration yaml, String path, ItemStack item) {
         yaml.set(path, item == null || item.getType().isAir() ? null : item.clone());
+    }
+
+    /** Flushes queued equipment writes and terminates the dedicated I/O executor. */
+    @Override
+    public void close() {
+        ioExecutor.shutdown();
+        try {
+            if (!ioExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                logger.warning("Companion equipment I/O did not finish within 10 seconds; forcing shutdown.");
+                ioExecutor.shutdownNow();
+            }
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            ioExecutor.shutdownNow();
+        }
     }
 }
