@@ -14,20 +14,25 @@ public final class DatabaseManager {
     private HikariDataSource dataSource;
 
     public void connect(FileConfiguration config) {
-        String host = requireText(config.getString("storage.mysql.host", "localhost"), "storage.mysql.host");
+        String host = requireHost(config.getString("storage.mysql.host", "localhost"));
         int port = config.getInt("storage.mysql.port", 3306);
         if (port < 1 || port > 65535) throw new IllegalArgumentException("storage.mysql.port must be between 1 and 65535");
-        String database = requireText(config.getString("storage.mysql.database", "pixelrpg"), "storage.mysql.database");
-        String username = config.getString("storage.mysql.username", "root");
-        String password = config.getString("storage.mysql.password", "");
+        String database = requireIdentifier(config.getString("storage.mysql.database", "pixelrpg"), "storage.mysql.database");
+        String username = config.getString("storage.mysql.username", "root", String.class);
+        String password = config.getString("storage.mysql.password", "", String.class);
         int poolSize = Math.max(2, config.getInt("storage.mysql.pool-size", 10));
         long connectionTimeoutMs = Math.max(2_000L, config.getLong("storage.mysql.connection-timeout-ms", 8000L));
         String sslMode = config.getString("storage.mysql.ssl-mode", "REQUIRED");
         if (sslMode == null || sslMode.isBlank()) sslMode = "REQUIRED";
+        sslMode = sslMode.trim().toUpperCase(java.util.Locale.ROOT);
+        if (!switch (sslMode) {
+            case "DISABLED", "PREFERRED", "REQUIRED", "VERIFY_CA", "VERIFY_IDENTITY" -> true;
+            default -> false;
+        }) throw new IllegalArgumentException("storage.mysql.ssl-mode must be one of DISABLED, PREFERRED, REQUIRED, VERIFY_CA or VERIFY_IDENTITY");
 
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database
-                + "?sslMode=" + sslMode.trim() + "&autoReconnect=false&characterEncoding=utf8");
+                + "?sslMode=" + sslMode + "&autoReconnect=false&characterEncoding=utf8");
         hikariConfig.setUsername(username);
         hikariConfig.setPassword(password);
         hikariConfig.setMaximumPoolSize(poolSize);
@@ -110,6 +115,21 @@ public final class DatabaseManager {
 
     public DataSource getDataSource() { return dataSource; }
     public void shutdown() { if (dataSource != null && !dataSource.isClosed()) dataSource.close(); }
+
+    private static String requireHost(String value) {
+        String host = requireText(value, "storage.mysql.host");
+        if (host.indexOf('/') >= 0 || host.indexOf('\\') >= 0 || host.indexOf('?') >= 0 || host.indexOf('#') >= 0
+                || host.indexOf('@') >= 0 || host.chars().anyMatch(Character::isWhitespace)) {
+            throw new IllegalArgumentException("storage.mysql.host contains invalid characters");
+        }
+        return host;
+    }
+
+    private static String requireIdentifier(String value, String path) {
+        String identifier = requireText(value, path);
+        if (!identifier.matches("[A-Za-z0-9_$-]+")) throw new IllegalArgumentException(path + " contains invalid characters");
+        return identifier;
+    }
 
     private static String requireText(String value, String path) {
         if (value == null || value.isBlank()) throw new IllegalArgumentException(path + " must not be blank");
