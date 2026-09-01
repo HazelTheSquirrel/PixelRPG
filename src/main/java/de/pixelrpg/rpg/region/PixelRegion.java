@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.region;
 
+import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.UUID;
@@ -9,6 +10,7 @@ public final class PixelRegion {
     private final UUID id;
     private final String worldName;
     private final RegionGeometry geometry;
+    private final boolean global;
     private final int minY;
     private final int maxY;
     private String name;
@@ -26,10 +28,21 @@ public final class PixelRegion {
                        RegionType type, String description, UUID ownerGuildId, String ownerGuildName,
                        String enterMessage, String leaveMessage, int priority,
                        Map<RegionFlag, Boolean> flags, Map<String, String> properties) {
+        this(id, worldName, geometry, false, minY, maxY, name, type, description, ownerGuildId, ownerGuildName,
+                enterMessage, leaveMessage, priority, flags, properties);
+    }
+
+    private PixelRegion(UUID id, String worldName, RegionGeometry geometry, boolean global, int minY, int maxY,
+                        String name, RegionType type, String description, UUID ownerGuildId, String ownerGuildName,
+                        String enterMessage, String leaveMessage, int priority,
+                        Map<RegionFlag, Boolean> flags, Map<String, String> properties) {
         if (minY > maxY) throw new IllegalArgumentException("minY must not exceed maxY");
+        if (worldName == null || worldName.isBlank()) throw new IllegalArgumentException("worldName must not be blank");
+        if (!global && geometry == null) throw new IllegalArgumentException("geometry is required for normal regions");
         this.id = id;
         this.worldName = worldName;
         this.geometry = geometry;
+        this.global = global;
         this.minY = minY;
         this.maxY = maxY;
         this.name = name;
@@ -46,9 +59,16 @@ public final class PixelRegion {
         if (properties != null) this.properties.putAll(properties);
     }
 
+    public static PixelRegion global(String worldName, Map<RegionFlag, Boolean> flags) {
+        return new PixelRegion(UUID.nameUUIDFromBytes(("pixelrpg:global:" + worldName).getBytes(StandardCharsets.UTF_8)),
+                worldName, null, true, Integer.MIN_VALUE, Integer.MAX_VALUE, "Wildnis", RegionType.OTHER,
+                "Globale Standardregion", null, null, "", "", Integer.MIN_VALUE, flags, Map.of());
+    }
+
     public UUID id() { return id; }
     public String worldName() { return worldName; }
     public RegionGeometry geometry() { return geometry; }
+    public boolean isGlobal() { return global; }
     public int minY() { return minY; }
     public int maxY() { return maxY; }
     public String name() { return name; }
@@ -63,13 +83,13 @@ public final class PixelRegion {
     public Map<String, String> properties() { return Map.copyOf(properties); }
 
     public boolean contains(double x, int y, double z) {
-        return y >= minY && y <= maxY && geometry.contains(x, z);
+        return global || (y >= minY && y <= maxY && geometry.contains(x, z));
     }
 
-    /**
-     * Returns whether the supplied rule is enabled for this region.
-     * An unset flag defaults to true, so regions remain permissive unless a rule is explicitly disabled.
-     */
+    /** Returns whether this region explicitly defines the supplied rule. */
+    public boolean hasFlag(RegionFlag flag) { return flags.containsKey(flag); }
+
+    /** Returns whether the supplied rule is enabled for this region; unset flags default to true. */
     public boolean flag(RegionFlag flag) { return flags.getOrDefault(flag, true); }
 
     public void setFlag(RegionFlag flag, boolean enabled) { flags.put(flag, enabled); }
