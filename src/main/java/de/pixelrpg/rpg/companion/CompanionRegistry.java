@@ -105,11 +105,12 @@ public final class CompanionRegistry {
                 bool(follow, "enabled", bool(json, "passive", true)));
 
         JsonObject combat = object(json, "combat");
+        boolean uniqueCombatDefault = rarity == CompanionRarity.UNIQUE;
         CompanionDefinition.CompanionCombatDefinition combatDefinition = new CompanionDefinition.CompanionCombatDefinition(
-                bool(combat, "enabled", bool(json, "combat", false)),
+                bool(combat, "enabled", bool(json, "combat", uniqueCombatDefault)),
                 Math.max(1.0D, number(combat, "attackRange", number(json, "attackRange", 3.5D))),
-                Math.max(1.0D, number(combat, "aggroRange", 12.0D)),
-                Math.max(1.0D, number(combat, "maxOwnerCombatDistance", 32.0D)),
+                Math.max(1.0D, number(combat, "aggroRange", uniqueCombatDefault ? 16.0D : 12.0D)),
+                Math.max(1.0D, number(combat, "maxOwnerCombatDistance", uniqueCombatDefault ? 48.0D : 32.0D)),
                 Math.max(1, (int) Math.round(number(combat, "attackIntervalTicks", number(json, "attackIntervalTicks", 20)))),
                 bool(combat, "hostileTargets", true),
                 bool(combat, "playerTargets", false),
