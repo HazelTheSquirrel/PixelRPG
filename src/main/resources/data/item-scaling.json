@@ -1,5 +1,5 @@
 {
-  "growthMultiplier": 10.0,
+  "growthMultiplier": 2.0,
   "baseStats": {
     "weaponDamage": 3.0,
     "weaponCritChance": 0.5,
