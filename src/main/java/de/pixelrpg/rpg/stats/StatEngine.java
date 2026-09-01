@@ -30,7 +30,6 @@ public final class StatEngine {
     private static final double BASE_HP = 100.0D;
     private static final double BASE_CRIT_CHANCE = 0.0D;
     private static final double BASE_CRIT_DAMAGE_MULTIPLIER = 2.0D;
-
     private static final double MAX_HP = 200.0D;
     private static final double MAX_ARMOR = 20.0D;
     private static final double MAX_MOVEMENT_SPEED_PERCENT = 30.0D;
@@ -46,10 +45,7 @@ public final class StatEngine {
                               double lifestealBonus, double attackPower) {
         public static final CachedStats EMPTY = new CachedStats(BASE_HP, 0.0D, 0.0D, 0.0D, 0.0D,
                 BASE_CRIT_CHANCE, BASE_CRIT_DAMAGE_MULTIPLIER, 0.0D, 0.0D);
-
-        public double reach() {
-            return Math.max(blockReach, entityReach);
-        }
+        public double reach() { return Math.max(blockReach, entityReach); }
     }
 
     private final PlayerProfileManager profileManager;
@@ -62,16 +58,11 @@ public final class StatEngine {
         this.equipmentSets = plugin == null ? null : new EquipmentSetService(plugin);
     }
 
-    public CachedStats getCachedStats(UUID uuid) {
-        return cache.getOrDefault(uuid, CachedStats.EMPTY);
-    }
+    public CachedStats getCachedStats(UUID uuid) { return cache.getOrDefault(uuid, CachedStats.EMPTY); }
 
     public void recalculate(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegistered()) {
-            clear(player);
-            return;
-        }
+        if (profile == null || !profile.isRegistered()) { clear(player); return; }
 
         int playerLevel = Math.clamp(profile.getLevel(), 1, 99);
         double itemArmor = sum(player, playerLevel, RPGKeys.Item.armorValue());
@@ -96,13 +87,11 @@ public final class StatEngine {
         CompanionPassiveStats companion = activeCompanionPassiveStats(player.getUniqueId());
         double maxHealth = clamp(BASE_HP + itemHealth + companion.hp(), BASE_HP, MAX_HP);
         double armor = clamp(itemArmor + companion.armor(), 0.0D, MAX_ARMOR);
-        double movementSpeedBonus = clamp((itemMovementSpeed + companion.movementSpeed()) * 100.0D,
-                0.0D, MAX_MOVEMENT_SPEED_PERCENT);
+        double movementSpeedBonus = clamp((itemMovementSpeed + companion.movementSpeed()) * 100.0D, 0.0D, MAX_MOVEMENT_SPEED_PERCENT);
         double blockReach = clamp(itemReach + companion.reach(), 0.0D, MAX_REACH);
         double entityReach = clamp(itemReach + companion.reach(), 0.0D, MAX_REACH);
         double critChance = clamp(itemCritChance + companion.crit(), 0.0D, MAX_CRIT_CHANCE);
-        double critDamageMultiplier = clamp(BASE_CRIT_DAMAGE_MULTIPLIER + itemCritDamage + companion.critDamage(),
-                BASE_CRIT_DAMAGE_MULTIPLIER, MAX_CRIT_DAMAGE_MULTIPLIER);
+        double critDamageMultiplier = clamp(BASE_CRIT_DAMAGE_MULTIPLIER + itemCritDamage + companion.critDamage(), BASE_CRIT_DAMAGE_MULTIPLIER, MAX_CRIT_DAMAGE_MULTIPLIER);
         double lifestealBonus = clamp(itemLifesteal + companion.lifesteal(), 0.0D, MAX_LIFESTEAL);
         double attackPower = clamp(itemAttackPower + companion.damage() + companion.attackPower(), 0.0D, MAX_ATTACK_POWER);
 
@@ -113,8 +102,7 @@ public final class StatEngine {
         double minecraftMaxHealth = maxHealth / PIXELRPG_HP_PER_MINECRAFT_HEALTH;
         applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), minecraftMaxHealth - 20.0D);
         applyModifier(player, Attribute.ARMOR, RPGKeys.Stats.armor(), armor);
-        applyModifier(player, Attribute.MOVEMENT_SPEED, RPGKeys.Stats.movementSpeed(), movementSpeedBonus / 100.0D,
-                AttributeModifier.Operation.ADD_SCALAR);
+        applyModifier(player, Attribute.MOVEMENT_SPEED, RPGKeys.Stats.movementSpeed(), movementSpeedBonus / 100.0D, AttributeModifier.Operation.ADD_SCALAR);
         applyModifier(player, Attribute.BLOCK_INTERACTION_RANGE, RPGKeys.Stats.blockRange(), blockReach);
         applyModifier(player, Attribute.ENTITY_INTERACTION_RANGE, RPGKeys.Stats.entityRange(), entityReach);
 
@@ -187,23 +175,21 @@ public final class StatEngine {
                 configured.critChance() > 0.0D ? configured.critChance() : tier * 0.5D,
                 configured.critDamage() > 0.0D ? configured.critDamage() : tier * 0.02D,
                 configured.lifesteal() > 0.0D ? configured.lifesteal() : tier * 0.25D,
-                configured.damage());
+                0.0D);
     }
 
     private double sum(Player player, int playerLevel, org.bukkit.NamespacedKey key) {
         double total = 0.0D;
         for (ItemStack item : equippedItems(player)) {
             if (!isUsable(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer()
-                    .getOrDefault(key, PersistentDataType.DOUBLE, 0.0D);
+            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(key, PersistentDataType.DOUBLE, 0.0D);
         }
         return total;
     }
 
     private boolean isUsable(ItemStack item, int playerLevel) {
         if (item == null || !item.hasItemMeta()) return false;
-        Integer requiredLevel = item.getItemMeta().getPersistentDataContainer()
-                .get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
+        Integer requiredLevel = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
         return requiredLevel == null || playerLevel >= requiredLevel;
     }
 
@@ -221,8 +207,7 @@ public final class StatEngine {
         applyModifier(player, attribute, key, value, AttributeModifier.Operation.ADD_NUMBER);
     }
 
-    private void applyModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key, double value,
-                               AttributeModifier.Operation operation) {
+    private void applyModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key, double value, AttributeModifier.Operation operation) {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance == null) return;
         removeModifier(player, attribute, key);
@@ -236,7 +221,5 @@ public final class StatEngine {
         if (existing != null) instance.removeModifier(existing);
     }
 
-    private static double clamp(double value, double min, double max) {
-        return Math.clamp(value, min, max);
-    }
+    private static double clamp(double value, double min, double max) { return Math.clamp(value, min, max); }
 }
