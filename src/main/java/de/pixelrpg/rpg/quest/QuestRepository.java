@@ -48,6 +48,7 @@ public final class QuestRepository {
         loadDefinitionsFrom("quests_additional.json");
         loadDefinitionsFrom("quests_world_expansion.json");
         loadDefinitionsFrom("quests/quests_crafting_orders.json");
+        QuestCraftingConsistencyValidator.validate(questsById, craftingRecipes, itemDefinitions);
         validateReferences();
     }
 
@@ -138,10 +139,7 @@ public final class QuestRepository {
         Profession profession = parseProfession(professionRaw);
         int professionLevel = number(json, "requiredProfessionLevel", profession == null ? 1 : level);
 
-        // A non-empty profession value must always resolve. Silently treating a typo
-        // as a normal quest creates broken profession content that is very hard to find.
         if (!professionRaw.isBlank() && profession == null) return false;
-
         if (level < Level.MIN_LEVEL
                 || level > (profession != null ? Profession.MAX_LEVEL : Level.MAX_NORMAL_LEVEL)
                 || category < Level.MIN_LEVEL
@@ -165,8 +163,6 @@ public final class QuestRepository {
     private Profession parseProfession(String value) {
         if (value == null || value.isBlank()) return null;
         String normalized = value.trim().toUpperCase(Locale.ROOT);
-        // Keep the historical content alias valid while the runtime uses the
-        // canonical profession enum.
         if (normalized.equals("PROVISIONER")) return Profession.COOK;
         try {
             return Profession.valueOf(normalized);
@@ -194,7 +190,6 @@ public final class QuestRepository {
             }
         }
 
-        // All custom item IDs are checked using the same canonical ID format.
         return itemDefinitions.find(normalized).isPresent()
                 || craftingRecipes.hasResultItemId(normalized);
     }
