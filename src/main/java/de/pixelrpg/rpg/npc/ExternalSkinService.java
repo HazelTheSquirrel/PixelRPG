@@ -34,10 +34,10 @@ public final class ExternalSkinService {
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .connectTimeout(REQUEST_TIMEOUT)
             .build();
+    private static final Map<String, ProfileProperty> CACHE = new ConcurrentHashMap<>();
 
     private final Plugin plugin;
     private final Logger logger;
-    private final Map<String, ProfileProperty> cache = new ConcurrentHashMap<>();
 
     public ExternalSkinService(Plugin plugin) {
         this.plugin = plugin;
@@ -52,14 +52,12 @@ public final class ExternalSkinService {
         String normalized = normalizeUrl(skinUrl);
         if (normalized == null) return CompletableFuture.failedFuture(new IllegalArgumentException("Invalid skin URL"));
 
-        ProfileProperty cached = cache.get(normalized);
-        if (cached != null) {
-            return applyOnMainThread(mannequin, cached);
-        }
+        ProfileProperty cached = CACHE.get(normalized);
+        if (cached != null) return applyOnMainThread(mannequin, cached);
 
         if (isMinecraftTextureUrl(normalized)) {
             ProfileProperty property = unsignedTextureProperty(normalized);
-            cache.put(normalized, property);
+            CACHE.put(normalized, property);
             return applyOnMainThread(mannequin, property);
         }
 
@@ -88,7 +86,7 @@ public final class ExternalSkinService {
                     return parseTextureProperty(response.body());
                 })
                 .thenApply(property -> {
-                    cache.put(normalized, property);
+                    CACHE.put(normalized, property);
                     return property;
                 })
                 .thenCompose(property -> applyOnMainThread(mannequin, property))
@@ -107,6 +105,12 @@ public final class ExternalSkinService {
                     return;
                 }
                 mannequin.setProfile(ResolvableProfile.resolvableProfile().addProperty(property).build());
+                Bukkit.getOnlinePlayers().forEach(player -> {
+                    if (player.getWorld().equals(mannequin.getWorld()) && player.getLocation().distanceSquared(mannequin.getLocation()) <= 4096.0D) {
+                        player.hideEntity(plugin, mannequin);
+                        player.showEntity(plugin, mannequin);
+                    }
+                });
                 result.complete(null);
             } catch (RuntimeException exception) {
                 result.completeExceptionally(exception);
