@@ -1,7 +1,9 @@
 package de.pixelrpg.rpg.region;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -23,19 +25,30 @@ public final class PixelRegion {
     private int priority;
     private final EnumMap<RegionFlag, Boolean> flags;
     private final Map<String, String> properties;
+    private final List<RegionSpawnPoint> spawnPoints;
 
     public PixelRegion(UUID id, String worldName, RegionGeometry geometry, int minY, int maxY, String name,
                        RegionType type, String description, UUID ownerGuildId, String ownerGuildName,
                        String enterMessage, String leaveMessage, int priority,
                        Map<RegionFlag, Boolean> flags, Map<String, String> properties) {
+        this(id, worldName, geometry, minY, maxY, name, type, description, ownerGuildId, ownerGuildName,
+                enterMessage, leaveMessage, priority, flags, properties, List.of());
+    }
+
+    public PixelRegion(UUID id, String worldName, RegionGeometry geometry, int minY, int maxY, String name,
+                       RegionType type, String description, UUID ownerGuildId, String ownerGuildName,
+                       String enterMessage, String leaveMessage, int priority,
+                       Map<RegionFlag, Boolean> flags, Map<String, String> properties,
+                       List<RegionSpawnPoint> spawnPoints) {
         this(id, worldName, geometry, false, minY, maxY, name, type, description, ownerGuildId, ownerGuildName,
-                enterMessage, leaveMessage, priority, flags, properties);
+                enterMessage, leaveMessage, priority, flags, properties, spawnPoints);
     }
 
     private PixelRegion(UUID id, String worldName, RegionGeometry geometry, boolean global, int minY, int maxY,
                         String name, RegionType type, String description, UUID ownerGuildId, String ownerGuildName,
                         String enterMessage, String leaveMessage, int priority,
-                        Map<RegionFlag, Boolean> flags, Map<String, String> properties) {
+                        Map<RegionFlag, Boolean> flags, Map<String, String> properties,
+                        List<RegionSpawnPoint> spawnPoints) {
         if (minY > maxY) throw new IllegalArgumentException("minY must not exceed maxY");
         if (worldName == null || worldName.isBlank()) throw new IllegalArgumentException("worldName must not be blank");
         if (!global && geometry == null) throw new IllegalArgumentException("geometry is required for normal regions");
@@ -57,12 +70,14 @@ public final class PixelRegion {
         if (flags != null) this.flags.putAll(flags);
         this.properties = new java.util.HashMap<>();
         if (properties != null) this.properties.putAll(properties);
+        this.spawnPoints = new ArrayList<>();
+        if (spawnPoints != null) this.spawnPoints.addAll(spawnPoints);
     }
 
     public static PixelRegion global(String worldName, Map<RegionFlag, Boolean> flags) {
         return new PixelRegion(UUID.nameUUIDFromBytes(("pixelrpg:global:" + worldName).getBytes(StandardCharsets.UTF_8)),
                 worldName, null, true, Integer.MIN_VALUE, Integer.MAX_VALUE, "Wildnis", RegionType.OTHER,
-                "Globale Standardregion", null, null, "", "", Integer.MIN_VALUE, flags, Map.of());
+                "Globale Standardregion", null, null, "", "", Integer.MIN_VALUE, flags, Map.of(), List.of());
     }
 
     public UUID id() { return id; }
@@ -81,6 +96,7 @@ public final class PixelRegion {
     public int priority() { return priority; }
     public Map<RegionFlag, Boolean> flags() { return Map.copyOf(flags); }
     public Map<String, String> properties() { return Map.copyOf(properties); }
+    public List<RegionSpawnPoint> spawnPoints() { return List.copyOf(spawnPoints); }
 
     public boolean contains(double x, int y, double z) {
         return global || (y >= minY && y <= maxY && geometry.contains(x, z));
@@ -103,4 +119,5 @@ public final class PixelRegion {
     public void setPriority(int value) { priority = value; }
     public void setProperty(String key, String value) { properties.put(key, value); }
     public void removeProperty(String key) { properties.remove(key); }
+    public void addSpawnPoint(RegionSpawnPoint point) { spawnPoints.add(point); }
 }
