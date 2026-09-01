@@ -304,10 +304,20 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (npcManager != null) npcManager.shutdown();
         if (regionManager != null) regionManager.shutdown();
         if (playerProfileManager != null) playerProfileManager.shutdown();
-        Bukkit.getServicesManager().unregister(StatisticsAPI.class, statisticsService);
-        Bukkit.getServicesManager().unregister(de.pixelrpg.rpg.api.ItemAPI.class, itemService);
-        Bukkit.getServicesManager().unregister(de.pixelrpg.rpg.api.PartyAPI.class, partyManager);
+        unregisterServices();
         if (instance == this) instance = null;
+    }
+
+    private void unregisterServices() {
+        if (statisticsService != null) {
+            Bukkit.getServicesManager().unregister(StatisticsAPI.class, statisticsService);
+        }
+        if (itemService != null) {
+            Bukkit.getServicesManager().unregister(de.pixelrpg.rpg.api.ItemAPI.class, itemService);
+        }
+        if (partyManager != null) {
+            Bukkit.getServicesManager().unregister(de.pixelrpg.rpg.api.PartyAPI.class, partyManager);
+        }
     }
 
     public static PixelRPGPlugin getInstance() { return instance; }
