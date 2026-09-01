@@ -14,19 +14,20 @@ public final class QuestProgress {
     }
 
     public String getQuestId() { return questId; }
-    public int getCurrentAmount() { return currentAmount; }
+    public synchronized int getCurrentAmount() { return currentAmount; }
 
-    public void setCurrentAmount(int currentAmount) {
+    public synchronized void setCurrentAmount(int currentAmount) {
         if (this.currentAmount == currentAmount) return;
         this.currentAmount = currentAmount;
-        if (dirtyCallback != null) dirtyCallback.run();
+        Runnable callback = dirtyCallback;
+        if (callback != null) callback.run();
     }
 
-    public long getExpiryTimestampMillis() { return expiryTimestampMillis; }
-    public boolean hasExpiry() { return expiryTimestampMillis > 0L; }
-    public boolean isExpired() { return hasExpiry() && System.currentTimeMillis() >= expiryTimestampMillis; }
+    public synchronized long getExpiryTimestampMillis() { return expiryTimestampMillis; }
+    public synchronized boolean hasExpiry() { return expiryTimestampMillis > 0L; }
+    public synchronized boolean isExpired() { return hasExpiry() && System.currentTimeMillis() >= expiryTimestampMillis; }
 
-    public void setDirtyCallback(Runnable dirtyCallback) {
+    public synchronized void setDirtyCallback(Runnable dirtyCallback) {
         this.dirtyCallback = dirtyCallback;
     }
 }
