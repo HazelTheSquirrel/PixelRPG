@@ -15,6 +15,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -23,14 +24,15 @@ import java.util.UUID;
 public final class QuestNavigationService {
     private static final List<Color> QUEST_COLORS = List.of(Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, Color.FUCHSIA);
     private static final NamespacedKey DEFAULT_WAYPOINT_STYLE = NamespacedKey.minecraft("default");
-    private static final long TARGET_CACHE_TTL_MILLIS = 10_000L;
+    private static final long TARGET_CACHE_TTL_MILLIS = 30_000L;
+    private static final int MAX_TARGET_CACHE_ENTRIES = 2048;
 
     private final Plugin plugin;
     private final QuestRepository questRepository;
     private final PlayerProfileManager profileManager;
     private final NpcManager npcManager;
     private final Map<UUID, Map<String, QuestMarker>> markersByPlayer = new HashMap<>();
-    private final Map<NavigationCacheKey, CachedTarget> targetCache = new HashMap<>();
+    private final Map<NavigationCacheKey, CachedTarget> targetCache = new LinkedHashMap<>(64, 0.75F, true);
 
     public QuestNavigationService(Plugin plugin, QuestRepository questRepository,
                                   PlayerProfileManager profileManager, NpcManager npcManager) {
@@ -41,7 +43,7 @@ public final class QuestNavigationService {
     }
 
     /** Refreshes every active quest's locator-bar target for one player. */
-    public void refresh(Player player) {
+    public synchronized void refresh(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) {
             clear(player);
@@ -88,23 +90,24 @@ public final class QuestNavigationService {
     }
 
     /** Removes marker state for players that are no longer online. */
-    public void cleanupOfflinePlayers() {
+    public synchronized void cleanupOfflinePlayers() {
         markersByPlayer.keySet().removeIf(uuid -> {
             if (Bukkit.getPlayer(uuid) != null) return false;
             Map<String, QuestMarker> markers = markersByPlayer.get(uuid);
             if (markers != null) markers.values().forEach(marker -> marker.entity().remove());
             return true;
         });
+        trimTargetCache();
     }
 
     /** Removes all quest markers and cached navigation targets for one player. */
-    public void clear(Player player) {
+    public synchronized void clear(Player player) {
         Map<String, QuestMarker> markers = markersByPlayer.remove(player.getUniqueId());
         if (markers != null) markers.values().forEach(marker -> marker.entity().remove());
         removeLegacyCompass(player);
     }
 
-    public void clearAll() {
+    public synchronized void clearAll() {
         for (Map<String, QuestMarker> markers : markersByPlayer.values()) markers.values().forEach(marker -> marker.entity().remove());
         markersByPlayer.clear();
         targetCache.clear();
@@ -160,7 +163,10 @@ public final class QuestNavigationService {
         if (cached != null && now - cached.createdAtMillis() <= TARGET_CACHE_TTL_MILLIS) return cached.location().clone();
 
         Location target = findWorldTarget(origin, quest);
-        if (target != null) targetCache.put(cacheKey, new CachedTarget(target.clone(), now));
+        if (target != null) {
+            targetCache.put(cacheKey, new CachedTarget(target.clone(), now));
+            trimTargetCache();
+        }
         return target;
     }
 
@@ -191,6 +197,17 @@ public final class QuestNavigationService {
             }
         }
         return quest.reachLocation();
+    }
+
+    private void trimTargetCache() {
+        while (targetCache.size() > MAX_TARGET_CACHE_ENTRIES) {
+            targetCache.entrySet().iterator().next();
+            var iterator = targetCache.entrySet().iterator();
+            if (iterator.hasNext()) {
+                iterator.next();
+                iterator.remove();
+            } else return;
+        }
     }
 
     private void removeMarker(Map<String, QuestMarker> markers, String questId) {
