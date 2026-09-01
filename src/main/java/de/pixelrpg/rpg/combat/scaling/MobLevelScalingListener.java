@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.combat.scaling;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.api.events.PlayerLevelUpEvent;
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.core.WakeScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -13,42 +14,39 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/** Event-driven monster scaling. Active combat owns its own expiry wake-up; idle mobs are untouched. */
 public final class MobLevelScalingListener implements Listener {
     private static final long COMBAT_TIMEOUT_MILLIS = 5_000L;
+    private static final long COMBAT_TIMEOUT_TICKS = 100L;
 
     private final Plugin plugin;
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
     private final Map<UUID, Map<UUID, Long>> activeParticipants = new ConcurrentHashMap<>();
-    private BukkitTask cleanupTask;
+    private final WakeScheduler<ParticipantKey> expiryScheduler;
 
     public MobLevelScalingListener(Plugin plugin, GuildAPI guildAPI, MobScalingConfig scalingConfig) {
         this.plugin = plugin;
         this.guildAPI = guildAPI;
         this.scalingConfig = scalingConfig;
+        this.expiryScheduler = new WakeScheduler<>(plugin);
     }
 
-    public void start() {
-        if (cleanupTask != null) return;
-        cleanupTask = Bukkit.getScheduler().runTaskTimer(plugin, this::restoreExpiredScaling, 20L, 20L);
-    }
+    public void start() { }
 
     public void shutdown() {
-        if (cleanupTask != null) {
-            cleanupTask.cancel();
-            cleanupTask = null;
-        }
+        expiryScheduler.clear();
         activeParticipants.clear();
     }
 
@@ -57,9 +55,7 @@ public final class MobLevelScalingListener implements Listener {
     public void onMonsterTarget(EntityTargetLivingEntityEvent event) {
         if (!(event.getEntity() instanceof Monster monster)) return;
         if (monster.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING)) return;
-        if (event.getTarget() instanceof Player player && guildAPI.isRegistered(player.getUniqueId())) {
-            markParticipant(monster, player);
-        }
+        if (event.getTarget() instanceof Player player && guildAPI.isRegistered(player.getUniqueId())) markParticipant(monster, player);
     }
 
     // Zuständig dafür, dass jeder registrierte RPG-Angreifer als aktiver Teilnehmer der Monster-Skalierung erfasst wird.
@@ -67,7 +63,6 @@ public final class MobLevelScalingListener implements Listener {
     public void onRpgDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Monster monster)) return;
         if (monster.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING)) return;
-
         Player attacker = null;
         if (event.getDamager() instanceof Player player) attacker = player;
         else if (event.getDamager() instanceof Projectile projectile) {
@@ -78,11 +73,7 @@ public final class MobLevelScalingListener implements Listener {
         markParticipant(monster, attacker);
     }
 
-    /**
-     * Recalculates every currently active monster when a participant levels up.
-     * Previously scaling was only recalculated on target/damage events, so an
-     * already engaged monster could keep its old HP until another interaction.
-     */
+    // Zuständig dafür, dass eine bereits aktive Monstergruppe nach einem Level-Up sofort neu skaliert wird.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerLevelUp(PlayerLevelUpEvent event) {
         UUID playerUuid = event.getPlayer().getUniqueId();
@@ -91,41 +82,71 @@ public final class MobLevelScalingListener implements Listener {
             var entity = Bukkit.getEntity(mobUuid);
             if (!(entity instanceof Monster monster) || !monster.isValid() || monster.isDead()) {
                 activeParticipants.remove(mobUuid);
+                cancelParticipant(mobUuid, playerUuid);
                 return;
             }
             participants.put(playerUuid, System.currentTimeMillis());
+            scheduleExpiry(mobUuid, playerUuid);
             applyScaling(monster);
         });
     }
 
+    // Zuständig für die sofortige Freigabe aller Skalierungsdaten beim Tod eines verwalteten Monsters.
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onMonsterDeath(EntityDeathEvent event) {
+        if (!(event.getEntity() instanceof Monster monster)) return;
+        Map<UUID, Long> participants = activeParticipants.remove(monster.getUniqueId());
+        if (participants == null) return;
+        participants.keySet().forEach(playerUuid -> cancelParticipant(monster.getUniqueId(), playerUuid));
+    }
+
     private void markParticipant(Monster monster, Player player) {
-        activeParticipants.computeIfAbsent(monster.getUniqueId(), ignored -> new ConcurrentHashMap<>())
-                .put(player.getUniqueId(), System.currentTimeMillis());
+        UUID mobUuid = monster.getUniqueId();
+        UUID playerUuid = player.getUniqueId();
+        activeParticipants.computeIfAbsent(mobUuid, ignored -> new ConcurrentHashMap<>()).put(playerUuid, System.currentTimeMillis());
+        scheduleExpiry(mobUuid, playerUuid);
         applyScaling(monster);
     }
 
+    private void scheduleExpiry(UUID mobUuid, UUID playerUuid) {
+        ParticipantKey key = new ParticipantKey(mobUuid, playerUuid);
+        expiryScheduler.cancel(key);
+        expiryScheduler.wakeLater(key, COMBAT_TIMEOUT_TICKS, () -> expireParticipant(key));
+    }
+
+    private void expireParticipant(ParticipantKey key) {
+        Map<UUID, Long> participants = activeParticipants.get(key.mobUuid());
+        if (participants == null) return;
+        Long lastActivity = participants.get(key.playerUuid());
+        if (lastActivity == null) return;
+        if (System.currentTimeMillis() - lastActivity < COMBAT_TIMEOUT_MILLIS) {
+            scheduleExpiry(key.mobUuid(), key.playerUuid());
+            return;
+        }
+        participants.remove(key.playerUuid());
+        if (participants.isEmpty()) {
+            activeParticipants.remove(key.mobUuid(), participants);
+            var entity = Bukkit.getEntity(key.mobUuid());
+            if (entity instanceof Monster monster && monster.isValid()) restoreVanillaScaling(monster);
+        } else {
+            var entity = Bukkit.getEntity(key.mobUuid());
+            if (entity instanceof Monster monster && monster.isValid()) applyScaling(monster);
+        }
+    }
+
+    private void cancelParticipant(UUID mobUuid, UUID playerUuid) { expiryScheduler.cancel(new ParticipantKey(mobUuid, playerUuid)); }
+
     private void applyScaling(Monster monster) {
         rememberOriginalAttributes(monster);
-
         Map<UUID, Long> participants = activeParticipants.getOrDefault(monster.getUniqueId(), Map.of());
-        int playerLevel = participants.keySet().stream()
-                .mapToInt(guildAPI::getLevel)
-                .max()
-                .orElse(1);
+        int playerLevel = participants.keySet().stream().mapToInt(guildAPI::getLevel).max().orElse(1);
         playerLevel = Math.clamp(playerLevel, 1, 99);
         final int scalingPlayerLevel = playerLevel;
-
-        double gearMultiplier = participants.keySet().stream()
-                .map(this::findPlayer)
-                .filter(player -> player != null)
-                .mapToDouble(player -> gearLevelMultiplier(player, scalingPlayerLevel))
-                .max()
-                .orElse(1.0D);
-
+        double gearMultiplier = participants.keySet().stream().map(this::findPlayer).filter(player -> player != null)
+                .mapToDouble(player -> gearLevelMultiplier(player, scalingPlayerLevel)).max().orElse(1.0D);
         MobScalingConfig.LevelBaseStats baseStats = scalingConfig.getBaseStats(scalingPlayerLevel);
         double maxHealth = baseStats.hp() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
         double attackDamage = baseStats.damage() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
-
         AttributeInstance hp = monster.getAttribute(Attribute.MAX_HEALTH);
         if (hp != null) {
             double oldMaxHealth = Math.max(1.0D, hp.getValue());
@@ -133,21 +154,18 @@ public final class MobLevelScalingListener implements Listener {
             hp.setBaseValue(maxHealth);
             monster.setHealth(Math.clamp(maxHealth * healthRatio, 0.0D, maxHealth));
         }
-
         AttributeInstance attack = monster.getAttribute(Attribute.ATTACK_DAMAGE);
         if (attack != null) attack.setBaseValue(attackDamage);
         monster.getPersistentDataContainer().set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, scalingPlayerLevel);
     }
 
     private double gearLevelMultiplier(Player player, int playerLevel) {
-        int counted = 0;
-        double totalLevel = 0.0D;
+        int counted = 0; double totalLevel = 0.0D;
         for (ItemStack item : equippedItems(player)) {
             if (item == null || !item.hasItemMeta()) continue;
             Integer itemLevel = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
             if (itemLevel == null) continue;
-            totalLevel += Math.clamp(itemLevel, 1, 99);
-            counted++;
+            totalLevel += Math.clamp(itemLevel, 1, 99); counted++;
         }
         if (counted == 0) return 1.0D;
         double averageItemLevel = totalLevel / counted;
@@ -164,48 +182,19 @@ public final class MobLevelScalingListener implements Listener {
         return equipped;
     }
 
-    private Player findPlayer(UUID uuid) {
-        Player player = Bukkit.getPlayer(uuid);
-        return player != null && player.isOnline() ? player : null;
-    }
+    private Player findPlayer(UUID uuid) { Player player = Bukkit.getPlayer(uuid); return player != null && player.isOnline() ? player : null; }
 
     private void rememberOriginalAttributes(Monster monster) {
         var pdc = monster.getPersistentDataContainer();
         AttributeInstance hp = monster.getAttribute(Attribute.MAX_HEALTH);
-        if (hp != null && !pdc.has(RPGKeys.Combat.originalMaxHealth(), PersistentDataType.DOUBLE)) {
-            pdc.set(RPGKeys.Combat.originalMaxHealth(), PersistentDataType.DOUBLE, hp.getBaseValue());
-        }
+        if (hp != null && !pdc.has(RPGKeys.Combat.originalMaxHealth(), PersistentDataType.DOUBLE)) pdc.set(RPGKeys.Combat.originalMaxHealth(), PersistentDataType.DOUBLE, hp.getBaseValue());
         AttributeInstance attack = monster.getAttribute(Attribute.ATTACK_DAMAGE);
-        if (attack != null && !pdc.has(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE)) {
-            pdc.set(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE, attack.getBaseValue());
-        }
-    }
-
-    private void restoreExpiredScaling() {
-        long now = System.currentTimeMillis();
-        for (UUID mobUuid : activeParticipants.keySet()) {
-            Map<UUID, Long> participants = activeParticipants.get(mobUuid);
-            if (participants == null) continue;
-            participants.entrySet().removeIf(entry -> now - entry.getValue() >= COMBAT_TIMEOUT_MILLIS || !guildAPI.isRegistered(entry.getKey()));
-
-            var entity = Bukkit.getEntity(mobUuid);
-            if (!(entity instanceof Monster monster)) {
-                activeParticipants.remove(mobUuid);
-                continue;
-            }
-            if (participants.isEmpty()) {
-                restoreVanillaScaling(monster);
-                activeParticipants.remove(mobUuid);
-                continue;
-            }
-            applyScaling(monster);
-        }
+        if (attack != null && !pdc.has(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE)) pdc.set(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE, attack.getBaseValue());
     }
 
     private void restoreVanillaScaling(Monster monster) {
         var pdc = monster.getPersistentDataContainer();
         if (!pdc.has(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER)) return;
-
         AttributeInstance hp = monster.getAttribute(Attribute.MAX_HEALTH);
         Double originalMaxHealth = pdc.get(RPGKeys.Combat.originalMaxHealth(), PersistentDataType.DOUBLE);
         if (hp != null && originalMaxHealth != null) {
@@ -214,13 +203,13 @@ public final class MobLevelScalingListener implements Listener {
             hp.setBaseValue(originalMaxHealth);
             monster.setHealth(Math.clamp(originalMaxHealth * healthRatio, 0.0D, originalMaxHealth));
         }
-
         AttributeInstance attack = monster.getAttribute(Attribute.ATTACK_DAMAGE);
         Double originalAttackDamage = pdc.get(RPGKeys.Combat.originalAttackDamage(), PersistentDataType.DOUBLE);
         if (attack != null && originalAttackDamage != null) attack.setBaseValue(originalAttackDamage);
-
         pdc.remove(RPGKeys.Combat.mobLevel());
         pdc.remove(RPGKeys.Combat.originalMaxHealth());
         pdc.remove(RPGKeys.Combat.originalAttackDamage());
     }
+
+    private record ParticipantKey(UUID mobUuid, UUID playerUuid) { }
 }
