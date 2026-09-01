@@ -1,9 +1,14 @@
 package de.pixelrpg.rpg.scoreboard;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.api.events.PlayerLevelUpEvent;
+import de.pixelrpg.rpg.api.events.PlayerRegistrationEvent;
+import de.pixelrpg.rpg.api.events.PlayerUnregistrationEvent;
+import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
 import de.pixelrpg.rpg.companion.Companion;
 import de.pixelrpg.rpg.companion.CompanionService;
 import de.pixelrpg.rpg.core.Level;
+import de.pixelrpg.rpg.core.WakeScheduler;
 import de.pixelrpg.rpg.guild.Guild;
 import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.party.Party;
@@ -17,10 +22,10 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -34,16 +39,18 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/** Event-driven sidebar renderer. A player is rendered only after a relevant state change. */
 public final class ScoreboardService implements Listener {
     private static final int MAX_LINES = 15;
     private static final String[] INVISIBLE_ENTRIES = {
             "§0", "§1", "§2", "§3", "§4", "§5", "§6", "§7", "§8", "§9", "§a", "§b", "§c", "§d", "§e"
     };
+
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
-    private final int updateIntervalTicks;
+    private final WakeScheduler<UUID> wakeScheduler;
     private final Map<UUID, PlayerScoreboardState> stateByPlayer = new ConcurrentHashMap<>();
-    private BukkitTask task;
+    private final java.util.function.Consumer<UUID> profileChangeListener = this::markDirty;
 
     private static final class PlayerScoreboardState {
         final Scoreboard board;
@@ -59,37 +66,33 @@ public final class ScoreboardService implements Listener {
         }
     }
 
-    public ScoreboardService(Plugin plugin, PlayerProfileManager profileManager, int updateIntervalTicks) {
+    public ScoreboardService(Plugin plugin, PlayerProfileManager profileManager, int ignoredUpdateIntervalTicks) {
         this.plugin = plugin;
         this.profileManager = profileManager;
-        this.updateIntervalTicks = Math.max(1, updateIntervalTicks);
+        this.wakeScheduler = new WakeScheduler<>(plugin);
+        this.profileManager.addProfileChangeListener(profileChangeListener);
+    }
+
+    /** Marks one player's scoreboard for a coalesced one-shot refresh. */
+    public void markDirty(UUID playerId) {
+        if (playerId == null) return;
+        wakeScheduler.wake(playerId, () -> refreshPlayer(playerId));
+    }
+
+    /** Marks all currently online players once after a global relationship change. */
+    public void markAllDirty() {
+        for (Player player : Bukkit.getOnlinePlayers()) markDirty(player.getUniqueId());
     }
 
     public void startTask() {
-        if (task != null) return;
-        task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                profileManager.getProfile(player.getUniqueId()).ifPresent(profile -> {
-                    if (!profile.isRegistered()) {
-                        clearScoreboard(player);
-                        player.setExp(0.0F);
-                        player.setLevel(0);
-                    } else if (profile.isScoreboardEnabled()) {
-                        apply(player, profile);
-                    } else {
-                        clearScoreboard(player);
-                        updateExperienceBar(player, profile);
-                    }
-                });
-            }
-        }, updateIntervalTicks, updateIntervalTicks);
+        for (Player player : Bukkit.getOnlinePlayers()) markDirty(player.getUniqueId());
     }
 
     public void setEnabled(Player player, boolean enabled) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) return;
         profile.setScoreboardEnabled(enabled);
-        if (enabled) apply(player, profile);
+        if (enabled) refreshPlayer(player.getUniqueId());
         else clearScoreboard(player);
     }
 
@@ -98,24 +101,71 @@ public final class ScoreboardService implements Listener {
     }
 
     public void shutdown() {
-        if (task != null) {
-            task.cancel();
-            task = null;
-        }
+        profileManager.removeProfileChangeListener(profileChangeListener);
+        wakeScheduler.clear();
         for (Player player : Bukkit.getOnlinePlayers()) clearScoreboard(player);
         stateByPlayer.clear();
     }
 
+    // We render the initial sidebar only when the player enters the server.
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        profileManager.getProfile(event.getPlayer().getUniqueId()).ifPresent(profile -> {
-            if (profile.isRegistered() && profile.isScoreboardEnabled()) apply(event.getPlayer(), profile);
-        });
+        markDirty(event.getPlayer().getUniqueId());
     }
 
+    // We remove all per-player reactive state when the player leaves.
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        wakeScheduler.cancel(event.getPlayer().getUniqueId());
         stateByPlayer.remove(event.getPlayer().getUniqueId());
+    }
+
+    // A world change can alter every contextual sidebar value, so the player is woken once.
+    @EventHandler
+    public void onWorldChange(PlayerChangedWorldEvent event) {
+        markDirty(event.getPlayer().getUniqueId());
+    }
+
+    // Level changes invalidate the level-dependent sidebar immediately.
+    @EventHandler
+    public void onLevelUp(PlayerLevelUpEvent event) {
+        markDirty(event.getPlayer().getUniqueId());
+    }
+
+    // Registration changes determine whether the sidebar is visible and which values are valid.
+    @EventHandler
+    public void onRegistration(PlayerRegistrationEvent event) {
+        markDirty(event.getPlayer().getUniqueId());
+    }
+
+    // Unregistration removes the RPG sidebar state from the player.
+    @EventHandler
+    public void onUnregistration(PlayerUnregistrationEvent event) {
+        markDirty(event.getPlayer().getUniqueId());
+    }
+
+    // Quest completion changes the player-facing quest state and therefore invalidates the sidebar.
+    @EventHandler
+    public void onQuestCompleted(QuestCompletedEvent event) {
+        markDirty(event.getPlayer().getUniqueId());
+    }
+
+    private void refreshPlayer(UUID playerId) {
+        Player player = Bukkit.getPlayer(playerId);
+        if (player == null || !player.isOnline()) return;
+        PlayerProfile profile = profileManager.getProfile(playerId).orElse(null);
+        if (profile == null || !profile.isRegistered()) {
+            clearScoreboard(player);
+            player.setExp(0.0F);
+            player.setLevel(0);
+            return;
+        }
+        if (!profile.isScoreboardEnabled()) {
+            clearScoreboard(player);
+            updateExperienceBar(player, profile);
+            return;
+        }
+        apply(player, profile);
     }
 
     private void clearScoreboard(Player player) {
@@ -129,29 +179,26 @@ public final class ScoreboardService implements Listener {
         updateExperienceBar(player, profile);
         List<Component> lines = buildLines(player, profile);
         PlayerScoreboardState state = stateByPlayer.computeIfAbsent(player.getUniqueId(), ignored -> createState(player));
-        if (!lines.equals(state.lastLines)) {
-            state.lastLines = List.copyOf(lines);
+        if (lines.equals(state.lastLines)) return;
+        state.lastLines = List.copyOf(lines);
 
-            int size = Math.min(lines.size(), MAX_LINES);
-            for (int i = 0; i < size; i++) {
-                Component line = lines.get(i);
-                Team team = state.teams[i];
-                if (team == null) team = registerLineTeam(state, i);
-                team.prefix(line);
-                if (!state.activeLine[i]) {
-                    state.objective.getScore(entryFor(i)).setScore(MAX_LINES - i);
-                    state.activeLine[i] = true;
-                }
-            }
-
-            for (int i = size; i < MAX_LINES; i++) {
-                if (state.activeLine[i]) {
-                    state.board.resetScores(entryFor(i));
-                    state.activeLine[i] = false;
-                }
+        int size = Math.min(lines.size(), MAX_LINES);
+        for (int i = 0; i < size; i++) {
+            Component line = lines.get(i);
+            Team team = state.teams[i];
+            if (team == null) team = registerLineTeam(state, i);
+            team.prefix(line);
+            if (!state.activeLine[i]) {
+                state.objective.getScore(entryFor(i)).setScore(MAX_LINES - i);
+                state.activeLine[i] = true;
             }
         }
-
+        for (int i = size; i < MAX_LINES; i++) {
+            if (state.activeLine[i]) {
+                state.board.resetScores(entryFor(i));
+                state.activeLine[i] = false;
+            }
+        }
         applyGuildPrefixes(state);
     }
 
@@ -163,11 +210,16 @@ public final class ScoreboardService implements Listener {
             return;
         }
 
+        Map<UUID, Guild> guilds = new java.util.HashMap<>();
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             UUID playerId = onlinePlayer.getUniqueId();
             Guild guild = guildManager.getGuild(playerId).orElse(null);
+            if (guild != null) guilds.put(playerId, guild);
+        }
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            UUID playerId = onlinePlayer.getUniqueId();
+            Guild guild = guilds.get(playerId);
             String previousTeamName = state.guildTeamByPlayer.get(playerId);
-
             if (guild == null) {
                 if (previousTeamName != null) {
                     Team previous = state.board.getTeam(previousTeamName);
@@ -176,13 +228,11 @@ public final class ScoreboardService implements Listener {
                 }
                 continue;
             }
-
             String teamName = guildTeamName(guild.id());
             Team team = state.board.getTeam(teamName);
             if (team == null) team = state.board.registerNewTeam(teamName);
             team.prefix(Component.text("[" + guild.name() + "] ", NamedTextColor.GOLD));
             team.addEntry(onlinePlayer.getName());
-
             if (previousTeamName != null && !previousTeamName.equals(teamName)) {
                 Team previous = state.board.getTeam(previousTeamName);
                 if (previous != null) previous.removeEntry(onlinePlayer.getName());
@@ -226,9 +276,7 @@ public final class ScoreboardService implements Listener {
         return team;
     }
 
-    private String entryFor(int index) {
-        return INVISIBLE_ENTRIES[index];
-    }
+    private String entryFor(int index) { return INVISIBLE_ENTRIES[index]; }
 
     private List<Component> buildLines(Player player, PlayerProfile profile) {
         List<Component> lines = new ArrayList<>();
@@ -250,11 +298,8 @@ public final class ScoreboardService implements Listener {
 
     private void appendGuildLine(List<Component> lines, Player player) {
         Guild guild;
-        try {
-            guild = GuildManager.getInstance().getGuild(player.getUniqueId()).orElse(null);
-        } catch (IllegalStateException ignored) {
-            guild = null;
-        }
+        try { guild = GuildManager.getInstance().getGuild(player.getUniqueId()).orElse(null); }
+        catch (IllegalStateException ignored) { guild = null; }
         lines.add(Component.text("Gilde: ", NamedTextColor.GRAY)
                 .append(Component.text(guild == null ? "Keine" : guild.name(), guild == null ? NamedTextColor.DARK_GRAY : NamedTextColor.GOLD)));
     }
@@ -279,7 +324,5 @@ public final class ScoreboardService implements Listener {
         lines.add(line);
     }
 
-    private String formatGold(double amount) {
-        return String.format(java.util.Locale.ROOT, "%.2f", amount);
-    }
+    private String formatGold(double amount) { return String.format(java.util.Locale.ROOT, "%.2f", amount); }
 }
