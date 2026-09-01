@@ -46,6 +46,8 @@ import de.pixelrpg.rpg.equipment.EquipmentService;
 import de.pixelrpg.rpg.gui.CraftingGUI;
 import de.pixelrpg.rpg.gui.GUIListener;
 import de.pixelrpg.rpg.gui.ShopEditorGUI;
+import de.pixelrpg.rpg.item.ItemDefinitionRegistry;
+import de.pixelrpg.rpg.item.ItemDisplayNameResolver;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
@@ -102,6 +104,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private PlayerProfileManager playerProfileManager;
     private StatEngine statEngine;
     private ProfessionSystem professionSystem;
+    private ItemDisplayNameResolver itemDisplayNameResolver;
     private ItemEconomyConfig itemEconomyConfig;
     private ItemService itemService;
     private EquipmentService equipmentService;
@@ -145,6 +148,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         statEngine = new StatEngine(playerProfileManager);
         professionSystem = new ProfessionSystem(this, playerProfileManager);
         professionSystem.register();
+        itemDisplayNameResolver = new ItemDisplayNameResolver(new ItemDefinitionRegistry(this), professionSystem.craftingRecipeRegistry());
         WeaponAbilityEngine weaponAbilityEngine = new WeaponAbilityEngine(playerProfileManager, statEngine);
         itemEconomyConfig = new ItemEconomyConfig();
         itemEconomyConfig.load(getConfig());
@@ -305,6 +309,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
     public StatEngine getStatEngine() { return statEngine; }
     public ProfessionSystem getProfessionSystem() { return professionSystem; }
+    public ItemDisplayNameResolver getItemDisplayNameResolver() { return itemDisplayNameResolver; }
     public ItemEconomyConfig getItemEconomyConfig() { return itemEconomyConfig; }
     public ItemService getItemService() { return itemService; }
     public EquipmentService getEquipmentService() { return equipmentService; }
