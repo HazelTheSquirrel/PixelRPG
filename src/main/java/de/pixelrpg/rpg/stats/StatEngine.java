@@ -8,6 +8,7 @@ import de.pixelrpg.rpg.companion.CompanionPassiveStats;
 import de.pixelrpg.rpg.companion.CompanionService;
 import de.pixelrpg.rpg.companion.CompanionStats;
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.equipment.EquipmentSetEffectService;
 import de.pixelrpg.rpg.equipment.EquipmentSetService;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -50,6 +51,7 @@ public final class StatEngine {
 
     private final PlayerProfileManager profileManager;
     private final EquipmentSetService equipmentSets;
+    private final EquipmentSetEffectService equipmentSetEffects = new EquipmentSetEffectService();
     private final Map<UUID, CachedStats> cache = new ConcurrentHashMap<>();
 
     public StatEngine(PlayerProfileManager profileManager) {
@@ -98,6 +100,7 @@ public final class StatEngine {
         CachedStats stats = new CachedStats(maxHealth, armor, movementSpeedBonus, blockReach, entityReach,
                 critChance, critDamageMultiplier, lifestealBonus, attackPower);
         cache.put(player.getUniqueId(), stats);
+        equipmentSetEffects.apply(player, playerLevel);
 
         double minecraftMaxHealth = maxHealth / PIXELRPG_HP_PER_MINECRAFT_HEALTH;
         applyModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth(), minecraftMaxHealth - 20.0D);
