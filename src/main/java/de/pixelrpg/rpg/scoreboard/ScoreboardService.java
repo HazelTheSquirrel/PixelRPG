@@ -36,7 +36,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class ScoreboardService implements Listener {
     private static final int MAX_LINES = 15;
-    private static final String SCOREBOARD_ENTRY_FORMATS = "0123456789abcdef";
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
     private final int updateIntervalTicks;
@@ -227,9 +226,9 @@ public final class ScoreboardService implements Listener {
         return team;
     }
 
-    /** Uses invisible formatting entries only as unique scoreboard keys; no ChatColor API is used. */
+    /** Uses unique zero-width Unicode entries as scoreboard keys; legacy section-sign formatting is intentionally avoided. */
     private String entryFor(int index) {
-        return "\u00A7" + SCOREBOARD_ENTRY_FORMATS.charAt(index);
+        return "\u200B".repeat(index + 1);
     }
 
     private List<Component> buildLines(Player player, PlayerProfile profile) {
