@@ -16,7 +16,6 @@ import de.pixelrpg.rpg.dialogue.DialogueCommand;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.item.ItemService;
-import de.pixelrpg.rpg.region.RegionEditor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
@@ -43,7 +42,9 @@ public final class RootCommand implements CommandExecutor, TabCompleter {
         register(new GuildSubCommand(GuildManager.getInstance(plugin, plugin.getPlayerProfileManager())));
     }
 
-    public void register(SubCommand subCommand) { subCommands.put(subCommand.name().toLowerCase(Locale.ROOT), subCommand); }
+    public void register(SubCommand subCommand) {
+        subCommands.put(subCommand.name().toLowerCase(Locale.ROOT), subCommand);
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -72,19 +73,32 @@ public final class RootCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 0) return subCommands.entrySet().stream().filter(entry -> hasPermission(sender, entry.getValue())).map(Map.Entry::getKey).sorted().toList();
+        if (args.length == 0) {
+            return subCommands.entrySet().stream()
+                    .filter(entry -> hasPermission(sender, entry.getValue()))
+                    .map(Map.Entry::getKey)
+                    .sorted()
+                    .toList();
+        }
         if (args.length == 1) {
             String prefix = args[0].toLowerCase(Locale.ROOT);
-            return subCommands.entrySet().stream().filter(entry -> hasPermission(sender, entry.getValue())).map(Map.Entry::getKey)
-                    .filter(value -> value.startsWith(prefix)).sorted().toList();
+            return subCommands.entrySet().stream()
+                    .filter(entry -> hasPermission(sender, entry.getValue()))
+                    .map(Map.Entry::getKey)
+                    .filter(value -> value.startsWith(prefix))
+                    .sorted()
+                    .toList();
         }
         SubCommand subCommand = subCommands.get(args[0].toLowerCase(Locale.ROOT));
         if (subCommand == null || !hasPermission(sender, subCommand)) return List.of();
         List<String> suggestions = subCommand.tabComplete(sender, Arrays.copyOfRange(args, 1, args.length));
         if (suggestions == null || suggestions.isEmpty()) return List.of();
         String prefix = args[args.length - 1].toLowerCase(Locale.ROOT);
-        return suggestions.stream().filter(value -> value != null && value.toLowerCase(Locale.ROOT).startsWith(prefix))
-                .distinct().sorted(String.CASE_INSENSITIVE_ORDER).toList();
+        return suggestions.stream()
+                .filter(value -> value != null && value.toLowerCase(Locale.ROOT).startsWith(prefix))
+                .distinct()
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
     }
 
     private boolean hasPermission(CommandSender sender, SubCommand subCommand) {
@@ -94,19 +108,25 @@ public final class RootCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender, String commandName) {
         sender.sendMessage(Component.text("PixelRPG-Befehle", NamedTextColor.GOLD));
-        subCommands.values().stream().filter(subCommand -> hasPermission(sender, subCommand)).forEach(subCommand -> {
-            Component line = Component.text(subCommand.usage(), NamedTextColor.YELLOW);
-            if (!subCommand.description().isBlank()) line = line.append(Component.text(" – " + subCommand.description(), NamedTextColor.GRAY));
-            sender.sendMessage(line);
-        });
+        subCommands.values().stream()
+                .filter(subCommand -> hasPermission(sender, subCommand))
+                .forEach(subCommand -> {
+                    Component line = Component.text(subCommand.usage(), NamedTextColor.YELLOW);
+                    if (!subCommand.description().isBlank()) {
+                        line = line.append(Component.text(" – " + subCommand.description(), NamedTextColor.GRAY));
+                    }
+                    sender.sendMessage(line);
+                });
     }
 
     /** Adapts the existing dialogue command to the central SubCommand tree without changing its behavior. */
     private static final class DialogueSubCommandAdapter implements SubCommand {
         private final DialogueCommand delegate;
+
         private DialogueSubCommandAdapter(de.pixelrpg.rpg.player.PlayerProfileManager profiles) {
             this.delegate = new DialogueCommand(profiles, new DialogueEngine());
         }
+
         @Override public String name() { return "dialogue"; }
         @Override public String permission() { return "rpg.member"; }
         @Override public String description() { return "Öffnet den zentralen Dialogdienst"; }
