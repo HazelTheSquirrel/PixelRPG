@@ -36,11 +36,13 @@ import java.util.UUID;
 public final class RegionListener implements Listener {
     private final RegionManager regions;
     private final RegionEditor editor;
+    private final RegionSpawnService spawnService;
     private final Map<UUID, UUID> currentRegions = new HashMap<>();
 
-    public RegionListener(RegionManager regions, RegionEditor editor) {
+    public RegionListener(RegionManager regions, RegionEditor editor, RegionSpawnService spawnService) {
         this.regions = regions;
         this.editor = editor;
+        this.spawnService = spawnService;
     }
 
     /** Handles admin clicks with the temporary polygon creation tool. */
@@ -69,10 +71,11 @@ public final class RegionListener implements Listener {
         if (!regions.hasFlag(victim.getLocation(), RegionFlag.PVP) || !regions.hasFlag(attacker.getLocation(), RegionFlag.PVP)) event.setCancelled(true);
     }
 
-    /** Prevents monster spawning inside regions that explicitly disable monster spawns. */
+    /** Prevents normal monster spawning; explicit PixelRPG region spawn points override the region flag. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMonsterSpawn(CreatureSpawnEvent event) {
         if (!(event.getEntity() instanceof Monster)) return;
+        if (spawnService.isManagedSpawn(event.getEntity())) return;
         if (!regions.hasFlag(event.getLocation(), RegionFlag.MONSTER_SPAWN)) event.setCancelled(true);
     }
 
@@ -153,15 +156,8 @@ public final class RegionListener implements Listener {
         UUID oldId = currentRegions.get(player.getUniqueId());
         UUID newId = regions.find(location).map(PixelRegion::id).orElse(null);
         if (Objects.equals(oldId, newId)) return;
-
-        if (oldId != null) {
-            regions.get(oldId).ifPresent(region -> showRegionTitle(player, region.name(), region.leaveMessage(), false));
-        }
-
-        if (newId != null) {
-            regions.find(location).ifPresent(region -> showRegionTitle(player, region.name(), region.enterMessage(), true));
-        }
-
+        if (oldId != null) regions.get(oldId).ifPresent(region -> showRegionTitle(player, region.name(), region.leaveMessage(), false));
+        if (newId != null) regions.find(location).ifPresent(region -> showRegionTitle(player, region.name(), region.enterMessage(), true));
         if (newId == null) currentRegions.remove(player.getUniqueId());
         else currentRegions.put(player.getUniqueId(), newId);
     }
