@@ -1,7 +1,5 @@
 package de.pixelrpg.rpg.region;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.title.Title;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,22 +19,20 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 
 /** Thin Paper adapter for region editor input, policy decisions and transitions. */
 public final class RegionListener implements Listener {
     private final RegionManager regions;
     private final RegionEditor editor;
     private final RegionPolicyService policy;
-    private final Map<UUID, UUID> currentRegions = new HashMap<>();
+    private final RegionTransitionService transitions;
 
     public RegionListener(RegionManager regions, RegionEditor editor, RegionSpawnService spawnService) {
-        this.regions = regions;
-        this.editor = editor;
+        this.regions = Objects.requireNonNull(regions);
+        this.editor = Objects.requireNonNull(editor);
         this.policy = new RegionPolicyService(regions, spawnService);
+        this.transitions = new RegionTransitionService(regions);
     }
 
     /** Handles admin clicks with the temporary polygon creation tool. */
@@ -60,9 +56,9 @@ public final class RegionListener implements Listener {
     /** Applies the region PvP policy to player-versus-player damage. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPvp(EntityDamageByEntityEvent event) {
-        if (!(event.getEntity() instanceof Player victim)) return;
-        if (!(event.getDamager() instanceof Player attacker)) return;
-        if (!policy.allowsPvp(attacker, victim)) event.setCancelled(true);
+        if (event.getEntity() instanceof Player victim && event.getDamager() instanceof Player attacker) {
+            if (!policy.allowsPvp(attacker, victim)) event.setCancelled(true);
+        }
     }
 
     /** Applies the region monster-spawn policy. */
@@ -117,35 +113,19 @@ public final class RegionListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
         if (event.getTo() == null || sameBlock(event.getFrom(), event.getTo())) return;
-        updateTransition(event.getPlayer(), event.getTo());
+        transitions.update(event.getPlayer(), event.getTo());
     }
 
     /** Detects a region transition when a player changes worlds. */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
-        updateTransition(event.getPlayer(), event.getPlayer().getLocation());
+        transitions.update(event.getPlayer(), event.getPlayer().getLocation());
     }
 
     /** Clears transition state when a player leaves the server. */
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        currentRegions.remove(event.getPlayer().getUniqueId());
-    }
-
-    private void updateTransition(Player player, Location location) {
-        UUID oldId = currentRegions.get(player.getUniqueId());
-        UUID newId = regions.find(location).map(PixelRegion::id).orElse(null);
-        if (Objects.equals(oldId, newId)) return;
-        if (oldId != null) regions.get(oldId).ifPresent(region -> showRegionTitle(player, region.name(), region.leaveMessage(), false));
-        if (newId != null) regions.get(newId).ifPresent(region -> showRegionTitle(player, region.name(), region.enterMessage(), true));
-        if (newId == null) currentRegions.remove(player.getUniqueId());
-        else currentRegions.put(player.getUniqueId(), newId);
-    }
-
-    private static void showRegionTitle(Player player, String regionName, String message, boolean entering) {
-        String title = message == null || message.isBlank() ? (entering ? regionName : "Verlassen") : message;
-        String subtitle = message == null || message.isBlank() ? (entering ? "" : regionName) : regionName;
-        player.showTitle(Title.title(Component.text(title), Component.text(subtitle)));
+        transitions.clear(event.getPlayer().getUniqueId());
     }
 
     private static boolean sameBlock(Location a, Location b) {
