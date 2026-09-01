@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class RegionManager {
     private final RegionRepository repository;
     private final Map<UUID, PixelRegion> regions = new ConcurrentHashMap<>();
+    private final Map<String, PixelRegion> globalRegions = new ConcurrentHashMap<>();
     private final Map<ChunkKey, List<UUID>> index = new ConcurrentHashMap<>();
 
     public RegionManager(RegionRepository repository) {
@@ -23,8 +24,10 @@ public final class RegionManager {
 
     public void load() {
         regions.clear();
+        globalRegions.clear();
         index.clear();
         repository.load().forEach(this::registerLoaded);
+        repository.loadGlobalFlags().forEach((world, flags) -> globalRegions.put(world, PixelRegion.global(world, flags)));
     }
 
     public Optional<PixelRegion> get(UUID id) { return Optional.ofNullable(regions.get(id)); }
@@ -45,21 +48,9 @@ public final class RegionManager {
         if (!validation.valid()) return validation;
 
         PixelRegion region = new PixelRegion(
-                id,
-                worldName,
-                validation.geometry(),
-                minY,
-                maxY,
+                id, worldName, validation.geometry(), minY, maxY,
                 name == null || name.isBlank() ? id.toString() : name,
-                type == null ? RegionType.OTHER : type,
-                "",
-                null,
-                null,
-                "",
-                "",
-                0,
-                Map.of(),
-                Map.of()
+                type == null ? RegionType.OTHER : type, "", null, null, "", "", 0, Map.of(), Map.of()
         );
 
         regions.put(id, region);
@@ -71,7 +62,6 @@ public final class RegionManager {
     public synchronized boolean delete(UUID id) {
         PixelRegion removed = regions.remove(id);
         if (removed == null) return false;
-
         removeFromIndex(removed);
         save();
         return true;
@@ -79,19 +69,28 @@ public final class RegionManager {
 
     public synchronized void save() { repository.save(regions.values()); }
 
+    public synchronized void setGlobalFlag(String worldName, RegionFlag flag, boolean enabled) {
+        if (worldName == null || worldName.isBlank()) return;
+        PixelRegion global = globalRegions.computeIfAbsent(worldName, world -> PixelRegion.global(world, Map.of()));
+        global.setFlag(flag, enabled);
+        repository.saveGlobalFlags(globalRegions.entrySet().stream()
+                .collect(java.util.stream.Collectors.toUnmodifiableMap(Map.Entry::getKey, entry -> entry.getValue().flags())));
+    }
+
     public Optional<PixelRegion> find(World world, double x, int y, double z) {
         if (world == null) return Optional.empty();
 
         List<UUID> candidates = index.getOrDefault(
-                new ChunkKey(world.getName(), floorChunk(x), floorChunk(z)),
-                List.of()
+                new ChunkKey(world.getName(), floorChunk(x), floorChunk(z)), List.of()
         );
 
-        return candidates.stream()
+        Optional<PixelRegion> region = candidates.stream()
                 .map(regions::get)
                 .filter(java.util.Objects::nonNull)
-                .filter(region -> region.contains(x, y, z))
+                .filter(candidate -> candidate.contains(x, y, z))
                 .max(Comparator.comparingInt(PixelRegion::priority).thenComparing(PixelRegion::id));
+
+        return region.isPresent() ? region : Optional.of(globalRegion(world.getName()));
     }
 
     public Optional<PixelRegion> find(Location location) {
@@ -99,8 +98,36 @@ public final class RegionManager {
         return find(location.getWorld(), location.getX(), location.getBlockY(), location.getZ());
     }
 
+    /** Resolves a flag from the most specific region, falling back to the world's global region when unset. */
     public boolean hasFlag(Location location, RegionFlag flag) {
-        return find(location).map(region -> region.flag(flag)).orElse(true);
+        if (location == null || location.getWorld() == null) return true;
+        Optional<PixelRegion> local = findLocal(location);
+        if (local.isPresent() && local.get().hasFlag(flag)) return local.get().flag(flag);
+        return globalRegion(location.getWorld().getName()).flag(flag);
+    }
+
+    private Optional<PixelRegion> findLocal(Location location) {
+        List<UUID> candidates = index.getOrDefault(
+                new ChunkKey(location.getWorld().getName(), floorChunk(location.getX()), floorChunk(location.getZ())), List.of()
+        );
+        return candidates.stream()
+                .map(regions::get)
+                .filter(java.util.Objects::nonNull)
+                .filter(region -> region.contains(location.getX(), location.getBlockY(), location.getZ()))
+                .max(Comparator.comparingInt(PixelRegion::priority).thenComparing(PixelRegion::id));
+    }
+
+    public PixelRegion globalRegion(String worldName) {
+        return globalRegions.computeIfAbsent(worldName, world -> PixelRegion.global(world, defaultGlobalFlags()));
+    }
+
+    private static Map<RegionFlag, Boolean> defaultGlobalFlags() {
+        EnumMapBuilder builder = new EnumMapBuilder();
+        builder.put(RegionFlag.PVP, true).put(RegionFlag.MONSTER_SPAWN, true).put(RegionFlag.BLOCK_BREAK, true)
+                .put(RegionFlag.BLOCK_PLACE, true).put(RegionFlag.FIRE_SPREAD, false).put(RegionFlag.LAVA_FLOW, false)
+                .put(RegionFlag.EXPLOSION, false).put(RegionFlag.CREEPER_EXPLOSION, false)
+                .put(RegionFlag.GHAST_FIREBALL, false).put(RegionFlag.ENDERMAN_GRIEF, false);
+        return builder.build();
     }
 
     private void registerLoaded(PixelRegion region) {
@@ -114,7 +141,6 @@ public final class RegionManager {
         int maxChunkX = floorChunk(region.geometry().maxX());
         int minChunkZ = floorChunk(region.geometry().minZ());
         int maxChunkZ = floorChunk(region.geometry().maxZ());
-
         for (int x = minChunkX; x <= maxChunkX; x++) {
             for (int z = minChunkZ; z <= maxChunkZ; z++) {
                 ChunkKey key = new ChunkKey(region.worldName(), x, z);
@@ -133,14 +159,11 @@ public final class RegionManager {
         int maxChunkX = floorChunk(region.geometry().maxX());
         int minChunkZ = floorChunk(region.geometry().minZ());
         int maxChunkZ = floorChunk(region.geometry().maxZ());
-
         for (int x = minChunkX; x <= maxChunkX; x++) {
             for (int z = minChunkZ; z <= maxChunkZ; z++) {
                 ChunkKey key = new ChunkKey(region.worldName(), x, z);
                 index.computeIfPresent(key, (ignored, current) -> {
-                    List<UUID> updated = current.stream()
-                            .filter(existingId -> !existingId.equals(region.id()))
-                            .toList();
+                    List<UUID> updated = current.stream().filter(existingId -> !existingId.equals(region.id())).toList();
                     return updated.isEmpty() ? null : updated;
                 });
             }
@@ -152,4 +175,10 @@ public final class RegionManager {
     }
 
     private record ChunkKey(String world, int x, int z) { }
+
+    private static final class EnumMapBuilder {
+        private final java.util.EnumMap<RegionFlag, Boolean> values = new java.util.EnumMap<>(RegionFlag.class);
+        EnumMapBuilder put(RegionFlag flag, boolean value) { values.put(flag, value); return this; }
+        Map<RegionFlag, Boolean> build() { return Map.copyOf(values); }
+    }
 }
