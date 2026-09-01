@@ -20,6 +20,8 @@ import java.util.UUID;
 
 /** Provides the admin-only /pixelrpg region command tree for polygon region management. */
 public final class RegionSubCommand implements SubCommand {
+    private static final String GLOBAL_SELECTOR = "__global__";
+
     private final RegionManager regions;
     private final RegionEditor editor;
     private final GuildManager guilds;
@@ -67,9 +69,12 @@ public final class RegionSubCommand implements SubCommand {
 
     private boolean delete(CommandSender sender, String[] args) {
         if (args.length < 2) return false;
-        PixelRegion region = resolve(args[1]);
-        if (region == null) {
-            sender.sendMessage(Component.text("Region nicht gefunden.", NamedTextColor.RED));
+        PixelRegion region = resolve(args[1], sender);
+        if (region == null || region.isGlobal()) {
+            sender.sendMessage(Component.text(
+                    region != null && region.isGlobal() ? "Die globale Region kann nicht gelöscht werden." : "Region nicht gefunden.",
+                    NamedTextColor.RED
+            ));
             return true;
         }
         boolean deleted = regions.delete(region.id());
@@ -82,7 +87,7 @@ public final class RegionSubCommand implements SubCommand {
 
     private boolean info(CommandSender sender, String[] args) {
         if (args.length < 2) return false;
-        PixelRegion region = resolve(args[1]);
+        PixelRegion region = resolve(args[1], sender);
         if (region == null) {
             sender.sendMessage(Component.text("Region nicht gefunden.", NamedTextColor.RED));
             return true;
@@ -90,21 +95,26 @@ public final class RegionSubCommand implements SubCommand {
 
         sender.sendMessage(Component.text("Region „" + region.name() + "“", NamedTextColor.GOLD));
         sender.sendMessage(Component.text("  ID: " + region.id(), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text(
-                "  Welt: " + region.worldName() + " | Typ: " + region.type()
-                        + " | Punkte: " + region.geometry().points().size(),
-                NamedTextColor.GRAY
-        ));
-        sender.sendMessage(Component.text(
-                "  Höhe: " + region.minY() + ".." + region.maxY()
-                        + " | Fläche: " + String.format(Locale.ROOT, "%.2f", region.geometry().area())
-                        + " | Priorität: " + region.priority(),
-                NamedTextColor.GRAY
-        ));
-        sender.sendMessage(Component.text(
-                "  Gilde: " + (region.ownerGuildName() == null ? "keine" : region.ownerGuildName()),
-                NamedTextColor.GRAY
-        ));
+        if (region.isGlobal()) {
+            sender.sendMessage(Component.text("  Typ: Globale Standardregion | Welt: " + region.worldName(), NamedTextColor.GRAY));
+            sender.sendMessage(Component.text("  Priorität: 0 | Gültig: gesamte Welt", NamedTextColor.GRAY));
+        } else {
+            sender.sendMessage(Component.text(
+                    "  Welt: " + region.worldName() + " | Typ: " + region.type()
+                            + " | Punkte: " + region.geometry().points().size(),
+                    NamedTextColor.GRAY
+            ));
+            sender.sendMessage(Component.text(
+                    "  Höhe: " + region.minY() + ".." + region.maxY()
+                            + " | Fläche: " + String.format(Locale.ROOT, "%.2f", region.geometry().area())
+                            + " | Priorität: " + region.priority(),
+                    NamedTextColor.GRAY
+            ));
+            sender.sendMessage(Component.text(
+                    "  Gilde: " + (region.ownerGuildName() == null ? "keine" : region.ownerGuildName()),
+                    NamedTextColor.GRAY
+            ));
+        }
         sender.sendMessage(Component.text("  Regeln:", NamedTextColor.GRAY));
         for (RegionFlag flag : RegionFlag.values()) {
             sender.sendMessage(Component.text(
@@ -133,7 +143,7 @@ public final class RegionSubCommand implements SubCommand {
 
     private boolean edit(CommandSender sender, String[] args) {
         if (args.length < 4) return false;
-        PixelRegion region = resolve(args[1]);
+        PixelRegion region = resolve(args[1], sender);
         if (region == null) {
             sender.sendMessage(Component.text("Region nicht gefunden.", NamedTextColor.RED));
             return true;
@@ -141,6 +151,39 @@ public final class RegionSubCommand implements SubCommand {
 
         String field = args[2].toLowerCase(Locale.ROOT);
         String value = String.join(" ", Arrays.copyOfRange(args, 3, args.length));
+
+        if (region.isGlobal()) {
+            if (!field.equals("flag")) {
+                sender.sendMessage(Component.text(
+                        "Die globale Region ist weltweit gültig und kann nur über ihre Regeln (flag) geändert werden.",
+                        NamedTextColor.RED
+                ));
+                return true;
+            }
+            String[] parts = value.split("\\s+", 2);
+            if (parts.length != 2) return false;
+            try {
+                RegionFlag flag = RegionFlag.valueOf(parts[0].toUpperCase(Locale.ROOT));
+                boolean enabled = parseBoolean(parts[1]);
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(Component.text("Die globale Region muss aus einer Welt heraus bearbeitet werden.", NamedTextColor.RED));
+                    return true;
+                }
+                regions.setGlobalFlag(player.getWorld().getName(), flag, enabled);
+                sender.sendMessage(Component.text(
+                        "Globale Regel " + flag.name() + ": " + (enabled ? "erlaubt" : "verboten") + ".",
+                        enabled ? NamedTextColor.GREEN : NamedTextColor.RED
+                ));
+                return true;
+            } catch (IllegalArgumentException exception) {
+                sender.sendMessage(Component.text(
+                        "Unbekanntes Flag oder Wert. Verwende true = erlaubt, false = verboten.",
+                        NamedTextColor.RED
+                ));
+                return true;
+            }
+        }
+
         switch (field) {
             case "name" -> region.setName(value);
             case "type" -> region.setType(RegionType.parse(value));
@@ -195,10 +238,12 @@ public final class RegionSubCommand implements SubCommand {
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) return List.of("create", "finish", "confirm", "cancel", "delete", "info", "edit", "list");
         if (args.length == 2 && isRegionSelectorCommand(args[0])) {
-            return regions.all().stream()
+            List<String> selectors = regions.all().stream()
                     .flatMap(region -> java.util.stream.Stream.of(region.name(), region.id().toString()))
                     .distinct()
                     .toList();
+            if (sender instanceof Player) return java.util.stream.Stream.concat(selectors.stream(), java.util.stream.Stream.of(GLOBAL_SELECTOR)).toList();
+            return selectors;
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("edit")) {
             return List.of("name", "type", "description", "priority", "enter", "leave", "flag", "guild", "unguild", "property");
@@ -216,7 +261,11 @@ public final class RegionSubCommand implements SubCommand {
         return command.equalsIgnoreCase("delete") || command.equalsIgnoreCase("info") || command.equalsIgnoreCase("edit");
     }
 
-    private PixelRegion resolve(String text) {
+    private PixelRegion resolve(String text, CommandSender sender) {
+        if (text.equalsIgnoreCase(GLOBAL_SELECTOR) || text.equalsIgnoreCase("global")) {
+            if (sender instanceof Player player) return regions.globalRegion(player.getWorld().getName());
+            return null;
+        }
         UUID id = parseUuid(text);
         return id == null
                 ? regions.all().stream().filter(region -> region.name().equalsIgnoreCase(text)).findFirst().orElse(null)
