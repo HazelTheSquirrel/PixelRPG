@@ -26,6 +26,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+/**
+ * Owns the live player-profile state and serializes every storage operation per player.
+ * Live Bukkit/domain state remains on the server thread; repositories only receive immutable-by-convention snapshots.
+ */
 public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     private final Plugin plugin;
     private final Map<UUID, PlayerProfile> activeProfiles = new ConcurrentHashMap<>();
@@ -37,10 +41,14 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     private StorageType storageType;
     private ExecutorService saveExecutor;
     private int loadTimeoutSeconds = 8;
+    private volatile boolean shuttingDown;
 
-    public PlayerProfileManager(Plugin plugin) { this.plugin = plugin; }
+    public PlayerProfileManager(Plugin plugin) {
+        this.plugin = plugin;
+    }
 
     public void initialize(FileConfiguration config) {
+        shuttingDown = false;
         storageType = StorageType.fromString(config.getString("storage.type", "YAML"));
         loadTimeoutSeconds = Math.max(1, config.getInt("storage.load-timeout-seconds", 8));
         int threads = Math.max(1, config.getInt("storage.save-executor-threads", 4));
@@ -49,42 +57,70 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
             thread.setDaemon(true);
             return thread;
         });
+
         try {
             if (storageType == StorageType.MYSQL) {
                 databaseManager = new DatabaseManager();
                 databaseManager.connect(config);
                 repository = new MySQLPlayerProfileRepository(databaseManager);
-            } else repository = new YamlPlayerProfileRepository(plugin.getDataFolder());
+            } else {
+                repository = new YamlPlayerProfileRepository(plugin.getDataFolder());
+            }
             repository.init();
-        } catch (Exception e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to initialize storage, falling back to YAML.", e);
+        } catch (Exception exception) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to initialize storage, falling back to YAML.", exception);
             storageType = StorageType.YAML;
             repository = new YamlPlayerProfileRepository(plugin.getDataFolder());
-            try { repository.init(); } catch (Exception ignored) { }
+            try {
+                repository.init();
+            } catch (Exception fallbackException) {
+                plugin.getLogger().log(java.util.logging.Level.SEVERE, "YAML fallback storage initialization failed.", fallbackException);
+            }
         }
+
         Bukkit.getServicesManager().register(GuildAPI.class, this, plugin, ServicePriority.Normal);
         Bukkit.getServicesManager().register(EconomyAPI.class, this, plugin, ServicePriority.Normal);
     }
 
     public void shutdown() {
+        if (shuttingDown) return;
+        shuttingDown = true;
+
         List<CompletableFuture<Void>> pending = activeProfiles.values().stream()
-                .map(profile -> enqueueVoid(profile.getUuid(), () -> persistSync(profile))).toList();
-        try { CompletableFuture.allOf(pending.toArray(new CompletableFuture[0])).get(30, TimeUnit.SECONDS); }
-        catch (Exception e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Not all player profiles could be flushed cleanly on shutdown.", e); }
+                .map(profile -> enqueueVoid(profile.getUuid(), () -> persistSync(profile)))
+                .toList();
+        try {
+            CompletableFuture.allOf(pending.toArray(CompletableFuture[]::new)).get(30, TimeUnit.SECONDS);
+        } catch (Exception exception) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                    "Not all player profiles could be flushed cleanly on shutdown.", exception);
+        }
+
         if (saveExecutor != null) {
             saveExecutor.shutdown();
             try {
                 if (!saveExecutor.awaitTermination(10, TimeUnit.SECONDS)) saveExecutor.shutdownNow();
-            } catch (InterruptedException e) {
+            } catch (InterruptedException exception) {
                 saveExecutor.shutdownNow();
                 Thread.currentThread().interrupt();
             }
         }
+
         saveChain.clear();
         saveRequested.clear();
         loadingCache.clear();
         activeProfiles.clear();
-        if (repository != null) repository.shutdown();
+
+        if (repository != null) {
+            try {
+                repository.shutdown();
+            } catch (RuntimeException exception) {
+                plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to close player-profile repository.", exception);
+            }
+        }
+        repository = null;
+        databaseManager = null;
+
         Bukkit.getServicesManager().unregister(GuildAPI.class, this);
         Bukkit.getServicesManager().unregister(EconomyAPI.class, this);
     }
@@ -92,19 +128,22 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
     public enum LoadOutcome { SUCCESS, FAILED }
 
     public LoadOutcome loadForPreLogin(UUID uuid) {
+        if (shuttingDown) return LoadOutcome.FAILED;
         try {
             return enqueue(uuid, () -> {
                 try {
                     PlayerProfile profile = repository.load(uuid).orElseGet(() -> new PlayerProfile(uuid));
                     loadingCache.put(uuid, profile);
                     return LoadOutcome.SUCCESS;
-                } catch (Exception e) {
-                    plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to load profile for " + uuid, e);
+                } catch (Exception exception) {
+                    plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                            "Failed to load profile for " + uuid, exception);
                     return LoadOutcome.FAILED;
                 }
             }).get(loadTimeoutSeconds, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Profile load timed out or failed for " + uuid, e);
+        } catch (Exception exception) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                    "Profile load timed out or failed for " + uuid, exception);
             return LoadOutcome.FAILED;
         }
     }
@@ -120,7 +159,9 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         if (profile != null) persistAsync(profile);
     }
 
-    public Optional<PlayerProfile> getProfile(UUID uuid) { return Optional.ofNullable(activeProfiles.get(uuid)); }
+    public Optional<PlayerProfile> getProfile(UUID uuid) {
+        return Optional.ofNullable(activeProfiles.get(uuid));
+    }
 
     public void registerPlayer(Player player) {
         PlayerProfile profile = activeProfiles.computeIfAbsent(player.getUniqueId(), PlayerProfile::new);
@@ -151,56 +192,106 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         if (profile != null) persistAsync(profile);
     }
 
+    /** Queues at most one storage operation per player and automatically schedules a follow-up when a new mutation arrived during the save. */
     private void persistAsync(PlayerProfile profile) {
+        if (shuttingDown || saveExecutor == null || saveExecutor.isShutdown()) return;
         UUID uuid = profile.getUuid();
         if (!saveRequested.add(uuid)) return;
+
         CompletableFuture<Void> future = enqueueVoid(uuid, () -> persistSync(profile));
         future.whenComplete((ignored, throwable) -> {
             saveRequested.remove(uuid);
-            if (profile.isDirty() && saveExecutor != null && !saveExecutor.isShutdown()) persistAsync(profile);
+            if (!shuttingDown && profile.isDirty() && saveExecutor != null && !saveExecutor.isShutdown()) {
+                persistAsync(profile);
+            }
         });
     }
 
     /** Takes a synchronized, deep persistence snapshot before any blocking storage operation. */
     private void persistSync(PlayerProfile profile) {
         PlayerProfile snapshot = profile.snapshotForSave();
-        if (snapshot == null) return;
-        try { repository.save(snapshot); }
-        catch (Exception e) {
+        if (snapshot == null || repository == null) return;
+        try {
+            repository.save(snapshot);
+        } catch (Exception exception) {
             profile.markDirty();
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to save profile for " + profile.getUuid(), e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                    "Failed to save profile for " + profile.getUuid(), exception);
             if (storageType == StorageType.MYSQL) writeEmergencyBackup(snapshot);
         }
     }
 
     private void writeEmergencyBackup(PlayerProfile profile) {
+        YamlPlayerProfileRepository emergency = null;
         try {
             File folder = new File(plugin.getDataFolder(), "emergency");
-            YamlPlayerProfileRepository emergency = new YamlPlayerProfileRepository(folder);
+            emergency = new YamlPlayerProfileRepository(folder);
             emergency.init();
             emergency.save(profile);
-        } catch (Exception e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Emergency backup failed for " + profile.getUuid(), e); }
+        } catch (Exception exception) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                    "Emergency backup failed for " + profile.getUuid(), exception);
+        } finally {
+            if (emergency != null) {
+                try {
+                    emergency.shutdown();
+                } catch (RuntimeException exception) {
+                    plugin.getLogger().log(java.util.logging.Level.WARNING,
+                            "Failed to close emergency profile repository.", exception);
+                }
+            }
+        }
     }
 
     private <T> CompletableFuture<T> enqueue(UUID uuid, Supplier<T> task) {
         CompletableFuture<T> result = new CompletableFuture<>();
+        ExecutorService executor = saveExecutor;
+        if (executor == null || executor.isShutdown()) {
+            result.completeExceptionally(new IllegalStateException("Profile I/O executor is not running"));
+            return result;
+        }
+
         CompletableFuture<Void> chain = saveChain.compute(uuid, (id, previous) -> {
             CompletableFuture<Void> base = previous != null ? previous : CompletableFuture.completedFuture(null);
             return base.exceptionally(ignored -> null).thenRunAsync(() -> {
-                try { result.complete(task.get()); }
-                catch (Throwable throwable) { result.completeExceptionally(throwable); }
-            }, saveExecutor);
+                try {
+                    result.complete(task.get());
+                } catch (Throwable throwable) {
+                    result.completeExceptionally(throwable);
+                }
+            }, executor);
         });
         chain.whenComplete((ignored, throwable) -> saveChain.remove(uuid, chain));
         return result;
     }
 
-    private CompletableFuture<Void> enqueueVoid(UUID uuid, Runnable task) { return enqueue(uuid, () -> { task.run(); return null; }); }
+    private CompletableFuture<Void> enqueueVoid(UUID uuid, Runnable task) {
+        return enqueue(uuid, () -> {
+            task.run();
+            return null;
+        });
+    }
 
-    @Override public boolean isRegistered(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null && p.isRegistered(); }
-    @Override public int getLevel(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null ? p.getLevel() : Level.MIN_LEVEL; }
-    @Override public long getExperience(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null ? p.getExperience() : 0L; }
-    @Override public void addExperience(UUID uuid, long amount) {
+    @Override
+    public boolean isRegistered(UUID uuid) {
+        PlayerProfile profile = activeProfiles.get(uuid);
+        return profile != null && profile.isRegistered();
+    }
+
+    @Override
+    public int getLevel(UUID uuid) {
+        PlayerProfile profile = activeProfiles.get(uuid);
+        return profile != null ? profile.getLevel() : Level.MIN_LEVEL;
+    }
+
+    @Override
+    public long getExperience(UUID uuid) {
+        PlayerProfile profile = activeProfiles.get(uuid);
+        return profile != null ? profile.getExperience() : 0L;
+    }
+
+    @Override
+    public void addExperience(UUID uuid, long amount) {
         PlayerProfile profile = activeProfiles.get(uuid);
         if (profile == null || !profile.isRegistered()) return;
         int before = profile.getLevel();
@@ -212,7 +303,28 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
             if (player != null) Bukkit.getPluginManager().callEvent(new PlayerLevelUpEvent(player, before, after));
         }
     }
-    @Override public double getBalance(UUID uuid) { PlayerProfile p = activeProfiles.get(uuid); return p != null ? p.getMoney() : 0.0; }
-    @Override public void deposit(UUID uuid, double amount) { PlayerProfile p = activeProfiles.get(uuid); if (p != null && p.isRegistered()) { p.addMoney(amount); persistAsync(p); } }
-    @Override public boolean withdraw(UUID uuid, double amount) { PlayerProfile p = activeProfiles.get(uuid); if (p == null || !p.isRegistered()) return false; boolean success = p.removeMoney(amount); if (success) persistAsync(p); return success; }
+
+    @Override
+    public double getBalance(UUID uuid) {
+        PlayerProfile profile = activeProfiles.get(uuid);
+        return profile != null ? profile.getMoney() : 0.0;
+    }
+
+    @Override
+    public void deposit(UUID uuid, double amount) {
+        PlayerProfile profile = activeProfiles.get(uuid);
+        if (profile != null && profile.isRegistered()) {
+            profile.addMoney(amount);
+            persistAsync(profile);
+        }
+    }
+
+    @Override
+    public boolean withdraw(UUID uuid, double amount) {
+        PlayerProfile profile = activeProfiles.get(uuid);
+        if (profile == null || !profile.isRegistered()) return false;
+        boolean success = profile.removeMoney(amount);
+        if (success) persistAsync(profile);
+        return success;
+    }
 }
