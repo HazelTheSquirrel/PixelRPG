@@ -64,6 +64,9 @@ public final class CompanionService {
     public CompanionDefinition definition(String id) { return registry.require(id); }
     public void ensureTestWolf(UUID playerId) { load(playerId); }
 
+    /** Returns the shared mount controller used by the reactive companion runtime. */
+    public CompanionMountController mountController() { return mountController; }
+
     /** Wakes one active companion after an external state change. */
     public void wakeRuntime(UUID playerId) { runtimeTask.wakeOwner(playerId); }
 
@@ -272,37 +275,46 @@ public final class CompanionService {
     private void removeEntity(UUID entityId) { Entity entity = plugin.getServer().getEntity(entityId); if (entity != null) entity.remove(); }
 
     private void load(UUID playerId) {
-        if (companions.containsKey(playerId)) { ensureDefaultCompanions(playerId); return; }
+        if (companions.containsKey(playerId)) return;
         File file = new File(storageFolder, playerId + ".yml");
-        if (!file.exists()) { companions.put(playerId, new ArrayList<>()); ensureDefaultCompanions(playerId); return; }
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file); List<Companion> loaded = new ArrayList<>(); ConfigurationSection section = yaml.getConfigurationSection("companions");
-        if (section != null) for (String id : section.getKeys(false)) { String path = "companions." + id; try { CompanionDefinition definition = registry.require(id); int level = Math.max(1, Math.min(registry.maxLevel(), yaml.getInt(path + ".level", 1))); long experience = Math.max(0L, yaml.getLong(path + ".experience", 0L)); String name = yaml.getString(path + ".name", definition.displayName()); boolean active = yaml.getBoolean(path + ".active", false); loaded.add(new Companion(id, name, level, experience, definition.rarity(), definition.visual().entityType(), active)); } catch (RuntimeException exception) { plugin.getLogger().warning("Ignoring invalid companion '" + id + "' for " + playerId + "."); } }
-        companions.put(playerId, loaded); ensureDefaultCompanions(playerId);
-    }
-
-    private void ensureDefaultCompanions(UUID playerId) {
-        List<Companion> current = companions.getOrDefault(playerId, List.of()); List<Companion> updated = new ArrayList<>(current); boolean changed = false;
-        for (CompanionDefinition definition : registry.definitions().values()) { if (!"DEFAULT".equalsIgnoreCase(definition.unlock().type())) continue; if (updated.stream().anyMatch(existing -> existing.id().equals(definition.id()))) continue; updated.add(toCompanion(definition)); changed = true; }
-        if (changed) { companions.put(playerId, updated); save(playerId, updated); }
-    }
-
-    /** Queues a detached companion snapshot for YAML serialization outside the Paper thread. */
-    private void save(UUID playerId, List<Companion> values) {
-        List<Companion> snapshot = List.copyOf(values);
-        ioExecutor.execute(() -> saveBlocking(playerId, snapshot));
-    }
-
-    private void saveBlocking(UUID playerId, List<Companion> values) {
-        File file = new File(storageFolder, playerId + ".yml");
-        YamlConfiguration yaml = new YamlConfiguration();
-        for (Companion companion : values) {
-            String path = "companions." + companion.id();
-            yaml.set(path + ".name", companion.name());
-            yaml.set(path + ".level", companion.level());
-            yaml.set(path + ".experience", companion.experience());
-            yaml.set(path + ".active", companion.active());
+        if (!file.exists()) { companions.put(playerId, new ArrayList<>()); return; }
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+        List<Companion> loaded = new ArrayList<>();
+        for (String key : config.getKeys(false)) {
+            ConfigurationSection section = config.getConfigurationSection(key);
+            if (section == null) continue;
+            CompanionDefinition definition = registry.find(section.getString("id", key)).orElse(null);
+            if (definition == null) continue;
+            loaded.add(new Companion(
+                    definition.id(),
+                    section.getString("name", definition.displayName()),
+                    Math.max(1, section.getInt("level", 1)),
+                    Math.max(0L, section.getLong("experience", 0L)),
+                    definition.rarity(),
+                    definition.visual().entityType(),
+                    section.getBoolean("active", false)
+            ));
         }
-        try { yaml.save(file); }
-        catch (IOException exception) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to save companions for " + playerId, exception); }
+        companions.put(playerId, loaded);
+    }
+
+    private void save(UUID playerId, List<Companion> values) {
+        File file = new File(storageFolder, playerId + ".yml");
+        YamlConfiguration config = new YamlConfiguration();
+        for (Companion companion : values) {
+            ConfigurationSection section = config.createSection(companion.id());
+            section.set("id", companion.id());
+            section.set("name", companion.name());
+            section.set("level", companion.level());
+            section.set("experience", companion.experience());
+            section.set("active", companion.active());
+        }
+        ioExecutor.execute(() -> {
+            try {
+                config.save(file);
+            } catch (IOException exception) {
+                plugin.getLogger().warning("Unable to save companions for " + playerId + ": " + exception.getMessage());
+            }
+        });
     }
 }
