@@ -108,7 +108,6 @@ public final class CraftingRecipeRegistry {
 
                 String recipeId = key.toLowerCase(Locale.ROOT) + ":" + String.format(Locale.ROOT, "%02d_%s", index + 1, slug(label));
                 String resultItemId = "pixelrpg:" + recipeId;
-
                 String potionType = generatedPotionType(profession, index);
                 String enchantment = generatedEnchantment(profession, index);
                 int enchantmentLevel = generatedEnchantmentLevel(profession, index);
@@ -173,7 +172,7 @@ public final class CraftingRecipeRegistry {
     private static Map<String, Integer> generatedItemCosts(Profession profession, int index, JsonArray labels) {
         if (index == 0) return Map.of();
         Map<String, Integer> costs = new LinkedHashMap<>();
-        String ownPrevious = generatedItemId(profession, labels.get(index - 1).getAsString(), index);
+        String ownPrevious = generatedItemId(profession, labels.get(index - 1).getAsString(), index - 1);
 
         switch (profession) {
             case BLACKSMITH -> switch (index) {
@@ -197,7 +196,7 @@ public final class CraftingRecipeRegistry {
                     costs.put(ownItemId(profession, labels, 14), 1);
                     costs.put(ownItemId(profession, labels, 6), 1);
                 } else {
-                    costs.put(ownPrevious, index >= 8 && index <= 13 ? 1 : 1);
+                    costs.put(ownPrevious, 1);
                 }
             }
             case FARMER, TAILOR, FISHERMAN, WOODCUTTER -> costs.put(ownPrevious, 1);
