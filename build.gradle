@@ -96,7 +96,8 @@ tasks.register('verifyPixelRpgShadedDependencies') {
             throw new GradleException("Expected exactly one merged JDBC driver service descriptor, found ${serviceEntries.size()}")
         }
 
-        def serviceText = serviceEntries.singleFile.getText('UTF-8').readLines()
+        def serviceFile = serviceEntries.iterator().next()
+        def serviceText = serviceFile.getText('UTF-8').readLines()
                 .collect { it.trim() }
                 .findAll { !it.isEmpty() && !it.startsWith('#') }
         if (serviceText.isEmpty()) {
