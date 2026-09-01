@@ -24,10 +24,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** Event-driven companion runtime. Idle companions sleep; active combat schedules only its next wake-up. */
+/** Event-driven companion runtime. Idle companions sleep; active combat/follow schedules only its next wake-up. */
 public final class CompanionFollowTask implements Runnable, Listener {
     private static final double STEP_HEIGHT = 1.05D;
     private static final double JUMP_VELOCITY = 0.42D;
+    private static final long ACTIVE_FOLLOW_WAKE_TICKS = 2L;
 
     private final Plugin plugin;
     private final CompanionService companionService;
@@ -141,18 +142,28 @@ public final class CompanionFollowTask implements Runnable, Listener {
         double ownerDistanceSquared = living.getLocation().distanceSquared(owner.getLocation());
         double maxOwnerCombatDistance = definition.combat().maxOwnerCombatDistance();
         if (definition.combat().enabled() && Double.isFinite(maxOwnerCombatDistance) && ownerDistanceSquared > maxOwnerCombatDistance * maxOwnerCombatDistance) {
-            follow(owner, living, definition.follow());
+            followAndWake(ownerId, owner, living, definition.follow());
             return;
         }
 
         if (definition.combat().enabled()) {
             LivingEntity target = combatController.tick(owner, living, definition, living.getWorld().getGameTime());
             if (target != null) {
-                wakeScheduler.wakeLater(ownerId, 2L, () -> runOwner(ownerId));
+                wakeScheduler.wakeLater(ownerId, ACTIVE_FOLLOW_WAKE_TICKS, () -> runOwner(ownerId));
                 return;
             }
         }
-        follow(owner, living, definition.follow());
+        followAndWake(ownerId, owner, living, definition.follow());
+    }
+
+    private void followAndWake(UUID ownerId, Player owner, LivingEntity living, CompanionDefinition.CompanionFollowDefinition follow) {
+        follow(owner, living, follow);
+        if (!follow.enabled()) return;
+        double distanceSquared = living.getLocation().distanceSquared(owner.getLocation());
+        double wakeDistance = Math.max(follow.startDistance(), follow.stopDistance());
+        if (distanceSquared > wakeDistance * wakeDistance) {
+            wakeScheduler.wakeLater(ownerId, ACTIVE_FOLLOW_WAKE_TICKS, () -> runOwner(ownerId));
+        }
     }
 
     private void updateRuntimeState(Player owner, LivingEntity entity, CompanionDefinition definition) {
