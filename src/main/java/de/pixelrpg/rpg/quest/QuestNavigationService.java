@@ -23,12 +23,14 @@ import java.util.UUID;
 public final class QuestNavigationService {
     private static final List<Color> QUEST_COLORS = List.of(Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, Color.FUCHSIA);
     private static final NamespacedKey DEFAULT_WAYPOINT_STYLE = NamespacedKey.minecraft("default");
+    private static final long TARGET_CACHE_TTL_MILLIS = 10_000L;
 
     private final Plugin plugin;
     private final QuestRepository questRepository;
     private final PlayerProfileManager profileManager;
     private final NpcManager npcManager;
     private final Map<UUID, Map<String, QuestMarker>> markersByPlayer = new HashMap<>();
+    private final Map<NavigationCacheKey, CachedTarget> targetCache = new HashMap<>();
 
     public QuestNavigationService(Plugin plugin, QuestRepository questRepository,
                                   PlayerProfileManager profileManager, NpcManager npcManager) {
@@ -40,7 +42,6 @@ public final class QuestNavigationService {
 
     /** Refreshes every active quest's locator-bar target for one player. */
     public void refresh(Player player) {
-        cleanupOfflinePlayers();
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) {
             clear(player);
@@ -92,20 +93,24 @@ public final class QuestNavigationService {
             if (Bukkit.getPlayer(uuid) != null) return false;
             Map<String, QuestMarker> markers = markersByPlayer.get(uuid);
             if (markers != null) markers.values().forEach(marker -> marker.entity().remove());
+            targetCache.keySet().removeIf(key -> key.playerId().equals(uuid));
             return true;
         });
     }
 
-    /** Removes all quest waypoints and any legacy PixelRPG quest compass from one player. */
+    /** Removes all quest markers and cached navigation targets for one player. */
     public void clear(Player player) {
-        Map<String, QuestMarker> markers = markersByPlayer.remove(player.getUniqueId());
+        UUID uuid = player.getUniqueId();
+        Map<String, QuestMarker> markers = markersByPlayer.remove(uuid);
         if (markers != null) markers.values().forEach(marker -> marker.entity().remove());
+        targetCache.keySet().removeIf(key -> key.playerId().equals(uuid));
         removeLegacyCompass(player);
     }
 
     public void clearAll() {
         for (Map<String, QuestMarker> markers : markersByPlayer.values()) markers.values().forEach(marker -> marker.entity().remove());
         markersByPlayer.clear();
+        targetCache.clear();
     }
 
     private QuestMarker createMarker(Player player, int index, Location target) {
@@ -146,6 +151,25 @@ public final class QuestNavigationService {
     }
 
     private Location resolveWorldTarget(Location origin, Quest quest) {
+        if (quest.targetStructureKey() == null && quest.targetBiomeKeys().isEmpty()) return quest.reachLocation();
+
+        int originChunkX = origin.getBlockX() >> 4;
+        int originChunkZ = origin.getBlockZ() >> 4;
+        NavigationCacheKey cacheKey = new NavigationCacheKey(
+                origin.getWorld().getUID(),
+                originChunkX,
+                originChunkZ,
+                quest.id());
+        long now = System.currentTimeMillis();
+        CachedTarget cached = targetCache.get(cacheKey);
+        if (cached != null && now - cached.createdAtMillis() <= TARGET_CACHE_TTL_MILLIS) return cached.location().clone();
+
+        Location target = findWorldTarget(origin, quest);
+        if (target != null) targetCache.put(cacheKey, new CachedTarget(target.clone(), now));
+        return target;
+    }
+
+    private Location findWorldTarget(Location origin, Quest quest) {
         if (quest.targetStructureKey() != null && !quest.targetStructureKey().isBlank()) {
             var registry = io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(io.papermc.paper.registry.RegistryKey.STRUCTURE);
             var key = NamespacedKey.fromString(quest.targetStructureKey());
@@ -159,7 +183,7 @@ public final class QuestNavigationService {
         }
 
         if (!quest.targetBiomeKeys().isEmpty()) {
-            var registry = io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(io.papermc.paper.registry.RegistryKey.BIOME);
+            var registry = io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(io.papmc.paper.registry.RegistryKey.BIOME);
             var biomes = quest.targetBiomeKeys().stream()
                     .map(NamespacedKey::fromString)
                     .filter(java.util.Objects::nonNull)
@@ -196,4 +220,6 @@ public final class QuestNavigationService {
 
     private record QuestMarker(ArmorStand entity) { }
     private record QuestProgressEntry(Quest quest, QuestProgress progress) { }
+    private record NavigationCacheKey(UUID playerId, int chunkX, int chunkZ, String questId) { }
+    private record CachedTarget(Location location, long createdAtMillis) { }
 }
