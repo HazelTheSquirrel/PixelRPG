@@ -7,14 +7,17 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /** Event-driven NPC look controller. NPCs are evaluated only when nearby players actually move. */
 public final class NpcLookTask implements Listener {
@@ -40,7 +43,7 @@ public final class NpcLookTask implements Listener {
 
     public void stop() {
         if (!started) return;
-        org.bukkit.event.HandlerList.unregisterAll(this);
+        HandlerList.unregisterAll(this);
         started = false;
     }
 
@@ -71,7 +74,7 @@ public final class NpcLookTask implements Listener {
         Set<UUID> candidates = new HashSet<>();
         for (Entity entity : center.getNearbyEntities(radius, radius, radius)) {
             if (!(entity instanceof LivingEntity living)) continue;
-            if (!living.getPersistentDataContainer().has(RPGKeys.Npc.npcId(), org.bukkit.persistence.PersistentDataType.STRING)) continue;
+            if (!living.getPersistentDataContainer().has(RPGKeys.Npc.npcId(), PersistentDataType.STRING)) continue;
             if (living.getLocation().distanceSquared(center) <= radiusSquared) candidates.add(living.getUniqueId());
         }
         for (UUID entityId : candidates) updateNpc(entityId);
