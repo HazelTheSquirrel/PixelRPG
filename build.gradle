@@ -59,10 +59,6 @@ tasks.register('verifyPixelRpgSourceBoundaries') {
     }
 }
 
-tasks.check {
-    dependsOn tasks.named('verifyPixelRpgSourceBoundaries')
-}
-
 tasks.shadowJar {
     archiveFileName = "Pixel-RPG.jar"
     relocate 'com.google.gson', 'de.pixelrpg.rpg.libs.gson'
@@ -70,6 +66,37 @@ tasks.shadowJar {
     relocate 'com.mysql', 'de.pixelrpg.rpg.libs.mysql'
     mergeServiceFiles()
     exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+}
+
+tasks.register('verifyPixelRpgShadedDependencies') {
+    group = 'verification'
+    description = 'Verifies that bundled third-party runtime classes are actually relocated.'
+    dependsOn tasks.named('shadowJar')
+    doLast {
+        def jarFile = tasks.shadowJar.get().archiveFile.get().asFile
+        if (!jarFile.isFile()) throw new GradleException("Shadow JAR not found: ${jarFile}")
+
+        def forbiddenPrefixes = [
+                'com/google/gson/',
+                'com/zaxxer/hikari/',
+                'com/mysql/'
+        ]
+
+        zipTree(jarFile).matching { include '**/*.class' }.files.each { entry ->
+            def normalized = entry.path.replace('\\', '/')
+            def marker = normalized.substring(normalized.lastIndexOf('/') + 1)
+            if (forbiddenPrefixes.any { prefix -> normalized.contains("/${prefix}") || normalized.startsWith(prefix) }) {
+                throw new GradleException("Unrelocated third-party class in shadow JAR: ${normalized}")
+            }
+        }
+
+        def serviceFile = new File(jarFile.toURI().resolve('jar:file:${jarFile.absolutePath}!/META-INF/services/java.sql.Driver'))
+    }
+}
+
+tasks.check {
+    dependsOn tasks.named('verifyPixelRpgSourceBoundaries')
+    dependsOn tasks.named('verifyPixelRpgShadedDependencies')
 }
 
 tasks.jar {
