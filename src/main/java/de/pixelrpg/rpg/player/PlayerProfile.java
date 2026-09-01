@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.core.Level;
+import de.pixelrpg.rpg.economy.Money;
 import de.pixelrpg.rpg.equipment.EquipmentSlot;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.quest.QuestProgress;
@@ -18,7 +19,7 @@ public final class PlayerProfile {
     private final UUID uuid;
     private boolean registered;
     private long experience;
-    private double money;
+    private long moneyMinorUnits;
     private final Map<Profession, Integer> professionLevels = new EnumMap<>(Profession.class);
     private final Map<Profession, Long> professionExperience = new EnumMap<>(Profession.class);
     private final Set<Profession> learnedProfessions = new HashSet<>();
@@ -40,7 +41,7 @@ public final class PlayerProfile {
         this.uuid = uuid;
         this.registered = false;
         this.experience = 0L;
-        this.money = 0.0;
+        this.moneyMinorUnits = 0L;
         this.storyChapterIndex = -1;
         this.scoreboardEnabled = true;
         this.partyHudEnabled = false;
@@ -65,10 +66,26 @@ public final class PlayerProfile {
     public synchronized void setExperience(long value) { experience = Math.max(0L, value); dirty = true; }
     public synchronized void addExperience(long amount) { if (amount <= 0L) return; experience = amount > Long.MAX_VALUE - experience ? Long.MAX_VALUE : experience + amount; dirty = true; }
     public synchronized int getLevel() { return Level.fromExperience(experience); }
-    public synchronized double getMoney() { return money; }
-    public synchronized void setMoney(double value) { if (!Double.isFinite(value)) throw new IllegalArgumentException("Money must be finite"); money = Math.max(0.0, value); dirty = true; }
-    public synchronized void addMoney(double amount) { if (!Double.isFinite(amount) || amount <= 0.0) return; double updated = money + amount; money = Double.isFinite(updated) ? updated : Double.MAX_VALUE; dirty = true; }
-    public synchronized boolean removeMoney(double amount) { if (!Double.isFinite(amount) || amount <= 0.0 || money < amount) return false; money -= amount; dirty = true; return true; }
+
+    public synchronized double getMoney() { return Money.toMajor(moneyMinorUnits); }
+    public synchronized long getMoneyMinorUnits() { return moneyMinorUnits; }
+    public synchronized void setMoney(double value) { moneyMinorUnits = Money.fromMajor(value); dirty = true; }
+    public synchronized void setMoneyMinorUnits(long value) { if (value < 0L) throw new IllegalArgumentException("Money minor units must be non-negative"); moneyMinorUnits = value; dirty = true; }
+    public synchronized void addMoney(double amount) {
+        if (!Double.isFinite(amount) || amount <= 0.0D) return;
+        long delta = Money.fromMajor(amount);
+        moneyMinorUnits = delta > Long.MAX_VALUE - moneyMinorUnits ? Long.MAX_VALUE : moneyMinorUnits + delta;
+        dirty = true;
+    }
+    public synchronized boolean removeMoney(double amount) {
+        if (!Double.isFinite(amount) || amount <= 0.0D) return false;
+        long delta = Money.fromMajor(amount);
+        if (delta > moneyMinorUnits) return false;
+        moneyMinorUnits -= delta;
+        dirty = true;
+        return true;
+    }
+
     public synchronized int getProfessionLevel(Profession profession) { return professionLevels.getOrDefault(profession, Profession.MIN_LEVEL); }
     public synchronized void setProfessionLevel(Profession profession, int level) { if (profession == null) return; professionLevels.put(profession, Math.clamp(level, Profession.MIN_LEVEL, Profession.MAX_LEVEL)); dirty = true; }
     public synchronized Map<Profession, Integer> getProfessionLevels() { return Collections.unmodifiableMap(new EnumMap<>(professionLevels)); }
@@ -119,7 +136,7 @@ public final class PlayerProfile {
         PlayerProfile snapshot = new PlayerProfile(uuid);
         snapshot.registered = registered;
         snapshot.experience = experience;
-        snapshot.money = money;
+        snapshot.moneyMinorUnits = moneyMinorUnits;
         snapshot.professionLevels.clear(); snapshot.professionLevels.putAll(professionLevels);
         snapshot.professionExperience.clear(); snapshot.professionExperience.putAll(professionExperience);
         snapshot.learnedProfessions.addAll(learnedProfessions);
@@ -142,5 +159,5 @@ public final class PlayerProfile {
 
     public synchronized void markDirty() { dirty = true; }
     public synchronized void markClean() { dirty = false; }
-    public synchronized void resetProgress() { registered = false; experience = 0L; money = 0.0; storyChapterIndex = -1; scoreboardEnabled = true; partyHudEnabled = false; questTrackerEnabled = false; learnedProfessions.clear(); unlockedRecipes.clear(); unlockedWaypoints.clear(); activeQuests.clear(); completedQuests.clear(); equipment.clear(); for (Profession profession : Profession.values()) { professionLevels.put(profession, Profession.MIN_LEVEL); professionExperience.put(profession, 0L); } dirty = true; }
+    public synchronized void resetProgress() { registered = false; experience = 0L; moneyMinorUnits = 0L; storyChapterIndex = -1; scoreboardEnabled = true; partyHudEnabled = false; questTrackerEnabled = false; learnedProfessions.clear(); unlockedRecipes.clear(); unlockedWaypoints.clear(); activeQuests.clear(); completedQuests.clear(); equipment.clear(); for (Profession profession : Profession.values()) { professionLevels.put(profession, Profession.MIN_LEVEL); professionExperience.put(profession, 0L); } dirty = true; }
 }
