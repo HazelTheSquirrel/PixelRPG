@@ -18,8 +18,15 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /** Owns guild creation, membership, invitations and persistent guild metadata. */
 public final class GuildManager implements GuildAPI {
@@ -31,15 +38,23 @@ public final class GuildManager implements GuildAPI {
     private final JavaPlugin plugin;
     private final PlayerProfileManager profiles;
     private final File file;
-    private final Map<UUID, GuildData> guilds = new ConcurrentHashMap<>();
-    private final Map<UUID, UUID> memberGuilds = new ConcurrentHashMap<>();
-    private final Map<UUID, Invitation> invitations = new ConcurrentHashMap<>();
+    private final Map<UUID, GuildData> guilds = new HashMap<>();
+    private final Map<UUID, UUID> memberGuilds = new HashMap<>();
+    private final Map<UUID, Invitation> invitations = new HashMap<>();
+    private final ExecutorService persistenceExecutor;
+    private CompletableFuture<Void> persistenceChain = CompletableFuture.completedFuture(null);
+    private volatile boolean shuttingDown;
 
     public GuildManager(JavaPlugin plugin, PlayerProfileManager profiles) {
         this.plugin = plugin;
         this.profiles = profiles;
         if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
         this.file = new File(plugin.getDataFolder(), "guilds.yml");
+        this.persistenceExecutor = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-GuildIO");
+            thread.setDaemon(true);
+            return thread;
+        });
         load();
         Bukkit.getServicesManager().register(GuildAPI.class, this, plugin, ServicePriority.Normal);
         registerCommands();
@@ -71,7 +86,7 @@ public final class GuildManager implements GuildAPI {
     }
 
     public synchronized Result createGuild(Player player, String name) {
-        if (player == null || !profiles.isRegistered(player.getUniqueId())) return Result.NOT_REGISTERED;
+        if (shuttingDown || player == null || !profiles.isRegistered(player.getUniqueId())) return Result.NOT_REGISTERED;
         if (getGuild(player.getUniqueId()).isPresent()) return Result.ALREADY_IN_GUILD;
         if (profiles.getProfile(player.getUniqueId()).map(p -> p.getLevel() < MIN_CREATION_LEVEL).orElse(true)) return Result.LEVEL_TOO_LOW;
         if (!isValidName(name)) return Result.INVALID_NAME;
@@ -81,11 +96,14 @@ public final class GuildManager implements GuildAPI {
         if (!profile.removeMoney(CREATION_COST_GOLD)) return Result.INSUFFICIENT_GOLD;
         UUID id = UUID.randomUUID();
         GuildData guild = new GuildData(id, normalized, player.getUniqueId(), new LinkedHashSet<>(Set.of(player.getUniqueId())));
-        guilds.put(id, guild); memberGuilds.put(player.getUniqueId(), id); save(); return Result.SUCCESS;
+        guilds.put(id, guild);
+        memberGuilds.put(player.getUniqueId(), id);
+        save();
+        return Result.SUCCESS;
     }
 
     public synchronized Result invite(Player leader, Player target) {
-        if (leader == null || target == null) return Result.NOT_IN_GUILD;
+        if (shuttingDown || leader == null || target == null) return Result.NOT_IN_GUILD;
         GuildData guild = guilds.get(memberGuilds.get(leader.getUniqueId()));
         if (guild == null) return Result.NOT_IN_GUILD;
         if (!guild.leaderId().equals(leader.getUniqueId())) return Result.NOT_LEADER;
@@ -93,73 +111,147 @@ public final class GuildManager implements GuildAPI {
         if (getGuild(target.getUniqueId()).isPresent()) return Result.TARGET_ALREADY_IN_GUILD;
         invitations.put(target.getUniqueId(), new Invitation(guild.id(), System.currentTimeMillis()));
         target.sendMessage(Component.text("Du wurdest in die Gilde „" + guild.name() + "“ eingeladen. Nutze /gildeannehmen, um beizutreten.", NamedTextColor.GOLD));
-        leader.sendMessage(Component.text("Einladung an " + target.getName() + " gesendet.", NamedTextColor.GREEN)); return Result.SUCCESS;
+        leader.sendMessage(Component.text("Einladung an " + target.getName() + " gesendet.", NamedTextColor.GREEN));
+        return Result.SUCCESS;
     }
 
     public synchronized Result acceptInvitation(Player player) {
+        if (shuttingDown || player == null) return Result.NO_INVITATION;
         Invitation invitation = invitations.remove(player.getUniqueId());
         if (invitation == null) return Result.NO_INVITATION;
         GuildData guild = guilds.get(invitation.guildId());
         if (guild == null) return Result.GUILD_NOT_FOUND;
         if (getGuild(player.getUniqueId()).isPresent()) return Result.ALREADY_IN_GUILD;
         if (guild.members().size() >= MAX_MEMBERS) return Result.GUILD_FULL;
-        guild.members().add(player.getUniqueId()); memberGuilds.put(player.getUniqueId(), guild.id()); save(); return Result.SUCCESS;
+        guild.members().add(player.getUniqueId());
+        memberGuilds.put(player.getUniqueId(), guild.id());
+        save();
+        return Result.SUCCESS;
     }
 
     public synchronized Result leave(Player player) {
+        if (shuttingDown || player == null) return Result.NOT_IN_GUILD;
         GuildData guild = guilds.get(memberGuilds.get(player.getUniqueId()));
         if (guild == null) return Result.NOT_IN_GUILD;
         if (guild.leaderId().equals(player.getUniqueId())) return Result.LEADER_CANNOT_LEAVE;
-        guild.members().remove(player.getUniqueId()); memberGuilds.remove(player.getUniqueId()); save(); return Result.SUCCESS;
+        guild.members().remove(player.getUniqueId());
+        memberGuilds.remove(player.getUniqueId());
+        save();
+        return Result.SUCCESS;
     }
 
-    public Optional<Guild> getGuild(UUID playerId) {
+    public synchronized Optional<Guild> getGuild(UUID playerId) {
         if (playerId == null) return Optional.empty();
         UUID guildId = memberGuilds.get(playerId);
         if (guildId == null) return Optional.empty();
         GuildData data = guilds.get(guildId);
         return data == null ? Optional.empty() : Optional.of(data.snapshot());
     }
-    public Optional<Guild> getGuildByName(String name) { return guilds.values().stream().filter(g -> g.name().equalsIgnoreCase(name)).findFirst().map(GuildData::snapshot); }
-    public Set<UUID> getMembers(UUID guildId) { GuildData guild = guilds.get(guildId); return guild == null ? Set.of() : Set.copyOf(guild.members()); }
-    public boolean isMember(UUID guildId, UUID playerId) { GuildData guild = guilds.get(guildId); return guild != null && guild.members().contains(playerId); }
+
+    public synchronized Optional<Guild> getGuildByName(String name) {
+        return guilds.values().stream().filter(g -> g.name().equalsIgnoreCase(name)).findFirst().map(GuildData::snapshot);
+    }
+
+    public synchronized Set<UUID> getMembers(UUID guildId) {
+        GuildData guild = guilds.get(guildId);
+        return guild == null ? Set.of() : Set.copyOf(guild.members());
+    }
+
+    public synchronized boolean isMember(UUID guildId, UUID playerId) {
+        GuildData guild = guilds.get(guildId);
+        return guild != null && guild.members().contains(playerId);
+    }
 
     public synchronized Result disband(Player player) {
+        if (shuttingDown || player == null) return Result.NOT_IN_GUILD;
         GuildData guild = guilds.get(memberGuilds.get(player.getUniqueId()));
         if (guild == null) return Result.NOT_IN_GUILD;
         if (!guild.leaderId().equals(player.getUniqueId())) return Result.NOT_LEADER;
-        guild.members().forEach(memberGuilds::remove); guilds.remove(guild.id()); save(); return Result.SUCCESS;
+        guild.members().forEach(memberGuilds::remove);
+        guilds.remove(guild.id());
+        save();
+        return Result.SUCCESS;
     }
 
-    @Override public boolean isRegistered(UUID uuid) { return getGuild(uuid).isPresent(); }
-    @Override public int getLevel(UUID uuid) { return getGuild(uuid).isPresent() ? 1 : 0; }
+    @Override public synchronized boolean isRegistered(UUID uuid) { return getGuild(uuid).isPresent(); }
+    @Override public synchronized int getLevel(UUID uuid) { return getGuild(uuid).isPresent() ? 1 : 0; }
     @Override public long getExperience(UUID uuid) { return 0L; }
     @Override public void addExperience(UUID uuid, long amount) { }
 
     private boolean isValidName(String name) { return name != null && name.trim().length() >= 3 && name.trim().length() <= 24 && name.trim().matches("[A-Za-z0-9ÄÖÜäöüß _-]+"); }
     private String normalize(String name) { return name.trim().replaceAll("\\s+", " "); }
 
-    private void load() {
+    private synchronized void load() {
         YamlConfiguration data = YamlConfiguration.loadConfiguration(file);
-        var section = data.getConfigurationSection("guilds"); if (section == null) return;
+        var section = data.getConfigurationSection("guilds");
+        if (section == null) return;
         for (String idText : section.getKeys(false)) {
             try {
-                UUID id = UUID.fromString(idText); String name = section.getString(idText + ".name");
+                UUID id = UUID.fromString(idText);
+                String name = section.getString(idText + ".name");
                 UUID leader = UUID.fromString(Objects.requireNonNull(section.getString(idText + ".leader")));
                 LinkedHashSet<UUID> members = new LinkedHashSet<>();
                 for (String text : section.getStringList(idText + ".members")) members.add(UUID.fromString(text));
                 if (members.isEmpty()) members.add(leader);
-                GuildData guild = new GuildData(id, name, leader, members); guilds.put(id, guild); members.forEach(member -> memberGuilds.put(member, id));
-            } catch (Exception exception) { plugin.getLogger().warning("Skipping malformed guild definition " + idText + "."); }
+                GuildData guild = new GuildData(id, name, leader, members);
+                guilds.put(id, guild);
+                members.forEach(member -> memberGuilds.put(member, id));
+            } catch (Exception exception) {
+                plugin.getLogger().warning("Skipping malformed guild definition " + idText + ".");
+            }
         }
     }
 
+    /** Captures an immutable YAML representation on the server thread and writes it sequentially off-thread. */
     private synchronized void save() {
-        YamlConfiguration data = new YamlConfiguration();
+        if (shuttingDown || persistenceExecutor.isShutdown()) return;
+        YamlConfiguration snapshot = new YamlConfiguration();
         for (GuildData guild : guilds.values()) {
-            String path = "guilds." + guild.id(); data.set(path + ".name", guild.name()); data.set(path + ".leader", guild.leaderId().toString()); data.set(path + ".members", guild.members().stream().map(UUID::toString).toList());
+            String path = "guilds." + guild.id();
+            snapshot.set(path + ".name", guild.name());
+            snapshot.set(path + ".leader", guild.leaderId().toString());
+            snapshot.set(path + ".members", guild.members().stream().map(UUID::toString).toList());
         }
-        try { data.save(file); } catch (IOException exception) { plugin.getLogger().severe("Could not save guilds.yml: " + exception.getMessage()); }
+        enqueuePersistence(snapshot);
+    }
+
+    private synchronized void enqueuePersistence(YamlConfiguration snapshot) {
+        persistenceChain = persistenceChain.handle((ignored, throwable) -> null)
+                .thenRunAsync(() -> writeAtomically(snapshot), persistenceExecutor);
+    }
+
+    private void writeAtomically(YamlConfiguration snapshot) {
+        Path target = file.toPath();
+        Path temporary = target.resolveSibling(file.getName() + ".tmp");
+        try {
+            snapshot.save(temporary.toFile());
+            try {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException exception) {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException exception) {
+            try { Files.deleteIfExists(temporary); } catch (IOException ignored) { }
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Could not save guilds.yml", exception);
+        }
+    }
+
+    /** Flushes queued guild persistence and releases the dedicated executor. */
+    public synchronized void shutdown() {
+        if (shuttingDown) return;
+        shuttingDown = true;
+        persistenceExecutor.shutdown();
+        try {
+            if (!persistenceExecutor.awaitTermination(10, TimeUnit.SECONDS)) persistenceExecutor.shutdownNow();
+        } catch (InterruptedException exception) {
+            persistenceExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        guilds.clear();
+        memberGuilds.clear();
+        invitations.clear();
+        Bukkit.getServicesManager().unregister(GuildAPI.class, this);
+        if (instance == this) instance = null;
     }
 
     public enum Result { SUCCESS, NOT_REGISTERED, ALREADY_IN_GUILD, LEVEL_TOO_LOW, INVALID_NAME, NAME_TAKEN, INSUFFICIENT_GOLD, NOT_IN_GUILD, NOT_LEADER, GUILD_FULL, TARGET_ALREADY_IN_GUILD, NO_INVITATION, GUILD_NOT_FOUND, LEADER_CANNOT_LEAVE }
