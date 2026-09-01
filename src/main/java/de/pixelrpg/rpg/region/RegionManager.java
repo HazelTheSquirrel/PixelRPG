@@ -12,12 +12,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Central source of truth for PixelRPG regions and their runtime spatial index. */
+/** Central source of truth for PixelRPG regions and their runtime spatial indexes. */
 public final class RegionManager {
     private final RegionRepository repository;
     private final Map<UUID, PixelRegion> regions = new ConcurrentHashMap<>();
     private final Map<String, PixelRegion> globalRegions = new ConcurrentHashMap<>();
     private final Map<ChunkKey, List<UUID>> index = new ConcurrentHashMap<>();
+    private final Map<ChunkKey, List<RegionSpawnPoint>> spawnPointIndex = new ConcurrentHashMap<>();
 
     public RegionManager(RegionRepository repository) { this.repository = repository; }
 
@@ -25,6 +26,7 @@ public final class RegionManager {
         regions.clear();
         globalRegions.clear();
         index.clear();
+        spawnPointIndex.clear();
         repository.load().forEach(this::registerLoaded);
         repository.loadGlobalFlags().forEach((world, flags) -> globalRegions.put(world, PixelRegion.global(world, flags)));
         Bukkit.getWorlds().forEach(world -> globalRegion(world.getName()));
@@ -60,6 +62,7 @@ public final class RegionManager {
         );
         regions.put(id, region);
         addToIndex(region);
+        addSpawnPointsToIndex(region);
         save();
         return RegionGeometry.ValidationResult.valid(validation.geometry());
     }
@@ -68,6 +71,7 @@ public final class RegionManager {
         PixelRegion removed = regions.remove(id);
         if (removed == null) return false;
         removeFromIndex(removed);
+        removeSpawnPointsFromIndex(removed);
         save();
         return true;
     }
@@ -110,9 +114,9 @@ public final class RegionManager {
     public boolean isExplicitSpawnPoint(Location location, String mobType) {
         if (location == null || location.getWorld() == null || mobType == null) return false;
         String normalized = SpawnMobType.normalize(mobType);
-        return regions.values().stream()
-                .filter(region -> region.worldName().equals(location.getWorld().getName()))
-                .flatMap(region -> region.spawnPoints().stream())
+        List<RegionSpawnPoint> candidates = spawnPointIndex.getOrDefault(
+                new ChunkKey(location.getWorld().getName(), floorChunk(location.getX()), floorChunk(location.getZ())), List.of());
+        return candidates.stream()
                 .filter(point -> point.mobType().equalsIgnoreCase(normalized))
                 .anyMatch(point -> Math.abs(point.x() - location.getX()) < 0.01D
                         && Math.abs(point.y() - location.getY()) < 0.01D
@@ -144,6 +148,7 @@ public final class RegionManager {
     private void registerLoaded(PixelRegion region) {
         regions.put(region.id(), region);
         addToIndex(region);
+        addSpawnPointsToIndex(region);
     }
 
     /** Adds a region only to the chunks covered by its bounding box. */
@@ -164,6 +169,17 @@ public final class RegionManager {
         }
     }
 
+    private void addSpawnPointsToIndex(PixelRegion region) {
+        for (RegionSpawnPoint point : region.spawnPoints()) {
+            ChunkKey key = new ChunkKey(point.worldName(), floorChunk(point.x()), floorChunk(point.z()));
+            spawnPointIndex.compute(key, (ignored, current) -> {
+                List<RegionSpawnPoint> updated = current == null ? new ArrayList<>() : new ArrayList<>(current);
+                updated.add(point);
+                return List.copyOf(updated);
+            });
+        }
+    }
+
     /** Removes one region from the spatial index without rebuilding unrelated chunks. */
     private void removeFromIndex(PixelRegion region) {
         int minChunkX = floorChunk(region.geometry().minX());
@@ -178,6 +194,18 @@ public final class RegionManager {
                     return updated.isEmpty() ? null : updated;
                 });
             }
+        }
+    }
+
+    private void removeSpawnPointsFromIndex(PixelRegion region) {
+        for (RegionSpawnPoint point : region.spawnPoints()) {
+            ChunkKey key = new ChunkKey(point.worldName(), floorChunk(point.x()), floorChunk(point.z()));
+            spawnPointIndex.computeIfPresent(key, (ignored, current) -> {
+                List<RegionSpawnPoint> updated = current.stream()
+                        .filter(existing -> existing != point)
+                        .toList();
+                return updated.isEmpty() ? null : updated;
+            });
         }
     }
 
