@@ -130,7 +130,38 @@ public final class PlayerProfile {
     public synchronized void addPlaytimeMillis(long amount) { if (amount > 0L) { playtimeMillis += amount; dirty = true; } }
     public synchronized void setPlaytimeMillis(long value) { playtimeMillis = value; dirty = true; }
     public synchronized boolean isDirty() { return dirty; }
-    public synchronized boolean beginSave() { if (!dirty) return false; dirty = false; return true; }
+
+    /** Creates an immutable-by-convention persistence copy and atomically acknowledges the current dirty state. */
+    public synchronized PlayerProfile snapshotForSave() {
+        if (!dirty) return null;
+        PlayerProfile snapshot = new PlayerProfile(uuid);
+        snapshot.registered = registered;
+        snapshot.experience = experience;
+        snapshot.money = money;
+        snapshot.professionLevels.clear();
+        snapshot.professionLevels.putAll(professionLevels);
+        snapshot.professionExperience.clear();
+        snapshot.professionExperience.putAll(professionExperience);
+        snapshot.learnedProfessions.addAll(learnedProfessions);
+        snapshot.unlockedRecipes.addAll(unlockedRecipes);
+        snapshot.unlockedWaypoints.addAll(unlockedWaypoints);
+        snapshot.storyChapterIndex = storyChapterIndex;
+        for (QuestProgress progress : activeQuests.values()) {
+            snapshot.activeQuests.put(progress.getQuestId(), new QuestProgress(
+                    progress.getQuestId(), progress.getCurrentAmount(), progress.getExpiryTimestampMillis()));
+        }
+        snapshot.completedQuests.addAll(completedQuests);
+        snapshot.statistics.putAll(statistics);
+        equipment.forEach((slot, item) -> snapshot.equipment.put(slot, item.clone()));
+        snapshot.scoreboardEnabled = scoreboardEnabled;
+        snapshot.partyHudEnabled = partyHudEnabled;
+        snapshot.questTrackerEnabled = questTrackerEnabled;
+        snapshot.playtimeMillis = playtimeMillis;
+        snapshot.dirty = false;
+        dirty = false;
+        return snapshot;
+    }
+
     public synchronized void markDirty() { dirty = true; }
     public synchronized void markClean() { dirty = false; }
 
