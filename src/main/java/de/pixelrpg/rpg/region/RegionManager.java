@@ -10,7 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /** Central source of truth for PixelRPG regions and their runtime spatial indexes. */
 public final class RegionManager {
@@ -19,8 +23,17 @@ public final class RegionManager {
     private final Map<String, PixelRegion> globalRegions = new ConcurrentHashMap<>();
     private final Map<ChunkKey, List<UUID>> index = new ConcurrentHashMap<>();
     private final Map<ChunkKey, List<RegionSpawnPoint>> spawnPointIndex = new ConcurrentHashMap<>();
+    private final ExecutorService persistenceExecutor;
+    private CompletableFuture<Void> persistenceChain = CompletableFuture.completedFuture(null);
 
-    public RegionManager(RegionRepository repository) { this.repository = repository; }
+    public RegionManager(RegionRepository repository) {
+        this.repository = repository;
+        this.persistenceExecutor = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-RegionIO");
+            thread.setDaemon(true);
+            return thread;
+        });
+    }
 
     public void load() {
         regions.clear();
@@ -58,7 +71,7 @@ public final class RegionManager {
                 id, worldName, validation.geometry(), minY, maxY,
                 name == null || name.isBlank() ? id.toString() : name,
                 type == null ? RegionType.OTHER : type, "", null, null, "", "", 0,
-                Map.of(), Map.of(), spawnPoints
+                Map.of(), Map.of(), spawnPoints == null ? List.of() : List.copyOf(spawnPoints)
         );
         regions.put(id, region);
         addToIndex(region);
@@ -76,14 +89,20 @@ public final class RegionManager {
         return true;
     }
 
-    public synchronized void save() { repository.save(regions.values()); }
+    /** Captures the current region state on the server thread and persists it sequentially off-thread. */
+    public synchronized void save() {
+        List<PixelRegion> snapshot = regions.values().stream().map(RegionManager::snapshot).toList();
+        enqueuePersistence(() -> repository.save(snapshot));
+    }
 
+    /** Captures global region flags before persisting them on the dedicated region I/O executor. */
     public synchronized void setGlobalFlag(String worldName, RegionFlag flag, boolean enabled) {
-        if (worldName == null || worldName.isBlank()) return;
+        if (worldName == null || worldName.isBlank() || flag == null) return;
         PixelRegion global = globalRegions.computeIfAbsent(worldName, world -> PixelRegion.global(world, defaultGlobalFlags()));
         global.setFlag(flag, enabled);
-        repository.saveGlobalFlags(globalRegions.entrySet().stream()
-                .collect(java.util.stream.Collectors.toUnmodifiableMap(Map.Entry::getKey, entry -> entry.getValue().flags())));
+        Map<String, Map<RegionFlag, Boolean>> snapshot = globalRegions.entrySet().stream()
+                .collect(java.util.stream.Collectors.toUnmodifiableMap(Map.Entry::getKey, entry -> entry.getValue().flags()));
+        enqueuePersistence(() -> repository.saveGlobalFlags(snapshot));
     }
 
     public Optional<PixelRegion> find(World world, double x, int y, double z) {
@@ -104,7 +123,7 @@ public final class RegionManager {
 
     /** Resolves a flag from the most specific region, falling back to the world's global region when unset. */
     public boolean hasFlag(Location location, RegionFlag flag) {
-        if (location == null || location.getWorld() == null) return true;
+        if (location == null || location.getWorld() == null || flag == null) return true;
         Optional<PixelRegion> local = findLocal(location);
         if (local.isPresent() && local.get().hasFlag(flag)) return local.get().flag(flag);
         return globalRegion(location.getWorld().getName()).flag(flag);
@@ -134,6 +153,20 @@ public final class RegionManager {
 
     public PixelRegion globalRegion(String worldName) {
         return globalRegions.computeIfAbsent(worldName, world -> PixelRegion.global(world, defaultGlobalFlags()));
+    }
+
+    public void shutdown() {
+        persistenceExecutor.shutdown();
+        try {
+            if (!persistenceExecutor.awaitTermination(10, TimeUnit.SECONDS)) persistenceExecutor.shutdownNow();
+        } catch (InterruptedException exception) {
+            persistenceExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        regions.clear();
+        globalRegions.clear();
+        index.clear();
+        spawnPointIndex.clear();
     }
 
     private static Map<RegionFlag, Boolean> defaultGlobalFlags() {
@@ -201,12 +234,22 @@ public final class RegionManager {
         for (RegionSpawnPoint point : region.spawnPoints()) {
             ChunkKey key = new ChunkKey(point.worldName(), floorChunk(point.x()), floorChunk(point.z()));
             spawnPointIndex.computeIfPresent(key, (ignored, current) -> {
-                List<RegionSpawnPoint> updated = current.stream()
-                        .filter(existing -> existing != point)
-                        .toList();
+                List<RegionSpawnPoint> updated = current.stream().filter(existing -> existing != point).toList();
                 return updated.isEmpty() ? null : updated;
             });
         }
+    }
+
+    private void enqueuePersistence(Runnable write) {
+        persistenceChain = persistenceChain.handle((ignored, throwable) -> null)
+                .thenRunAsync(write, persistenceExecutor);
+    }
+
+    private static PixelRegion snapshot(PixelRegion region) {
+        return new PixelRegion(
+                region.id(), region.worldName(), region.geometry(), region.minY(), region.maxY(), region.name(),
+                region.type(), region.description(), region.ownerGuildId(), region.ownerGuildName(), region.enterMessage(),
+                region.leaveMessage(), region.priority(), region.flags(), region.properties(), region.spawnPoints());
     }
 
     private static int floorChunk(double coordinate) { return Math.floorDiv((int) Math.floor(coordinate), 16); }
