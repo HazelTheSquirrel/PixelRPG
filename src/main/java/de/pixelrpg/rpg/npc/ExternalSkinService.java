@@ -13,6 +13,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.LinkedHashMap;
@@ -26,6 +27,7 @@ public final class ExternalSkinService {
     private static final String TEXTURES_HOST = "textures.minecraft.net";
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(15);
     private static final int MAX_CACHE_ENTRIES = 512;
+    private static final int MAX_RESPONSE_BYTES = 256 * 1024;
     private static final long CACHE_TTL_MILLIS = Duration.ofHours(12).toMillis();
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .connectTimeout(REQUEST_TIMEOUT)
@@ -72,15 +74,19 @@ public final class ExternalSkinService {
                 .header("Authorization", "Bearer " + apiKey)
                 .header("Content-Type", "application/json")
                 .header("Accept", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(requestJson.toString()))
+                .POST(HttpRequest.BodyPublishers.ofString(requestJson.toString(), StandardCharsets.UTF_8))
                 .build();
 
-        return HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        return HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
                 .thenApply(response -> {
                     if (response.statusCode() != 200) {
                         throw new IllegalStateException("MineSkin returned HTTP " + response.statusCode());
                     }
-                    return parseTextureProperty(response.body());
+                    byte[] body = response.body();
+                    if (body.length > MAX_RESPONSE_BYTES) {
+                        throw new IllegalStateException("MineSkin response exceeded the configured size limit");
+                    }
+                    return parseTextureProperty(new String(body, StandardCharsets.UTF_8));
                 })
                 .thenApply(property -> {
                     putCached(normalized, property);
@@ -103,7 +109,8 @@ public final class ExternalSkinService {
                 }
                 mannequin.setProfile(ResolvableProfile.resolvableProfile().addProperty(property).build());
                 Bukkit.getOnlinePlayers().forEach(player -> {
-                    if (player.getWorld().equals(mannequin.getWorld()) && player.getLocation().distanceSquared(mannequin.getLocation()) <= 4096.0D) {
+                    if (player.getWorld().equals(mannequin.getWorld())
+                            && player.getLocation().distanceSquared(mannequin.getLocation()) <= 4096.0D) {
                         player.hideEntity(plugin, mannequin);
                         player.showEntity(plugin, mannequin);
                     }
@@ -125,22 +132,30 @@ public final class ExternalSkinService {
 
     private static ProfileProperty parseTextureProperty(String responseBody) {
         JsonObject root = JsonParser.parseString(responseBody).getAsJsonObject();
-        JsonObject textureData = root.getAsJsonObject("skin").getAsJsonObject("texture").getAsJsonObject("data");
-        String value = textureData.get("value").getAsString();
-        String signature = textureData.get("signature").getAsString();
+        JsonObject skin = root.getAsJsonObject("skin");
+        if (skin == null) throw new IllegalStateException("MineSkin response did not contain skin data");
+        JsonObject texture = skin.getAsJsonObject("texture");
+        if (texture == null) throw new IllegalStateException("MineSkin response did not contain texture data");
+        JsonObject data = texture.getAsJsonObject("data");
+        if (data == null) throw new IllegalStateException("MineSkin response did not contain texture payload");
+        String value = data.has("value") ? data.get("value").getAsString() : "";
+        String signature = data.has("signature") ? data.get("signature").getAsString() : "";
         if (value.isBlank() || signature.isBlank()) throw new IllegalStateException("MineSkin returned incomplete texture data");
         return new ProfileProperty("textures", value, signature);
     }
 
     private static ProfileProperty unsignedTextureProperty(String textureUrl) {
         String json = "{\"textures\":{\"SKIN\":{\"url\":\"" + escapeJson(textureUrl) + "\"}}}";
-        String encoded = Base64.getEncoder().encodeToString(json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        String encoded = Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
         return new ProfileProperty("textures", encoded);
     }
 
     private static boolean isMinecraftTextureUrl(String url) {
         URI uri = URI.create(url);
-        return TEXTURES_HOST.equalsIgnoreCase(uri.getHost()) && uri.getPath() != null && uri.getPath().startsWith("/texture/");
+        return "https".equalsIgnoreCase(uri.getScheme())
+                && TEXTURES_HOST.equalsIgnoreCase(uri.getHost())
+                && uri.getPath() != null
+                && uri.getPath().startsWith("/texture/");
     }
 
     private static String normalizeUrl(String raw) {
@@ -155,12 +170,15 @@ public final class ExternalSkinService {
         }
         String scheme = uri.getScheme();
         if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) || uri.getHost() == null) return null;
+        if (uri.getUserInfo() != null || uri.getFragment() != null) return null;
         return uri.toString();
     }
 
     private static boolean isSafeExternalHost(String value) {
         try {
-            InetAddress[] addresses = InetAddress.getAllByName(URI.create(value).getHost());
+            URI uri = URI.create(value);
+            if (!"https".equalsIgnoreCase(uri.getScheme())) return false;
+            InetAddress[] addresses = InetAddress.getAllByName(uri.getHost());
             for (InetAddress address : addresses) {
                 if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
                         || address.isSiteLocalAddress() || address.isMulticastAddress()) return false;
