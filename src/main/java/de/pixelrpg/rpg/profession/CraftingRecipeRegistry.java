@@ -14,7 +14,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-/** Registry for PixelRPG-only profession recipes with one canonical ID format. */
+/** Registry for PixelRPG profession recipes and their cross-profession production chains. */
 public final class CraftingRecipeRegistry {
     private static final String RECIPE_DATA_PATH = "recipes/crafting-recipes.json";
     private final Map<String, CraftRecipe> recipes = new LinkedHashMap<>();
@@ -54,15 +54,9 @@ public final class CraftingRecipeRegistry {
 
     private void loadDefinitions(Plugin plugin) {
         JsonObject root = new JsonDataManager(plugin).load(RECIPE_DATA_PATH);
-        if (root.has("generatedProfessionRecipes")) {
-            loadGeneratedDefinitions(root.getAsJsonObject("generatedProfessionRecipes"));
-        }
-        if (root.has("recipes")) {
-            loadExplicitDefinitions(root.getAsJsonArray("recipes"));
-        }
-        if (recipes.isEmpty()) {
-            throw new IllegalStateException("crafting-recipes.json requires 'recipes' or 'generatedProfessionRecipes'");
-        }
+        if (root.has("generatedProfessionRecipes")) loadGeneratedDefinitions(root.getAsJsonObject("generatedProfessionRecipes"));
+        if (root.has("recipes")) loadExplicitDefinitions(root.getAsJsonArray("recipes"));
+        if (recipes.isEmpty()) throw new IllegalStateException("crafting-recipes.json requires 'recipes' or 'generatedProfessionRecipes'");
     }
 
     private void loadExplicitDefinitions(JsonArray definitions) {
@@ -110,34 +104,14 @@ public final class CraftingRecipeRegistry {
                 int level = index == 0 ? 1 : index * 5;
                 String label = labels.get(index).getAsString();
                 Material result = resolveResultMaterial(results.get(index).getAsString());
-                if (result == null || result.isAir()) {
-                    throw new IllegalStateException("Unknown generated result for " + key + " #" + (index + 1));
-                }
+                if (result == null || result.isAir()) throw new IllegalStateException("Unknown generated result for " + key + " #" + (index + 1));
 
                 String recipeId = key.toLowerCase(Locale.ROOT) + ":" + String.format(Locale.ROOT, "%02d_%s", index + 1, slug(label));
-                String resultItemId = "pixelrpg:" + recipeId.replace(':', '/');
+                String resultItemId = "pixelrpg:" + recipeId;
 
-                Map<Material, Integer> costs = generatedMaterialCosts(profession, index, result);
-                Map<String, Integer> itemCosts = index == 0
-                        ? Map.of()
-                        : Map.of(previousGeneratedItemId(profession, labels, index), 1);
-
-                String potionType = "";
-                String enchantment = "";
-                int enchantmentLevel = 0;
-                if (profession == Profession.ALCHEMIST) {
-                    potionType = (index == 3 || index == 8 || index == 12 || index == 17) ? "HEALING" : "WATER";
-                } else if (profession == Profession.SCHOLAR) {
-                    switch (index) {
-                        case 7 -> { enchantment = "efficiency"; enchantmentLevel = 3; }
-                        case 8 -> { enchantment = "protection"; enchantmentLevel = 3; }
-                        case 9 -> { enchantment = "sharpness"; enchantmentLevel = 3; }
-                        case 10 -> { enchantment = "unbreaking"; enchantmentLevel = 2; }
-                        case 11 -> { enchantment = "fortune"; enchantmentLevel = 2; }
-                        case 12 -> { enchantment = "mending"; enchantmentLevel = 1; }
-                        default -> { }
-                    }
-                }
+                String potionType = generatedPotionType(profession, index);
+                String enchantment = generatedEnchantment(profession, index);
+                int enchantmentLevel = generatedEnchantmentLevel(profession, index);
 
                 addRecipe(
                         recipeId,
@@ -146,12 +120,12 @@ public final class CraftingRecipeRegistry {
                         result,
                         1,
                         generatedRarity(index),
-                        costs,
-                        itemCosts,
+                        generatedMaterialCosts(profession, index),
+                        generatedItemCosts(profession, index, labels),
                         level,
                         100L + (index * 250L),
                         "",
-                        false,
+                        index == 0,
                         resultItemId,
                         potionType,
                         enchantment,
@@ -180,23 +154,9 @@ public final class CraftingRecipeRegistry {
             int enchantmentLevel
     ) {
         recipes.put(id, new CraftRecipe(
-                profession,
-                id,
-                label,
-                result,
-                resultAmount,
-                rarity,
-                costs,
-                itemCosts,
-                level,
-                unlockPrice,
-                requiredQuestId,
-                unlockedByDefault,
-                false,
-                resultItemId,
-                potionType,
-                enchantment,
-                enchantmentLevel
+                profession, id, label, result, resultAmount, rarity, costs, itemCosts,
+                level, unlockPrice, requiredQuestId, unlockedByDefault, false,
+                resultItemId, potionType, enchantment, enchantmentLevel
         ));
     }
 
@@ -210,20 +170,95 @@ public final class CraftingRecipeRegistry {
         };
     }
 
-    private static String previousGeneratedItemId(Profession profession, JsonArray labels, int index) {
-        String previousLabel = labels.get(index - 1).getAsString();
-        String recipeId = profession.name().toLowerCase(Locale.ROOT) + ":" +
-                String.format(Locale.ROOT, "%02d_%s", index, slug(previousLabel));
-        return "pixelrpg:" + recipeId.replace(':', '/');
+    private static Map<String, Integer> generatedItemCosts(Profession profession, int index, JsonArray labels) {
+        if (index == 0) return Map.of();
+        Map<String, Integer> costs = new LinkedHashMap<>();
+        String ownPrevious = generatedItemId(profession, labels.get(index - 1).getAsString(), index);
+
+        switch (profession) {
+            case BLACKSMITH -> switch (index) {
+                case 7 -> costs.put(ownItemId(profession, labels, 1), 1);
+                case 8 -> costs.put(ownItemId(profession, labels, 2), 1);
+                case 9 -> costs.put(ownItemId(profession, labels, 8), 1);
+                case 10 -> costs.put(ownItemId(profession, labels, 9), 1);
+                case 11, 12, 13, 14 -> costs.put(ownItemId(profession, labels, 10), index == 14 ? 2 : 1);
+                case 15 -> costs.put(ownItemId(profession, labels, 10), 1);
+                case 16 -> costs.put(ownItemId(profession, labels, 11), 1);
+                case 17 -> costs.put(ownItemId(profession, labels, 12), 1);
+                case 18 -> costs.put(ownItemId(profession, labels, 13), 1);
+                case 19 -> costs.put(ownItemId(profession, labels, 14), 1);
+                default -> costs.put(ownPrevious, 1);
+            };
+            case SCHOLAR -> {
+                if (index == 18) {
+                    costs.put(ownItemId(profession, labels, 17), 1);
+                    costs.put("pixelrpg:alchemist:17_arkankatalysator", 1);
+                } else if (index == 15) {
+                    costs.put(ownItemId(profession, labels, 14), 1);
+                    costs.put(ownItemId(profession, labels, 6), 1);
+                } else {
+                    costs.put(ownPrevious, index >= 8 && index <= 13 ? 1 : 1);
+                }
+            }
+            case FARMER, TAILOR, FISHERMAN, WOODCUTTER -> costs.put(ownPrevious, 1);
+            case COOK -> {
+                if (index == 2 || index == 3 || index == 5 || index == 7 || index == 10 || index == 13 || index == 15) {
+                    costs.put(ownPrevious, 1);
+                    costs.put(farmerDependency(index), 1);
+                } else if (index == 16) {
+                    costs.put(ownPrevious, 1);
+                    costs.put("pixelrpg:alchemist:04_heilelixier", 1);
+                } else {
+                    costs.put(ownPrevious, 1);
+                }
+            }
+            case ALCHEMIST -> {
+                costs.put(ownPrevious, 1);
+                if (index == 2 || index == 3) costs.put("pixelrpg:farmer:13_melonernte", 1);
+                if (index == 9) costs.put("pixelrpg:fisherman:05_kugelfischfang", 1);
+                if (index == 16) costs.put("pixelrpg:scholar:15_arkanes_archiv", 1);
+            }
+            case MASON -> {
+                costs.put(ownPrevious, 1);
+                if (index == 11) costs.put("pixelrpg:fisherman:17_meeresjuwel", 1);
+                if (index == 16) costs.put("pixelrpg:blacksmith:16_netheritkern", 2);
+            }
+        }
+        return costs;
     }
 
-    private static Map<Material, Integer> generatedMaterialCosts(Profession profession, int index, Material result) {
+    private static String farmerDependency(int index) {
+        return switch (index) {
+            case 2 -> "pixelrpg:farmer:02_weizenbund";
+            case 3 -> "pixelrpg:farmer:04_kartoffelsack";
+            case 5 -> "pixelrpg:farmer:06_kuerbissaat";
+            case 7 -> "pixelrpg:farmer:15_honigwabenpaket";
+            case 10 -> "pixelrpg:farmer:03_karottenkorb";
+            case 13 -> "pixelrpg:farmer:02_weizenbund";
+            case 15 -> "pixelrpg:farmer:04_kartoffelsack";
+            default -> "pixelrpg:farmer:02_weizenbund";
+        };
+    }
+
+    private static String ownItemId(Profession profession, JsonArray labels, int oneBasedIndex) {
+        return generatedItemId(profession, labels.get(oneBasedIndex - 1).getAsString(), oneBasedIndex - 1);
+    }
+
+    private static String generatedItemId(Profession profession, String label, int zeroBasedIndex) {
+        String recipeId = profession.name().toLowerCase(Locale.ROOT) + ":" +
+                String.format(Locale.ROOT, "%02d_%s", zeroBasedIndex + 1, slug(label));
+        return "pixelrpg:" + recipeId;
+    }
+
+    private static Map<Material, Integer> generatedMaterialCosts(Profession profession, int index) {
         EnumMap<Material, Integer> costs = new EnumMap<>(Material.class);
         switch (profession) {
             case BLACKSMITH -> {
-                Material raw = index < 9 ? Material.IRON_INGOT : index < 12 ? Material.GOLD_INGOT : index < 17 ? Material.DIAMOND : Material.NETHERITE_INGOT;
-                costs.put(raw, index < 4 ? 2 : index < 12 ? 3 : 4);
+                Material raw = index < 8 ? Material.IRON_INGOT : index < 10 ? Material.GOLD_INGOT : index < 15 ? Material.DIAMOND : Material.NETHERITE_INGOT;
+                costs.put(raw, index < 4 ? 2 : index < 10 ? 3 : 4);
                 costs.put(Material.COAL, Math.min(4, 1 + index / 6));
+                if (index >= 10 && index < 15) costs.put(Material.IRON_INGOT, 2);
+                if (index >= 15) costs.put(Material.DIAMOND, 2);
             }
             case SCHOLAR -> {
                 costs.put(Material.PAPER, 2 + Math.min(6, index / 4));
@@ -261,7 +296,7 @@ public final class CraftingRecipeRegistry {
                 costs.put(Material.STRING, 1 + Math.min(4, index / 5));
             }
             case ALCHEMIST -> {
-                costs.put(Material.GLASS_BOTTLE, index < 16 ? 1 : 2);
+                costs.put(Material.GLASS_BOTTLE, 1);
                 Material reagent = switch (index % 8) {
                     case 0 -> Material.HONEY_BOTTLE;
                     case 1 -> Material.MELON_SLICE;
@@ -293,7 +328,6 @@ public final class CraftingRecipeRegistry {
                     default -> Material.PUFFERFISH;
                 };
                 costs.put(raw, 2 + Math.min(8, index / 3));
-                if (index >= 15) costs.put(Material.NAUTILUS_SHELL, 1);
             }
             case WOODCUTTER -> {
                 Material raw = switch (index % 6) {
@@ -305,10 +339,51 @@ public final class CraftingRecipeRegistry {
                     default -> Material.DARK_OAK_LOG;
                 };
                 costs.put(raw, 3 + Math.min(8, index / 3));
-                if (index >= 12) costs.put(Material.IRON_NUGGET, 2);
+                if (index >= 16) costs.put(Material.IRON_NUGGET, 4);
             }
         }
         return costs;
+    }
+
+    private static String generatedPotionType(Profession profession, int index) {
+        if (profession != Profession.ALCHEMIST) return "";
+        return switch (index) {
+            case 0, 2, 15, 16 -> "WATER";
+            case 1, 3, 12, 19 -> "HEALING";
+            case 4 -> "SPEED";
+            case 5, 13, 18 -> "STRENGTH";
+            case 6 -> "FIRE_RESISTANCE";
+            case 7 -> "NIGHT_VISION";
+            case 8, 17 -> "REGENERATION";
+            case 9 -> "WATER_BREATHING";
+            case 10 -> "LEAPING";
+            case 11 -> "INVISIBILITY";
+            case 14 -> "RESISTANCE";
+            default -> "WATER";
+        };
+    }
+
+    private static String generatedEnchantment(Profession profession, int index) {
+        if (profession != Profession.SCHOLAR) return "";
+        return switch (index) {
+            case 8 -> "efficiency";
+            case 9 -> "protection";
+            case 10 -> "sharpness";
+            case 11 -> "unbreaking";
+            case 12 -> "fortune";
+            case 13 -> "mending";
+            case 16 -> "unbreaking";
+            default -> "";
+        };
+    }
+
+    private static int generatedEnchantmentLevel(Profession profession, int index) {
+        if (profession != Profession.SCHOLAR) return 0;
+        return switch (index) {
+            case 8, 9, 10, 11, 12, 16 -> 3;
+            case 13 -> 1;
+            default -> 0;
+        };
     }
 
     private static Profession parseProfession(JsonObject json, String id) {
@@ -356,14 +431,14 @@ public final class CraftingRecipeRegistry {
     private static String canonicalRecipeId(String raw) {
         String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
         if (value.startsWith("pixelrpg:")) value = value.substring("pixelrpg:".length());
-        return value.replace(':', '/');
+        return value.replace('/', ':');
     }
 
     private static String canonicalItemId(String raw) {
         String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
         if (!value.startsWith("pixelrpg:")) value = "pixelrpg:" + value;
-        String body = value.substring("pixelrpg:".length()).replace(':', '/');
-        while (body.contains("//")) body = body.replace("//", "/");
+        String body = value.substring("pixelrpg:".length()).replace('/', ':');
+        while (body.contains("::")) body = body.replace("::", ":");
         return "pixelrpg:" + body;
     }
 
