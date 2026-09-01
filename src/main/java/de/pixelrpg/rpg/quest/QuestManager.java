@@ -42,8 +42,7 @@ public final class QuestManager {
     private final GlobalEventState globalEventState;
     private final double partyShareRange;
     private final ItemService itemService;
-    private final Map<UUID, Map<String, Long>> questTimers = new ConcurrentHashMap<>();
-    private BukkitTask timerTask;
+    private final Map<QuestTimerKey, BukkitTask> questExpiryTasks = new ConcurrentHashMap<>();
 
     public QuestManager(Plugin plugin, QuestRepository questRepository, PlayerProfileManager profileManager,
                         de.pixelrpg.rpg.api.GuildAPI guildAPI, GlobalEventState globalEventState, double partyShareRange) {
@@ -56,31 +55,26 @@ public final class QuestManager {
         if (this.itemService == null) throw new IllegalStateException("ItemService must be initialized before QuestManager.");
     }
 
+    /** Retained as a compatibility entry point; timed quests now use one-shot expiry tasks instead of polling. */
     public void startTimerCheckTask() {
-        if (timerTask != null) return;
-        timerTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            long now = System.currentTimeMillis();
-            for (Map.Entry<UUID, Map<String, Long>> playerEntry : new HashMap<>(questTimers).entrySet()) {
-                UUID uuid = playerEntry.getKey();
-                for (Map.Entry<String, Long> questEntry : new HashMap<>(playerEntry.getValue()).entrySet()) {
-                    if (now < questEntry.getValue()) continue;
-                    playerEntry.getValue().remove(questEntry.getKey());
-                    Bukkit.getScheduler().runTask(plugin, () -> {
-                        profileManager.getProfile(uuid).ifPresent(profile -> profile.removeActiveQuest(questEntry.getKey()));
-                        Player player = Bukkit.getPlayer(uuid);
-                        if (player != null && player.isOnline()) player.sendMessage(Component.text("Dein Quest-Vertrag ist abgelaufen!", NamedTextColor.RED));
-                    });
-                }
+        // Intentionally empty: every timed quest owns exactly one wake-up at its expiry.
+    }
+
+    /** Schedules persisted timed quests after a player has joined and their profile is active. */
+    public void restoreTimers(Player player) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered()) return;
+        for (QuestProgress progress : profile.getActiveQuests().values()) {
+            if (progress.hasExpiry()) {
+                Quest quest = questRepository.getQuest(progress.getQuestId());
+                if (quest != null) scheduleExpiry(player.getUniqueId(), quest.id(), progress.getExpiryTimestampMillis());
             }
-        }, 20L, 20L);
+        }
     }
 
     public void shutdown() {
-        if (timerTask != null) {
-            timerTask.cancel();
-            timerTask = null;
-        }
-        questTimers.clear();
+        questExpiryTasks.values().forEach(BukkitTask::cancel);
+        questExpiryTasks.clear();
     }
 
     public boolean canAccept(PlayerProfile profile, Quest quest) {
@@ -107,12 +101,42 @@ public final class QuestManager {
         long expiry = quest.hasTimeLimit() ? System.currentTimeMillis() + quest.durationMinutes() * 60_000L : 0L;
         profile.startQuest(new QuestProgress(quest.id(), 0, expiry));
         if (quest.hasTimeLimit()) {
-            questTimers.computeIfAbsent(player.getUniqueId(), ignored -> new ConcurrentHashMap<>()).put(quest.id(), expiry);
+            scheduleExpiry(player.getUniqueId(), quest.id(), expiry);
             player.sendMessage(Component.text("Zeitlimit: " + quest.durationMinutes() + " Minuten!", NamedTextColor.YELLOW));
         }
         player.sendMessage(Component.text("Quest angenommen: ").color(NamedTextColor.GREEN)
                 .append(Component.text(QuestText.titlePlain(player, quest), NamedTextColor.YELLOW)));
         return true;
+    }
+
+    private void scheduleExpiry(UUID playerId, String questId, long expiryMillis) {
+        QuestTimerKey key = new QuestTimerKey(playerId, questId);
+        BukkitTask old = questExpiryTasks.remove(key);
+        if (old != null) old.cancel();
+        long remainingMillis = expiryMillis - System.currentTimeMillis();
+        if (remainingMillis <= 0L) {
+            expireQuest(key);
+            return;
+        }
+        long delayTicks = Math.max(1L, (remainingMillis + 49L) / 50L);
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            questExpiryTasks.remove(key);
+            expireQuest(key);
+        }, delayTicks);
+        questExpiryTasks.put(key, task);
+    }
+
+    private void expireQuest(QuestTimerKey key) {
+        PlayerProfile profile = profileManager.getProfile(key.playerId()).orElse(null);
+        if (profile == null || !profile.isRegistered() || !profile.hasActiveQuest(key.questId())) return;
+        QuestProgress progress = profile.getActiveQuests().get(key.questId());
+        if (progress == null || !progress.isExpired()) {
+            if (progress != null) scheduleExpiry(key.playerId(), key.questId(), progress.getExpiryTimestampMillis());
+            return;
+        }
+        profile.removeActiveQuest(key.questId());
+        Player player = Bukkit.getPlayer(key.playerId());
+        if (player != null && player.isOnline()) player.sendMessage(Component.text("Dein Quest-Vertrag ist abgelaufen!", NamedTextColor.RED));
     }
 
     public boolean abandonQuest(Player player, String questId) {
@@ -189,21 +213,15 @@ public final class QuestManager {
             String rewardId = parts[0].trim();
             if (rewardId.toLowerCase(Locale.ROOT).startsWith("pixelrpg:")) {
                 int itemLevel = parts.length >= 2 ? Integer.parseInt(parts[1].trim()) : fallbackLevel;
-                itemService.createItem(canonicalItemId(rewardId), Math.max(1, itemLevel))
-                        .ifPresent(item -> player.getInventory().addItem(item));
+                itemService.createItem(canonicalItemId(rewardId), Math.max(1, itemLevel)).ifPresent(item -> player.getInventory().addItem(item));
                 return;
             }
-
             Material material = Material.matchMaterial(rewardId);
             if (material == null || material.isAir()) throw new IllegalArgumentException("Unknown material");
-            if (parts.length == 1) {
-                player.getInventory().addItem(new ItemStack(material));
-                return;
-            }
+            if (parts.length == 1) { player.getInventory().addItem(new ItemStack(material)); return; }
             ItemRarity rarity = ItemRarity.valueOf(parts[1].trim().toUpperCase(Locale.ROOT));
             int itemLevel = parts.length >= 3 ? Integer.parseInt(parts[2].trim()) : fallbackLevel;
-            itemService.createVanillaReward(material, rarity, Math.max(1, itemLevel))
-                    .ifPresent(item -> player.getInventory().addItem(item));
+            itemService.createVanillaReward(material, rarity, Math.max(1, itemLevel)).ifPresent(item -> player.getInventory().addItem(item));
         } catch (IllegalArgumentException exception) {
             plugin.getLogger().warning("Invalid quest reward item '" + definition + "'. Use MATERIAL, MATERIAL|RARITY|ITEM_LEVEL or pixelrpg:item-id|ITEM_LEVEL.");
         }
@@ -244,18 +262,13 @@ public final class QuestManager {
         int amount = 0;
         for (ItemStack item : player.getInventory().getContents()) {
             if (item == null || item.isEmpty()) continue;
-            if (material != null && item.getType() == material && !isSpecificRpgItemTarget(normalizedTarget)) {
-                amount += item.getAmount();
-                continue;
-            }
+            if (material != null && item.getType() == material && !isSpecificRpgItemTarget(normalizedTarget)) { amount += item.getAmount(); continue; }
             if (itemService.getItemId(item).map(id -> canonicalItemId(id).equals(normalizedTarget)).orElse(false)) amount += item.getAmount();
         }
         return amount;
     }
 
-    private boolean isSpecificRpgItemTarget(String normalizedTarget) {
-        return normalizedTarget.startsWith("pixelrpg:");
-    }
+    private boolean isSpecificRpgItemTarget(String normalizedTarget) { return normalizedTarget.startsWith("pixelrpg:"); }
 
     private String canonicalItemId(String key) {
         String normalized = key == null ? "" : key.trim().toLowerCase(Locale.ROOT);
@@ -276,8 +289,7 @@ public final class QuestManager {
             if (target == null || !player.getWorld().equals(target.getWorld())) continue;
             if (player.getLocation().distanceSquared(target) <= 64.0D) {
                 entry.getValue().setCurrentAmount(quest.requiredAmount());
-                player.sendMessage(Component.text("Ort erreicht: ").color(NamedTextColor.GREEN)
-                        .append(Component.text(QuestText.titlePlain(player, quest), NamedTextColor.YELLOW)));
+                player.sendMessage(Component.text("Ort erreicht: ").color(NamedTextColor.GREEN).append(Component.text(QuestText.titlePlain(player, quest), NamedTextColor.YELLOW)));
             }
         }
     }
@@ -328,8 +340,7 @@ public final class QuestManager {
         }
         if (!quest.targetBiomeKeys().isEmpty()) {
             var biomeRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME);
-            Biome[] biomes = quest.targetBiomeKeys().stream().map(org.bukkit.NamespacedKey::fromString)
-                    .filter(java.util.Objects::nonNull).map(biomeRegistry::get).filter(java.util.Objects::nonNull).toArray(Biome[]::new);
+            Biome[] biomes = quest.targetBiomeKeys().stream().map(org.bukkit.NamespacedKey::fromString).filter(java.util.Objects::nonNull).map(biomeRegistry::get).filter(java.util.Objects::nonNull).toArray(Biome[]::new);
             if (biomes.length > 0) {
                 var result = origin.getWorld().locateNearestBiome(origin, quest.navigationRadius(), biomes);
                 if (result != null) return result.getLocation();
@@ -363,10 +374,12 @@ public final class QuestManager {
     }
 
     private void removeTimer(UUID uuid, String questId) {
-        Map<String, Long> timers = questTimers.get(uuid);
-        if (timers != null) timers.remove(questId);
+        BukkitTask task = questExpiryTasks.remove(new QuestTimerKey(uuid, questId));
+        if (task != null) task.cancel();
     }
 
     private boolean isRegistered(UUID uuid) { return profileManager.getProfile(uuid).map(PlayerProfile::isRegistered).orElse(false); }
     public QuestRepository getRepository() { return questRepository; }
+
+    private record QuestTimerKey(UUID playerId, String questId) { }
 }
