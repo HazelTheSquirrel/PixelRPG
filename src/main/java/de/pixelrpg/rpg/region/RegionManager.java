@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.region;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
@@ -26,6 +27,7 @@ public final class RegionManager {
         index.clear();
         repository.load().forEach(this::registerLoaded);
         repository.loadGlobalFlags().forEach((world, flags) -> globalRegions.put(world, PixelRegion.global(world, flags)));
+        Bukkit.getWorlds().forEach(world -> globalRegion(world.getName()));
     }
 
     public Optional<PixelRegion> get(UUID id) { return Optional.ofNullable(regions.get(id)); }
@@ -74,7 +76,7 @@ public final class RegionManager {
 
     public synchronized void setGlobalFlag(String worldName, RegionFlag flag, boolean enabled) {
         if (worldName == null || worldName.isBlank()) return;
-        PixelRegion global = globalRegions.computeIfAbsent(worldName, world -> PixelRegion.global(world, Map.of()));
+        PixelRegion global = globalRegions.computeIfAbsent(worldName, world -> PixelRegion.global(world, defaultGlobalFlags()));
         global.setFlag(flag, enabled);
         repository.saveGlobalFlags(globalRegions.entrySet().stream()
                 .collect(java.util.stream.Collectors.toUnmodifiableMap(Map.Entry::getKey, entry -> entry.getValue().flags())));
