@@ -36,6 +36,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class ScoreboardService implements Listener {
     private static final int MAX_LINES = 15;
+    private static final String[] INVISIBLE_ENTRIES = {
+            "§0", "§1", "§2", "§3", "§4", "§5", "§6", "§7", "§8", "§9", "§a", "§b", "§c", "§d", "§e"
+    };
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
     private final int updateIntervalTicks;
@@ -149,7 +152,6 @@ public final class ScoreboardService implements Listener {
             }
         }
 
-        // Guild prefixes are separate from sidebar line caching and therefore must be refreshed every tick.
         applyGuildPrefixes(state);
     }
 
@@ -225,7 +227,7 @@ public final class ScoreboardService implements Listener {
     }
 
     private String entryFor(int index) {
-        return "\u200B".repeat(index + 1);
+        return INVISIBLE_ENTRIES[index];
     }
 
     private List<Component> buildLines(Player player, PlayerProfile profile) {
