@@ -2,7 +2,6 @@ package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
-import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -18,7 +17,6 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -50,43 +48,36 @@ public final class QuestInventoryTracker implements Listener {
         }
     }
 
-    /** Refreshes collect progress immediately after an inventory interaction. */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getWhoClicked() instanceof Player player) refresh(player);
     }
 
-    /** Refreshes collect progress after a dragged inventory operation. */
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
         if (event.getWhoClicked() instanceof Player player) refresh(player);
     }
 
-    /** Refreshes collect progress after an item pickup. */
     @EventHandler
     public void onPickup(EntityPickupItemEvent event) {
         if (event.getEntity() instanceof Player player) refresh(player);
     }
 
-    /** Refreshes collect progress after an item is dropped. */
     @EventHandler
     public void onDrop(PlayerDropItemEvent event) {
         refresh(event.getPlayer());
     }
 
-    /** Refreshes collect progress after the held slot changes. */
     @EventHandler
     public void onHeldItemChange(PlayerItemHeldEvent event) {
         refresh(event.getPlayer());
     }
 
-    /** Refreshes collect progress after a consumable changes the inventory. */
     @EventHandler
     public void onConsume(PlayerItemConsumeEvent event) {
         refresh(event.getPlayer());
     }
 
-    /** Refreshes collect progress when a registered player joins. */
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         refresh(event.getPlayer());
@@ -120,15 +111,20 @@ public final class QuestInventoryTracker implements Listener {
             if (item == null || item.isEmpty() || !target.matches(item, itemService)) continue;
             int remove = Math.min(remaining, item.getAmount());
             item.setAmount(item.getAmount() - remove);
-            if (item.getAmount() <= 0) player.getInventory().setItem(slot, null);
+            if (item.getAmount() <= 0) contents[slot] = null;
             remaining -= remove;
         }
+        player.getInventory().setContents(contents);
     }
 
     private record Target(Material material, String pixelRpgId) {
         static Target parse(String raw) {
             String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
-            if (value.startsWith("pixelrpg:")) return new Target(null, value);
+            if (value.startsWith("pixelrpg:")) {
+                String body = value.substring("pixelrpg:".length()).replace('/', ':');
+                while (body.contains("::")) body = body.replace("::", ":");
+                return new Target(null, "pixelrpg:" + body);
+            }
             Material material = Material.matchMaterial(value);
             return new Target(material, null);
         }
@@ -136,10 +132,19 @@ public final class QuestInventoryTracker implements Listener {
         boolean matches(ItemStack item, ItemService itemService) {
             if (pixelRpgId != null) {
                 return itemService.getItemId(item)
-                        .map(id -> id.equalsIgnoreCase(pixelRpgId))
-                        .orElse(false);
+                        .map(Target::canonicalItemId)
+                        .filter(pixelRpgId::equals)
+                        .isPresent();
             }
             return material != null && item.getType() == material;
+        }
+
+        private static String canonicalItemId(String raw) {
+            String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
+            if (!value.startsWith("pixelrpg:")) return value;
+            String body = value.substring("pixelrpg:".length()).replace('/', ':');
+            while (body.contains("::")) body = body.replace("::", ":");
+            return "pixelrpg:" + body;
         }
     }
 }
