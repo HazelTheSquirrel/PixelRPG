@@ -5,7 +5,6 @@ import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.profile.PlayerProfile;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -58,12 +57,13 @@ public final class MannequinSkinResolver {
 
         String json = "{\"textures\":{\"SKIN\":{\"url\":\"" + escapeJson(skinUrl) + "\"}}}";
         String encoded = Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
+        ProfileProperty textures = new ProfileProperty("textures", encoded);
+        ResolvableProfile profile = ResolvableProfile.resolvableProfile()
+                .addProperty(textures)
+                .build();
 
-        PlayerProfile profile = Bukkit.createProfile("PixelRPGSkin");
-        profile.setProperty(new ProfileProperty("textures", encoded));
-        ResolvableProfile resolved = ResolvableProfile.resolvableProfile(profile);
         Bukkit.getScheduler().runTask(plugin, () -> {
-            if (mannequin.isValid()) mannequin.setProfile(resolved);
+            if (mannequin.isValid()) mannequin.setProfile(profile);
         });
     }
 
