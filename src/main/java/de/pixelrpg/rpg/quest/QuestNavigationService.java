@@ -4,7 +4,6 @@ import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -93,17 +92,14 @@ public final class QuestNavigationService {
             if (Bukkit.getPlayer(uuid) != null) return false;
             Map<String, QuestMarker> markers = markersByPlayer.get(uuid);
             if (markers != null) markers.values().forEach(marker -> marker.entity().remove());
-            targetCache.keySet().removeIf(key -> key.playerId().equals(uuid));
             return true;
         });
     }
 
     /** Removes all quest markers and cached navigation targets for one player. */
     public void clear(Player player) {
-        UUID uuid = player.getUniqueId();
-        Map<String, QuestMarker> markers = markersByPlayer.remove(uuid);
+        Map<String, QuestMarker> markers = markersByPlayer.remove(player.getUniqueId());
         if (markers != null) markers.values().forEach(marker -> marker.entity().remove());
-        targetCache.keySet().removeIf(key -> key.playerId().equals(uuid));
         removeLegacyCompass(player);
     }
 
@@ -153,12 +149,10 @@ public final class QuestNavigationService {
     private Location resolveWorldTarget(Location origin, Quest quest) {
         if (quest.targetStructureKey() == null && quest.targetBiomeKeys().isEmpty()) return quest.reachLocation();
 
-        int originChunkX = origin.getBlockX() >> 4;
-        int originChunkZ = origin.getBlockZ() >> 4;
         NavigationCacheKey cacheKey = new NavigationCacheKey(
                 origin.getWorld().getUID(),
-                originChunkX,
-                originChunkZ,
+                origin.getBlockX() >> 4,
+                origin.getBlockZ() >> 4,
                 quest.id());
         long now = System.currentTimeMillis();
         CachedTarget cached = targetCache.get(cacheKey);
@@ -220,6 +214,6 @@ public final class QuestNavigationService {
 
     private record QuestMarker(ArmorStand entity) { }
     private record QuestProgressEntry(Quest quest, QuestProgress progress) { }
-    private record NavigationCacheKey(UUID playerId, int chunkX, int chunkZ, String questId) { }
+    private record NavigationCacheKey(UUID worldId, int chunkX, int chunkZ, String questId) { }
     private record CachedTarget(Location location, long createdAtMillis) { }
 }
