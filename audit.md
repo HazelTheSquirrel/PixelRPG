@@ -69,6 +69,12 @@ Der funktionierende Gameplay-Zustand ist die Referenz. Stabilisierung bedeutet: 
 - Teure World-Navigation wird gecacht und darf nicht unkontrolliert pro Event wiederholt werden.
 - Cache-Lifecycle wird berücksichtigt.
 
+### Plugin-Lifecycle
+
+- Service-Registrierungen werden beim Shutdown nur dann deregistriert, wenn die jeweilige Instanz tatsächlich initialisiert wurde.
+- Service-Deregistrierung ist aus `onDisable()` in eine dedizierte Lifecycle-Methode ausgelagert.
+- Die globale Plugin-Referenz wird beim Disable weiterhin aktiv entfernt.
+
 ## Noch zu erledigen — P0
 
 1. Jede Profilmutation muss auf dem vorgesehenen Serverthread erfolgen.
@@ -91,6 +97,7 @@ Der funktionierende Gameplay-Zustand ist die Referenz. Stabilisierung bedeutet: 
 9. HTTP connect/read/write timeouts und maximale Responsegrößen zentral erzwingen.
 10. SSRF-Schutz gegen Redirect- und DNS-Rebinding-Umgehungen weiter prüfen.
 11. Economy-Operationen serverautoritativ und logisch atomar durchführen.
+12. `PixelRPGPlugin` weiter zum Composition Root reduzieren, ohne funktionierende Registrierung zu brechen.
 
 ## Architektur-Soll
 
