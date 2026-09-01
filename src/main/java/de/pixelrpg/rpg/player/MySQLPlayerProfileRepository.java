@@ -39,13 +39,13 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
     }
 
     private PlayerProfile loadPlayerRow(Connection connection, UUID uuid) throws SQLException {
-        String sql = "SELECT uuid, registered, experience, money, waypoints, story_chapter, completed_quests, scoreboard_enabled, party_hud_enabled, quest_tracker_enabled, playtime_millis, persistence_revision FROM pixelrpg_players WHERE uuid = ?";
+        String sql = "SELECT uuid, registered, experience, money_minor_units, waypoints, story_chapter, completed_quests, scoreboard_enabled, party_hud_enabled, quest_tracker_enabled, playtime_millis, persistence_revision FROM pixelrpg_players WHERE uuid = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, uuid.toString());
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) return null;
                 PlayerProfile profile = new PlayerProfile(uuid);
-                profile.setRegistered(resultSet.getBoolean("registered")); profile.setExperience(resultSet.getLong("experience")); profile.setMoney(resultSet.getDouble("money")); profile.setUnlockedWaypoints(splitCsv(resultSet.getString("waypoints"))); profile.setStoryChapterIndex(resultSet.getInt("story_chapter")); profile.setCompletedQuests(splitCsv(resultSet.getString("completed_quests"))); profile.setScoreboardEnabled(resultSet.getBoolean("scoreboard_enabled")); profile.setPartyHudEnabled(resultSet.getBoolean("party_hud_enabled")); profile.setQuestTrackerEnabled(resultSet.getBoolean("quest_tracker_enabled")); profile.setPlaytimeMillis(resultSet.getLong("playtime_millis")); profile.setPersistenceRevision(resultSet.getLong("persistence_revision")); return profile;
+                profile.setRegistered(resultSet.getBoolean("registered")); profile.setExperience(resultSet.getLong("experience")); profile.setMoneyMinorUnits(resultSet.getLong("money_minor_units")); profile.setUnlockedWaypoints(splitCsv(resultSet.getString("waypoints"))); profile.setStoryChapterIndex(resultSet.getInt("story_chapter")); profile.setCompletedQuests(splitCsv(resultSet.getString("completed_quests"))); profile.setScoreboardEnabled(resultSet.getBoolean("scoreboard_enabled")); profile.setPartyHudEnabled(resultSet.getBoolean("party_hud_enabled")); profile.setQuestTrackerEnabled(resultSet.getBoolean("quest_tracker_enabled")); profile.setPlaytimeMillis(resultSet.getLong("playtime_millis")); profile.setPersistenceRevision(resultSet.getLong("persistence_revision")); return profile;
             }
         }
     }
@@ -58,10 +58,10 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
     public long save(PlayerProfile profile) throws SQLException {
         String upsertPlayerSql = """
                 INSERT INTO pixelrpg_players
-                    (uuid, registered, experience, money, waypoints, story_chapter, completed_quests, scoreboard_enabled, party_hud_enabled, quest_tracker_enabled, playtime_millis, persistence_revision)
+                    (uuid, registered, experience, money_minor_units, waypoints, story_chapter, completed_quests, scoreboard_enabled, party_hud_enabled, quest_tracker_enabled, playtime_millis, persistence_revision)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
-                    registered = VALUES(registered), experience = VALUES(experience), money = VALUES(money), waypoints = VALUES(waypoints), story_chapter = VALUES(story_chapter), completed_quests = VALUES(completed_quests), scoreboard_enabled = VALUES(scoreboard_enabled), party_hud_enabled = VALUES(party_hud_enabled), quest_tracker_enabled = VALUES(quest_tracker_enabled), playtime_millis = VALUES(playtime_millis), persistence_revision = VALUES(persistence_revision)
+                    registered = VALUES(registered), experience = VALUES(experience), money_minor_units = VALUES(money_minor_units), waypoints = VALUES(waypoints), story_chapter = VALUES(story_chapter), completed_quests = VALUES(completed_quests), scoreboard_enabled = VALUES(scoreboard_enabled), party_hud_enabled = VALUES(party_hud_enabled), quest_tracker_enabled = VALUES(quest_tracker_enabled), playtime_millis = VALUES(playtime_millis), persistence_revision = VALUES(persistence_revision)
                 """;
         String lockRevisionSql = "SELECT persistence_revision FROM pixelrpg_players WHERE uuid = ? FOR UPDATE";
         String deleteQuestsSql = "DELETE FROM pixelrpg_active_quests WHERE uuid = ?";
@@ -78,17 +78,11 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 Long databaseRevision = null;
                 try (PreparedStatement statement = connection.prepareStatement(lockRevisionSql)) {
                     statement.setString(1, profile.getUuid().toString());
-                    try (ResultSet resultSet = statement.executeQuery()) {
-                        if (resultSet.next()) databaseRevision = resultSet.getLong(1);
-                    }
+                    try (ResultSet resultSet = statement.executeQuery()) { if (resultSet.next()) databaseRevision = resultSet.getLong(1); }
                 }
-                if (databaseRevision != null && databaseRevision.longValue() != expectedRevision) {
-                    throw new SQLException("Stale player profile revision for " + profile.getUuid() + ": memory=" + expectedRevision + ", database=" + databaseRevision);
-                }
-                if (databaseRevision == null && expectedRevision != 0L) {
-                    throw new SQLException("Player profile revision " + expectedRevision + " exists in memory but the database row is missing for " + profile.getUuid());
-                }
-                try (PreparedStatement statement = connection.prepareStatement(upsertPlayerSql)) { statement.setString(1, profile.getUuid().toString()); statement.setBoolean(2, profile.isRegistered()); statement.setLong(3, profile.getExperience()); statement.setDouble(4, profile.getMoney()); statement.setString(5, String.join(",", profile.getUnlockedWaypoints())); statement.setInt(6, profile.getStoryChapterIndex()); statement.setString(7, String.join(",", profile.getCompletedQuests())); statement.setBoolean(8, profile.isScoreboardEnabled()); statement.setBoolean(9, profile.isPartyHudEnabled()); statement.setBoolean(10, profile.isQuestTrackerEnabled()); statement.setLong(11, profile.getPlaytimeMillis()); statement.setLong(12, nextRevision); statement.executeUpdate(); }
+                if (databaseRevision != null && databaseRevision.longValue() != expectedRevision) throw new SQLException("Stale player profile revision for " + profile.getUuid() + ": memory=" + expectedRevision + ", database=" + databaseRevision);
+                if (databaseRevision == null && expectedRevision != 0L) throw new SQLException("Player profile revision " + expectedRevision + " exists in memory but the database row is missing for " + profile.getUuid());
+                try (PreparedStatement statement = connection.prepareStatement(upsertPlayerSql)) { statement.setString(1, profile.getUuid().toString()); statement.setBoolean(2, profile.isRegistered()); statement.setLong(3, profile.getExperience()); statement.setLong(4, profile.getMoneyMinorUnits()); statement.setString(5, String.join(",", profile.getUnlockedWaypoints())); statement.setInt(6, profile.getStoryChapterIndex()); statement.setString(7, String.join(",", profile.getCompletedQuests())); statement.setBoolean(8, profile.isScoreboardEnabled()); statement.setBoolean(9, profile.isPartyHudEnabled()); statement.setBoolean(10, profile.isQuestTrackerEnabled()); statement.setLong(11, profile.getPlaytimeMillis()); statement.setLong(12, nextRevision); statement.executeUpdate(); }
                 try (PreparedStatement statement = connection.prepareStatement(deleteQuestsSql)) { statement.setString(1, profile.getUuid().toString()); statement.executeUpdate(); }
                 if (!profile.getActiveQuests().isEmpty()) try (PreparedStatement statement = connection.prepareStatement(insertQuestSql)) { for (QuestProgress progress : profile.getActiveQuests().values()) { statement.setString(1, profile.getUuid().toString()); statement.setString(2, progress.getQuestId()); statement.setInt(3, progress.getCurrentAmount()); statement.setLong(4, progress.getExpiryTimestampMillis()); statement.addBatch(); } statement.executeBatch(); }
                 try (PreparedStatement statement = connection.prepareStatement(deleteEquipmentSql)) { statement.setString(1, profile.getUuid().toString()); statement.executeUpdate(); }
@@ -97,7 +91,6 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 connection.commit();
             } catch (SQLException e) { connection.rollback(); throw e; } finally { connection.setAutoCommit(true); }
         }
-        profile.setPersistenceRevision(nextRevision);
         return nextRevision;
     }
     private static final class MapBuilder { private final Map<EquipmentSlot, ItemStack> values = new EnumMap<>(EquipmentSlot.class); void put(EquipmentSlot slot, ItemStack item) { values.put(slot, item); } Map<EquipmentSlot, ItemStack> values() { return values; } }
