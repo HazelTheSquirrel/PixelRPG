@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 
 /** Persists region definitions without expanding polygons into block lists. */
 public final class RegionRepository {
-    private static final int CURRENT_FORMAT_VERSION = 3;
+    private static final int CURRENT_FORMAT_VERSION = 4;
 
     private final File file;
     private final Logger logger;
@@ -59,7 +59,6 @@ public final class RegionRepository {
                     for (String key : flagSection.getKeys(false)) {
                         try {
                             boolean value = flagSection.getBoolean(key);
-                            // Format 1/2 used true = deny. Format 3 uses true = allow.
                             flags.put(RegionFlag.valueOf(key), formatVersion < 3 ? !value : value);
                         } catch (IllegalArgumentException ignored) {
                             // Unknown flags are intentionally ignored for forward compatibility.
@@ -72,6 +71,17 @@ public final class RegionRepository {
                 if (propertySection != null) {
                     propertySection.getKeys(false).forEach(key ->
                             properties.put(key, propertySection.getString(key, "")));
+                }
+
+                List<RegionSpawnPoint> spawnPoints = new ArrayList<>();
+                for (Map<?, ?> entry : yaml.getMapList(base + ".spawn-points")) {
+                    Object mob = entry.get("mob");
+                    Object x = entry.get("x");
+                    Object y = entry.get("y");
+                    Object z = entry.get("z");
+                    if (mob == null || x == null || y == null || z == null) continue;
+                    spawnPoints.add(new RegionSpawnPoint(
+                            String.valueOf(mob), world, number(x), number(y), number(z)));
                 }
 
                 UUID guildId = parseUuid(root.getString(idText + ".owner-guild-id"));
@@ -90,7 +100,8 @@ public final class RegionRepository {
                         root.getString(idText + ".leave-message", ""),
                         root.getInt(idText + ".priority", 0),
                         flags,
-                        properties
+                        properties,
+                        spawnPoints
                 );
                 result.add(region);
             } catch (Exception exception) {
@@ -171,6 +182,15 @@ public final class RegionRepository {
             for (Map.Entry<String, String> property : region.properties().entrySet()) {
                 yaml.set(base + ".properties." + property.getKey(), property.getValue());
             }
+
+            List<Map<String, Object>> spawnPoints = region.spawnPoints().stream()
+                    .map(point -> Map.<String, Object>of(
+                            "mob", point.mobType(),
+                            "x", point.x(),
+                            "y", point.y(),
+                            "z", point.z()))
+                    .toList();
+            yaml.set(base + ".spawn-points", spawnPoints);
 
             yaml.set(base + ".enter-message", region.enterMessage());
             yaml.set(base + ".leave-message", region.leaveMessage());
