@@ -44,16 +44,7 @@ public record CompanionDefinition(
 
     public boolean renameable() { return flags.getOrDefault("renameable", true); }
     public boolean adminOnly() { return flags.getOrDefault("adminOnly", false); }
-
-    /** All companions contribute passive stats; active combat is reserved for the native tamed wolf behavior. */
-    public boolean passive() { return true; }
-
-    /** Disables the generic target-acquisition controller; the wolf uses Minecraft's tamed-wolf AI instead. */
-    @Override
-    public CompanionCombatDefinition combat() {
-        return new CompanionCombatDefinition(false, combat.attackRange(), combat.aggroRange(), combat.maxOwnerCombatDistance(),
-                combat.attackIntervalTicks(), combat.hostileTargets(), combat.playerTargets(), combat.friendlyTargets(), combat.protectOwner());
-    }
+    public boolean passive() { return flags.getOrDefault("passive", true); }
 
     public record CompanionVisualDefinition(
             VisualType type,
