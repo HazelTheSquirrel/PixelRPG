@@ -19,7 +19,7 @@ import java.util.UUID;
 public final class RegionSpawnService {
     private static final long CHECK_INTERVAL_TICKS = 100L;
     private static final long RESPAWN_DELAY_TICKS = 200L;
-    private static final double PLAYER_RANGE_SQUARED = 64.0D * 64.0D;
+    private static final double PLAYER_RANGE = 64.0D;
 
     private final JavaPlugin plugin;
     private final RegionManager regions;
@@ -62,8 +62,8 @@ public final class RegionSpawnService {
                 if (location == null) { index++; continue; }
                 String pointKey = region.id() + ":" + index;
                 activePoints.add(pointKey);
-                if (!hasNearbyPlayer(location, world)) { index++; continue; }
-                if (hasManagedMob(world, location, pointKey)) { index++; continue; }
+                if (!hasNearbyPlayer(location)) { index++; continue; }
+                if (hasManagedMob(location, pointKey)) { index++; continue; }
 
                 long next = nextSpawnTicks.getOrDefault(pointKey, 0L);
                 if (now < next) { index++; continue; }
@@ -84,15 +84,15 @@ public final class RegionSpawnService {
         nextSpawnTicks.keySet().removeIf(key -> !activePoints.contains(key));
     }
 
-    private boolean hasNearbyPlayer(Location location, World world) {
-        for (Player player : world.getPlayers()) {
-            if (player.getLocation().distanceSquared(location) <= PLAYER_RANGE_SQUARED) return true;
+    private boolean hasNearbyPlayer(Location location) {
+        for (Player player : location.getNearbyPlayers(PLAYER_RANGE)) {
+            if (player.isOnline()) return true;
         }
         return false;
     }
 
-    private boolean hasManagedMob(World world, Location location, String pointKey) {
-        for (Entity entity : world.getNearbyEntities(location, 1.5D, 2.5D, 1.5D)) {
+    private boolean hasManagedMob(Location location, String pointKey) {
+        for (Entity entity : location.getNearbyEntities(1.5D, 2.5D, 1.5D)) {
             if (!(entity instanceof Monster)) continue;
             String marker = entity.getPersistentDataContainer().get(markerKey, PersistentDataType.STRING);
             if (pointKey.equals(marker)) return true;
