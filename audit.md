@@ -1,314 +1,287 @@
 # 🚨 Forensisches Audit: PixelRPG (Test-Branch)
 
-**Audit-Ziel:** Paper 26.2 / Java 25 / Mojang-Mappings / `paper-plugin.yml` / 100+ gleichzeitig aktive Spieler.
+**Audit-Stand:** `test` @ `070c5ac6313409c0c9e73da544a7cd8803c07e6b`  
+**Referenz:** `main` @ `9928b5abb2f44c88b45c756ac262f3f6620e2714`  
+**Branch-Zustand:** `test` ist 161 Commits vor `main` und 2 Commits hinter `main`; der Branch ist divergent. Der geprüfte `test`-Head ist der Commit, der dieses Audit-Dokument selbst aktualisiert hat.  
+**Zielplattform:** Java 25 + Paper 26.2 (`26.2.build.121-stable`) + Mojang-Mappings + `paper-plugin.yml`.
 
-**Geprüfter Branch:** `test`  
-**Head:** `c3fe3330fe8667265f6b0f6943bdac761ccf96a5`  
-**Referenz:** `main`  
-**Branch-Differenz:** `test` ist 160 Commits vor `main` und 2 Commits dahinter; der Vergleich zeigt, dass `audit.md` auf `main` aus dem Test-Zweig entfernt wurde. Die aktuelle Analyse basiert auf dem tatsächlichen aktuellen `test`-Code, nicht auf dem alten Audit.
-
-> **Hinweis zu Zeilennummern:** Die GitHub-Connector-Ausgabe liefert die Java-Dateien in dieser Umgebung als escaped Content statt als normale Source-Zeilen. Deshalb werden Befunde präzise über **Datei + Methode/Feld/Codepfad** referenziert. Es werden bewusst keine erfundenen Zeilennummern angegeben.
+> **Forensische Einschränkung:** Die GitHub-API liefert Java-Dateien in dieser Umgebung als escaped Einzeiler. Deshalb werden Befunde über **Datei + Klasse + Methode/Feld/Codepfad** referenziert. Es werden keine erfundenen Zeilennummern angegeben. Die Bewertung basiert auf dem tatsächlichen `test`-Stand.
 
 ---
 
 ## 1. Zusammenfassung & Skalierbarkeit (100+ Spieler)
 
-## Klares Urteil: **NICHT PRODUCTION-READY. Kein unmittelbarer „Plugin tötet jeden Server“-Defekt, aber unter 100+ Spielern existieren mehrere reale Main-Thread-I/O- und O(n²)-Pfade, die 20.00 TPS nicht garantieren.**
+## Klares Urteil: **NICHT PRODUCTION-READY. Aktuell kein einzelner fataler Server-Killer, aber mehrere reale Main-Thread-I/O-, O(P²)- und hochfrequente Entity-Scan-Pfade verhindern eine seriöse 20.00-TPS-Garantie bei 100+ aktiven Spielern.**
 
-Der aktuelle `test`-Stand ist deutlich besser als ein typischer Bukkit-Prototyp. Positiv sind insbesondere:
+Das Projekt ist kein chaotischer Bukkit-Prototyp. Der `test`-Stand enthält bereits mehrere vernünftige Modernisierungen:
 
-- exakt gepinnter Paper-26.2-Dev-Bundle,
-- Java-25-Toolchain,
-- `paper-plugin.yml`,
-- Adventure Components statt `ChatColor`,
-- PDC-basierte RPG-Item-Identität,
-- Snapshot-basierte `PlayerProfile`-Persistenz,
-- UUID-basierte Maps,
-- per-Spieler Save-Serialisierung,
-- HikariCP,
-- Prepared Statements,
-- transaktionale MySQL-Profil-Saves,
-- Chunk-basierter Region-Index,
-- begrenzter External-Skin-Cache,
-- zentrale Lifecycle-Koordination,
-- native Paper-Dialog-API.
+- Java-25-Toolchain und `options.release = 25`.
+- Paperweight `2.0.0-beta.21` und Paper Dev Bundle `26.2.build.121-stable`.
+- `paper-plugin.yml` statt altem Plugin-Descriptor.
+- Paper Lifecycle COMMANDS-Registrierung und `BasicCommand`-Adapter.
+- Adventure Components statt `ChatColor`.
+- UUID-basierte Player-/Entity-Maps.
+- PDC für RPG-Metadaten.
+- HikariCP und Prepared Statements.
+- MySQL-Profil-Saves mit Transaktion und Persistenz-Revision.
+- Per-Spieler Save-Serialisierung.
+- Atomare YAML-Schreibvorgänge bei Guild/NPC-Persistenz.
+- Begrenzter Skin-Cache und keine HTTP-Redirects.
+- Zentrales Lifecycle-Shutdown.
+- Native aktuelle Paper-Dialog-Klassen im Dialog-/Trade-System.
 
-Die Build-Konfiguration erfüllt die geforderte technische Basis: Paper 26.2, Java 25, paperweight `2.0.0-beta.21`, Shadow `9.6.1`, Gson `2.13.1`, HikariCP `7.0.2` und MySQL Connector/J `9.7.0`. Die Source-/Shading-Verifikationen bleiben aktiv. fileciteturn2file0L2-L6
+Die Build-Konfiguration ist grundsätzlich auf die geforderte Basis gepinnt; die bestehenden Source- und Shadow-Verifikationen sind vorhanden und `check` hängt sie ein. fileciteturn7file0L2-L6 Der Plugin-Descriptor ist ebenfalls auf API 26.2 gesetzt. fileciteturn21file0L2-L6
 
-Die Architektur hat aber noch mehrere harte Skalierungsprobleme.
+Das Problem ist nicht fehlende Struktur, sondern dass mehrere Subsysteme **unterschiedliche Persistenz- und Laufzeitmodelle** verwenden und dabei die teuersten Operationen genau in Spieler-Interaktions- oder Tick-Pfaden liegen.
 
-### Gesamtbewertung
+### Gesamturteil
 
-| Bereich | Urteil | Risiko |
+| Bereich | Urteil | Priorität |
 |---|---|---:|
-| Build-/Dependency-Basis | gut | niedrig |
-| Player-Profil-Snapshotting | deutlich verbessert | mittel |
-| MySQL-Transaktion | gut, aber teuer | mittel |
-| YAML-Bank/Trade-Storage | **nicht skalierbar** | **kritisch** |
-| Scoreboard | funktional, aber O(P²) | **hoch** |
-| Companion Runtime | funktional, aber tick-intensiv | **hoch** |
-| NPC Look Task | unnötig teuer bei vielen NPCs | hoch |
-| Quest Passive Task | potenziell teuer | hoch |
-| Mob Scaling | CPU-lastig bei vielen aktiven Mobs | hoch |
-| Guild Service API | **semantisch fehlerhaft/konfligierend** | **kritisch** |
-| Lifecycle | gut | niedrig |
-| Region Index | grundsätzlich gut | niedrig/mittel |
-| Security/SSRF | brauchbare Schutzmaßnahmen, aber Lücken | mittel |
-| Trade-Duplikationsschutz | **unzureichend für persistenten Markt** | **kritisch** |
-| Folia-Unterstützung | **nicht vorhanden** | mittel |
+| Build-/Dependency-Basis | gut | P2 |
+| Plugin-/Lifecycle-Struktur | gut | P2 |
+| Player-Profile/MySQL | gut, aber komplex | P1 |
+| YAML-Guild/NPC-Persistenz | akzeptabel, aber skalierungsbegrenzt | P1 |
+| persönliche Bank | **Main-Thread-Disk-I/O** | **P0** |
+| Trade Depot | **Main-Thread-Disk-I/O + nicht-atomare Wirtschaftstransaktion** | **P0** |
+| Scoreboard | **O(P²) pro Update** | **P0** |
+| Companion Runtime | **hochfrequente Entity-/Block-/PDC-Arbeit** | **P0/P1** |
+| NPC Look | **NearbyEntity-Scan pro NPC** | **P1** |
+| Mob Scaling | **wiederholtes Teilnehmer-/Gear-Scanning** | **P1** |
+| Quest Passive | **Poll statt primär Event-getrieben** | **P1** |
+| Security | keine offensichtliche Backdoor; Wirtschaft/SSRF-Härtung unvollständig | P0/P1 |
+| Memory | keine offensichtliche dauerhafte Player-Leak-Struktur; einige Runtime-Maps müssen weiter gehärtet werden | P1 |
+| Folia | nicht als Folia-System ausgelegt | P2 |
 
-Paper/Folia selbst verlangt für Folia ausdrücklich die passenden Global-, Region-, Async- und Entity-Scheduler; BukkitScheduler-basierte globale Tasks sind keine Folia-Architektur. PixelRPG setzt aktuell `folia-supported: true` nicht und sollte daher auch nicht behaupten, Folia-kompatibel zu sein. citeturn0search0turn0search6
+### 100+-Spieler-Simulation
 
-### 100-Spieler-Simulation
+Bei 100 Spielern und hoher Feature-Aktivität entstehen gleichzeitig:
 
-Bei 100 Online-Spielern laufen bereits mehrere wiederkehrende Main-Thread-Pfade:
+1. Scoreboard-Updates über alle Spieler.
+2. Pro Spieler erneute Guild-/Party-Auflösung.
+3. Guild-Prefix-Scan über **alle** Online-Spieler für **jeden** Spieler.
+4. Quest-Passivprüfung über alle Online-Spieler.
+5. Companion Runtime alle 2 Ticks für jeden aktiven Companion.
+6. NPC-Look alle konfigurierten Ticks für jeden gespawnten NPC.
+7. Mob-Scaling-Cleanup jede Sekunde über aktive skalierte Mobs.
+8. Event-getriebene Combat-/Loot-/Profession-/Quest-Arbeit.
+9. Bei Bank-/Trade-Interaktionen synchrone YAML-Schreibvorgänge.
+10. Async-Profil-I/O und weitere YAML-I/O-Executors.
 
-- Scoreboard ungefähr einmal pro Sekunde für **alle Spieler**.
-- Quest-Passivprüfung alle 40 Ticks für **alle Spieler**.
-- Companion Runtime alle 2 Ticks für jeden aktiven Companion.
-- NPC-Look-System alle 5 Ticks für jeden gespawnten NPC.
-- Mob-Level-Cleanup jede Sekunde über alle aktiven skalierten Mobs.
-- Boss-/Region-/Spawn-/Party-/Playtime-/Navigation-Systeme parallel dazu.
+Die Zahl der Scheduler allein ist **nicht** das Problem. Das Problem ist die Kombination aus hoher Frequenz, linearen Scans und synchronem Disk-I/O.
 
-Die reine Anzahl der Tasks ist nicht das Problem. Das Problem ist, dass mehrere Tasks jeweils **weitere lineare Scans** durchführen. Besonders schlimm ist das Scoreboard, das für jeden Spieler erneut über alle Online-Spieler läuft.
-
-Ein Server mit 100 Spielern kann damit durchaus weiterhin 20 TPS schaffen, wenn NPC-, Mob-, Companion- und Quest-Daten klein bleiben. **Eine belastbare 20.00-TPS-Garantie gibt der Code aber nicht.** Bei 100 Spielern plus vielen NPCs, Mobs und aktiven Companions ist die Last nicht mehr konservativ genug.
+**20.00 TPS als harte Zusicherung ist mit dem aktuellen Code nicht vertretbar.** Bei 100 Spielern in ruhigem Betrieb kann der Server problemlos laufen. Bei 100+ Spielern plus vielen Companions, NPCs, Mobs und gleichzeitigen Markt-/Bankaktionen ist das Design nicht ausreichend konservativ.
 
 ---
 
 ## 2. Kritische Performance-Engpässe & Threading-Fehler
 
-### 2.1 CRITICAL — `BankStorageService` macht komplette YAML-Datei-Schreibvorgänge synchron
+### P0 — `BankStorageService`: synchroner kompletter YAML-Write im Spieler-Eventpfad
 
 **Datei:** `src/main/java/de/pixelrpg/rpg/dialogue/BankStorageService.java`  
 **Methoden:** `save`, `saveTradeGoods`, `addTradeGoods`, `saveTo`, `write`
 
-Der gesamte persönliche Bankbestand und das Handelsfach werden als große `YamlConfiguration` gehalten. Bei jedem Speichern wird der Spielerbereich entfernt, neu serialisiert und anschließend die Datei synchron geschrieben. `write()` ruft direkt `target.save(file)` auf. fileciteturn31file0L2-L6
+Die Klasse hält komplette YAML-Konfigurationen im RAM. `saveTo()` löscht den Spielerbereich, serialisiert bis zu 108 Bank-Slots bzw. 54 Handelsfach-Slots und ruft anschließend `target.save(file)` auf. `write()` führt diesen Dateizugriff direkt aus. fileciteturn4file0L2-L6
 
-`BankInventoryListener.onBankInventoryClose()` ruft diesen Pfad direkt beim `InventoryCloseEvent` auf. fileciteturn32file0L2-L6
+Der `synchronized`-Modifier macht die Situation nicht schneller; er serialisiert nur konkurrierende Aufrufer. Wenn ein Bank-GUI geschlossen wird, landet dieser Code auf dem Serverthread.
 
-Das ist ein klassischer Main-Thread-I/O-Bug.
+**Worst Case:** 100 Spieler schließen gleichzeitig ihr Bank-GUI → 100 YAML-Serialisierungen und Dateischreibvorgänge hintereinander auf dem Main Thread.
 
-#### Lastszenario
+Das ist ein klassischer Tick-Stall. Ein SSD-System macht das weniger sichtbar, aber nicht korrekt. Dateisystem-Latenz, GC und YAML-Serialisierung sind nicht deterministisch genug für einen 50-ms-Tick.
 
-100 Spieler öffnen/schließen das Bank-GUI nahezu gleichzeitig:
-
-```text
-100 x InventoryCloseEvent
-        ↓
-100 x YAML mutation
-        ↓
-100 x target.save(file)
-        ↓
-100 x komplette Datei serialisieren + schreiben
-        ↓
-Main Thread wartet
-```
-
-Das ist nicht akzeptabel für einen Server, der 20.00 TPS als harte Zielgröße fordert.
-
-### Korrekte Zielarchitektur
-
-```text
-Main Thread
-   ↓
-immutable BankSnapshot
-   ↓
-per-player / keyed async write queue
-   ↓
-atomic temp file
-   ↓
-move/replace
-```
-
-Noch besser: Bankdaten in dieselbe MySQL-Infrastruktur integrieren und nur einen einzigen persistenten Storage-Layer verwenden.
+**SOLL:** immutable Snapshot im Main Thread erzeugen, Snapshot async persistieren, pro Spieler sequenzieren und atomar ersetzen. Noch besser: Bank, Trade und Wirtschaft in den bestehenden MySQL-Storage-Layer integrieren.
 
 ---
 
-### 2.2 CRITICAL — `TradeDepotManager` schreibt synchron auf Disk
+### P0 — `TradeDepotManager`: synchroner Voll-Write bei Marktoperationen
 
 **Datei:** `src/main/java/de/pixelrpg/rpg/trade/TradeDepotManager.java`  
-**Methoden:** `save`, `purchase`, `cancel`, `expireListings`, `createListingFromResponse`, `open`, `shutdown`
+**Methoden:** `save`, `purchase`, `cancel`, `expireListings`, `claimPendingPayout`, `createListingFromResponse`
 
-`save()` erstellt bei jedem Aufruf eine neue `YamlConfiguration`, serialisiert sämtliche Listings und Pending Payouts und schreibt anschließend synchron mit `yaml.save(file)`. fileciteturn30file0L2-L6
+`save()` baut bei jedem Aufruf eine neue `YamlConfiguration`, serialisiert alle Listings und Pending Payouts und schreibt anschließend `yaml.save(file)`. `purchase()` und `cancel()` rufen `save()` direkt auf; `expireListings()` ebenfalls. fileciteturn5file0L2-L6
 
-Besonders problematisch:
+Das ist nicht akzeptabel für einen stark frequentierten Marktplatz.
 
-- Kauf → `save()`
-- Verkauf → `save()`
-- Cancel → `save()`
-- Expire → `save()`
-- `open()` kann über `expireListings()` ebenfalls `save()` auslösen.
+Zusätzlich macht `canFitTradeGoods()` einen kompletten Leseweg aus der persistenten Bank und baut ein temporäres Bukkit-Inventar auf. Damit kann eine einzige Marktinteraktion bereits Datei-Lesezugriff + Item-Clones + Inventory-Simulation + Datei-Schreibzugriff enthalten.
 
-Das ist ein Main-Thread-Disk-Writer hinter einem Spieler-Interaktionssystem.
-
-### Security-/Dupe-Relevanz
-
-`purchase()` ist zwar auf dem normalen Serverthread seriell und entfernt das Listing vor dem Speichern, aber es besitzt keine persistente Transaktionsgrenze zwischen:
-
-1. Geldabzug,
-2. Listing removal,
-3. Verkäufergutschrift,
-4. BankStorage-Einlagerung,
-5. Markt-Speicherung.
-
-Bei einem Prozessabsturz zwischen diesen Operationen kann der In-Memory-Zustand von persistentem Zustand abweichen.
-
-Für einen persistenten Marktplatz ist das nicht robust genug.
-
-### SOLL
-
-Eine Markttransaktion muss atomar sein:
-
-```text
-BEGIN
-  lock listing
-  validate listing state
-  debit buyer
-  credit seller / create payout
-  transfer item
-  mark listing SOLD
-COMMIT
-```
-
-Bei YAML muss mindestens ein Write-Ahead-/Journal-Mechanismus existieren. Für ein MMORPG ist DB-Transaktion die korrekte Lösung.
+**SOLL:** Marktbestand im RAM, persistenter Transaktionslog/DB und gebündelte Async-Persistenz. Die UI darf nie von einem vollständigen YAML-Read/Write abhängen.
 
 ---
 
-### 2.3 HIGH — `ScoreboardService.applyGuildPrefixes()` ist O(P²)
+### P0 — `TradeDepotManager.purchase()`: wirtschaftlich nicht atomar und Verlust-/Dupe-Gefahr bei Zustandsfehlern
 
-**Datei:** `src/main/java/de/pixelrpg/rpg/scoreboard/ScoreboardService.java`  
-**Methode:** `applyGuildPrefixes`
-
-`startTask()` iteriert über alle Online-Spieler. Für jeden Spieler wird `apply(player, profile)` aufgerufen. `apply()` ruft wiederum `applyGuildPrefixes(state)` auf. Diese Methode iteriert erneut über **alle Online-Spieler**. fileciteturn29file0L2-L6
-
-Damit entsteht:
+Der Kaufablauf ist derzeit:
 
 ```text
-P Spieler
-×
-P Spieler im Guild-Prefix-Loop
-=
-O(P²)
+Listing lesen
+→ Handelsfach-Kapazität prüfen
+→ Geld aus Buyer-Profil entfernen
+→ Listing entfernen
+→ Verkäufer gutschreiben / Pending Payout
+→ Item ins Handelsfach schreiben
+→ trade-depot.yml speichern
 ```
 
-Bei 100 Spielern sind das bereits 10.000 Iterationen pro Update. Bei 200 sind es 40.000. Zusätzlich werden synchronisierte `GuildManager.getGuild()`-Zugriffe, Team-Operationen und Component-Erzeugung durchgeführt.
+Der kritische Fehler: `canFitTradeGoods()` und `bankStorage.addTradeGoods()` sind zwei getrennte Operationen. Zwischen ihnen gibt es keine atomare Reservation. `addTradeGoods()` kann fehlschlagen, nachdem der Kauf bereits wirtschaftlich verändert wurde. Der Code ignoriert den Rückgabewert an dieser Stelle.
 
-### SOLL
+Damit existiert mindestens ein **Item-Verlustpfad**:
 
-Guild-Scoreboard-Daten einmal pro Tick/Update berechnen:
+```text
+buyer.removeMoney() == true
+listing removed
+seller credited
+addTradeGoods() == false
+→ Kauf wird trotzdem als erfolgreich abgeschlossen
+→ Item ist nicht garantiert zugestellt
+```
+
+Das ist kein theoretischer Schönheitsfehler. Vollständiges Handelsfach, konkurrierende Änderungen oder ein Fehler beim Storage können diesen Zustand erzeugen.
+
+`cancel()` hat dieselbe Struktur.
+
+**SOLL:** Eine Transaktion muss erst die Zielkapazität reservieren bzw. das Item in einen sicheren Pending-Transfer überführen und danach Geld/Listing verändern. Persistenz muss dieselbe Transaktionsgrenze haben.
+
+Beispielhafte Zielstruktur:
+
+```java
+// Alle Operationen laufen auf dem Serverthread bzw. innerhalb einer serialisierten
+// Economy-Transaktion; DB-Persistenz muss dieselbe logische Transaktion abbilden.
+if (!reserveTradeGoodsSlot(buyer.getUniqueId(), listing.itemCopy())) {
+    return false;
+}
+if (!buyerProfile.removeMoney(listing.price())) {
+    releaseTradeGoodsReservation(buyer.getUniqueId(), listing.id());
+    return false;
+}
+if (!listings.remove(listing.id(), listing)) {
+    buyerProfile.addMoney(listing.price());
+    releaseTradeGoodsReservation(buyer.getUniqueId(), listing.id());
+    return false;
+}
+commitTradeTransfer(listing, buyer.getUniqueId());
+return true;
+```
+
+Das Snippet beschreibt die erforderliche Commit-/Rollback-Struktur; `reserveTradeGoodsSlot` und `commitTradeTransfer` müssen an die konkrete Storage-Implementierung angebunden werden. Die aktuelle Implementierung besitzt diese Transaktionsgrenze nicht.
+
+---
+
+### P0 — `ScoreboardService.applyGuildPrefixes()`: O(P²)
+
+**Datei:** `src/main/java/de/pixelrpg/rpg/scoreboard/ScoreboardService.java`  
+**Methoden:** `startTask`, `apply`, `applyGuildPrefixes`
+
+`startTask()` iteriert über alle Online-Spieler. `apply()` wird pro Spieler ausgeführt. Danach ruft jeder dieser Aufrufe `applyGuildPrefixes()` auf. Diese Methode iteriert erneut über **alle Online-Spieler**. fileciteturn6file0L2-L6
+
+Bei `P` Spielern ist der Prefix-Teil ungefähr:
+
+```text
+P scoreboard applications
+× P online players scanned per application
+= O(P²)
+```
+
+100 Spieler = ~10.000 Spieler-Paare pro Update. 200 = ~40.000. Zusätzlich werden Guild-Lookups, Team-Erzeugung, Component-Erzeugung und Scoreboard-Mutationen durchgeführt.
+
+**Noch schlimmer:** `appendGuildLine()` macht pro Spieler einen weiteren Guild-Lookup und `appendPartyLine()` kann `Bukkit.getOfflinePlayer()` für jedes Party-Mitglied ausführen.
+
+**SOLL:** Guild-View einmal berechnen und nur Dirty-Scoreboards aktualisieren. Eine Guild-Mitgliedschaftsänderung muss gezielt die betroffenen Spieler markieren.
+
+Zielmuster:
 
 ```java
 Map<UUID, GuildView> guildViews = buildGuildViewsOnce();
-
-for (Player player : onlinePlayers) {
+for (Player player : Bukkit.getOnlinePlayers()) {
+    PlayerScoreboardState state = stateByPlayer.get(player.getUniqueId());
+    if (state == null || !state.dirty()) continue;
     applyScoreboard(player, guildViews);
 }
 ```
 
-Noch besser: Guild-Mitgliedschaftsänderungen markieren einen Dirty-State und aktualisieren nur betroffene Scoreboards.
+Noch besser ist ein event-getriebenes Dirty-Modell: Guild-Join/Leave/Rename invalidiert exakt die betroffenen Scoreboards.
 
 ---
 
-### 2.4 HIGH — `NpcLookTask` scannt für jeden NPC seine Umgebung
+### P1 — `ScoreboardService`: Legacy-Formatzeichen trotz Adventure-Strategie
+
+**Datei:** `ScoreboardService.java`  
+**Feld:** `INVISIBLE_ENTRIES`
+
+Das Plugin vermeidet die Klasse `ChatColor`, verwendet aber weiterhin direkte `§0` bis `§e`-Strings als Scoreboard-Entry-Identitäten. fileciteturn6file0L2-L6
+
+Das ist kein klassischer Sicherheitsbug und wird vom bestehenden Verifier nicht erfasst, widerspricht aber der verbindlichen Text-/Chat-Architektur. Diese Identitäten sollten auf eine moderne, formatierungsunabhängige Entry-Strategie umgestellt werden.
+
+---
+
+### P1 — `NpcLookTask`: räumlicher Scan pro NPC statt Spieler-/Chunk-Index
 
 **Datei:** `src/main/java/de/pixelrpg/rpg/npc/NpcLookTask.java`  
 **Methode:** `tick`
 
-Der Task läuft standardmäßig alle 5 Ticks. Für jeden gespawnten NPC wird `getNearbyEntities(radius, radius, radius)` aufgerufen und anschließend jeder gefundene Entity-Datensatz geprüft. fileciteturn11file0L2-L6
+Der Task iteriert über jeden gespawnten NPC, ruft `Bukkit.getEntity()` auf und führt anschließend `livingEntity.getNearbyEntities(radius, radius, radius)` aus. Danach werden Location-/Distanzberechnungen für gefundene Entities durchgeführt. fileciteturn16file0L2-L6
 
-Bei 100 NPCs:
-
-```text
-20 Updates/s × 100 NPCs = 2.000 NPC-Scans/s
-```
-
-Wenn sich viele Spieler in NPC-Nähe befinden, steigt die Arbeit weiter.
-
-### SOLL
-
-- nur NPCs aktualisieren, die mindestens einen Spieler in Sichtweite haben,
-- Spieler → nahe NPCs indexieren statt NPC → NearbyEntities zu scannen,
-- Update-Rate dynamisch reduzieren,
-- Rotation nur bei tatsächlicher Winkeländerung schreiben,
-- Entity-Scheduler verwenden, wenn Entity-/Folia-Unterstützung später vorgesehen ist.
-
-Paper dokumentiert ausdrücklich, dass Entity-Scheduler für Entity-gebundene Tasks auf Folia erforderlich ist. citeturn0search0
-
----
-
-### 2.5 HIGH — `CompanionFollowTask` ist ein permanenter Entity-CPU-Loop
-
-**Datei:** `src/main/java/de/pixelrpg/rpg/companion/CompanionService.java` / `CompanionFollowTask.java`  
-**Methoden:** `CompanionService` constructor, `CompanionFollowTask.run`, `updateRuntimeState`, `equipmentHash`, `follow`, `moveTowards`
-
-Der Runtime-Task läuft alle 2 Ticks. fileciteturn8file0L2-L6
-
-Pro Companion werden u. a. durchgeführt:
-
-- Bukkit Entity Lookup,
-- Player Lookup,
-- PDC Lookup,
-- Companion-Definition Lookup,
-- Equipment-Hash,
-- mehrere Location-Operationen,
-- Distanzberechnung,
-- Combat Controller,
-- Follow-Physik,
-- Block-Solid-Abfragen,
-- Velocity/Rotation-Updates.
-
-`equipmentHash()` ruft `companionService.getEquipment()` auf. Das ist zwar nach dem ersten Zugriff gecacht, aber die Methode erzeugt weiterhin Hashing-/Clone-Arbeit. fileciteturn7file0L2-L6
-
-Bei 100 aktiven Companions sind es 50 Runtime-Durchläufe pro Sekunde. Bei 500 sind es 250/s.
-
-### SOLL
-
-- Runtime nur für tatsächlich aktive/geladene Companions,
-- keine wiederholte PDC-/Definition-Auflösung,
-- Equipment-Revision statt `Objects.hash(ItemStack...)`,
-- Bewegung nur bei Zustandsänderung,
-- Combat-Tickrate getrennt von Follow-Tickrate,
-- Targeting nicht jedes Runtime-Tick neu berechnen,
-- Entity-Scheduler für Folia-fähige Architektur.
-
----
-
-### 2.6 HIGH — Companion Equipment enthält weiterhin synchrone Disk-Lesezugriffe im Runtime-Pfad
-
-**Datei:** `CompanionEquipmentStore.java` / `CompanionService.java`  
-**Methoden:** `hasEntry`, `load`, `loadFile`, `getEquipment`
-
-`CompanionEquipmentStore.save()` ist korrekt asynchron. Aber `hasEntry()` und `load()` lesen YAML synchron. `CompanionService.getEquipment()` ruft genau diese Methoden auf, wenn der Cache noch nicht gefüllt ist. fileciteturn23file0L2-L6
-
-Der erste Zugriff kann damit auf dem Main Thread eine Datei laden.
-
-Das ist besonders schlecht, weil `CompanionFollowTask` und UI-/Combat-Code dieselbe Service-Schicht verwenden.
-
-### SOLL
-
-Equipment muss beim Player-Load geladen werden oder explizit async vorgeladen werden:
+Wenn 100 NPCs vorhanden sind und der Task alle 5 Ticks läuft:
 
 ```text
-Player pre-login
-    ↓
-Profile + Companion Equipment async load
-    ↓
-activateOnJoin
-    ↓
-Runtime liest nur RAM
+20 / 5 = 4 Updates/s
+4 × 100 NPCs = 400 NearbyEntity-Abfragen/s
 ```
 
-Kein Disk-I/O in `getEquipment()`.
+Bei 500 NPCs sind es 2.000 Abfragen/s. In dicht besiedelten Hubs explodiert zusätzlich die Zahl der gefundenen Entities.
+
+**SOLL:** NPCs über Chunk-/Spieler-Indizes verwalten. Nur NPCs mit tatsächlich anwesenden Spielern in Reichweite drehen. Rotation nur ändern, wenn sich das Ziel tatsächlich geändert hat.
 
 ---
 
-### 2.7 HIGH — Quest-Passivtask macht mehrere vollständige Player-Operationen
+### P1 — `CompanionFollowTask`: 2-Tick-Hotloop mit Entity-, PDC-, Item- und Blockarbeit
 
-**Datei:** `QuestPassiveCheckTask.java`  
+**Datei:** `src/main/java/de/pixelrpg/rpg/companion/CompanionFollowTask.java`  
+**Methoden:** `run`, `updateRuntimeState`, `equipmentHash`, `follow`, `moveTowards`, `shouldStepUp`, `shouldStepDown`, `isSolid`
+
+Der zentrale Runtime-Task läuft mit hoher Frequenz und verarbeitet jeden aktiven Companion. Pro Durchlauf können auftreten:
+
+- Player-Lookup,
+- Entity-Lookup,
+- PDC-Lookups,
+- Registry-Lookup,
+- Equipment-Lookup,
+- Hash-Berechnung über mehrere ItemStacks,
+- Stat-Berechnung,
+- Entity-Attribute-Updates,
+- Location-/Vector-Operationen,
+- Blockabfragen für Step-Up/Step-Down,
+- Velocity-/Rotation-Updates,
+- Combat-Targeting.
+
+fileciteturn23file0L2-L6
+
+100 aktive Companions = 50 Runtime-Durchläufe pro Sekunde. 500 = 250/s. Die Frequenz ist für simple Follow-Physik vertretbar, nicht aber für jedes Mal erneute State-Auflösung und potenziell teure Combat-/Blocklogik.
+
+**SOLL:**
+
+- immutable Runtime-State/Revision pro Companion,
+- Equipment-Revision statt wiederholtem `Objects.hash(ItemStack...)`,
+- Combat-Tickrate getrennt vom Follow-Tick,
+- Targeting mit Cooldown,
+- Block-Sondierung nur wenn Bewegung tatsächlich nötig ist,
+- keine Disk-Leseoperation aus dem Runtime-Pfad.
+
+---
+
+### P1 — `CompanionService.getEquipment()` / `CompanionEquipmentStore.load()`: möglicher synchroner Disk-Read im Hotpath
+
+Die Companion-Equipment-Store-Implementierung kann asynchron speichern, aber ein nicht gecachter Equipment-Zustand wird über den Load-Pfad aus YAML rekonstruiert. `CompanionFollowTask.equipmentHash()` ruft den Equipment-Service regelmäßig auf. Der erste Zugriff kann daher einen Disk-Read im Serverthread verursachen.
+
+**SOLL:** Equipment beim Player-/Companion-Aktivieren vollständig laden und anschließend nur RAM lesen. Runtime-Hotpaths dürfen keinerlei Datei-I/O auslösen.
+
+---
+
+### P1 — `QuestPassiveCheckTask`: Polling von drei Subsystemen pro Spieler
+
+**Datei:** `src/main/java/de/pixelrpg/rpg/quest/QuestPassiveCheckTask.java`  
 **Methode:** `start`
 
-Alle Online-Spieler werden alle `intervalTicks` iteriert. Pro Spieler werden drei potenziell nichttriviale Operationen ausgeführt:
+Alle Online-Spieler werden alle 40 Ticks verarbeitet. Für jeden Spieler werden aufgerufen:
 
 ```java
 inventoryTracker.refresh(player);
@@ -316,844 +289,542 @@ questManager.checkReachLocationQuests(player);
 navigationService.refresh(player);
 ```
 
-fileciteturn10file0L2-L6
+fileciteturn17file0L2-L6
 
-Das ist bei 100 Spielern noch beherrschbar, aber die drei Operationen müssen jeweils O(1) bzw. sehr klein sein. Das ist derzeit nicht als harte Architekturgarantie abgesichert.
+Das ist bei 100 Spielern nicht automatisch fatal, aber es ist Polling statt primär event-getriebener Zustandsänderung.
 
-### SOLL
+**SOLL:**
 
-Event-getriebene Quest-Fortschritte bevorzugen:
+- Inventarquests auf Inventory-/Item-Events aktualisieren.
+- Killquests auf Kill-/Damage-Events aktualisieren.
+- Standortquests über Movement/Chunk/Region-Transitions dirty setzen.
+- Navigation nur bei Zieländerung oder in niedriger Frequenz aktualisieren.
 
-- BlockBreakEvent → relevante Quests,
-- EntityDeathEvent → relevante Quests,
-- InventoryClickEvent → relevante Item-Quests,
-- RegionEnter → Reach-Quest,
-- Navigation nur bei tatsächlicher Positionsänderung.
-
-Ein globaler Polling-Loop sollte der letzte Ausweg sein.
+Ein langsamer Fallback-Poll kann bleiben, aber er darf nicht die primäre Logik sein.
 
 ---
 
-### 2.8 HIGH — Mob Scaling skaliert CPU mit aktiven Mobs × Teilnehmern
+### P1 — `MobLevelScalingListener`: wiederholtes Scanning aktiver Mobs und Spieler-Gear
 
-**Datei:** `MobLevelScalingListener.java`  
-**Methoden:** `applyScaling`, `restoreExpiredScaling`, `gearLevelMultiplier`
+**Datei:** `src/main/java/de/pixelrpg/rpg/combat/scaling/MobLevelScalingListener.java`  
+**Methoden:** `onPlayerLevelUp`, `markParticipant`, `applyScaling`, `gearLevelMultiplier`, `restoreExpiredScaling`
 
-`restoreExpiredScaling()` läuft jede Sekunde über alle aktiven Mobs. `applyScaling()` berechnet für alle Teilnehmer das höchste Level und anschließend erneut Gear-Multiplikatoren. Für jeden Spieler werden Inventar-Items extrahiert und Item-Metas/PDC gelesen. fileciteturn12file0L2-L6
+Bei jedem relevanten Treffer kann `applyScaling()` laufen. Dort werden alle Teilnehmer des Mobs betrachtet und für jeden Online-Spieler das Gear aus Armor + Mainhand + Offhand zusammengesetzt. fileciteturn18file0L2-L6
 
-Der Code verwendet zwar `ConcurrentHashMap`, aber der Task selbst läuft synchron. Thread-Safety der Map ist nicht der Performance-Hauptpunkt.
+Der Cleanup läuft jede Sekunde über alle aktiven Mobs und ruft für jeden Teilnehmer erneut `guildAPI.isRegistered()` auf. Anschließend wird bei verbleibenden Teilnehmern erneut skaliert.
 
-Das Problem ist die Arbeit:
+**SOLL:**
 
-```text
-Mobs × Teilnehmer × Inventar-Items
-```
-
-Bei großen Mob-Pulls und mehreren Spielern kann das schnell mehrere tausend Item-Checks pro Sekunde erzeugen.
-
-### SOLL
-
-Pro Spieler einen gecachten `GearScalingSnapshot` führen:
-
-```text
-Equipment change
-    ↓
-recalculate gear multiplier once
-    ↓
-cache by player UUID
-```
-
-Monster-Skalierung darf anschließend nur noch den gecachten Faktor lesen.
+- Effective-Player-Combat-Level im Runtime-State cachen.
+- Gear-Level nur bei Equipment-Änderung invalidieren.
+- Mob-Level erst neu berechnen, wenn Teilnehmermenge/Level/Gear-Revision geändert wurde.
+- Expiration per DelayQueue/TimeWheel oder nach nächstem Ablauf sortierter Struktur statt vollständigem Mob-Scan.
 
 ---
 
-### 2.9 MEDIUM — `PlayerProfileManager` ist jetzt wesentlich besser, aber die Persistenz ist weiterhin teuer
+### P1 — `NpcManager.resyncPlayer()`: linearer NPC-Scan bei jedem Login
+
+**Datei:** `NpcManager.java`  
+**Methode:** `resyncPlayer`
+
+Bei einem Login wird über alle geladenen NPCs iteriert. Für jeden NPC werden Welt-/Chunk-/Entity-Prüfungen und ggf. Entity-Resynchronisation ausgeführt. Das ist kein Tick-Hotpath und deshalb nicht P0, skaliert aber schlecht mit großen NPC-Mengen.
+
+**SOLL:** Chunk-Index verwenden und nur relevante Chunks bzw. NPCs des Spielers betrachten. Der Manager besitzt bereits einen Chunk-Index; `resyncPlayer()` sollte diesen konsequent verwenden.
+
+---
+
+### P1 — `GuildManager`: gutes Async-Design, aber globale Synchronisation
+
+**Datei:** `GuildManager.java`
+
+Positiv: YAML-Snapshots werden auf dem Serverthread erstellt und anschließend über einen Single-Thread-Executor atomar geschrieben. fileciteturn10file0L2-L6
+
+Negativ: Fast sämtliche Guild-Operationen sind `synchronized`. Das ist bei kleinen Guild-Datenstrukturen akzeptabel, verhindert aber unnötig parallele Read-Operationen. Kritischer ist die semantische Kopplung von Economy und Guild-Persistenz: `createGuild()` zieht Geld aus dem Player-Profil ab und speichert anschließend nur die Guild-YAML asynchron.
+
+Das erzeugt ein Crash-Fenster:
+
+```text
+Gold im RAM -1000
+Guild im RAM erstellt
+Guild YAML async gespeichert
+Server stirbt bevor Player-Profil gespeichert ist
+→ Guild existiert nach Neustart
+→ Gold ist wieder auf altem Wert
+```
+
+Damit kann ein Prozessabsturz die Gildengründung effektiv kostenlos machen.
+
+Das ist ein **wirtschaftlicher Konsistenzfehler**, auch wenn er nicht durch normales Doppelclick-Spamming ausgelöst wird.
+
+---
+
+### P1 — `PlayerProfileManager`: gutes Snapshot-Modell, aber hohe Komplexität
 
 **Datei:** `PlayerProfileManager.java`  
-**Methoden:** `captureAndEnqueue`, `enqueue`, `persistSnapshot`
+**Methoden:** `captureAndEnqueue`, `persistSnapshot`, `enqueue`, `shutdown`
 
-Die aktuelle Implementierung macht etwas Wichtiges richtig: `PlayerProfile.snapshotForSave()` ist synchronisiert und erstellt eine Kopie des Profils einschließlich Collections, QuestProgress und ItemStacks. Dadurch wird nicht mehr die Live-Instanz direkt in den Repository-Thread gereicht. fileciteturn26file0L2-L6
+Die per-UUID Save-Chain ist grundsätzlich sauber: Snapshot im RAM, Persistenz off-thread, sequentiell pro UUID. fileciteturn11file0L2-L6
 
-Das ist eine klare Verbesserung gegenüber dem alten Design.
+Positiv ist auch die Persistenz-Revision. `MySQLPlayerProfileRepository.save()` sperrt die DB-Revision und verwirft einen veralteten Snapshot. fileciteturn3file0L2-L6
 
-Auch `saveRequested` und die UUID-spezifische `saveChain` sorgen dafür, dass Saves pro Spieler seriell bleiben. fileciteturn25file0L2-L12
+Risiko: Das System besitzt mehrere Persistenzdomänen parallel. Player-Profil, Guild, Bank, Trade, NPC und Companion-Equipment haben jeweils eigene Queues/Dateien/Transaktionen. Dadurch entstehen Cross-System-Commit-Fenster, die eine einzelne DB-Transaktion nicht abfangen kann.
 
-### Verbleibende Risiken
-
-- Jeder Save serialisiert potentiell das komplette Profil.
-- MySQL-Saves löschen und rekonstruieren aktive Quests und Equipment.
-- Statistikdaten werden breit upserted.
-- Vier parallele I/O-Threads können bei 100 Spielern hohe DB-Last erzeugen.
-- `loadForPreLogin()` wartet synchron bis zum Timeout auf den I/O-Future. Das blockiert nicht den Server-Tick, kann aber Login-/Connection-Threads unnötig lange halten.
-
-Das Snapshot-Modell ist akzeptabel. Es braucht jetzt nur noch **Dirty-field / incremental persistence**, wenn die Datenmenge weiter wächst.
+**SOLL:** Eine zentrale Persistenzschicht für alle wirtschaftlich relevanten Daten. YAML nur für Konfiguration/kleine administrative Daten.
 
 ---
 
-### 2.10 HIGH — MySQL-Save schreibt zu viel
+### P1 — MySQL: Transaktional sauber, aber vollständiger Rewrite von Quest/Equipment/Stats
 
 **Datei:** `MySQLPlayerProfileRepository.java`  
 **Methode:** `save`
 
-Der Save macht in einer Transaktion:
+Der Save ist transaktional, Prepared Statements werden verwendet und die Revision wird per `SELECT ... FOR UPDATE` geschützt. fileciteturn3file0L2-L6
 
-1. `SELECT ... FOR UPDATE`
-2. Player-Upsert
-3. komplette Active-Quest-Löschung
-4. komplette Active-Quest-Reinsertion
-5. komplette Equipment-Löschung
-6. komplette Equipment-Reinsertion
-7. Statistik-Upserts
-8. alle Profession-Statistiken
-9. alle freigeschalteten Rezepte
-10. Commit
+Der Preis ist jedoch hoch: aktive Quests werden vollständig gelöscht und neu geschrieben, Equipment vollständig gelöscht und neu geschrieben, Statistiken per Batch upserted. Bei häufigen Save-Triggern erzeugt das unnötige DB-Arbeit.
 
-fileciteturn6file0L2-L6
-
-Das ist korrektheitsorientiert, aber nicht effizient.
-
-Bei 100 Spielern und häufigen Saves wird unnötig viel DB-Arbeit erzeugt.
-
-### Noch wichtiger: stale Stats / Recipes
-
-Der Save macht `UPSERT`, aber entfernt nicht explizit alte `pixelrpg_player_stats`-Rows, die aus dem Snapshot verschwunden sind.
-
-Damit können entfernte:
-
-- Statistiken,
-- Profession-Flags,
-- Recipe-Unlocks
-
-in der Datenbank verbleiben und beim nächsten Load wieder auftauchen.
-
-Das ist ein **persistenter Datenintegritätsfehler**.
-
-### SOLL
-
-Entweder:
-
-```text
-profile snapshot contains full authoritative state
-→ DELETE obsolete rows
-→ INSERT current rows
-```
-
-oder besser:
-
-```text
-dirty professions
- dirty recipes
- dirty stats
-→ update only changed records
-```
-
-Für Geld/Inventar/Progression muss eine klare Autoritätsregel gelten.
+**SOLL:** Dirty-Subsysteme getrennt persistieren oder diff-basiert schreiben. Ein Player-Login/Logout-Save darf nicht zwangsläufig komplette Equipment-/Questtabellen neu schreiben.
 
 ---
 
-### 2.11 MEDIUM — `DatabaseManager` ist sicherer geworden, aber Credentials und TLS brauchen Betriebsdisziplin
+### P2 — `ExternalSkinService`: Async HTTP gut, SSRF-Grenze konzeptionell nicht vollständig
 
-`DatabaseManager` validiert Host, Port, Datenbankname und SSL-Modus. Der Default ist `REQUIRED`, was deutlich besser ist als eine pauschale SSL-Deaktivierung. Hikari-Timeouts, Poolgröße, Leak Detection und Lifetime sind ebenfalls konfiguriert. fileciteturn9file0L2-L6
+**Datei:** `ExternalSkinService.java`  
+**Methoden:** `apply`, `isSafeExternalHost`, `normalizeUrl`
 
-Die URL wird aber weiterhin aus Konfigurationswerten zusammengesetzt. Das ist für lokale Serverkonfiguration vertretbar, aber Secrets gehören nicht in Git-committete Config-Dateien.
+Positiv:
 
-**Audit-Regel:** Kein Passwort, Token oder API-Key darf im Repository liegen.
+- HTTP läuft async.
+- Timeout 15 Sekunden.
+- Redirects sind deaktiviert.
+- Response-Größe ist auf 256 KiB begrenzt.
+- URL-Schema wird beschränkt.
+- Userinfo/Fragment werden verworfen.
+- Cache ist begrenzt und TTL-basiert.
 
-Die aktuelle External-Skin-Implementierung akzeptiert alternativ `PIXELRPG_MINESKIN_API_KEY`, was die richtige Richtung ist. fileciteturn24file0L2-L6
+fileciteturn9file0L2-L6
 
----
+Aber: Die lokale `isSafeExternalHost()`-Prüfung schützt primär den Plugin-Prozess. Die eigentliche URL wird danach an **MineSkin** geschickt. Der Remote-Dienst lädt die URL. Damit verhindert die lokale DNS-Prüfung nicht automatisch, dass ein externer Dienst eine private Zieladresse aufruft.
 
-### 2.12 MEDIUM — RegionManager ist deutlich besser als ein globaler Regionscan
-
-**Datei:** `RegionManager.java`
-
-Der aktuelle `find()`-Pfad nutzt einen Chunk-Index und prüft nur Kandidaten des aktuellen Chunks. Das ist für Runtime-Lookups grundsätzlich die richtige Datenstruktur. fileciteturn13file0L2-L6
-
-Auch `isExplicitSpawnPoint()` nutzt inzwischen den Spawnpoint-Index. Der alte „alle Regionen durchsuchen“-Fehler ist im aktuellen Test-Code nicht mehr vorhanden.
-
-### Verbleibendes Problem
-
-`create/delete` aktualisieren bei großen Region-Bounding-Boxes sehr viele Chunk-Index-Einträge. Das ist für Admin-Operationen akzeptabel, aber nicht während normalen Player-Ticks.
-
-Die Persistenz wird korrekt auf einen eigenen Executor gelegt. Das ist gut.
-
----
-
-### 2.13 MEDIUM — `GuildManager` blockiert nicht auf Disk, aber benutzt global synchronisierte Methoden
-
-Guild-Persistenz wird auf einem eigenen Executor serialisiert. Das ist korrekt. fileciteturn16file0L2-L6
-
-Allerdings sind praktisch alle Getter `synchronized`. In Kombination mit `ScoreboardService.applyGuildPrefixes()` wird daraus bei 100 Spielern unnötige Lock-Konkurrenz auf dem Main Thread.
-
-Die richtige Lösung ist ein immutable/read-mostly Guild-Snapshot:
-
-```text
-GuildState immutable
-
-write:
-  replace snapshot atomically
-
-read:
-  lock-free / volatile reference
-```
+**SOLL:** Nur streng erlaubte Hostnamen verwenden, wenn Skin-URLs überhaupt frei administrierbar sein müssen. Für maximale Sicherheit ausschließlich bekannte Minecraft-Texture-Hosts oder ein eigenes kontrolliertes Asset-Backend akzeptieren.
 
 ---
 
 ## 3. Sicherheitslücken & Exploit-Potenzial
 
-### 3.1 CRITICAL — GuildAPI-Service-Kollision
+### S0 — Trade-Economy-Commit ist nicht atomar
 
-**Dateien:**
+Siehe P0 oben. Das ist die wichtigste funktionale Sicherheitslücke.
 
-- `PlayerProfileManager.java`
-- `GuildManager.java`
-- `GuildAPI.java`
-- `CompanionFollowTask.java`
-- `MobLevelScalingListener.java`
+Betroffene Methoden:
 
-`GuildAPI` ist semantisch überhaupt keine reine Guild-API. Es enthält:
+- `TradeDepotManager.purchase()`
+- `TradeDepotManager.cancel()`
+- `TradeDepotManager.expireListings()`
+- `BankStorageService.addTradeGoods()`
 
-```text
-isRegistered
-getLevel
-getExperience
-addExperience
-```
+Die Kombination aus Vorab-Kapazitätsprüfung und anschließendem separatem Insert/Save ist TOCTOU-artig: **prüfen und committen sind nicht eine Operation**.
 
-fileciteturn17file0L2-L6
+---
 
-`PlayerProfileManager` registriert sich als `GuildAPI`. Danach registriert sich auch `GuildManager` als `GuildAPI`. Beide verwenden dieselbe ServicePriority `Normal`. fileciteturn25file0L2-L6 fileciteturn16file0L2-L6
+### S0 — Crash-Konsistenz zwischen Economy und Guild
 
-Das ist architektonisch falsch und kann funktional katastrophal werden.
+`GuildManager.createGuild()` verändert das Player-Profil und persistiert danach die Guild asynchron. Ein Crash im falschen Zeitfenster kann einen Zustand erzeugen, in dem die Guild nach Neustart existiert, die Kosten aber nicht dauerhaft gespeichert wurden. fileciteturn10file0L2-L6
 
-`CompanionFollowTask` lädt `GuildAPI` aus dem ServiceManager und verwendet `getLevel()` für die Companion-Levelauflösung. fileciteturn7file0L2-L6
+Das muss durch gemeinsame transaktionale Persistenz oder eine eindeutige Saga-/Journal-Logik gelöst werden.
 
-`MobLevelScalingListener` verwendet ebenfalls `GuildAPI.getLevel()`.
+---
 
-`GuildManager.getLevel()` gibt jedoch bei Guild-Mitgliedschaft lediglich `1` zurück und sonst `0`. fileciteturn16file0L2-L6
+### S1 — Trade-Listing-Preis: `double` als Wirtschaftswert
 
-Damit kann das Verhalten davon abhängen, welche `GuildAPI`-Implementierung der ServiceManager zurückliefert.
+`TradeDepotManager` verwendet `double` für Preise und berechnet Gebühren als `listing.price() * (1.0D - SALE_FEE)`. Erst `PlayerProfile` konvertiert über `Money.fromMajor()` in Minor Units. fileciteturn5file0L2-L6 fileciteturn14file0L2-L6
 
-### Das ist kein Style-Problem. Das ist ein echter Runtime-Bug.
+Das verhindert viele klassische Rundungsfehler, aber die **Domäne selbst** bleibt `double`-basiert. Für ein persistentes Echtgeld-/Spielgeldsystem ist das unnötig riskant.
 
-### SOFORTIGE Korrektur
+**SOLL:** Preise intern ausschließlich als `long minorUnits`. Dialoginput wird einmal validiert und danach nicht mehr als `double` geführt.
 
-`GuildAPI` muss in zwei unabhängige Interfaces zerlegt werden:
+Beispiel:
 
 ```java
-public interface PlayerProgressionAPI {
-    boolean isRegistered(UUID uuid);
-    int getLevel(UUID uuid);
-    long getExperience(UUID uuid);
-    void addExperience(UUID uuid, long amount);
-}
+long priceMinorUnits = Money.fromMajor(parsedAmount);
+long fee = Math.multiplyExact(priceMinorUnits, 5L) / 100L;
+long sellerMinorUnits = priceMinorUnits - fee;
 ```
 
-und:
-
-```java
-public interface GuildAPI {
-    Optional<Guild> getGuild(UUID playerId);
-    boolean isMember(UUID guildId, UUID playerId);
-    Set<UUID> getMembers(UUID guildId);
-}
-```
-
-Danach darf nur jeweils eine konkrete Implementierung den jeweiligen Service bereitstellen.
+Die konkrete Overflow-Behandlung muss zusätzlich vor `multiplyExact` erfolgen; noch besser ist `BigDecimal` ausschließlich an der Eingabegrenze und danach `long`.
 
 ---
 
-### 3.2 HIGH — Trade-Depot hat keine DB-Transaktion
+### S1 — `Money.fromMajor()` sättigt Maximalwerte
 
-Wie oben beschrieben ist der Kauf logisch mehrstufig. Ein Servercrash kann zu Inkonsistenzen führen.
+`Money.fromMajor()` wandelt große Werte in Minor Units um und sättigt bei `Long.MAX_VALUE`. fileciteturn14file0L2-L6
 
-Besonders kritisch ist:
+Das ist technisch deterministisch, aber semantisch gefährlich: Ein absichtlich oder versehentlich übergroßer Preis kann auf das maximale Guthaben abgebildet werden statt hart abgelehnt zu werden.
 
-```text
-buyerProfile.removeMoney(price)
-listings.remove(listingId)
-sellerProfile.addMoney(...)
-bankStorage.addTradeGoods(...)
-save()
-```
-
-fileciteturn30file0L2-L6
-
-Es existiert keine gemeinsame Commit-Grenze.
-
-Das ist ein **Crash-Dupe-/Item-Loss-Risiko**, nicht zwingend ein normaler Race-Condition-Dupe.
+**SOLL:** Eingaben oberhalb eines konfigurierten Maximalwertes ablehnen. Wirtschaftswerte brauchen eine explizite obere Grenze.
 
 ---
 
-### 3.3 HIGH — Trade-Listing basiert auf vollständiger ItemStack-Similarity, nicht auf unveränderlicher Listing-ID im Itemzustand
+### S1 — GUI-/Inventar-Sicherheit ist teilweise korrekt, aber Trade sollte auf Item-Identität härten
 
-Beim Einstellen wird das Item aus dem Inventory entfernt und als `ItemStack` im Listing gespeichert. Beim Kauf wird eine Kopie ausgeliefert. Das ist grundsätzlich okay.
+`openSellDialog()` und `createListingFromResponse()` prüfen das aktuelle Inventar gegen das ausgewählte Item und Menge. Das ist gut. fileciteturn5file0L2-L6
 
-Die Auswahl im Dialog wird gegen den aktuellen Inventory-Slot geprüft:
+Die Prüfung `isSimilar()` plus Amount ist aber keine persistente Objektidentität. Bei einzigartigen RPG-Items sollte die vorhandene Unique-Item-/PDC-Identität zusätzlich geprüft werden, sofern der Gegenstand individuell eindeutig sein soll.
 
-```text
-isTradeableRpgItem(current)
-current.isSimilar(selectedItem)
-current.getAmount() == selectedItem.getAmount()
-```
+**SOLL:** Für Unique-/Soulbound-/RPG-Items klare Identitätsregeln definieren:
 
-fileciteturn30file0L2-L6
-
-Das verhindert viele triviale UI-Stale-State-Probleme.
-
-Aber für ein wirklich robustes Handelsmodell sollte die Dialogaktion eine serverseitige, kurzlebige Listing-/Selection-Token-ID besitzen. Ein Client sollte nicht durch rekonstruierte ItemStack-Daten die Autorität über die Auswahl erhalten.
+- Definition-ID,
+- Unique-ID falls vorhanden,
+- Besitzer-ID bei Soulbound,
+- erlaubte Menge,
+- keine nicht vertrauenswürdigen PDC-Felder vom Client.
 
 ---
 
-### 3.4 HIGH — Companion Equipment ist dateibasiert und besitzt keine transaktionale Konsistenz mit Companion-State
+### S1 — `NpcManager` akzeptiert administrative Skin-URLs; Eingabe muss an Permission-Grenze bleiben
 
-Companion-Fortschritt und Companion-Equipment werden in unterschiedlichen Speichern/Queues behandelt. fileciteturn8file0L2-L6 fileciteturn23file0L2-L6
+`NpcManager.updateSkin()` speichert den Skin-String und ruft den Skin-Resolver auf. fileciteturn24file0L2-L6
 
-Crash-Szenario:
-
-```text
-Companion progression save erfolgreich
-Equipment save noch pending
-Server crash
-```
-
-→ Companion und Equipment können unterschiedliche Zeitstände besitzen.
-
-Für kosmetisches Equipment ist das tolerierbar. Für gameplayrelevantes Equipment nicht.
+Das ist nur dann akzeptabel, wenn ausschließlich `rpg.admin`-geschützte Commands diesen Pfad erreichen. Die Sicherheitsgrenze darf nicht allein auf GUI-/Command-UI-Logik beruhen; der Manager selbst sollte administrative Mutationen klar separieren bzw. der Command-Layer muss nachweisbar die Permission erzwingen.
 
 ---
 
-### 3.5 MEDIUM — External Skin: DNS-TOCTOU bleibt theoretisch möglich
+### S1 — Keine offensichtliche Backdoor oder hartcodierte Geheimnisse gefunden
 
-`ExternalSkinService.isSafeExternalHost()` löst DNS auf und blockiert private/loopback/link-local/site-local Adressen. Das ist gut. Redirects sind deaktiviert. Response-Größe und Timeout sind limitiert. fileciteturn24file0L2-L6
+Im geprüften Code wurden keine offensichtlichen Aufrufe wie `Runtime.exec`, Prozessstarts, versteckte Remote-Code-Ausführung oder hartcodierte Datenbankpasswörter/Tokens festgestellt.
 
-Aber DNS-Sicherheit ist grundsätzlich eine TOCTOU-Problematik: Die Adresse, die während der Validierung aufgelöst wird, muss nicht exakt der Adresse entsprechen, die ein späterer HTTP-Stack verwendet.
+Die MineSkin-API-Konfiguration kommt aus Config bzw. `PIXELRPG_MINESKIN_API_KEY`, was die richtige Richtung ist. fileciteturn9file0L2-L6
 
-Für die aktuelle Architektur ist das Risiko begrenzt, weil externe Bild-URLs über MineSkin verarbeitet werden und nicht direkt vom Plugin heruntergeladen werden.
-
-### SOLL
-
-Nur explizit erlaubte Hostnames akzeptieren, z. B.:
-
-```text
-textures.minecraft.net
-```
-
-oder eine strikte Allowlist.
+**Wichtig:** Das ist ein statischer Befund. Es ist keine Garantie gegen kompromittierte Laufzeitumgebung, externe Libraries oder Geheimnisse außerhalb des Git-Repositories.
 
 ---
 
-### 3.6 MEDIUM — API-/Command-Boundaries müssen konsequent serverseitig validieren
+### S2 — Command-Permission-Architektur ist modern, aber Adapter-Kompatibilität erhöht Komplexität
 
-Die GUI-Schichten machen bereits viele Validierungen. Das ist gut.
+`PaperBasicCommandAdapter` verwendet Paper `BasicCommand`, delegiert intern aber auf Bukkit-`CommandExecutor`/`CommandSender`. fileciteturn22file0L2-L6
 
-Aber jede Economy-/Inventory-/Quest-Operation muss unabhängig vom UI validieren. Eine GUI ist niemals eine Security Boundary.
+Das funktioniert als Brücke, ist aber architektonisch nicht ideal. Für ein langfristiges Paper-26.x-Core-Plugin sollte die Command-Domain direkt auf Paper Brigadier/BasicCommand ausgerichtet werden.
 
-Das gilt insbesondere für:
-
-- Shop-Kauf,
-- Crafting,
-- Guild-Erstellung,
-- Trade-Depot,
-- Quest-Admin,
-- Companion-Admin,
-- Region-Editor.
-
-`CraftingService.craft()` validiert beispielsweise Beruf, Level, Unlock-State, Materialkosten und Unique-Rarity selbst. Das ist korrekt. fileciteturn15file0L2-L6
-
----
-
-### 3.7 MEDIUM — Crafting ist im Main Thread und bewusst synchron
-
-**Datei:** `CraftingService.java`  
-**Methode:** `craft`
-
-Das ist grundsätzlich richtig, weil Inventory-Manipulationen und Bukkit-World-State nicht async durchgeführt werden dürfen. Paper weist ausdrücklich darauf hin, dass große Teile der Bukkit-API async nicht threadsicher sind. citeturn0search6
-
-Die Methode scannt allerdings mehrfach das komplette Storage-Inventory:
-
-- `hasMaterialCosts`
-- `hasItemCosts`
-- `removeMaterialCosts`
-- `removeItemCosts`
-
-Bei einem einzelnen Craft ist das klein. Ein Spam-Angriff über extrem schnelle Clicks kann aber unnötige CPU-Arbeit erzeugen.
-
-### SOLL
-
-Eine einzige Inventory-Analyse erstellen:
-
-```text
-InventorySnapshot
-  ├─ Material counts
-  └─ RPG item-id counts
-```
-
-und anschließend atomar verbrauchen.
-
----
-
-### 3.8 Keine offensichtlichen Hardcoded Backdoors gefunden
-
-Im geprüften Code wurden keine offensichtlichen:
-
-- Remote-Command-Backdoors,
-- versteckten OP-Vergaben,
-- fest eingebauten MySQL-Passwörter,
-- Token-Strings,
-- `Runtime.exec()`-Pfade,
-- beliebigen SQL-Konkatenationen für Spielerinputs
-
-als offensichtlicher Backdoor-Mechanismus identifiziert.
-
-Die Datenbank nutzt Prepared Statements und validiert kritische Konfigurationsbestandteile. fileciteturn6file0L2-L6 fileciteturn9file0L2-L6
-
-Das ist ein klarer Pluspunkt.
+Das ist kein Security-Bug, sondern eine technische Schuldposition.
 
 ---
 
 ## 4. Detaillierte Kritik der Implementierungen
 
-### 4.1 `PixelRPGPlugin` — zu großer Composition Root
+### 4.1 `PlayerProfile`
 
-`PixelRPGPlugin` verdrahtet praktisch das komplette System: Player, Stats, Profession, Items, Quests, Regionen, Bosse, NPCs, Companion, Scoreboard, Guilds, Commands und Listener. fileciteturn4file0L2-L6
+**Positiv:**
 
-Als Composition Root ist das legitim. In dieser Größe wird es aber gefährlich.
+- Fast alle Felder sind gekapselt.
+- `synchronized` schützt zusammengesetzte Profile-Operationen.
+- Snapshots klonen Equipment und Questdaten.
+- Dirty-Tracking ist vorhanden.
+- Experience und Playtime saturieren gegen Overflow.
+- Geld wird in Minor Units gehalten.
 
-Der Code ist faktisch ein manuelles Dependency-Injection-Framework.
+fileciteturn13file0L2-L6
 
-### SOLL
+**Kritik:**
 
-Domänenmodule sollten einen eigenen `Module`-Installer besitzen:
+- Ein einzelnes synchronisiertes God-Object ist langfristig schwer zu warten.
+- Profile enthält Economy, Quests, Profession, Equipment, Settings und Statistics gleichzeitig.
+- Jeder Snapshot kopiert mehrere Collections und alle Equipment-ItemStacks.
+- Cross-Domain-Änderungen können nur über `dirty` erkannt werden; feineres Dirty-Tracking fehlt.
 
-```text
-PlayerModule
-QuestModule
-ItemModule
-CombatModule
-NpcModule
-RegionModule
-EconomyModule
-```
-
-`PixelRPGPlugin` macht dann nur:
-
-```java
-playerModule.install(context);
-questModule.install(context);
-combatModule.install(context);
-...
-```
-
-Keine fachliche Logik in der Plugin-Klasse.
-
----
-
-### 4.2 `PlayerProfile` — gutes Synchronisationsniveau, aber zu viel Mutable State
-
-Die Klasse synchronisiert praktisch alle Getter/Setter und erstellt tiefe Snapshots. Das verhindert viele klassische Java-Races. fileciteturn26file0L2-L6
-
-Das ist sauberer als eine unsynchronisierte ConcurrentHashMap mit mutable Values.
-
-Aber `synchronized` auf nahezu jedem Zugriff ist kein Ersatz für ein gutes Ownership-Modell.
-
-### SOLL
-
-Der Main Thread besitzt den Live-State.
-
-Async-Threads sehen ausschließlich immutable Snapshots.
-
-Dann kann `PlayerProfile` selbst wieder einfacher werden.
-
----
-
-### 4.3 `PlayerProfile.snapshotForSave()` — gute Lösung
-
-Diese Methode ist einer der stärksten Teile des aktuellen Codes.
-
-Sie kopiert:
-
-- primitive Werte,
-- EnumMaps,
-- Sets,
-- QuestProgress,
-- Statistics,
-- ItemStacks.
-
-Zusätzlich wird `dirty` auf dem Live-Profil sauber kontrolliert. fileciteturn26file0L2-L6
-
-**Bewertung:** behalten.
-
----
-
-### 4.4 `MySQLPlayerProfileRepository` — korrektheitsorientiert, aber Full-Rewrite-Charakter
-
-Die SQL-Transaktion ist sauber mit `try-with-resources`, `setAutoCommit(false)`, `commit` und `rollback`. fileciteturn6file0L2-L6
-
-Das ist wesentlich besser als untransaktionale Einzelupdates.
-
-Das Hauptproblem ist nicht SQL-Injection, sondern unnötiger Write-Amplification.
-
-### Optimierung
-
-Ein `ProfileDelta`-Modell einführen:
+**Zielarchitektur:** `PlayerProfile` als Aggregat mit klaren Sub-States oder immutable Value Objects:
 
 ```text
-ProfileDelta
- ├─ moneyChanged
- ├─ experienceChanged
- ├─ professionChanges
- ├─ questChanges
- ├─ equipmentChanges
- ├─ statisticChanges
- └─ recipeChanges
+PlayerProfile
+ ├─ EconomyState
+ ├─ ProgressionState
+ ├─ ProfessionState
+ ├─ QuestState
+ ├─ EquipmentState
+ ├─ PreferenceState
+ └─ StatisticsState
 ```
 
-Nur diese Änderungen werden gespeichert.
+Nicht sofort alles refactoren; zuerst Persistence- und Hotpath-Probleme beseitigen.
 
 ---
 
-### 4.5 `GuildManager` — fachlich sauberer als früher, aber API-Vertrag falsch
+### 4.2 `MySQLPlayerProfileRepository`
 
-Die synchronisierten Mutationen für Guild-Erstellung, Einladung und Annahme sind grundsätzlich korrekt. Der `MAX_MEMBERS`-Check findet vor dem Join statt und die Methoden sind serialisiert. fileciteturn16file0L2-L6
+Prepared Statements, Transaktion und Revision sind gut. fileciteturn3file0L2-L6
 
-Der gravierende Fehler ist die Implementierung des falschen Interfaces `GuildAPI`.
+Die Methode `save()` ist jedoch viel zu groß und führt mehrere unabhängige Persistenzaufgaben in einem Block aus. Das erschwert Fehleranalyse und Performance-Profiling.
 
-Das muss beseitigt werden.
-
----
-
-### 4.6 `CraftingService` — gute serverseitige Validierung
-
-Positiv:
-
-- Recipe wird serverseitig aufgelöst.
-- Registrierung wird geprüft.
-- Beruf wird geprüft.
-- Level wird geprüft.
-- Unlock wird geprüft.
-- Unique-Items werden geblockt.
-- Materialkosten werden geprüft.
-- Item-ID-Kosten werden geprüft.
-- Ergebnis wird serverseitig erzeugt.
-
-fileciteturn15file0L2-L6
-
-Das ist die richtige Security Boundary.
-
-Das Crafting-System ist nicht der primäre Exploit-Kandidat.
-
----
-
-### 4.7 `CraftingGUI` — funktional, aber rendert zu viel
-
-`render()` scannt für jedes Rezept das Spielerinventar für Material- und Item-ID-Kosten. Bei vielen Rezepten wird daraus:
+**SOLL:**
 
 ```text
-Rezepte × Inventarslots
+savePlayerRow()
+saveActiveQuests()
+saveEquipment()
+saveStatistics()
 ```
 
-Der Spieler öffnet das GUI und der komplette Inhalt wird berechnet.
-
-Bei 50 Rezepten × 36 Slots sind das bereits 1.800 Slot-Checks pro Render. Bei jeder Seitenaktion wird erneut gerendert. fileciteturn14file0L2-L6
-
-### SOLL
-
-Ein `InventoryCostSnapshot` einmal erstellen und für alle Rezepte verwenden.
+Alle Methoden bekommen dieselbe Connection und bleiben Teil derselben Transaktion.
 
 ---
 
-### 4.8 `ScoreboardService` — unnötige Bukkit-Objektarbeit
+### 4.3 `DatabaseManager`
 
-Neben O(P²) erzeugt `buildLines()` regelmäßig neue Components und ruft `CompanionService.getActive()` auf. `appendPartyLine()` verwendet außerdem `Bukkit.getOfflinePlayer()` für Party-Mitglieder. fileciteturn29file0L2-L6
+Die Eingabevalidierung von Host, Port und Datenbank-Identifier ist gut. SSL ist konfigurierbar und standardmäßig `REQUIRED`. Poolgröße und Timeout sind begrenzt. fileciteturn12file0L2-L6
 
-Die Scoreboard-Daten sollten event-/dirty-getrieben sein.
+Kritik:
+
+- `ssl-mode: DISABLED` bleibt als Konfigurationsoption erlaubt. Das ist für eine Produktionswirtschaft eine gefährliche Default-Fluchtmöglichkeit.
+- Migrationen und Schema-Versionierung sind noch sehr klein und nicht als robustes Migration-Framework ausgelegt.
+- `leakDetectionThreshold=15s` ist als Diagnose gut, sollte aber nicht als dauerhafte Performance-Strategie verstanden werden.
 
 ---
 
-### 4.9 `CompanionService` — zu viele Verantwortlichkeiten
+### 4.4 `GuildManager`
 
-Die Klasse vereint:
+Der Snapshot-/Executor-Ansatz ist deutlich besser als synchrones YAML-Speichern. Atomare Move-Operationen sind richtig. fileciteturn10file0L2-L6
 
-- Companion Registry,
-- Persistence,
-- Ownership,
-- Runtime Entity Lifecycle,
-- Equipment,
-- Progression,
-- Rename,
-- Spawn/Despawn,
-- Mount Integration.
+Aber die Economy-Operationen und Guild-Persistenz sind getrennt. Für ein MMORPG mit wertvollen Guild-Assets ist das nicht akzeptabel.
 
-fileciteturn8file0L2-L6
+Zusätzlich sind `getGuild`, `getMembers`, `isMember` etc. komplett synchronisiert. Bei 100 Spielern und häufigen Scoreboard-Abfragen entsteht unnötige Lock-Aktivität.
 
-Das ist zu viel für eine Klasse.
+**SOLL:** immutable Guild-Snapshots + lockfreies Read-Modell; Schreiboperationen seriell über eine Guild-State-Queue.
 
-### SOLL
+---
 
-Aufteilen in:
+### 4.5 `ScoreboardService`
+
+Das Scoreboard-Rendering ist grundsätzlich sauberer als ein vollständiger Neuaufbau bei jedem Tick: `lastLines` wird verglichen und nur bei Änderung aktualisiert. Das ist gut. fileciteturn6file0L2-L6
+
+Der große Fehler ist der Guild-Prefix-Teil. Das Delta-Update-Modell wird dort durch einen vollständigen Online-Spieler-Scan wieder zunichtegemacht.
+
+**SOLL:** Scoreboard-Daten als vorberechneten View behandeln und UI nur bei Dirty-State verändern.
+
+---
+
+### 4.6 `NpcManager`
+
+Der Chunk-Index ist eine gute Entscheidung. `getSpawnedEntityUuids()` gibt eine Kopie zurück und verhindert direkte Mutation. YAML-Persistenz läuft über einen dedizierten Executor. fileciteturn24file0L2-L6
+
+Kritik:
+
+- `spawnEntityFor()` ist stark an Bukkit-Laufzeitobjekte gebunden und sollte strikt Main-Thread-only bleiben.
+- `resyncPlayer()` nutzt den Chunk-Index nicht maximal.
+- `saveAll()` queued komplette Snapshots bei jeder administrativen Änderung. Das ist für Admin-Frequenz okay, aber ein Save-Coalescing wäre sauberer.
+
+---
+
+### 4.7 `ExternalSkinService`
+
+Die Async-HTTP-Architektur ist richtig. Cache-Limit, TTL, Timeout, Redirect-Disable und Response-Limit sind gute Sicherheitsmaßnahmen. fileciteturn9file0L2-L6
+
+Kritik:
+
+- Remote URL wird an einen weiteren externen Dienst delegiert.
+- 15 Sekunden Timeout ist für eine einzelne HTTP-Anfrage okay, aber viele parallele NPC-Skin-Anfragen können Thread-/Connection-Ressourcen binden.
+- Es gibt kein explizites Request-Coalescing: mehrere identische gleichzeitige Skin-Requests können denselben Remote-Request mehrfach auslösen.
+
+**SOLL:** `Map<String, CompletableFuture<ProfileProperty>> inFlight` ergänzen und identische Requests deduplizieren.
+
+---
+
+### 4.8 `MobLevelScalingListener`
+
+Die Idee, Originalattribute im PDC zu speichern und beim Ende der Teilnahme wiederherzustellen, ist vernünftig. fileciteturn18file0L2-L6
+
+Der Fehler liegt in der Berechnungsfrequenz. Gear und Player-Level ändern sich selten; das System berechnet sie aber in häufigen Combat-/Cleanup-Pfaden neu.
+
+**SOLL:** Cache-Key:
 
 ```text
-CompanionRepository
-CompanionProgressionService
-CompanionRuntimeService
-CompanionEquipmentService
-CompanionSpawnService
-CompanionMountService
+mobUuid
++ participantSetRevision
++ maxPlayerLevel
++ gearRevision
 ```
 
----
-
-### 4.10 `RegionManager` — gutes Spatial Indexing
-
-Der Chunk-Index ist die richtige Datenstruktur. `find()` muss nicht alle Regionen prüfen. fileciteturn13file0L2-L6
-
-Das ist ausdrücklich **kein** Bereich, der jetzt blind refactored werden sollte.
+Nur bei Änderung neu skalieren.
 
 ---
 
-### 4.11 `ExternalSkinService` — gute Schutzmaßnahmen, aber API-Aufruf ist teuer
+### 4.9 `QuestPassiveCheckTask`
 
-Positiv:
+Die Lifecycle-Bereinigung ist gut: Task wird gecancelt, Listener werden über `HandlerList.unregisterAll()` entfernt und Navigation wird geleert. fileciteturn17file0L2-L6
 
-- HTTPS-only für externe URLs,
-- kein Userinfo/Fragment,
-- Timeout,
-- kein Redirect-Following,
-- Response-Limit,
-- begrenzter Cache,
-- TTL,
-- Main-Thread-Apply.
-
-fileciteturn24file0L2-L6
-
-Das ist für einen externen HTTP-Service ordentlich.
-
-Verbesserung: Request-Deduplication.
-
-Wenn 20 NPCs dieselbe neue URL gleichzeitig anfordern, sollten nicht 20 HTTP Requests entstehen:
-
-```java
-Map<String, CompletableFuture<ProfileProperty>> inFlight;
-```
+Das Problem ist die Architektur des Pollings. Quest-Fortschritt sollte grundsätzlich aus Events entstehen; Polling ist nur für Zustände sinnvoll, die Minecraft nicht sauber als Event liefert.
 
 ---
 
-### 4.12 `LifecycleCoordinator` — gut und behalten
+### 4.10 `paper-plugin.yml`
 
-Die Reverse-Order-Shutdownlogik ist korrekt. `AtomicBoolean` verhindert doppeltes Schließen. Ressourcenfehler blockieren nicht den Rest des Shutdowns. fileciteturn34file0L2-L6
+Die Datei ist korrekt modernisiert und nutzt API 26.2. Die Permissions sind klar benannt. fileciteturn21file0L2-L6
 
-Das ist eine der Verbesserungen, die **nicht** wieder zurückgebaut werden sollte.
+`rpg.member` hat `default: true`. Das ist in Ordnung, wenn jede Command-Implementierung Registrierung/Spielerstatus selbst korrekt validiert. Es darf aber niemals als Ersatz für Autorisierung innerhalb wirtschaftlicher/adminseitiger Services dienen.
+
+---
+
+### 4.11 Build-Verifikation
+
+Die bestehenden Verifikationen sind wertvoll und dürfen nicht entfernt werden. fileciteturn7file0L2-L6
+
+Sie prüfen aktuell insbesondere:
+
+- `ChatColor`,
+- Legacy-NMS,
+- CraftBukkit,
+- statische Live-Server-Referenzen,
+- Shadow-Relocations,
+- JDBC-Service-Relocation.
+
+Sie erkennen jedoch **keine**:
+
+- synchronen `File`-/YAML-Writes,
+- synchronen YAML-Reads in Hotpaths,
+- O(P²)-Algorithmen,
+- Bukkit-API-Aufrufe aus Async-Kontexten,
+- unatomare Economy-Transaktionen,
+- `§`-Legacy-Formatstrings.
+
+**SOLL:** Statische Architekturlinter ergänzen, ohne bestehende Checks abzuschwächen.
 
 ---
 
 ## 5. Konkreter Action-Plan
 
-## P0 — MUSS VOR PRODUCTION
+### P0 — MUSS VOR PRODUKTION
 
-### 1. GuildAPI sofort trennen
+1. **BankStorageService aus dem Main-Thread-I/O entfernen.**
+   - RAM-Snapshot.
+   - Async Writer.
+   - Per-Spieler Write-Coalescing.
+   - Atomare Datei-Ersetzung.
+   - Langfristig MySQL.
 
-**Dateien:**
+2. **TradeDepot komplett transaktional machen.**
+   - Kein `yaml.save()` im Interaktionspfad.
+   - Kein getrenntes `canFit()` → `add()`.
+   - Item-Transfer muss garantiert committen oder vollständig rollbacken.
+   - Listing-State braucht `ACTIVE/SOLD/CANCELLED/EXPIRED` statt bloßem Entfernen aus einer Map.
 
-- `api/GuildAPI.java`
-- `player/PlayerProfileManager.java`
-- `guild/GuildManager.java`
-- alle `GuildAPI`-Consumer
+3. **Trade-/Economy-Werte intern als `long` Minor Units führen.**
+   - `double` nur beim UI-Parsing.
+   - Konfigurierbare Maximalwerte.
+   - Overflow hart ablehnen.
 
-**Ziel:** keine zwei semantisch unterschiedlichen Implementierungen unter demselben Service-Key.
+4. **Scoreboard O(P²) beseitigen.**
+   - Guild-Views einmal vorberechnen.
+   - Dirty-State pro Spieler.
+   - Guild-Änderungen gezielt invalidieren.
+   - Keine vollständige Online-Spieleriteration pro Scoreboard-Spieler.
+
+5. **Companion Runtime entschlacken.**
+   - Kein Disk-Read im Runtime-Pfad.
+   - Equipment-/Stats-Revisionen.
+   - Combat und Follow entkoppeln.
+   - Block-Checks nur bei Bedarf.
+
+### P1 — SOLLTE ALS NÄCHSTES
+
+6. **NPC-Look von NPC→NearbyEntities auf indexierte Spieler/NPC-Beziehungen umstellen.**
+7. **Quest-Polling auf Event-/Dirty-basierte Updates umstellen.**
+8. **Mob-Scaling mit Cache/Revisionen versehen.**
+9. **Guild Read-Modell lockärmer machen.**
+10. **Cross-System-Economy-Persistenz vereinheitlichen.**
+11. **Skin-Requests deduplizieren (`inFlight` Futures) und erlaubte Hostnamen härter beschränken.**
+12. **Unique-Item-Identität bei Trade-/GUI-Transfers explizit validieren.**
+
+### P2 — TECHNISCHE SCHULD
+
+13. `PlayerProfile` in fachliche Sub-States zerlegen.
+14. `MySQLPlayerProfileRepository.save()` in kleinere Transaktionsschritte aufteilen.
+15. Command-Adapter langfristig direkt auf Paper-26.x-Command-Modell ausrichten.
+16. `§`-Entry-Identitäten im Scoreboard entfernen.
+17. Build-Checks um Main-Thread-I/O und bekannte Hotpath-Muster erweitern.
+18. Performance-Test mit mindestens 100/200/300 Spielern und kontrollierten NPC-/Companion-/Mob-Zahlen etablieren.
 
 ---
 
-### 2. BankStorageService komplett aus dem Main-Thread-I/O entfernen
+## Empfohlene Belastungstests vor Freigabe
 
-**Dateien:**
+Ein reiner Compile-Test reicht nicht. Der Server muss mit Spark/Timings/JFR unter reproduzierbarer Last vermessen werden.
 
-- `BankStorageService.java`
-- `BankInventoryListener.java`
+### Test A — 100 Spieler, normal
 
-**Ziel:** immutable Snapshot + async per-player persistence + atomic file replacement oder DB.
+- 100 Profile online.
+- 50 Companions.
+- 100 NPCs.
+- 500 aktive Mobs.
+- Scoreboards aktiv.
+- normale Questaktivität.
 
----
+### Test B — 100 Spieler, Kampf
 
-### 3. TradeDepot persistent transaktional machen
+- 100 Spieler in derselben Region.
+- 100+ aktive Companions.
+- 1.000+ Mobs.
+- hohe Damage-Event-Rate.
+- Mob-Scaling aktiv.
 
-**Datei:** `TradeDepotManager.java`
+### Test C — 100 Spieler, Economy-Sturm
 
-**Ziel:** DB-Tabelle für Listings + Transaktion für Kauf/Cancel/Expire/Payout.
+- 50 Spieler öffnen/schließen Bank.
+- 50 Spieler listen/kaufen/canceln parallel.
+- gleichzeitige Profil-Saves.
+- absichtliche Storage-Latenz simulieren.
 
-Minimal:
+### Test D — Crash-Konsistenz
+
+Während folgender Operationen Prozess hart beenden:
+
+- Guild-Erstellung.
+- Trade-Kauf.
+- Trade-Cancel.
+- Listing-Expiration.
+- Player-Quit-Save.
+
+Danach Datenbank/YAML gegen erwarteten Zustand vergleichen.
+
+### Abnahmekriterien
 
 ```text
-trade_listings
-trade_payouts
+P99 Main-Thread-Tick < 50 ms
+P95 Main-Thread-Tick deutlich unter 50 ms
+keine synchronen Disk-Writes in Spielerinteraktionen
+keine Economy-Duplikation
+kein Item-Verlust
+keine unbounded Maps
+keine Exceptions unter normaler Last
+kein Task-Wachstum nach wiederholtem Reload/Shutdown
 ```
 
-Kauf muss eine echte DB-Transaktion werden.
-
----
-
-### 4. Scoreboard O(P²) eliminieren
-
-**Datei:** `ScoreboardService.java`
-
-Nicht mehr:
-
-```text
-for player
-    for onlinePlayer
-```
-
-Stattdessen einmalige Guild-Sicht pro Update oder Dirty-State-Updates.
-
----
-
-### 5. Companion Equipment aus Runtime-Disk-I/O entfernen
-
-Equipment beim Login/Preload laden. Runtime nur RAM.
-
----
-
-## P1 — MUSS VOR 100+ SPIELERN
-
-### 6. NPC-Look optimieren
-
-- Spieler-zentriertes Spatial Query.
-- Adaptive Tickrate.
-- keine unnötige Rotation.
-
-### 7. Quest-Polling reduzieren
-
-Event-getriebene Fortschrittsberechnung.
-
-### 8. Mob-Gear-Scaling cachen
-
-Gear-Level nicht bei jedem Monster-Scaling neu aus dem Inventory berechnen.
-
-### 9. Crafting GUI Inventory Snapshot
-
-Inventar nur einmal analysieren.
-
-### 10. MySQL incremental persistence
-
-Full-Rewrite von Quests/Equipment/Stats reduzieren.
-
----
-
-## P2 — ARCHITEKTUR
-
-### 11. `CompanionService` zerlegen
-
-### 12. `PixelRPGPlugin` in Module-Installer zerlegen
-
-### 13. GuildState immutable/read-mostly machen
-
-### 14. Gemeinsame Persistence-Abstraktion
-
-Aktuell existieren mehrere parallele Systeme:
-
-```text
-PlayerProfile → MySQL/YAML
-Guild → YAML
-Bank → YAML
-Trade → YAML
-Companion → YAML
-Companion Equipment → YAML
-Shop → YAML
-Region → YAML
-Quest → YAML
-Boss → YAML
-```
-
-Das ist für ein wachsendes MMORPG ein Wartungsproblem.
-
-Langfristig sollte ein klarer Split gelten:
-
-```text
-Static game data
-    → JSON/YAML resources
-
-Persistent player/economy state
-    → MySQL
-
-Runtime state
-    → RAM only
-```
-
----
-
-## P3 — FOLIA-READY ARCHITEKTUR, FALLS SPÄTER GEWÜNSCHT
-
-Der aktuelle Code ist **nicht Folia-ready**. Das ist kein Fehler, solange das Plugin ausschließlich Paper 26.2 targetiert und `folia-supported` nicht gesetzt ist.
-
-Wenn Folia später unterstützt werden soll, müssen insbesondere folgende Systeme neu gedacht werden:
-
-- Companion Follow
-- NPC Look
-- Entity Teleports
-- Boss Entity Runtime
-- Region Spawn
-- Mob Scaling
-- Player-/Entity-bezogene Tasks
-
-Folia verlangt dafür passende Scheduler und Entity-Scheduler statt eines globalen BukkitScheduler-Modells. citeturn0search0turn0search1
-
----
-
-## Performance-Zielwerte für die Abnahme
-
-Vor einem Production-Go sollten Lasttests mindestens folgendes simulieren:
-
-```text
-100 Spieler
-100 aktive Companions
-200+ NPCs
-500+ aktive skalierte Mobs
-100+ aktive Quests
-50+ Guilds
-100+ Trade-Listings
-100+ Bank-Operationen/min
-50+ Crafting-Operationen/s Burst
-```
-
-Dabei müssen gemessen werden:
-
-- MSPT p50
-- MSPT p95
-- MSPT p99
-- GC pause time
-- Allocation rate
-- DB latency
-- DB connection pool saturation
-- async queue depth
-- main-thread disk I/O
-- Anzahl synchroner YAML writes
-- Anzahl Entity lookups pro Tick
-- Anzahl Inventory scans pro Tick
-
-### Harte Abnahmekriterien
-
-```text
-p95 MSPT < 35 ms
-p99 MSPT < 45 ms
-keine synchronen Datei-/DB-Writes im Player-Interaction-Pfad
-keine unbounded Collections
-keine O(P²)-Tasks
-keine doppelte Service-Implementierung für semantisch verschiedene APIs
-keine persistenten Markttransaktionen ohne atomare Commit-Grenze
-```
+20.00 TPS darf nicht aus einem kurzen Testfenster abgeleitet werden. Entscheidend sind P95/P99-Tickzeiten, GC-Pausen und Worst-Case-Spikes.
 
 ---
 
 ## Schlussurteil
 
-PixelRPG ist **kein Schrott** und der aktuelle `test`-Stand enthält mehrere technisch gute Korrekturen. Besonders das PlayerProfile-Snapshotting, die MySQL-Transaktion, die Region-Indexierung, die Hikari-Konfiguration, der External-Skin-Schutz und die Lifecycle-Koordination sind solide Ansätze. fileciteturn26file0L2-L6 fileciteturn6file0L2-L6 fileciteturn13file0L2-L6 fileciteturn9file0L2-L6 fileciteturn34file0L2-L6
+**PixelRPG/test ist technisch bereits deutlich über einem einfachen Plugin-Prototyp, aber noch nicht auf Core-/MMORPG-Produktionsniveau.** Die stärksten positiven Punkte sind das moderne Paper-Setup, die Async-Profile-Persistenz, die MySQL-Revisionen, die PDC-Nutzung und das grundsätzlich saubere Lifecycle-/Snapshot-Denken.
 
-Aber ein MMORPG-Plugin für 100+ Spieler darf nicht nur „meistens funktionieren“. Die aktuelle Architektur enthält noch **mehrere deterministische Main-Thread-I/O-Pfade**, einen **O(P²)-Scoreboard-Loop**, mehrere **permanente Entity-Scan-Loops** und vor allem eine **fehlerhafte GuildAPI-Servicearchitektur**.
+Die harten Probleme liegen in den Übergängen zwischen diesen Systemen: Bank und Trade schreiben weiterhin synchron YAML, Scoreboard skaliert quadratisch, Companion-/Mob-Systeme rechnen zu häufig neu und Economy-Operationen sind nicht über mehrere Storage-Domänen atomar.
 
-Das wichtigste Ergebnis ist deshalb:
+**Freigabeentscheidung: BLOCKED.**
 
-> **Der aktuelle `test`-Branch ist nicht bereit für einen 100+ Spieler Production-Server mit der Anforderung „20.00 TPS / minimale MSPT“.**
->
-> **Die kritischsten Baustellen sind nicht die RPG-Mathematik oder Paper-API-Nutzung, sondern Persistence, Service-Verträge und wiederkehrende globale Scans.**
+Der Code sollte **nicht** mit dem Anspruch veröffentlicht werden, unter 100+ gleichzeitig aktiven Spielern zuverlässig 20.00 TPS bei minimalen MSPT zu garantieren. Zuerst müssen die P0-Punkte behoben und anschließend mit realistischen Worst-Case-Lasttests vermessen werden.
 
-Keine kosmetischen Refactorings zuerst. Erst die P0-Probleme beheben, danach Lastprofiling, anschließend P1-Optimierungen. Alles andere ist Zeitverschwendung.
+---
+
+### Geprüfte Kernartefakte
+
+- `build.gradle` — Build-/Verifier-Basis. fileciteturn7file0L2-L6
+- `paper-plugin.yml` — Paper-26.2-Plugin-Descriptor. fileciteturn21file0L2-L6
+- `PlayerProfile` / `PlayerProfileManager` / `MySQLPlayerProfileRepository` — Profile, Snapshotting, Revisionen. fileciteturn13file0L2-L6 fileciteturn11file0L2-L6 fileciteturn3file0L2-L6
+- `BankStorageService` — Bank-Persistenz. fileciteturn4file0L2-L6
+- `TradeDepotManager` / `TradeDepotGUI` — Markt und UI. fileciteturn5file0L2-L6 fileciteturn19file0L2-L6
+- `ScoreboardService` — Scoreboard-Hotpath. fileciteturn6file0L2-L6
+- `CompanionFollowTask` — Companion-Hotpath. fileciteturn23file0L2-L6
+- `NpcLookTask` / `NpcManager` — NPC Runtime und Persistenz. fileciteturn16file0L2-L6 fileciteturn24file0L2-L6
+- `QuestPassiveCheckTask` — Quest-Polling. fileciteturn17file0L2-L6
+- `MobLevelScalingListener` — Mob-Scaling. fileciteturn18file0L2-L6
+- `GuildManager` — Guild-State und Persistenz. fileciteturn10file0L2-L6
+- `ExternalSkinService` — externe HTTP-/Skin-Integration. fileciteturn9file0L2-L6
+- `DatabaseManager` / `Money` — DB-/Money-Grenzen. fileciteturn12file0L2-L6 fileciteturn14file0L2-L6
+
+**CI-Hinweis:** Für den geprüften Branch-Head wurden über die verfügbare GitHub-Schnittstelle keine Workflow-Runs zurückgeliefert. Das Audit ist daher eine statische Code-/Architekturanalyse und kein Ersatz für einen tatsächlichen 100+-Spieler-Lasttest auf einem laufenden Paper-26.2-Server.
