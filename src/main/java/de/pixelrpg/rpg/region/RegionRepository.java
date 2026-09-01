@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 
 /** Persists region definitions without expanding polygons into block lists. */
 public final class RegionRepository {
-    private static final int CURRENT_FORMAT_VERSION = 2;
+    private static final int CURRENT_FORMAT_VERSION = 3;
 
     private final File file;
     private final Logger logger;
@@ -30,7 +30,10 @@ public final class RegionRepository {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         int formatVersion = yaml.getInt("format-version", 1);
         ConfigurationSection root = yaml.getConfigurationSection("regions");
-        if (root == null) return List.of();
+        if (root == null) {
+            migrateFormatIfNeeded(formatVersion, List.of(), yaml);
+            return List.of();
+        }
 
         List<PixelRegion> result = new ArrayList<>();
         for (String idText : root.getKeys(false)) {
@@ -56,8 +59,8 @@ public final class RegionRepository {
                     for (String key : flagSection.getKeys(false)) {
                         try {
                             boolean value = flagSection.getBoolean(key);
-                            // Format 1 used true = deny. Format 2 uses true = allow.
-                            flags.put(RegionFlag.valueOf(key), formatVersion < CURRENT_FORMAT_VERSION ? !value : value);
+                            // Format 1/2 used true = deny. Format 3 uses true = allow.
+                            flags.put(RegionFlag.valueOf(key), formatVersion < 3 ? !value : value);
                         } catch (IllegalArgumentException ignored) {
                             // Unknown flags are intentionally ignored for forward compatibility.
                         }
@@ -95,17 +98,54 @@ public final class RegionRepository {
             }
         }
 
-        List<PixelRegion> loaded = List.copyOf(result);
-        if (formatVersion < CURRENT_FORMAT_VERSION) {
-            save(loaded);
-            logger.info("Migrated regions.yml to format version " + CURRENT_FORMAT_VERSION + ".");
+        migrateFormatIfNeeded(formatVersion, result, yaml);
+        return List.copyOf(result);
+    }
+
+    /** Loads world-wide defaults from the global region section. */
+    public Map<String, Map<RegionFlag, Boolean>> loadGlobalFlags() {
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        ConfigurationSection worlds = yaml.getConfigurationSection("global-regions");
+        if (worlds == null) return Map.of();
+        Map<String, Map<RegionFlag, Boolean>> result = new HashMap<>();
+        for (String world : worlds.getKeys(false)) {
+            ConfigurationSection flags = worlds.getConfigurationSection(world + ".flags");
+            EnumMap<RegionFlag, Boolean> values = defaultGlobalFlags();
+            if (flags != null) {
+                for (String key : flags.getKeys(false)) {
+                    try {
+                        values.put(RegionFlag.valueOf(key), flags.getBoolean(key));
+                    } catch (IllegalArgumentException ignored) {
+                        // Unknown future flags are ignored.
+                    }
+                }
+            }
+            result.put(world, Map.copyOf(values));
         }
-        return loaded;
+        return Map.copyOf(result);
+    }
+
+    /** Saves the world-wide defaults while preserving all normal regions. */
+    public synchronized void saveGlobalFlags(Map<String, Map<RegionFlag, Boolean>> globalFlags) {
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        yaml.set("format-version", CURRENT_FORMAT_VERSION);
+        yaml.set("global-regions", null);
+        for (Map.Entry<String, Map<RegionFlag, Boolean>> world : globalFlags.entrySet()) {
+            for (Map.Entry<RegionFlag, Boolean> flag : world.getValue().entrySet()) {
+                yaml.set("global-regions." + world.getKey() + ".flags." + flag.getKey().name(), flag.getValue());
+            }
+        }
+        try {
+            yaml.save(file);
+        } catch (IOException exception) {
+            throw new IllegalStateException("Could not save regions.yml", exception);
+        }
     }
 
     public synchronized void save(Iterable<PixelRegion> regions) {
-        YamlConfiguration yaml = new YamlConfiguration();
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         yaml.set("format-version", CURRENT_FORMAT_VERSION);
+        yaml.set("regions", null);
 
         for (PixelRegion region : regions) {
             String base = "regions." + region.id();
@@ -141,6 +181,27 @@ public final class RegionRepository {
         } catch (IOException exception) {
             throw new IllegalStateException("Could not save regions.yml", exception);
         }
+    }
+
+    private void migrateFormatIfNeeded(int formatVersion, List<PixelRegion> regions, YamlConfiguration yaml) {
+        if (formatVersion >= CURRENT_FORMAT_VERSION) return;
+        save(regions);
+        logger.info("Migrated regions.yml to format version " + CURRENT_FORMAT_VERSION + ".");
+    }
+
+    private static EnumMap<RegionFlag, Boolean> defaultGlobalFlags() {
+        EnumMap<RegionFlag, Boolean> flags = new EnumMap<>(RegionFlag.class);
+        flags.put(RegionFlag.PVP, true);
+        flags.put(RegionFlag.MONSTER_SPAWN, true);
+        flags.put(RegionFlag.BLOCK_BREAK, true);
+        flags.put(RegionFlag.BLOCK_PLACE, true);
+        flags.put(RegionFlag.FIRE_SPREAD, false);
+        flags.put(RegionFlag.LAVA_FLOW, false);
+        flags.put(RegionFlag.EXPLOSION, false);
+        flags.put(RegionFlag.CREEPER_EXPLOSION, false);
+        flags.put(RegionFlag.GHAST_FIREBALL, false);
+        flags.put(RegionFlag.ENDERMAN_GRIEF, false);
+        return flags;
     }
 
     private static UUID parseUuid(String value) {
