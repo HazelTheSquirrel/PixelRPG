@@ -13,6 +13,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Objects;
 
 /** Owns user-editable JSON data files in the plugin data directory. */
@@ -49,7 +50,11 @@ public final class JsonDataManager {
             if (!element.isJsonObject()) {
                 throw new IllegalStateException("JSON root must be an object: " + path);
             }
-            return element.getAsJsonObject();
+            JsonObject object = element.getAsJsonObject();
+            if (fileName.equals("recipes/crafting-recipes.json") && !object.has("recipes")) {
+                return repairCraftingRecipes(path);
+            }
+            return object;
         } catch (Exception exception) {
             throw new IllegalStateException("Unable to load JSON data file: " + path, exception);
         }
@@ -67,6 +72,25 @@ public final class JsonDataManager {
             }
         } catch (IOException exception) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to save JSON data file " + path, exception);
+        }
+    }
+
+    private JsonObject repairCraftingRecipes(Path path) {
+        Path backup = path.resolveSibling("crafting-recipes.legacy-" + Instant.now().toEpochMilli() + ".json");
+        try {
+            Files.move(path, backup);
+            plugin.getLogger().warning("Found an incompatible crafting-recipes.json. The old file was backed up to " + backup.getFileName() + " and the current bundled recipe definitions are being installed.");
+            copyDefault("recipes/crafting-recipes.json", path);
+
+            try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+                JsonElement element = JsonParser.parseReader(reader);
+                if (!element.isJsonObject() || !element.getAsJsonObject().has("recipes")) {
+                    throw new IllegalStateException("Bundled crafting-recipes.json does not contain a 'recipes' array");
+                }
+                return element.getAsJsonObject();
+            }
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to repair incompatible crafting recipe data: " + path, exception);
         }
     }
 
