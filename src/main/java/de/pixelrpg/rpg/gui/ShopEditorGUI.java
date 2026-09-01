@@ -1,4 +1,3 @@
-// src/main/java/de/pixelrpg/rpg/gui/ShopEditorGUI.java
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.core.RPGKeys;
@@ -24,9 +23,9 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public final class ShopEditorGUI implements Listener {
-
     private final ShopManager shopManager;
 
     public final class EditorHolder implements InventoryHolder {
@@ -55,27 +54,27 @@ public final class ShopEditorGUI implements Listener {
 
         int slot = 0;
         for (ShopEntry entry : shopManager.getEntries(npcId)) {
-            if (slot >= 54) {
-                break;
-            }
-            inv.setItem(slot, applyPriceTag(entry.item().clone(), entry.price()));
+            if (slot >= 54) break;
+            inv.setItem(slot, applyPriceTags(entry.item().clone(), entry.buyPrice(), entry.sellPrice()));
             slot++;
         }
-
         player.openInventory(inv);
     }
 
-    private ItemStack applyPriceTag(ItemStack item, double price) {
+    private ItemStack applyPriceTags(ItemStack item, double buyPrice, double sellPrice) {
         ItemMeta meta = item.getItemMeta();
-        meta.getPersistentDataContainer().set(RPGKeys.Item.shopPriceTag(), PersistentDataType.DOUBLE, price);
+        meta.getPersistentDataContainer().set(RPGKeys.Item.shopBuyPriceTag(), PersistentDataType.DOUBLE, buyPrice);
+        meta.getPersistentDataContainer().set(RPGKeys.Item.shopSellPriceTag(), PersistentDataType.DOUBLE, sellPrice);
 
         List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
         stripPriceLore(lore);
-        lore.add(Component.text("Price: " + String.format("%.2f", price) + " Gold", NamedTextColor.GOLD)
+        lore.add(Component.text("Kaufpreis: " + format(buyPrice) + " Gold", NamedTextColor.GOLD)
                 .decoration(TextDecoration.ITALIC, false));
-        lore.add(Component.text("Left-click: +1 | Shift-left: +10", NamedTextColor.DARK_GRAY)
+        lore.add(Component.text("Verkaufspreis: " + format(sellPrice) + " Gold", NamedTextColor.GREEN)
                 .decoration(TextDecoration.ITALIC, false));
-        lore.add(Component.text("Right-click: -1 | Shift-right: -10", NamedTextColor.DARK_GRAY)
+        lore.add(Component.text("Linksklick: Kaufpreis +1 | Shift: +10", NamedTextColor.DARK_GRAY)
+                .decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.text("Rechtsklick: Verkaufspreis +1 | Shift: +10", NamedTextColor.DARK_GRAY)
                 .decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
@@ -85,68 +84,57 @@ public final class ShopEditorGUI implements Listener {
     private void stripPriceLore(List<Component> lore) {
         lore.removeIf(line -> {
             String plain = PlainTextComponentSerializer.plainText().serialize(line);
-            return plain.startsWith("Price: ") || plain.startsWith("Left-click:") || plain.startsWith("Right-click:");
+            return plain.startsWith("Preis: ") || plain.startsWith("Price: ")
+                    || plain.startsWith("Kaufpreis: ") || plain.startsWith("Verkaufspreis: ")
+                    || plain.startsWith("Left-click:") || plain.startsWith("Right-click:")
+                    || plain.startsWith("Linksklick:") || plain.startsWith("Rechtsklick:");
         });
     }
 
-    // Zuständig dafür, Preisanpassungen (Links-/Rechtsklick, Shift-Varianten) auf im Editor
-    // liegenden Items zu verarbeiten und den entsprechenden Klick zu unterbinden; neue Items
-    // aus dem Spielerinventar werden weiterhin normal per Drag&Drop abgelegt.
+    // Zuständig für die getrennte Anpassung von Kauf- und Verkaufspreis im Shop-Editor.
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (!(event.getInventory().getHolder() instanceof EditorHolder holder)) {
-            return;
-        }
-        if (event.getClickedInventory() != holder.getInventory()) {
-            return;
-        }
+        if (!(event.getInventory().getHolder() instanceof EditorHolder holder)) return;
+        if (event.getClickedInventory() != holder.getInventory()) return;
 
         ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || clicked.getType() == Material.AIR || event.getCursor().getType() != Material.AIR) {
-            return;
-        }
+        if (clicked == null || clicked.isEmpty() || event.getCursor().getType() != Material.AIR) return;
 
         ClickType click = event.getClick();
         if (click != ClickType.LEFT && click != ClickType.SHIFT_LEFT
-                && click != ClickType.RIGHT && click != ClickType.SHIFT_RIGHT) {
-            return;
-        }
+                && click != ClickType.RIGHT && click != ClickType.SHIFT_RIGHT) return;
 
         event.setCancelled(true);
         ItemMeta meta = clicked.getItemMeta();
-        double current = meta.getPersistentDataContainer()
-                .getOrDefault(RPGKeys.Item.shopPriceTag(), PersistentDataType.DOUBLE, 0.0);
+        double buyPrice = meta.getPersistentDataContainer()
+                .getOrDefault(RPGKeys.Item.shopBuyPriceTag(), PersistentDataType.DOUBLE, 0.0D);
+        double sellPrice = meta.getPersistentDataContainer()
+                .getOrDefault(RPGKeys.Item.shopSellPriceTag(), PersistentDataType.DOUBLE, buyPrice * 0.50D);
+        double delta = click.isShiftClick() ? 10.0D : 1.0D;
 
-        double delta = switch (click) {
-            case LEFT -> 1.0;
-            case SHIFT_LEFT -> 10.0;
-            case RIGHT -> -1.0;
-            case SHIFT_RIGHT -> -10.0;
-            default -> 0.0;
-        };
+        if (click.isLeftClick()) buyPrice += delta;
+        else sellPrice += delta;
 
-        double updated = Math.max(0.0, current + delta);
-        event.getInventory().setItem(event.getSlot(), applyPriceTag(clicked, updated));
+        event.getInventory().setItem(event.getSlot(), applyPriceTags(clicked, buyPrice, sellPrice));
     }
 
-    // Zuständig für das Speichern des Shop-Bestands beim Schließen des Editors: liest alle
-    // im Editor liegenden Items samt Preis-Tag aus und ersetzt den kompletten Shop-Bestand
-    // des NPCs damit (Editor-Inhalt entspricht 1:1 dem gespeicherten Shop).
+    // Zuständig für das Speichern des Shop-Bestands samt unabhängigen Kauf- und Verkaufspreisen beim Schließen.
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        if (!(event.getInventory().getHolder() instanceof EditorHolder holder)) {
-            return;
-        }
+        if (!(event.getInventory().getHolder() instanceof EditorHolder holder)) return;
 
         List<ShopEntry> entries = new ArrayList<>();
         for (ItemStack stack : event.getInventory().getContents()) {
-            if (stack == null || stack.getType() == Material.AIR || !stack.hasItemMeta()) {
-                continue;
-            }
+            if (stack == null || stack.isEmpty() || !stack.hasItemMeta()) continue;
+
             ItemStack clean = stack.clone();
             ItemMeta meta = clean.getItemMeta();
-            double price = meta.getPersistentDataContainer()
-                    .getOrDefault(RPGKeys.Item.shopPriceTag(), PersistentDataType.DOUBLE, 0.0);
+            double buyPrice = meta.getPersistentDataContainer()
+                    .getOrDefault(RPGKeys.Item.shopBuyPriceTag(), PersistentDataType.DOUBLE, 0.0D);
+            double sellPrice = meta.getPersistentDataContainer()
+                    .getOrDefault(RPGKeys.Item.shopSellPriceTag(), PersistentDataType.DOUBLE, buyPrice * 0.50D);
+            meta.getPersistentDataContainer().remove(RPGKeys.Item.shopBuyPriceTag());
+            meta.getPersistentDataContainer().remove(RPGKeys.Item.shopSellPriceTag());
             meta.getPersistentDataContainer().remove(RPGKeys.Item.shopPriceTag());
 
             List<Component> lore = meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
@@ -154,9 +142,12 @@ public final class ShopEditorGUI implements Listener {
             meta.lore(lore);
             clean.setItemMeta(meta);
 
-            entries.add(new ShopEntry(clean, price));
+            entries.add(new ShopEntry(clean, Math.max(0.0D, buyPrice), Math.max(0.0D, sellPrice)));
         }
-
         shopManager.replaceEntries(holder.npcId, entries);
+    }
+
+    private String format(double amount) {
+        return String.format(Locale.ROOT, "%.2f", amount);
     }
 }
