@@ -20,8 +20,8 @@ public final class DatabaseManager {
         String database = requireIdentifier(config.getString("storage.mysql.database", "pixelrpg"), "storage.mysql.database");
         String username = config.getString("storage.mysql.username", "root");
         String password = config.getString("storage.mysql.password", "");
-        int poolSize = Math.max(2, config.getInt("storage.mysql.pool-size", 10));
-        long connectionTimeoutMs = Math.max(2_000L, config.getLong("storage.mysql.connection-timeout-ms", 8000L));
+        int poolSize = Math.clamp(config.getInt("storage.mysql.pool-size", 10), 2, 64);
+        long connectionTimeoutMs = Math.clamp(config.getLong("storage.mysql.connection-timeout-ms", 8000L), 2_000L, 60_000L);
         String sslMode = config.getString("storage.mysql.ssl-mode", "REQUIRED");
         if (sslMode == null || sslMode.isBlank()) sslMode = "REQUIRED";
         sslMode = sslMode.trim().toUpperCase(java.util.Locale.ROOT);
@@ -38,7 +38,8 @@ public final class DatabaseManager {
         hikariConfig.setMaximumPoolSize(poolSize);
         hikariConfig.setConnectionTimeout(connectionTimeoutMs);
         hikariConfig.setPoolName("PixelRPG-Hikari");
-        hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        // Do not hard-code the pre-relocation driver class name. Shadow's merged
+        // JDBC service descriptor is the authoritative driver discovery mechanism.
         hikariConfig.setMinimumIdle(Math.min(poolSize, Math.max(1, poolSize / 4)));
         hikariConfig.setIdleTimeout(300_000L);
         hikariConfig.setMaxLifetime(1_800_000L);
