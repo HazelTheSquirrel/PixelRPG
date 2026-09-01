@@ -33,6 +33,19 @@ public final class CraftingRecipeRegistry {
         return Optional.ofNullable(recipes.get(canonicalRecipeId(id)));
     }
 
+    /** Resolves the player-facing recipe label for a crafted PixelRPG result item. */
+    public Optional<String> findDisplayNameByResultItemId(String itemId) {
+        if (itemId == null || itemId.isBlank()) return Optional.empty();
+        String canonical = canonicalItemId(itemId);
+        List<String> labels = recipes.values().stream()
+                .filter(recipe -> !recipe.resultItemId().isBlank())
+                .filter(recipe -> canonicalItemId(recipe.resultItemId()).equals(canonical))
+                .map(CraftRecipe::displayName)
+                .distinct()
+                .toList();
+        return labels.size() == 1 ? Optional.of(labels.getFirst()) : Optional.empty();
+    }
+
     public boolean hasResultItemId(String itemId) {
         String canonical = canonicalItemId(itemId);
         return recipes.values().stream().anyMatch(recipe -> !recipe.resultItemId().isBlank() && canonicalItemId(recipe.resultItemId()).equals(canonical));
