@@ -42,14 +42,13 @@ import java.util.concurrent.ConcurrentHashMap;
 /** Event-driven sidebar renderer. A player is rendered only after a relevant state change. */
 public final class ScoreboardService implements Listener {
     private static final int MAX_LINES = 15;
-    private static final String[] INVISIBLE_ENTRIES = {
-            "§0", "§1", "§2", "§3", "§4", "§5", "§6", "§7", "§8", "§9", "§a", "§b", "§c", "§d", "§e"
-    };
 
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
     private final WakeScheduler<UUID> wakeScheduler;
     private final Map<UUID, PlayerScoreboardState> stateByPlayer = new ConcurrentHashMap<>();
+    private final Map<UUID, Guild> guildCache = new ConcurrentHashMap<>();
+    private long guildCacheTick = Long.MIN_VALUE;
     private final java.util.function.Consumer<UUID> profileChangeListener = this::markDirty;
 
     private static final class PlayerScoreboardState {
@@ -81,10 +80,12 @@ public final class ScoreboardService implements Listener {
 
     /** Marks all currently online players once after a global relationship change. */
     public void markAllDirty() {
+        invalidateGuildCache();
         for (Player player : Bukkit.getOnlinePlayers()) markDirty(player.getUniqueId());
     }
 
     public void startTask() {
+        invalidateGuildCache();
         for (Player player : Bukkit.getOnlinePlayers()) markDirty(player.getUniqueId());
     }
 
@@ -105,11 +106,13 @@ public final class ScoreboardService implements Listener {
         wakeScheduler.clear();
         for (Player player : Bukkit.getOnlinePlayers()) clearScoreboard(player);
         stateByPlayer.clear();
+        guildCache.clear();
     }
 
     // We render the initial sidebar only when the player enters the server.
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
+        invalidateGuildCache();
         markDirty(event.getPlayer().getUniqueId());
     }
 
@@ -118,6 +121,7 @@ public final class ScoreboardService implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         wakeScheduler.cancel(event.getPlayer().getUniqueId());
         stateByPlayer.remove(event.getPlayer().getUniqueId());
+        invalidateGuildCache();
     }
 
     // A world change can alter every contextual sidebar value, so the player is woken once.
@@ -135,12 +139,14 @@ public final class ScoreboardService implements Listener {
     // Registration changes determine whether the sidebar is visible and which values are valid.
     @EventHandler
     public void onRegistration(PlayerRegistrationEvent event) {
+        invalidateGuildCache();
         markDirty(event.getPlayer().getUniqueId());
     }
 
     // Unregistration removes the RPG sidebar state from the player.
     @EventHandler
     public void onUnregistration(PlayerUnregistrationEvent event) {
+        invalidateGuildCache();
         markDirty(event.getPlayer().getUniqueId());
     }
 
@@ -179,26 +185,28 @@ public final class ScoreboardService implements Listener {
         updateExperienceBar(player, profile);
         List<Component> lines = buildLines(player, profile);
         PlayerScoreboardState state = stateByPlayer.computeIfAbsent(player.getUniqueId(), ignored -> createState(player));
-        if (lines.equals(state.lastLines)) return;
-        state.lastLines = List.copyOf(lines);
-
-        int size = Math.min(lines.size(), MAX_LINES);
-        for (int i = 0; i < size; i++) {
-            Component line = lines.get(i);
-            Team team = state.teams[i];
-            if (team == null) team = registerLineTeam(state, i);
-            team.prefix(line);
-            if (!state.activeLine[i]) {
-                state.objective.getScore(entryFor(i)).setScore(MAX_LINES - i);
-                state.activeLine[i] = true;
+        boolean sidebarChanged = !lines.equals(state.lastLines);
+        if (sidebarChanged) {
+            state.lastLines = List.copyOf(lines);
+            int size = Math.min(lines.size(), MAX_LINES);
+            for (int i = 0; i < size; i++) {
+                Component line = lines.get(i);
+                Team team = state.teams[i];
+                if (team == null) team = registerLineTeam(state, i);
+                team.prefix(line);
+                if (!state.activeLine[i]) {
+                    state.objective.getScore(entryFor(i)).setScore(MAX_LINES - i);
+                    state.activeLine[i] = true;
+                }
+            }
+            for (int i = size; i < MAX_LINES; i++) {
+                if (state.activeLine[i]) {
+                    state.board.resetScores(entryFor(i));
+                    state.activeLine[i] = false;
+                }
             }
         }
-        for (int i = size; i < MAX_LINES; i++) {
-            if (state.activeLine[i]) {
-                state.board.resetScores(entryFor(i));
-                state.activeLine[i] = false;
-            }
-        }
+        // Team state is its own dirty domain and must still update when the sidebar text is unchanged.
         applyGuildPrefixes(state);
     }
 
@@ -209,16 +217,19 @@ public final class ScoreboardService implements Listener {
         } catch (IllegalStateException ignored) {
             return;
         }
-
-        Map<UUID, Guild> guilds = new java.util.HashMap<>();
-        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            UUID playerId = onlinePlayer.getUniqueId();
-            Guild guild = guildManager.getGuild(playerId).orElse(null);
-            if (guild != null) guilds.put(playerId, guild);
+        long currentTick = Bukkit.getCurrentTick();
+        if (guildCacheTick != currentTick) {
+            guildCache.clear();
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                Guild guild = guildManager.getGuild(onlinePlayer.getUniqueId()).orElse(null);
+                if (guild != null) guildCache.put(onlinePlayer.getUniqueId(), guild);
+            }
+            guildCacheTick = currentTick;
         }
+
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             UUID playerId = onlinePlayer.getUniqueId();
-            Guild guild = guilds.get(playerId);
+            Guild guild = guildCache.get(playerId);
             String previousTeamName = state.guildTeamByPlayer.get(playerId);
             if (guild == null) {
                 if (previousTeamName != null) {
@@ -239,6 +250,11 @@ public final class ScoreboardService implements Listener {
             }
             state.guildTeamByPlayer.put(playerId, teamName);
         }
+    }
+
+    private void invalidateGuildCache() {
+        guildCacheTick = Long.MIN_VALUE;
+        guildCache.clear();
     }
 
     private String guildTeamName(UUID guildId) {
@@ -276,7 +292,7 @@ public final class ScoreboardService implements Listener {
         return team;
     }
 
-    private String entryFor(int index) { return INVISIBLE_ENTRIES[index]; }
+    private String entryFor(int index) { return "\u200B".repeat(index + 1); }
 
     private List<Component> buildLines(Player player, PlayerProfile profile) {
         List<Component> lines = new ArrayList<>();
