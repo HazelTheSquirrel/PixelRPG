@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,6 +20,7 @@ public final class AsyncFileWriter {
     private final ExecutorService executor;
     private final Map<Path, String> pending = new ConcurrentHashMap<>();
     private final AtomicBoolean draining = new AtomicBoolean();
+    private final AtomicBoolean closed = new AtomicBoolean();
 
     public AsyncFileWriter(Plugin plugin, String threadName) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
@@ -31,9 +33,18 @@ public final class AsyncFileWriter {
 
     /** Replaces the latest pending snapshot for a file and wakes the writer once. */
     public void submit(Path path, String contents) {
-        if (path == null || contents == null || executor.isShutdown()) return;
-        pending.put(path.toAbsolutePath().normalize(), contents);
-        if (draining.compareAndSet(false, true)) executor.execute(this::drain);
+        if (path == null || contents == null || closed.get()) return;
+        Path normalized = path.toAbsolutePath().normalize();
+        pending.put(normalized, contents);
+        if (draining.compareAndSet(false, true)) {
+            try {
+                executor.execute(this::drain);
+            } catch (RuntimeException exception) {
+                draining.set(false);
+                pending.remove(normalized, contents);
+                plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to schedule async file write " + normalized, exception);
+            }
+        }
     }
 
     private void drain() {
@@ -41,25 +52,52 @@ public final class AsyncFileWriter {
             while (!pending.isEmpty()) {
                 for (Map.Entry<Path, String> entry : pending.entrySet()) {
                     if (!pending.remove(entry.getKey(), entry.getValue())) continue;
-                    try {
-                        Path parent = entry.getKey().getParent();
-                        if (parent != null) Files.createDirectories(parent);
-                        Files.writeString(entry.getKey(), entry.getValue(), StandardCharsets.UTF_8);
-                    } catch (IOException exception) {
-                        plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to write async file " + entry.getKey(), exception);
-                    }
+                    writeAtomically(entry.getKey(), entry.getValue());
                 }
             }
         } finally {
             draining.set(false);
-            if (!pending.isEmpty() && draining.compareAndSet(false, true)) executor.execute(this::drain);
         }
     }
 
-    /** Stops the writer after flushing all queued snapshots. */
+    private void writeAtomically(Path target, String contents) {
+        Path parent = target.getParent();
+        Path temporary = null;
+        try {
+            if (parent != null) Files.createDirectories(parent);
+            Path tempDirectory = parent == null ? Path.of(".").toAbsolutePath().normalize() : parent;
+            temporary = Files.createTempFile(tempDirectory, target.getFileName().toString() + ".", ".tmp");
+            Files.writeString(temporary, contents, StandardCharsets.UTF_8);
+            try {
+                Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException atomicMoveFailure) {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+            temporary = null;
+        } catch (IOException exception) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to write async file " + target, exception);
+        } finally {
+            if (temporary != null) {
+                try {
+                    Files.deleteIfExists(temporary);
+                } catch (IOException cleanupException) {
+                    plugin.getLogger().log(java.util.logging.Level.WARNING, "Unable to remove temporary file " + temporary, cleanupException);
+                }
+            }
+        }
+    }
+
+    /** Stops the writer after flushing all snapshots already queued before shutdown. */
     public void shutdown() {
-        if (executor.isShutdown()) return;
-        if (!pending.isEmpty() && draining.compareAndSet(false, true)) executor.execute(this::drain);
+        if (!closed.compareAndSet(false, true)) return;
+        if (!pending.isEmpty() && draining.compareAndSet(false, true)) {
+            try {
+                executor.execute(this::drain);
+            } catch (RuntimeException exception) {
+                draining.set(false);
+                plugin.getLogger().log(java.util.logging.Level.SEVERE, "Unable to schedule final async file drain", exception);
+            }
+        }
         executor.shutdown();
         try {
             if (!executor.awaitTermination(10, java.util.concurrent.TimeUnit.SECONDS)) executor.shutdownNow();
