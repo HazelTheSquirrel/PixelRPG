@@ -158,8 +158,7 @@ public final class ExternalSkinService {
                     Matcher matcher = MINECRAFT_SKINS_IMAGE.matcher(html);
                     while (matcher.find()) {
                         String imageUrl = matcher.group();
-                        if (imageUrl.matches("(?i).*-[0-9]+\\.png(?:\\?.*)?$")
-                                && imageUrl.matches("(?i).*-[" + Pattern.quote(skinId) + "]\\.png(?:\\?.*)?$")) {
+                        if (imageUrl.matches("(?i).*[-]" + Pattern.quote(skinId) + "\\.png(?:\\?.*)?$")) {
                             if (!isSafeMinecraftSkinsImage(imageUrl)) {
                                 throw new IllegalStateException("MinecraftSkins returned an unexpected image host");
                             }
