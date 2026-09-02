@@ -38,8 +38,8 @@ story:
 mob-scaling:
   nameplate-duration-ticks: 120
   xp-per-max-health: 4.0
-  hp-per-level: 5.0
   damage-per-level: 0.30
+  hp-per-level: 5.0
   player-parity-multiplier: 1.05
   dimension:
     overworld: { hp-multiplier: 1.0, damage-multiplier: 1.0, level-offset: 0, base-level: 1 }
@@ -49,11 +49,6 @@ mob-scaling:
 npc:
   look-radius: 8.0
   look-interval-ticks: 5
-  skin:
-    mineskin:
-      # Required only for arbitrary external skin-image URLs.
-      # Prefer PIXELRPG_MINESKIN_API_KEY as an environment variable for production servers.
-      api-key: ""
 
 quests:
   party-share-range: 24.0
