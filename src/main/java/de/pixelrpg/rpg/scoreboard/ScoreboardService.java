@@ -48,7 +48,8 @@ public final class ScoreboardService implements Listener {
     private final WakeScheduler<UUID> wakeScheduler;
     private final Map<UUID, PlayerScoreboardState> stateByPlayer = new ConcurrentHashMap<>();
     private final Map<UUID, Guild> guildCache = new ConcurrentHashMap<>();
-    private long guildCacheTick = Long.MIN_VALUE;
+    private long guildStateVersion;
+    private long cachedGuildStateVersion = Long.MIN_VALUE;
     private final java.util.function.Consumer<UUID> profileChangeListener = this::markDirty;
 
     private static final class PlayerScoreboardState {
@@ -58,6 +59,7 @@ public final class ScoreboardService implements Listener {
         List<Component> lastLines = List.of();
         final boolean[] activeLine = new boolean[MAX_LINES];
         final Map<UUID, String> guildTeamByPlayer = new ConcurrentHashMap<>();
+        long appliedGuildStateVersion = Long.MIN_VALUE;
 
         PlayerScoreboardState(Scoreboard board, Objective objective) {
             this.board = board;
@@ -211,20 +213,21 @@ public final class ScoreboardService implements Listener {
     }
 
     private void applyGuildPrefixes(PlayerScoreboardState state) {
+        if (state.appliedGuildStateVersion == guildStateVersion) return;
         GuildManager guildManager;
         try {
             guildManager = GuildManager.getInstance();
         } catch (IllegalStateException ignored) {
             return;
         }
-        long currentTick = Bukkit.getCurrentTick();
-        if (guildCacheTick != currentTick) {
+
+        if (cachedGuildStateVersion != guildStateVersion) {
             guildCache.clear();
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 Guild guild = guildManager.getGuild(onlinePlayer.getUniqueId()).orElse(null);
                 if (guild != null) guildCache.put(onlinePlayer.getUniqueId(), guild);
             }
-            guildCacheTick = currentTick;
+            cachedGuildStateVersion = guildStateVersion;
         }
 
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
@@ -250,11 +253,13 @@ public final class ScoreboardService implements Listener {
             }
             state.guildTeamByPlayer.put(playerId, teamName);
         }
+        state.appliedGuildStateVersion = guildStateVersion;
     }
 
     private void invalidateGuildCache() {
-        guildCacheTick = Long.MIN_VALUE;
+        guildStateVersion++;
         guildCache.clear();
+        cachedGuildStateVersion = Long.MIN_VALUE;
     }
 
     private String guildTeamName(UUID guildId) {
@@ -292,7 +297,9 @@ public final class ScoreboardService implements Listener {
         return team;
     }
 
-    private String entryFor(int index) { return "\u200B".repeat(index + 1); }
+    private String entryFor(int index) {
+        return "\u200B".repeat(index + 1);
+    }
 
     private List<Component> buildLines(Player player, PlayerProfile profile) {
         List<Component> lines = new ArrayList<>();
@@ -314,8 +321,11 @@ public final class ScoreboardService implements Listener {
 
     private void appendGuildLine(List<Component> lines, Player player) {
         Guild guild;
-        try { guild = GuildManager.getInstance().getGuild(player.getUniqueId()).orElse(null); }
-        catch (IllegalStateException ignored) { guild = null; }
+        try {
+            guild = GuildManager.getInstance().getGuild(player.getUniqueId()).orElse(null);
+        } catch (IllegalStateException ignored) {
+            guild = null;
+        }
         lines.add(Component.text("Gilde: ", NamedTextColor.GRAY)
                 .append(Component.text(guild == null ? "Keine" : guild.name(), guild == null ? NamedTextColor.DARK_GRAY : NamedTextColor.GOLD)));
     }
@@ -340,5 +350,7 @@ public final class ScoreboardService implements Listener {
         lines.add(line);
     }
 
-    private String formatGold(double amount) { return String.format(java.util.Locale.ROOT, "%.2f", amount); }
+    private String formatGold(double amount) {
+        return String.format(java.util.Locale.ROOT, "%.2f", amount);
+    }
 }
