@@ -19,84 +19,141 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-/** Resolves external image URLs into Minecraft texture properties. */
+/** Resolves external skin URLs into signed Minecraft texture properties. */
 public final class ExternalSkinService {
     private static final URI MINESKIN_GENERATE_URI = URI.create("https://api.mineskin.org/v2/generate");
     private static final String TEXTURES_HOST = "textures.minecraft.net";
+    private static final String MINECRAFT_SKINS_HOST = "minecraftskins.com";
+    private static final String MINECRAFT_SKINS_WWW_HOST = "www.minecraftskins.com";
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(15);
     private static final int MAX_CACHE_ENTRIES = 512;
     private static final int MAX_RESPONSE_BYTES = 256 * 1024;
     private static final long CACHE_TTL_MILLIS = Duration.ofHours(12).toMillis();
+    private static final Pattern MINECRAFT_SKINS_IMAGE = Pattern.compile(
+            "https://(?:www\\.)?minecraftskins\\.com/uploads/skins/[^\\\"'\\s\\]<>]+?\\.png(?:\\?[^\\\"'\\s\\]<>]+)?",
+            Pattern.CASE_INSENSITIVE);
+
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(REQUEST_TIMEOUT)
+            .followRedirects(HttpClient.Redirect.NEVER)
+            .build();
+    private static final Map<String, CacheEntry> CACHE = new LinkedHashMap<>(64, 0.75f, true);
+    private static final Map<String, CompletableFuture<ProfileProperty>> IN_FLIGHT = new ConcurrentHashMap<>();
 
     private final Plugin plugin;
     private final Logger logger;
-    private final HttpClient httpClient;
-    private final Map<String, CacheEntry> cache = new LinkedHashMap<>(64, 0.75f, true);
 
     public ExternalSkinService(Plugin plugin) {
         this.plugin = plugin;
         this.logger = plugin.getLogger();
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(REQUEST_TIMEOUT)
-                .followRedirects(HttpClient.Redirect.NEVER)
-                .build();
     }
 
     public CompletableFuture<Void> apply(Mannequin mannequin, String skinUrl) {
+        if (mannequin == null || !mannequin.isValid()) return CompletableFuture.completedFuture(null);
         String normalized = normalizeUrl(skinUrl);
         if (normalized == null) return CompletableFuture.failedFuture(new IllegalArgumentException("Invalid skin URL"));
 
-        ProfileProperty cached = getCached(normalized);
-        if (cached != null) return applyOnMainThread(mannequin, cached);
+        return resolveProperty(normalized)
+                .thenCompose(property -> applyOnMainThread(mannequin, property));
+    }
 
+    private CompletableFuture<ProfileProperty> resolveProperty(String normalized) {
+        ProfileProperty cached = getCached(normalized);
+        if (cached != null) return CompletableFuture.completedFuture(cached);
+
+        return IN_FLIGHT.computeIfAbsent(normalized, key -> fetchProperty(key)
+                .whenComplete((ignored, throwable) -> IN_FLIGHT.remove(key)));
+    }
+
+    private CompletableFuture<ProfileProperty> fetchProperty(String normalized) {
         if (isMinecraftTextureUrl(normalized)) {
             ProfileProperty property = unsignedTextureProperty(normalized);
             putCached(normalized, property);
-            return applyOnMainThread(mannequin, property);
+            return CompletableFuture.completedFuture(property);
         }
 
         String apiKey = configuredApiKey();
         if (apiKey.isBlank()) {
             return CompletableFuture.failedFuture(new IllegalStateException(
-                    "External mannequin skins require an NPC MineSkin API key. Configure npc.skin.mineskin.api-key or PIXELRPG_MINESKIN_API_KEY."));
+                    "External mannequin skins require a MineSkin API key. Configure npc.skin.mineskin.api-key or PIXELRPG_MINESKIN_API_KEY."));
         }
 
-        if (!isSafeExternalHost(normalized)) {
-            return CompletableFuture.failedFuture(new IllegalArgumentException("Skin URL resolves to a private or reserved network address"));
-        }
+        CompletableFuture<String> imageUrlFuture = isMinecraftSkinsPage(normalized)
+                ? resolveMinecraftSkinsImageUrl(normalized)
+                : CompletableFuture.completedFuture(normalized);
 
-        JsonObject requestJson = new JsonObject();
-        requestJson.addProperty("url", normalized);
+        return imageUrlFuture.thenCompose(imageUrl -> {
+            if (!isSafeExternalHost(imageUrl)) {
+                return CompletableFuture.failedFuture(new IllegalArgumentException(
+                        "Skin URL resolves to a private or reserved network address"));
+            }
 
-        HttpRequest request = HttpRequest.newBuilder(MINESKIN_GENERATE_URI)
+            JsonObject requestJson = new JsonObject();
+            requestJson.addProperty("url", imageUrl);
+
+            HttpRequest request = HttpRequest.newBuilder(MINESKIN_GENERATE_URI)
+                    .timeout(REQUEST_TIMEOUT)
+                    .header("Authorization", "Bearer " + apiKey)
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestJson.toString(), StandardCharsets.UTF_8))
+                    .build();
+
+            return HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
+                    .thenApply(response -> {
+                        if (response.statusCode() != 200) {
+                            throw new IllegalStateException("MineSkin returned HTTP " + response.statusCode());
+                        }
+                        byte[] body = response.body();
+                        if (body.length > MAX_RESPONSE_BYTES) {
+                            throw new IllegalStateException("MineSkin response exceeded the configured size limit");
+                        }
+                        return parseTextureProperty(new String(body, StandardCharsets.UTF_8));
+                    })
+                    .thenApply(property -> {
+                        putCached(normalized, property);
+                        return property;
+                    });
+        }).exceptionallyCompose(exception -> {
+            Throwable cause = unwrap(exception);
+            logger.warning("Failed to resolve external mannequin skin '" + normalized + "': " + message(cause));
+            return CompletableFuture.failedFuture(cause);
+        });
+    }
+
+    private CompletableFuture<String> resolveMinecraftSkinsImageUrl(String pageUrl) {
+        HttpRequest request = HttpRequest.newBuilder(URI.create(pageUrl))
                 .timeout(REQUEST_TIMEOUT)
-                .header("Authorization", "Bearer " + apiKey)
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(requestJson.toString(), StandardCharsets.UTF_8))
+                .header("Accept", "text/html,application/xhtml+xml")
+                .header("User-Agent", "PixelRPG/1.0 (Minecraft NPC skin resolver)")
+                .GET()
                 .build();
 
-        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
+        return HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
                 .thenApply(response -> {
                     if (response.statusCode() != 200) {
-                        throw new IllegalStateException("MineSkin returned HTTP " + response.statusCode());
+                        throw new IllegalStateException("MinecraftSkins returned HTTP " + response.statusCode());
                     }
                     byte[] body = response.body();
                     if (body.length > MAX_RESPONSE_BYTES) {
-                        throw new IllegalStateException("MineSkin response exceeded the configured size limit");
+                        throw new IllegalStateException("MinecraftSkins page exceeded the configured size limit");
                     }
-                    return parseTextureProperty(new String(body, StandardCharsets.UTF_8));
-                })
-                .thenApply(property -> {
-                    putCached(normalized, property);
-                    return property;
-                })
-                .thenCompose(property -> applyOnMainThread(mannequin, property))
-                .exceptionallyCompose(exception -> {
-                    logger.warning("Failed to resolve external mannequin skin '" + normalized + "': " + rootMessage(exception));
-                    return CompletableFuture.failedFuture(exception);
+                    String html = new String(body, StandardCharsets.UTF_8);
+                    Matcher matcher = MINECRAFT_SKINS_IMAGE.matcher(html);
+                    if (!matcher.find()) {
+                        throw new IllegalStateException("MinecraftSkins page did not expose a downloadable PNG skin URL");
+                    }
+                    String imageUrl = matcher.group();
+                    if (!isSafeMinecraftSkinsImage(imageUrl)) {
+                        throw new IllegalStateException("MinecraftSkins returned an unexpected image host");
+                    }
+                    return imageUrl;
                 });
     }
 
@@ -159,10 +216,26 @@ public final class ExternalSkinService {
                 && uri.getPath().startsWith("/texture/");
     }
 
+    private static boolean isMinecraftSkinsPage(String url) {
+        URI uri = URI.create(url);
+        String host = uri.getHost();
+        return (MINECRAFT_SKINS_HOST.equalsIgnoreCase(host) || MINECRAFT_SKINS_WWW_HOST.equalsIgnoreCase(host))
+                && uri.getPath() != null
+                && uri.getPath().matches("/skin/[0-9]+(?:/[^/]*)?/?");
+    }
+
+    private static boolean isSafeMinecraftSkinsImage(String value) {
+        URI uri = URI.create(value);
+        String host = uri.getHost();
+        return "https".equalsIgnoreCase(uri.getScheme())
+                && (MINECRAFT_SKINS_HOST.equalsIgnoreCase(host) || MINECRAFT_SKINS_WWW_HOST.equalsIgnoreCase(host));
+    }
+
     private static String normalizeUrl(String raw) {
         if (raw == null || raw.isBlank()) return null;
         String value = raw.trim();
         if (value.length() > 2048) return null;
+        if (!value.startsWith("http://") && !value.startsWith("https://")) value = "https://" + value;
         URI uri;
         try {
             uri = URI.create(value);
@@ -190,29 +263,34 @@ public final class ExternalSkinService {
         }
     }
 
-    private synchronized ProfileProperty getCached(String key) {
-        CacheEntry entry = cache.get(key);
+    private static synchronized ProfileProperty getCached(String key) {
+        CacheEntry entry = CACHE.get(key);
         if (entry == null) return null;
         if (System.currentTimeMillis() - entry.createdAtMillis() > CACHE_TTL_MILLIS) {
-            cache.remove(key);
+            CACHE.remove(key);
             return null;
         }
         return entry.property();
     }
 
-    private synchronized void putCached(String key, ProfileProperty property) {
-        cache.put(key, new CacheEntry(property, System.currentTimeMillis()));
-        while (cache.size() > MAX_CACHE_ENTRIES) cache.remove(cache.keySet().iterator().next());
+    private static synchronized void putCached(String key, ProfileProperty property) {
+        CACHE.put(key, new CacheEntry(property, System.currentTimeMillis()));
+        while (CACHE.size() > MAX_CACHE_ENTRIES) CACHE.remove(CACHE.keySet().iterator().next());
     }
 
     private static String escapeJson(String value) {
         return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
-    private static String rootMessage(Throwable throwable) {
+    private static Throwable unwrap(Throwable throwable) {
         Throwable current = throwable;
-        while (current.getCause() != null) current = current.getCause();
-        return current.getMessage() == null ? current.getClass().getSimpleName() : current.getMessage();
+        while ((current instanceof CompletionException) && current.getCause() != null) current = current.getCause();
+        return current;
+    }
+
+    private static String message(Throwable throwable) {
+        String message = throwable.getMessage();
+        return message == null || message.isBlank() ? throwable.getClass().getSimpleName() : message;
     }
 
     private record CacheEntry(ProfileProperty property, long createdAtMillis) { }
