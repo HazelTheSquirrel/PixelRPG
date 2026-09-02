@@ -1,8 +1,6 @@
 package de.pixelrpg.rpg.npc;
 
 import com.destroystokyo.paper.profile.ProfileProperty;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Mannequin;
@@ -13,8 +11,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -25,9 +23,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Resolves external skin URLs into signed Minecraft texture properties. */
+/** Resolves external skin URLs into Minecraft texture properties without requiring a third-party signing API. */
 public final class ExternalSkinService {
-    private static final URI MINESKIN_GENERATE_URI = URI.create("https://api.mineskin.org/v2/generate");
     private static final String TEXTURES_HOST = "textures.minecraft.net";
     private static final String MINECRAFT_SKINS_HOST = "minecraftskins.com";
     private static final String MINECRAFT_SKINS_WWW_HOST = "www.minecraftskins.com";
@@ -81,53 +78,23 @@ public final class ExternalSkinService {
             return CompletableFuture.completedFuture(property);
         }
 
-        String apiKey = configuredApiKey();
-        if (apiKey.isBlank()) {
-            return CompletableFuture.failedFuture(new IllegalStateException(
-                    "External mannequin skins require a MineSkin API key. Configure npc.skin.mineskin.api-key or PIXELRPG_MINESKIN_API_KEY."));
+        if (isMinecraftSkinsPage(normalized)) {
+            return resolveMinecraftSkinsImageUrl(normalized).thenApply(imageUrl -> {
+                ProfileProperty property = unsignedTextureProperty(imageUrl);
+                putCached(normalized, property);
+                return property;
+            });
         }
 
-        CompletableFuture<String> imageUrlFuture = isMinecraftSkinsPage(normalized)
-                ? resolveMinecraftSkinsImageUrl(normalized)
-                : CompletableFuture.completedFuture(normalized);
+        if (!isSafeExternalHost(normalized)) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException(
+                    "Skin URL resolves to a private or reserved network address"));
+        }
 
-        return imageUrlFuture.thenCompose(imageUrl -> {
-            if (!isSafeExternalHost(imageUrl)) {
-                return CompletableFuture.failedFuture(new IllegalArgumentException(
-                        "Skin URL resolves to a private or reserved network address"));
-            }
-
-            JsonObject requestJson = new JsonObject();
-            requestJson.addProperty("url", imageUrl);
-
-            HttpRequest request = HttpRequest.newBuilder(MINESKIN_GENERATE_URI)
-                    .timeout(REQUEST_TIMEOUT)
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(requestJson.toString(), StandardCharsets.UTF_8))
-                    .build();
-
-            return HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
-                    .thenApply(response -> {
-                        if (response.statusCode() != 200) {
-                            throw new IllegalStateException("MineSkin returned HTTP " + response.statusCode());
-                        }
-                        byte[] body = response.body();
-                        if (body.length > MAX_RESPONSE_BYTES) {
-                            throw new IllegalStateException("MineSkin response exceeded the configured size limit");
-                        }
-                        return parseTextureProperty(new String(body, StandardCharsets.UTF_8));
-                    })
-                    .thenApply(property -> {
-                        putCached(normalized, property);
-                        return property;
-                    });
-        }).exceptionallyCompose(exception -> {
-            Throwable cause = unwrap(exception);
-            logger.warning("Failed to resolve external mannequin skin '" + normalized + "': " + message(cause));
-            return CompletableFuture.failedFuture(cause);
-        });
+        ProfileProperty property = unsignedTextureProperty(normalized);
+        putCached(normalized, property);
+        logger.fine("Using unsigned external mannequin skin texture: " + normalized);
+        return CompletableFuture.completedFuture(property);
     }
 
     private CompletableFuture<String> resolveMinecraftSkinsImageUrl(String pageUrl) {
@@ -193,27 +160,6 @@ public final class ExternalSkinService {
         return result;
     }
 
-    private String configuredApiKey() {
-        String configured = plugin.getConfig().getString("npc.skin.mineskin.api-key", "");
-        if (configured != null && !configured.isBlank()) return configured.trim();
-        String environment = System.getenv("PIXELRPG_MINESKIN_API_KEY");
-        return environment == null ? "" : environment.trim();
-    }
-
-    private static ProfileProperty parseTextureProperty(String responseBody) {
-        JsonObject root = JsonParser.parseString(responseBody).getAsJsonObject();
-        JsonObject skin = root.getAsJsonObject("skin");
-        if (skin == null) throw new IllegalStateException("MineSkin response did not contain skin data");
-        JsonObject texture = skin.getAsJsonObject("texture");
-        if (texture == null) throw new IllegalStateException("MineSkin response did not contain texture data");
-        JsonObject data = texture.getAsJsonObject("data");
-        if (data == null) throw new IllegalStateException("MineSkin response did not contain texture payload");
-        String value = data.has("value") ? data.get("value").getAsString() : "";
-        String signature = data.has("signature") ? data.get("signature").getAsString() : "";
-        if (value.isBlank() || signature.isBlank()) throw new IllegalStateException("MineSkin returned incomplete texture data");
-        return new ProfileProperty("textures", value, signature);
-    }
-
     private static ProfileProperty unsignedTextureProperty(String textureUrl) {
         String json = "{\"textures\":{\"SKIN\":{\"url\":\"" + escapeJson(textureUrl) + "\"}}}";
         String encoded = Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
@@ -257,13 +203,14 @@ public final class ExternalSkinService {
         String scheme = uri.getScheme();
         if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) || uri.getHost() == null) return null;
         if (uri.getUserInfo() != null || uri.getFragment() != null) return null;
+        if (!"https".equalsIgnoreCase(scheme)) return null;
         return uri.toString();
     }
 
     private static boolean isSafeExternalHost(String value) {
         try {
             URI uri = URI.create(value);
-            if (!"https".equalsIgnoreCase(uri.getScheme())) return false;
+            if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) return false;
             InetAddress[] addresses = InetAddress.getAllByName(uri.getHost());
             for (InetAddress address : addresses) {
                 if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
