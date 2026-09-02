@@ -22,7 +22,7 @@ public final class RegionManager {
     private final Map<UUID, PixelRegion> regions = new ConcurrentHashMap<>();
     private final Map<String, PixelRegion> globalRegions = new ConcurrentHashMap<>();
     private final Map<ChunkKey, List<UUID>> index = new ConcurrentHashMap<>();
-    private final Map<ChunkKey, List<RegionSpawnPoint>> spawnPointIndex = new ConcurrentHashMap<>();
+    private final Map<ChunkKey, List<SpawnPointRef>> spawnPointIndex = new ConcurrentHashMap<>();
     private final ExecutorService persistenceExecutor;
     private CompletableFuture<Void> persistenceChain = CompletableFuture.completedFuture(null);
     private volatile boolean shuttingDown;
@@ -125,6 +125,26 @@ public final class RegionManager {
         return find(location.getWorld(), location.getX(), location.getBlockY(), location.getZ());
     }
 
+    /** Returns the spawn points in the indexed chunk window around a location. */
+    public List<SpawnPointRef> spawnPointsNear(Location location, int radiusChunks) {
+        if (location == null || location.getWorld() == null || radiusChunks < 0) return List.of();
+        int centerX = floorChunk(location.getX());
+        int centerZ = floorChunk(location.getZ());
+        int minX = centerX - radiusChunks;
+        int maxX = centerX + radiusChunks;
+        int minZ = centerZ - radiusChunks;
+        int maxZ = centerZ + radiusChunks;
+        List<SpawnPointRef> result = new ArrayList<>();
+        String worldName = location.getWorld().getName();
+        for (int chunkX = minX; chunkX <= maxX; chunkX++) {
+            for (int chunkZ = minZ; chunkZ <= maxZ; chunkZ++) {
+                List<SpawnPointRef> points = spawnPointIndex.get(new ChunkKey(worldName, chunkX, chunkZ));
+                if (points != null) result.addAll(points);
+            }
+        }
+        return result;
+    }
+
     /** Resolves a flag from the most specific region, falling back to the world's global region when unset. */
     public boolean hasFlag(Location location, RegionFlag flag) {
         if (location == null || location.getWorld() == null || flag == null) return true;
@@ -137,9 +157,10 @@ public final class RegionManager {
     public boolean isExplicitSpawnPoint(Location location, String mobType) {
         if (location == null || location.getWorld() == null || mobType == null) return false;
         String normalized = SpawnMobType.normalize(mobType);
-        List<RegionSpawnPoint> candidates = spawnPointIndex.getOrDefault(
+        List<SpawnPointRef> candidates = spawnPointIndex.getOrDefault(
                 new ChunkKey(location.getWorld().getName(), floorChunk(location.getX()), floorChunk(location.getZ())), List.of());
         return candidates.stream()
+                .map(SpawnPointRef::point)
                 .filter(point -> point.mobType().equalsIgnoreCase(normalized))
                 .anyMatch(point -> Math.abs(point.x() - location.getX()) < 0.01D
                         && Math.abs(point.y() - location.getY()) < 0.01D
@@ -209,11 +230,13 @@ public final class RegionManager {
     }
 
     private void addSpawnPointsToIndex(PixelRegion region) {
-        for (RegionSpawnPoint point : region.spawnPoints()) {
+        for (int index = 0; index < region.spawnPoints().size(); index++) {
+            RegionSpawnPoint point = region.spawnPoints().get(index);
             ChunkKey key = new ChunkKey(point.worldName(), floorChunk(point.x()), floorChunk(point.z()));
+            SpawnPointRef reference = new SpawnPointRef(region.id(), index, point);
             spawnPointIndex.compute(key, (ignored, current) -> {
-                List<RegionSpawnPoint> updated = current == null ? new ArrayList<>() : new ArrayList<>(current);
-                updated.add(point);
+                List<SpawnPointRef> updated = current == null ? new ArrayList<>() : new ArrayList<>(current);
+                updated.add(reference);
                 return List.copyOf(updated);
             });
         }
@@ -240,7 +263,7 @@ public final class RegionManager {
         for (RegionSpawnPoint point : region.spawnPoints()) {
             ChunkKey key = new ChunkKey(point.worldName(), floorChunk(point.x()), floorChunk(point.z()));
             spawnPointIndex.computeIfPresent(key, (ignored, current) -> {
-                List<RegionSpawnPoint> updated = current.stream().filter(existing -> existing != point).toList();
+                List<SpawnPointRef> updated = current.stream().filter(existing -> !existing.regionId().equals(region.id())).toList();
                 return updated.isEmpty() ? null : updated;
             });
         }
@@ -260,6 +283,7 @@ public final class RegionManager {
 
     private static int floorChunk(double coordinate) { return Math.floorDiv((int) Math.floor(coordinate), 16); }
     private record ChunkKey(String world, int x, int z) { }
+    public record SpawnPointRef(UUID regionId, int index, RegionSpawnPoint point) { }
 
     private static final class EnumMapBuilder {
         private final java.util.EnumMap<RegionFlag, Boolean> values = new java.util.EnumMap<>(RegionFlag.class);
