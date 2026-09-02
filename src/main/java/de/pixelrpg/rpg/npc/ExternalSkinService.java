@@ -38,6 +38,9 @@ public final class ExternalSkinService {
     private static final Pattern MINECRAFT_SKINS_IMAGE = Pattern.compile(
             "https://(?:www\\.)?minecraftskins\\.com/uploads/skins/[^\\\"'\\s\\]<>]+?\\.png(?:\\?[^\\\"'\\s\\]<>]+)?",
             Pattern.CASE_INSENSITIVE);
+    private static final Pattern MINECRAFT_SKINS_PAGE = Pattern.compile(
+            "/skin/([0-9]+)(?:/[^/]*)?/?",
+            Pattern.CASE_INSENSITIVE);
 
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .connectTimeout(REQUEST_TIMEOUT)
@@ -128,7 +131,14 @@ public final class ExternalSkinService {
     }
 
     private CompletableFuture<String> resolveMinecraftSkinsImageUrl(String pageUrl) {
-        HttpRequest request = HttpRequest.newBuilder(URI.create(pageUrl))
+        URI pageUri = URI.create(pageUrl);
+        Matcher pageMatcher = MINECRAFT_SKINS_PAGE.matcher(pageUri.getPath());
+        if (!pageMatcher.matches()) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Invalid MinecraftSkins page URL"));
+        }
+        String skinId = pageMatcher.group(1);
+
+        HttpRequest request = HttpRequest.newBuilder(pageUri)
                 .timeout(REQUEST_TIMEOUT)
                 .header("Accept", "text/html,application/xhtml+xml")
                 .header("User-Agent", "PixelRPG/1.0 (Minecraft NPC skin resolver)")
@@ -146,14 +156,17 @@ public final class ExternalSkinService {
                     }
                     String html = new String(body, StandardCharsets.UTF_8);
                     Matcher matcher = MINECRAFT_SKINS_IMAGE.matcher(html);
-                    if (!matcher.find()) {
-                        throw new IllegalStateException("MinecraftSkins page did not expose a downloadable PNG skin URL");
+                    while (matcher.find()) {
+                        String imageUrl = matcher.group();
+                        if (imageUrl.matches("(?i).*-[0-9]+\\.png(?:\\?.*)?$")
+                                && imageUrl.matches("(?i).*-[" + Pattern.quote(skinId) + "]\\.png(?:\\?.*)?$")) {
+                            if (!isSafeMinecraftSkinsImage(imageUrl)) {
+                                throw new IllegalStateException("MinecraftSkins returned an unexpected image host");
+                            }
+                            return imageUrl;
+                        }
                     }
-                    String imageUrl = matcher.group();
-                    if (!isSafeMinecraftSkinsImage(imageUrl)) {
-                        throw new IllegalStateException("MinecraftSkins returned an unexpected image host");
-                    }
-                    return imageUrl;
+                    throw new IllegalStateException("MinecraftSkins page did not expose the PNG for skin id " + skinId);
                 });
     }
 
@@ -221,7 +234,7 @@ public final class ExternalSkinService {
         String host = uri.getHost();
         return (MINECRAFT_SKINS_HOST.equalsIgnoreCase(host) || MINECRAFT_SKINS_WWW_HOST.equalsIgnoreCase(host))
                 && uri.getPath() != null
-                && uri.getPath().matches("/skin/[0-9]+(?:/[^/]*)?/?");
+                && MINECRAFT_SKINS_PAGE.matcher(uri.getPath()).matches();
     }
 
     private static boolean isSafeMinecraftSkinsImage(String value) {
