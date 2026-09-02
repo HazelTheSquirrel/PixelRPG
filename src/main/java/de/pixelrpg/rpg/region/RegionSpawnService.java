@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.region;
 
+import de.pixelrpg.rpg.core.WakeScheduler;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -23,6 +24,7 @@ import java.util.UUID;
 
 /** Event-driven explicit region spawns. Spawn points are evaluated only after relevant world state changes. */
 public final class RegionSpawnService implements Listener {
+    private static final long CHECK_INTERVAL_TICKS = 100L;
     private static final long RESPAWN_DELAY_TICKS = 200L;
     private static final double PLAYER_RANGE = 64.0D;
     private static final int PLAYER_RANGE_CHUNKS = 4;
@@ -31,27 +33,32 @@ public final class RegionSpawnService implements Listener {
     private final RegionManager regions;
     private final org.bukkit.NamespacedKey markerKey;
     private final java.util.Map<String, Long> nextSpawnTicks = new java.util.HashMap<>();
-    private final Set<String> dirtyPoints = new HashSet<>();
+    private final WakeScheduler<String> pointScheduler;
     private boolean started;
 
     public RegionSpawnService(JavaPlugin plugin, RegionManager regions) {
         this.plugin = plugin;
         this.regions = regions;
         this.markerKey = new org.bukkit.NamespacedKey(plugin, "region_spawn_point");
+        this.pointScheduler = new WakeScheduler<>(plugin);
     }
 
     public void start() {
         if (started) return;
         started = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        long initialReadyTick = plugin.getServer().getCurrentTick() + CHECK_INTERVAL_TICKS;
+        for (RegionManager.SpawnPointRef reference : allSpawnPoints()) {
+            nextSpawnTicks.putIfAbsent(pointKey(reference), initialReadyTick);
+        }
         for (Player player : plugin.getServer().getOnlinePlayers()) evaluateAround(player.getLocation());
     }
 
     public void stop() {
         if (!started) return;
         HandlerList.unregisterAll(this);
+        pointScheduler.clear();
         nextSpawnTicks.clear();
-        dirtyPoints.clear();
         started = false;
     }
 
@@ -60,7 +67,7 @@ public final class RegionSpawnService implements Listener {
         return entity != null && entity.getPersistentDataContainer().has(markerKey, PersistentDataType.STRING);
     }
 
-    // A player entering or joining the world can activate nearby explicit spawn points immediately.
+    // A player entering or joining the world can activate nearby explicit spawn points immediately after the normal spawn interval.
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         evaluateAround(event.getPlayer().getLocation());
@@ -88,15 +95,12 @@ public final class RegionSpawnService implements Listener {
         if (pointKey == null || pointKey.isBlank()) return;
         long now = plugin.getServer().getCurrentTick();
         long next = nextSpawnTicks.getOrDefault(pointKey, now);
-        dirtyPoints.add(pointKey);
         long delay = Math.max(1L, next - now);
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            if (!dirtyPoints.remove(pointKey)) return;
-            evaluatePointByKey(pointKey);
-        }, delay);
+        pointScheduler.cancel(pointKey);
+        pointScheduler.wakeLater(pointKey, delay, () -> evaluatePointByKey(pointKey));
     }
 
-    // A disconnect can remove the only nearby player, so the affected area is re-evaluated once.
+    // A disconnect only rechecks the affected area; no global spawn scan is performed.
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         evaluateAround(event.getPlayer().getLocation());
@@ -111,7 +115,7 @@ public final class RegionSpawnService implements Listener {
             Location location = point.location(center.getWorld());
             if (location == null || location.distanceSquared(center) > radiusSquared) continue;
             String key = pointKey(reference);
-            if (seen.add(key)) trySpawn(reference, key, center, location);
+            if (seen.add(key)) evaluatePoint(reference, key, center, location);
         }
     }
 
@@ -123,22 +127,16 @@ public final class RegionSpawnService implements Listener {
         if (world == null) return;
         Location location = point.location(world);
         if (location == null || !hasNearbyPlayer(location)) return;
-        trySpawn(reference, pointKey, null, location);
+        evaluatePoint(reference, pointKey, null, location);
     }
 
-    private RegionManager.SpawnPointRef findPoint(String pointKey) {
-        for (Player player : plugin.getServer().getOnlinePlayers()) {
-            for (RegionManager.SpawnPointRef reference : regions.spawnPointsNear(player.getLocation(), PLAYER_RANGE_CHUNKS)) {
-                if (pointKey(reference).equals(pointKey)) return reference;
-            }
-        }
-        return null;
-    }
-
-    private void trySpawn(RegionManager.SpawnPointRef reference, String pointKey, Location center, Location location) {
+    private void evaluatePoint(RegionManager.SpawnPointRef reference, String pointKey, Location center, Location location) {
         long now = plugin.getServer().getCurrentTick();
-        long next = nextSpawnTicks.getOrDefault(pointKey, 0L);
-        if (now < next) return;
+        long next = nextSpawnTicks.getOrDefault(pointKey, now);
+        if (now < next) {
+            schedulePointCheck(pointKey, next - now);
+            return;
+        }
         if (center == null && !hasNearbyPlayer(location)) return;
         if (center != null && location.distanceSquared(center) > PLAYER_RANGE * PLAYER_RANGE) return;
         if (hasManagedMob(location, pointKey)) return;
@@ -151,7 +149,39 @@ public final class RegionSpawnService implements Listener {
         Entity entity = world.spawnEntity(location, type);
         entity.getPersistentDataContainer().set(markerKey, PersistentDataType.STRING, pointKey);
         nextSpawnTicks.put(pointKey, now + RESPAWN_DELAY_TICKS);
-        dirtyPoints.remove(pointKey);
+        pointScheduler.cancel(pointKey);
+    }
+
+    private void schedulePointCheck(String pointKey, long delay) {
+        pointScheduler.cancel(pointKey);
+        pointScheduler.wakeLater(pointKey, Math.max(1L, delay), () -> evaluatePointByKey(pointKey));
+    }
+
+    private RegionManager.SpawnPointRef findPoint(String pointKey) {
+        int separator = pointKey.indexOf(':');
+        if (separator <= 0 || separator == pointKey.length() - 1) return null;
+        UUID regionId;
+        int index;
+        try {
+            regionId = UUID.fromString(pointKey.substring(0, separator));
+            index = Integer.parseInt(pointKey.substring(separator + 1));
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
+        if (index < 0) return null;
+        PixelRegion region = regions.get(regionId).orElse(null);
+        if (region == null || index >= region.spawnPoints().size()) return null;
+        return new RegionManager.SpawnPointRef(regionId, index, region.spawnPoints().get(index));
+    }
+
+    private Iterable<RegionManager.SpawnPointRef> allSpawnPoints() {
+        java.util.List<RegionManager.SpawnPointRef> result = new java.util.ArrayList<>();
+        for (PixelRegion region : regions.all()) {
+            for (int index = 0; index < region.spawnPoints().size(); index++) {
+                result.add(new RegionManager.SpawnPointRef(region.id(), index, region.spawnPoints().get(index)));
+            }
+        }
+        return result;
     }
 
     private boolean hasNearbyPlayer(Location location) {
