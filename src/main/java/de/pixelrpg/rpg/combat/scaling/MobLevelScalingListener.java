@@ -66,9 +66,7 @@ public final class MobLevelScalingListener implements Listener {
     public void onMonsterTarget(EntityTargetLivingEntityEvent event) {
         if (!(event.getEntity() instanceof Monster monster)) return;
         if (monster.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING)) return;
-        if (event.getTarget() instanceof Player player && guildAPI.isRegistered(player.getUniqueId())) {
-            markParticipant(monster, player);
-        }
+        if (event.getTarget() instanceof Player player && guildAPI.isRegistered(player.getUniqueId())) markParticipant(monster, player);
     }
 
     // Zuständig dafür, dass jeder registrierte RPG-Angreifer als aktiver Teilnehmer der Monster-Skalierung erfasst wird.
@@ -77,9 +75,8 @@ public final class MobLevelScalingListener implements Listener {
         if (!(event.getEntity() instanceof Monster monster)) return;
         if (monster.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING)) return;
         Player attacker = null;
-        if (event.getDamager() instanceof Player player) {
-            attacker = player;
-        } else if (event.getDamager() instanceof Projectile projectile) {
+        if (event.getDamager() instanceof Player player) attacker = player;
+        else if (event.getDamager() instanceof Projectile projectile) {
             ProjectileSource shooter = projectile.getShooter();
             if (shooter instanceof Player player) attacker = player;
         }
@@ -129,13 +126,8 @@ public final class MobLevelScalingListener implements Listener {
     // Zuständig für die Freigabe des spielerbezogenen Scaling-Caches beim Disconnect.
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        UUID playerUuid = event.getPlayer().getUniqueId();
-        gearMultiplierCache.remove(playerUuid);
-        mobsByParticipant.remove(playerUuid);
-        for (UUID mobUuid : activeParticipants.keySet()) {
-            Map<UUID, Long> participants = activeParticipants.get(mobUuid);
-            if (participants != null && participants.remove(playerUuid) != null) scalingCache.remove(mobUuid);
-        }
+        gearMultiplierCache.remove(event.getPlayer().getUniqueId());
+        mobsByParticipant.remove(event.getPlayer().getUniqueId());
     }
 
     // Zuständig für die sofortige Freigabe aller Skalierungsdaten beim Tod eines verwalteten Monsters.
@@ -217,28 +209,28 @@ public final class MobLevelScalingListener implements Listener {
         ScalingSnapshot desired = new ScalingSnapshot(playerLevel, gearMultiplier);
         ScalingSnapshot previous = scalingCache.put(mobUuid, desired);
 
+        MobScalingConfig.LevelBaseStats baseStats = scalingConfig.getBaseStats(playerLevel);
+        double parityMultiplier = scalingConfig.getPlayerParityMultiplier();
+        double expectedMaxHealth = baseStats.hp() * parityMultiplier * gearMultiplier;
+        double expectedAttackDamage = baseStats.damage() * parityMultiplier * gearMultiplier;
+        var pdc = monster.getPersistentDataContainer();
+        int storedMobLevel = pdc.getOrDefault(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, -1);
         AttributeInstance hp = monster.getAttribute(Attribute.MAX_HEALTH);
         AttributeInstance attack = monster.getAttribute(Attribute.ATTACK_DAMAGE);
-        double expectedMaxHealth = scalingConfig.getBaseStats(playerLevel).hp() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
-        double expectedAttackDamage = scalingConfig.getBaseStats(playerLevel).damage() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
-        int storedMobLevel = monster.getPersistentDataContainer().getOrDefault(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, -1);
         boolean attributesAlreadyMatch = storedMobLevel == playerLevel
                 && (hp == null || Double.compare(hp.getBaseValue(), expectedMaxHealth) == 0)
                 && (attack == null || Double.compare(attack.getBaseValue(), expectedAttackDamage) == 0);
         if (previous != null && previous.equals(desired) && attributesAlreadyMatch) return;
         if (attributesAlreadyMatch) return;
 
-        MobScalingConfig.LevelBaseStats baseStats = scalingConfig.getBaseStats(playerLevel);
-        double maxHealth = baseStats.hp() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
-        double attackDamage = baseStats.damage() * scalingConfig.getPlayerParityMultiplier() * gearMultiplier;
         if (hp != null) {
             double oldMaxHealth = Math.max(1.0D, hp.getValue());
             double healthRatio = Math.clamp(monster.getHealth() / oldMaxHealth, 0.0D, 1.0D);
-            hp.setBaseValue(maxHealth);
-            monster.setHealth(Math.clamp(maxHealth * healthRatio, 0.0D, maxHealth));
+            hp.setBaseValue(expectedMaxHealth);
+            monster.setHealth(Math.clamp(expectedMaxHealth * healthRatio, 0.0D, expectedMaxHealth));
         }
-        if (attack != null) attack.setBaseValue(attackDamage);
-        monster.getPersistentDataContainer().set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, playerLevel);
+        if (attack != null) attack.setBaseValue(expectedAttackDamage);
+        pdc.set(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER, playerLevel);
     }
 
     private double gearLevelMultiplierCached(UUID playerUuid) {
