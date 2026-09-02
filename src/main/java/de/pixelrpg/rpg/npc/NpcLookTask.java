@@ -56,9 +56,9 @@ public final class NpcLookTask implements Listener {
     // NPC look state wakes only when the player crosses a block boundary near the NPC.
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
+        if (!event.hasChangedBlock()) return;
         Location from = event.getFrom();
         Location to = event.getTo();
-        if (to == null || sameBlock(from, to)) return;
         updateAround(from);
         updateAround(to);
     }
@@ -75,7 +75,8 @@ public final class NpcLookTask implements Listener {
         for (Entity entity : center.getNearbyEntities(radius, radius, radius)) {
             if (!(entity instanceof LivingEntity living)) continue;
             if (!living.getPersistentDataContainer().has(RPGKeys.Npc.npcId(), PersistentDataType.STRING)) continue;
-            if (living.getLocation().distanceSquared(center) <= radiusSquared) candidates.add(living.getUniqueId());
+            Location npcLocation = living.getLocation();
+            if (npcLocation.distanceSquared(center) <= radiusSquared) candidates.add(living.getUniqueId());
         }
         for (UUID entityId : candidates) updateNpc(entityId);
     }
@@ -83,10 +84,11 @@ public final class NpcLookTask implements Listener {
     private void updateNpc(UUID entityId) {
         Entity entity = plugin.getServer().getEntity(entityId);
         if (!(entity instanceof LivingEntity living) || !living.isValid()) return;
+        Location npcLocation = living.getLocation();
         Player nearest = null;
         double nearestDistanceSquared = radiusSquared;
-        for (Player player : living.getLocation().getNearbyPlayers(radius)) {
-            double distanceSquared = player.getLocation().distanceSquared(living.getLocation());
+        for (Player player : npcLocation.getNearbyPlayers(radius)) {
+            double distanceSquared = player.getLocation().distanceSquared(npcLocation);
             if (distanceSquared <= nearestDistanceSquared) {
                 nearestDistanceSquared = distanceSquared;
                 nearest = player;
