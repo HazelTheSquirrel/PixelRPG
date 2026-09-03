@@ -20,7 +20,7 @@ dependencies {
 
     implementation 'com.google.code.gson:gson:2.13.1'
     implementation 'com.zaxxer:HikariCP:7.0.2'
-    compileOnly 'com.mysql:mysql-connector-j:9.7.0'
+    implementation 'com.mysql:mysql-connector-j:9.7.0'
 }
 
 java {
