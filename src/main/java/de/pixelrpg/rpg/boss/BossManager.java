@@ -178,7 +178,7 @@ public final class BossManager {
             List<BossPhase> phases = definition.getPhases();
             if (phases.isEmpty() || activeBoss.getCurrentPhaseIndex() < 0) return;
             BossPhase phase = phases.get(activeBoss.getCurrentPhaseIndex()); patterns = phase.attackPatternIds(); interval = phase.attackIntervalTicks();
-        } else { patterns = definition.getAttackPatternIds().stream().filter(id -> !id.equalsIgnoreCase("SUMMON_ADDS")).toList(); interval = definition.getAttackIntervalTicks(); }
+        } else { patterns = activeBoss.getBiomeAttackPatternIds(); interval = definition.getAttackIntervalTicks(); }
         if (patterns.isEmpty()) return;
         activeBoss.incrementAttackTimer(phaseCheckIntervalTicks);
         if (activeBoss.getTicksSinceLastAttack() < interval) return;
