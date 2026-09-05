@@ -18,8 +18,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 /** Event-driven explicit region spawns. Spawn points are evaluated only after relevant world state changes. */
@@ -108,14 +106,12 @@ public final class RegionSpawnService implements Listener {
 
     private void evaluateAround(Location center) {
         if (!started || center == null || center.getWorld() == null) return;
-        Set<String> seen = new HashSet<>();
         double radiusSquared = PLAYER_RANGE * PLAYER_RANGE;
         for (RegionManager.SpawnPointRef reference : regions.spawnPointsNear(center, PLAYER_RANGE_CHUNKS)) {
             RegionSpawnPoint point = reference.point();
             Location location = point.location(center.getWorld());
             if (location == null || location.distanceSquared(center) > radiusSquared) continue;
-            String key = pointKey(reference);
-            if (seen.add(key)) evaluatePoint(reference, key, center, location);
+            evaluatePoint(reference, pointKey(reference), center, location);
         }
     }
 
