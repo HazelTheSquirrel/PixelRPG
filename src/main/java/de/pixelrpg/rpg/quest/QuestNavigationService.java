@@ -32,6 +32,7 @@ public final class QuestNavigationService {
     private final PlayerProfileManager profileManager;
     private final NpcManager npcManager;
     private final Map<UUID, Map<String, QuestMarker>> markersByPlayer = new HashMap<>();
+    private final Map<UUID, RefreshState> refreshStateByPlayer = new HashMap<>();
     private final Map<NavigationCacheKey, CachedTarget> targetCache = new LinkedHashMap<>(64, 0.75F, true);
 
     public QuestNavigationService(Plugin plugin, QuestRepository questRepository,
@@ -50,7 +51,20 @@ public final class QuestNavigationService {
             return;
         }
 
-        Map<String, QuestMarker> currentMarkers = markersByPlayer.computeIfAbsent(player.getUniqueId(), ignored -> new HashMap<>());
+        UUID playerId = player.getUniqueId();
+        Map<String, QuestMarker> currentMarkers = markersByPlayer.computeIfAbsent(playerId, ignored -> new HashMap<>());
+        Location playerLocation = player.getLocation();
+        UUID worldId = playerLocation.getWorld() == null ? null : playerLocation.getWorld().getUID();
+        RefreshState previousState = refreshStateByPlayer.get(playerId);
+        if (worldId != null && previousState != null
+                && previousState.worldId().equals(worldId)
+                && previousState.chunkX() == (playerLocation.getBlockX() >> 4)
+                && previousState.chunkZ() == (playerLocation.getBlockZ() >> 4)
+                && previousState.mutationRevision() == profile.getMutationRevision()
+                && currentMarkers.values().stream().allMatch(marker -> marker.entity().isValid())) {
+            return;
+        }
+
         List<QuestProgressEntry> entries = new ArrayList<>();
         for (QuestProgress progress : profile.getActiveQuests().values()) {
             Quest quest = questRepository.getQuest(progress.getQuestId());
@@ -63,7 +77,7 @@ public final class QuestNavigationService {
 
         for (int index = 0; index < entries.size() && index < 5; index++) {
             QuestProgressEntry entry = entries.get(index);
-            Location target = resolveTarget(player.getLocation(), entry.quest(), entry.progress());
+            Location target = resolveTarget(playerLocation, entry.quest(), entry.progress());
             if (target == null || target.getWorld() == null) {
                 removeMarker(currentMarkers, entry.quest().id());
                 continue;
@@ -87,6 +101,11 @@ public final class QuestNavigationService {
             if (marker != null) marker.entity().remove();
             return true;
         });
+
+        if (worldId != null) {
+            refreshStateByPlayer.put(playerId, new RefreshState(worldId, playerLocation.getBlockX() >> 4,
+                    playerLocation.getBlockZ() >> 4, profile.getMutationRevision()));
+        }
     }
 
     /** Removes marker state for players that are no longer online. */
@@ -95,6 +114,7 @@ public final class QuestNavigationService {
             if (Bukkit.getPlayer(uuid) != null) return false;
             Map<String, QuestMarker> markers = markersByPlayer.get(uuid);
             if (markers != null) markers.values().forEach(marker -> marker.entity().remove());
+            refreshStateByPlayer.remove(uuid);
             return true;
         });
         trimTargetCache();
@@ -104,12 +124,14 @@ public final class QuestNavigationService {
     public synchronized void clear(Player player) {
         Map<String, QuestMarker> markers = markersByPlayer.remove(player.getUniqueId());
         if (markers != null) markers.values().forEach(marker -> marker.entity().remove());
+        refreshStateByPlayer.remove(player.getUniqueId());
         removeLegacyCompass(player);
     }
 
     public synchronized void clearAll() {
         for (Map<String, QuestMarker> markers : markersByPlayer.values()) markers.values().forEach(marker -> marker.entity().remove());
         markersByPlayer.clear();
+        refreshStateByPlayer.clear();
         targetCache.clear();
     }
 
@@ -233,4 +255,5 @@ public final class QuestNavigationService {
     private record QuestProgressEntry(Quest quest, QuestProgress progress) { }
     private record NavigationCacheKey(UUID worldId, int chunkX, int chunkZ, String questId) { }
     private record CachedTarget(Location location, long createdAtMillis) { }
+    private record RefreshState(UUID worldId, int chunkX, int chunkZ, long mutationRevision) { }
 }
