@@ -37,10 +37,6 @@ public final class QuestPassiveCheckTask implements Listener {
         this.wakeScheduler = new WakeScheduler<>(plugin);
     }
 
-    public QuestPassiveCheckTask(Plugin plugin, QuestManager questManager, int ignoredIntervalTicks) {
-        this(plugin, questManager);
-    }
-
     public void start() {
         if (started) return;
         started = true;
@@ -137,7 +133,10 @@ public final class QuestPassiveCheckTask implements Listener {
     public void stop() {
         if (!started) return;
         wakeScheduler.clear();
-        if (inventoryTracker != null) HandlerList.unregisterAll(inventoryTracker);
+        if (inventoryTracker != null) {
+            inventoryTracker.shutdown();
+            HandlerList.unregisterAll(inventoryTracker);
+        }
         if (navigationLifecycleListener != null) HandlerList.unregisterAll(navigationLifecycleListener);
         HandlerList.unregisterAll(this);
         if (navigationService != null) navigationService.clearAll();
