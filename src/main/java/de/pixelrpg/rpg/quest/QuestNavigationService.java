@@ -201,7 +201,6 @@ public final class QuestNavigationService {
 
     private void trimTargetCache() {
         while (targetCache.size() > MAX_TARGET_CACHE_ENTRIES) {
-            targetCache.entrySet().iterator().next();
             var iterator = targetCache.entrySet().iterator();
             if (iterator.hasNext()) {
                 iterator.next();
