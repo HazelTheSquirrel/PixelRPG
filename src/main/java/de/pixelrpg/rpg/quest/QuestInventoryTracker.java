@@ -22,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 /** Single inventory source for COLLECT quest progress and collect-item turn-in. */
@@ -38,15 +39,25 @@ public final class QuestInventoryTracker implements Listener {
         this.refreshScheduler = new WakeScheduler<>(PixelRPGPlugin.getInstance());
     }
 
-    /** Recalculates all active COLLECT quests from the player's real inventory. */
+    /** Recalculates all active COLLECT quests from one inventory traversal. */
     public void refresh(Player player) {
         PlayerProfile profile = profiles.getProfile(player.getUniqueId()).filter(PlayerProfile::isRegistered).orElse(null);
         if (profile == null) return;
-        for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
+
+        Map<String, QuestProgress> collectQuests = new HashMap<>();
+        for (var entry : profile.getActiveQuests().entrySet()) {
             Quest quest = questManager.getRepository().getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.COLLECT) continue;
+            collectQuests.put(quest.targetKey(), entry.getValue());
+        }
+        if (collectQuests.isEmpty()) return;
+
+        Map<String, Integer> amounts = countTargets(player, collectQuests.keySet());
+        for (var entry : collectQuests.entrySet()) {
             QuestProgress progress = entry.getValue();
-            int amount = Math.min(quest.requiredAmount(), count(player, quest.targetKey()));
+            Quest quest = questManager.getRepository().getQuest(progress.getQuestId());
+            if (quest == null || quest.type() != QuestType.COLLECT) continue;
+            int amount = Math.min(quest.requiredAmount(), amounts.getOrDefault(entry.getKey(), 0));
             if (progress.getCurrentAmount() == amount) continue;
             progress.setCurrentAmount(amount);
             player.sendActionBar(QuestText.objectiveWithProgress(quest, progress));
@@ -125,14 +136,28 @@ public final class QuestInventoryTracker implements Listener {
         scheduleRefresh(event.getPlayer());
     }
 
-    private int count(Player player, String targetKey) {
-        Target target = Target.parse(targetKey);
-        int amount = 0;
+    private Map<String, Integer> countTargets(Player player, Iterable<String> targetKeys) {
+        Map<String, Target> targets = new HashMap<>();
+        Map<String, Integer> amounts = new HashMap<>();
+        for (String targetKey : targetKeys) targets.putIfAbsent(targetKey, Target.parse(targetKey));
+
         for (ItemStack item : player.getInventory().getContents()) {
             if (item == null || item.isEmpty()) continue;
-            if (target.matches(item, itemService)) amount += item.getAmount();
+            Material material = item.getType();
+            String itemId = null;
+            for (var entry : targets.entrySet()) {
+                Target target = entry.getValue();
+                boolean matches;
+                if (target.pixelRpgId() != null) {
+                    if (itemId == null) itemId = itemService.getItemId(item).map(Target::canonicalItemId).orElse(null);
+                    matches = target.pixelRpgId().equals(itemId);
+                } else {
+                    matches = target.material() != null && material == target.material();
+                }
+                if (matches) amounts.merge(entry.getKey(), item.getAmount(), Integer::sum);
+            }
         }
-        return amount;
+        return amounts;
     }
 
     private void remove(Player player, String targetKey, int amount) {
