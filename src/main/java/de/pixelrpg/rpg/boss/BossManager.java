@@ -43,6 +43,7 @@ public final class BossManager {
     private final MobScalingConfig mobScalingConfig;
     private final ItemService itemService;
     private final double barRadius;
+    private final double barRadiusSquared;
     private final int barUpdateIntervalTicks;
     private final int phaseCheckIntervalTicks;
     private final Map<UUID, ActiveBoss> activeBosses = new ConcurrentHashMap<>();
@@ -56,9 +57,10 @@ public final class BossManager {
         this.guildAPI = guildAPI;
         this.partyAPI = partyAPI;
         this.economyAPI = economyAPI;
-        this.itemService = itemService;
         this.mobScalingConfig = mobScalingConfig;
+        this.itemService = itemService;
         this.barRadius = Math.max(1.0D, barRadius);
+        this.barRadiusSquared = this.barRadius * this.barRadius;
         this.barUpdateIntervalTicks = Math.max(1, barUpdateIntervalTicks);
         this.phaseCheckIntervalTicks = Math.max(1, phaseCheckIntervalTicks);
         if (this.itemService == null) throw new IllegalArgumentException("itemService must not be null");
@@ -138,14 +140,14 @@ public final class BossManager {
             UUID uuid = player.getUniqueId();
             boolean isViewer = activeBoss.getViewers().contains(uuid);
             if (!guildAPI.isRegistered(uuid)) { if (isViewer) { player.hideBossBar(activeBoss.getBossBar()); activeBoss.getViewers().remove(uuid); } continue; }
-            boolean inRange = player.getLocation().distanceSquared(location) <= barRadius * barRadius;
+            boolean inRange = player.getLocation().distanceSquared(location) <= barRadiusSquared;
             if (inRange && !isViewer) { player.showBossBar(activeBoss.getBossBar()); activeBoss.getViewers().add(uuid); }
             else if (!inRange && isViewer) { player.hideBossBar(activeBoss.getBossBar()); activeBoss.getViewers().remove(uuid); }
         }
         activeBoss.getViewers().removeIf(uuid -> {
             Player viewer = Bukkit.getPlayer(uuid);
             if (viewer == null || !viewer.isOnline()) return true;
-            if (viewer.getWorld() != location.getWorld() || viewer.getLocation().distanceSquared(location) > barRadius * barRadius) {
+            if (viewer.getWorld() != location.getWorld() || viewer.getLocation().distanceSquared(location) > barRadiusSquared) {
                 viewer.hideBossBar(activeBoss.getBossBar());
                 return true;
             }
@@ -288,9 +290,4 @@ public final class BossManager {
         Location location = bossEntity.getLocation();
         return new ArrayList<>(location.getNearbyEntities(WORLD_BOSS_CLEANUP_RADIUS, WORLD_BOSS_CLEANUP_RADIUS, WORLD_BOSS_CLEANUP_RADIUS));
     }
-
-    public boolean hasActiveBossOfType(String bossId) { return activeBosses.values().stream().anyMatch(active -> active.getDefinition().getId().equals(bossId)); }
-    public int getActiveBossCount() { return activeBosses.size(); }
-    public void shutdownAll() { for (ActiveBoss activeBoss : activeBosses.values()) cleanup(activeBoss); }
-    public void shutdown() { shutdownAll(); }
 }
