@@ -2,7 +2,6 @@ package de.pixelrpg.rpg.stats;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.CharacterStatType;
-import de.pixelrpg.rpg.companion.Companion;
 import de.pixelrpg.rpg.companion.CompanionDefinition;
 import de.pixelrpg.rpg.companion.CompanionPassiveStats;
 import de.pixelrpg.rpg.companion.CompanionService;
@@ -49,10 +48,13 @@ public final class StatEngine {
         public double reach() { return Math.max(blockReach, entityReach); }
     }
 
+    private record PassiveCompanionSnapshot(UUID entityId, String definitionId, CompanionPassiveStats stats) { }
+
     private final PlayerProfileManager profileManager;
     private final EquipmentSetService equipmentSets;
     private final EquipmentSetEffectService equipmentSetEffects = new EquipmentSetEffectService();
     private final Map<UUID, CachedStats> cache = new ConcurrentHashMap<>();
+    private final Map<UUID, PassiveCompanionSnapshot> companionPassiveCache = new ConcurrentHashMap<>();
 
     public StatEngine(PlayerProfileManager profileManager) {
         this.profileManager = profileManager;
@@ -120,6 +122,7 @@ public final class StatEngine {
 
     public void clear(Player player) {
         cache.remove(player.getUniqueId());
+        companionPassiveCache.remove(player.getUniqueId());
         removeModifier(player, Attribute.MAX_HEALTH, RPGKeys.Stats.maxHealth());
         removeModifier(player, Attribute.ARMOR, RPGKeys.Stats.armor());
         removeModifier(player, Attribute.MOVEMENT_SPEED, RPGKeys.Stats.movementSpeed());
@@ -148,14 +151,31 @@ public final class StatEngine {
         CompanionService service = plugin.getCompanionService();
         if (service == null) return CompanionPassiveStats.EMPTY;
         UUID activeEntityId = service.getActiveEntity(playerId);
-        if (activeEntityId == null) return CompanionPassiveStats.EMPTY;
+        if (activeEntityId == null) {
+            companionPassiveCache.remove(playerId);
+            return CompanionPassiveStats.EMPTY;
+        }
         Entity activeEntity = Bukkit.getEntity(activeEntityId);
-        if (activeEntity == null || activeEntity.isDead()) return CompanionPassiveStats.EMPTY;
-        Companion active = service.getActive(playerId);
-        if (active == null) return CompanionPassiveStats.EMPTY;
-        CompanionDefinition definition = service.definition(active.id());
-        if (!definition.passive()) return CompanionPassiveStats.EMPTY;
-        return fromMainBranchCompanionStats(definition);
+        if (activeEntity == null || activeEntity.isDead()) {
+            companionPassiveCache.remove(playerId);
+            return CompanionPassiveStats.EMPTY;
+        }
+        String definitionId = activeEntity.getPersistentDataContainer().get(RPGKeys.Companion.id(), PersistentDataType.STRING);
+        if (definitionId == null || definitionId.isBlank()) {
+            companionPassiveCache.remove(playerId);
+            return CompanionPassiveStats.EMPTY;
+        }
+        PassiveCompanionSnapshot cached = companionPassiveCache.get(playerId);
+        if (cached != null && cached.entityId().equals(activeEntityId) && cached.definitionId().equals(definitionId)) return cached.stats();
+
+        CompanionDefinition definition = service.definition(definitionId);
+        if (!definition.passive()) {
+            companionPassiveCache.put(playerId, new PassiveCompanionSnapshot(activeEntityId, definitionId, CompanionPassiveStats.EMPTY));
+            return CompanionPassiveStats.EMPTY;
+        }
+        CompanionPassiveStats stats = fromMainBranchCompanionStats(definition);
+        companionPassiveCache.put(playerId, new PassiveCompanionSnapshot(activeEntityId, definitionId, stats));
+        return stats;
     }
 
     /** Mirrors the existing rarity-based companion bonus model without introducing additional stat types. */
