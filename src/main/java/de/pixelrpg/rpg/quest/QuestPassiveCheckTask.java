@@ -74,8 +74,8 @@ public final class QuestPassiveCheckTask implements Listener {
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        BlockPosition previous = lastBlockByPlayer.put(player.getUniqueId(), BlockPosition.of(event.getTo()));
         BlockPosition current = BlockPosition.of(event.getTo());
+        BlockPosition previous = lastBlockByPlayer.put(player.getUniqueId(), current);
         if (previous == null || !previous.equals(current)) wake(player);
     }
 
