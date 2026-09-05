@@ -69,14 +69,15 @@ public final class StatEngine {
         if (profile == null || !profile.isRegistered()) { clear(player); return; }
 
         int playerLevel = Math.clamp(profile.getLevel(), 1, 99);
-        double itemArmor = sum(player, playerLevel, RPGKeys.Item.armorValue());
-        double itemHealth = sum(player, playerLevel, RPGKeys.Item.healthBonus());
-        double itemCritChance = sum(player, playerLevel, RPGKeys.Item.critChance());
-        double itemCritDamage = sum(player, playerLevel, RPGKeys.Item.critDamage());
-        double itemLifesteal = sum(player, playerLevel, RPGKeys.Item.lifestealPercent());
-        double itemReach = sum(player, playerLevel, RPGKeys.Item.reachBonus());
-        double itemMovementSpeed = sum(player, playerLevel, RPGKeys.Item.movementSpeed());
-        double itemAttackPower = sum(player, playerLevel, RPGKeys.Item.attackPower());
+        ItemStatTotals itemStats = sumEquippedItemStats(player, playerLevel);
+        double itemHealth = itemStats.health;
+        double itemArmor = itemStats.armor;
+        double itemCritChance = itemStats.critChance;
+        double itemCritDamage = itemStats.critDamage;
+        double itemLifesteal = itemStats.lifesteal;
+        double itemReach = itemStats.reach;
+        double itemMovementSpeed = itemStats.movementSpeed;
+        double itemAttackPower = itemStats.attackPower;
 
         Map<String, Double> setBonus = equipmentSets == null ? Map.of() : equipmentSets.bonuses(player, playerLevel);
         itemHealth += setBonus.getOrDefault("HP", 0.0D);
@@ -201,29 +202,34 @@ public final class StatEngine {
                 0.0D);
     }
 
-    private double sum(Player player, int playerLevel, org.bukkit.NamespacedKey key) {
-        double total = 0.0D;
-        for (ItemStack item : equippedItems(player)) {
-            if (!isUsable(item, playerLevel)) continue;
-            total += item.getItemMeta().getPersistentDataContainer().getOrDefault(key, PersistentDataType.DOUBLE, 0.0D);
-        }
-        return total;
+    /** Aggregates all equipped item stats in one pass to avoid repeated inventory-array allocations per stat. */
+    private ItemStatTotals sumEquippedItemStats(Player player, int playerLevel) {
+        PlayerInventory inventory = player.getInventory();
+        ItemStatTotals totals = new ItemStatTotals();
+        ItemStack[] armor = inventory.getArmorContents();
+        for (ItemStack item : armor) addItemStats(totals, item, playerLevel);
+        addItemStats(totals, inventory.getItemInMainHand(), playerLevel);
+        addItemStats(totals, inventory.getItemInOffHand(), playerLevel);
+        return totals;
+    }
+
+    private void addItemStats(ItemStatTotals totals, ItemStack item, int playerLevel) {
+        if (!isUsable(item, playerLevel)) return;
+        var container = item.getItemMeta().getPersistentDataContainer();
+        totals.health += container.getOrDefault(RPGKeys.Item.healthBonus(), PersistentDataType.DOUBLE, 0.0D);
+        totals.armor += container.getOrDefault(RPGKeys.Item.armorValue(), PersistentDataType.DOUBLE, 0.0D);
+        totals.critChance += container.getOrDefault(RPGKeys.Item.critChance(), PersistentDataType.DOUBLE, 0.0D);
+        totals.critDamage += container.getOrDefault(RPGKeys.Item.critDamage(), PersistentDataType.DOUBLE, 0.0D);
+        totals.lifesteal += container.getOrDefault(RPGKeys.Item.lifestealPercent(), PersistentDataType.DOUBLE, 0.0D);
+        totals.reach += container.getOrDefault(RPGKeys.Item.reachBonus(), PersistentDataType.DOUBLE, 0.0D);
+        totals.movementSpeed += container.getOrDefault(RPGKeys.Item.movementSpeed(), PersistentDataType.DOUBLE, 0.0D);
+        totals.attackPower += container.getOrDefault(RPGKeys.Item.attackPower(), PersistentDataType.DOUBLE, 0.0D);
     }
 
     private boolean isUsable(ItemStack item, int playerLevel) {
         if (item == null || !item.hasItemMeta()) return false;
         Integer requiredLevel = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
         return requiredLevel == null || playerLevel >= requiredLevel;
-    }
-
-    private ItemStack[] equippedItems(Player player) {
-        PlayerInventory inventory = player.getInventory();
-        ItemStack[] armor = inventory.getArmorContents();
-        ItemStack[] equipped = new ItemStack[armor.length + 2];
-        System.arraycopy(armor, 0, equipped, 0, armor.length);
-        equipped[armor.length] = inventory.getItemInMainHand();
-        equipped[armor.length + 1] = inventory.getItemInOffHand();
-        return equipped;
     }
 
     private void applyModifier(Player player, Attribute attribute, org.bukkit.NamespacedKey key, double value) {
@@ -245,4 +251,15 @@ public final class StatEngine {
     }
 
     private static double clamp(double value, double min, double max) { return Math.clamp(value, min, max); }
+
+    private static final class ItemStatTotals {
+        private double health;
+        private double armor;
+        private double critChance;
+        private double critDamage;
+        private double lifesteal;
+        private double reach;
+        private double movementSpeed;
+        private double attackPower;
+    }
 }
