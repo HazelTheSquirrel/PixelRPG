@@ -48,7 +48,7 @@ public final class PlayerProfile {
     public UUID getUuid(){return uuid;}
     public synchronized long getPersistenceRevision(){return persistenceRevision;}
     synchronized void setPersistenceRevision(long revision){persistenceRevision=Math.max(0L,revision);}
-    synchronized long getMutationRevision(){return mutationRevision;}
+    public synchronized long getMutationRevision(){return mutationRevision;}
     public synchronized boolean isRegistered(){return registered;}
     public void setRegistered(boolean value){mutate(()->registered=value);}
     @Deprecated(forRemoval=true) public synchronized boolean isRegisteredInGuild(){return isRegistered();}
