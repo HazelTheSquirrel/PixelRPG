@@ -17,16 +17,17 @@ import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.TreeSet;
 import java.util.UUID;
 
-/** Tracks combat state with deadline-indexed cleanup instead of scanning every active combatant. */
+/** Tracks combat state with indexed deadlines and bounded expiry entries per player. */
 public final class CombatStateService implements Listener {
     private static final long COMBAT_TIMEOUT_MILLIS = 5_000L;
 
     private final GuildAPI guildAPI;
     private final Map<UUID, Long> combatUntil = new HashMap<>();
-    private final PriorityQueue<CombatExpiry> expiries = new PriorityQueue<>();
+    private final Map<UUID, CombatExpiry> expiriesByPlayer = new HashMap<>();
+    private final TreeSet<CombatExpiry> expiries = new TreeSet<>();
     private final BukkitTask cleanupTask;
 
     public CombatStateService(Plugin plugin, GuildAPI guildAPI) {
@@ -61,12 +62,19 @@ public final class CombatStateService implements Listener {
         boolean wasInCombat = isInCombat(uuid);
         long expiry = System.currentTimeMillis() + COMBAT_TIMEOUT_MILLIS;
         combatUntil.put(uuid, expiry);
-        expiries.offer(new CombatExpiry(uuid, expiry));
+
+        CombatExpiry previous = expiriesByPlayer.put(uuid, new CombatExpiry(uuid, expiry));
+        if (previous != null) expiries.remove(previous);
+        expiries.add(expiriesByPlayer.get(uuid));
+
         if (!wasInCombat) Bukkit.getPluginManager().callEvent(new PlayerCombatEnterEvent(player));
     }
 
     public void exit(Player player) {
-        if (combatUntil.remove(player.getUniqueId()) != null) {
+        UUID uuid = player.getUniqueId();
+        if (combatUntil.remove(uuid) != null) {
+            CombatExpiry expiry = expiriesByPlayer.remove(uuid);
+            if (expiry != null) expiries.remove(expiry);
             Bukkit.getPluginManager().callEvent(new PlayerCombatExitEvent(player));
         }
     }
@@ -74,17 +82,20 @@ public final class CombatStateService implements Listener {
     public void shutdown() {
         cleanupTask.cancel();
         combatUntil.clear();
+        expiriesByPlayer.clear();
         expiries.clear();
     }
 
     private void cleanup() {
         long now = System.currentTimeMillis();
         while (!expiries.isEmpty()) {
-            CombatExpiry expiry = expiries.peek();
+            CombatExpiry expiry = expiries.first();
             if (expiry.expiresAt() > now) return;
-            expiries.poll();
-            Long currentExpiry = combatUntil.get(expiry.playerId());
-            if (currentExpiry == null || currentExpiry.longValue() != expiry.expiresAt()) continue;
+            expiries.pollFirst();
+
+            CombatExpiry currentExpiry = expiriesByPlayer.get(expiry.playerId());
+            if (currentExpiry != expiry) continue;
+            expiriesByPlayer.remove(expiry.playerId());
             combatUntil.remove(expiry.playerId());
             Player player = Bukkit.getPlayer(expiry.playerId());
             if (player != null && player.isOnline()) Bukkit.getPluginManager().callEvent(new PlayerCombatExitEvent(player));
@@ -103,7 +114,8 @@ public final class CombatStateService implements Listener {
     private record CombatExpiry(UUID playerId, long expiresAt) implements Comparable<CombatExpiry> {
         @Override
         public int compareTo(CombatExpiry other) {
-            return Long.compare(expiresAt, other.expiresAt);
+            int byExpiry = Long.compare(expiresAt, other.expiresAt);
+            return byExpiry != 0 ? byExpiry : playerId.compareTo(other.playerId);
         }
     }
 }
