@@ -17,6 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.world.EntitiesUnloadEvent;
 import org.bukkit.inventory.ItemStack;
@@ -88,6 +89,7 @@ public final class MobLevelScalingListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerLevelUp(PlayerLevelUpEvent event) {
         UUID playerUuid = event.getPlayer().getUniqueId();
+        gearMultiplierCache.remove(playerUuid);
         Set<UUID> affectedMobs = mobsByParticipant.get(playerUuid);
         if (affectedMobs == null) return;
         for (UUID mobUuid : Set.copyOf(affectedMobs)) {
@@ -108,19 +110,13 @@ public final class MobLevelScalingListener implements Listener {
     // Zuständig dafür, dass Equipmentänderungen nur die Gear-Cachewerte und betroffene Mobs invalidieren.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventorySlotChange(PlayerInventorySlotChangeEvent event) {
-        UUID playerUuid = event.getPlayer().getUniqueId();
-        gearMultiplierCache.remove(playerUuid);
-        Set<UUID> affectedMobs = mobsByParticipant.get(playerUuid);
-        if (affectedMobs == null) return;
-        for (UUID mobUuid : Set.copyOf(affectedMobs)) {
-            Map<UUID, Long> participants = activeParticipants.get(mobUuid);
-            if (participants == null || !participants.containsKey(playerUuid)) continue;
-            var entity = Bukkit.getEntity(mobUuid);
-            if (entity instanceof Monster monster && monster.isValid() && !monster.isDead()) {
-                scalingCache.remove(mobUuid);
-                applyScaling(monster);
-            }
-        }
+        invalidateGearAndScaling(event.getPlayer().getUniqueId());
+    }
+
+    // Zuständig für die Invalidierung der Gear-Skalierung beim Wechsel des aktiven Hotbar-Slots.
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onItemHeld(PlayerItemHeldEvent event) {
+        invalidateGearAndScaling(event.getPlayer().getUniqueId());
     }
 
     // Zuständig für die Freigabe des spielerbezogenen Scaling-Caches beim Disconnect.
@@ -151,6 +147,21 @@ public final class MobLevelScalingListener implements Listener {
             if (participants == null) continue;
             removeReverseIndex(monster.getUniqueId(), participants.keySet());
             participants.keySet().forEach(playerUuid -> cancelParticipant(monster.getUniqueId(), playerUuid));
+        }
+    }
+
+    private void invalidateGearAndScaling(UUID playerUuid) {
+        gearMultiplierCache.remove(playerUuid);
+        Set<UUID> affectedMobs = mobsByParticipant.get(playerUuid);
+        if (affectedMobs == null) return;
+        for (UUID mobUuid : Set.copyOf(affectedMobs)) {
+            Map<UUID, Long> participants = activeParticipants.get(mobUuid);
+            if (participants == null || !participants.containsKey(playerUuid)) continue;
+            var entity = Bukkit.getEntity(mobUuid);
+            if (entity instanceof Monster monster && monster.isValid() && !monster.isDead()) {
+                scalingCache.remove(mobUuid);
+                applyScaling(monster);
+            }
         }
     }
 
