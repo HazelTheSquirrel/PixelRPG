@@ -22,14 +22,12 @@ import java.util.UUID;
 /** Event-driven NPC look controller. NPCs are evaluated only when nearby players actually move. */
 public final class NpcLookTask implements Listener {
     private final Plugin plugin;
-    private final NpcManager npcManager;
     private final double radius;
     private final double radiusSquared;
     private boolean started;
 
     public NpcLookTask(Plugin plugin, NpcManager npcManager, double radius, int ignoredIntervalTicks) {
         this.plugin = plugin;
-        this.npcManager = npcManager;
         this.radius = Math.max(1.0D, radius);
         this.radiusSquared = this.radius * this.radius;
     }
