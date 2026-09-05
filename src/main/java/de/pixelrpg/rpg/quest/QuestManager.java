@@ -25,7 +25,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -233,7 +232,7 @@ public final class QuestManager {
     }
 
     private void applyHuntProgress(PlayerProfile profile, String mobTypeKey) {
-        for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
+        for (var entry : profile.getActiveQuests().entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.HUNT || !quest.targetKey().equalsIgnoreCase(mobTypeKey)) continue;
             incrementProgress(profile, entry.getValue(), quest);
@@ -244,7 +243,7 @@ public final class QuestManager {
     public void checkInventoryQuests(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) return;
-        for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
+        for (var entry : profile.getActiveQuests().entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.COLLECT) continue;
             int amount = countQuestItems(player, quest.targetKey());
@@ -282,7 +281,7 @@ public final class QuestManager {
     public void checkReachLocationQuests(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) return;
-        for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
+        for (var entry : profile.getActiveQuests().entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.REACH_LOCATION || entry.getValue().getCurrentAmount() >= quest.requiredAmount()) continue;
             Location target = resolveNavigationLocation(player.getLocation(), quest);
@@ -298,7 +297,7 @@ public final class QuestManager {
     public void progressTalkToNpc(Player player, String npcId) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered() || npcId == null || npcId.isBlank()) return;
-        for (var entry : new HashMap<>(profile.getActiveQuests()).entrySet()) {
+        for (var entry : profile.getActiveQuests().entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.TALK_TO_NPC || !quest.targetKey().equalsIgnoreCase(npcId)) continue;
             entry.getValue().setCurrentAmount(quest.requiredAmount());
