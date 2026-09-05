@@ -22,6 +22,7 @@ public final class AsyncFileWriter {
     private final Map<Path, String> pending = new ConcurrentHashMap<>();
     private final AtomicBoolean draining = new AtomicBoolean();
     private final AtomicBoolean closed = new AtomicBoolean();
+    private final Object lifecycleLock = new Object();
 
     public AsyncFileWriter(Plugin plugin, String threadName) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
@@ -34,10 +35,13 @@ public final class AsyncFileWriter {
 
     /** Replaces the latest pending snapshot for a file and wakes the writer once. */
     public void submit(Path path, String contents) {
-        if (path == null || contents == null || closed.get()) return;
+        if (path == null || contents == null) return;
         Path normalized = path.toAbsolutePath().normalize();
-        pending.put(normalized, contents);
-        scheduleDrain();
+        synchronized (lifecycleLock) {
+            if (closed.get()) return;
+            pending.put(normalized, contents);
+            scheduleDrain();
+        }
     }
 
     private void scheduleDrain() {
@@ -94,10 +98,9 @@ public final class AsyncFileWriter {
 
     /** Stops the writer after flushing all snapshots already queued before shutdown. */
     public void shutdown() {
-        if (!closed.compareAndSet(false, true)) return;
-        if (!pending.isEmpty()) {
-            // Shutdown must not race a second executor submission. The existing drain owns the queue.
-            if (draining.compareAndSet(false, true)) {
+        synchronized (lifecycleLock) {
+            if (!closed.compareAndSet(false, true)) return;
+            if (!pending.isEmpty() && draining.compareAndSet(false, true)) {
                 try {
                     executor.execute(this::drain);
                 } catch (RuntimeException exception) {
