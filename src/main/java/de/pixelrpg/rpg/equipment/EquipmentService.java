@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.equipment;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.core.WakeScheduler;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
@@ -19,15 +20,18 @@ import org.bukkit.inventory.PlayerInventory;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.UUID;
 
-/** Tracks the live vanilla equipment slots for stat calculation. */
+/** Tracks the live vanilla equipment slots for stat calculation with coalesced reactive refreshes. */
 public final class EquipmentService implements Listener {
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
+    private final WakeScheduler<UUID> refreshScheduler;
 
     public EquipmentService(PlayerProfileManager profileManager, StatEngine statEngine, ItemService ignoredItemService) {
         this.profileManager = profileManager;
         this.statEngine = statEngine;
+        this.refreshScheduler = new WakeScheduler<>(PixelRPGPlugin.getInstance());
     }
 
     /** Creates a defensive snapshot of the six live Minecraft equipment slots. */
@@ -74,6 +78,11 @@ public final class EquipmentService implements Listener {
         statEngine.recalculate(player);
     }
 
+    /** Cancels pending equipment refreshes during plugin shutdown. */
+    public void shutdown() {
+        refreshScheduler.clear();
+    }
+
     private void put(Map<EquipmentSlot, ItemStack> map, EquipmentSlot slot, ItemStack item) {
         if (item != null && !item.isEmpty()) map.put(slot, item.clone());
     }
@@ -116,6 +125,8 @@ public final class EquipmentService implements Listener {
     // Zuständig für das Persistieren des aktuellen Equipments beim Logout.
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
+        UUID uuid = event.getPlayer().getUniqueId();
+        refreshScheduler.cancel(uuid);
         syncToProfile(event.getPlayer());
     }
 
@@ -126,11 +137,11 @@ public final class EquipmentService implements Listener {
     }
 
     private void refreshNextTick(Player player) {
-        player.getScheduler().runDelayed(
-                PixelRPGPlugin.getInstance(),
-                task -> refresh(player),
-                null,
-                1L
-        );
+        if (player == null) return;
+        UUID uuid = player.getUniqueId();
+        refreshScheduler.wake(uuid, () -> {
+            Player current = PixelRPGPlugin.getInstance().getServer().getPlayer(uuid);
+            if (current != null && current.isOnline()) refresh(current);
+        });
     }
 }
