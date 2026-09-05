@@ -180,14 +180,14 @@ public final class CompanionService {
     public UUID getOwnerOfEntity(UUID entityId) { for (Map.Entry<UUID, UUID> entry : activeEntities.entrySet()) if (entry.getValue().equals(entityId)) return entry.getKey(); return null; }
     public void openEquipment(Player player, Companion companion) { equipmentListener.open(player, companion); }
 
+    /** Returns cached companion equipment; disk access is restricted to player state initialization. */
     public CompanionEquipment getEquipment(UUID playerId, String companionId) {
         load(playerId);
         Map<String, CompanionEquipment> playerEquipment = equipment.computeIfAbsent(playerId, ignored -> new ConcurrentHashMap<>());
         CompanionEquipment cached = playerEquipment.get(companionId);
         if (cached != null) return cached.copy();
-        boolean exists = equipmentStore.hasEntry(playerId, companionId);
-        CompanionEquipment loaded = exists ? equipmentStore.load(playerId, companionId) : defaultEquipment(companionId);
-        if (!exists) equipmentStore.save(playerId, companionId, loaded);
+        CompanionEquipment loaded = defaultEquipment(companionId);
+        equipmentStore.save(playerId, companionId, loaded);
         playerEquipment.put(companionId, loaded.copy());
         return loaded.copy();
     }
@@ -277,7 +277,11 @@ public final class CompanionService {
     private void load(UUID playerId) {
         if (companions.containsKey(playerId)) return;
         File file = new File(storageFolder, playerId + ".yml");
-        if (!file.exists()) { companions.put(playerId, new ArrayList<>()); return; }
+        if (!file.exists()) {
+            companions.put(playerId, new ArrayList<>());
+            equipment.put(playerId, new ConcurrentHashMap<>());
+            return;
+        }
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
         List<Companion> loaded = new ArrayList<>();
         for (String key : config.getKeys(false)) {
@@ -296,6 +300,7 @@ public final class CompanionService {
             ));
         }
         companions.put(playerId, loaded);
+        equipment.put(playerId, new ConcurrentHashMap<>(equipmentStore.loadPlayer(playerId)));
     }
 
     private void save(UUID playerId, List<Companion> values) {
