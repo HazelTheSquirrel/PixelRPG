@@ -20,6 +20,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class CompanionCombatController {
     private final Map<UUID, Long> nextAttackTick = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> currentTargets = new ConcurrentHashMap<>();
+    private final Map<UUID, CachedMannequinStats> mannequinStatsCache = new ConcurrentHashMap<>();
     private final CompanionStatsCalculator statsCalculator = new CompanionStatsCalculator();
 
     public LivingEntity tick(Player owner, LivingEntity companion, CompanionDefinition definition, long gameTime) {
@@ -52,8 +53,10 @@ public final class CompanionCombatController {
     }
 
     public void clear(LivingEntity companion) {
-        nextAttackTick.remove(companion.getUniqueId());
-        currentTargets.remove(companion.getUniqueId());
+        UUID entityId = companion.getUniqueId();
+        nextAttackTick.remove(entityId);
+        currentTargets.remove(entityId);
+        mannequinStatsCache.remove(entityId);
     }
 
     private LivingEntity resolveTarget(Player owner, LivingEntity companion, CompanionDefinition.CompanionCombatDefinition combat) {
@@ -109,15 +112,24 @@ public final class CompanionCombatController {
     private void attackMannequin(Player owner, LivingEntity attacker, LivingEntity target, CompanionDefinition definition) {
         int level = Math.max(1, attacker.getPersistentDataContainer()
                 .getOrDefault(RPGKeys.Companion.level(), PersistentDataType.INTEGER, 1));
-        CompanionInstance instance = new CompanionInstance(
-                owner.getUniqueId(),
-                definition.id(),
-                level,
-                0L,
-                true,
-                true,
-                CompanionEquipment.empty());
-        CompanionStats stats = statsCalculator.calculate(definition, instance, attacker);
+        UUID entityId = attacker.getUniqueId();
+        CachedMannequinStats cached = mannequinStatsCache.get(entityId);
+        CompanionStats stats;
+        if (cached != null && cached.level() == level && cached.definitionId().equals(definition.id())) {
+            stats = cached.stats();
+        } else {
+            CompanionInstance instance = new CompanionInstance(
+                    owner.getUniqueId(),
+                    definition.id(),
+                    level,
+                    0L,
+                    true,
+                    true,
+                    CompanionEquipment.empty());
+            stats = statsCalculator.calculate(definition, instance, attacker);
+            mannequinStatsCache.put(entityId, new CachedMannequinStats(definition.id(), level, stats));
+        }
+
         double damage = Math.max(0.0D, stats.damage());
         if (damage <= 0.0D) return;
 
@@ -160,5 +172,8 @@ public final class CompanionCombatController {
         direction.setY(0.0D);
         if (direction.lengthSquared() < 0.0001D) return;
         entity.setRotation((float) Math.toDegrees(Math.atan2(-direction.getX(), direction.getZ())), entity.getPitch());
+    }
+
+    private record CachedMannequinStats(String definitionId, int level, CompanionStats stats) {
     }
 }
