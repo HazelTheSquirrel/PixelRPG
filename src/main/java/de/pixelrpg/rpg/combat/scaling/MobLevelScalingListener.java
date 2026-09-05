@@ -232,9 +232,13 @@ public final class MobLevelScalingListener implements Listener {
         UUID mobUuid = monster.getUniqueId();
         rememberOriginalAttributes(monster);
         Map<UUID, Long> participants = activeParticipants.getOrDefault(mobUuid, Map.of());
-        int playerLevel = participants.keySet().stream().mapToInt(guildAPI::getLevel).max().orElse(1);
+        int playerLevel = 1;
+        double gearMultiplier = 1.0D;
+        for (UUID playerUuid : participants.keySet()) {
+            playerLevel = Math.max(playerLevel, guildAPI.getLevel(playerUuid));
+            gearMultiplier = Math.max(gearMultiplier, gearLevelMultiplierCached(playerUuid));
+        }
         playerLevel = Math.clamp(playerLevel, 1, 99);
-        double gearMultiplier = participants.keySet().stream().map(this::gearLevelMultiplierCached).max(Double::compare).orElse(1.0D);
         ScalingSnapshot desired = new ScalingSnapshot(playerLevel, gearMultiplier);
         ScalingSnapshot previous = scalingCache.put(mobUuid, desired);
 
@@ -274,26 +278,33 @@ public final class MobLevelScalingListener implements Listener {
     private double gearLevelMultiplier(Player player, int playerLevel) {
         int counted = 0;
         double totalLevel = 0.0D;
-        for (ItemStack item : equippedItems(player)) {
+        for (ItemStack item : player.getInventory().getArmorContents()) {
             if (item == null || !item.hasItemMeta()) continue;
             Integer itemLevel = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
             if (itemLevel == null) continue;
             totalLevel += Math.clamp(itemLevel, 1, 99);
             counted++;
         }
+        ItemStack mainHand = player.getInventory().getItemInMainHand();
+        if (mainHand != null && mainHand.hasItemMeta()) {
+            Integer itemLevel = mainHand.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
+            if (itemLevel != null) {
+                totalLevel += Math.clamp(itemLevel, 1, 99);
+                counted++;
+            }
+        }
+        ItemStack offHand = player.getInventory().getItemInOffHand();
+        if (offHand != null && offHand.hasItemMeta()) {
+            Integer itemLevel = offHand.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
+            if (itemLevel != null) {
+                totalLevel += Math.clamp(itemLevel, 1, 99);
+                counted++;
+            }
+        }
         if (counted == 0) return 1.0D;
         double averageItemLevel = totalLevel / counted;
         double ratio = averageItemLevel / Math.max(1.0D, playerLevel);
         return Math.clamp(ratio, scalingConfig.getMinimumGearMultiplier(), scalingConfig.getMaximumGearMultiplier());
-    }
-
-    private ItemStack[] equippedItems(Player player) {
-        ItemStack[] armor = player.getInventory().getArmorContents();
-        ItemStack[] equipped = new ItemStack[armor.length + 2];
-        System.arraycopy(armor, 0, equipped, 0, armor.length);
-        equipped[armor.length] = player.getInventory().getItemInMainHand();
-        equipped[armor.length + 1] = player.getInventory().getItemInOffHand();
-        return equipped;
     }
 
     private Player findPlayer(UUID uuid) {
