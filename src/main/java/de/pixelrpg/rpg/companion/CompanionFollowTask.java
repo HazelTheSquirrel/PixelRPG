@@ -42,6 +42,7 @@ public final class CompanionFollowTask implements Runnable, Listener {
     private final MannequinCompanionController mannequinController;
     private final Map<UUID, AppliedState> appliedStates = new HashMap<>();
     private final Map<UUID, String> registeredRuntimeCompanions = new HashMap<>();
+    private final java.util.Set<UUID> dirtyRuntimeOwners = new java.util.HashSet<>();
     private final WakeScheduler<UUID> wakeScheduler;
 
     public CompanionFollowTask(Plugin plugin, Map<UUID, UUID> activeEntities, CompanionService companionService) {
@@ -57,8 +58,15 @@ public final class CompanionFollowTask implements Runnable, Listener {
 
     public CompanionMountController mountController() { return mountController; }
 
-    /** Wakes exactly one active companion; repeated events in the same tick are coalesced. */
+    /** Marks one companion's derived runtime state dirty and schedules its next local pass. */
     public void wakeOwner(UUID ownerId) {
+        if (ownerId == null) return;
+        dirtyRuntimeOwners.add(ownerId);
+        wakeScheduler.wake(ownerId, () -> runOwner(ownerId));
+    }
+
+    /** Schedules one local runtime pass without invalidating derived stats/equipment state. */
+    public void wakeMovement(UUID ownerId) {
         if (ownerId == null) return;
         wakeScheduler.wake(ownerId, () -> runOwner(ownerId));
     }
@@ -75,14 +83,14 @@ public final class CompanionFollowTask implements Runnable, Listener {
         Location from = event.getFrom();
         Location to = event.getTo();
         if (from.getWorld() != to.getWorld() || from.getBlockX() != to.getBlockX() || from.getBlockY() != to.getBlockY() || from.getBlockZ() != to.getBlockZ()) {
-            wakeOwner(event.getPlayer().getUniqueId());
+            wakeMovement(event.getPlayer().getUniqueId());
         }
     }
 
     // A world change invalidates the companion's movement target and wakes it once.
     @EventHandler
     public void onWorldChange(PlayerChangedWorldEvent event) {
-        wakeOwner(event.getPlayer().getUniqueId());
+        wakeMovement(event.getPlayer().getUniqueId());
     }
 
     // A restored player may have an active companion that needs one initial runtime pass.
@@ -94,13 +102,16 @@ public final class CompanionFollowTask implements Runnable, Listener {
     // Disconnecting a player puts its companion runtime back into standby.
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        wakeScheduler.cancel(event.getPlayer().getUniqueId());
+        UUID ownerId = event.getPlayer().getUniqueId();
+        wakeScheduler.cancel(ownerId);
+        dirtyRuntimeOwners.remove(ownerId);
     }
 
     public void shutdown() {
         wakeScheduler.clear();
         appliedStates.clear();
         registeredRuntimeCompanions.clear();
+        dirtyRuntimeOwners.clear();
         org.bukkit.event.HandlerList.unregisterAll(this);
     }
 
@@ -132,7 +143,7 @@ public final class CompanionFollowTask implements Runnable, Listener {
         }
 
         if (living instanceof Mannequin mannequin) mannequinController.tick(owner, mannequin);
-        updateRuntimeState(owner, living, definition);
+        if (dirtyRuntimeOwners.remove(ownerId)) updateRuntimeState(owner, living, definition);
 
         if (definition.mount().enabled() && mountController.isMounted(owner, living)) {
             mountController.tick(owner, living, definition.mount());
@@ -269,6 +280,7 @@ public final class CompanionFollowTask implements Runnable, Listener {
 
     private void removeRuntime(UUID ownerUuid, UUID entityUuid) {
         wakeScheduler.cancel(ownerUuid);
+        dirtyRuntimeOwners.remove(ownerUuid);
         activeEntities.remove(ownerUuid, entityUuid);
         runtimeRegistry.unregisterOwner(ownerUuid);
         registeredRuntimeCompanions.remove(ownerUuid);
