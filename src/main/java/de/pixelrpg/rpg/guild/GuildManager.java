@@ -25,7 +25,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +42,8 @@ public final class GuildManager implements GuildAPI {
     private final Map<UUID, UUID> memberGuilds = new HashMap<>();
     private final Map<UUID, Invitation> invitations = new HashMap<>();
     private final ExecutorService persistenceExecutor;
-    private CompletableFuture<Void> persistenceChain = CompletableFuture.completedFuture(null);
+    private boolean saveWorkerScheduled;
+    private long stateRevision;
     private volatile boolean shuttingDown;
 
     public GuildManager(JavaPlugin plugin, PlayerProfileManager profiles) {
@@ -232,6 +232,31 @@ public final class GuildManager implements GuildAPI {
 
     private synchronized void save() {
         if (shuttingDown || persistenceExecutor.isShutdown()) return;
+        stateRevision++;
+        if (saveWorkerScheduled) return;
+        saveWorkerScheduled = true;
+        persistenceExecutor.execute(this::drainSaves);
+    }
+
+    private void drainSaves() {
+        while (true) {
+            YamlConfiguration snapshot;
+            long revision;
+            synchronized (this) {
+                revision = stateRevision;
+                snapshot = createSnapshot();
+            }
+            writeAtomically(snapshot);
+            synchronized (this) {
+                if (revision == stateRevision) {
+                    saveWorkerScheduled = false;
+                    return;
+                }
+            }
+        }
+    }
+
+    private YamlConfiguration createSnapshot() {
         YamlConfiguration snapshot = new YamlConfiguration();
         for (GuildData guild : guilds.values()) {
             String path = "guilds." + guild.id();
@@ -239,7 +264,7 @@ public final class GuildManager implements GuildAPI {
             snapshot.set(path + ".leader", guild.leaderId().toString());
             snapshot.set(path + ".members", guild.members().stream().map(UUID::toString).toList());
         }
-        persistenceChain = persistenceChain.handle((ignored, throwable) -> null).thenRunAsync(() -> writeAtomically(snapshot), persistenceExecutor);
+        return snapshot;
     }
 
     private void writeAtomically(YamlConfiguration snapshot) {
@@ -258,9 +283,11 @@ public final class GuildManager implements GuildAPI {
         }
     }
 
-    public synchronized void shutdown() {
-        if (shuttingDown) return;
-        shuttingDown = true;
+    public void shutdown() {
+        synchronized (this) {
+            if (shuttingDown) return;
+            shuttingDown = true;
+        }
         persistenceExecutor.shutdown();
         try {
             if (!persistenceExecutor.awaitTermination(10, TimeUnit.SECONDS)) persistenceExecutor.shutdownNow();
@@ -268,9 +295,12 @@ public final class GuildManager implements GuildAPI {
             persistenceExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }
-        guilds.clear();
-        memberGuilds.clear();
-        invitations.clear();
+        synchronized (this) {
+            saveWorkerScheduled = false;
+            guilds.clear();
+            memberGuilds.clear();
+            invitations.clear();
+        }
         Bukkit.getServicesManager().unregister(GuildAPI.class, this);
         if (instance == this) instance = null;
     }
