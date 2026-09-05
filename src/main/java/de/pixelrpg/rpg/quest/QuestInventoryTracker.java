@@ -20,7 +20,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -44,20 +46,20 @@ public final class QuestInventoryTracker implements Listener {
         PlayerProfile profile = profiles.getProfile(player.getUniqueId()).filter(PlayerProfile::isRegistered).orElse(null);
         if (profile == null) return;
 
-        Map<String, QuestProgress> collectQuests = new HashMap<>();
+        List<CollectObjective> collectQuests = new ArrayList<>();
         for (var entry : profile.getActiveQuests().entrySet()) {
             Quest quest = questManager.getRepository().getQuest(entry.getKey());
-            if (quest == null || quest.type() != QuestType.COLLECT) continue;
-            collectQuests.put(quest.targetKey(), entry.getValue());
+            if (quest != null && quest.type() == QuestType.COLLECT) {
+                collectQuests.add(new CollectObjective(quest, entry.getValue()));
+            }
         }
         if (collectQuests.isEmpty()) return;
 
-        Map<String, Integer> amounts = countTargets(player, collectQuests.keySet());
-        for (var entry : collectQuests.entrySet()) {
-            QuestProgress progress = entry.getValue();
-            Quest quest = questManager.getRepository().getQuest(progress.getQuestId());
-            if (quest == null || quest.type() != QuestType.COLLECT) continue;
-            int amount = Math.min(quest.requiredAmount(), amounts.getOrDefault(entry.getKey(), 0));
+        Map<String, Integer> amounts = countTargets(player, collectQuests);
+        for (CollectObjective objective : collectQuests) {
+            Quest quest = objective.quest();
+            QuestProgress progress = objective.progress();
+            int amount = Math.min(quest.requiredAmount(), amounts.getOrDefault(quest.targetKey(), 0));
             if (progress.getCurrentAmount() == amount) continue;
             progress.setCurrentAmount(amount);
             player.sendActionBar(QuestText.objectiveWithProgress(quest, progress));
@@ -136,10 +138,13 @@ public final class QuestInventoryTracker implements Listener {
         scheduleRefresh(event.getPlayer());
     }
 
-    private Map<String, Integer> countTargets(Player player, Iterable<String> targetKeys) {
+    private Map<String, Integer> countTargets(Player player, List<CollectObjective> objectives) {
         Map<String, Target> targets = new HashMap<>();
         Map<String, Integer> amounts = new HashMap<>();
-        for (String targetKey : targetKeys) targets.putIfAbsent(targetKey, Target.parse(targetKey));
+        for (CollectObjective objective : objectives) {
+            String targetKey = objective.quest().targetKey();
+            targets.putIfAbsent(targetKey, Target.parse(targetKey));
+        }
 
         for (ItemStack item : player.getInventory().getContents()) {
             if (item == null || item.isEmpty()) continue;
@@ -175,6 +180,8 @@ public final class QuestInventoryTracker implements Listener {
         }
         player.getInventory().setContents(contents);
     }
+
+    private record CollectObjective(Quest quest, QuestProgress progress) {}
 
     private record Target(Material material, String pixelRpgId) {
         static Target parse(String raw) {
