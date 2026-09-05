@@ -22,6 +22,7 @@ import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /** Event-driven companion runtime. Idle companions sleep; active combat/follow schedules only its next wake-up. */
@@ -180,19 +181,42 @@ public final class CompanionFollowTask implements Runnable, Listener {
     private void updateRuntimeState(Player owner, LivingEntity entity, CompanionDefinition definition) {
         int level = resolveRuntimeLevel(owner, definition, entity);
         String rarity = entity.getPersistentDataContainer().getOrDefault(RPGKeys.Companion.rarity(), PersistentDataType.STRING, definition.rarity().name());
-        int equipmentHash = equipmentHash(owner.getUniqueId(), definition.id());
+        CompanionEquipment equipment = companionService.getEquipment(owner.getUniqueId(), definition.id());
+        int equipmentHash = equipmentHash(equipment);
         AppliedState current = appliedStates.get(entity.getUniqueId());
         if (current != null && current.level() == level && current.rarity().equals(rarity) && current.equipmentHash() == equipmentHash) return;
 
         if (current == null) current = AppliedState.capture(entity);
         else current.restore(entity);
         AppliedState base = current;
-        companionService.applyEquipmentToEntity(owner.getUniqueId(), definition.id(), entity);
+        applyEquipmentToEntity(equipment, entity);
         CompanionInstance instance = new CompanionInstance(owner.getUniqueId(), definition.id(), level, 0L, true, true, CompanionEquipment.empty());
         CompanionStats stats = statsCalculator.calculate(definition, instance, entity);
         statsCalculator.apply(stats, entity);
         applyScale(entity, definition.visual().scale());
         appliedStates.put(entity.getUniqueId(), new AppliedState(level, rarity, equipmentHash, base.baseHealth(), base.baseDamage(), base.baseSpeed()));
+    }
+
+    private static void applyEquipmentToEntity(CompanionEquipment value, LivingEntity entity) {
+        var target = entity.getEquipment();
+        if (target == null) return;
+        target.setHelmet(value.helmet(), true);
+        target.setChestplate(value.chestplate(), true);
+        target.setLeggings(value.leggings(), true);
+        target.setBoots(value.boots(), true);
+        target.setItemInMainHand(value.mainHand(), true);
+        target.setItemInOffHand(value.offHand(), true);
+    }
+
+    private static int equipmentHash(CompanionEquipment equipment) {
+        int result = 1;
+        result = 31 * result + Objects.hashCode(equipment.helmet());
+        result = 31 * result + Objects.hashCode(equipment.chestplate());
+        result = 31 * result + Objects.hashCode(equipment.leggings());
+        result = 31 * result + Objects.hashCode(equipment.boots());
+        result = 31 * result + Objects.hashCode(equipment.mainHand());
+        result = 31 * result + Objects.hashCode(equipment.offHand());
+        return result;
     }
 
     private int resolveRuntimeLevel(Player owner, CompanionDefinition definition, LivingEntity entity) {
@@ -201,11 +225,6 @@ public final class CompanionFollowTask implements Runnable, Listener {
         int level = Math.max(1, Math.min(99, ownerLevel));
         entity.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, level);
         return level;
-    }
-
-    private int equipmentHash(UUID ownerUuid, String companionId) {
-        CompanionEquipment equipment = companionService.getEquipment(ownerUuid, companionId);
-        return java.util.Objects.hash(equipment.helmet(), equipment.chestplate(), equipment.leggings(), equipment.boots(), equipment.mainHand(), equipment.offHand());
     }
 
     private static void applyScale(LivingEntity entity, double scale) {
