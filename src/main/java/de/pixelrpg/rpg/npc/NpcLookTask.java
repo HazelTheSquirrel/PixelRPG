@@ -15,10 +15,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 /** Event-driven NPC look controller. NPCs are evaluated only when nearby players actually move. */
 public final class NpcLookTask implements Listener {
     private final Plugin plugin;
@@ -69,20 +65,17 @@ public final class NpcLookTask implements Listener {
 
     private void updateAround(Location center) {
         if (center == null || center.getWorld() == null) return;
-        Set<UUID> candidates = new HashSet<>();
         for (Entity entity : center.getNearbyEntities(radius, radius, radius)) {
             if (!(entity instanceof LivingEntity living)) continue;
             if (!living.getPersistentDataContainer().has(RPGKeys.Npc.npcId(), PersistentDataType.STRING)) continue;
             Location npcLocation = living.getLocation();
-            if (npcLocation.distanceSquared(center) <= radiusSquared) candidates.add(living.getUniqueId());
+            if (npcLocation.distanceSquared(center) > radiusSquared) continue;
+            updateNpc(living, npcLocation);
         }
-        for (UUID entityId : candidates) updateNpc(entityId);
     }
 
-    private void updateNpc(UUID entityId) {
-        Entity entity = plugin.getServer().getEntity(entityId);
-        if (!(entity instanceof LivingEntity living) || !living.isValid()) return;
-        Location npcLocation = living.getLocation();
+    private void updateNpc(LivingEntity living, Location npcLocation) {
+        if (!living.isValid()) return;
         Player nearest = null;
         double nearestDistanceSquared = radiusSquared;
         for (Player player : npcLocation.getNearbyPlayers(radius)) {
