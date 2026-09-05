@@ -21,25 +21,32 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
-/** Handles companion lifecycle and delegates all player-stat calculation to the central StatEngine. */
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+/** Handles companion lifecycle and central player-stat synchronization. */
 public final class CompanionExperienceListener implements Listener {
     private final CompanionService companionService;
     private final StatEngine statEngine;
     private final JavaPlugin plugin;
     private final BukkitTask passiveStatsTask;
+    private final Map<UUID, UUID> observedActiveEntities = new HashMap<>();
 
     public CompanionExperienceListener(CompanionService companionService) {
         this.companionService = companionService;
         this.plugin = JavaPlugin.getProvidingPlugin(CompanionExperienceListener.class);
         PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
         this.statEngine = pixelRPG.getStatEngine();
-        this.passiveStatsTask = Bukkit.getScheduler().runTaskTimer(plugin, this::refreshAllPlayers, 1L, 10L);
+        this.passiveStatsTask = Bukkit.getScheduler().runTaskTimer(plugin, this::refreshCompanionState, 5L, 5L);
     }
 
     // Restores the player's persisted active companion after the player entity is fully joined.
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         companionService.restoreActive(event.getPlayer());
+        UUID playerId = event.getPlayer().getUniqueId();
+        observedActiveEntities.put(playerId, companionService.getActiveEntity(playerId));
         refreshStats(event.getPlayer());
     }
 
@@ -84,14 +91,19 @@ public final class CompanionExperienceListener implements Listener {
     // Despawns the runtime entity on quit while clearing all central stat modifiers for the leaving player.
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        companionService.despawn(event.getPlayer().getUniqueId());
+        UUID playerId = event.getPlayer().getUniqueId();
+        observedActiveEntities.remove(playerId);
+        companionService.despawn(playerId);
         statEngine.clear(event.getPlayer());
     }
 
-    private void refreshAllPlayers() {
+    private void refreshCompanionState() {
         for (Player player : Bukkit.getOnlinePlayers()) {
+            UUID playerId = player.getUniqueId();
             ensureWolfTamed(player);
-            refreshStats(player);
+            UUID activeEntityId = companionService.getActiveEntity(playerId);
+            UUID previousEntityId = observedActiveEntities.put(playerId, activeEntityId);
+            if (!java.util.Objects.equals(previousEntityId, activeEntityId)) refreshStats(player);
         }
     }
 
@@ -100,9 +112,8 @@ public final class CompanionExperienceListener implements Listener {
     }
 
     private void ensureWolfTamed(Player owner) {
-        Entity entity = companionService.getActiveEntity(owner.getUniqueId()) == null
-                ? null
-                : Bukkit.getEntity(companionService.getActiveEntity(owner.getUniqueId()));
+        UUID activeEntityId = companionService.getActiveEntity(owner.getUniqueId());
+        Entity entity = activeEntityId == null ? null : Bukkit.getEntity(activeEntityId);
         if (!(entity instanceof Wolf wolf) || !isCompanion(wolf)) return;
         String companionId = wolf.getPersistentDataContainer().get(RPGKeys.Companion.id(), PersistentDataType.STRING);
         if (!"uncommon-wolf".equalsIgnoreCase(companionId)) return;
