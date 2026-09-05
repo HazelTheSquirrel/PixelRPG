@@ -92,18 +92,26 @@ public final class MobLevelScalingListener implements Listener {
         gearMultiplierCache.remove(playerUuid);
         Set<UUID> affectedMobs = mobsByParticipant.get(playerUuid);
         if (affectedMobs == null) return;
-        for (UUID mobUuid : Set.copyOf(affectedMobs)) {
+        Set<UUID> staleMobs = null;
+        for (UUID mobUuid : affectedMobs) {
             Map<UUID, Long> participants = activeParticipants.get(mobUuid);
             if (participants == null || !participants.containsKey(playerUuid)) continue;
             var entity = Bukkit.getEntity(mobUuid);
             if (!(entity instanceof Monster monster) || !monster.isValid() || monster.isDead()) {
-                removeMob(mobUuid, participants);
+                if (staleMobs == null) staleMobs = ConcurrentHashMap.newKeySet();
+                staleMobs.add(mobUuid);
                 continue;
             }
             participants.put(playerUuid, System.currentTimeMillis());
             scheduleExpiry(mobUuid, playerUuid);
             scalingCache.remove(mobUuid);
             applyScaling(monster);
+        }
+        if (staleMobs != null) {
+            for (UUID mobUuid : staleMobs) {
+                Map<UUID, Long> participants = activeParticipants.get(mobUuid);
+                if (participants != null && participants.containsKey(playerUuid)) removeMob(mobUuid, participants);
+            }
         }
     }
 
@@ -154,13 +162,23 @@ public final class MobLevelScalingListener implements Listener {
         gearMultiplierCache.remove(playerUuid);
         Set<UUID> affectedMobs = mobsByParticipant.get(playerUuid);
         if (affectedMobs == null) return;
-        for (UUID mobUuid : Set.copyOf(affectedMobs)) {
+        Set<UUID> staleMobs = null;
+        for (UUID mobUuid : affectedMobs) {
             Map<UUID, Long> participants = activeParticipants.get(mobUuid);
             if (participants == null || !participants.containsKey(playerUuid)) continue;
             var entity = Bukkit.getEntity(mobUuid);
             if (entity instanceof Monster monster && monster.isValid() && !monster.isDead()) {
                 scalingCache.remove(mobUuid);
                 applyScaling(monster);
+            } else {
+                if (staleMobs == null) staleMobs = ConcurrentHashMap.newKeySet();
+                staleMobs.add(mobUuid);
+            }
+        }
+        if (staleMobs != null) {
+            for (UUID mobUuid : staleMobs) {
+                Map<UUID, Long> participants = activeParticipants.get(mobUuid);
+                if (participants != null && participants.containsKey(playerUuid)) removeMob(mobUuid, participants);
             }
         }
     }
