@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
+import de.pixelrpg.rpg.core.WakeScheduler;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -16,21 +17,25 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.UUID;
 
 /** Single inventory source for COLLECT quest progress and collect-item turn-in. */
 public final class QuestInventoryTracker implements Listener {
     private final QuestManager questManager;
     private final PlayerProfileManager profiles;
     private final ItemService itemService;
+    private final WakeScheduler<UUID> refreshScheduler;
 
     public QuestInventoryTracker(QuestManager questManager) {
         this.questManager = questManager;
         this.profiles = PixelRPGPlugin.getInstance().getPlayerProfileManager();
         this.itemService = PixelRPGPlugin.getInstance().getItemService();
+        this.refreshScheduler = new WakeScheduler<>(PixelRPGPlugin.getInstance());
     }
 
     /** Recalculates all active COLLECT quests from the player's real inventory. */
@@ -48,47 +53,76 @@ public final class QuestInventoryTracker implements Listener {
         }
     }
 
+    /** Schedules one coalesced inventory refresh for the player. */
+    public void scheduleRefresh(Player player) {
+        if (player == null) return;
+        UUID uuid = player.getUniqueId();
+        refreshScheduler.wake(uuid, () -> {
+            Player current = PixelRPGPlugin.getInstance().getServer().getPlayer(uuid);
+            if (current != null && current.isOnline()) refresh(current);
+        });
+    }
+
+    /** Cancels pending inventory refreshes when the tracker is stopped. */
+    public void shutdown() {
+        refreshScheduler.clear();
+    }
+
+    // Inventory clicks can trigger several related mutations; one post-mutation refresh is sufficient.
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getWhoClicked() instanceof Player player) refresh(player);
+        if (event.getWhoClicked() instanceof Player player) scheduleRefresh(player);
     }
 
+    // Inventory drags may update several slots in one interaction; coalesce them into one refresh.
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (event.getWhoClicked() instanceof Player player) refresh(player);
+        if (event.getWhoClicked() instanceof Player player) scheduleRefresh(player);
     }
 
+    // Item pickup changes the player's collect state after the event completes.
     @EventHandler
     public void onPickup(EntityPickupItemEvent event) {
-        if (event.getEntity() instanceof Player player) refresh(player);
+        if (event.getEntity() instanceof Player player) scheduleRefresh(player);
     }
 
+    // Dropping an item can invalidate one or more collect objectives.
     @EventHandler
     public void onDrop(PlayerDropItemEvent event) {
-        refresh(event.getPlayer());
+        scheduleRefresh(event.getPlayer());
     }
 
+    // Changing the held slot can alter inventory-derived quest state without requiring an immediate scan.
     @EventHandler
     public void onHeldItemChange(PlayerItemHeldEvent event) {
-        refresh(event.getPlayer());
+        scheduleRefresh(event.getPlayer());
     }
 
+    // Consuming an item may reduce collect progress and is refreshed after the mutation.
     @EventHandler
     public void onConsume(PlayerItemConsumeEvent event) {
-        refresh(event.getPlayer());
+        scheduleRefresh(event.getPlayer());
     }
 
+    // A joined player needs one initial collect-progress calculation after profile activation.
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        refresh(event.getPlayer());
+        scheduleRefresh(event.getPlayer());
     }
 
-    /** Consumes exactly the required COLLECT items after the quest has been successfully turned in. */
+    // Disconnecting a player removes queued inventory work immediately.
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        refreshScheduler.cancel(event.getPlayer().getUniqueId());
+    }
+
+    // Completing a collect quest consumes its required items and then refreshes the remaining objectives.
     @EventHandler
     public void onQuestCompleted(QuestCompletedEvent event) {
         Quest quest = questManager.getRepository().getQuest(event.getQuestId());
         if (quest == null || quest.type() != QuestType.COLLECT) return;
         remove(event.getPlayer(), quest.targetKey(), quest.requiredAmount());
+        scheduleRefresh(event.getPlayer());
     }
 
     private int count(Player player, String targetKey) {
