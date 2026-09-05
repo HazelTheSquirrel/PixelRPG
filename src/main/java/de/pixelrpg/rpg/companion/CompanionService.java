@@ -277,27 +277,24 @@ public final class CompanionService {
     private void load(UUID playerId) {
         if (companions.containsKey(playerId)) return;
         File file = new File(storageFolder, playerId + ".yml");
-        if (!file.exists()) {
-            companions.put(playerId, new ArrayList<>());
-            equipment.put(playerId, new ConcurrentHashMap<>());
-            return;
-        }
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
         List<Companion> loaded = new ArrayList<>();
-        for (String key : config.getKeys(false)) {
-            ConfigurationSection section = config.getConfigurationSection(key);
-            if (section == null) continue;
-            CompanionDefinition definition = registry.find(section.getString("id", key)).orElse(null);
-            if (definition == null) continue;
-            loaded.add(new Companion(
-                    definition.id(),
-                    section.getString("name", definition.displayName()),
-                    Math.max(1, section.getInt("level", 1)),
-                    Math.max(0L, section.getLong("experience", 0L)),
-                    definition.rarity(),
-                    definition.visual().entityType(),
-                    section.getBoolean("active", false)
-            ));
+        if (file.exists()) {
+            YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+            for (String key : config.getKeys(false)) {
+                ConfigurationSection section = config.getConfigurationSection(key);
+                if (section == null) continue;
+                CompanionDefinition definition = registry.find(section.getString("id", key)).orElse(null);
+                if (definition == null) continue;
+                loaded.add(new Companion(
+                        definition.id(),
+                        section.getString("name", definition.displayName()),
+                        Math.max(1, section.getInt("level", 1)),
+                        Math.max(0L, section.getLong("experience", 0L)),
+                        definition.rarity(),
+                        definition.visual().entityType(),
+                        section.getBoolean("active", false)
+                ));
+            }
         }
         companions.put(playerId, loaded);
         equipment.put(playerId, new ConcurrentHashMap<>(equipmentStore.loadPlayer(playerId)));
