@@ -290,4 +290,9 @@ public final class BossManager {
         Location location = bossEntity.getLocation();
         return new ArrayList<>(location.getNearbyEntities(WORLD_BOSS_CLEANUP_RADIUS, WORLD_BOSS_CLEANUP_RADIUS, WORLD_BOSS_CLEANUP_RADIUS));
     }
+
+    public boolean hasActiveBossOfType(String bossId) { return activeBosses.values().stream().anyMatch(active -> active.getDefinition().getId().equals(bossId)); }
+    public int getActiveBossCount() { return activeBosses.size(); }
+    public void shutdownAll() { for (ActiveBoss activeBoss : activeBosses.values()) cleanup(activeBoss); }
+    public void shutdown() { shutdownAll(); }
 }
