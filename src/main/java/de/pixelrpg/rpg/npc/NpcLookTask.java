@@ -96,11 +96,4 @@ public final class NpcLookTask implements Listener {
         }
         if (nearest != null) living.lookAt(nearest.getEyeLocation(), LookAnchor.EYES);
     }
-
-    private boolean sameBlock(Location first, Location second) {
-        return first.getWorld() == second.getWorld()
-                && first.getBlockX() == second.getBlockX()
-                && first.getBlockY() == second.getBlockY()
-                && first.getBlockZ() == second.getBlockZ();
-    }
 }
