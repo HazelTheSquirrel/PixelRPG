@@ -6,6 +6,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -16,6 +17,7 @@ public final class ActiveBoss {
     private final BossBar bossBar;
     private final Set<UUID> viewers = new HashSet<>();
     private final Map<UUID, Double> damageContribution = new HashMap<>();
+    private final List<String> biomeAttackPatternIds;
     private int currentPhaseIndex = -1;
     private int ticksSinceLastAttack = 0;
     private int ticksSinceLastBarUpdate = Integer.MAX_VALUE;
@@ -26,12 +28,16 @@ public final class ActiveBoss {
         this.entityUuid = entityUuid;
         this.definition = definition;
         this.bossBar = bossBar;
+        this.biomeAttackPatternIds = definition.getAttackPatternIds().stream()
+                .filter(id -> !id.equalsIgnoreCase("SUMMON_ADDS"))
+                .toList();
     }
 
     public UUID getEntityUuid() { return entityUuid; }
     public BossDefinition getDefinition() { return definition; }
     public BossBar getBossBar() { return bossBar; }
     public Set<UUID> getViewers() { return viewers; }
+    public List<String> getBiomeAttackPatternIds() { return biomeAttackPatternIds; }
     public void recordDamage(UUID playerUuid, double damage) { if (damage > 0.0) damageContribution.merge(playerUuid, damage, Double::sum); }
     public Map<UUID, Double> getDamageContribution() { return Map.copyOf(damageContribution); }
     public int getCurrentPhaseIndex() { return currentPhaseIndex; }
