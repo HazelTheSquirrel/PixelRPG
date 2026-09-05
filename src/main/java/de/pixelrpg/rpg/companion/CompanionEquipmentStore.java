@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.companion;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 
@@ -9,6 +10,7 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,21 +40,19 @@ public final class CompanionEquipmentStore implements AutoCloseable {
         if (!folder.exists() && !folder.mkdirs()) logger.warning("Unable to create companion equipment storage folder: " + folder);
     }
 
-    public boolean hasEntry(UUID playerId, String companionId) {
-        return loadFile(playerId).contains("companions." + companionId + ".initialized");
-    }
-
-    public CompanionEquipment load(UUID playerId, String companionId) {
+    /** Loads all persisted equipment for one player in a single YAML read during companion state initialization. */
+    public Map<String, CompanionEquipment> loadPlayer(UUID playerId) {
         YamlConfiguration yaml = loadFile(playerId);
-        String path = "companions." + companionId;
-        return new CompanionEquipment(
-                get(yaml, path + ".helmet"),
-                get(yaml, path + ".chestplate"),
-                get(yaml, path + ".leggings"),
-                get(yaml, path + ".boots"),
-                get(yaml, path + ".main-hand"),
-                get(yaml, path + ".off-hand")
-        );
+        ConfigurationSection companions = yaml.getConfigurationSection("companions");
+        if (companions == null) return Map.of();
+
+        Map<String, CompanionEquipment> result = new HashMap<>();
+        for (String companionId : companions.getKeys(false)) {
+            ConfigurationSection section = companions.getConfigurationSection(companionId);
+            if (section == null || !section.getBoolean("initialized", false)) continue;
+            result.put(companionId, loadEquipment(section));
+        }
+        return result;
     }
 
     /** Queues the latest immutable snapshot and coalesces repeated writes for the same player. */
@@ -132,8 +132,19 @@ public final class CompanionEquipmentStore implements AutoCloseable {
         return new File(folder, playerId + ".yml");
     }
 
-    private static ItemStack get(YamlConfiguration yaml, String path) {
-        ItemStack item = yaml.getItemStack(path);
+    private static CompanionEquipment loadEquipment(ConfigurationSection section) {
+        return new CompanionEquipment(
+                get(section, "helmet"),
+                get(section, "chestplate"),
+                get(section, "leggings"),
+                get(section, "boots"),
+                get(section, "main-hand"),
+                get(section, "off-hand")
+        );
+    }
+
+    private static ItemStack get(ConfigurationSection section, String path) {
+        ItemStack item = section.getItemStack(path);
         return item == null || item.getType().isAir() ? null : item.clone();
     }
 
