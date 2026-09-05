@@ -34,6 +34,7 @@ import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -50,9 +51,6 @@ public final class ScoreboardService implements Listener {
     private final PlayerProfileManager profileManager;
     private final WakeScheduler<UUID> wakeScheduler;
     private final Map<UUID, PlayerScoreboardState> stateByPlayer = new ConcurrentHashMap<>();
-    private final Map<UUID, Guild> guildCache = new ConcurrentHashMap<>();
-    private long guildStateVersion;
-    private long cachedGuildStateVersion = Long.MIN_VALUE;
     private final java.util.function.Consumer<UUID> profileChangeListener = this::markDirty;
 
     private static final class PlayerScoreboardState {
@@ -61,8 +59,9 @@ public final class ScoreboardService implements Listener {
         final Team[] teams = new Team[MAX_LINES];
         List<Component> lastLines = List.of();
         final boolean[] activeLine = new boolean[MAX_LINES];
-        final Map<UUID, String> guildTeamByPlayer = new ConcurrentHashMap<>();
-        long appliedGuildStateVersion = Long.MIN_VALUE;
+        final Map<UUID, String> guildTeamByPlayer = new HashMap<>();
+        final Map<UUID, String> guildNameByPlayer = new HashMap<>();
+        boolean guildInitialized;
 
         PlayerScoreboardState(Scoreboard board, Objective objective) {
             this.board = board;
@@ -83,14 +82,18 @@ public final class ScoreboardService implements Listener {
         wakeScheduler.wake(playerId, () -> refreshPlayer(playerId));
     }
 
+    /** Updates one guild member on every existing viewer board without rebuilding unrelated guild entries. */
+    public void markGuildEntryDirty(UUID changedPlayerId) {
+        if (changedPlayerId == null) return;
+        for (PlayerScoreboardState state : stateByPlayer.values()) updateGuildEntry(state, changedPlayerId);
+    }
+
     /** Marks all currently online players once after a global relationship change. */
     public void markAllDirty() {
-        invalidateGuildCache();
         for (Player player : Bukkit.getOnlinePlayers()) markDirty(player.getUniqueId());
     }
 
     public void startTask() {
-        invalidateGuildCache();
         for (Player player : Bukkit.getOnlinePlayers()) markDirty(player.getUniqueId());
     }
 
@@ -111,22 +114,22 @@ public final class ScoreboardService implements Listener {
         wakeScheduler.clear();
         for (Player player : Bukkit.getOnlinePlayers()) clearScoreboard(player);
         stateByPlayer.clear();
-        guildCache.clear();
     }
 
     // We render the initial sidebar only when the player enters the server.
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        invalidateGuildCache();
         markDirty(event.getPlayer().getUniqueId());
+        markGuildEntryDirty(event.getPlayer().getUniqueId());
     }
 
     // We remove all per-player reactive state when the player leaves.
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        wakeScheduler.cancel(event.getPlayer().getUniqueId());
-        stateByPlayer.remove(event.getPlayer().getUniqueId());
-        invalidateGuildCache();
+        UUID uuid = event.getPlayer().getUniqueId();
+        wakeScheduler.cancel(uuid);
+        stateByPlayer.remove(uuid);
+        markGuildEntryDirty(uuid);
     }
 
     // A world change can alter every contextual sidebar value, so the player is woken once.
@@ -144,15 +147,15 @@ public final class ScoreboardService implements Listener {
     // Registration changes determine whether the sidebar is visible and which values are valid.
     @EventHandler
     public void onRegistration(PlayerRegistrationEvent event) {
-        invalidateGuildCache();
         markDirty(event.getPlayer().getUniqueId());
+        markGuildEntryDirty(event.getPlayer().getUniqueId());
     }
 
     // Unregistration removes the RPG sidebar state from the player.
     @EventHandler
     public void onUnregistration(PlayerUnregistrationEvent event) {
-        invalidateGuildCache();
         markDirty(event.getPlayer().getUniqueId());
+        markGuildEntryDirty(event.getPlayer().getUniqueId());
     }
 
     // Quest completion changes the player-facing quest state and therefore invalidates the sidebar.
@@ -211,58 +214,47 @@ public final class ScoreboardService implements Listener {
                 }
             }
         }
-        // Team state is its own dirty domain and must still update when the sidebar text is unchanged.
-        applyGuildPrefixes(state);
+        if (!state.guildInitialized) initializeGuildEntries(state);
     }
 
-    private void applyGuildPrefixes(PlayerScoreboardState state) {
-        if (state.appliedGuildStateVersion == guildStateVersion) return;
-        GuildManager guildManager;
+    private void initializeGuildEntries(PlayerScoreboardState state) {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) updateGuildEntry(state, onlinePlayer.getUniqueId());
+        state.guildInitialized = true;
+    }
+
+    private void updateGuildEntry(PlayerScoreboardState state, UUID playerId) {
+        Player player = Bukkit.getPlayer(playerId);
+        String playerName = player != null ? player.getName() : state.guildNameByPlayer.get(playerId);
+        if (playerName == null) return;
+        Guild guild;
         try {
-            guildManager = GuildManager.getInstance();
+            guild = GuildManager.getInstance().getGuild(playerId).orElse(null);
         } catch (IllegalStateException ignored) {
+            guild = null;
+        }
+
+        String previousTeamName = state.guildTeamByPlayer.get(playerId);
+        if (guild == null) {
+            if (previousTeamName != null) {
+                Team previous = state.board.getTeam(previousTeamName);
+                if (previous != null) previous.removeEntry(playerName);
+                state.guildTeamByPlayer.remove(playerId);
+            }
+            state.guildNameByPlayer.remove(playerId);
             return;
         }
 
-        if (cachedGuildStateVersion != guildStateVersion) {
-            guildCache.clear();
-            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                Guild guild = guildManager.getGuild(onlinePlayer.getUniqueId()).orElse(null);
-                if (guild != null) guildCache.put(onlinePlayer.getUniqueId(), guild);
-            }
-            cachedGuildStateVersion = guildStateVersion;
+        String teamName = guildTeamName(guild.id());
+        Team team = state.board.getTeam(teamName);
+        if (team == null) team = state.board.registerNewTeam(teamName);
+        team.prefix(Component.text("[" + guild.name() + "] ", NamedTextColor.GOLD));
+        if (!team.hasEntry(playerName)) team.addEntry(playerName);
+        if (previousTeamName != null && !previousTeamName.equals(teamName)) {
+            Team previous = state.board.getTeam(previousTeamName);
+            if (previous != null) previous.removeEntry(playerName);
         }
-
-        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            UUID playerId = onlinePlayer.getUniqueId();
-            Guild guild = guildCache.get(playerId);
-            String previousTeamName = state.guildTeamByPlayer.get(playerId);
-            if (guild == null) {
-                if (previousTeamName != null) {
-                    Team previous = state.board.getTeam(previousTeamName);
-                    if (previous != null) previous.removeEntry(onlinePlayer.getName());
-                    state.guildTeamByPlayer.remove(playerId);
-                }
-                continue;
-            }
-            String teamName = guildTeamName(guild.id());
-            Team team = state.board.getTeam(teamName);
-            if (team == null) team = state.board.registerNewTeam(teamName);
-            team.prefix(Component.text("[" + guild.name() + "] ", NamedTextColor.GOLD));
-            team.addEntry(onlinePlayer.getName());
-            if (previousTeamName != null && !previousTeamName.equals(teamName)) {
-                Team previous = state.board.getTeam(previousTeamName);
-                if (previous != null) previous.removeEntry(onlinePlayer.getName());
-            }
-            state.guildTeamByPlayer.put(playerId, teamName);
-        }
-        state.appliedGuildStateVersion = guildStateVersion;
-    }
-
-    private void invalidateGuildCache() {
-        guildStateVersion++;
-        guildCache.clear();
-        cachedGuildStateVersion = Long.MIN_VALUE;
+        state.guildTeamByPlayer.put(playerId, teamName);
+        state.guildNameByPlayer.put(playerId, playerName);
     }
 
     private String guildTeamName(UUID guildId) {
