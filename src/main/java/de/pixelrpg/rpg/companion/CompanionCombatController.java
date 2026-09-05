@@ -3,6 +3,8 @@ package de.pixelrpg.rpg.companion;
 import de.pixelrpg.rpg.core.RPGKeys;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mannequin;
@@ -113,9 +115,17 @@ public final class CompanionCombatController {
         int level = Math.max(1, attacker.getPersistentDataContainer()
                 .getOrDefault(RPGKeys.Companion.level(), PersistentDataType.INTEGER, 1));
         UUID entityId = attacker.getUniqueId();
+        double baseHealth = attributeBase(attacker, Attribute.MAX_HEALTH, 20.0D);
+        double baseDamage = attributeBase(attacker, Attribute.ATTACK_DAMAGE, 1.0D);
+        double baseSpeed = attributeBase(attacker, Attribute.MOVEMENT_SPEED, 0.3D);
         CachedMannequinStats cached = mannequinStatsCache.get(entityId);
         CompanionStats stats;
-        if (cached != null && cached.level() == level && cached.definitionId().equals(definition.id())) {
+        if (cached != null
+                && cached.level() == level
+                && cached.definitionId().equals(definition.id())
+                && Double.compare(cached.baseHealth(), baseHealth) == 0
+                && Double.compare(cached.baseDamage(), baseDamage) == 0
+                && Double.compare(cached.baseSpeed(), baseSpeed) == 0) {
             stats = cached.stats();
         } else {
             CompanionInstance instance = new CompanionInstance(
@@ -127,7 +137,7 @@ public final class CompanionCombatController {
                     true,
                     CompanionEquipment.empty());
             stats = statsCalculator.calculate(definition, instance, attacker);
-            mannequinStatsCache.put(entityId, new CachedMannequinStats(definition.id(), level, stats));
+            mannequinStatsCache.put(entityId, new CachedMannequinStats(definition.id(), level, baseHealth, baseDamage, baseSpeed, stats));
         }
 
         double damage = Math.max(0.0D, stats.damage());
@@ -143,14 +153,19 @@ public final class CompanionCombatController {
 
         double lifesteal = Math.clamp(stats.lifesteal(), 0.0D, 100.0D);
         if (lifesteal > 0.0D && attacker.getHealth() > 0.0D) {
-            attacker.setHealth(Math.min(attacker.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue(),
-                    attacker.getHealth() + finalDamage * (lifesteal / 100.0D)));
+            AttributeInstance maxHealth = attacker.getAttribute(Attribute.MAX_HEALTH);
+            if (maxHealth != null) attacker.setHealth(Math.min(maxHealth.getValue(), attacker.getHealth() + finalDamage * (lifesteal / 100.0D)));
         }
 
         if (critical) {
             attacker.getWorld().spawnParticle(Particle.CRIT, attacker.getLocation().add(0.0D, 1.0D, 0.0D), 12, 0.35D, 0.35D, 0.35D, 0.05D);
             attacker.getWorld().playSound(attacker.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 0.45F, 1.15F);
         }
+    }
+
+    private static double attributeBase(LivingEntity entity, Attribute attribute, double fallback) {
+        AttributeInstance instance = entity.getAttribute(attribute);
+        return instance == null ? fallback : instance.getBaseValue();
     }
 
     private static void moveTowards(LivingEntity entity, Entity target, double speed) {
@@ -174,6 +189,7 @@ public final class CompanionCombatController {
         entity.setRotation((float) Math.toDegrees(Math.atan2(-direction.getX(), direction.getZ())), entity.getPitch());
     }
 
-    private record CachedMannequinStats(String definitionId, int level, CompanionStats stats) {
+    private record CachedMannequinStats(String definitionId, int level, double baseHealth, double baseDamage,
+                                        double baseSpeed, CompanionStats stats) {
     }
 }
