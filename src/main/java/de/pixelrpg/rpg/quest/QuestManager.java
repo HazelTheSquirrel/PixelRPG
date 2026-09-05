@@ -8,18 +8,13 @@ import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Biome;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.EntityType;
-import org.bukkit.generator.structure.Structure;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -52,11 +47,6 @@ public final class QuestManager {
         this.partyShareRange = partyShareRange;
         this.itemService = PixelRPGPlugin.getInstance().getItemService();
         if (this.itemService == null) throw new IllegalStateException("ItemService must be initialized before QuestManager.");
-    }
-
-    /** Retained as a compatibility entry point; timed quests now use one-shot expiry tasks instead of polling. */
-    public void startTimerCheckTask() {
-        // Intentionally empty: every timed quest owns exactly one wake-up at its expiry.
     }
 
     /** Schedules persisted timed quests after a player has joined and their profile is active. */
@@ -284,7 +274,7 @@ public final class QuestManager {
         for (var entry : profile.getActiveQuests().entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             if (quest == null || quest.type() != QuestType.REACH_LOCATION || entry.getValue().getCurrentAmount() >= quest.requiredAmount()) continue;
-            Location target = resolveNavigationLocation(player.getLocation(), quest);
+            Location target = quest.reachLocation();
             if (target == null || !player.getWorld().equals(target.getWorld())) continue;
             if (player.getLocation().distanceSquared(target) <= 64.0D) {
                 entry.getValue().setCurrentAmount(quest.requiredAmount());
@@ -324,29 +314,6 @@ public final class QuestManager {
     }
 
     public int getGlobalEventProgress(String questId) { return globalEventState.getProgress(questId); }
-
-    private Location resolveNavigationLocation(Location origin, Quest quest) {
-        if (quest.targetStructureKey() != null && !quest.targetStructureKey().isBlank()) {
-            var structureRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.STRUCTURE);
-            var key = org.bukkit.NamespacedKey.fromString(quest.targetStructureKey());
-            if (key != null) {
-                Structure structure = structureRegistry.get(key);
-                if (structure != null) {
-                    var result = origin.getWorld().locateNearestStructure(origin, structure, quest.navigationRadius(), false);
-                    if (result != null) return result.getLocation();
-                }
-            }
-        }
-        if (!quest.targetBiomeKeys().isEmpty()) {
-            var biomeRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME);
-            Biome[] biomes = quest.targetBiomeKeys().stream().map(org.bukkit.NamespacedKey::fromString).filter(java.util.Objects::nonNull).map(biomeRegistry::get).filter(java.util.Objects::nonNull).toArray(Biome[]::new);
-            if (biomes.length > 0) {
-                var result = origin.getWorld().locateNearestBiome(origin, quest.navigationRadius(), biomes);
-                if (result != null) return result.getLocation();
-            }
-        }
-        return quest.reachLocation();
-    }
 
     private void incrementProgress(PlayerProfile profile, QuestProgress progress, Quest quest) {
         if (progress.getCurrentAmount() >= quest.requiredAmount()) return;
