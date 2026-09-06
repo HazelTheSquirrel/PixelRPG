@@ -22,6 +22,7 @@ public final class BankerBehavior implements NpcBehavior {
     private final DialogueEngine dialogueEngine;
     private final BankStorageService bankStorage;
     private final TradeDepotManager tradeDepot;
+    private final GuildBankService guildBankService;
     private final GuildBankAccessDialog guildBankAccess;
 
     public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
@@ -31,7 +32,7 @@ public final class BankerBehavior implements NpcBehavior {
         PixelRPGPlugin.getInstance().getServer().getPluginManager().registerEvents(new BankInventoryListener(bankStorage), PixelRPGPlugin.getInstance());
         this.tradeDepot = new TradeDepotManager(PixelRPGPlugin.getInstance(), profileManager, bankStorage, dialogueEngine);
         GuildManager guildManager = GuildManager.getInstance(PixelRPGPlugin.getInstance(), profileManager);
-        GuildBankService guildBankService = new GuildBankService(PixelRPGPlugin.getInstance(), guildManager);
+        this.guildBankService = new GuildBankService(PixelRPGPlugin.getInstance(), guildManager);
         BankDialog personalBank = new BankDialog(profileManager, dialogueEngine, bankStorage, tradeDepot);
         this.guildBankAccess = new GuildBankAccessDialog(guildManager, guildBankService, dialogueEngine, personalBank);
     }
@@ -47,5 +48,8 @@ public final class BankerBehavior implements NpcBehavior {
         guildBankAccess.open(player);
     }
 
-    public void shutdown() { tradeDepot.shutdown(); }
+    public void shutdown() {
+        guildBankService.shutdown();
+        tradeDepot.shutdown();
+    }
 }
