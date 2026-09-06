@@ -89,6 +89,11 @@ public final class BankStorageService {
         return false;
     }
 
+    /** Flushes pending personal-bank and trade-goods writes during plugin shutdown. */
+    public void shutdown() {
+        fileWriter.shutdown();
+    }
+
     private ItemStack[] loadFrom(YamlConfiguration source, UUID playerId, int size) {
         ItemStack[] contents = new ItemStack[size];
         for (int slot = 0; slot < contents.length; slot++) {
