@@ -8,6 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -23,6 +24,8 @@ public final class BankStorageService {
     private final YamlConfiguration bankData;
     private final YamlConfiguration tradeGoodsData;
     private final AsyncFileWriter fileWriter;
+    private final Map<UUID, ItemStack[]> bankCache = new HashMap<>();
+    private final Map<UUID, ItemStack[]> tradeGoodsCache = new HashMap<>();
 
     public BankStorageService(JavaPlugin plugin) {
         if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs()) plugin.getLogger().warning("Could not create plugin data folder for bank storage.");
@@ -34,13 +37,31 @@ public final class BankStorageService {
         migrateLegacyTradeGoods(plugin);
     }
 
-    public synchronized ItemStack[] load(UUID playerId) { return loadFrom(bankData, playerId, PAGE_SIZE * BANK_PAGE_COUNT); }
+    public synchronized ItemStack[] load(UUID playerId) {
+        ItemStack[] cached = bankCache.get(playerId);
+        if (cached == null) {
+            cached = loadFrom(bankData, playerId, PAGE_SIZE * BANK_PAGE_COUNT);
+            bankCache.put(playerId, cached);
+        }
+        return copyContents(cached);
+    }
 
-    public synchronized void save(UUID playerId, ItemStack[] contents) { saveTo(bankData, bankFile, playerId, contents, PAGE_SIZE * BANK_PAGE_COUNT); }
+    public synchronized void save(UUID playerId, ItemStack[] contents) {
+        saveTo(bankData, bankFile, bankCache, playerId, contents, PAGE_SIZE * BANK_PAGE_COUNT);
+    }
 
-    public synchronized ItemStack[] loadTradeGoods(UUID playerId) { return loadFrom(tradeGoodsData, playerId, PAGE_SIZE); }
+    public synchronized ItemStack[] loadTradeGoods(UUID playerId) {
+        ItemStack[] cached = tradeGoodsCache.get(playerId);
+        if (cached == null) {
+            cached = loadFrom(tradeGoodsData, playerId, PAGE_SIZE);
+            tradeGoodsCache.put(playerId, cached);
+        }
+        return copyContents(cached);
+    }
 
-    public synchronized void saveTradeGoods(UUID playerId, ItemStack[] contents) { saveTo(tradeGoodsData, tradeGoodsFile, playerId, contents, PAGE_SIZE); }
+    public synchronized void saveTradeGoods(UUID playerId, ItemStack[] contents) {
+        saveTo(tradeGoodsData, tradeGoodsFile, tradeGoodsCache, playerId, contents, PAGE_SIZE);
+    }
 
     /** Places an expired listing into the dedicated Handelsfach without touching the personal bank. */
     public synchronized boolean addTradeGoods(UUID playerId, ItemStack item) {
@@ -81,15 +102,26 @@ public final class BankStorageService {
         return contents;
     }
 
-    private void saveTo(YamlConfiguration target, File file, UUID playerId, ItemStack[] contents, int size) {
+    private void saveTo(YamlConfiguration target, File file, Map<UUID, ItemStack[]> cache, UUID playerId, ItemStack[] contents, int size) {
+        ItemStack[] snapshot = copyContents(contents);
+        cache.put(playerId, snapshot);
         String prefix = "players." + playerId;
         target.set(prefix, null);
-        for (int slot = 0; slot < Math.min(contents.length, size); slot++) {
-            ItemStack item = contents[slot];
+        for (int slot = 0; slot < Math.min(snapshot.length, size); slot++) {
+            ItemStack item = snapshot[slot];
             if (item == null || item.isEmpty()) continue;
             target.createSection(path(playerId, slot), item.serialize());
         }
         fileWriter.submit(file.toPath(), target.saveToString());
+    }
+
+    private ItemStack[] copyContents(ItemStack[] contents) {
+        ItemStack[] copy = new ItemStack[contents.length];
+        for (int slot = 0; slot < contents.length; slot++) {
+            ItemStack item = contents[slot];
+            copy[slot] = item == null ? null : item.clone();
+        }
+        return copy;
     }
 
     private void migrateLegacyTradeGoods(JavaPlugin plugin) {
