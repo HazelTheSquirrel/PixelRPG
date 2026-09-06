@@ -4,6 +4,7 @@ import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Mannequin;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.net.InetAddress;
@@ -145,13 +146,10 @@ public final class ExternalSkinService {
                     return;
                 }
                 mannequin.setProfile(ResolvableProfile.resolvableProfile().addProperty(property).build());
-                Bukkit.getOnlinePlayers().forEach(player -> {
-                    if (player.getWorld().equals(mannequin.getWorld())
-                            && player.getLocation().distanceSquared(mannequin.getLocation()) <= 4096.0D) {
-                        player.hideEntity(plugin, mannequin);
-                        player.showEntity(plugin, mannequin);
-                    }
-                });
+                for (Player player : mannequin.getNearbyPlayers(64.0D)) {
+                    player.hideEntity(plugin, mannequin);
+                    player.showEntity(plugin, mannequin);
+                }
                 result.complete(null);
             } catch (RuntimeException exception) {
                 result.completeExceptionally(exception);
