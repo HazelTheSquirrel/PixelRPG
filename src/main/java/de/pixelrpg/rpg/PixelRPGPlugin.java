@@ -117,6 +117,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private NpcManager npcManager;
     private NpcBehaviorRegistry npcBehaviorRegistry;
     private NpcLookTask npcLookTask;
+    private BankerBehavior bankerBehavior;
     private ShopManager shopManager;
     private ShopEditorGUI shopEditorGUI;
     private StoryManager storyManager;
@@ -225,7 +226,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new ShopBehavior(shopManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new TravelBehavior(npcManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogue, dialogueEngine, playerProfileManager));
-        npcBehaviorRegistry.register(new BankerBehavior(playerProfileManager, dialogueEngine));
+        bankerBehavior = new BankerBehavior(playerProfileManager, dialogueEngine);
+        npcBehaviorRegistry.register(bankerBehavior);
         npcBehaviorRegistry.register(new FillerBehavior(questManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_BLACKSMITH, Profession.BLACKSMITH, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_SCHOLAR, Profession.SCHOLAR, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
@@ -286,6 +288,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         lifecycle.register(() -> questPassiveCheckTask.stop());
         lifecycle.register(() -> regionEditor.shutdown());
         lifecycle.register(() -> regionSpawnService.stop());
+        lifecycle.register(() -> bankerBehavior.shutdown());
 
         RootCommand rootCommand = new RootCommand(this, itemService);
         rootCommand.register(new CompanionSubCommand(companionService));
@@ -328,23 +331,4 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public static PixelRPGPlugin getInstance() { return instance; }
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
     public StatEngine getStatEngine() { return statEngine; }
-    public ProfessionSystem getProfessionSystem() { return professionSystem; }
-    public ItemDisplayNameResolver getItemDisplayNameResolver() { return itemDisplayNameResolver; }
-    public ItemEconomyConfig getItemEconomyConfig() { return itemEconomyConfig; }
-    public ItemService getItemService() { return itemService; }
-    public EquipmentService getEquipmentService() { return equipmentService; }
-    public NpcManager getNpcManager() { return npcManager; }
-    public ShopManager getShopManager() { return shopManager; }
-    public StoryManager getStoryManager() { return storyManager; }
-    public PartyManager getPartyManager() { return partyManager; }
-    public QuestRepository getQuestRepository() { return questRepository; }
-    public QuestManager getQuestManager() { return questManager; }
-    public GlobalEventState getGlobalEventState() { return globalEventState; }
-    public BossRepository getBossRepository() { return bossRepository; }
-    public BossManager getBossManager() { return bossManager; }
-    public StatisticsService getStatisticsService() { return statisticsService; }
-    public ScoreboardService getScoreboardService() { return scoreboardService; }
-    public CompanionService getCompanionService() { return companionService; }
-    public RegionManager getRegionManager() { return regionManager; }
-    public RegionEditor getRegionEditor() { return regionEditor; }
 }
