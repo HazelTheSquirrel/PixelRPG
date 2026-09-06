@@ -1,11 +1,11 @@
 package de.pixelrpg.rpg.guild;
 
+import de.pixelrpg.rpg.core.AsyncFileWriter;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -13,14 +13,17 @@ import java.util.UUID;
 /** Persists one shared 54-slot item storage per guild. */
 public final class GuildBankStorageService {
     public static final int SIZE = 54;
-    private final File file;
+    private final AsyncFileWriter fileWriter;
+    private final java.nio.file.Path filePath;
     private final YamlConfiguration data;
     private final Map<UUID, ItemStack[]> cache = new HashMap<>();
 
     public GuildBankStorageService(JavaPlugin plugin) {
         if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
-        file = new File(plugin.getDataFolder(), "guild-bank.yml");
+        File file = new File(plugin.getDataFolder(), "guild-bank.yml");
+        filePath = file.toPath();
         data = YamlConfiguration.loadConfiguration(file);
+        fileWriter = new AsyncFileWriter(plugin, "PixelRPG-GuildBank");
     }
 
     /** Returns a defensive snapshot while reusing the parsed guild-bank state. */
@@ -33,7 +36,7 @@ public final class GuildBankStorageService {
         return copyContents(cached);
     }
 
-    /** Updates the in-memory guild-bank state and persists the complete storage snapshot. */
+    /** Updates the in-memory guild-bank state and queues the latest complete storage snapshot for persistence. */
     public synchronized void save(UUID guildId, ItemStack[] contents) {
         ItemStack[] snapshot = copyContents(contents);
         cache.put(guildId, snapshot);
@@ -42,8 +45,12 @@ public final class GuildBankStorageService {
             ItemStack item = snapshot[slot];
             if (item != null && !item.isEmpty()) data.createSection(path(guildId, slot), item.serialize());
         }
-        try { data.save(file); }
-        catch (IOException exception) { throw new IllegalStateException("Could not save guild bank", exception); }
+        fileWriter.submit(filePath, data.saveToString());
+    }
+
+    /** Flushes pending guild-bank snapshots and releases the asynchronous writer. */
+    public void shutdown() {
+        fileWriter.shutdown();
     }
 
     private ItemStack[] loadFromData(UUID guildId) {
