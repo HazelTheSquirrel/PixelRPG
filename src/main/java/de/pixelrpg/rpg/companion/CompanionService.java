@@ -175,7 +175,15 @@ public final class CompanionService {
         }
     }
 
-    public Companion getActive(UUID playerId) { return getCompanions(playerId).stream().filter(Companion::active).findFirst().orElse(null); }
+    /** Returns the active companion directly from the cached player state without creating a defensive list snapshot. */
+    public Companion getActive(UUID playerId) {
+        load(playerId);
+        for (Companion companion : companions.getOrDefault(playerId, List.of())) {
+            if (companion.active()) return companion;
+        }
+        return null;
+    }
+
     public UUID getActiveEntity(UUID playerId) { return activeEntities.get(playerId); }
     public UUID getOwnerOfEntity(UUID entityId) { for (Map.Entry<UUID, UUID> entry : activeEntities.entrySet()) if (entry.getValue().equals(entityId)) return entry.getKey(); return null; }
     public void openEquipment(Player player, Companion companion) { equipmentListener.open(player, companion); }
