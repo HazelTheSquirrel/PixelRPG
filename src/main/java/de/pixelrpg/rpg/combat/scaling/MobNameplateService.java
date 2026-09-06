@@ -29,6 +29,10 @@ public final class MobNameplateService {
         private final Map<UUID, TextDisplay> displays = new ConcurrentHashMap<>();
         private BukkitTask task;
         private long expiresAtNanos;
+        private double lastHealth = Double.NaN;
+        private double lastMaxHealth = Double.NaN;
+        private int lastLevel = Integer.MIN_VALUE;
+        private Component cachedInfo;
     }
 
     public MobNameplateService(PixelRPGPlugin plugin, MobScalingConfig scalingConfig) {
@@ -48,7 +52,7 @@ public final class MobNameplateService {
 
         TextDisplay display = tracked.displays.computeIfAbsent(viewerUuid, ignored -> createDisplay(mob));
         viewer.showEntity(plugin, display);
-        updateDisplay(mob, display);
+        updateDisplay(mob, tracked, display);
 
         if (tracked.task == null) {
             tracked.task = Bukkit.getScheduler().runTaskTimer(plugin,
@@ -89,24 +93,28 @@ public final class MobNameplateService {
                 continue;
             }
             viewer.showEntity(plugin, display);
-            updateDisplay(mob, display);
+            updateDisplay(mob, tracked, display);
         }
     }
 
-    private void updateDisplay(LivingEntity mob, TextDisplay display) {
-        display.text(buildInfo(mob));
-    }
-
-    private Component buildInfo(LivingEntity mob) {
+    private void updateDisplay(LivingEntity mob, TrackedMob tracked, TextDisplay display) {
         Integer levelValue = mob.getPersistentDataContainer().get(RPGKeys.Combat.mobLevel(), PersistentDataType.INTEGER);
         int level = levelValue != null
                 ? Math.max(Level.MIN_LEVEL, Math.min(Level.MAX_NORMAL_LEVEL, levelValue))
                 : Level.MIN_LEVEL;
-
         double currentHealth = Math.max(0.0D, mob.getHealth());
         var maxHealthAttribute = mob.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
         double maxHealth = maxHealthAttribute != null ? maxHealthAttribute.getValue() : currentHealth;
+        if (tracked.cachedInfo == null || tracked.lastLevel != level || Double.compare(tracked.lastHealth, currentHealth) != 0 || Double.compare(tracked.lastMaxHealth, maxHealth) != 0) {
+            tracked.lastLevel = level;
+            tracked.lastHealth = currentHealth;
+            tracked.lastMaxHealth = maxHealth;
+            tracked.cachedInfo = buildInfo(mob, level, currentHealth, maxHealth);
+        }
+        display.text(tracked.cachedInfo);
+    }
 
+    private Component buildInfo(LivingEntity mob, int level, double currentHealth, double maxHealth) {
         String rawName = mob.getType().name().replace('_', ' ').toLowerCase(java.util.Locale.ROOT);
         String prettyName = Character.toUpperCase(rawName.charAt(0)) + rawName.substring(1);
 
