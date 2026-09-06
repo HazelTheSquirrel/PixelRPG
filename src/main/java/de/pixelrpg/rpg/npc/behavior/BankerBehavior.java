@@ -50,6 +50,7 @@ public final class BankerBehavior implements NpcBehavior {
 
     public void shutdown() {
         guildBankService.shutdown();
+        bankStorage.shutdown();
         tradeDepot.shutdown();
     }
 }
