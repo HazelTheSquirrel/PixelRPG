@@ -26,7 +26,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 /** Event-driven companion runtime. Idle companions sleep; active combat/follow schedules only its next wake-up. */
-public final class CompanionFollowTask implements Runnable, Listener {
+public final class CompanionFollowTask implements Listener {
     private static final double STEP_HEIGHT = 1.05D;
     private static final double JUMP_VELOCITY = 0.42D;
     private static final long ACTIVE_FOLLOW_WAKE_TICKS = 2L;
@@ -70,11 +70,6 @@ public final class CompanionFollowTask implements Runnable, Listener {
     public void wakeMovement(UUID ownerId) {
         if (ownerId == null) return;
         wakeScheduler.wake(ownerId, () -> runOwner(ownerId));
-    }
-
-    @Override
-    public void run() {
-        for (UUID ownerId : activeEntities.keySet()) runOwner(ownerId);
     }
 
     // Player movement wakes only that player's companion when a block boundary is crossed.
