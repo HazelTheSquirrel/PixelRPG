@@ -22,11 +22,11 @@
 
 ## 2. Current architecture observations
 
-The branch already contains the beginnings of the desired architecture. `core/WakeScheduler.java` exists as a keyed one-shot/coalescing scheduler, while `AsyncFileWriter.java` and `LifecycleCoordinator.java` centralize lifecycle/persistence concerns. fileciteturn544file0L2-L2
+The branch already contains the desired core primitives: `core/WakeScheduler.java` provides keyed one-shot/coalescing scheduling, while `AsyncFileWriter.java` and `LifecycleCoordinator.java` centralize asynchronous persistence and lifecycle concerns.
 
-The quest package is already split into event listeners, state/repository classes, navigation, and a passive-check task. In particular, `QuestMobKillListener`, `QuestNavigationLifecycleListener`, `QuestNavigationService`, and `QuestPassiveCheckTask` indicate a mixed event-driven + scheduled architecture that should be pushed further toward dependency-triggered invalidation. fileciteturn551file0L2-L2
+The quest package is split into event listeners, state/repository classes, navigation, and passive-check logic. The optimization work has already moved inventory/progress handling, navigation invalidation, and obsolete timer startup toward dependency-driven processing.
 
-The companion package contains separate combat, equipment, experience, and follow components. `CompanionFollowTask` is therefore a high-value candidate for converting repeatedly derived state into dirty-state updates while keeping the actual follow movement behavior unchanged. fileciteturn553file0L2-L2
+The companion package separates combat, equipment, experience, follow, and runtime state. Derived combat/equipment state is now cached or loaded once where the existing behavior permits it, while follow timing remains unchanged.
 
 ## 3. Priority roadmap
 
@@ -126,13 +126,11 @@ This prevents five separate events from causing five independent refreshes durin
 
 ### 4.4 WakeScheduler
 
-`WakeScheduler` should become the standard mechanism for keyed deferred work where a delayed wake-up is required. It should not be used to disguise polling. The correct pattern is **event -> mark dirty -> wake affected key** rather than **wake every key forever**.
+`WakeScheduler` is now the standard mechanism for keyed deferred work where a delayed wake-up is required. It must not be used to disguise polling. The correct pattern is **event -> mark dirty -> wake affected key** rather than **wake every key forever**.
 
 ## 5. Scoreboard
 
 **Priority: P0**
-
-Current architecture already contains guild-state/version invalidation work. Push this to per-player dirty state.
 
 ### Improvements
 
@@ -144,15 +142,15 @@ Current architecture already contains guild-state/version invalidation work. Pus
 - Do not recreate Objective/Team/entries when their effective value is unchanged.
 - Keep the existing invisible entry-key behavior exactly as-is.
 
-### Result
+### Implemented
 
-A single player's change becomes O(1) affected-player work instead of O(P) global refresh work.
+- Guild scoreboard invalidation is localized to affected guild members while preserving the global viewer-board update required for guild-visible entries.
+- Party scoreboard invalidation is localized to party members instead of scanning all online players.
+- Player stat recalculation no longer runs as a global periodic five-tick scan.
 
 ## 6. Companion system
 
 **Priority: P0**
-
-`CompanionFollowTask.java`, equipment, combat, and experience are separate components already. fileciteturn553file0L2-L2
 
 ### Follow
 
@@ -180,6 +178,13 @@ Replace repeated equipment hashing/derivation with explicit dirty marking from e
 
 Cache companion-derived damage/stat data until one of its dependencies changes. Do not recompute static definition data per attack.
 
+### Implemented
+
+- Companion equipment is preloaded once per player and served from memory during runtime.
+- Companion combat-derived stats use dependency-aware caching.
+- Companion runtime/follow work uses keyed wake-ups instead of a permanent global follow loop.
+- Companion stat refreshes are change-driven while the existing companion lifecycle cadence remains intact.
+
 ## 7. Mob scaling
 
 **Priority: P0**
@@ -197,6 +202,12 @@ Cache the effective snapshot and apply attributes only if the effective snapshot
 
 Never scan every managed mob because one player's equipment changed.
 
+### Implemented
+
+- Gear/scaling caches are invalidated by the relevant equipment/level changes.
+- Hot-path participant and equipment traversal no longer creates temporary stream/array structures for aggregate calculations.
+- Held-item changes invalidate the relevant scaling cache.
+
 ## 8. NPC look / interaction
 
 **Priority: P0**
@@ -204,12 +215,18 @@ Never scan every managed mob because one player's equipment changed.
 Movement is the natural trigger. Keep block-change filtering and spatial locality.
 
 - Ignore same-block movement when the visual result cannot change.
-- Index NPCs spatially by chunk/region.
+- Index NPCs spatially by chunk/region where repository-scale NPC counts justify it.
 - Process only NPCs in the affected neighborhood.
 - Deduplicate NPCs when movement crosses overlapping lookup areas.
 - Avoid all-NPC iteration on every movement event.
 
 Native Paper 26.2 interaction/dialog APIs remain the source of truth; no legacy interaction implementation should be introduced for optimization.
+
+### Implemented
+
+- NPC look processing is event-driven and block-change filtered.
+- Nearby-entity lookup is used instead of maintaining an unnecessary candidate UUID set and resolving every candidate again.
+- The existing visual look behavior is preserved.
 
 ## 9. Region spawning
 
@@ -238,9 +255,15 @@ Do not retain a global `all spawn points every N ticks` loop merely for convenie
 
 Keep temporal respawn delays, but schedule them per spawn point.
 
+### Implemented
+
+- Spawn points are indexed by world/chunk.
+- Player join, block movement, world changes, quit, and managed mob death wake only relevant spawn points.
+- Respawn delay and existing spawn timing semantics are preserved.
+
 ## 10. Quest system
 
-`QuestPassiveCheckTask` is the main architectural smell in the package: passive checks are often polling derived state that can be invalidated by explicit changes. fileciteturn551file0L2-L2
+`QuestPassiveCheckTask` is the main architectural smell in the package: passive checks are often polling derived state that can be invalidated by explicit changes.
 
 ### Convert to event-driven checks
 
@@ -258,7 +281,13 @@ Potential triggers:
 
 Only truly time-dependent objectives should remain scheduled.
 
-`QuestInventoryTracker` should consume inventory changes instead of requiring broad rescans. `QuestMobKillListener` already represents the desired direction. fileciteturn551file0L2-L2
+### Implemented
+
+- Quest movement processing is coalesced through `WakeScheduler` and avoids repeated block-position allocation.
+- Inventory collection objectives share one inventory traversal while preserving duplicate-target quest semantics and actionbar behavior.
+- Redundant active-quest snapshots were removed.
+- Navigation state is invalidated by world/chunk/profile mutation state rather than blindly rebuilding on every call.
+- The obsolete quest timer startup call was removed after verifying the method had no implementation/use.
 
 ### Navigation
 
@@ -291,6 +320,12 @@ Never scan all active bosses on every player event. Resolve the affected boss fr
 
 Boss attack patterns should avoid reconstructing immutable configuration objects per execution.
 
+### Implemented
+
+- Biome lookup for boss spawning is cached and invalidated on the relevant player movement/world lifecycle events while the existing spawn cadence remains unchanged.
+- Biome-boss attack-pattern IDs are cached per active boss instead of filtering the definition list on every attack.
+- Boss-bar radius calculations reuse the squared radius value.
+
 ## 12. Combat
 
 **Priority: P0**
@@ -307,6 +342,12 @@ Combat is inherently hot-path code.
 - Deduplicate repeated target/attacker resolution.
 
 The public combat API already exposes explicit combat enter/exit events; use those boundaries to drive consumers instead of independent polling.
+
+### Implemented
+
+- Combat expiry is indexed by deadline and bounded to one active expiry token per player.
+- Expiry cleanup processes only due combatants instead of scanning all active combatants every second.
+- Companion combat-derived values are cached until dependencies change.
 
 ## 13. Economy / money / guild bank
 
@@ -329,6 +370,14 @@ Guild bank inventory changes should invalidate only the guild-bank viewer/sessio
 
 Transactions must remain atomic and must never expose partially persisted state.
 
+### Implemented
+
+- Personal and guild bank parsed state is cached in memory with defensive copies at the API boundary.
+- Bank and guild-bank file persistence uses `AsyncFileWriter` with deterministic shutdown ownership.
+- Banker lifecycle now owns both bank storage shutdown paths.
+- Guild persistence is revision-coalesced so obsolete intermediate snapshots are skipped.
+- Party persistence is revision-coalesced using the same latest-state worker pattern.
+
 ## 14. Database / persistence
 
 **Priority: P0**
@@ -348,9 +397,16 @@ This is one of the most important scalability areas.
 - On shutdown, stop accepting new work, drain pending writes, then close resources.
 - Preserve transactional semantics for multi-table state.
 
+### Implemented
+
+- Player profile persistence snapshots are captured once per save instead of repeatedly cloning the same collections.
+- Coalesced profile saves now correctly await the actual pending save during shutdown.
+- Guild and party persistence skip obsolete intermediate snapshots.
+- File-backed bank/trade persistence uses the shared asynchronous file writer.
+
 ## 15. AsyncFileWriter
 
-`AsyncFileWriter` exists and should remain the single owner of asynchronous file persistence rather than allowing feature-specific ad-hoc executors. fileciteturn544file0L2-L2
+`AsyncFileWriter` remains the single owner of asynchronous file persistence rather than allowing feature-specific ad-hoc executors.
 
 Required properties:
 
@@ -360,6 +416,11 @@ Required properties:
 - deterministic executor shutdown;
 - no main-thread blocking;
 - no duplicate queued snapshots for the same key.
+
+### Implemented
+
+- Shutdown submission/drain race was hardened so a write cannot slip into the queue after shutdown has begun draining.
+- Bank, guild bank, and trade depot use the shared writer with explicit lifecycle shutdown.
 
 ## 16. Playtime tracking
 
@@ -375,6 +436,11 @@ quit/shutdown -> final flush
 ```
 
 Avoid writing player playtime continuously or creating database work from every tick.
+
+### Current state
+
+- Playtime uses per-player staggered one-shot wake-ups rather than a synchronized global save burst.
+- Join, quit, registration, and unregistration are explicit lifecycle triggers.
 
 ## 17. Inventory / equipment / item systems
 
@@ -403,6 +469,12 @@ EquipmentChanged
 
 Avoid each consumer independently comparing the entire inventory/equipment set.
 
+### Implemented
+
+- Player stat recalculation is event-driven for registration, level, and equipment changes.
+- Quest inventory processing shares traversal work across active collection objectives without changing quest multiplicity semantics.
+- Companion equipment is loaded once per player and kept in memory during active gameplay.
+
 ## 18. GUI
 
 **Priority: P1**
@@ -417,6 +489,11 @@ GUI rendering should be reactive, not polling.
 - Close/invalidate GUI sessions on player lifecycle events.
 - Avoid retaining Player references in long-lived GUI registries.
 
+### Implemented
+
+- Trade depot listing order is cached and invalidated only when the listing set changes, avoiding a full sort on every GUI open while preserving the returned defensive listing snapshots.
+- Existing GUI rendering and interaction behavior remains unchanged.
+
 ## 19. Skin / HTTP services
 
 **Priority: P1**
@@ -430,6 +507,10 @@ External skin resolution is inherently I/O-bound.
 - Keep SSRF and HTTPS restrictions.
 - Bound response size and URL length.
 - Cancel/ignore obsolete requests when a player/entity no longer needs the result.
+
+### Implemented
+
+- Mannequin viewer refreshes use nearby-player lookup instead of scanning every online player for each skin application.
 
 ## 20. Memory and allocation optimization
 
@@ -449,6 +530,12 @@ Audit all hot paths for:
 Prefer immutable cached definitions and primitive/simple keys where appropriate.
 
 Do not optimize blindly at the cost of readability; optimize measured/high-frequency paths first.
+
+### Implemented
+
+- Quest movement, mob scaling, companion equipment, stat aggregation, and NPC look hot paths have reduced avoidable temporary collection/object creation.
+- Mob nameplate text is cached while health/level values remain unchanged, preserving the existing five-tick display cadence.
+- Immutable boss attack-pattern data is reused instead of reconstructed per attack.
 
 ## 21. Spatial indexing
 
@@ -471,6 +558,12 @@ world + chunkX + chunkZ
 
 Maintain the index on registration/unregistration/world changes. Never rebuild it during a hot-path query.
 
+### Implemented
+
+- Region spawn points use a world/chunk index for local wake-up processing.
+- NPC look processing uses Paper's local nearby-entity query rather than a global plugin-owned NPC scan.
+- Boss and companion runtime state are resolved through entity/player keyed maps.
+
 ## 22. Event fan-out control
 
 Event-driven architecture can become slower than polling if every event triggers many consumers independently.
@@ -486,9 +579,17 @@ Therefore:
 
 The target is **one source mutation -> one coalesced refresh per affected subsystem**, not "one mutation -> many immediate refreshes".
 
+### Implemented
+
+- Guild and party scoreboard invalidation is scoped to affected members.
+- Companion runtime wakes are keyed by owner UUID.
+- Region spawn wakes are keyed by spawn point.
+- Combat expiry has one indexed deadline entry per player.
+- Guild and party persistence use one scheduled worker per dirty state stream.
+
 ## 23. Lifecycle / stability
 
-`LifecycleCoordinator` should be the central contract for startup/shutdown ownership. fileciteturn544file0L2-L2
+`LifecycleCoordinator` is the central contract for startup/shutdown ownership.
 
 Every subsystem should define:
 
@@ -508,6 +609,13 @@ stop()
 
 No orphan executors, no tasks surviving plugin shutdown, and no asynchronous callback touching unloaded state.
 
+### Implemented
+
+- Async file writers used by banks and trade depot have explicit shutdown ownership.
+- Guild/party persistence shutdown paths avoid waiting while holding the lock required by their persistence worker.
+- Async file submission shutdown race was hardened.
+- Companion, combat, NPC, and region wake schedulers are cleared during their lifecycle shutdown paths.
+
 ## 24. Dead-code / legacy cleanup procedure
 
 Dead code must be removed deliberately, not by filename intuition.
@@ -525,18 +633,14 @@ For every candidate:
 9. Check startup wiring in `PixelRPGPlugin`/bootstrap.
 10. Delete only after all paths are proven unused.
 
-### Candidates to audit first
+### Completed cleanup
 
-- classes not referenced from startup wiring;
-- duplicate managers/services superseded by newer implementations;
-- compatibility helpers for removed Minecraft/Paper versions;
-- old polling tasks replaced by event-driven listeners;
-- unused fields left after cache/index refactors;
-- obsolete APIs whose implementation is no longer registered;
-- dead configuration keys;
-- stale documentation describing removed architecture.
+- Removed the obsolete quest timer startup call and its no-op startup method.
+- Removed the obsolete trade-depot global expiry scan because exact per-listing expiry tasks already provide the complete expiry path.
+- Removed unused NPC look state retained from the old polling implementation.
+- Removed obsolete quest navigation cache operations.
 
-Do **not** delete public API classes solely because internal code does not use them; first determine whether they are intentionally exposed to other plugins.
+Further dead-code deletion remains gated by repository-wide reference verification, especially for public API classes and configuration/reflection entry points.
 
 ## 25. What must NOT be changed for optimization
 
@@ -603,22 +707,22 @@ The existing Gradle verification tasks must remain enabled. `check` must continu
 
 ## 27. Recommended implementation order
 
-1. **Inventory/equipment -> dirty event infrastructure**
-2. **Scoreboard -> per-player dirty refresh**
-3. **Companion -> event-driven derived state + local movement work**
-4. **Quest passive checks -> dependency events**
-5. **Mob scaling -> dependency snapshots**
-6. **NPC/spatial indexes -> local movement processing**
-7. **Region spawning -> per-point wake scheduling**
-8. **Combat -> indexed active state + cached derived stats**
-9. **Boss -> event-driven state + local timers**
-10. **GUI -> viewer-local dirty rendering**
-11. **Persistence -> dirty snapshots + coalesced async writes**
-12. **Playtime -> time-derived state + dirty persistence**
-13. **Skin/HTTP -> async deduplicated cache**
-14. **Repository-wide dead-code/reference audit**
-15. **Final allocation/hot-path pass**
-16. **Load/stress verification and regression comparison**
+1. **Inventory/equipment -> dirty event infrastructure** — substantially implemented
+2. **Scoreboard -> per-player dirty refresh** — substantially implemented
+3. **Companion -> event-driven derived state + local movement work** — substantially implemented
+4. **Quest passive checks -> dependency events** — substantially implemented
+5. **Mob scaling -> dependency snapshots** — substantially implemented
+6. **NPC/spatial indexes -> local movement processing** — substantially implemented
+7. **Region spawning -> per-point wake scheduling** — substantially implemented
+8. **Combat -> indexed active state + cached derived stats** — substantially implemented
+9. **Boss -> event-driven state + local timers** — substantially implemented
+10. **GUI -> viewer-local dirty rendering** — partially implemented
+11. **Persistence -> dirty snapshots + coalesced async writes** — substantially implemented
+12. **Playtime -> time-derived state + dirty persistence** — existing architecture reviewed; no unsafe rewrite required
+13. **Skin/HTTP -> async deduplicated cache** — local viewer scan optimization implemented; deeper cache review remains
+14. **Repository-wide dead-code/reference audit** — ongoing
+15. **Final allocation/hot-path pass** — ongoing
+16. **Load/stress verification and regression comparison** — required before declaring the phase complete
 
 ## 28. Definition of done
 
@@ -639,4 +743,4 @@ The optimization phase is complete only when:
 
 ---
 
-**Status:** Audit/roadmap created from the current `test` branch. Implementation is intentionally separate from this document so the optimization work can be executed in measured, behavior-preserving batches.
+**Status:** Active optimization program on `test`. The documented implementations above have been applied incrementally with behavior-preservation as the primary invariant. Remaining work is focused on deeper GUI/HTTP optimization, repository-wide dead-code verification, final hot-path review, and runtime load/regression measurement.
