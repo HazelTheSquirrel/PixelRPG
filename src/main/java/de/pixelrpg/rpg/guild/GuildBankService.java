@@ -33,4 +33,9 @@ public final class GuildBankService {
         for (int slot = 0; slot < contents.length; slot++) inventory.setItem(slot, contents[slot]);
         player.openInventory(inventory);
     }
+
+    /** Flushes pending guild-bank persistence during plugin shutdown. */
+    public void shutdown() {
+        storage.shutdown();
+    }
 }
