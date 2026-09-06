@@ -24,7 +24,9 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -33,30 +35,306 @@ import java.util.logging.Level;
 
 /** Event-driven trade depot. Listings sleep until their exact expiry time or a player interaction wakes them. */
 public final class TradeDepotManager {
-    public static final long LISTING_DURATION_MILLIS = 7L * 24L * 60L * 60L * 1000L; public static final double SALE_FEE = 0.05D; private static final long EXPIRY_RETRY_DELAY_TICKS = 200L;
-    private final JavaPlugin plugin; private final PlayerProfileManager profileManager; private final BankStorageService bankStorage; private final DialogueEngine dialogueEngine; private final ItemAPI itemAPI; private final File file; private final AsyncFileWriter fileWriter; private final Map<UUID, TradeDepotListing> listings = new ConcurrentHashMap<>(); private final Map<UUID, Double> pendingPayouts = new ConcurrentHashMap<>(); private final Map<UUID, BukkitTask> expiryTasks = new ConcurrentHashMap<>();
-    public TradeDepotManager(JavaPlugin plugin, PlayerProfileManager profileManager, BankStorageService bankStorage, DialogueEngine dialogueEngine) { this.plugin = plugin; this.profileManager = profileManager; this.bankStorage = bankStorage; this.dialogueEngine = dialogueEngine; this.itemAPI = Bukkit.getServicesManager().load(ItemAPI.class); this.file = new File(plugin.getDataFolder(), "trade-depot.yml"); this.fileWriter = new AsyncFileWriter(plugin, "PixelRPG-TradeIO"); load(); }
-    public List<TradeDepotListing> listings() { return listings.values().stream().sorted(java.util.Comparator.comparingLong(TradeDepotListing::expiresAtMillis)).map(listing -> new TradeDepotListing(listing.id(), listing.sellerId(), listing.itemCopy(), listing.price(), listing.expiresAtMillis())).toList(); }
+    public static final long LISTING_DURATION_MILLIS = 7L * 24L * 60L * 60L * 1000L;
+    public static final double SALE_FEE = 0.05D;
+    private static final long EXPIRY_RETRY_DELAY_TICKS = 200L;
+    private final JavaPlugin plugin;
+    private final PlayerProfileManager profileManager;
+    private final BankStorageService bankStorage;
+    private final DialogueEngine dialogueEngine;
+    private final ItemAPI itemAPI;
+    private final File file;
+    private final AsyncFileWriter fileWriter;
+    private final Map<UUID, TradeDepotListing> listings = new ConcurrentHashMap<>();
+    private final Map<UUID, Double> pendingPayouts = new ConcurrentHashMap<>();
+    private final Map<UUID, BukkitTask> expiryTasks = new ConcurrentHashMap<>();
+    private volatile List<UUID> sortedListingIds;
+
+    public TradeDepotManager(JavaPlugin plugin, PlayerProfileManager profileManager, BankStorageService bankStorage, DialogueEngine dialogueEngine) {
+        this.plugin = plugin;
+        this.profileManager = profileManager;
+        this.bankStorage = bankStorage;
+        this.dialogueEngine = dialogueEngine;
+        this.itemAPI = Bukkit.getServicesManager().load(ItemAPI.class);
+        this.file = new File(plugin.getDataFolder(), "trade-depot.yml");
+        this.fileWriter = new AsyncFileWriter(plugin, "PixelRPG-TradeIO");
+        load();
+    }
+
+    public List<TradeDepotListing> listings() {
+        List<UUID> ids = sortedListingIds;
+        if (ids == null) {
+            synchronized (this) {
+                ids = sortedListingIds;
+                if (ids == null) {
+                    ids = new ArrayList<>(listings.keySet());
+                    ids.sort(Comparator.comparingLong(id -> {
+                        TradeDepotListing listing = listings.get(id);
+                        return listing == null ? Long.MAX_VALUE : listing.expiresAtMillis();
+                    }));
+                    ids = List.copyOf(ids);
+                    sortedListingIds = ids;
+                }
+            }
+        }
+
+        List<TradeDepotListing> result = new ArrayList<>(ids.size());
+        for (UUID id : ids) {
+            TradeDepotListing listing = listings.get(id);
+            if (listing != null) {
+                result.add(new TradeDepotListing(listing.id(), listing.sellerId(), listing.itemCopy(), listing.price(), listing.expiresAtMillis()));
+            }
+        }
+        return List.copyOf(result);
+    }
+
     public void open(Player player) { claimPendingPayout(player); new TradeDepotGUI(player, this, profileManager).open(player); }
-    public void claimPendingPayout(Player player) { UUID uuid = player.getUniqueId(); Double amount = pendingPayouts.remove(uuid); if (amount == null || amount <= 0.0) return; PlayerProfile profile = profileManager.getProfile(uuid).orElse(null); if (profile == null) { pendingPayouts.merge(uuid, amount, Double::sum); return; } profile.addMoney(amount); profileManager.saveProfileAsync(uuid); save(); player.sendMessage(Component.text("Dir wurden " + format(amount) + " Gold aus Verkäufen gutgeschrieben.", NamedTextColor.GOLD)); }
+
+    public void claimPendingPayout(Player player) {
+        UUID uuid = player.getUniqueId();
+        Double amount = pendingPayouts.remove(uuid);
+        if (amount == null || amount <= 0.0) return;
+        PlayerProfile profile = profileManager.getProfile(uuid).orElse(null);
+        if (profile == null) {
+            pendingPayouts.merge(uuid, amount, Double::sum);
+            return;
+        }
+        profile.addMoney(amount);
+        profileManager.saveProfileAsync(uuid);
+        save();
+        player.sendMessage(Component.text("Dir wurden " + format(amount) + " Gold aus Verkäufen gutgeschrieben.", NamedTextColor.GOLD));
+    }
+
     public void openSellSelection(Player player) { new TradeDepotSellGUI(player, this).open(player); }
-    public void openSellDialog(Player player, int inventorySlot, ItemStack selectedItem) { ItemStack current = getStorageItem(player, inventorySlot); if (!isTradeableRpgItem(current) || !current.isSimilar(selectedItem) || current.getAmount() != selectedItem.getAmount()) { player.sendMessage(Component.text("Das ausgewählte Item wurde inzwischen verändert oder ist nicht mehr verfügbar.", NamedTextColor.RED)); openSellSelection(player); return; } List<DialogBody> body = List.of(DialogBody.plainMessage(Component.text("Ausgewählt: " + current.getAmount() + "x " + displayName(current), NamedTextColor.WHITE)), DialogBody.plainMessage(Component.text("Dieses Item wird aus deinem Inventar entfernt und als Handelsware eingestellt.", NamedTextColor.GRAY)), DialogBody.plainMessage(Component.text("Laufzeit: 7 Tage · Verkaufsgebühr: 5 %", NamedTextColor.GRAY))); DialogInput input = DialogInput.text("price", 260, Component.text("Verkaufspreis in Gold", NamedTextColor.WHITE), true, "", 16, null); dialogueEngine.openTextInputAction(player, Component.text("Handelsware einstellen", NamedTextColor.GOLD), body, input, Component.text("Einstellen"), NamedTextColor.GREEN, (target, response) -> createListingFromResponse(target, response, inventorySlot, selectedItem)); }
-    private void createListingFromResponse(Player player, DialogResponseView response, int inventorySlot, ItemStack selectedItem) { String rawValue = response.getText("price"); if (rawValue == null || rawValue.isBlank()) { player.sendMessage(Component.text("Bitte gib einen Verkaufspreis ein.", NamedTextColor.RED)); return; } final double price; try { price = new BigDecimal(rawValue.trim().replace(',', '.')).doubleValue(); } catch (NumberFormatException exception) { player.sendMessage(Component.text("Der Verkaufspreis ist ungültig.", NamedTextColor.RED)); return; } if (!Double.isFinite(price) || price <= 0.0D) { player.sendMessage(Component.text("Der Verkaufspreis muss größer als 0 Gold sein.", NamedTextColor.RED)); return; } ItemStack current = getStorageItem(player, inventorySlot); if (!isTradeableRpgItem(current) || !current.isSimilar(selectedItem) || current.getAmount() != selectedItem.getAmount()) { player.sendMessage(Component.text("Das ausgewählte Item wurde inzwischen verändert oder ist nicht mehr verfügbar.", NamedTextColor.RED)); openSellSelection(player); return; } ItemStack listed = current.clone(); player.getInventory().setItem(inventorySlot, null); TradeDepotListing listing = new TradeDepotListing(UUID.randomUUID(), player.getUniqueId(), listed, price, System.currentTimeMillis() + LISTING_DURATION_MILLIS); listings.put(listing.id(), listing); scheduleExpiry(listing); save(); player.sendMessage(Component.text("Handelsware für " + format(price) + " Gold eingestellt.", NamedTextColor.GREEN)); player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 1.0f); open(player); }
-    public boolean purchase(Player buyer, UUID listingId) { TradeDepotListing listing = listings.get(listingId); if (listing == null || listing.expired(System.currentTimeMillis())) { expireListing(listingId); buyer.sendMessage(Component.text("Dieses Handelsangebot ist nicht mehr verfügbar.", NamedTextColor.RED)); return false; } if (listing.sellerId().equals(buyer.getUniqueId())) { buyer.sendMessage(Component.text("Du kannst dein eigenes Angebot nicht kaufen.", NamedTextColor.RED)); return false; } PlayerProfile buyerProfile = profileManager.getProfile(buyer.getUniqueId()).orElse(null); if (buyerProfile == null) { buyer.sendMessage(Component.text("Dein Spielerprofil konnte nicht geladen werden.", NamedTextColor.RED)); return false; } if (!canFitTradeGoods(buyer, listing.item())) { buyer.sendMessage(Component.text("Dein Handelsfach ist voll.", NamedTextColor.RED)); return false; } if (!buyerProfile.removeMoney(listing.price())) { buyer.sendMessage(Component.text("Du hast nicht genug Gold.", NamedTextColor.RED)); return false; }
-        listings.remove(listingId); cancelExpiry(listingId); double sellerAmount = listing.price() * (1.0D - SALE_FEE); PlayerProfile sellerProfile = profileManager.getProfile(listing.sellerId()).orElse(null); if (sellerProfile != null) sellerProfile.addMoney(sellerAmount); else pendingPayouts.merge(listing.sellerId(), sellerAmount, Double::sum);
-        if (!bankStorage.addTradeGoods(buyer.getUniqueId(), listing.itemCopy())) { buyerProfile.addMoney(listing.price()); if (sellerProfile != null) sellerProfile.removeMoney(sellerAmount); else pendingPayouts.computeIfPresent(listing.sellerId(), (ignored, amount) -> amount <= sellerAmount ? null : amount - sellerAmount); listings.put(listingId, listing); scheduleExpiry(listing); save(); buyer.sendMessage(Component.text("Der Kauf konnte wegen eines vollen Handelsfachs nicht abgeschlossen werden.", NamedTextColor.RED)); return false; }
-        profileManager.saveProfileAsync(buyer.getUniqueId()); if (sellerProfile != null) profileManager.saveProfileAsync(sellerProfile.getUuid()); save(); buyer.sendMessage(Component.text("Gekauft und ins Handelsfach gelegt für " + format(listing.price()) + " Gold.", NamedTextColor.GREEN)); buyer.playSound(buyer.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 1.0f); return true; }
-    public boolean cancel(Player seller, UUID listingId) { TradeDepotListing listing = listings.get(listingId); if (listing == null || !listing.sellerId().equals(seller.getUniqueId())) return false; if (!canFitTradeGoods(seller, listing.item())) { seller.sendMessage(Component.text("Dein Handelsfach ist voll.", NamedTextColor.RED)); return false; } if (!bankStorage.addTradeGoods(seller.getUniqueId(), listing.itemCopy())) return false; listings.remove(listingId); cancelExpiry(listingId); save(); seller.sendMessage(Component.text("Handelsangebot zurückgenommen und ins Handelsfach gelegt.", NamedTextColor.GREEN)); return true; }
-    public void shutdown() { expiryTasks.values().forEach(BukkitTask::cancel); expiryTasks.clear(); save(); fileWriter.shutdown(); }
-    private void scheduleExpiry(TradeDepotListing listing) { cancelExpiry(listing.id()); long remainingMillis = listing.expiresAtMillis() - System.currentTimeMillis(); if (remainingMillis <= 0L) { expireListing(listing.id()); return; } long delayTicks = Math.max(1L, (remainingMillis + 49L) / 50L); expiryTasks.put(listing.id(), Bukkit.getScheduler().runTaskLater(plugin, () -> expireListing(listing.id()), delayTicks)); }
-    private void scheduleExpiryRetry(UUID listingId) { cancelExpiry(listingId); expiryTasks.put(listingId, Bukkit.getScheduler().runTaskLater(plugin, () -> expireListing(listingId), EXPIRY_RETRY_DELAY_TICKS)); }
-    private void expireListing(UUID listingId) { TradeDepotListing listing = listings.get(listingId); if (listing == null) { cancelExpiry(listingId); return; } if (!listing.expired(System.currentTimeMillis())) { scheduleExpiry(listing); return; } if (!bankStorage.addTradeGoods(listing.sellerId(), listing.itemCopy())) { scheduleExpiryRetry(listingId); return; } listings.remove(listingId); cancelExpiry(listingId); save(); }
-    private void cancelExpiry(UUID listingId) { BukkitTask task = expiryTasks.remove(listingId); if (task != null) task.cancel(); }
+
+    public void openSellDialog(Player player, int inventorySlot, ItemStack selectedItem) {
+        ItemStack current = getStorageItem(player, inventorySlot);
+        if (!isTradeableRpgItem(current) || !current.isSimilar(selectedItem) || current.getAmount() != selectedItem.getAmount()) {
+            player.sendMessage(Component.text("Das ausgewählte Item wurde inzwischen verändert oder ist nicht mehr verfügbar.", NamedTextColor.RED));
+            openSellSelection(player);
+            return;
+        }
+        List<DialogBody> body = List.of(
+                DialogBody.plainMessage(Component.text("Ausgewählt: " + current.getAmount() + "x " + displayName(current), NamedTextColor.WHITE)),
+                DialogBody.plainMessage(Component.text("Dieses Item wird aus deinem Inventar entfernt und als Handelsware eingestellt.", NamedTextColor.GRAY)),
+                DialogBody.plainMessage(Component.text("Laufzeit: 7 Tage · Verkaufsgebühr: 5 %", NamedTextColor.GRAY))
+        );
+        DialogInput input = DialogInput.text("price", 260, Component.text("Verkaufspreis in Gold", NamedTextColor.WHITE), true, "", 16, null);
+        dialogueEngine.openTextInputAction(player, Component.text("Handelsware einstellen", NamedTextColor.GOLD), body, input, Component.text("Einstellen"), NamedTextColor.GREEN, (target, response) -> createListingFromResponse(target, response, inventorySlot, selectedItem));
+    }
+
+    private void createListingFromResponse(Player player, DialogResponseView response, int inventorySlot, ItemStack selectedItem) {
+        String rawValue = response.getText("price");
+        if (rawValue == null || rawValue.isBlank()) {
+            player.sendMessage(Component.text("Bitte gib einen Verkaufspreis ein.", NamedTextColor.RED));
+            return;
+        }
+        final double price;
+        try {
+            price = new BigDecimal(rawValue.trim().replace(',', '.')).doubleValue();
+        } catch (NumberFormatException exception) {
+            player.sendMessage(Component.text("Der Verkaufspreis ist ungültig.", NamedTextColor.RED));
+            return;
+        }
+        if (!Double.isFinite(price) || price <= 0.0D) {
+            player.sendMessage(Component.text("Der Verkaufspreis muss größer als 0 Gold sein.", NamedTextColor.RED));
+            return;
+        }
+        ItemStack current = getStorageItem(player, inventorySlot);
+        if (!isTradeableRpgItem(current) || !current.isSimilar(selectedItem) || current.getAmount() != selectedItem.getAmount()) {
+            player.sendMessage(Component.text("Das ausgewählte Item wurde inzwischen verändert oder ist nicht mehr verfügbar.", NamedTextColor.RED));
+            openSellSelection(player);
+            return;
+        }
+        ItemStack listed = current.clone();
+        player.getInventory().setItem(inventorySlot, null);
+        TradeDepotListing listing = new TradeDepotListing(UUID.randomUUID(), player.getUniqueId(), listed, price, System.currentTimeMillis() + LISTING_DURATION_MILLIS);
+        listings.put(listing.id(), listing);
+        invalidateListingOrder();
+        scheduleExpiry(listing);
+        save();
+        player.sendMessage(Component.text("Handelsware für " + format(price) + " Gold eingestellt.", NamedTextColor.GREEN));
+        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 1.0f);
+        open(player);
+    }
+
+    public boolean purchase(Player buyer, UUID listingId) {
+        TradeDepotListing listing = listings.get(listingId);
+        if (listing == null || listing.expired(System.currentTimeMillis())) {
+            expireListing(listingId);
+            buyer.sendMessage(Component.text("Dieses Handelsangebot ist nicht mehr verfügbar.", NamedTextColor.RED));
+            return false;
+        }
+        if (listing.sellerId().equals(buyer.getUniqueId())) {
+            buyer.sendMessage(Component.text("Du kannst dein eigenes Angebot nicht kaufen.", NamedTextColor.RED));
+            return false;
+        }
+        PlayerProfile buyerProfile = profileManager.getProfile(buyer.getUniqueId()).orElse(null);
+        if (buyerProfile == null) {
+            buyer.sendMessage(Component.text("Dein Spielerprofil konnte nicht geladen werden.", NamedTextColor.RED));
+            return false;
+        }
+        if (!canFitTradeGoods(buyer, listing.item())) {
+            buyer.sendMessage(Component.text("Dein Handelsfach ist voll.", NamedTextColor.RED));
+            return false;
+        }
+        if (!buyerProfile.removeMoney(listing.price())) {
+            buyer.sendMessage(Component.text("Du hast nicht genug Gold.", NamedTextColor.RED));
+            return false;
+        }
+
+        listings.remove(listingId);
+        invalidateListingOrder();
+        cancelExpiry(listingId);
+        double sellerAmount = listing.price() * (1.0D - SALE_FEE);
+        PlayerProfile sellerProfile = profileManager.getProfile(listing.sellerId()).orElse(null);
+        if (sellerProfile != null) sellerProfile.addMoney(sellerAmount);
+        else pendingPayouts.merge(listing.sellerId(), sellerAmount, Double::sum);
+        if (!bankStorage.addTradeGoods(buyer.getUniqueId(), listing.itemCopy())) {
+            buyerProfile.addMoney(listing.price());
+            if (sellerProfile != null) sellerProfile.removeMoney(sellerAmount);
+            else pendingPayouts.computeIfPresent(listing.sellerId(), (ignored, amount) -> amount <= sellerAmount ? null : amount - sellerAmount);
+            listings.put(listingId, listing);
+            invalidateListingOrder();
+            scheduleExpiry(listing);
+            save();
+            buyer.sendMessage(Component.text("Der Kauf konnte wegen eines vollen Handelsfachs nicht abgeschlossen werden.", NamedTextColor.RED));
+            return false;
+        }
+        profileManager.saveProfileAsync(buyer.getUniqueId());
+        if (sellerProfile != null) profileManager.saveProfileAsync(sellerProfile.getUuid());
+        save();
+        buyer.sendMessage(Component.text("Gekauft und ins Handelsfach gelegt für " + format(listing.price()) + " Gold.", NamedTextColor.GREEN));
+        buyer.playSound(buyer.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 1.0f);
+        return true;
+    }
+
+    public boolean cancel(Player seller, UUID listingId) {
+        TradeDepotListing listing = listings.get(listingId);
+        if (listing == null || !listing.sellerId().equals(seller.getUniqueId())) return false;
+        if (!canFitTradeGoods(seller, listing.item())) {
+            seller.sendMessage(Component.text("Dein Handelsfach ist voll.", NamedTextColor.RED));
+            return false;
+        }
+        if (!bankStorage.addTradeGoods(seller.getUniqueId(), listing.itemCopy())) return false;
+        listings.remove(listingId);
+        invalidateListingOrder();
+        cancelExpiry(listingId);
+        save();
+        seller.sendMessage(Component.text("Handelsangebot zurückgenommen und ins Handelsfach gelegt.", NamedTextColor.GREEN));
+        return true;
+    }
+
+    public void shutdown() {
+        expiryTasks.values().forEach(BukkitTask::cancel);
+        expiryTasks.clear();
+        save();
+        fileWriter.shutdown();
+    }
+
+    private void scheduleExpiry(TradeDepotListing listing) {
+        cancelExpiry(listing.id());
+        long remainingMillis = listing.expiresAtMillis() - System.currentTimeMillis();
+        if (remainingMillis <= 0L) {
+            expireListing(listing.id());
+            return;
+        }
+        long delayTicks = Math.max(1L, (remainingMillis + 49L) / 50L);
+        expiryTasks.put(listing.id(), Bukkit.getScheduler().runTaskLater(plugin, () -> expireListing(listing.id()), delayTicks));
+    }
+
+    private void scheduleExpiryRetry(UUID listingId) {
+        cancelExpiry(listingId);
+        expiryTasks.put(listingId, Bukkit.getScheduler().runTaskLater(plugin, () -> expireListing(listingId), EXPIRY_RETRY_DELAY_TICKS));
+    }
+
+    private void expireListing(UUID listingId) {
+        TradeDepotListing listing = listings.get(listingId);
+        if (listing == null) {
+            cancelExpiry(listingId);
+            return;
+        }
+        if (!listing.expired(System.currentTimeMillis())) {
+            scheduleExpiry(listing);
+            return;
+        }
+        if (!bankStorage.addTradeGoods(listing.sellerId(), listing.itemCopy())) {
+            scheduleExpiryRetry(listingId);
+            return;
+        }
+        listings.remove(listingId);
+        invalidateListingOrder();
+        cancelExpiry(listingId);
+        save();
+    }
+
+    private void cancelExpiry(UUID listingId) {
+        BukkitTask task = expiryTasks.remove(listingId);
+        if (task != null) task.cancel();
+    }
+
+    private void invalidateListingOrder() { sortedListingIds = null; }
+
     private boolean isTradeableRpgItem(ItemStack item) { return item != null && !item.isEmpty() && itemAPI != null && (itemAPI instanceof ItemService service ? service.isEconomySafeItem(item) : itemAPI.isRPGItem(item)); }
+
     private ItemStack getStorageItem(Player player, int slot) { if (slot < 0 || slot >= player.getInventory().getStorageContents().length) return null; return player.getInventory().getStorageContents()[slot]; }
+
     private String displayName(ItemStack item) { if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) return net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName()); return item.getType().key().value(); }
-    private boolean canFitTradeGoods(Player player, ItemStack item) { ItemStack[] contents = bankStorage.loadTradeGoods(player.getUniqueId()); org.bukkit.inventory.Inventory test = Bukkit.createInventory(null, BankStorageService.PAGE_SIZE); for (int slot = 0; slot < contents.length; slot++) { ItemStack current = contents[slot]; if (current != null && !current.isEmpty()) test.setItem(slot, current.clone()); } return test.addItem(item.clone()).isEmpty(); }
-    private void load() { listings.clear(); pendingPayouts.clear(); if (!file.exists()) return; YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file); var root = yaml.getConfigurationSection("listings"); if (root != null) for (String key : root.getKeys(false)) try { UUID id = UUID.fromString(key); UUID seller = UUID.fromString(root.getString(key + ".seller")); double price = root.getDouble(key + ".price"); long expires = root.getLong(key + ".expires"); String encoded = root.getString(key + ".item"); if (encoded == null) continue; ItemStack item = ItemStack.deserializeBytes(Base64.getDecoder().decode(encoded)); if (!item.isEmpty() && isTradeableRpgItem(item)) { TradeDepotListing listing = new TradeDepotListing(id, seller, item, price, expires); listings.put(id, listing); scheduleExpiry(listing); } } catch (Exception exception) { plugin.getLogger().log(Level.WARNING, "Ignoring invalid trade depot listing " + key, exception); } var payouts = yaml.getConfigurationSection("pending-payouts"); if (payouts != null) for (String key : payouts.getKeys(false)) try { double amount = payouts.getDouble(key, 0.0); if (amount > 0.0) pendingPayouts.put(UUID.fromString(key), amount); } catch (IllegalArgumentException ignored) { plugin.getLogger().warning("Ignoring invalid pending trade payout " + key); } }
-    private void save() { YamlConfiguration yaml = new YamlConfiguration(); for (TradeDepotListing listing : listings.values()) { String path = "listings." + listing.id(); yaml.set(path + ".seller", listing.sellerId().toString()); yaml.set(path + ".price", listing.price()); yaml.set(path + ".expires", listing.expiresAtMillis()); yaml.set(path + ".item", Base64.getEncoder().encodeToString(listing.item().serializeAsBytes())); } for (Map.Entry<UUID, Double> payout : pendingPayouts.entrySet()) yaml.set("pending-payouts." + payout.getKey(), payout.getValue()); fileWriter.submit(file.toPath(), yaml.saveToString()); }
+
+    private boolean canFitTradeGoods(Player player, ItemStack item) {
+        ItemStack[] contents = bankStorage.loadTradeGoods(player.getUniqueId());
+        org.bukkit.inventory.Inventory test = Bukkit.createInventory(null, BankStorageService.PAGE_SIZE);
+        for (int slot = 0; slot < contents.length; slot++) {
+            ItemStack current = contents[slot];
+            if (current != null && !current.isEmpty()) test.setItem(slot, current.clone());
+        }
+        return test.addItem(item.clone()).isEmpty();
+    }
+
+    private void load() {
+        listings.clear();
+        pendingPayouts.clear();
+        sortedListingIds = null;
+        if (!file.exists()) return;
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        var root = yaml.getConfigurationSection("listings");
+        if (root != null) for (String key : root.getKeys(false)) try {
+            UUID id = UUID.fromString(key);
+            UUID seller = UUID.fromString(root.getString(key + ".seller"));
+            double price = root.getDouble(key + ".price");
+            long expires = root.getLong(key + ".expires");
+            String encoded = root.getString(key + ".item");
+            if (encoded == null) continue;
+            ItemStack item = ItemStack.deserializeBytes(Base64.getDecoder().decode(encoded));
+            if (!item.isEmpty() && isTradeableRpgItem(item)) {
+                TradeDepotListing listing = new TradeDepotListing(id, seller, item, price, expires);
+                listings.put(id, listing);
+                scheduleExpiry(listing);
+            }
+        } catch (Exception exception) {
+            plugin.getLogger().log(Level.WARNING, "Ignoring invalid trade depot listing " + key, exception);
+        }
+        var payouts = yaml.getConfigurationSection("pending-payouts");
+        if (payouts != null) for (String key : payouts.getKeys(false)) try {
+            double amount = payouts.getDouble(key, 0.0);
+            if (amount > 0.0) pendingPayouts.put(UUID.fromString(key), amount);
+        } catch (IllegalArgumentException ignored) {
+            plugin.getLogger().warning("Ignoring invalid pending trade payout " + key);
+        }
+    }
+
+    private void save() {
+        YamlConfiguration yaml = new YamlConfiguration();
+        for (TradeDepotListing listing : listings.values()) {
+            String path = "listings." + listing.id();
+            yaml.set(path + ".seller", listing.sellerId().toString());
+            yaml.set(path + ".price", listing.price());
+            yaml.set(path + ".expires", listing.expiresAtMillis());
+            yaml.set(path + ".item", Base64.getEncoder().encodeToString(listing.item().serializeAsBytes()));
+        }
+        for (Map.Entry<UUID, Double> payout : pendingPayouts.entrySet()) yaml.set("pending-payouts." + payout.getKey(), payout.getValue());
+        fileWriter.submit(file.toPath(), yaml.saveToString());
+    }
+
     private String format(double amount) { return String.format(java.util.Locale.ROOT, "%.2f", amount); }
 }
