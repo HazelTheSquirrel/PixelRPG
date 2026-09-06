@@ -176,7 +176,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         globalEventState = new GlobalEventState(this);
         globalEventState.load();
         questManager = new QuestManager(this, questRepository, playerProfileManager, playerProfileManager, globalEventState, partyManager.getShareRange());
-
         guildManager = GuildManager.getInstance(this, playerProfileManager);
         RegionRepository regionRepository = new RegionRepository(getDataFolder(), getLogger());
         regionManager = new RegionManager(regionRepository);
@@ -186,7 +185,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         regionSpawnService = new RegionSpawnService(this, regionManager);
         regionSpawnService.start();
         getServer().getPluginManager().registerEvents(new RegionListener(regionManager, regionEditor, regionSpawnService), this);
-
         BossAttackPatternRegistry patternRegistry = new BossAttackPatternRegistry();
         patternRegistry.register(new SlamAttackPattern());
         patternRegistry.register(new SummonAddsPattern());
@@ -194,17 +192,11 @@ public final class PixelRPGPlugin extends JavaPlugin {
         patternRegistry.register(new EnrageBuffPattern());
         bossRepository = new BossRepository(this);
         bossRepository.load();
-        bossManager = new BossManager(this, patternRegistry, playerProfileManager, partyManager, playerProfileManager,
-                itemService, mobScalingConfig,
-                getConfig().getDouble("bosses.bar-radius", 60.0D),
-                getConfig().getInt("bosses.bar-update-interval-ticks", 20),
-                getConfig().getInt("bosses.phase-check-interval-ticks", 10));
-        biomeBossSpawnTask = new BiomeBossSpawnTask(this, bossRepository, bossManager,
-                getConfig().getDouble("bosses.biome-spawn.spawn-radius", 80.0D),
-                getConfig().getInt("bosses.biome-spawn.check-interval-seconds", 60),
-                getConfig().getInt("bosses.biome-spawn.max-concurrent", 4));
+        bossManager = new BossManager(this, patternRegistry, playerProfileManager, partyManager, playerProfileManager, itemService, mobScalingConfig,
+                getConfig().getDouble("bosses.bar-radius", 60.0D), getConfig().getInt("bosses.bar-update-interval-ticks", 20), getConfig().getInt("bosses.phase-check-interval-ticks", 10));
+        biomeBossSpawnTask = new BiomeBossSpawnTask(this, bossRepository, bossManager, getConfig().getDouble("bosses.biome-spawn.spawn-radius", 80.0D),
+                getConfig().getInt("bosses.biome-spawn.check-interval-seconds", 60), getConfig().getInt("bosses.biome-spawn.max-concurrent", 4));
         biomeBossSpawnTask.start();
-
         statisticsService = new StatisticsService(playerProfileManager);
         Bukkit.getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
         scoreboardService = new ScoreboardService(this, playerProfileManager, getConfig().getInt("scoreboard.update-interval-ticks", 20));
@@ -238,7 +230,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_MASON, Profession.MASON, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FISHERMAN, Profession.FISHERMAN, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_WOODCUTTER, Profession.WOODCUTTER, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
-
         getServer().getPluginManager().registerEvents(equipmentService, this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(craftingGUI, this);
@@ -271,7 +262,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CompanionExperienceListener(companionService), this);
         questPassiveCheckTask = new QuestPassiveCheckTask(this, questManager);
         questPassiveCheckTask.start();
-
         lifecycle.register(() -> playerProfileManager.shutdown());
         lifecycle.register(() -> companionService.shutdown());
         lifecycle.register(() -> partyManager.shutdown());
@@ -289,7 +279,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         lifecycle.register(() -> regionEditor.shutdown());
         lifecycle.register(() -> regionSpawnService.stop());
         lifecycle.register(() -> bankerBehavior.shutdown());
-
         RootCommand rootCommand = new RootCommand(this, itemService);
         rootCommand.register(new CompanionSubCommand(companionService));
         rootCommand.register(new NpcSubCommand(npcManager));
@@ -303,7 +292,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         PaperBasicCommandAdapter partyAdapter = new PaperBasicCommandAdapter("pixelrpgparty", partyCommand, partyCommand, "rpg.member");
         PaperBasicCommandAdapter questLogAdapter = new PaperBasicCommandAdapter("pixelrpgquestlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member");
         PaperBasicCommandAdapter dialogueAdapter = new PaperBasicCommandAdapter("pixelrpgdialogue", new DialogueCommand(playerProfileManager, dialogueEngine), null, "rpg.member");
-
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             event.registrar().register("pixelrpg", rpgCommand);
             event.registrar().register("pixelrpgparty", partyAdapter);
@@ -331,4 +319,23 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public static PixelRPGPlugin getInstance() { return instance; }
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
     public StatEngine getStatEngine() { return statEngine; }
+    public ProfessionSystem getProfessionSystem() { return professionSystem; }
+    public ItemDisplayNameResolver getItemDisplayNameResolver() { return itemDisplayNameResolver; }
+    public ItemEconomyConfig getItemEconomyConfig() { return itemEconomyConfig; }
+    public ItemService getItemService() { return itemService; }
+    public EquipmentService getEquipmentService() { return equipmentService; }
+    public NpcManager getNpcManager() { return npcManager; }
+    public ShopManager getShopManager() { return shopManager; }
+    public StoryManager getStoryManager() { return storyManager; }
+    public PartyManager getPartyManager() { return partyManager; }
+    public QuestRepository getQuestRepository() { return questRepository; }
+    public QuestManager getQuestManager() { return questManager; }
+    public GlobalEventState getGlobalEventState() { return globalEventState; }
+    public BossRepository getBossRepository() { return bossRepository; }
+    public BossManager getBossManager() { return bossManager; }
+    public StatisticsService getStatisticsService() { return statisticsService; }
+    public ScoreboardService getScoreboardService() { return scoreboardService; }
+    public CompanionService getCompanionService() { return companionService; }
+    public RegionManager getRegionManager() { return regionManager; }
+    public RegionEditor getRegionEditor() { return regionEditor; }
 }
