@@ -9,7 +9,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,11 +23,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ConcurrentHashMap;
 
 /** Party state is event-driven; invite expiry and empty-party cleanup use exact deadline wake-ups instead of polling. */
 public final class PartyManager implements PartyAPI {
@@ -43,7 +41,8 @@ public final class PartyManager implements PartyAPI {
     private final Map<UUID, PendingInvite> pendingInvites = new ConcurrentHashMap<>();
     private final File storageFile;
     private final ExecutorService persistenceExecutor;
-    private CompletableFuture<Void> persistenceChain = CompletableFuture.completedFuture(null);
+    private boolean saveWorkerScheduled;
+    private long stateRevision;
     private final WakeScheduler<UUID> inviteWakeScheduler;
     private final WakeScheduler<UUID> emptyPartyWakeScheduler;
     private volatile boolean shuttingDown;
@@ -153,16 +152,51 @@ public final class PartyManager implements PartyAPI {
         }
     }
 
-    /** Captures the party state on the server thread and persists that immutable snapshot off-thread. */
-    private void save() {
+    /** Marks the current state revision dirty and schedules at most one persistence worker. */
+    private synchronized void save() {
         if (shuttingDown || persistenceExecutor.isShutdown()) return;
+        stateRevision++;
+        if (saveWorkerScheduled) return;
+        saveWorkerScheduled = true;
+        persistenceExecutor.execute(this::drainSaves);
+    }
+
+    /** Writes the newest party snapshot and skips obsolete intermediate persistence states. */
+    private void drainSaves() {
+        while (true) {
+            final YamlConfiguration snapshot;
+            final long capturedRevision;
+            synchronized (this) {
+                capturedRevision = stateRevision;
+                snapshot = createSnapshot();
+            }
+            writeAtomically(snapshot);
+            synchronized (this) {
+                if (capturedRevision == stateRevision || shuttingDown) {
+                    saveWorkerScheduled = false;
+                    return;
+                }
+            }
+        }
+    }
+
+    private YamlConfiguration createSnapshot() {
         YamlConfiguration snapshot = new YamlConfiguration(); List<String> ids = new ArrayList<>();
         for (Party party : partiesById.values()) { ids.add(party.getId().toString()); String path="parties."+party.getId(); snapshot.set(path+".leader",party.getLeader().toString()); snapshot.set(path+".members",party.getMembers().stream().map(UUID::toString).toList()); }
-        snapshot.set("parties.ids",ids); persistenceChain=persistenceChain.handle((ignored,throwable)->null).thenRunAsync(()->writeAtomically(snapshot),persistenceExecutor);
+        snapshot.set("parties.ids",ids); return snapshot;
     }
+
     private void writeAtomically(YamlConfiguration snapshot){Path target=storageFile.toPath();Path temporary=target.resolveSibling(storageFile.getName()+".tmp");try{storageFile.getParentFile().mkdirs();snapshot.save(temporary.toFile());try{Files.move(temporary,target,StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE);}catch(AtomicMoveNotSupportedException exception){Files.move(temporary,target,StandardCopyOption.REPLACE_EXISTING);}}catch(IOException exception){try{Files.deleteIfExists(temporary);}catch(IOException ignored){}plugin.getLogger().warning("Could not save parties.yml: "+exception.getMessage());}}
 
-    public synchronized void shutdown(){if(shuttingDown)return;shuttingDown=true;inviteWakeScheduler.clear();emptyPartyWakeScheduler.clear();persistenceExecutor.shutdown();try{if(!persistenceExecutor.awaitTermination(10,TimeUnit.SECONDS))persistenceExecutor.shutdownNow();}catch(InterruptedException exception){persistenceExecutor.shutdownNow();Thread.currentThread().interrupt();}pendingInvites.clear();partyIdByMember.clear();partiesById.clear();}
+    public void shutdown(){
+        synchronized (this) {
+            if (shuttingDown) return;
+            shuttingDown=true;
+        }
+        inviteWakeScheduler.clear(); emptyPartyWakeScheduler.clear(); persistenceExecutor.shutdown();
+        try{if(!persistenceExecutor.awaitTermination(10,TimeUnit.SECONDS))persistenceExecutor.shutdownNow();}catch(InterruptedException exception){persistenceExecutor.shutdownNow();Thread.currentThread().interrupt();}
+        pendingInvites.clear(); partyIdByMember.clear(); partiesById.clear();
+    }
     @Override public boolean isInParty(UUID uuid){return getParty(uuid).map(p->p.getMembers().size()>1).orElse(false);}
     @Override public Set<UUID> getPartyMembers(UUID uuid){return getParty(uuid).map(p->Set.copyOf(p.getMembers())).orElse(Set.of(uuid));}
     @Override public UUID getPartyLeader(UUID uuid){return getParty(uuid).map(Party::getLeader).orElse(uuid);}
