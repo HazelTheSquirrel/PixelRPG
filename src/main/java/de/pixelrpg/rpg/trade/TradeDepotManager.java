@@ -21,9 +21,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
+
 import java.io.File;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +48,6 @@ public final class TradeDepotManager {
         profileManager.saveProfileAsync(buyer.getUniqueId()); if (sellerProfile != null) profileManager.saveProfileAsync(sellerProfile.getUuid()); save(); buyer.sendMessage(Component.text("Gekauft und ins Handelsfach gelegt für " + format(listing.price()) + " Gold.", NamedTextColor.GREEN)); buyer.playSound(buyer.getLocation(), Sound.ENTITY_VILLAGER_YES, 1.0f, 1.0f); return true; }
     public boolean cancel(Player seller, UUID listingId) { TradeDepotListing listing = listings.get(listingId); if (listing == null || !listing.sellerId().equals(seller.getUniqueId())) return false; if (!canFitTradeGoods(seller, listing.item())) { seller.sendMessage(Component.text("Dein Handelsfach ist voll.", NamedTextColor.RED)); return false; } if (!bankStorage.addTradeGoods(seller.getUniqueId(), listing.itemCopy())) return false; listings.remove(listingId); cancelExpiry(listingId); save(); seller.sendMessage(Component.text("Handelsangebot zurückgenommen und ins Handelsfach gelegt.", NamedTextColor.GREEN)); return true; }
     public void shutdown() { expiryTasks.values().forEach(BukkitTask::cancel); expiryTasks.clear(); save(); fileWriter.shutdown(); }
-    public void expireListings() { long now = System.currentTimeMillis(); for (TradeDepotListing listing : new ArrayList<>(listings.values())) if (listing.expired(now)) expireListing(listing.id()); }
     private void scheduleExpiry(TradeDepotListing listing) { cancelExpiry(listing.id()); long remainingMillis = listing.expiresAtMillis() - System.currentTimeMillis(); if (remainingMillis <= 0L) { expireListing(listing.id()); return; } long delayTicks = Math.max(1L, (remainingMillis + 49L) / 50L); expiryTasks.put(listing.id(), Bukkit.getScheduler().runTaskLater(plugin, () -> expireListing(listing.id()), delayTicks)); }
     private void scheduleExpiryRetry(UUID listingId) { cancelExpiry(listingId); expiryTasks.put(listingId, Bukkit.getScheduler().runTaskLater(plugin, () -> expireListing(listingId), EXPIRY_RETRY_DELAY_TICKS)); }
     private void expireListing(UUID listingId) { TradeDepotListing listing = listings.get(listingId); if (listing == null) { cancelExpiry(listingId); return; } if (!listing.expired(System.currentTimeMillis())) { scheduleExpiry(listing); return; } if (!bankStorage.addTradeGoods(listing.sellerId(), listing.itemCopy())) { scheduleExpiryRetry(listingId); return; } listings.remove(listingId); cancelExpiry(listingId); save(); }
