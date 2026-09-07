@@ -18,7 +18,6 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -237,17 +236,6 @@ public final class ExternalSkinService {
 
     private static String escapeJson(String value) {
         return value.replace("\\", "\\\\").replace("\"", "\\\"");
-    }
-
-    private static Throwable unwrap(Throwable throwable) {
-        Throwable current = throwable;
-        while ((current instanceof CompletionException) && current.getCause() != null) current = current.getCause();
-        return current;
-    }
-
-    private static String message(Throwable throwable) {
-        String message = throwable.getMessage();
-        return message == null || message.isBlank() ? throwable.getClass().getSimpleName() : message;
     }
 
     private record CacheEntry(ProfileProperty property, long createdAtMillis) { }
