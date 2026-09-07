@@ -146,7 +146,7 @@ public final class ExternalSkinService {
                     return;
                 }
                 mannequin.setProfile(ResolvableProfile.resolvableProfile().addProperty(property).build());
-                for (Entity entity : mannequin.getNearbyEntities(64.0D)) {
+                for (Entity entity : mannequin.getNearbyEntities(64.0D, 64.0D, 64.0D)) {
                     if (!(entity instanceof Player player)) continue;
                     player.hideEntity(plugin, mannequin);
                     player.showEntity(plugin, mannequin);
