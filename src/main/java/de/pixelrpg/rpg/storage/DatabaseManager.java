@@ -45,6 +45,10 @@ public final class DatabaseManager {
         hikariConfig.setKeepaliveTime(120_000L);
         hikariConfig.setValidationTimeout(5_000L);
         hikariConfig.setLeakDetectionThreshold(15_000L);
+        hikariConfig.addDataSourceProperty("cachePrepStmts", "true");
+        hikariConfig.addDataSourceProperty("prepStmtCacheSize", "250");
+        hikariConfig.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        hikariConfig.addDataSourceProperty("useServerPrepStmts", "true");
         this.dataSource = new HikariDataSource(hikariConfig);
     }
 
