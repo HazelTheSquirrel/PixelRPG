@@ -170,7 +170,9 @@ public final class CraftingService {
 
     private void tagSpecialCraftResult(ItemMeta meta, String itemId) {
         var pdc = meta.getPersistentDataContainer();
-        pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, canonicalItemId(itemId));
+        String resourcepackId = canonicalItemId(itemId);
+        pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, resourcepackId);
+        pdc.set(RPGKeys.Item.resourcepackId(), PersistentDataType.STRING, resourcepackId);
         pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, true);
     }
 
