@@ -4,581 +4,543 @@
 **Audit-Zielbranch:** `test`  
 **Referenzbranch:** `main`  
 **Audit-Stand:** 2026-09-11  
-**Geprüfter HEAD:** `27c2f6e2b5e807b7e1c915f9d5b01acf36055367`  
+**Geprüfter Code-Stand:** `test` zum Audit-Zeitpunkt  
 **Plattformziel:** Java 25 + Paper 26.2 + Mojang-Mappings  
-**Audit-Typ:** statische, forensische Code-/Architektur-/Build-/Persistenzanalyse auf Basis des aktuell hinterlegten Repository-Inhalts
+**Audit-Typ:** statische, forensische Code-/Architektur-/Build-/Persistenzanalyse
 
-> Dieser Audit bewertet den tatsächlich in `test` hinterlegten Stand. Er ersetzt keinen Laufzeittest auf einem echten Paper-Server und behauptet keine Fehlerfreiheit, die aus statischer Analyse nicht beweisbar ist.
+> **Wichtige Korrektur:** Dieser Audit beschreibt PixelRPG als das tatsächlich im Repository vorhandene **Minecraft-Paper-Plugin-/RPG-Projekt**. Es wird keine MMORPG-Server-Architektur unterstellt. Begriffe wie Spieler, Party, Guild, Economy, Quests, Bosse, Companions usw. werden ausschließlich als im Code vorhandene Features bewertet.
 
 ---
 
 ## 1. Executive Summary
 
-Der aktuelle `test`-Branch ist technisch deutlich weiter als der gemeinsame Ausgangspunkt von `main`. Die Build-Konfiguration entspricht der vorgegebenen Plattform: Paper Dev Bundle 26.2, Paperweight `2.0.0-beta.21`, Shadow `9.6.1`, Java 25 sowie Gson/HikariCP/MySQL Connector in den erwarteten Versionen. Das Repository verwendet `paper-plugin.yml` und die native Paper-Dialog-API. Die bisherigen Legacy-API-Schutzprüfungen sind weiterhin vorhanden.
+Der `test`-Branch besitzt eine moderne Paper-26.2-/Java-25-Basis mit `paper-plugin.yml`, Mojang-Mappings, nativer Dialog-API, Adventure Components, asynchroner Persistenz und projektspezifischen Build-Verifikationen.
 
-Der Branch hat laut GitHub-Vergleich **137 Commits Vorsprung**, ist jedoch gleichzeitig **3 Commits hinter `main`** und damit historisch divergent. Der gemeinsame Merge-Base ist `6e42255c89966922bea0b111883e252772b97dd6`. `test` ist daher kein einfacher linearer Ersatz für `main`; Änderungen aus `main` müssen bei späteren Integrationsentscheidungen bewusst geprüft werden.
+Der Audit bewertet **nicht**, was PixelRPG sein könnte, sondern ausschließlich, was der aktuelle Code tatsächlich implementiert. Es wird insbesondere keine MMORPG-Architektur, kein klassisches MMORPG-Servermodell und keine entsprechende Produktanforderung als Maßstab verwendet.
 
-Der wichtigste technische Befund ist nicht ein offensichtlicher Legacy-API-Verstoß, sondern die **Persistenz-Fallback-Strategie**: Wenn MySQL beim Start nicht initialisiert werden kann, fällt `PlayerProfileManager` automatisch auf YAML zurück. Für einen produktiven MMORPG-Server ist das gefährlich, weil dadurch ein Server mit einem anderen Persistenz-Backend starten kann als erwartet. Ein leerer oder veralteter YAML-Stand kann dann wie ein gültiger Spielstand behandelt werden. Das ist ein **P0-Datenintegritätsrisiko**.
+Der wichtigste technische Befund bleibt die Persistenzfehlerbehandlung: Bei konfiguriertem MySQL kann `PlayerProfileManager` bei der Initialisierung auf YAML zurückfallen. Das ist unabhängig vom Produkttyp ein potenzielles Datenintegritätsproblem, weil damit das aktive Persistenz-Backend während eines Fehlerzustands wechselt.
 
-Weitere relevante Risiken liegen in der Komplexität der zentralen Manager (`PixelRPGPlugin`, `PlayerProfileManager`, `BossManager`, `CompanionFollowTask`) und in der Tatsache, dass einige Persistenzoperationen zwar sauber transaktional ausgeführt werden, aber weiterhin komplette Teilmengen eines Profils löschen und neu schreiben. Das ist funktional robust genug für den aktuellen Maßstab, wird bei hoher Spielerzahl jedoch zum I/O- und Locking-Kostenpunkt.
+Weitere Befunde betreffen Lifecycle-Kopplung, Persistenzkosten, Concurrency, Async-/Serverthread-Grenzen, Dialog-/Input-Validierung und Testabdeckung. Diese Punkte sind technische Eigenschaften des vorhandenen Plugins und keine Aussage über eine vermeintliche MMORPG-Zielarchitektur.
 
-Positiv ist insbesondere die bereits vorhandene Event-/Dirty-State-Richtung: `WakeScheduler`, `AsyncFileWriter`, revisionsbasierte Player-Persistenz, lokale NPC-/Spawn-/Companion-Verarbeitung und native Dialogs zeigen eine klare Abkehr von globalem Polling. Die vorhandene Performance-/Architekturanalyse beschreibt diese Richtung bereits und ist mit dem aktuellen Code grundsätzlich konsistent.
-
-**Gesamtbewertung:**
+### Gesamtbewertung
 
 | Bereich | Bewertung | Priorität |
 |---|---|---|
 | Build-/Toolchain-Konformität | gut | P1 |
 | Paper-26.2-/Dialog-Konformität | gut | P1 |
 | Legacy-API-Abgrenzung | gut | P1 |
-| Persistenz-Architektur | gut, aber mit kritischem Fallback | **P0** |
+| Persistenz | gut, aber mit kritischem Fallback | **P0** |
 | Datenintegrität | mittel | **P0/P1** |
-| Event-/Dirty-State-Architektur | gut | P1 |
-| Laufzeit-Skalierbarkeit | mittel bis gut | P1 |
-| Lifecycle/Shutdown | gut, komplex | P1 |
-| Security-Baseline | mittel | P1 |
+| Async-/Dirty-State-Architektur | gut | P1 |
+| Laufzeitkomplexität | mittel bis gut | P1 |
+| Lifecycle | gut, aber zentralisiert | P1 |
+| Security-Baseline | gut mit Hardening-Punkten | P1 |
 | Wartbarkeit | mittel | P1/P2 |
-| Produktionsreife | noch nicht vorbehaltlos | **P0/P1** |
 
 ---
 
-## 2. Prüfgrundlage und Beweislage
+## 2. Prüfgrundlage
 
-### 2.1 Direkt geprüfte Repository-Struktur
+Geprüft wurde der aktuelle Inhalt des Branches `test` sowie `main` ausschließlich als Referenz für den Branch-Vergleich.
 
-Der `test`-Tree enthält unter anderem:
+Direkt betrachtet wurden insbesondere:
 
-- Gradle-/CI-Konfiguration
-- `paper-plugin.yml`
-- Bootstrap- und Hauptplugin
-- API-Schicht
-- Boss-, Combat- und Skill-System
-- Companion-System
-- Dialog-/NPC-System
-- Economy/Guild/Party
-- Item-/Equipment-System
-- Player/Profile-/Persistence-System
-- Professionen/Crafting
-- Quests
-- Regionen/Spawn-System
-- Scoreboard/Statistics
-- Trade Depot
-- JSON-/YAML-Daten
+- `build.gradle`
+- `settings.gradle`
+- `src/main/resources/paper-plugin.yml`
+- `src/main/resources/config.yml`
+- `PixelRPGBootstrap.java`
+- `PixelRPGPlugin.java`
+- `PlayerProfileManager.java`
+- `MySQLPlayerProfileRepository.java`
+- `DatabaseManager.java`
+- `AsyncFileWriter.java`
+- `DialogueEngine.java`
+- `BossManager.java`
+- `CompanionFollowTask.java`
+- `.github/workflows/build.yml`
+- `PERFORMANCE_ARCHITECTURE_AUDIT.md`
 
-Die aktuelle Tree-Revision ist `27c2f6e2b5e807b7e1c915f9d5b01acf36055367`.
+Zusätzlich wurden Repository-Suchen nach relevanten Legacy-/Gefahrenmustern durchgeführt.
 
-### 2.2 Build-/CI-Beweislage
+### Aussagegrenze
 
-Der letzte im Branch beobachtete GitHub-Actions-Build für den aktuellen HEAD lief erfolgreich. Der Build verwendet Java 25 und Gradle 9.2.0 und führt `gradle clean build --no-daemon --stacktrace` aus. Zusätzlich werden Legacy-API-Grenzen und das Shadow-Artefakt geprüft.
-
-Wichtig: Ein erfolgreicher CI-Build beweist **Kompilierbarkeit und die vorhandenen statischen Prüfungen**, aber nicht:
-
-- korrekte Spiellogik unter realer Last
-- Race Conditions über externe Server-/Plugin-Interaktionen
-- Datenbankfehler unter Netzwerkausfällen
-- tatsächliche Paper-Laufzeitsemantik aller Interaktionen
-- Speicher-/Tick-Langzeitverhalten
-- Spielerexploitbarkeit
-
-### 2.3 Historische Differenz zu `main`
-
-`test` und `main` sind divergent. Der GitHub-Vergleich weist aus:
-
-- `test`: 137 Commits voraus
-- `test`: 3 Commits zurück
-- gemeinsamer Merge-Base: `6e42255c89966922bea0b111883e252772b97dd6`
-
-Unter den Änderungen befinden sich zahlreiche Laufzeitbereiche, darunter Player Persistence, Companion, Boss, Mob Scaling, Quest, Region Spawn, Scoreboard, Trade Depot und Storage.
-
-Daraus folgt: `main` darf für Architekturvergleiche verwendet werden, aber der hier dokumentierte Audit bewertet **ausschließlich den aktuellen `test`-Stand**.
+Der Audit ist statisch. Er ersetzt keinen echten Paper-Runtime-Test, keinen Lasttest und keinen vollständigen Security-Pentest.
 
 ---
 
-## 3. Build- und Plattform-Audit
+## 3. Branch-/Versionslage
 
-### Befund B-01 — Toolchain stimmt mit Zielplattform überein
+`test` und `main` sind historisch divergent. Der geprüfte Stand von `test` war zum Audit-Zeitpunkt von einem Vergleich mit `main` geprägt, bei dem `test` deutlich mehr eigene Commits enthielt, aber gleichzeitig Commits hinter `main` lag.
 
-`build.gradle` verwendet:
+Das ist für die Entwicklung relevant:
 
+- `main` bleibt Referenz-/Sollzustand.
+- `test` bleibt Entwicklungsbranch.
+- Änderungen aus `main` dürfen nicht blind übernommen werden.
+- Der Audit bewertet ausschließlich den tatsächlich geprüften `test`-Code.
+
+---
+
+## 4. Build- und Plattform-Audit
+
+### B-01 — Java/Paper-Basis
+
+`build.gradle` verwendet die vorgegebene Plattformbasis:
+
+- Java 25 Toolchain
+- Compiler Release 25
 - Paperweight Userdev `2.0.0-beta.21`
 - Paper Dev Bundle `26.2.build.121-stable`
-- Java Toolchain 25
-- `options.release = 25`
 - Shadow `9.6.1`
+
+**Bewertung:** PASS.
+
+### B-02 — Dependencies
+
+Vorhanden sind die festgelegten Versionen:
+
 - Gson `2.13.1`
 - HikariCP `7.0.2`
 - MySQL Connector/J `9.7.0`
 
-Das entspricht der verbindlichen Projektbasis.
+**Bewertung:** PASS.
+
+### B-03 — Shadowing
+
+Das finale Artefakt wird als `Pixel-RPG.jar` erzeugt. Die Third-Party-Abhängigkeiten werden in die vorgesehenen `de.pixelrpg.rpg.libs.*`-Namespaces relocated. Service-Dateien werden zusammengeführt.
 
 **Bewertung:** PASS.
 
-### Befund B-02 — Shadow-Konfiguration ist vorhanden und verhärtet
+### B-04 — Build-Verifikation
 
-Das Shadow-Artefakt heißt `Pixel-RPG.jar`. Gson, HikariCP und MySQL werden in die vorgesehenen `de.pixelrpg.rpg.libs.*`-Namespaces verschoben. `mergeServiceFiles()` ist aktiviert. Zusätzlich wird geprüft, dass der MySQL-JDBC-Service auf den relozierten Treiber zeigt.
-
-**Bewertung:** PASS.
-
-### Befund B-03 — `check` enthält weiterhin die Schutzprüfungen
-
-`check` hängt sowohl `verifyPixelRpgSourceBoundaries` als auch `verifyPixelRpgShadedDependencies` ein. Damit wurden die projektspezifischen Verifikationsmechanismen nicht versehentlich aus dem Build entfernt.
+`check` bindet die projektspezifischen Source-/Dependency-Grenzprüfungen ein. Zusätzlich prüft CI das erzeugte Plugin-Artefakt und die relevanten Legacy-/Relocation-Grenzen.
 
 **Bewertung:** PASS.
-
-### Befund B-04 — CI und Gradle prüfen teilweise unterschiedliche Details
-
-Der Gradle-Task prüft den JDBC-Serviceinhalt explizit auf `de.pixelrpg.rpg.libs.mysql.cj.jdbc.Driver`. Der CI-Schritt prüft zusätzlich das Vorhandensein des Service-Descriptors, validiert dessen konkreten Inhalt aber nicht mit derselben Strenge.
-
-**Risiko:** gering. Der eigentliche `gradle build` führt die Gradle-Prüfung bereits aus.
-
-**Empfehlung:** CI kann später vereinheitlicht werden, ist aber kein akuter Fehler.
 
 ---
 
-## 4. Plugin-/Bootstrap-Audit
+## 5. Plugin-Bootstrap und Lifecycle
 
-`paper-plugin.yml` definiert:
+`paper-plugin.yml` verwendet den aktuellen Paper-Plugin-Aufbau mit:
 
 - `main: de.pixelrpg.rpg.PixelRPGPlugin`
 - `bootstrapper: de.pixelrpg.rpg.PixelRPGBootstrap`
 - `api-version: '26.2'`
 
-Der Bootstrap registriert native Dialog-Registry-Einträge über die aktuellen Paper-Dialog-Klassen und fügt den Charakterdialog dem Quick-Actions-Tag hinzu.
+### P-01 — Native Dialog-Integration
 
-### Befund P-01 — Native Dialog-API korrekt eingesetzt
-
-Die Dialogimplementierung verwendet `io.papermc.paper.dialog.*` und `io.papermc.paper.registry.data.dialog.*`. Es ist keine 1.21.x-Dialog-Reimplementierung erkennbar.
-
-`DialogueEngine` nutzt `Player.showDialog(...)`, `Dialog.create(...)`, `DialogType.multiAction(...)`, `DialogType.confirmation(...)` und `DialogInput` aus der aktuellen API.
+Der Bootstrap registriert die aktuellen Paper-Dialog-Daten/Registry-Strukturen. Die Dialoglogik verwendet die native Paper-API und keine alte 1.21.x-Reimplementierung.
 
 **Bewertung:** PASS.
 
-### Befund P-02 — Hauptplugin ist stark zentralisiert
+### P-02 — Zentrale Initialisierung
 
-`PixelRPGPlugin` erzeugt und registriert einen sehr großen Teil der Laufzeitarchitektur selbst: Player, Stats, Professionen, Items, Equipment, Shops, Story, Party, Quests, Regionen, Bosse, Scoreboard, NPCs, Dialoge, Companion, Combat und Listener.
+`PixelRPGPlugin` übernimmt einen großen Teil der Komponenteninitialisierung und Listener-Registrierung. Das ist funktional nachvollziehbar, erzeugt aber hohe Lifecycle-Kopplung.
 
-Das ist aktuell nachvollziehbar, erzeugt aber eine hohe Kopplung zwischen Lifecycle und Feature-Initialisierung.
+Das Risiko ist vor allem bei späteren Änderungen relevant: Fehler in Initialisierungsreihenfolge, Shutdown oder Dependency-Wiring können mehrere Features gleichzeitig betreffen.
 
-**Risiko:** mittel.
+**Priorität:** P1.
 
-**Empfehlung:** Kein großer Refactor jetzt. Bei zukünftigen Änderungen nur featureweise kleine Lifecycle-Module auslagern.
+**Empfehlung:** Kein großer Refactor. Nur bei konkreten Änderungen kleine, verhaltensneutrale Lifecycle-Extraktionen vornehmen.
 
 ---
 
-## 5. Kritischer Persistenzbefund
+## 6. Persistenz — kritischster Befund
 
-### Befund S-01 — Automatischer MySQL→YAML-Fallback ist für Produktion gefährlich
+### S-01 — Automatischer MySQL→YAML-Fallback
 
-`PlayerProfileManager.initialize(...)` versucht bei `StorageType.MYSQL`, die Datenbank zu verbinden und das Repository zu initialisieren. Bei **jedem** Fehler wird geloggt und anschließend:
+`PlayerProfileManager` versucht bei konfiguriertem MySQL das Datenbank-Repository zu initialisieren. Bei einem Initialisierungsfehler wird auf YAML umgeschaltet und der Plugin-Betrieb fortgesetzt.
 
-1. `storageType = StorageType.YAML`
-2. `YamlPlayerProfileRepository` erstellt
-3. YAML-Repository initialisiert
-4. Plugin fährt weiter
+Technisch bedeutet das:
 
-Das bedeutet: Ein temporärer MySQL-Ausfall kann einen Serverstart nicht verhindern, sondern in ein anderes Persistenzsystem umleiten.
+1. Konfiguration sagt MySQL.
+2. MySQL-Initialisierung scheitert.
+3. Runtime-Backend wird auf YAML geändert.
+4. Das Plugin läuft mit einem anderen Persistenzsystem weiter.
 
-Das ist bei einem MMORPG keine harmlose Graceful-Degradation. Der Server könnte Spielerprofile aus einem leeren oder veralteten YAML-Verzeichnis laden und diese später wieder persistieren. Damit entsteht das Risiko von:
+Das ist unabhängig vom konkreten Produktmodell riskant. Ein leerer, alter oder anderweitig abweichender YAML-Stand kann dadurch als aktiver Zustand behandelt werden.
 
-- scheinbarem Fortschrittsverlust
-- divergierenden Profilständen
-- Überschreiben eines korrekten Datenbankstands durch einen Fallbackstand
-- schwer nachvollziehbarer Datenkorruption
-- unterschiedlichen Wahrheiten je nach Startzeitpunkt
+Mögliche Folgen:
+
+- widersprüchliche Datenstände
+- scheinbarer Fortschrittsverlust
+- spätere Überschreibung eines korrekten Datenstands
+- schwer nachvollziehbare Recovery-Situationen
+- unterschiedliche Datenwahrheiten nach Neustarts
 
 **Schweregrad: P0.**
 
-**Empfohlene Zielstrategie:** Wenn `storage.type=MYSQL` konfiguriert ist und MySQL nicht initialisiert werden kann, sollte der Plugin-Start kontrolliert fehlschlagen oder ausdrücklich in einen read-only/degraded state gehen. Ein automatischer Wechsel des Persistenz-Backends sollte nicht stillschweigend erfolgen.
+### Zielverhalten
 
-### Befund S-02 — Emergency YAML Backup ist sinnvoll, darf aber nicht zur primären Wahrheit werden
+Bei `storage.type=MYSQL` sollte ein fehlgeschlagenes MySQL-Setup nicht stillschweigend YAML als produktives Backend aktivieren.
 
-Bei einem MySQL-Speicherfehler schreibt `PlayerProfileManager` ein Emergency-YAML-Backup. Das ist als Recovery-Mechanismus sinnvoll.
+Sinnvolle Varianten sind:
 
-Die Semantik sollte jedoch eindeutig bleiben:
+- kontrollierter Plugin-Startabbruch, oder
+- expliziter read-only/degraded mode, oder
+- ein klar als Recovery markierter Offline-/Restore-Prozess.
 
-`MySQL = authoritative storage`  
-`Emergency YAML = recovery artifact`
+### S-02 — Emergency YAML Backup
 
-Nicht:
+Das vorhandene Emergency-YAML-Backup ist als Recovery-Mechanismus sinnvoll.
 
-`MySQL failed -> YAML becomes active storage`
+Die Rollen sollten strikt getrennt bleiben:
 
-**Schweregrad:** P1 als Architekturthema, P0 im Zusammenhang mit S-01.
+`MySQL = konfiguriertes/autoritäres Backend`  
+`Emergency YAML = Recovery-Artefakt`
+
+Ein Backup darf nicht implizit zum zweiten aktiven Backend werden.
+
+**Priorität:** P0 im Zusammenhang mit S-01.
 
 ---
 
-## 6. PlayerProfileManager — Race-/Revision-Audit
+## 7. PlayerProfileManager — Concurrency und Revisionen
 
-Die aktuelle Implementierung besitzt mehrere gute Schutzmechanismen:
+Die Player-Persistenz enthält mehrere solide Schutzmechanismen:
 
 - `ConcurrentHashMap` für aktive Profile
 - per-UUID Save Chains
 - coalescing `pendingSaves`
-- Snapshot-Erstellung vor asynchroner Persistierung
+- Snapshot-Erstellung vor Async-Persistierung
 - Mutation-/Persistence-Revisions
 - definierter Shutdown
 - Emergency Backup
 
-### Befund S-03 — Revision Locking ist ein guter Schutz gegen stale writes
+### S-03 — Revision Locking
 
-Das MySQL-Repository liest die `persistence_revision` mit `SELECT ... FOR UPDATE`, vergleicht sie mit der erwarteten Revision und verweigert veraltete Writes.
+Das MySQL-Repository verwendet die `persistence_revision` mit `SELECT ... FOR UPDATE` und prüft die erwartete Revision vor dem Schreiben.
 
-Das verhindert, dass ein älterer Profilstand einen neueren Stand blind überschreibt.
-
-**Bewertung:** POSITIV.
-
-### Befund S-04 — Save-Coalescing ist korrekt auf UUID-Ebene modelliert
-
-Ein bereits ausstehender Save wird nicht für denselben Spieler dupliziert. Nach Abschluss wird erneut geprüft, ob das Live-Profil wieder dirty ist.
-
-Das ist deutlich besser als ein Save pro Mutation.
+Damit werden stale writes erkannt und nicht blind akzeptiert.
 
 **Bewertung:** POSITIV.
 
-### Befund S-05 — Datenbankprofil speichert mehrere Tabellen in einer Transaktion
+### S-04 — Save-Coalescing
 
-Player, aktive Quests, Equipment und Statistics werden innerhalb derselben JDBC-Transaktion persistiert. Bei SQLException erfolgt Rollback.
+Mehrere ausstehende Saves desselben Profils werden zusammengeführt. Nach Abschluss wird geprüft, ob zwischenzeitlich erneut Änderungen entstanden sind.
+
+**Bewertung:** POSITIV.
+
+### S-05 — Transaktionale Speicherung
+
+Die relevanten Player-/Quest-/Equipment-/Statistics-Daten werden innerhalb einer JDBC-Transaktion persistiert. Fehler führen zum Rollback.
 
 **Bewertung:** PASS.
 
-### Befund S-06 — Vollständiges Löschen/Neuaufbauen von Child-State ist skalierbar nur bis zu einem gewissen Punkt
+### S-06 — Delete/Reinsert von Child-State
 
-Beim Speichern werden aktive Quests, Equipment und Statistics zunächst gelöscht und danach erneut geschrieben.
+Bestimmte Teilbereiche werden beim Speichern gelöscht und anschließend aus dem Snapshot neu geschrieben.
 
-Vorteile:
+Vorteil:
 
 - einfache Konsistenz
-- wenig komplexe Diff-Logik
-- Snapshot ist vollständig
+- überschaubare Persistenzlogik
 
-Nachteile:
+Nachteil:
 
-- unnötige DELETE/INSERT-Arbeit bei kleinen Änderungen
+- mehr SQL-Operationen
 - größere Transaktionen
-- mehr Lock-/Binlog-/I/O-Kosten
-- Skalierungsproblem bei großen Profilen
+- höhere I/O-/Lock-Kosten
 
-**Priorität:** P1, nicht P0.
-
-**Empfehlung:** Nicht sofort umbauen. Erst bei realer DB-Last oder Profilwachstum auf delta-basierte Upserts wechseln.
+**Priorität:** P1, kein akuter Fehler.
 
 ---
 
-## 7. Datenbank-Audit
+## 8. Datenbank-Audit
 
-### Positiv
+### DB-01 — HikariCP
 
-- HikariCP statt eigener Connection-Pools
-- Prepared Statements
-- Connection Timeout
-- Poolgröße begrenzt
-- Keepalive/MaxLifetime konfiguriert
-- SSL-Modus validiert
-- Datenbank-/Host-Eingaben werden eingeschränkt
-- Schema-Versionierung vorhanden
-- Migrationen sind explizit
+Der Einsatz eines dedizierten Connection-Pools mit Timeouts, Poolgröße und Lifetime-Konfiguration ist angemessen.
 
-### Befund DB-01 — Default-Credentials sind offensichtlich Entwicklungswerte
+### DB-02 — Prepared Statements
 
-`config.yml` enthält:
+Die Player-Persistenz verwendet Prepared Statements für dynamische Werte.
 
-`username: "root"`  
-`password: "CHANGE_ME"`
+**Bewertung:** POSITIV.
 
-Das ist kein geleaktes Secret, weil es ein Platzhalter ist. Für eine Distribution ist es dennoch wichtig, dass keine echte Produktionskonfiguration daraus entsteht.
+### DB-03 — Datenbank-/Host-Validierung
 
-**Bewertung:** P1 Hardening.
+Datenbank- und Hostwerte werden vor dem Aufbau der JDBC-Konfiguration eingeschränkt.
 
-### Befund DB-02 — YAML als Default Storage ist entwicklungsfreundlich, aber für große Produktion nicht ideal
+**Bewertung:** POSITIV.
 
-`storage.type` steht standardmäßig auf YAML.
+### DB-04 — Default-Konfiguration
 
-Das ist als lokale Entwicklungsbasis sinnvoll. Für einen MMORPG-Produktionsbetrieb muss MySQL bewusst konfiguriert und der Storage-Modus explizit validiert werden.
+`config.yml` enthält Entwicklungswerte wie `root` und `CHANGE_ME`. Es ist kein echtes Produktionspasswort erkennbar.
 
-### Befund DB-03 — SSL ist standardmäßig REQUIRED
+**Priorität:** P1 Hardening.
 
-Das ist positiv. Gleichzeitig erlaubt die Konfiguration bewusst `DISABLED`, `PREFERRED`, `VERIFY_CA` und `VERIFY_IDENTITY`.
+### DB-05 — SSL
 
-Das ist angemessen, solange `DISABLED` nicht als Produktionsstandard verwendet wird.
+Der Default-SSL-Modus ist restriktiv gewählt. Weniger sichere Modi sind konfigurierbar und müssen daher für reale Deployments bewusst bewertet werden.
+
+**Priorität:** P1 Deployment-Hardening.
 
 ---
 
-## 8. AsyncFileWriter-Audit
+## 9. AsyncFileWriter
 
-`AsyncFileWriter` verwendet:
+`AsyncFileWriter` kapselt Dateischreibvorgänge über einen dedizierten Executor und führt Coalescing pro Pfad durch.
 
-- einen dedizierten Single-Thread-Executor
-- coalescing `Map<Path, String>`
-- atomare Dateiersetzung, sofern vom Dateisystem unterstützt
-- Fallback auf normale Move-Operation
-- definierte Shutdown-Logik
+### F-01 — Serverthread wird entlastet
 
-### Befund F-01 — File writes sind sauber vom Gameplay entkoppelt
+Reguläre Dateischreibvorgänge laufen nicht direkt im normalen Gameplay-/Eventthread.
 
-Der Writer blockiert den Serverthread nicht mit regulären Dateioperationen.
+**Bewertung:** POSITIV.
 
-### Befund F-02 — Shutdown-Race wurde sinnvoll berücksichtigt
+### F-02 — Coalescing
 
-Die Implementierung schützt die Kombination aus `closed`, `draining`, `pending` und Executor-Shutdown gegen typische Queue-/Drain-Rennen.
+Mehrere ausstehende Writes für denselben Pfad werden zusammengeführt. Das verhindert unnötige Zwischenstände.
 
-**Bewertung:** gut.
+### F-03 — Shutdown
+
+Die Implementierung berücksichtigt Queue-Drain und Executor-Shutdown explizit.
 
 ### Rest-Risiko
 
-Die Queue ist zwar nach Schlüssel coalesced, besitzt aber keine globale Byte-/Speichergrenze. Ein extrem großer Snapshot kann weiterhin viel Heap beanspruchen.
+Es gibt keine harte globale Speicher-/Bytebegrenzung für extrem große ausstehende Snapshots.
 
-Für normale Player-/Guild-/Trade-Dateien ist das derzeit kein akuter Befund.
+**Priorität:** P2 unter normalen Datenmengen.
 
 ---
 
-## 9. Companion-System
+## 10. Companion-System
 
-Der Companion-Code verwendet inzwischen `WakeScheduler` und verarbeitet Companion-Runtime lokal pro Owner. `PlayerMoveEvent` löst nur bei Blockgrenzen eine Bewegungsauswertung aus.
+Das Companion-System ist lokal pro Besitzer organisiert und nutzt Wake-/Event-orientierte Verarbeitung statt einer offensichtlichen globalen Companion-Tick-Schleife.
 
-### Positiv
+### C-01 — Bewegungslogik ist komplex
 
-- keine globale Companion-Tick-Schleife für alle Spieler erkennbar
-- lokale Owner-Wakeups
-- Runtime-State-Caching
-- Equipment-Hash als Change Detection
-- PDC-basierte Companion-Identität
-- Lifecycle für Join/Quit/World Change
+`CompanionFollowTask` behandelt unter anderem Teleport, Velocity, Step-Up/Step-Down, Fallzustände und Sonderfälle.
 
-### Befund C-01 — CompanionFollowTask ist weiterhin komplex und physiknah
-
-Die Bewegungslogik kombiniert Teleport, Velocity, Step-Up, Step-Down, Gravity-/Fallzustand und Mannequin-Sonderlogik.
-
-Das ist kein Architekturfehler, aber ein Hotspot für Regressionen.
+Das ist kein konzeptioneller Fehler, aber ein klarer Regression-Hotspot.
 
 **Priorität:** P1 Testabdeckung.
 
-### Befund C-02 — `HashMap`/`HashSet` für Runtime-State sind kontextabhängig sicher
+### C-02 — Thread-Grenzen
 
-Die Runtime-Strukturen sind nicht generell thread-safe. Der Code ist jedoch als serverthreadbasierte Laufzeitlogik strukturiert. Sollte künftig aus asynchronen Callbacks auf diese Methoden zugegriffen werden, wäre eine harte Thread-Grenze erforderlich.
+Die Runtime-Strukturen sind auf serverthreadbasierte Nutzung ausgelegt. Async-Code darf diese Zustände und Minecraft-Entities nicht unkontrolliert manipulieren.
 
-**Empfehlung:** Async-Code niemals direkt auf Bukkit-Entities oder diese Runtime-Maps loslassen.
-
----
-
-## 10. Boss-System
-
-`BossManager` besitzt:
-
-- aktive Bosses nach UUID
-- Bossbars
-- Phasen
-- Angriffsmuster
-- Schadensbeiträge
-- Loot
-- Party-/Registered-Player-Auflösung
-- Cleanup
-
-### Positiv
-
-- aktive Bosse sind indexiert
-- Bossbars werden lokal über Radius aktualisiert
-- squared-distance wird wiederverwendet
-- Boss-Phasen sind zeit-/zustandsabhängig statt globaler Spielerscan
-- Loot läuft über den ItemService
-
-### Befund BO-01 — Boss-Timer bleiben bewusst periodisch
-
-Das ist hier gerechtfertigt: Phasen und Attack-Cooldowns sind echte zeitliche Zustände.
-
-Die Architektur muss nicht zwanghaft event-driven werden, wenn Zeit selbst der Input ist.
-
-### Befund BO-02 — Cleanup über nahe Entitäten kann teuer werden
-
-Beim World-Boss-Cleanup wird der relevante Weltbereich nach Entities durchsucht. Das ist ein lokaler Vorgang und deutlich besser als ein globaler Scan.
-
-**Priorität:** P2/P1 abhängig von Boss-Frequenz.
+**Priorität:** P1 als Architekturregel.
 
 ---
 
-## 11. Combat-Audit
+## 11. Boss-System
 
-Der Combat-Bereich trennt Damage Calculation, Context, State und Listener. Die Performance-Architektur nutzt indexierte Combat-Zustände und zeitbasierte Ablaufpunkte.
+Der Boss-Bereich besitzt aktive Boss-Instanzen, Bossbars, Phasen, Angriffsmuster, Schadensbeiträge, Loot und Cleanup.
 
-### Befund CB-01 — Keine offensichtliche Datenbankkopplung im Hit-Hotpath
+### BO-01 — Periodische Bosslogik ist fachlich begründet
 
-Die zentrale Combat-Struktur arbeitet mit in-memory Player-/Stat-Zuständen. Das ist korrekt.
+Phasen und Cooldowns sind zeitabhängige Zustände. Eine periodische Prüfung ist daher nicht automatisch ein Performancefehler.
 
-### Befund CB-02 — Damage-System ist ein kritischer Balancing-Hotspot
+### BO-02 — Räumliche Verarbeitung
 
-Damage-Formeln sollten bei zukünftigen Änderungen mit deterministischen Tests abgesichert werden. Statische Analyse kann mathematische Balancefehler nicht zuverlässig erkennen.
+Aktive Boss- und Bossbar-Operationen werden lokalisiert, statt pauschal alle relevanten Spieler/Entities global zu verarbeiten.
+
+### BO-03 — Cleanup-Kosten
+
+Lokale Entity-Suchen können bei hoher Entity-Dichte teuer werden.
+
+**Priorität:** P2, abhängig von tatsächlicher Boss-/Entity-Frequenz.
+
+---
+
+## 12. Combat-System
+
+Der Combat-Bereich trennt Damage-Berechnung, Kontext und Runtime-State.
+
+### CB-01 — Kein offensichtlicher DB-Hotpath
+
+Die zentrale Combat-Verarbeitung basiert auf In-Memory-Zuständen und koppelt einzelne Treffer nicht direkt an eine Datenbankoperation.
+
+**Bewertung:** POSITIV.
+
+### CB-02 — Balancing ist nicht statisch beweisbar
+
+Schadensformeln und Interaktionen können syntaktisch korrekt und fachlich trotzdem falsch sein.
+
+**Empfehlung:** deterministische Tests für Damage-/Mitigation-/Modifier-Ketten.
 
 **Priorität:** P1.
 
 ---
 
-## 12. NPC-/Dialog-Audit
+## 13. NPC und Dialoge
 
-Die NPC-Architektur ist in Manager, Registry, Behavior und Interaktionslistener getrennt. Das ist eine brauchbare Domain-Trennung.
+Die NPC-/Dialog-Struktur trennt Registry, Manager, Verhalten und Interaktion. `DialogueEngine` bündelt Dialogerzeugung und Komponentenaufbau.
 
-`DialogueEngine` zentralisiert native Dialogerzeugung und normalisiert Text/Body-Komponenten.
+### NPC-01 — Native Dialog-API
 
-### Positiv
+Die Implementierung basiert auf der aktuellen Paper-Dialog-API.
 
-- native Dialog-API
-- `ClickCallback.Options.builder().uses(1)` bei Input-Aktionen
-- serverseitige Player-Prüfung im Callback
-- Escape-/Close-Verhalten explizit
-- NPC-Behaviors sind registrierbar
+**Bewertung:** PASS.
 
-### Befund NPC-01 — Input-Validierung muss weiterhin an den fachlichen Endpunkten stattfinden
+### NPC-02 — Input ist nicht gleich Business-Validation
 
-Die Dialog-API verhindert nicht automatisch negative Zahlen, ungültige IDs oder unzulässige Aktionen. Jeder Behavior-/Command-Endpunkt muss seine Geschäftsregeln selbst validieren.
+Ein Dialog-Input schützt nicht automatisch vor ungültigen fachlichen Werten. IDs, Mengen, Zahlenbereiche und Berechtigungen müssen am jeweiligen Fachendpunkt validiert werden.
 
-**Priorität:** P1 Security/Logic Review.
+**Priorität:** P1.
 
----
+### NPC-03 — Quit-/Lifecycle-Rennen
 
-## 13. Quest-System
+Dialogaktionen müssen auch dann sicher sein, wenn der Spieler zwischen Öffnen und Callback die Welt verlässt oder disconnectet.
 
-Der Quest-Bereich ist umfangreich und enthält Repository, Manager, Progress, Inventory Tracker, Navigation und Listener.
-
-Die aktuelle Architektur bewegt sich weg von permanentem globalem Polling hin zu invalidierungs- und wake-basierten Prüfungen.
-
-### Positiv
-
-- Quest-State wird zentral verwaltet
-- Inventory-Ziele werden zusammen verarbeitet
-- Navigation ist separat
-- Mob-Kills haben explizite Listener
-- aktive Quests werden persistiert
-
-### Befund Q-01 — Passive Checks bleiben ein Bereich für Langzeitoptimierung
-
-Die Existenz von `QuestPassiveCheckTask` ist nicht automatisch falsch. Einige Ziele sind tatsächlich zeit-/zustandsabhängig. Entscheidend ist, dass es keine unnötigen globalen Wiederholungsprüfungen ausführt.
-
-**Priorität:** P1 Performance-Verifikation.
+**Priorität:** P1 Testfall.
 
 ---
 
-## 14. Region-/Spawn-System
+## 14. Quest-System
 
-Die Region-Schicht besteht aus Geometry, Manager, Repository, Policy, Transition und Spawn-Service.
+Das Quest-System umfasst Quest-Definitionen, Progress, Repository, Navigation, Inventory-Tracking und Listener.
 
-Die Performance-Architektur weist bereits eine Chunk-/Spawnpoint-orientierte Verarbeitung aus.
+### Q-01 — Event-/Wake-Richtung
 
-### Positiv
+Die Architektur vermeidet an vielen Stellen unnötiges permanentes globales Polling und verarbeitet Zustandsänderungen gezielter.
 
-- Spawnpoints sind räumlich adressierbar
-- Respawn ist ein zeitlicher Zustand und kann lokal geplant werden
-- Spielerbewegung kann lokale Spawnpoints aktivieren
+### Q-02 — Passive Checks
 
-### Risiko
+`QuestPassiveCheckTask` ist nicht automatisch falsch: Zeit- oder zustandsabhängige Ziele benötigen unter Umständen periodische Prüfung.
 
-Spawnlogik ist inhärent komplex, weil World-Loaded-State, Mob-Lifecycle und Spielerreichweite zusammenwirken. Ein Runtime-Stresstest ist hier wichtiger als weitere abstrakte Refactorings.
+Entscheidend ist die tatsächliche Reichweite und Frequenz der Prüfung.
 
----
-
-## 15. Item-/Equipment-/Economy-Audit
-
-Das Repository trennt ItemDefinition, ItemService, Builder, Rarity, Soulbound, Unique Items und Equipment-Service.
-
-### Positiv
-
-- Item-Definitionen sind datengetrieben
-- Item-Erstellung ist zentralisiert
-- Economy verwendet eigene Geldrepräsentation
-- Equipment ist von Item-Definitionen getrennt
-
-### Befund E-01 — Geldspeicherung als Minor Units ist richtig
-
-Die MySQL-Struktur verwendet `BIGINT money_minor_units`. Die Migration von einem älteren Geldfeld erfolgt explizit.
-
-Das reduziert Floating-Point-Probleme bei persistiertem Geld.
-
-### Befund E-02 — Migration muss fachlich einmalig validiert werden
-
-Die Migration verwendet `ROUND(money * 100)`. Bei historischen Floating-Point-/Dezimalständen kann Rundung erwartbar sein, muss aber fachlich akzeptiert werden.
-
-**Priorität:** P1 bei Live-Datenmigration.
+**Priorität:** P1 Runtime-Verifikation.
 
 ---
 
-## 16. Guild-/Party-/Trade-Persistenz
+## 15. Region und Spawn
 
-Diese Systeme wurden laut aktuellem Tree und Architektur-Audit auf revisions-/dirty-orientierte Persistenz umgestellt.
+Die Region-/Spawn-Struktur besitzt Geometry, Manager, Repository, Policy, Transition und Spawn-Service.
 
-### Positiv
+### R-01 — Räumliche Adressierung
 
-- Persistenz ist nicht direkt an jeden UI-Read gekoppelt
-- Guild-/Party-Zustände werden in-memory gehalten
-- Dateioperationen sind über `AsyncFileWriter` entkoppelt
+Spawnpoints und lokale Verarbeitung sind strukturell auf räumliche Bereiche ausgerichtet.
 
-### Risiko
+### R-02 — Lifecycle-Komplexität
 
-Guild Bank, Party und Trade Depot sind wirtschaftlich sensible Systeme. Ein statischer Audit kann nicht beweisen, dass jede mögliche Doppeltransaktion unter gleichzeitigen Spieleraktionen korrekt ist.
+World-Loaded-State, Entity-Lifecycle, Respawn-Zustände und Spielerreichweite greifen ineinander.
 
-**Empfehlung:** gezielte concurrency/property tests für:
+**Empfehlung:** Runtime-Stresstest statt vorschnellem Architekturumbau.
 
-- gleichzeitig kaufen/verkaufen
-- gleichzeitig einzahlen/abheben
-- gleichzeitig verlassen/einladen
-- gleichzeitig Item transferieren
-- Crash direkt nach Mutation
+**Priorität:** P1.
 
 ---
 
-## 17. API-/Service-Audit
+## 16. Items, Equipment und Economy
 
-Die API-Schicht bietet unter anderem Economy, Guild, Item, Party und Statistics.
+Die Item-Schicht trennt Definitionen, Builder/Service, Rarity, Soulbound/Unique-Eigenschaften und Equipment.
 
-Services werden über Bukkit/Paper ServiceManager registriert.
+### E-01 — Zentraler ItemService
 
-### Positiv
+Zentrale Item-Erzeugung reduziert verteilte, inkonsistente Itemkonstruktion.
 
-Das ermöglicht Feature-Entkopplung und verhindert, dass externe Systeme direkt auf interne Manager zugreifen müssen.
+**Bewertung:** POSITIV.
 
-### Befund API-01 — API-Verträge sollten weiterhin live-object-frei bleiben
+### E-02 — Minor Units
 
-Die bestehenden Build-Grenzen verhindern statische Live-Referenzen auf `Player`, `Entity` und `World`. Für öffentliche API-Verträge sollte weiterhin bevorzugt mit UUIDs, IDs und immutable snapshots gearbeitet werden.
+Persistiertes Geld wird als `BIGINT money_minor_units` geführt. Das vermeidet Floating-Point-Probleme bei Geldbeträgen.
+
+**Bewertung:** POSITIV.
+
+### E-03 — Geldmigration
+
+Die Migration aus einem älteren Geldfeld verwendet eine explizite Rundung auf Minor Units. Reale Bestandsdaten sollten vor einer Migration separat validiert werden.
+
+**Priorität:** P1 bei realer Migration.
+
+---
+
+## 17. Guild, Party und Trade
+
+Diese Systeme besitzen persistente und wirtschaftlich relevante Zustände.
+
+Der Audit behauptet hier **nicht**, dass jede mögliche Kombination paralleler Aktionen bereits formal bewiesen korrekt ist.
+
+### T-01 — Concurrency-Risiko
+
+Besonders zu testen sind:
+
+- parallele Transfers
+- parallele Ein-/Auszahlungen
+- gleichzeitige Käufe/Verkäufe
+- gleichzeitige Änderungen desselben Zustands
+- Disconnect unmittelbar nach einer Mutation
+- Serverabbruch während einer Mutation
+
+**Priorität:** P1.
+
+---
+
+## 18. API und Services
+
+Die API-Schicht stellt unter anderem Economy, Guild, Item, Party und Statistics bereit. Services werden über den ServiceManager registriert.
+
+### API-01 — Entkopplung
+
+Die Service-Schicht ist grundsätzlich sinnvoll, weil externe Integrationen nicht direkt interne Managerstrukturen benötigen.
+
+### API-02 — Öffentliche Verträge
+
+Die vorhandenen Build-Grenzen gegen statische `Player`-/`Entity`-/`World`-Referenzen unterstützen eine robuste Trennung zwischen API-Vertrag und Live-Serverobjekten.
+
+Für öffentliche APIs sollten weiterhin UUIDs, IDs und immutable Daten bevorzugt werden.
 
 **Priorität:** P1 Architekturregel.
 
 ---
 
-## 18. Security-Audit
+## 19. Security-Audit
 
-### Geprüfte Risikoklassen
+### SEC-01 — Legacy ChatColor
 
-- Legacy-ChatColor
-- CraftBukkit
-- Legacy-NMS
-- statische Live-Serverreferenzen
-- SQL Injection durch dynamische Identifikatoren
-- unverschlüsselte Standard-DB-Verbindung
-- Credential-Leaks
-- unkontrollierte HTTP-Abhängigkeiten
-- Input-Callbacks
-
-### Befund SEC-01 — Legacy-API-Suche ohne Treffer
-
-Repository-Code-Suche ergab keine Treffer für `ChatColor` und `org.bukkit.craftbukkit`.
-
-Die Build-Prüfungen decken zusätzlich entsprechende Muster ab.
+Keine offensichtliche `ChatColor`-Verwendung im geprüften Repository-Code gefunden.
 
 **Bewertung:** PASS.
 
-### Befund SEC-02 — SQL verwendet überwiegend Prepared Statements
+### SEC-02 — CraftBukkit
 
-Die Player-Persistenz verwendet Prepared Statements für UUIDs, Werte und Inserts. Datenbank-/Host-Eingaben werden vor dem JDBC-URL-Aufbau validiert.
+Keine offensichtliche `org.bukkit.craftbukkit`-Verwendung gefunden.
 
-### Befund SEC-03 — Dynamische Schema-Identifier sind eingeschränkt
+**Bewertung:** PASS.
 
-Datenbankname und Host werden gegen zulässige Zeichen geprüft. Das reduziert URL-/Identifier-Injection-Risiken.
+### SEC-03 — Legacy-NMS
 
-### Befund SEC-04 — Produktions-Credentials gehören nicht ins Repository
+Keine offensichtlichen `net.minecraft.server.v1_XX_RY`-Pakete gefunden.
 
-Die aktuelle Konfiguration enthält nur `CHANGE_ME`. Das ist akzeptabel als Platzhalter, solange niemals echte Passwörter in `config.yml` oder Git committed werden.
+**Bewertung:** PASS.
+
+### SEC-04 — SQL
+
+Prepared Statements werden für Datenwerte verwendet. Dynamische Konfigurationswerte für DB-Aufbau werden eingeschränkt.
+
+**Bewertung:** gut.
+
+### SEC-05 — Secrets
+
+Im Repository ist im geprüften `config.yml` nur ein Platzhalterpasswort vorhanden. Produktionscredentials dürfen nicht committed werden.
 
 ---
 
-## 19. Codequalität und Wartbarkeit
+## 20. Legacy-/Verifikationsschutz
 
-### Größte Klassen-/Komplexitäts-Hotspots
+Die Build-Konfiguration enthält weiterhin Prüfungen für relevante unerwünschte Abhängigkeiten und API-Muster, darunter:
+
+- `ChatColor`
+- Bungee-ChatColor
+- Legacy-NMS-Muster
+- CraftBukkit
+- statische Live-Serverreferenzen
+- Third-Party-Relocations
+- MySQL-JDBC-Service-Descriptor
+
+`check` bindet die projektspezifischen Verifikations-Tasks weiterhin ein.
+
+**Bewertung:** PASS.
+
+---
+
+## 21. Codequalität / Wartbarkeit
+
+Auffällige Komplexität konzentriert sich unter anderem in:
 
 - `PixelRPGPlugin`
 - `PlayerProfileManager`
@@ -592,204 +554,110 @@ Die aktuelle Konfiguration enthält nur `CHANGE_ME`. Das ist akzeptabel als Plat
 - `ScoreboardService`
 - `RPGItemBuilder`
 
-Diese Klassen sind nicht automatisch falsch. Sie sind jedoch die Stellen, an denen zukünftige Features am ehesten Seiteneffekte erzeugen.
+Diese Klassen sind nicht automatisch fehlerhaft. Sie sind jedoch besonders regressionsgefährdet, weil viele Verantwortlichkeiten bzw. Zustände zusammenlaufen.
 
-### Befund QL-01 — Keine großflächigen Refactorings ohne Anlass
+### QL-01 — Kein Big-Bang-Refactor
 
-Die aktuelle Architektur funktioniert als modularisiertes Feature-System. Ein aggressives "Clean Architecture"-Refactoring würde momentan mehr Regressionsrisiko erzeugen als Nutzen.
+Die aktuelle Struktur sollte nicht ohne konkreten Anlass komplett umgebaut werden. Kleine, verhaltensneutrale Extraktionen sind sinnvoller.
 
-**Empfehlung:** kleine, verhaltensneutrale Extraktionen nur bei konkreten Problemen.
-
----
-
-## 20. Legacy-/Verifikations-Audit
-
-Die folgenden Schutzmechanismen sind im aktuellen `test`-Build vorhanden:
-
-- ChatColor-Prüfung
-- Bungee-ChatColor-Prüfung
-- Legacy-NMS-Musterprüfung
-- CraftBukkit-Prüfung
-- statische Live-Serverreferenz-Prüfung
-- Shadow-Relocation-Prüfung
-- MySQL-JDBC-Service-Prüfung
-- `paper-plugin.yml`-Artefaktprüfung in CI
-
-**Bewertung:** PASS.
-
-Die Repository-Code-Suche ergab keine offensichtlichen Treffer für die geprüften Legacy-Muster.
+**Priorität:** P2.
 
 ---
 
-## 21. Bekannte Grenzen dieses Audits
+## 22. Priorisierte Maßnahmen
 
-Dieser Audit ist statisch. Nicht beweisbar sind ohne Server-/Lastumgebung insbesondere:
+### P0 — zuerst
 
-1. tatsächliche TPS-/MSPT-Werte
-2. Speicherwachstum über mehrere Stunden/Tage
-3. Chunk-/World-Lifecycle unter hoher Spielerzahl
-4. tatsächliche MySQL-Latenz
-5. Datenbankausfall während Live-Mutationen
-6. doppelte Events durch andere Plugins
-7. Paper-/Minecraft-Laufzeitverhalten aller Entities
-8. Clientseitige Dialogdarstellung über alle Eingabefälle
-9. tatsächliche Race Conditions zwischen Serverthread und externen Async-Tasks
-10. wirtschaftliche Exploits durch kombinierte Spieleraktionen
+**P0-01: MySQL-Fallback ändern**
 
-Diese Punkte dürfen nicht als "bestanden" markiert werden, nur weil der Code kompiliert.
+Kein automatischer Wechsel von konfiguriertem MySQL auf YAML als aktives Backend.
 
----
+**P0-02: Persistenz-Fehlerszenarien testen**
 
-## 22. Priorisierte Maßnahmenliste
+Mindestens:
 
-### P0 — vor produktivem Einsatz
-
-#### P0-01 — MySQL-Fallback abschalten
-
-Wenn `storage.type=MYSQL` gesetzt ist und MySQL nicht initialisiert werden kann:
-
-- Plugin-Start kontrolliert abbrechen, oder
-- explizit read-only/degraded mode verwenden.
-
-Kein stiller Wechsel auf YAML.
-
-#### P0-02 — Persistenz-Verlustszenarien testen
-
-Testmatrix:
-
-- MySQL down beim Start
-- MySQL down während Save
-- Connection timeout während Save
-- Server kill während Save
-- Server kill während Emergency Backup
-- zwei Saves mit schneller Mutation
+- MySQL nicht erreichbar beim Start
+- Timeout während Save
+- Connection-Abbruch während Save
+- Serverabbruch während Save
+- Save direkt nach einer vorherigen Mutation
 - stale revision
+- Recovery nach einem fehlgeschlagenen Save
 
-#### P0-03 — Produktionsdatenmigration separat validieren
+### P1 — danach
 
-Vor Einsatz von Schema-Version 2 mit echten Daten eine Kopie der Produktionsdaten migrieren und Geldstände prüfen.
-
----
-
-### P1 — kurzfristig
-
-#### P1-01 — Concurrency Tests für Economy/Guild/Party/Trade
-
-Gezielte Paralleltests auf Doppeltransaktionen.
-
-#### P1-02 — Runtime-Stresstest
-
-Empfohlenes Szenario:
-
-- 50/100/200 simulierte Spieler
-- viele NPCs
-- viele Mob-Spawns
-- aktive Companions
-- mehrere offene GUIs
-- Quests
-- Bosskampf
-- Guild-/Party-Aktivität
-- gleichzeitige Saves
-
-Messwerte:
-
-- MSPT p50/p95/p99
-- Heap
-- GC
-- DB connections
-- DB query latency
-- async queue depth
-- active scheduled wakeups
-
-#### P1-03 — Zentralisierte Lifecycle-Tests
-
-Für jede Komponente prüfen:
-
-`construct -> start -> runtime -> stop -> repeated stop`
-
-Insbesondere:
-
-- executors
-- scheduler tasks
-- listeners
-- file writers
-- repositories
-- boss tasks
-- NPC look task
-- spawn services
-
-#### P1-04 — Command-/Dialog-Input-Fuzzing
-
-Negative Zahlen, große Zahlen, leere Strings, Unicode, ungültige IDs, nicht registrierte Spieler, Race zwischen Dialogöffnung und Player Quit.
-
----
+- Concurrency-Tests für Economy/Guild/Party/Trade
+- Dialog-/Command-Input-Fuzzing
+- Companion-Lifecycle-Tests
+- Region-/Spawn-Stresstest
+- Quest-Passive-Check-Messung
+- Damage-/Combat-Determinismustests
+- Lifecycle-Test jeder Executor-/Task-/Repository-Komponente
+- reale DB-Latenz und Pool-Auslastung messen
 
 ### P2 — später
 
-- Child-table Delta-Upserts
-- weitere kleine Manager-Aufteilungen
-- Cache-/Index-Konsolidierung
-- zusätzliche statische Analysen
-- Metriken/Observability
-- gezielte Heap-/Allocation-Optimierung
+- Delta-Upserts für große Child-State-Tabellen
+- weitere kleine Lifecycle-Extraktionen
+- Observability/Metriken
+- Heap-/Allocation-Optimierung nach Messung
 
 ---
 
-## 23. Was ausdrücklich nicht geändert werden sollte
+## 23. Was nicht ohne Auftrag geändert werden sollte
 
-Ohne konkreten Auftrag sollten folgende funktionierende Eigenschaften erhalten bleiben:
+Erhalten bleiben sollten insbesondere:
 
-- Paper 26.2 als Zielplattform
+- Paper 26.2
 - Java 25
 - `paper-plugin.yml`
-- native Dialog-API
 - Mojang-Mappings
 - Adventure Components
+- native Dialog-API
 - Shadow-Relocations
 - bestehende Build-Verifikationen
-- UUID-/Revision-basierte Player Persistence
-- AsyncFileWriter
-- WakeScheduler
-- event-/dirty-state-orientierte Architektur
-- bestehende Gameplay-Balance
-- bestehende Quest-/Companion-/Boss-/Region-Semantik
+- revisionsbasierte Player-Persistenz
+- `AsyncFileWriter`
+- Wake-/Dirty-State-Architektur
+- bestehende Feature-Semantik
+
+Es gibt keinen Grund, funktionierende Systeme nur aufgrund von Architekturästhetik umzubauen.
 
 ---
 
-## 24. Schlussurteil
+## 24. Grenzen des Audits
 
-Der `test`-Branch ist kein ungepflegter Prototyp mehr. Er besitzt bereits eine erkennbare, moderne Paper-26.2-Architektur mit Daten-/Feature-Trennung, asynchroner Persistenz, revisionsbasierter Speicherung, nativen Dialogen und event-/wake-orientierter Verarbeitung.
+Nicht statisch beweisbar sind insbesondere:
 
-Der größte Fehler ist derzeit nicht ein veraltetes API-Muster, sondern eine **falsche Fehlersemantik bei der Persistenz**: Ein MySQL-Initialisierungsfehler darf bei einem produktiven RPG-System nicht automatisch dazu führen, dass YAML zum aktiven Ersatz-Backend wird.
+1. tatsächliche MSPT/TPS unter Last
+2. Langzeit-Speicherverbrauch
+3. reale MySQL-Ausfall- und Recovery-Semantik
+4. Race Conditions mit externen Plugins
+5. tatsächliche Client-/Dialogdarstellung in allen Situationen
+6. alle wirtschaftlichen Exploits aus kombinierten Spieleraktionen
+7. Paper-Runtime-Verhalten, das nicht aus dem Quellcode ableitbar ist
+8. tatsächliche Welt-/Chunk-/Entity-Kosten unter realer Belastung
 
-Abgesehen davon sind die wesentlichen Risiken überwiegend Skalierungs-, Testabdeckungs- und Komplexitätsthemen. Die vorhandenen Performance-Optimierungen sind grundsätzlich in die richtige Richtung gegangen; ein weiterer großer Architekturumbau wäre aktuell weniger sinnvoll als gezielte Tests und die Absicherung der kritischen Persistenzgrenzen.
+Diese Punkte müssen durch Runtime-, Integrations- und Lasttests validiert werden.
+
+---
+
+## 25. Schlussurteil
+
+PixelRPG besitzt im aktuellen `test`-Stand eine technisch moderne Grundlage für ein Paper-26.2-RPG-Plugin. Die Architektur enthält bereits mehrere gute Entscheidungen: aktuelle Paper-APIs, native Dialoge, Adventure Components, asynchrone Dateiverarbeitung, revisionsbasierte Persistenz, Service-Schnittstellen und Build-Grenzprüfungen.
+
+Der zentrale technische Risikopunkt ist die Fehlersemantik der Persistenz. Ein konfiguriertes MySQL-Backend sollte bei einem Initialisierungsfehler nicht stillschweigend durch YAML ersetzt werden.
+
+Die weiteren Risiken sind überwiegend klassische Themen für ein wachsendes Minecraft-Plugin: Concurrency, Lifecycle-Komplexität, Runtime-Kosten, fachliche Validierung und fehlende Beweise durch Last-/Integrationstests.
 
 **Finales Urteil:**
 
-> **Technisch solide Entwicklungsbasis, aber noch nicht vorbehaltlos produktionssicher. P0: Persistenz-Fallback korrigieren. Danach gezielte Concurrency-, Failure-Recovery- und Lasttests durchführen.**
+> **Solide technische Basis. Kein Anlass für einen großen Architekturumbau. Zuerst Persistenz-Fallback absichern, danach gezielt Concurrency-, Failure-Recovery-, Lifecycle- und Runtime-Tests ergänzen.**
 
 ---
 
-## 25. Audit-Evidenz
+## Audit-Evidenz
 
-Die wichtigsten direkt geprüften Artefakte im aktuellen Branch sind:
-
-- `build.gradle`
-- `settings.gradle`
-- `paper-plugin.yml`
-- `PixelRPGBootstrap.java`
-- `PixelRPGPlugin.java`
-- `PlayerProfileManager.java`
-- `MySQLPlayerProfileRepository.java`
-- `DatabaseManager.java`
-- `AsyncFileWriter.java`
-- `DialogueEngine.java`
-- `BossManager.java`
-- `CompanionFollowTask.java`
-- `config.yml`
-- `.github/workflows/build.yml`
-- `PERFORMANCE_ARCHITECTURE_AUDIT.md`
-
-Der Repository-Tree des geprüften `test`-Standes ist nicht als vollständig fehlerfrei zu interpretieren; die Aussagekraft der einzelnen Befunde ist jeweils auf die direkt beobachtete Implementierung und deren statische Beziehungen begrenzt.
+Dieser Audit basiert auf dem tatsächlich geprüften Repository-Inhalt des Branches `test` und wurde nach der Korrektur ausdrücklich von MMORPG-Annahmen bereinigt.
 
 **Audit-Ende.**
