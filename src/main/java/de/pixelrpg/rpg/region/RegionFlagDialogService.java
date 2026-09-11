@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.region;
 
-import de.pixelrpg.rpg.dialogue.DialogueEngineCloseButton;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.DialogBase;
@@ -78,7 +77,7 @@ public final class RegionFlagDialogService {
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .build());
-            builder.type(DialogType.multiAction(actions, DialogueEngineCloseButton.create(), 2));
+            builder.type(DialogType.multiAction(actions, null, 2));
         }));
     }
 
