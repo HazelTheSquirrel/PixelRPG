@@ -12,14 +12,16 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 
 /** Persists region definitions without expanding polygons into block lists. */
 public final class RegionRepository {
-    private static final int CURRENT_FORMAT_VERSION = 4;
+    private static final int CURRENT_FORMAT_VERSION = 5;
 
     private final File file;
     private final Logger logger;
@@ -85,11 +87,18 @@ public final class RegionRepository {
                     spawnPoints.add(new RegionSpawnPoint(String.valueOf(mob), world, number(x), number(y), number(z)));
                 }
 
-                UUID guildId = parseUuid(root.getString(idText + ".owner-guild-id"));
+                UUID ownerId = parseUuid(root.getString(idText + ".owner"));
+                Set<UUID> members = new HashSet<>();
+                for (String member : yaml.getStringList(base + ".members")) {
+                    UUID memberId = parseUuid(member);
+                    if (memberId != null) members.add(memberId);
+                }
+                if (ownerId != null) members.remove(ownerId);
+
                 result.add(new PixelRegion(
                         id, world, validation.geometry(), root.getInt(idText + ".min-y"), root.getInt(idText + ".max-y"),
                         root.getString(idText + ".name", idText), RegionType.parse(root.getString(idText + ".type", "OTHER")),
-                        root.getString(idText + ".description", ""), guildId, root.getString(idText + ".owner-guild-name"),
+                        root.getString(idText + ".description", ""), ownerId, members,
                         root.getString(idText + ".enter-message", ""), root.getString(idText + ".leave-message", ""),
                         root.getInt(idText + ".priority", 0), flags, properties, spawnPoints));
             } catch (Exception exception) {
@@ -155,8 +164,8 @@ public final class RegionRepository {
             yaml.set(base + ".min-y", region.minY());
             yaml.set(base + ".max-y", region.maxY());
             yaml.set(base + ".priority", region.priority());
-            if (region.ownerGuildId() != null) yaml.set(base + ".owner-guild-id", region.ownerGuildId().toString());
-            if (region.ownerGuildName() != null) yaml.set(base + ".owner-guild-name", region.ownerGuildName());
+            if (region.ownerId() != null) yaml.set(base + ".owner", region.ownerId().toString());
+            yaml.set(base + ".members", region.members().stream().map(UUID::toString).sorted().toList());
             yaml.set(base + ".points", region.geometry().points().stream()
                     .map(point -> Map.of("x", point.x(), "z", point.z())).toList());
             for (Map.Entry<RegionFlag, Boolean> flag : region.flags().entrySet()) {
