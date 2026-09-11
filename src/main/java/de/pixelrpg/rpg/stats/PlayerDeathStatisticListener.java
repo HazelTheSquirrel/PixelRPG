@@ -45,6 +45,7 @@ public final class PlayerDeathStatisticListener implements Listener {
                 return;
             }
             profile.setExperience(0L);
+            profileManager.saveProfileAsync(uuid);
             player.sendMessage(Component.text("Der Amboss war wohl zu schwer. Dein Level wurde auf 1 zurückgesetzt.", NamedTextColor.GOLD));
         });
     }
