@@ -129,9 +129,10 @@ public final class RegionSubCommand implements SubCommand {
         if (!region.description().isBlank()) sender.sendMessage(Component.text("  Beschreibung: " + region.description(), NamedTextColor.GRAY));
         sender.sendMessage(Component.text("  Flags:", NamedTextColor.YELLOW));
         for (RegionFlag flag : RegionFlag.values()) {
-            boolean enabled = region.flag(flag);
+            boolean enabled = effectiveFlag(region, flag);
+            String suffix = region.isGlobal() || region.hasFlag(flag) ? "" : " (global geerbt)";
             sender.sendMessage(Component.text(
-                    "    " + flag.displayName() + ": " + (enabled ? "AN" : "AUS"),
+                    "    " + flag.displayName() + ": " + (enabled ? "AN" : "AUS") + suffix,
                     enabled ? NamedTextColor.GREEN : NamedTextColor.RED
             ));
         }
@@ -308,17 +309,9 @@ public final class RegionSubCommand implements SubCommand {
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) return List.of("create", "finish", "confirm", "cancel", "delete", "info", "flags", "member", "owner", "edit", "list");
-        if (args.length == 2 && isRegionSelectorCommand(args[0])) {
-            List<String> selectors = regions.all().stream()
-                    .flatMap(region -> java.util.stream.Stream.of(region.name(), region.id().toString()))
-                    .distinct()
-                    .toList();
-            if (sender instanceof Player) return java.util.stream.Stream.concat(selectors.stream(), java.util.stream.Stream.of(GLOBAL_SELECTOR)).toList();
-            return selectors;
-        }
         if (args.length == 2 && (args[0].equalsIgnoreCase("member") || args[0].equalsIgnoreCase("members"))) return List.of("add", "remove");
-        if (args.length == 2 && args[0].equalsIgnoreCase("owner")) return regions.all().stream().map(PixelRegion::name).toList();
-        if (args.length == 3 && (args[0].equalsIgnoreCase("member") || args[0].equalsIgnoreCase("members"))) return regions.all().stream().map(PixelRegion::name).toList();
+        if (args.length == 2 && isRegionSelectorCommand(args[0])) return regionSelectors(sender);
+        if (args.length == 3 && (args[0].equalsIgnoreCase("member") || args[0].equalsIgnoreCase("members"))) return regionSelectors(sender);
         if (args.length == 3 && args[0].equalsIgnoreCase("edit")) {
             return List.of("name", "type", "description", "priority", "enter", "leave", "flag", "property");
         }
@@ -332,10 +325,18 @@ public final class RegionSubCommand implements SubCommand {
         return List.of();
     }
 
+    private List<String> regionSelectors(CommandSender sender) {
+        List<String> selectors = regions.all().stream()
+                .flatMap(region -> java.util.stream.Stream.of(region.name(), region.id().toString()))
+                .distinct()
+                .toList();
+        if (sender instanceof Player) return java.util.stream.Stream.concat(selectors.stream(), java.util.stream.Stream.of(GLOBAL_SELECTOR)).toList();
+        return selectors;
+    }
+
     private boolean isRegionSelectorCommand(String command) {
         return command.equalsIgnoreCase("delete") || command.equalsIgnoreCase("info") || command.equalsIgnoreCase("flags")
-                || command.equalsIgnoreCase("flagmenu") || command.equalsIgnoreCase("edit") || command.equalsIgnoreCase("member")
-                || command.equalsIgnoreCase("members") || command.equalsIgnoreCase("owner");
+                || command.equalsIgnoreCase("flagmenu") || command.equalsIgnoreCase("edit") || command.equalsIgnoreCase("owner");
     }
 
     private PixelRegion resolve(String text, CommandSender sender) {
@@ -408,6 +409,11 @@ public final class RegionSubCommand implements SubCommand {
     private static String memberNames(PixelRegion region) {
         if (region.members().isEmpty()) return "keine";
         return region.members().stream().map(RegionSubCommand::playerName).sorted(String.CASE_INSENSITIVE_ORDER).reduce((left, right) -> left + ", " + right).orElse("keine");
+    }
+
+    private boolean effectiveFlag(PixelRegion region, RegionFlag flag) {
+        if (region.isGlobal() || region.hasFlag(flag)) return region.flag(flag);
+        return regions.globalRegion(region.worldName()).flag(flag);
     }
 
     private static UUID parseUuid(String value) {
