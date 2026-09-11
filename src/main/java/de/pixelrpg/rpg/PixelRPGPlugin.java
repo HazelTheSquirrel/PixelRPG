@@ -286,7 +286,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         rootCommand.register(new QuestAdminSubCommand(questManager));
         rootCommand.register(new BossSubCommand(bossRepository, bossManager));
         rootCommand.register(new de.pixelrpg.rpg.command.impl.RegionSubCommand(regionManager, regionEditor, guildManager));
-        rootCommand.register(new EditSubCommand(regionEditor));
+        rootCommand.register(new EditSubCommand(regionEditor, regionManager));
         PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
         PaperBasicCommandAdapter rpgCommand = new PaperBasicCommandAdapter("pixelrpg", rootCommand, rootCommand, "rpg.admin");
         PaperBasicCommandAdapter partyAdapter = new PaperBasicCommandAdapter("pixelrpgparty", partyCommand, partyCommand, "rpg.member");
