@@ -73,7 +73,7 @@ public final class RegionManager {
         PixelRegion region = new PixelRegion(
                 id, worldName, validation.geometry(), minY, maxY,
                 name == null || name.isBlank() ? id.toString() : name,
-                type == null ? RegionType.OTHER : type, "", null, null, "", "", 0,
+                type == null ? RegionType.OTHER : type, "", null, java.util.Set.of(), "", "", 0,
                 Map.of(), Map.of(), spawnPoints == null ? List.of() : List.copyOf(spawnPoints)
         );
         regions.put(id, region);
@@ -107,6 +107,32 @@ public final class RegionManager {
         Map<String, Map<RegionFlag, Boolean>> snapshot = globalRegions.entrySet().stream()
                 .collect(java.util.stream.Collectors.toUnmodifiableMap(Map.Entry::getKey, entry -> entry.getValue().flags()));
         enqueuePersistence(() -> repository.saveGlobalFlags(snapshot));
+    }
+
+    /** Changes the owner of a normal region and persists the updated ownership metadata. */
+    public synchronized boolean setOwner(UUID regionId, UUID ownerId) {
+        PixelRegion region = regions.get(regionId);
+        if (region == null || region.isGlobal()) return false;
+        if (ownerId == null) region.clearOwner();
+        else region.setOwner(ownerId);
+        save();
+        return true;
+    }
+
+    /** Adds a player to a region's member set and persists the change. */
+    public synchronized boolean addMember(UUID regionId, UUID memberId) {
+        PixelRegion region = regions.get(regionId);
+        if (region == null || region.isGlobal() || !region.addMember(memberId)) return false;
+        save();
+        return true;
+    }
+
+    /** Removes a player from a region's member set and persists the change. */
+    public synchronized boolean removeMember(UUID regionId, UUID memberId) {
+        PixelRegion region = regions.get(regionId);
+        if (region == null || region.isGlobal() || !region.removeMember(memberId)) return false;
+        save();
+        return true;
     }
 
     public Optional<PixelRegion> find(World world, double x, int y, double z) {
@@ -277,7 +303,7 @@ public final class RegionManager {
     private static PixelRegion snapshot(PixelRegion region) {
         return new PixelRegion(
                 region.id(), region.worldName(), region.geometry(), region.minY(), region.maxY(), region.name(),
-                region.type(), region.description(), region.ownerGuildId(), region.ownerGuildName(), region.enterMessage(),
+                region.type(), region.description(), region.ownerId(), region.members(), region.enterMessage(),
                 region.leaveMessage(), region.priority(), region.flags(), region.properties(), region.spawnPoints());
     }
 
