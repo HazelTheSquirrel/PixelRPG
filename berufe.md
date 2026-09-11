@@ -1,111 +1,684 @@
-# Berufe – Herstellungsrezepte
+# Berufe & Crafting-Rezepte
 
-Diese Datei bildet den **aktuellen Stand** aus `src/main/resources/data/recipes/crafting-recipes.json` ab und dient als manuell bearbeitbare Übersicht. Änderungen hier werden **nicht automatisch** in die Rezeptdaten übernommen.
+Diese Datei ist eine **Bauanleitung für die Rezeptdaten von PixelRPG**.
 
-## Farmer
+Die eigentliche Datenquelle ist:
 
-| Level | Rezept | Ergebnis | Materialkosten | Rezeptkosten | Freischaltung | Seltenheit |
-|---:|---|---|---|---|---:|---|
-| 1 | Saatgutbündel (`farmer:seed_bundle`) | 1× WHEAT_SEEDS | 2× WHEAT | – | 0 | COMMON |
-| 20 | Erntebündel (`farmer:crop_bundle`) | 1× HAY_BLOCK | 6× WHEAT, 4× WHEAT_SEEDS | 2× seed_bundle | 400 | COMMON |
-| 40 | Obstkiste (`farmer:orchard_crate`) | 1× CHEST | 4× APPLE, 8× OAK_PLANKS | 2× crop_bundle, 1× woodcutter:plank_bundle | 1200 | UNCOMMON |
-| 60 | Goldhonig (`farmer:golden_honey`) | 1× HONEY_BOTTLE | 4× HONEYCOMB, 2× GOLD_NUGGET | 1× orchard_crate | 2500 | RARE |
-| 80 | Meistersaat (`farmer:master_seed`) | 8× WHEAT_SEEDS | 12× WHEAT, 4× GOLD_NUGGET | 1× golden_honey | 5000 | EPIC |
-| 100 | Kern der Ernte (`farmer:harvest_core`) | 1× GOLDEN_CARROT | 8× GOLD_NUGGET, 8× CARROT | 2× master_seed | 10000 | LEGENDARY |
+`src/main/resources/data/recipes/crafting-recipes.json`
 
-## Holzfäller
+Die Einträge werden vom Crafting-System als `CraftRecipe` geladen und verarbeitet. Wenn du neue Rezepte oder ganze Rezeptketten bauen möchtest, musst du die JSON-Struktur in `crafting-recipes.json` einhalten.
 
-| Level | Rezept | Ergebnis | Materialkosten | Rezeptkosten | Freischaltung | Seltenheit |
-|---:|---|---|---|---|---:|---|
-| 1 | Holzbündel (`woodcutter:log_bundle`) | 1× OAK_LOG | 3× OAK_LOG | – | 0 | COMMON |
-| 20 | Bretterbündel (`woodcutter:plank_bundle`) | 4× OAK_PLANKS | 2× OAK_LOG | 2× log_bundle | 400 | COMMON |
-| 40 | Werkstoffkiste (`woodcutter:work_crate`) | 1× CHEST | 8× OAK_PLANKS, 4× STICK | 2× plank_bundle | 1200 | UNCOMMON |
-| 60 | Verstärkte Kiste (`woodcutter:reinforced_crate`) | 1× BARREL | 8× OAK_PLANKS, 4× IRON_NUGGET | 1× work_crate | 2500 | RARE |
-| 80 | Zimmermannssatz (`woodcutter:carpenter_kit`) | 1× CRAFTING_TABLE | 6× OAK_PLANKS, 4× STICK | 1× reinforced_crate | 5000 | EPIC |
-| 100 | Meisterrahmen (`woodcutter:master_frame`) | 2× BARREL | 16× OAK_PLANKS, 2× IRON_INGOT | 1× carpenter_kit | 10000 | LEGENDARY |
+---
 
-## Schmied
+## 1. Grundstruktur der Datei
 
-| Level | Rezept | Ergebnis | Materialkosten | Rezeptkosten | Freischaltung | Seltenheit |
-|---:|---|---|---|---|---:|---|
-| 1 | Eisenbeschlag (`blacksmith:iron_fitting`) | 1× IRON_NUGGET | 1× IRON_INGOT | – | 0 | COMMON |
-| 20 | Eisenwerkzeugkopf (`blacksmith:iron_toolhead`) | 1× IRON_INGOT | 2× IRON_INGOT, 1× COAL | 2× iron_fitting | 400 | COMMON |
-| 40 | Stahlkern (`blacksmith:steel_core`) | 1× IRON_INGOT | 3× IRON_INGOT, 2× COAL | 2× iron_toolhead | 1200 | UNCOMMON |
-| 60 | Geschmiedete Spitzhacke (`blacksmith:forged_pickaxe`) | 1× IRON_PICKAXE | 2× STICK | 2× steel_core, 1× woodcutter:plank_bundle | 2500 | RARE |
-| 80 | Geschmiedetes Schwert (`blacksmith:forged_sword`) | 1× IRON_SWORD | 1× STICK | 2× steel_core | 5000 | EPIC |
-| 100 | Rüstung des Schmiedemeisters (`blacksmith:master_armor`) | 1× DIAMOND_CHESTPLATE | 4× DIAMOND, 4× IRON_INGOT | 1× forged_sword | 10000 | LEGENDARY |
+Die Datei besitzt genau einen Wurzelknoten `recipes`:
 
-## Gelehrter
+```json
+{
+  "recipes": [
+    {
+      "id": "farmer:seed_bundle",
+      "label": "Saatgutbündel",
+      "profession": "FARMER",
+      "result": "WHEAT_SEEDS",
+      "resultItemId": "pixelrpg:farmer:seed_bundle",
+      "costs": {
+        "WHEAT": 2
+      },
+      "requiredProfessionLevel": 1,
+      "unlockPrice": 0,
+      "rarity": "COMMON",
+      "unlockedByDefault": true
+    }
+  ]
+}
+```
 
-| Level | Rezept | Ergebnis | Materialkosten | Rezeptkosten | Freischaltung | Seltenheit |
-|---:|---|---|---|---|---:|---|
-| 1 | Papierbündel (`scholar:paper_bundle`) | 1× PAPER | 3× SUGAR_CANE | – | 0 | COMMON |
-| 20 | Waffenhandbuch (`scholar:weapon_manual`) | 1× BOOK | 4× PAPER, 2× FEATHER, 1× INK_SAC | 2× paper_bundle | 400 | COMMON |
-| 40 | Forschungsmappe (`scholar:research_notes`) | 1× BOOK | 6× PAPER, 2× LAPIS_LAZULI | 1× weapon_manual | 1200 | UNCOMMON |
-| 60 | Arkaner Foliant (`scholar:arcane_tome`) | 1× BOOK | 2× BOOK, 3× AMETHYST_SHARD, 1× GLOW_INK_SAC | 2× research_notes | 2500 | RARE |
-| 80 | Meisterhandbuch (`scholar:master_manual`) | 1× ENCHANTED_BOOK | 5× LAPIS_LAZULI, 1× BOOK | 1× arcane_tome | 5000 | EPIC — Efficiency V |
-| 100 | Weltarchiv (`scholar:world_archive`) | 1× WRITABLE_BOOK | 2× DIAMOND, 2× GLOW_INK_SAC | 1× master_manual | 10000 | LEGENDARY |
+**Wichtig:** Die JSON-Datei ist die technische Wahrheit. Diese Dokumentation ist eine Hilfe zum Erstellen und Planen von Rezepten.
 
-## Koch
+---
 
-| Level | Rezept | Ergebnis | Materialkosten | Rezeptkosten | Freischaltung | Seltenheit |
-|---:|---|---|---|---|---:|---|
-| 1 | Grundteig (`cook:basic_dough`) | 1× BREAD | 3× WHEAT | 1× farmer:seed_bundle | 0 | COMMON |
-| 20 | Herzhafte Mahlzeit (`cook:hearty_meal`) | 1× COOKED_BEEF | 2× BEEF, 1× CARROT | 1× basic_dough, 1× farmer:crop_bundle | 400 | COMMON |
-| 40 | Fischplatte (`cook:fishermans_platter`) | 1× COOKED_COD | 2× COD, 2× POTATO | 1× hearty_meal, 1× fisherman:fish_crate | 1200 | UNCOMMON |
-| 60 | Goldenes Festmahl (`cook:golden_feast`) | 1× GOLDEN_CARROT | 6× GOLD_NUGGET, 2× CARROT | 1× fishermans_platter, 1× farmer:golden_honey | 2500 | RARE |
-| 80 | Heldenmahl (`cook:hero_feast`) | 1× GOLDEN_APPLE | 4× GOLD_INGOT, 1× APPLE | 1× golden_feast, 1× farmer:orchard_crate | 5000 | EPIC |
-| 100 | Legendenmahl (`cook:legendary_feast`) | 1× ENCHANTED_GOLDEN_APPLE | 1× GOLD_BLOCK, 2× APPLE | 1× hero_feast, 1× alchemist:master_elixir, 1× scholar:world_archive | 10000 | LEGENDARY |
+## 2. Felder eines Rezeptes
 
-## Schneider
+| Feld | Pflicht | Bedeutung |
+|---|---|---|
+| `id` | ja | Eindeutige Rezept-ID, z. B. `farmer:seed_bundle` |
+| `label` | ja | Anzeigename des Rezeptes |
+| `profession` | ja | Beruf als Enum, z. B. `FARMER` |
+| `result` | ja | Bukkit-Material des Ergebnisses |
+| `resultItemId` | ja | PixelRPG-ID des hergestellten Gegenstandes |
+| `costs` | ja | Normale Minecraft-Materialkosten |
+| `itemCosts` | nein | Bereits hergestellte PixelRPG-Gegenstände als Kosten |
+| `resultAmount` | nein | Anzahl des erzeugten Ergebnisses; Standard ist 1 |
+| `requiredProfessionLevel` | ja | Benötigtes Berufslevel |
+| `unlockPrice` | ja | Preis zum Freischalten |
+| `rarity` | ja | Maximale Zielseltenheit |
+| `unlockedByDefault` | ja | `true` = sofort verfügbar, `false` = muss freigeschaltet werden |
+| `potionType` | nein | Basistrank für spezielle Tränke |
+| `enchantment` | nein | Verzauberung für ein Enchanted Book |
+| `enchantmentLevel` | nein | Level der Verzauberung |
 
-| Level | Rezept | Ergebnis | Materialkosten | Rezeptkosten | Freischaltung | Seltenheit |
-|---:|---|---|---|---|---:|---|
-| 1 | Garnbündel (`tailor:thread_bundle`) | 1× STRING | 3× STRING | – | 0 | COMMON |
-| 20 | Stoffrolle (`tailor:cloth_roll`) | 2× WHITE_WOOL | 4× STRING, 2× WHITE_WOOL | 2× thread_bundle | 400 | COMMON |
-| 40 | Lederkit (`tailor:leather_kit`) | 1× LEATHER | 3× LEATHER, 2× STRING | 1× cloth_roll | 1200 | UNCOMMON |
-| 60 | Verstärkter Stoff (`tailor:reinforced_cloth`) | 2× WHITE_WOOL | 6× STRING, 2× LEATHER | 1× leather_kit | 2500 | RARE |
-| 80 | Reisendenrüstung (`tailor:traveler_armor`) | 1× LEATHER_CHESTPLATE | 8× LEATHER | 2× reinforced_cloth, 1× scholar:research_notes | 5000 | EPIC |
-| 100 | Meisterumhang (`tailor:master_cloak`) | 1× LEATHER_CHESTPLATE | 8× LEATHER, 4× GOLD_NUGGET | 1× traveler_armor, 1× scholar:master_manual | 10000 | LEGENDARY |
+---
 
-## Alchemist
+## 3. IDs richtig aufbauen
 
-| Level | Rezept | Ergebnis | Materialkosten | Rezeptkosten | Freischaltung | Seltenheit |
-|---:|---|---|---|---|---:|---|
-| 1 | Kräuterextrakt (`alchemist:herbal_extract`) | 1× HONEY_BOTTLE | 2× DANDELION, 1× SUGAR | 1× farmer:seed_bundle | 0 | COMMON |
-| 20 | Heilelixier (`alchemist:healing`) | 1× POTION | 1× GLISTERING_MELON_SLICE | 1× herbal_extract | 400 | COMMON — Healing |
-| 40 | Arkaner Katalysator (`alchemist:arcane_catalyst`) | 1× POTION | 2× AMETHYST_SHARD, 1× GLOW_INK_SAC | 1× healing, 1× scholar:research_notes | 1200 | UNCOMMON — Water |
-| 60 | Starkes Heilelixier (`alchemist:strong_healing`) | 1× POTION | 2× GLISTERING_MELON_SLICE, 2× GOLD_NUGGET | 1× arcane_catalyst | 2500 | RARE — Strong Healing |
-| 80 | Meisterelixier (`alchemist:master_elixir`) | 1× POTION | 1× DIAMOND, 4× GLOWSTONE_DUST | 2× strong_healing, 1× scholar:arcane_tome | 5000 | EPIC — Strength |
-| 100 | Großes Elixier (`alchemist:grand_elixir`) | 1× POTION | 2× DIAMOND, 8× GLOWSTONE_DUST | 1× master_elixir, 1× farmer:golden_honey | 10000 | LEGENDARY — Strength |
+### Rezept-ID
 
-## Maurer
+Das Schema ist:
 
-| Level | Rezept | Ergebnis | Materialkosten | Rezeptkosten | Freischaltung | Seltenheit |
-|---:|---|---|---|---|---:|---|
-| 1 | Steinziegelkern (`mason:stone_brick`) | 1× STONE_BRICKS | 4× STONE | – | 0 | COMMON |
-| 20 | Behauener Stein (`mason:cut_stone`) | 1× STONE_BRICKS | 4× STONE | 2× stone_brick | 400 | COMMON |
-| 40 | Verstärkter Ziegel (`mason:reinforced_brick`) | 1× STONE_BRICKS | 4× STONE_BRICKS, 2× IRON_NUGGET | 2× cut_stone, 1× blacksmith:iron_fitting | 1200 | UNCOMMON |
-| 60 | Prismarrahmen (`mason:prismarine_frame`) | 1× PRISMARINE_BRICKS | 6× PRISMARINE_SHARD | 2× reinforced_brick, 1× fisherman:rare_scale | 2500 | RARE |
-| 80 | Obsidianpfeiler (`mason:obsidian_pillar`) | 1× OBSIDIAN | 4× OBSIDIAN, 2× QUARTZ | 1× prismarine_frame, 1× scholar:arcane_tome | 5000 | EPIC |
-| 100 | Meistermonument (`mason:master_monument`) | 4× PRISMARINE_BRICKS | 16× PRISMARINE_SHARD, 2× GOLD_INGOT | 2× obsidian_pillar, 2× fisherman:rare_scale | 10000 | LEGENDARY |
+```text
+beruf:rezept_name
+```
 
-## Fischer
+Beispiele:
 
-| Level | Rezept | Ergebnis | Materialkosten | Rezeptkosten | Freischaltung | Seltenheit |
-|---:|---|---|---|---|---:|---|
-| 1 | Fischkiste (`fisherman:fish_crate`) | 1× COD | 3× COD, 2× OAK_PLANKS | 1× woodcutter:plank_bundle | 0 | COMMON |
-| 20 | Lachspaket (`fisherman:salmon_pack`) | 1× SALMON | 3× SALMON | 1× fish_crate | 400 | COMMON |
-| 40 | Prismarinzahn (`fisherman:prismarine_fang`) | 1× PRISMARINE_SHARD | 2× PRISMARINE_SHARD, 2× COD | 1× salmon_pack | 1200 | UNCOMMON |
-| 60 | Seltene Schuppe (`fisherman:rare_scale`) | 1× PRISMARINE_CRYSTALS | 2× PRISMARINE_CRYSTALS, 1× TROPICAL_FISH | 2× prismarine_fang | 2500 | RARE |
-| 80 | Tiefseefang (`fisherman:deep_catch`) | 1× NAUTILUS_SHELL | 1× NAUTILUS_SHELL, 4× COD | 1× rare_scale, 1× scholar:research_notes | 5000 | EPIC |
-| 100 | Legendärer Fang (`fisherman:legendary_catch`) | 1× HEART_OF_THE_SEA | 1× HEART_OF_THE_SEA, 2× NAUTILUS_SHELL | 1× deep_catch, 1× alchemist:master_elixir | 10000 | LEGENDARY |
+```text
+farmer:seed_bundle
+woodcutter:plank_bundle
+blacksmith:steel_core
+alchemist:master_elixir
+```
 
-## Bearbeitungshinweise
+Die ID sollte klein geschrieben und stabil bleiben. Wenn andere Rezepte auf dieses Rezept verweisen, darfst du sie später nicht einfach ändern.
 
-- Rezept-IDs, `resultItemId` und `itemCosts` sind die technischen Schlüssel.
-- `requiredProfessionLevel` liegt aktuell bei **1 / 20 / 40 / 60 / 80 / 100** je Beruf.
-- `unlockPrice` ist der Preis für die Freischaltung eines nicht standardmäßig freigeschalteten Rezepts.
-- `rarity` ist die maximale Zielseltenheit für das Crafting-System.
-- Besondere Ergebnisse können zusätzlich `potionType`, `enchantment` und `enchantmentLevel` besitzen.
-- Die `resultItemId` ist zugleich die Grundlage für die zukünftige Resource-Pack-Verknüpfung der hergestellten Gegenstände.
+### Ergebnis-ID
+
+`resultItemId` ist die eindeutige PixelRPG-ID des erzeugten Gegenstandes:
+
+```json
+"resultItemId": "pixelrpg:farmer:seed_bundle"
+```
+
+Das ist wichtig für spätere Rezeptketten und für die Resource-Pack-Verknüpfung.
+
+---
+
+## 4. Normale Materialkosten: `costs`
+
+Normale Minecraft-Materialien kommen in `costs`:
+
+```json
+"costs": {
+  "IRON_INGOT": 3,
+  "COAL": 2
+}
+```
+
+Die Schlüssel sind Bukkit-Materialnamen.
+
+Beispiel:
+
+```json
+"costs": {
+  "WHEAT": 6,
+  "WHEAT_SEEDS": 4
+}
+```
+
+Das bedeutet: 6 Weizen und 4 Weizensamen werden aus dem Inventar entfernt.
+
+---
+
+## 5. Rezeptketten: `itemCosts`
+
+Hier entsteht die eigentliche Rezeptkette.
+
+Ein Rezept kann als Material ein **bereits hergestelltes PixelRPG-Item** verlangen:
+
+```json
+"itemCosts": {
+  "pixelrpg:farmer:seed_bundle": 2
+}
+```
+
+Das bedeutet:
+
+```text
+farmer:seed_bundle
+        ↓ 2 Stück
+farmer:crop_bundle
+```
+
+Mehrere vorherige Rezepte sind möglich:
+
+```json
+"itemCosts": {
+  "pixelrpg:farmer:crop_bundle": 2,
+  "pixelrpg:woodcutter:plank_bundle": 1
+}
+```
+
+Damit entsteht:
+
+```text
+farmer:crop_bundle ─────┐
+                        ├──> farmer:orchard_crate
+woodcutter:plank_bundle ┘
+```
+
+### Wichtig bei `itemCosts`
+
+Verwende die **kanonische Item-ID** des vorherigen Rezeptes. Die Rezept-ID selbst wird vom System ebenfalls aufgelöst, aber für neue Einträge solltest du die vollständige Form verwenden:
+
+```text
+pixelrpg:<profession>:<recipe>
+```
+
+Beispiel:
+
+```text
+"itemCosts": {
+  "pixelrpg:blacksmith:steel_core": 2
+}
+```
+
+---
+
+## 6. Eine komplette Rezeptkette selbst bauen
+
+Eine einfache Kette kann so aussehen:
+
+```text
+Stufe 1
+Rohstoff
+  ↓
+Stufe 20
+Zwischenprodukt I
+  ↓
+Stufe 40
+Zwischenprodukt II
+  ↓
+Stufe 60
+Fortgeschrittenes Produkt
+  ↓
+Stufe 80
+Meisterprodukt
+  ↓
+Stufe 100
+Endprodukt
+```
+
+### Beispiel: eigene Schmiedekette
+
+#### 1. Grundprodukt
+
+```json
+{
+  "id": "blacksmith:iron_fitting",
+  "label": "Eisenbeschlag",
+  "profession": "BLACKSMITH",
+  "result": "IRON_NUGGET",
+  "resultItemId": "pixelrpg:blacksmith:iron_fitting",
+  "costs": {
+    "IRON_INGOT": 1
+  },
+  "requiredProfessionLevel": 1,
+  "unlockPrice": 0,
+  "rarity": "COMMON",
+  "unlockedByDefault": true
+}
+```
+
+#### 2. Erstes Zwischenprodukt
+
+```json
+{
+  "id": "blacksmith:iron_toolhead",
+  "label": "Eisenwerkzeugkopf",
+  "profession": "BLACKSMITH",
+  "result": "IRON_INGOT",
+  "resultItemId": "pixelrpg:blacksmith:iron_toolhead",
+  "costs": {
+    "IRON_INGOT": 2,
+    "COAL": 1
+  },
+  "itemCosts": {
+    "pixelrpg:blacksmith:iron_fitting": 2
+  },
+  "requiredProfessionLevel": 20,
+  "unlockPrice": 400,
+  "rarity": "COMMON",
+  "unlockedByDefault": false
+}
+```
+
+#### 3. Nächste Stufe
+
+```json
+{
+  "id": "blacksmith:steel_core",
+  "label": "Stahlkern",
+  "profession": "BLACKSMITH",
+  "result": "IRON_INGOT",
+  "resultItemId": "pixelrpg:blacksmith:steel_core",
+  "costs": {
+    "IRON_INGOT": 3,
+    "COAL": 2
+  },
+  "itemCosts": {
+    "pixelrpg:blacksmith:iron_toolhead": 2
+  },
+  "requiredProfessionLevel": 40,
+  "unlockPrice": 1200,
+  "rarity": "UNCOMMON",
+  "unlockedByDefault": false
+}
+```
+
+#### 4. Produkt aus der Kette
+
+```json
+{
+  "id": "blacksmith:forged_pickaxe",
+  "label": "Geschmiedete Spitzhacke",
+  "profession": "BLACKSMITH",
+  "result": "IRON_PICKAXE",
+  "resultItemId": "pixelrpg:blacksmith:forged_pickaxe",
+  "costs": {
+    "STICK": 2
+  },
+  "itemCosts": {
+    "pixelrpg:blacksmith:steel_core": 2,
+    "pixelrpg:woodcutter:plank_bundle": 1
+  },
+  "requiredProfessionLevel": 60,
+  "unlockPrice": 2500,
+  "rarity": "RARE",
+  "unlockedByDefault": false
+}
+```
+
+Hier sieht man auch eine **berufsübergreifende Kette**:
+
+```text
+WOODCUTTER
+plank_bundle
+     │
+     ├──────────────┐
+     │              │
+BLACKSMITH          │
+iron_fitting        │
+     ↓              │
+iron_toolhead       │
+     ↓              │
+steel_core ─────────┘
+     ↓
+forged_pickaxe
+```
+
+---
+
+## 7. `resultAmount`
+
+Wenn mehr als ein Item erzeugt werden soll:
+
+```json
+"resultAmount": 4
+```
+
+Beispiel:
+
+```json
+{
+  "id": "woodcutter:plank_bundle",
+  "label": "Bretterbündel",
+  "profession": "WOODCUTTER",
+  "result": "OAK_PLANKS",
+  "resultItemId": "pixelrpg:woodcutter:plank_bundle",
+  "costs": {
+    "OAK_LOG": 2
+  },
+  "itemCosts": {
+    "pixelrpg:woodcutter:log_bundle": 2
+  },
+  "resultAmount": 4,
+  "requiredProfessionLevel": 20,
+  "unlockPrice": 400,
+  "rarity": "COMMON",
+  "unlockedByDefault": false
+}
+```
+
+Ohne `resultAmount` wird effektiv 1 Stück erzeugt.
+
+---
+
+## 8. Seltenheit
+
+Aktuell verwendete Werte:
+
+```text
+COMMON
+UNCOMMON
+RARE
+EPIC
+LEGENDARY
+UNIQUE
+```
+
+`UNIQUE` kann laut Crafting-Service nicht hergestellt werden. Für normale herstellbare Rezepte verwendest du daher höchstens `LEGENDARY`.
+
+Beispiel:
+
+```json
+"rarity": "EPIC"
+```
+
+---
+
+## 9. Freischaltung und Berufslevel
+
+Ein typisches Rezept sieht so aus:
+
+```json
+"requiredProfessionLevel": 60,
+"unlockPrice": 2500,
+"unlockedByDefault": false
+```
+
+Bedeutung:
+
+- Der Spieler braucht Berufslevel 60.
+- Das Rezept muss zusätzlich freigeschaltet werden.
+- Die Freischaltung kostet 2500.
+
+Ein Startrezept:
+
+```json
+"requiredProfessionLevel": 1,
+"unlockPrice": 0,
+"unlockedByDefault": true
+```
+
+Die aktuellen vorhandenen Rezeptketten verwenden überwiegend die Stufen:
+
+```text
+1 → 20 → 40 → 60 → 80 → 100
+```
+
+Das ist eine bestehende Struktur, keine technische Pflicht. Für neue Rezepte kannst du andere Level verwenden, sofern sie zum gewünschten Progressionsaufbau passen.
+
+---
+
+## 10. Spezialrezepte: Tränke
+
+Ein Trank kann zusätzlich `potionType` verwenden:
+
+```json
+{
+  "id": "alchemist:healing",
+  "label": "Heilelixier",
+  "profession": "ALCHEMIST",
+  "result": "POTION",
+  "resultItemId": "pixelrpg:alchemist:healing",
+  "costs": {
+    "GLISTERING_MELON_SLICE": 1
+  },
+  "itemCosts": {
+    "pixelrpg:alchemist:herbal_extract": 1
+  },
+  "requiredProfessionLevel": 20,
+  "unlockPrice": 400,
+  "rarity": "COMMON",
+  "unlockedByDefault": false,
+  "potionType": "HEALING"
+}
+```
+
+Der `potionType`-Wert wird als `PotionType` aufgelöst und muss deshalb ein gültiger Wert sein.
+
+---
+
+## 11. Spezialrezepte: Verzaubertes Buch
+
+Für ein Enchanted Book wird zusätzlich `enchantment` und `enchantmentLevel` verwendet:
+
+```json
+{
+  "id": "scholar:master_manual",
+  "label": "Meisterhandbuch",
+  "profession": "SCHOLAR",
+  "result": "ENCHANTED_BOOK",
+  "resultItemId": "pixelrpg:scholar:master_manual",
+  "costs": {
+    "LAPIS_LAZULI": 5,
+    "BOOK": 1
+  },
+  "itemCosts": {
+    "pixelrpg:scholar:arcane_tome": 1
+  },
+  "requiredProfessionLevel": 80,
+  "unlockPrice": 5000,
+  "rarity": "EPIC",
+  "unlockedByDefault": false,
+  "enchantment": "efficiency",
+  "enchantmentLevel": 5
+}
+```
+
+Für diese Variante muss `result` bzw. das tatsächliche Ergebnis `ENCHANTED_BOOK` sein.
+
+---
+
+## 12. Berufsbezeichnungen
+
+Die aktuell in den Rezeptdaten verwendeten Profession-Enums sind:
+
+| Anzeigename | JSON-Wert |
+|---|---|
+| Farmer | `FARMER` |
+| Holzfäller | `WOODCUTTER` |
+| Schmied | `BLACKSMITH` |
+| Gelehrter | `SCHOLAR` |
+| Koch | `COOK` |
+| Schneider | `TAILOR` |
+| Alchemist | `ALCHEMIST` |
+| Maurer | `MASON` |
+| Fischer | `FISHERMAN` |
+
+Beim Erstellen eines Rezeptes muss `profession` exakt dem technischen Enum-Wert entsprechen.
+
+---
+
+## 13. Bestehende Rezeptketten
+
+### Farmer
+
+```text
+farmer:seed_bundle
+  ↓
+farmer:crop_bundle
+  ↓
+farmer:orchard_crate
+  ↓
+farmer:golden_honey
+  ↓
+farmer:master_seed
+  ↓
+farmer:harvest_core
+```
+
+`farmer:orchard_crate` verwendet zusätzlich `woodcutter:plank_bundle`.
+
+### Holzfäller
+
+```text
+woodcutter:log_bundle
+  ↓
+woodcutter:plank_bundle
+  ↓
+woodcutter:work_crate
+  ↓
+woodcutter:reinforced_crate
+  ↓
+woodcutter:carpenter_kit
+  ↓
+woodcutter:master_frame
+```
+
+### Schmied
+
+```text
+blacksmith:iron_fitting
+  ↓
+blacksmith:iron_toolhead
+  ↓
+blacksmith:steel_core
+  ├──> blacksmith:forged_pickaxe
+  └──> blacksmith:forged_sword
+          ↓
+      blacksmith:master_armor
+```
+
+Die Spitzhacke benötigt außerdem `woodcutter:plank_bundle`.
+
+### Gelehrter
+
+```text
+scholar:paper_bundle
+  ↓
+scholar:weapon_manual
+  ↓
+scholar:research_notes
+  ↓
+scholar:arcane_tome
+  ↓
+scholar:master_manual
+  ↓
+scholar:world_archive
+```
+
+### Koch
+
+```text
+cook:basic_dough
+  ↓
+cook:hearty_meal
+  ↓
+cook:fishermans_platter
+  ↓
+cook:golden_feast
+  ↓
+cook:hero_feast
+  ↓
+cook:legendary_feast
+```
+
+Die Kette greift zusätzlich auf Farmer-, Fischer-, Alchemist- und Gelehrten-Produkte zu.
+
+### Schneider
+
+```text
+tailor:thread_bundle
+  ↓
+tailor:cloth_roll
+  ↓
+tailor:leather_kit
+  ↓
+tailor:reinforced_cloth
+  ↓
+tailor:traveler_armor
+  ↓
+tailor:master_cloak
+```
+
+### Alchemist
+
+```text
+alchemist:herbal_extract
+  ↓
+alchemist:healing
+  ↓
+alchemist:arcane_catalyst
+  ↓
+alchemist:strong_healing
+  ↓
+alchemist:master_elixir
+  ↓
+alchemist:grand_elixir
+```
+
+### Maurer
+
+```text
+mason:stone_brick
+  ↓
+mason:cut_stone
+  ↓
+mason:reinforced_brick
+  ↓
+mason:prismarine_frame
+  ↓
+mason:obsidian_pillar
+  ↓
+mason:master_monument
+```
+
+### Fischer
+
+```text
+fisherman:fish_crate
+  ↓
+fisherman:salmon_pack
+  ↓
+fisherman:prismarine_fang
+  ↓
+fisherman:rare_scale
+  ↓
+fisherman:deep_catch
+  ↓
+fisherman:legendary_catch
+```
+
+---
+
+## 14. Neue Rezeptkette erstellen – Kurzvorlage
+
+Wenn du selbst eine neue Kette bauen willst, kannst du diese Vorlage kopieren:
+
+```json
+{
+  "id": "profession:recipe_name",
+  "label": "Anzeigename",
+  "profession": "PROFESSION",
+  "result": "MINECRAFT_MATERIAL",
+  "resultItemId": "pixelrpg:profession:recipe_name",
+  "costs": {
+    "MATERIAL_A": 1,
+    "MATERIAL_B": 2
+  },
+  "itemCosts": {
+    "pixelrpg:profession:previous_recipe": 1
+  },
+  "resultAmount": 1,
+  "requiredProfessionLevel": 20,
+  "unlockPrice": 400,
+  "rarity": "COMMON",
+  "unlockedByDefault": false
+}
+```
+
+Wenn kein fertiges PixelRPG-Item benötigt wird, lässt du `itemCosts` weg.
+
+Wenn nur ein Stück erzeugt wird, kannst du `resultAmount` weglassen.
+
+---
+
+## 15. Checkliste vor dem Speichern
+
+- [ ] `id` ist eindeutig.
+- [ ] `profession` ist ein gültiger Profession-Enum-Wert.
+- [ ] `result` ist ein gültiges Material.
+- [ ] `resultItemId` ist eindeutig und folgt `pixelrpg:<profession>:<name>`.
+- [ ] Alle `costs` sind echte Materialnamen.
+- [ ] Alle `itemCosts` verweisen auf existierende PixelRPG-Rezeptprodukte.
+- [ ] Keine versehentliche Endlosschleife in der Rezeptkette.
+- [ ] `requiredProfessionLevel` passt zur gewünschten Progression.
+- [ ] `unlockPrice` passt zur gewünschten Freischaltung.
+- [ ] `rarity` ist gültig.
+- [ ] `unlockedByDefault` ist bewusst gesetzt.
+- [ ] Bei Tränken ist `potionType` gültig.
+- [ ] Bei Enchanted Books sind `enchantment` und `enchantmentLevel` korrekt.
+
+**Wichtig:** Eine Rezeptkette ist technisch ein gerichteter Verweis über `itemCosts`. Das vorherige Rezept muss also ein Item mit passender `resultItemId` erzeugen. Genau diese ID wird anschließend als Eingabe des nächsten Rezeptes verwendet.
