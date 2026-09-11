@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.profession;
 
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.item.ItemDefinition;
 import de.pixelrpg.rpg.item.ItemRarity;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.player.PlayerProfile;
@@ -170,8 +171,14 @@ public final class CraftingService {
 
     private void tagSpecialCraftResult(ItemMeta meta, String itemId) {
         var pdc = meta.getPersistentDataContainer();
-        String resourcepackId = canonicalItemId(itemId);
-        pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, resourcepackId);
+        String canonicalId = canonicalItemId(itemId);
+        String resourcepackId = itemService.definitions().stream()
+                .filter(definition -> definition.id().equals(canonicalId))
+                .map(ItemDefinition::resourcepackId)
+                .filter(value -> !value.isBlank())
+                .findFirst()
+                .orElse(canonicalId);
+        pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, canonicalId);
         pdc.set(RPGKeys.Item.resourcepackId(), PersistentDataType.STRING, resourcepackId);
         pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, true);
     }
