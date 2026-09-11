@@ -1,298 +1,170 @@
-# PixelRPG Region System – Funktionsübersicht / Audit
+# PixelRPG Region System – Funktionsübersicht
 
-Dieses Dokument ist eine **unabhängige Bestandsaufnahme des aktuell vorhandenen Region-Systems** auf dem Branch `test`.
+Dieses Dokument beschreibt den aktuellen Region-Stand auf `test`. Das System bleibt auf der bestehenden Polygon-/Globalregion-Architektur aufgebaut; neue Funktionen werden darin integriert.
 
-Es beschreibt ausschließlich, was der vorhandene Code bereits kann. Es fügt keine neuen Befehle, Menüs oder Funktionen hinzu.
-
----
-
-## 1. Region-Typen
+## 1. Regionen
 
 ### Globale Region
 
 Jede Welt besitzt eine globale Standardregion.
 
-Eigenschaften:
-
 - gilt für die gesamte Welt
-- besitzt keine Polygon-Geometrie
-- hat immer Priorität `0`
-- kann nicht gelöscht werden
-- kann über ihre Flags angepasst werden
-- dient als Fallback, wenn an einer Position keine lokale Region ein passendes Flag definiert
-
-Die globale Region wird pro Welt geführt.
+- keine Polygongeometrie
+- Priorität `0`
+- nicht löschbar
+- besitzt die globalen Standard-Flags der Welt
+- dient als Flag-Fallback für lokale Regionen
+- kein Besitzer und keine Mitglieder
 
 ### Lokale Polygonregion
 
-Lokale Regionen bestehen aus:
+Eine lokale Region besitzt:
 
 - Welt
-- Polygon aus Punkten
-- minimaler Höhe (`minY`)
-- maximaler Höhe (`maxY`)
+- Polygon
+- `minY` / `maxY`
 - Name
-- Region-Typ
+- Typ
 - Beschreibung
 - Priorität
-- optionaler Gilde als Besitzer
-- Eintrittsnachricht
-- Austrittsnachricht
+- Besitzer
+- Mitglieder
+- Enter-Titel
+- Leave-Titel
 - Flags
-- frei definierbaren Properties
-- optionalen feindlichen Mob-Spawnpunkten
+- freie Properties
+- optionale feindliche Spawnpunkte
 
-Die Polygon-Geometrie wird nicht in einzelne Blöcke aufgelöst.
+Die Polygongeometrie wird nicht in Blocklisten aufgelöst.
 
 ---
 
-## 2. Regionen erstellen
+## 2. Erstellung
 
-Der vorhandene Befehl ist:
+Die bestehende Admin-Erstellung bleibt erhalten:
 
 ```text
 /pixelrpg region create <name>
-```
-
-Danach startet eine temporäre Editor-Session.
-
-Der Region-Editor gibt dem Spieler ein spezielles Stick-Werkzeug.
-
-### Punkte setzen
-
-Mit Rechtsklick auf Blöcke werden Polygonpunkte gesetzt:
-
-```text
-P1 → P2 → P3 → P4 → ...
-```
-
-Die Punkte müssen in derselben Welt liegen.
-
-Doppelte Punkte werden abgelehnt.
-
-Während der Bearbeitung wird das Polygon für den Spieler mit Partikeln visualisiert.
-
----
-
-## 3. Polygon prüfen und speichern
-
-### Prüfung
-
-```text
 /pixelrpg region finish
-```
-
-Dabei wird geprüft, ob aus den gesetzten Punkten eine gültige Region-Geometrie erzeugt werden kann.
-
-Bei einem gültigen Polygon werden unter anderem angezeigt:
-
-- Anzahl der Punkte
-- berechnete Fläche
-
-### Speichern
-
-```text
 /pixelrpg region confirm
-```
-
-Eine Region kann erst nach erfolgreichem `finish` bestätigt werden.
-
-Beim Erstellen werden automatisch die Höhenwerte der Welt verwendet:
-
-- `minY` = minimale Welthöhe
-- `maxY` = maximale Welthöhe minus 1
-
-### Abbrechen
-
-```text
 /pixelrpg region cancel
 ```
 
-Die temporäre Session wird verworfen und es wird keine Region verändert.
+Die Polygonpunkte werden weiterhin mit dem vorhandenen Editor-Werkzeug gesetzt und validiert. Die Geometrie und die vorhandene Spawnpunkt-Funktion bleiben unverändert.
 
 ---
 
-## 4. Region bearbeiten
+## 3. WorldGuard-artige Besitzstruktur
 
-Das bestehende Region-System besitzt bereits einen Edit-Befehl:
+Die bisherige Gilden-Zuordnung einer Region entfällt vollständig.
 
-```text
-/pixelrpg region edit <region> <feld> <wert>
-```
-
-Eine Region kann über ihren Namen oder ihre UUID ausgewählt werden.
-
-Der aktuelle Selector für die globale Region ist:
+Stattdessen besitzt jede lokale Region optional:
 
 ```text
-__global__
+owner: <UUID>
+members:
+  - <UUID>
+  - <UUID>
 ```
 
-Alternativ wird auch `global` akzeptiert.
+Spieler werden dauerhaft über UUID gespeichert.
+
+### Besitzer setzen
+
+Nur Administratoren:
+
+```text
+/pixelrpg region owner <region> <spieler|UUID>
+/pixelrpg region owner <region> none
+```
+
+Beim Setzen eines neuen Besitzers wird dieser automatisch aus der Mitgliederliste entfernt.
+
+### Mitglieder verwalten
+
+Besitzer und Administratoren:
+
+```text
+/pixelrpg region member add <region> <spieler|UUID>
+/pixelrpg region member remove <region> <spieler|UUID>
+```
+
+Der Besitzer kann damit selbst Spieler hinzufügen und entfernen, ohne dass dafür die Gildenlogik verwendet wird.
+
+Mitglieder sind momentan eine eigenständige Zugriffs-/Verwaltungsstruktur. Die vorhandenen Region-Flags gelten weiterhin für die Region als Ganzes; eine separate Flag-Gruppenlogik wird nicht künstlich eingeführt.
 
 ---
 
-## 5. Änderbare Felder lokaler Regionen
+## 4. Region-Info
 
-Bei einer normalen Polygonregion sind aktuell folgende Felder editierbar:
-
-```text
-name
- type
-description
-priority
-enter
-leave
-flag
-guild
-unguild
-property
-```
-
-### Name
+Die Info-Funktion ist an der WorldGuard-Idee orientiert:
 
 ```text
-/pixelrpg region edit <region> name <neuer name>
+/pixelrpg region info
+/pixelrpg region info <region>
 ```
 
-Ändert den sichtbaren Regionsnamen.
+Ohne Regionsnamen wird bei einem Spieler die Region an der aktuellen Position angezeigt.
 
-### Typ
+Die Ausgabe enthält unter anderem:
 
-```text
-/pixelrpg region edit <region> type <typ>
-```
+- Name
+- UUID
+- Welt
+- Typ
+- Polygonpunkte
+- Fläche
+- Höhenbereich
+- Priorität
+- Besitzer
+- Mitglieder
+- Beschreibung
+- alle effektiven Flags
 
-Der Wert wird über `RegionType.parse(...)` ausgewertet.
-
-### Beschreibung
-
-```text
-/pixelrpg region edit <region> description <beschreibung>
-```
-
-### Priorität
-
-```text
-/pixelrpg region edit <region> priority <zahl>
-```
-
-Die Priorität entscheidet bei überlappenden lokalen Regionen darüber, welche Region für eine Position ausgewählt wird.
-
-### Eintrittsnachricht
-
-```text
-/pixelrpg region edit <region> enter <nachricht>
-```
-
-### Austrittsnachricht
-
-```text
-/pixelrpg region edit <region> leave <nachricht>
-```
-
-### Gilde zuweisen
-
-```text
-/pixelrpg region edit <region> guild <gildenname>
-```
-
-Die Gilde wird über den vorhandenen `GuildManager` aufgelöst.
-
-### Gilde entfernen
-
-```text
-/pixelrpg region edit <region> unguild
-```
-
-### Freie Property setzen
-
-```text
-/pixelrpg region edit <region> property <key> <value>
-```
-
-Properties sind zusätzliche frei definierbare Schlüssel/Werte der Region.
-
-### Flag setzen
-
-```text
-/pixelrpg region edit <region> flag <FLAG> <true|false>
-```
-
-Beispiel:
-
-```text
-/pixelrpg region edit Spawn flag PVP false
-```
+Bei lokalen Regionen wird zusätzlich angezeigt, ob ein Flag vom globalen Weltwert geerbt wird.
 
 ---
 
-## 6. Globale Region bearbeiten
+## 5. Flag-System
 
-Die globale Region wird nicht wie eine Polygonregion verändert.
+Die vorhandene Flag-Architektur bleibt bestehen und wird als zentraler Region-Mechanismus verwendet.
 
-Sie kann ausschließlich über ihre Flags geändert werden:
+Flags können sowohl auf der **globalen Weltregion** als auch auf **lokalen Polygonregionen** gesetzt werden.
 
-```text
-/pixelrpg region edit __global__ flag <FLAG> <true|false>
-```
-
-Beispiel:
-
-```text
-/pixelrpg region edit __global__ flag PVP false
-```
-
-Die globale Einstellung gilt für die Welt, in der der Befehl ausgeführt wird.
-
-Andere Eigenschaften der globalen Region wie Name, Polygon, Priorität oder Gildenbesitz sind nicht editierbar.
-
----
-
-## 7. Aktuelle Region-Flags
-
-Das System kennt aktuell diese Flags:
+Aktuell vorhandene Flags:
 
 | Flag | Bedeutung |
 |---|---|
-| `PVP` | Spieler gegen Spieler |
-| `MONSTER_SPAWN` | Feindliche Monster-Spawns |
-| `BLOCK_BREAK` | Blöcke abbauen |
-| `BLOCK_PLACE` | Blöcke platzieren |
-| `FIRE_SPREAD` | Feuer-Ausbreitung |
-| `LAVA_FLOW` | Lavafluss |
-| `EXPLOSION` | Explosionen allgemein |
-| `CREEPER_EXPLOSION` | Creeper-Explosionen |
-| `GHAST_FIREBALL` | Ghast-Feuerbälle |
-| `ENDERMAN_GRIEF` | Enderman-Griefing |
+| `PVP` | PvP erlauben/verbieten |
+| `MONSTER_SPAWN` | natürliche feindliche Monster-Spawns erlauben/verbieten |
+| `BLOCK_BREAK` | Blockabbau erlauben/verbieten |
+| `BLOCK_PLACE` | Blockplatzierung erlauben/verbieten |
+| `FIRE_SPREAD` | Feuerausbreitung erlauben/verbieten |
+| `LAVA_FLOW` | Lavafluss erlauben/verbieten |
+| `EXPLOSION` | Explosionen erlauben/verbieten |
+| `CREEPER_EXPLOSION` | Creeper-Explosionen erlauben/verbieten |
+| `GHAST_FIREBALL` | Ghast-Feuerbälle erlauben/verbieten |
+| `ENDERMAN_GRIEF` | Enderman-Griefing erlauben/verbieten |
 
-Flags sind boolesch:
+Die Flagwerte sind binär:
 
 ```text
-true  = erlaubt
-false = verboten
+AN  = true
+AUS = false
 ```
 
-Nicht explizit gesetzte Flags einer normalen Region gelten im `PixelRegion`-Modell standardmäßig als `true`.
+Die vorhandenen Event-/Policy-Adapter verwenden weiterhin `RegionManager.hasFlag(...)`. Dadurch bleibt die Gameplay-Logik zentralisiert.
 
 ---
 
-## 8. Flag-Vererbung / Fallback
+## 6. Flag-Vererbung
 
-Das Region-System arbeitet mit einer lokalen Region und der globalen Weltregion.
-
-Bei der Flag-Abfrage wird zuerst die passendste lokale Region betrachtet.
-
-Wenn die lokale Region das Flag **explizit** besitzt, wird ihr Wert verwendet.
-
-Wenn sie das Flag nicht explizit besitzt, wird das Flag der globalen Region der Welt verwendet.
-
-Konzeptuell:
+Lokale Regionen können ein Flag explizit überschreiben. Wenn ein lokales Flag nicht gesetzt wurde, fällt die Abfrage auf die globale Region der Welt zurück.
 
 ```text
 Position
   ↓
-lokale Region vorhanden?
+passende lokale Region?
   ↓ ja
 lokales Flag explizit gesetzt?
   ├─ ja → lokalen Wert verwenden
@@ -303,156 +175,113 @@ keine lokale Region
 globalen Weltwert verwenden
 ```
 
-Dadurch können globale Regeln als Weltstandard dienen und lokale Regionen einzelne Regeln überschreiben.
+Damit kann die globale Region als Weltstandard verwendet werden, während einzelne Regionen nur die Regeln überschreiben, die sie tatsächlich ändern sollen.
 
 ---
 
-## 9. Region-Abfrage
+## 7. Neues Flag-Menü
 
-### Einzelne Region anzeigen
+Für die Flag-Bearbeitung gibt es ein eigenständiges natives Paper-Dialogmenü:
 
 ```text
-/pixelrpg region info <region>
+/pixelrpg region flags
+/pixelrpg region flags <region>
 ```
 
-Die Ausgabe enthält bei lokalen Regionen unter anderem:
+Ohne Region wird die Region an der aktuellen Spielerposition verwendet.
 
-- Name
-- UUID
-- Welt
-- Typ
-- Anzahl der Polygonpunkte
-- Höhe
-- Fläche
-- Priorität
-- Gilde
-- alle aktuellen Flags
+Das Menü verwendet ausschließlich das aktuelle Paper-26.x-Dialog-System.
 
-Bei der globalen Region werden unter anderem Welt und globale Regeln angezeigt.
-
----
-
-## 10. Alle Regionen auflisten
+Jedes vorhandene Flag erscheint als eigener Button:
 
 ```text
-/pixelrpg region list
+✓ PvP – AN
+✕ PvP – AUS
 ```
 
-Die Liste zeigt pro Region unter anderem:
+Ein Klick schaltet den aktuellen Wert sofort um.
 
-- Name
-- Typ
-- Anzahl der Polygonpunkte
-- Priorität
-
----
-
-## 11. Region löschen
+Bei einem lokalen Flag, das noch nicht explizit gesetzt wurde, zeigt das Menü den geerbten globalen Wert an:
 
 ```text
-/pixelrpg region delete <region>
+✓ PvP – AN • geerbt
 ```
 
-Eine normale lokale Region kann gelöscht werden.
+Der erste Klick erzeugt daraus einen expliziten lokalen Wert. Nach jeder Änderung wird das Menü mit dem aktuellen Zustand erneut geöffnet. Die Änderung wird sofort über die bestehende Regionspersistenz gespeichert.
 
-Die globale Region kann ausdrücklich **nicht** gelöscht werden.
+### Wer darf Flags ändern?
 
-Beim Löschen wird auch der räumliche Index der Region bereinigt.
-
----
-
-## 12. Räumliche Auflösung
-
-Regionen werden über einen Chunk-basierten Index gefunden.
-
-Für eine Position wird nicht jede Region der Welt geprüft.
-
-Das System ermittelt zunächst den betroffenen Chunk und betrachtet die dort registrierten Kandidaten.
-
-Anschließend wird geprüft, ob die Position tatsächlich innerhalb der Polygongeometrie und des Höhenbereichs liegt.
-
-Bei mehreren passenden lokalen Regionen gewinnt die Region mit der höchsten Priorität.
-
-Bei gleicher Priorität wird die UUID zur deterministischen Sortierung herangezogen.
-
-Wenn keine lokale Region passt, wird die globale Weltregion verwendet.
+- globale Region: Administratoren
+- lokale Region: Administratoren oder Besitzer
+- normale Mitglieder: keine Flag-Verwaltung
 
 ---
 
-## 13. Höhenbereich
+## 8. Enter-/Leave-Titel
 
-Lokale Regionen besitzen:
+Die vorhandene Enter-/Leave-Mechanik bleibt bestehen:
 
 ```text
-minY
-maxY
+/pixelrpg region edit <region> enter <titel>
+/pixelrpg region edit <region> leave <titel>
 ```
 
-Eine Position muss gleichzeitig:
+Administratoren und der Besitzer einer lokalen Region dürfen diese beiden Titel ändern.
 
-1. im richtigen Chunk/Kandidatenbereich liegen,
-2. innerhalb des Polygons liegen,
-3. zwischen `minY` und `maxY` liegen.
-
-Die globale Region ist dagegen für die gesamte Höhe der Welt gültig.
+Beim Betreten bzw. Verlassen einer Region werden die vorhandenen Titel weiterhin über den `RegionTransitionService` angezeigt.
 
 ---
 
-## 14. Spawnpunkte für feindliche Mobs
+## 9. Weitere Regionsbearbeitung
 
-Während einer laufenden Region-Erstellung kann zusätzlich ein Spawn-Editor verwendet werden.
-
-Der vorhandene Region-Editor besitzt dafür ein Pfeil-Werkzeug.
-
-Die Spawnpunkte werden mit einem bestimmten feindlichen Mob-Typ verknüpft.
-
-Die Region muss anschließend wie gewohnt mit:
+Administratoren behalten die vollständige bestehende Bearbeitung:
 
 ```text
-/pixelrpg region finish
-/pixelrpg region confirm
+/pixelrpg region edit <region> name <wert>
+/pixelrpg region edit <region> type <wert>
+/pixelrpg region edit <region> description <wert>
+/pixelrpg region edit <region> priority <wert>
+/pixelrpg region edit <region> enter <wert>
+/pixelrpg region edit <region> leave <wert>
+/pixelrpg region edit <region> flag <FLAG> <true|false>
+/pixelrpg region edit <region> property <key> <value>
 ```
 
-abgeschlossen werden.
+Besitzer dürfen bei lokalen Regionen gezielt:
 
-### Zulässige Mob-Typen
+- Flags ändern
+- Enter-Titel ändern
+- Leave-Titel ändern
+- Mitglieder verwalten
 
-Der Code prüft den Bukkit-`EntityType` und akzeptiert nur Entity-Typen, deren Entity-Klasse `Monster` implementiert.
-
-Der eingegebene Name wird normalisiert, unter anderem werden Groß-/Kleinschreibung und `-`/`_` berücksichtigt.
-
-Beispielhafte Form:
-
-```text
-zombie
-skeleton
-creeper
-spider
-```
-
-Entscheidend ist die tatsächliche `EntityType`-/`Monster`-Prüfung des Codes, nicht eine separat gepflegte Liste.
-
-### Spawnpunkt setzen
-
-Der Spawn-Editor setzt den Punkt auf die Blockposition und speichert eine eigene Y-Position oberhalb des angeklickten Blocks.
-
-Spawnpunkte werden separat räumlich indexiert.
+Die Polygongeometrie selbst wird durch die Besitzerlogik nicht verändert.
 
 ---
 
-## 15. Spawnpunkte abfragen
+## 10. Räumliche Auflösung
 
-Der `RegionManager` kann Spawnpunkte in einem Chunk-Radius um eine Position suchen.
+Die bestehende Chunk-basierte Indexierung bleibt erhalten.
 
-Zusätzlich kann geprüft werden, ob eine konkrete Position ein expliziter Spawnpunkt für einen bestimmten feindlichen Mob ist.
+Für eine Position werden passende Chunk-Kandidaten gesucht, die Polygongeometrie und der Höhenbereich geprüft und bei mehreren Treffern die Region mit der höchsten Priorität verwendet. Gibt es keinen lokalen Treffer, wird die globale Weltregion verwendet.
 
-Damit besitzt das Region-System neben der Polygonprüfung auch eine eigene Spawnpunkt-Infrastruktur.
+Die neue Besitzer-/Flaglogik sitzt damit auf dem vorhandenen RegionManager und ersetzt nicht dessen räumliche Architektur.
 
 ---
 
-## 16. Speicherung
+## 11. Spawnpunkte
 
-Die Regionen werden in:
+Die vorhandene Spawnpunkt-Infrastruktur bleibt unverändert:
+
+- Spawnpunkte für feindliche Mobs können während der Region-Erstellung gesetzt werden.
+- Spawnpunkte werden separat indexiert.
+- Explizite Spawnpunkte können unabhängig von der normalen Monster-Spawn-Flaglogik behandelt werden.
+- Die vorhandene `RegionSpawnService`-Logik bleibt erhalten.
+
+---
+
+## 12. Speicherung
+
+Regionen werden weiterhin in:
 
 ```text
 plugins/PixelRPG/regions.yml
@@ -460,13 +289,9 @@ plugins/PixelRPG/regions.yml
 
 gespeichert.
 
-Das Format besitzt aktuell:
+Das Regionsformat wurde auf Version `5` angehoben.
 
-```text
-format-version: 4
-```
-
-Gespeichert werden unter anderem:
+Lokale Regionen speichern nun unter anderem:
 
 ```text
 regions.<uuid>.world
@@ -476,8 +301,8 @@ regions.<uuid>.description
 regions.<uuid>.min-y
 regions.<uuid>.max-y
 regions.<uuid>.priority
-regions.<uuid>.owner-guild-id
-regions.<uuid>.owner-guild-name
+regions.<uuid>.owner
+regions.<uuid>.members
 regions.<uuid>.points
 regions.<uuid>.flags
 regions.<uuid>.properties
@@ -486,102 +311,46 @@ regions.<uuid>.enter-message
 regions.<uuid>.leave-message
 ```
 
-Globale Weltregeln liegen getrennt unter:
+Die alten Felder
+
+```text
+owner-guild-id
+owner-guild-name
+```
+
+werden nicht mehr verwendet.
+
+Die globalen Flags bleiben getrennt unter:
 
 ```text
 global-regions.<world>.flags
 ```
 
----
-
-## 17. Speicherung ist atomar aufgebaut
-
-Das Repository schreibt zunächst in eine temporäre Datei und versucht anschließend einen atomaren Move auf die eigentliche `regions.yml`.
-
-Falls ein atomarer Move vom Dateisystem nicht unterstützt wird, wird auf einen normalen Replace-Move zurückgefallen.
-
-Damit wird vermieden, die eigentliche Regionsdatei direkt während des Schreibens zu überschreiben.
+Die bestehende atomare und sequenzielle asynchrone Persistenz bleibt erhalten. Ältere Regionsdateien werden beim Laden auf das neue Format migriert.
 
 ---
 
-## 18. Asynchrone Persistenz
+## 13. Befehlsübersicht
 
-Der `RegionManager` besitzt einen eigenen Persistence-Executor:
-
-```text
-PixelRPG-RegionIO
-```
-
-Region-Snapshots werden sequenziell in eine Persistence-Chain eingereiht.
-
-Das System trennt dadurch die Erfassung des aktuellen Serverzustands von der eigentlichen Dateischreiboperation.
-
----
-
-## 19. Migration
-
-Das Regionsformat besitzt eine Versionsnummer.
-
-Beim Laden älterer Formate kann das Repository eine Migration markieren.
-
-Der aktuelle Stand ist:
+### Allgemein
 
 ```text
-CURRENT_FORMAT_VERSION = 4
+/pixelrpg region info
+/pixelrpg region info <region>
+/pixelrpg region flags
+/pixelrpg region flags <region>
 ```
 
-Nach erkannter Migration wird der aktuelle Zustand wieder gespeichert.
-
-Auch ältere Flag-Daten werden beim Laden entsprechend der vorhandenen Formatversion berücksichtigt.
-
----
-
-## 20. Tab-Completion
-
-Der vorhandene Region-Befehl bietet Tab-Completion für:
-
-### Hauptbefehle
+### Besitzer / Mitglieder
 
 ```text
-create
-finish
-confirm
-cancel
-delete
-info
-edit
-list
+/pixelrpg region owner <region> <spieler|UUID>
+/pixelrpg region owner <region> none
+/pixelrpg region member add <region> <spieler|UUID>
+/pixelrpg region member remove <region> <spieler|UUID>
 ```
 
-### Edit-Felder
-
-```text
-name
-type
-description
-priority
-enter
-leave
-flag
-guild
-unguild
-property
-```
-
-### Flags
-
-Alle Werte aus `RegionFlag` werden für die Flag-Bearbeitung angeboten.
-
-Für den booleschen Wert stehen zur Auswahl:
-
-```text
-true
-false
-```
-
----
-
-## 21. Aktuelle vollständige Befehlsübersicht
+### Bestehende Administration
 
 ```text
 /pixelrpg region create <name>
@@ -589,58 +358,43 @@ false
 /pixelrpg region confirm
 /pixelrpg region cancel
 /pixelrpg region delete <region>
-/pixelrpg region info <region>
 /pixelrpg region list
 /pixelrpg region edit <region> <feld> <wert>
 ```
 
-Das ist die vorhandene Region-Befehlsstruktur. Für die Bearbeitung wird **kein zusätzlicher Region-Befehl benötigt**.
+Es wurde kein zusätzliches paralleles Region-System eingeführt. Die neuen Funktionen hängen direkt am vorhandenen `PixelRegion`-/`RegionManager`-/`RegionRepository`-System.
 
 ---
 
-## 22. Kurzfassung der Möglichkeiten
+## 14. Architekturprinzip
 
-| Funktion | Vorhanden |
-|---|:---:|
-| Globale Region pro Welt | ✓ |
-| Globale Flags ändern | ✓ |
-| Polygonregion erstellen | ✓ |
-| Polygonpunkte setzen | ✓ |
-| Polygon live visualisieren | ✓ |
-| Polygon validieren | ✓ |
-| Region speichern | ✓ |
-| Region löschen | ✓ |
-| Region nach Name suchen | ✓ |
-| Region nach UUID suchen | ✓ |
-| Region-Informationen anzeigen | ✓ |
-| Regionen auflisten | ✓ |
-| Regionname ändern | ✓ |
-| Regiontyp ändern | ✓ |
-| Beschreibung ändern | ✓ |
-| Priorität ändern | ✓ |
-| Enter-Nachricht ändern | ✓ |
-| Leave-Nachricht ändern | ✓ |
-| Gilde zuweisen | ✓ |
-| Gilde entfernen | ✓ |
-| Freie Properties | ✓ |
-| Region-Flags ändern | ✓ |
-| Flag-Fallback auf globale Region | ✓ |
-| Höhenbereich | ✓ |
-| Chunk-basierter Spatial Index | ✓ |
-| Feindliche Mob-Spawnpunkte | ✓ |
-| Spawnpunkte räumlich indexieren | ✓ |
-| Explizite Spawnpunktprüfung | ✓ |
-| Atomare Speicherung | ✓ |
-| Asynchrone Region-Persistenz | ✓ |
-| Versionsmigration | ✓ |
-| Tab-Completion | ✓ |
+```text
+PixelRegion
+ ├─ Owner
+ ├─ Members
+ ├─ Flags
+ ├─ Enter/Leave
+ └─ bestehende Geometrie
 
----
+RegionManager
+ ├─ globale Region
+ ├─ lokale Regionen
+ ├─ Flag-Fallback
+ ├─ Owner/Member-Mutationen
+ └─ bestehende Persistenzkette
 
-## 23. Abgrenzung
+RegionSubCommand
+ ├─ Info
+ ├─ Owner
+ ├─ Member
+ ├─ Flags
+ └─ bestehende Admin-Befehle
 
-Dieses Dokument ist bewusst nur eine **Bestandsaufnahme**.
+RegionFlagDialogService
+ └─ natives Paper-Dialog-Menü für Flag-Toggles
 
-Es behauptet keine Funktionen, die im aktuellen Code nicht vorhanden sind, und definiert keine zukünftigen Features.
+RegionPolicyService
+ └─ bestehende Gameplay-Entscheidungen über RegionManager.hasFlag(...)
+```
 
-Insbesondere gibt es hier **keinen zusätzlichen Edit-Befehl und kein zusätzliches Region-Menü**. Die vorhandene Befehlsstruktur unter `/pixelrpg region ...` ist die Grundlage des aktuellen Systems.
+Damit bleibt das bestehende Region-System die zentrale Grundlage. Es gibt keine zweite Region-Engine und keine parallele Guild-Ownership-Logik mehr.
