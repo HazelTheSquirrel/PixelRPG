@@ -42,9 +42,13 @@ public final class RegionFlagDialogService {
         );
         List<ActionButton> actions = new ArrayList<>();
         for (RegionFlag flag : RegionFlag.values()) {
-            boolean enabled = region.flag(flag);
-            actions.add(ActionButton.builder(flagLabel(flag, enabled))
-                    .tooltip(Component.text(enabled ? "Klicken: deaktivieren" : "Klicken: aktivieren", NamedTextColor.GRAY))
+            boolean explicit = region.isGlobal() || region.hasFlag(flag);
+            boolean enabled = effectiveFlag(region, flag);
+            actions.add(ActionButton.builder(flagLabel(flag, enabled, explicit))
+                    .tooltip(Component.text(
+                            explicit ? (enabled ? "Klicken: deaktivieren" : "Klicken: aktivieren") : "Geerbt von der globalen Region – klicken setzt ein eigenes Flag",
+                            NamedTextColor.GRAY
+                    ))
                     .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
                         if (!(audience instanceof Player target)) return;
                         UUID regionId = region.id();
@@ -55,9 +59,10 @@ public final class RegionFlagDialogService {
                             target.sendMessage(Component.text("Du darfst diese Region nicht mehr bearbeiten.", NamedTextColor.RED));
                             return;
                         }
-                        if (current.isGlobal()) regions.setGlobalFlag(current.worldName(), flag, !current.flag(flag));
+                        boolean currentValue = effectiveFlag(current, flag);
+                        if (current.isGlobal()) regions.setGlobalFlag(current.worldName(), flag, !currentValue);
                         else {
-                            current.setFlag(flag, !current.flag(flag));
+                            current.setFlag(flag, !currentValue);
                             regions.save();
                         }
                         PixelRegion refreshed = current.isGlobal() ? regions.globalRegion(current.worldName()) : regions.get(regionId).orElse(current);
@@ -77,13 +82,21 @@ public final class RegionFlagDialogService {
         }));
     }
 
-    private static Component flagLabel(RegionFlag flag, boolean enabled) {
-        return Component.text(enabled ? "✓ " : "✕ ", enabled ? NamedTextColor.GREEN : NamedTextColor.RED)
+    private boolean effectiveFlag(PixelRegion region, RegionFlag flag) {
+        if (region.isGlobal() || region.hasFlag(flag)) return region.flag(flag);
+        return regions.globalRegion(region.worldName()).flag(flag);
+    }
+
+    private static Component flagLabel(RegionFlag flag, boolean enabled, boolean explicit) {
+        Component label = Component.text(enabled ? "✓ " : "✕ ", enabled ? NamedTextColor.GREEN : NamedTextColor.RED)
                 .append(Component.text(flag.displayName(), NamedTextColor.WHITE))
                 .append(Component.text(enabled ? " – AN" : " – AUS", enabled ? NamedTextColor.GREEN : NamedTextColor.RED));
+        if (!explicit) label = label.append(Component.text(" • geerbt", NamedTextColor.DARK_GRAY));
+        return label;
     }
 
     private static boolean canEdit(Player player, PixelRegion region) {
-        return player.hasPermission("rpg.admin") || region.isGlobal() ? player.hasPermission("rpg.admin") : region.isOwner(player.getUniqueId());
+        if (player.hasPermission("rpg.admin")) return true;
+        return !region.isGlobal() && region.isOwner(player.getUniqueId());
     }
 }
