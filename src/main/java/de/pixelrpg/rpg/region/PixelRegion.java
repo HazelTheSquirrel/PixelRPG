@@ -3,8 +3,10 @@ package de.pixelrpg.rpg.region;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /** Region metadata with immutable world/geometry and editable properties. */
@@ -18,8 +20,8 @@ public final class PixelRegion {
     private String name;
     private RegionType type;
     private String description;
-    private UUID ownerGuildId;
-    private String ownerGuildName;
+    private UUID ownerId;
+    private final Set<UUID> members;
     private String enterMessage;
     private String leaveMessage;
     private int priority;
@@ -28,24 +30,24 @@ public final class PixelRegion {
     private final List<RegionSpawnPoint> spawnPoints;
 
     public PixelRegion(UUID id, String worldName, RegionGeometry geometry, int minY, int maxY, String name,
-                       RegionType type, String description, UUID ownerGuildId, String ownerGuildName,
+                       RegionType type, String description, UUID ownerId, Set<UUID> members,
                        String enterMessage, String leaveMessage, int priority,
                        Map<RegionFlag, Boolean> flags, Map<String, String> properties) {
-        this(id, worldName, geometry, minY, maxY, name, type, description, ownerGuildId, ownerGuildName,
+        this(id, worldName, geometry, minY, maxY, name, type, description, ownerId, members,
                 enterMessage, leaveMessage, priority, flags, properties, List.of());
     }
 
     public PixelRegion(UUID id, String worldName, RegionGeometry geometry, int minY, int maxY, String name,
-                       RegionType type, String description, UUID ownerGuildId, String ownerGuildName,
+                       RegionType type, String description, UUID ownerId, Set<UUID> members,
                        String enterMessage, String leaveMessage, int priority,
                        Map<RegionFlag, Boolean> flags, Map<String, String> properties,
                        List<RegionSpawnPoint> spawnPoints) {
-        this(id, worldName, geometry, false, minY, maxY, name, type, description, ownerGuildId, ownerGuildName,
+        this(id, worldName, geometry, false, minY, maxY, name, type, description, ownerId, members,
                 enterMessage, leaveMessage, priority, flags, properties, spawnPoints);
     }
 
     private PixelRegion(UUID id, String worldName, RegionGeometry geometry, boolean global, int minY, int maxY,
-                        String name, RegionType type, String description, UUID ownerGuildId, String ownerGuildName,
+                        String name, RegionType type, String description, UUID ownerId, Set<UUID> members,
                         String enterMessage, String leaveMessage, int priority,
                         Map<RegionFlag, Boolean> flags, Map<String, String> properties,
                         List<RegionSpawnPoint> spawnPoints) {
@@ -61,8 +63,10 @@ public final class PixelRegion {
         this.name = name;
         this.type = type;
         this.description = description == null ? "" : description;
-        this.ownerGuildId = ownerGuildId;
-        this.ownerGuildName = ownerGuildName;
+        this.ownerId = global ? null : ownerId;
+        this.members = new HashSet<>();
+        if (members != null) this.members.addAll(members);
+        if (this.ownerId != null) this.members.remove(this.ownerId);
         this.enterMessage = enterMessage == null ? "" : enterMessage;
         this.leaveMessage = leaveMessage == null ? "" : leaveMessage;
         this.priority = global ? 0 : priority;
@@ -77,7 +81,7 @@ public final class PixelRegion {
     public static PixelRegion global(String worldName, Map<RegionFlag, Boolean> flags) {
         return new PixelRegion(UUID.nameUUIDFromBytes(("pixelrpg:global:" + worldName).getBytes(StandardCharsets.UTF_8)),
                 worldName, null, true, Integer.MIN_VALUE, Integer.MAX_VALUE, "Wildnis", RegionType.OTHER,
-                "Globale Standardregion", null, null, "", "", 0, flags, Map.of(), List.of());
+                "Globale Standardregion", null, Set.of(), "", "", 0, flags, Map.of(), List.of());
     }
 
     public UUID id() { return id; }
@@ -89,8 +93,8 @@ public final class PixelRegion {
     public String name() { return name; }
     public RegionType type() { return type; }
     public String description() { return description; }
-    public UUID ownerGuildId() { return ownerGuildId; }
-    public String ownerGuildName() { return ownerGuildName; }
+    public UUID ownerId() { return ownerId; }
+    public Set<UUID> members() { return Set.copyOf(members); }
     public String enterMessage() { return enterMessage; }
     public String leaveMessage() { return leaveMessage; }
     public int priority() { return priority; }
@@ -108,12 +112,22 @@ public final class PixelRegion {
     /** Returns whether the supplied rule is enabled for this region; unset flags default to true. */
     public boolean flag(RegionFlag flag) { return flags.getOrDefault(flag, true); }
 
+    public boolean isOwner(UUID playerId) { return !global && playerId != null && playerId.equals(ownerId); }
+    public boolean isMember(UUID playerId) { return playerId != null && members.contains(playerId); }
     public void setFlag(RegionFlag flag, boolean enabled) { flags.put(flag, enabled); }
     public void setName(String value) { name = value; }
     public void setType(RegionType value) { type = value; }
     public void setDescription(String value) { description = value == null ? "" : value; }
-    public void setOwner(UUID id, String guildName) { ownerGuildId = id; ownerGuildName = guildName; }
-    public void clearOwner() { ownerGuildId = null; ownerGuildName = null; }
+    public void setOwner(UUID id) {
+        ownerId = global ? null : id;
+        if (ownerId != null) members.remove(ownerId);
+    }
+    public void clearOwner() { ownerId = null; }
+    public boolean addMember(UUID playerId) {
+        if (playerId == null || isOwner(playerId)) return false;
+        return members.add(playerId);
+    }
+    public boolean removeMember(UUID playerId) { return playerId != null && members.remove(playerId); }
     public void setEnterMessage(String value) { enterMessage = value == null ? "" : value; }
     public void setLeaveMessage(String value) { leaveMessage = value == null ? "" : value; }
     public void setPriority(int value) { priority = global ? 0 : value; }
