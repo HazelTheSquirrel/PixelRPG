@@ -132,7 +132,7 @@ public final class NpcManager {
             entity.setRemoveWhenFarAway(false);
             entity.setCollidable(false);
             entity.customName(Component.text(npc.name(), npc.type().getColor()));
-            entity.setCustomNameVisible(true);
+            entity.setCustomNameVisible(false);
             entity.getPersistentDataContainer().set(RPGKeys.Npc.npcType(), PersistentDataType.STRING, npc.type().name());
             entity.getPersistentDataContainer().set(RPGKeys.Npc.npcId(), PersistentDataType.STRING, npc.id());
             if (npc.hasCustomSkin()) MannequinSkinResolver.apply(entity, npc.skinSource(), plugin.getLogger());
@@ -358,11 +358,8 @@ public final class NpcManager {
             case PROFESSION_SCHOLAR -> Profession.SCHOLAR;
             case PROFESSION_FARMER -> Profession.FARMER;
             case PROFESSION_COOK -> Profession.COOK;
-            case PROFESSION_TAILOR -> Profession.TAILOR;
-            case PROFESSION_ALCHEMIST -> Profession.ALCHEMIST;
-            case PROFESSION_MASON -> Profession.MASON;
+            case PROFESSION_HUNTER -> Profession.HUNTER;
             case PROFESSION_FISHERMAN -> Profession.FISHERMAN;
-            case PROFESSION_WOODCUTTER -> Profession.WOODCUTTER;
             default -> null;
         };
     }
