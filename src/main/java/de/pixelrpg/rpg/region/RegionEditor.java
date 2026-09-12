@@ -79,18 +79,18 @@ public final class RegionEditor {
         return true;
     }
 
-    /** Enables the temporary arrow tool for placing one hostile-mob type in the current region creation session. */
-    public boolean beginSpawnMode(Player player, String mobType) {
+    /** Enables the temporary arrow tool for placing one living-entity type in the current region creation session. */
+    public boolean beginSpawnMode(Player player, String entityType) {
         Session session = sessions.get(player.getUniqueId());
         if (session == null) {
             player.sendMessage(Component.text("Du musst zuerst eine Region mit /pixelrpg region create <name> erstellen.", NamedTextColor.RED));
             return false;
         }
-        if (!SpawnMobType.isHostileMob(mobType)) {
-            player.sendMessage(Component.text("Unbekannter oder nicht feindlicher Mob: " + mobType, NamedTextColor.RED));
+        if (!SpawnMobType.isLivingEntity(entityType)) {
+            player.sendMessage(Component.text("Unbekannter oder nicht lebender Entity-Typ: " + entityType, NamedTextColor.RED));
             return false;
         }
-        session.spawnMobType = SpawnMobType.normalize(mobType);
+        session.spawnMobType = SpawnMobType.normalize(entityType);
         removeSpawnTools(player);
         player.getInventory().addItem(createSpawnTool(session.spawnMobType));
         player.sendMessage(Component.text("Spawn-Editor: " + session.spawnMobType, NamedTextColor.GREEN));
