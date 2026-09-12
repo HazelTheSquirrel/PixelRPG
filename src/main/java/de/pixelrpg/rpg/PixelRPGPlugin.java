@@ -206,8 +206,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcManager = new NpcManager(this);
         npcManager.loadAll();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
-        npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0),
-                getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
+        npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0), getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
         DialogueEngine dialogueEngine = new DialogueEngine();
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
@@ -224,59 +223,119 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new FillerBehavior(questManager, playerProfileManager, dialogueEngine));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_BLACKSMITH, Profession.BLACKSMITH, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_SCHOLAR, Profession.SCHOLAR, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
-        getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry, companionService), this);
-        getServer().getPluginManager().registerEvents(new MobLevelScalingListener(this, mobScalingConfig, playerProfileManager, statEngine), this);
-        getServer().getPluginManager().registerEvents(new MobNameplateListener(mobNameplateService), this);
-        getServer().getPluginManager().registerEvents(new CombatDamageListener(playerProfileManager, statEngine, partyManager), this);
-        getServer().getPluginManager().registerEvents(new MobExperienceListener(playerProfileManager, statEngine), this);
-        getServer().getPluginManager().registerEvents(new LootDropListener(this, playerProfileManager, itemService), this);
-        getServer().getPluginManager().registerEvents(new SoulboundDeathListener(playerProfileManager, itemService), this);
-        getServer().getPluginManager().registerEvents(new CompanionExperienceListener(companionService), this);
-        getServer().getPluginManager().registerEvents(new CompanionService.Listener(companionService), this);
-        getServer().getPluginManager().registerEvents(new PartyDisconnectListener(partyManager), this);
-        getServer().getPluginManager().registerEvents(new GuildCurrencyPickupListener(this, playerProfileManager), this);
-        getServer().getPluginManager().registerEvents(new PlayerDeathStatisticListener(statisticsService, playerProfileManager), this);
-        getServer().getPluginManager().registerEvents(new MobKillStatisticListener(statisticsService), this);
-        getServer().getPluginManager().registerEvents(new QuestBossStatisticListener(statisticsService), this);
-        getServer().getPluginManager().registerEvents(new RPGStatsListener(statisticsService), this);
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FARMER, Profession.FARMER, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_COOK, Profession.COOK, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_TAILOR, Profession.TAILOR, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_ALCHEMIST, Profession.ALCHEMIST, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_MASON, Profession.MASON, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FISHERMAN, Profession.FISHERMAN, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_WOODCUTTER, Profession.WOODCUTTER, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        getServer().getPluginManager().registerEvents(equipmentService, this);
+        getServer().getPluginManager().registerEvents(new GUIListener(), this);
+        getServer().getPluginManager().registerEvents(craftingGUI, this);
+        getServer().getPluginManager().registerEvents(new RPGStatsListener(statEngine, playerProfileManager), this);
+        getServer().getPluginManager().registerEvents(new SkillInputListener(weaponAbilityEngine), this);
+        getServer().getPluginManager().registerEvents(shopEditorGUI, this);
+        getServer().getPluginManager().registerEvents(new LootDropListener(playerProfileManager, itemEconomyConfig), this);
+        mobLevelScalingListener = new MobLevelScalingListener(this, playerProfileManager, mobScalingConfig);
+        getServer().getPluginManager().registerEvents(mobLevelScalingListener, this);
+        mobLevelScalingListener.start();
+        getServer().getPluginManager().registerEvents(new MobNameplateListener(mobNameplateService, playerProfileManager), this);
+        combatDamageListener = new CombatDamageListener(playerProfileManager, playerProfileManager, statEngine);
+        getServer().getPluginManager().registerEvents(combatDamageListener, this);
+        getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, playerProfileManager), this);
+        getServer().getPluginManager().registerEvents(new BossCombustListener(), this);
+        getServer().getPluginManager().registerEvents(new MobExperienceListener(playerProfileManager, mobScalingConfig), this);
+        getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry, questManager), this);
         getServer().getPluginManager().registerEvents(new QuestMobKillListener(questManager), this);
+        getServer().getPluginManager().registerEvents(new PartyDisconnectListener(partyManager), this);
+        getServer().getPluginManager().registerEvents(new BossDeathListener(bossManager), this);
+        getServer().getPluginManager().registerEvents(new MobKillStatisticListener(playerProfileManager, statisticsService), this);
+        getServer().getPluginManager().registerEvents(new PlayerDeathStatisticListener(playerProfileManager, statisticsService), this);
+        getServer().getPluginManager().registerEvents(new QuestBossStatisticListener(statisticsService), this);
+        getServer().getPluginManager().registerEvents(new GuildCurrencyPickupListener(playerProfileManager, playerProfileManager), this);
+        getServer().getPluginManager().registerEvents(new GuildCompassListener(npcManager, playerProfileManager), this);
+        getServer().getPluginManager().registerEvents(new SoulboundDeathListener(playerProfileManager), this);
+        getServer().getPluginManager().registerEvents(scoreboardService, this);
+        getServer().getPluginManager().registerEvents(playtimeTracker, this);
+        getServer().getPluginManager().registerEvents(new QuickActionsDialogListener(quickActions, companionService), this);
+        getServer().getPluginManager().registerEvents(new CompanionExperienceListener(companionService), this);
         questPassiveCheckTask = new QuestPassiveCheckTask(this, questManager);
         questPassiveCheckTask.start();
-        getServer().getPluginManager().registerEvents(new QuickActionsDialogListener(quickActions), this);
-        registerCommands();
-    }
-
-    private void registerCommands() {
-        RootCommand rootCommand = new RootCommand();
-        rootCommand.register(new BossSubCommand(bossManager));
+        lifecycle.register(() -> playerProfileManager.shutdown());
+        lifecycle.register(() -> companionService.shutdown());
+        lifecycle.register(() -> partyManager.shutdown());
+        lifecycle.register(() -> guildManager.shutdown());
+        lifecycle.register(() -> regionManager.shutdown());
+        lifecycle.register(() -> npcManager.shutdown());
+        lifecycle.register(() -> npcLookTask.stop());
+        lifecycle.register(() -> bossManager.shutdown());
+        lifecycle.register(() -> questManager.shutdown());
+        lifecycle.register(() -> scoreboardService.shutdown());
+        lifecycle.register(() -> playtimeTracker.shutdown());
+        lifecycle.register(() -> mobLevelScalingListener.shutdown());
+        lifecycle.register(() -> biomeBossSpawnTask.stop());
+        lifecycle.register(() -> questPassiveCheckTask.stop());
+        lifecycle.register(() -> regionEditor.shutdown());
+        lifecycle.register(() -> regionSpawnService.stop());
+        lifecycle.register(() -> bankerBehavior.shutdown());
+        RootCommand rootCommand = new RootCommand(this, itemService);
         rootCommand.register(new CompanionSubCommand(companionService));
-        rootCommand.register(new EditSubCommand(npcManager));
         rootCommand.register(new NpcSubCommand(npcManager));
-        rootCommand.register(new PartySubCommand(partyManager));
+        rootCommand.register(new ShopSubCommand(shopManager, shopEditorGUI, npcManager));
         rootCommand.register(new QuestAdminSubCommand(questManager));
-        rootCommand.register(new QuestLogCommand(questManager));
-        rootCommand.register(new ShopSubCommand(shopManager));
-        Bukkit.getCommandMap().register("pixelrpg", new PaperBasicCommandAdapter(rootCommand));
+        rootCommand.register(new BossSubCommand(bossRepository, bossManager));
+        rootCommand.register(new de.pixelrpg.rpg.command.impl.RegionSubCommand(regionManager, regionEditor, guildManager));
+        rootCommand.register(new EditSubCommand(regionEditor));
+        PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
+        PaperBasicCommandAdapter rpgCommand = new PaperBasicCommandAdapter("pixelrpg", rootCommand, rootCommand, "rpg.admin");
+        PaperBasicCommandAdapter partyAdapter = new PaperBasicCommandAdapter("pixelrpgparty", partyCommand, partyCommand, "rpg.member");
+        PaperBasicCommandAdapter questLogAdapter = new PaperBasicCommandAdapter("pixelrpgquestlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member");
+        PaperBasicCommandAdapter dialogueAdapter = new PaperBasicCommandAdapter("pixelrpgdialogue", new DialogueCommand(playerProfileManager, dialogueEngine), null, "rpg.member");
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+            event.registrar().register("pixelrpg", rpgCommand);
+            event.registrar().register("pixelrpgparty", partyAdapter);
+            event.registrar().register("pixelrpgquestlog", questLogAdapter);
+            event.registrar().register("pixelrpgdialogue", dialogueAdapter);
+        });
     }
 
     @Override
     public void onDisable() {
-        lifecycle.shutdown();
-        if (questPassiveCheckTask != null) questPassiveCheckTask.stop();
-        if (npcLookTask != null) npcLookTask.stop();
-        if (npcManager != null) npcManager.shutdown();
-        if (regionSpawnService != null) regionSpawnService.stop();
-        if (regionEditor != null) regionEditor.stop();
-        if (bossManager != null) bossManager.shutdown();
-        if (biomeBossSpawnTask != null) biomeBossSpawnTask.stop();
-        if (scoreboardService != null) scoreboardService.stopTask();
-        if (playtimeTracker != null) playtimeTracker.stop();
-        if (professionSystem != null) professionSystem.shutdown();
-        if (playerProfileManager != null) playerProfileManager.shutdown();
-        instance = null;
+        try {
+            lifecycle.close();
+        } finally {
+            unregisterServices();
+            if (instance == this) instance = null;
+        }
     }
 
-    public static PixelRPGPlugin getInstance() {
-        return instance;
+    private void unregisterServices() {
+        if (statisticsService != null) Bukkit.getServicesManager().unregister(StatisticsAPI.class, statisticsService);
+        if (itemService != null) Bukkit.getServicesManager().unregister(de.pixelrpg.rpg.api.ItemAPI.class, itemService);
+        if (partyManager != null) Bukkit.getServicesManager().unregister(de.pixelrpg.rpg.api.PartyAPI.class, partyManager);
     }
+
+    public static PixelRPGPlugin getInstance() { return instance; }
+    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
+    public StatEngine getStatEngine() { return statEngine; }
+    public ProfessionSystem getProfessionSystem() { return professionSystem; }
+    public ItemDisplayNameResolver getItemDisplayNameResolver() { return itemDisplayNameResolver; }
+    public ItemEconomyConfig getItemEconomyConfig() { return itemEconomyConfig; }
+    public ItemService getItemService() { return itemService; }
+    public EquipmentService getEquipmentService() { return equipmentService; }
+    public NpcManager getNpcManager() { return npcManager; }
+    public ShopManager getShopManager() { return shopManager; }
+    public StoryManager getStoryManager() { return storyManager; }
+    public PartyManager getPartyManager() { return partyManager; }
+    public QuestRepository getQuestRepository() { return questRepository; }
+    public QuestManager getQuestManager() { return questManager; }
+    public GlobalEventState getGlobalEventState() { return globalEventState; }
+    public BossRepository getBossRepository() { return bossRepository; }
+    public BossManager getBossManager() { return bossManager; }
+    public StatisticsService getStatisticsService() { return statisticsService; }
+    public ScoreboardService getScoreboardService() { return scoreboardService; }
+    public CompanionService getCompanionService() { return companionService; }
+    public RegionManager getRegionManager() { return regionManager; }
+    public RegionEditor getRegionEditor() { return regionEditor; }
 }
