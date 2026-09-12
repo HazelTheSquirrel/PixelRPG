@@ -1,22 +1,29 @@
 package de.pixelrpg.rpg.region;
 
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Monster;
+import org.bukkit.entity.LivingEntity;
 
 import java.util.Locale;
 
-/** Validates and normalizes hostile Bukkit entity types for region spawn points. */
+/** Validates and normalizes living Bukkit entity types for region spawn points. */
 public final class SpawnMobType {
     private SpawnMobType() { }
 
-    public static boolean isHostileMob(String value) {
+    public static boolean isLivingEntity(String value) {
         EntityType type = resolve(value);
-        return type != null && type.getEntityClass() != null && Monster.class.isAssignableFrom(type.getEntityClass());
+        return type != null
+                && type != EntityType.PLAYER
+                && type.getEntityClass() != null
+                && LivingEntity.class.isAssignableFrom(type.getEntityClass());
     }
 
     public static String normalize(String value) {
         EntityType type = resolve(value);
-        if (type == null) throw new IllegalArgumentException("Unknown entity type: " + value);
+        if (type == null || type == EntityType.PLAYER
+                || type.getEntityClass() == null
+                || !LivingEntity.class.isAssignableFrom(type.getEntityClass())) {
+            throw new IllegalArgumentException("Unknown or non-living entity type: " + value);
+        }
         return type.name();
     }
 
