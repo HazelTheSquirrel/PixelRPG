@@ -21,7 +21,7 @@ public final class EditSubCommand implements SubCommand {
     @Override public String name() { return "edit"; }
     @Override public String permission() { return "rpg.admin"; }
     @Override public String description() { return "Aktiviert einen temporären Region-Editor"; }
-    @Override public String usage() { return "/pixelrpg edit spawn <hostile-mob>"; }
+    @Override public String usage() { return "/pixelrpg edit spawn <living-entity>"; }
 
     @Override
     public boolean execute(CommandSender sender, String[] args) {
@@ -38,7 +38,7 @@ public final class EditSubCommand implements SubCommand {
         if (args.length == 1) return List.of("spawn");
         if (args.length == 2 && args[0].equalsIgnoreCase("spawn")) {
             return Arrays.stream(EntityType.values())
-                    .filter(type -> type.getEntityClass() != null && SpawnMobType.isHostileMob(type.name()))
+                    .filter(type -> type.getEntityClass() != null && SpawnMobType.isLivingEntity(type.name()))
                     .map(Enum::name)
                     .toList();
         }
