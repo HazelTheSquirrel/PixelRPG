@@ -15,17 +15,19 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
-/** Event-driven NPC look controller. NPCs are evaluated only when nearby players actually move. */
+/** Event-driven NPC look and nameplate controller. NPCs are evaluated when nearby players cross block boundaries. */
 public final class NpcLookTask implements Listener {
     private final Plugin plugin;
-    private final double radius;
-    private final double radiusSquared;
+    private final double lookRadius;
+    private final double lookRadiusSquared;
+    private final double nameplateRadius;
     private boolean started;
 
-    public NpcLookTask(Plugin plugin, NpcManager npcManager, double radius, int ignoredIntervalTicks) {
+    public NpcLookTask(Plugin plugin, NpcManager npcManager, double lookRadius, double nameplateRadius, int ignoredIntervalTicks) {
         this.plugin = plugin;
-        this.radius = Math.max(1.0D, radius);
-        this.radiusSquared = this.radius * this.radius;
+        this.lookRadius = Math.max(1.0D, lookRadius);
+        this.lookRadiusSquared = this.lookRadius * this.lookRadius;
+        this.nameplateRadius = Math.max(this.lookRadius, nameplateRadius);
     }
 
     public void start() {
@@ -47,17 +49,15 @@ public final class NpcLookTask implements Listener {
         updateAround(event.getPlayer().getLocation());
     }
 
-    // NPC look state wakes only when the player crosses a block boundary near the NPC.
+    // NPC look and nameplate state wakes only when the player crosses a block boundary near the NPC.
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
         if (!event.hasChangedBlock()) return;
-        Location from = event.getFrom();
-        Location to = event.getTo();
-        updateAround(from);
-        updateAround(to);
+        updateAround(event.getFrom());
+        updateAround(event.getTo());
     }
 
-    // A disconnect can change the nearest-player target of NPCs in the player's old area.
+    // A disconnect can change the nearest-player target and nameplate state of NPCs in the player's old area.
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         updateAround(event.getPlayer().getLocation());
@@ -65,26 +65,36 @@ public final class NpcLookTask implements Listener {
 
     private void updateAround(Location center) {
         if (center == null || center.getWorld() == null) return;
-        for (Entity entity : center.getNearbyEntities(radius, radius, radius)) {
+        double searchRadius = Math.max(lookRadius, nameplateRadius);
+        for (Entity entity : center.getNearbyEntities(searchRadius, searchRadius, searchRadius)) {
             if (!(entity instanceof LivingEntity living)) continue;
             if (!living.getPersistentDataContainer().has(RPGKeys.Npc.npcId(), PersistentDataType.STRING)) continue;
             Location npcLocation = living.getLocation();
-            if (npcLocation.distanceSquared(center) > radiusSquared) continue;
+            double distanceSquared = npcLocation.distanceSquared(center);
+            if (distanceSquared > searchRadius * searchRadius) continue;
             updateNpc(living, npcLocation);
         }
     }
 
     private void updateNpc(LivingEntity living, Location npcLocation) {
         if (!living.isValid()) return;
-        Player nearest = null;
-        double nearestDistanceSquared = radiusSquared;
-        for (Player player : npcLocation.getNearbyPlayers(radius)) {
+
+        Player nearestLookTarget = null;
+        double nearestLookDistanceSquared = lookRadiusSquared;
+        boolean playerInNameplateRange = false;
+
+        for (Player player : npcLocation.getNearbyPlayers(nameplateRadius)) {
             double distanceSquared = player.getLocation().distanceSquared(npcLocation);
-            if (distanceSquared <= nearestDistanceSquared) {
-                nearestDistanceSquared = distanceSquared;
-                nearest = player;
+            if (distanceSquared <= nameplateRadius * nameplateRadius) {
+                playerInNameplateRange = true;
+            }
+            if (distanceSquared <= nearestLookDistanceSquared) {
+                nearestLookDistanceSquared = distanceSquared;
+                nearestLookTarget = player;
             }
         }
-        if (nearest != null) living.lookAt(nearest.getEyeLocation(), LookAnchor.EYES);
+
+        living.setCustomNameVisible(playerInNameplateRange);
+        if (nearestLookTarget != null) living.lookAt(nearestLookTarget.getEyeLocation(), LookAnchor.EYES);
     }
 }
