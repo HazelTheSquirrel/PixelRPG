@@ -358,8 +358,11 @@ public final class NpcManager {
             case PROFESSION_SCHOLAR -> Profession.SCHOLAR;
             case PROFESSION_FARMER -> Profession.FARMER;
             case PROFESSION_COOK -> Profession.COOK;
-            case PROFESSION_HUNTER -> Profession.HUNTER;
+            case PROFESSION_TAILOR -> Profession.TAILOR;
+            case PROFESSION_ALCHEMIST -> Profession.ALCHEMIST;
+            case PROFESSION_MASON -> Profession.MASON;
             case PROFESSION_FISHERMAN -> Profession.FISHERMAN;
+            case PROFESSION_WOODCUTTER -> Profession.WOODCUTTER;
             default -> null;
         };
     }
