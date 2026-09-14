@@ -62,7 +62,16 @@ public enum RegionFlag {
     SLEEP(RegionFlagCategory.PLAYER, "Schlafen"),
     RESPAWN_ANCHORS(RegionFlagCategory.PLAYER, "Respawn-Anker"),
     ENDERPEARL(RegionFlagCategory.PLAYER, "Enderperlen-Teleport"),
-    CHORUS_FRUIT_TELEPORT(RegionFlagCategory.PLAYER, "Chorusfrucht-Teleport");
+    CHORUS_FRUIT_TELEPORT(RegionFlagCategory.PLAYER, "Chorusfrucht-Teleport"),
+
+    @Deprecated
+    INTERACT(RegionFlagCategory.LEGACY, "Legacy: Entity-Interaktion"),
+    @Deprecated
+    USE(RegionFlagCategory.LEGACY, "Legacy: Block-/Item-Nutzung"),
+    @Deprecated
+    CHEST_ACCESS(RegionFlagCategory.LEGACY, "Legacy: Container-Zugriff"),
+    @Deprecated
+    MONSTER_SPAWN(RegionFlagCategory.LEGACY, "Legacy: Monster-Spawns");
 
     private final RegionFlagCategory category;
     private final String displayName;
