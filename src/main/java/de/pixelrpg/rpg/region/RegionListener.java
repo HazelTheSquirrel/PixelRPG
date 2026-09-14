@@ -115,23 +115,19 @@ public final class RegionListener implements Listener {
         if (!policy.allowsBlockPlace(event.getBlock().getLocation())) event.setCancelled(true);
     }
 
-    /** Applies the region entity-interaction policy using the current entity-interaction event. */
+    /** Applies the fine-grained entity-interaction policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityInteract(PlayerInteractAtEntityEvent event) {
-        if (!policy.allowsInteract(event.getRightClicked().getLocation())) event.setCancelled(true);
+        if (!policy.allowsEntityInteraction(event.getRightClicked().getLocation())) event.setCancelled(true);
     }
 
-    /** Applies the region block/item-use policy. */
+    /** Applies the fine-grained block interaction policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockUse(PlayerInteractEvent event) {
         if (editor.isTool(event.getItem()) || editor.isSpawnTool(event.getItem())) return;
         Block block = event.getClickedBlock();
         if (block == null) return;
-        if (!policy.allowsUse(block.getLocation())) {
-            event.setCancelled(true);
-            return;
-        }
-        if (Tag.ANVIL.isTagged(block.getType()) && !policy.allowsAnvil(block.getLocation())) {
+        if (!policy.allowsUse(block)) {
             event.setCancelled(true);
             return;
         }
@@ -140,12 +136,11 @@ public final class RegionListener implements Listener {
         }
     }
 
-    /** Applies the region container-access policy. */
+    /** Applies the fine-grained container-access policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInventoryOpen(InventoryOpenEvent event) {
-        if (!(event.getInventory().getHolder() instanceof org.bukkit.inventory.BlockInventoryHolder)) return;
-        Location location = event.getInventory().getLocation();
-        if (location != null && !policy.allowsContainerAccess(location)) event.setCancelled(true);
+        if (!(event.getInventory().getHolder() instanceof org.bukkit.inventory.BlockInventoryHolder holder)) return;
+        if (!policy.allowsContainerAccess(holder.getBlock())) event.setCancelled(true);
     }
 
     /** Applies the region item-drop policy. */
