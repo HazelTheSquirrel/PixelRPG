@@ -5,7 +5,6 @@ import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Animals;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -32,7 +31,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -116,9 +115,9 @@ public final class RegionListener implements Listener {
         if (!policy.allowsBlockPlace(event.getBlock().getLocation())) event.setCancelled(true);
     }
 
-    /** Applies the region entity-interaction policy. */
+    /** Applies the region entity-interaction policy using the current entity-interaction event. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onEntityInteract(PlayerInteractEntityEvent event) {
+    public void onEntityInteract(PlayerInteractAtEntityEvent event) {
         if (!policy.allowsInteract(event.getRightClicked().getLocation())) event.setCancelled(true);
     }
 
@@ -139,7 +138,6 @@ public final class RegionListener implements Listener {
     /** Applies the region container-access policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInventoryOpen(InventoryOpenEvent event) {
-        if (event.getInventory().getHolder() == null) return;
         if (!(event.getInventory().getHolder() instanceof org.bukkit.inventory.BlockInventoryHolder)) return;
         Location location = event.getInventory().getLocation();
         if (location != null && !policy.allowsContainerAccess(location)) event.setCancelled(true);
