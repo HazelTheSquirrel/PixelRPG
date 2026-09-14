@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.region;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Enderman;
@@ -15,7 +16,6 @@ import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
-import org.bukkit.event.block.TNTPrimeEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -25,10 +25,6 @@ import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.player.PlayerBedEnterEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.event.weather.LightningStrikeEvent;
 
 /** Domain policy for region gameplay flags. Paper event adapters delegate decisions here. */
 public final class RegionPolicyService {
@@ -67,7 +63,6 @@ public final class RegionPolicyService {
                 || regions.isExplicitSpawnPoint(location, event.getEntityType().name());
         if (managed) return true;
         if (!regions.hasFlag(location, RegionFlag.MOB_SPAWNING)) return false;
-        if (!regions.hasFlag(location, RegionFlag.MONSTER_SPAWN) && entity instanceof Monster) return false;
         return !regions.hasFlag(location, RegionFlag.DENY_SPAWN);
     }
 
@@ -79,16 +74,18 @@ public final class RegionPolicyService {
         return regions.hasFlag(location, RegionFlag.BLOCK_PLACE);
     }
 
-    public boolean allowsInteract(Location location) {
-        return regions.hasFlag(location, RegionFlag.INTERACT);
+    /** Resolves a clicked block to its fine-grained interaction permission. */
+    public boolean allowsUse(Block block) {
+        if (block == null) return true;
+        RegionFlag flag = interactionFlag(block.getType());
+        return flag == null || regions.hasFlag(block.getLocation(), flag);
     }
 
-    public boolean allowsUse(Location location) {
-        return regions.hasFlag(location, RegionFlag.USE);
-    }
-
-    public boolean allowsContainerAccess(Location location) {
-        return regions.hasFlag(location, RegionFlag.CHEST_ACCESS);
+    /** Resolves a container block to its fine-grained container permission. */
+    public boolean allowsContainerAccess(Block block) {
+        if (block == null) return true;
+        RegionFlag flag = containerFlag(block.getType());
+        return flag == null || regions.hasFlag(block.getLocation(), flag);
     }
 
     public boolean allowsItemDrop(Location location) {
@@ -152,7 +149,7 @@ public final class RegionPolicyService {
     }
 
     public boolean allowsAnvil(Location location) {
-        return regions.hasFlag(location, RegionFlag.USE_ANVIL);
+        return regions.hasFlag(location, RegionFlag.ANVIL_USE);
     }
 
     public boolean allowsRespawnAnchor(Location location) {
@@ -190,12 +187,36 @@ public final class RegionPolicyService {
         return regions.hasFlag(location, RegionFlag.EXIT);
     }
 
+    private static RegionFlag interactionFlag(Material material) {
+        if (Tag.DOORS.isTagged(material)) return RegionFlag.DOOR_USE;
+        if (Tag.TRAPDOORS.isTagged(material)) return RegionFlag.TRAPDOOR_USE;
+        if (Tag.FENCE_GATES.isTagged(material)) return RegionFlag.FENCE_GATE_USE;
+        if (Tag.BUTTONS.isTagged(material)) return RegionFlag.BUTTON_USE;
+        if (Tag.PRESSURE_PLATES.isTagged(material)) return RegionFlag.PRESSURE_PLATE_USE;
+        if (material == Material.LEVER) return RegionFlag.LEVER_USE;
+        return null;
+    }
+
+    private static RegionFlag containerFlag(Material material) {
+        return switch (material) {
+            case CHEST, TRAPPED_CHEST -> RegionFlag.CHEST_USE;
+            case BARREL -> RegionFlag.BARREL_USE;
+            case HOPPER -> RegionFlag.HOPPER_USE;
+            case DROPPER -> RegionFlag.DROPPER_USE;
+            case DISPENSER -> RegionFlag.DISPENSER_USE;
+            case FURNACE -> RegionFlag.FURNACE_USE;
+            case BLAST_FURNACE -> RegionFlag.BLAST_FURNACE_USE;
+            case SMOKER -> RegionFlag.SMOKER_USE;
+            case BREWING_STAND -> RegionFlag.BREWING_STAND_USE;
+            case ENCHANTING_TABLE -> RegionFlag.ENCHANTING_TABLE_USE;
+            case CRAFTING_TABLE -> RegionFlag.CRAFTING_TABLE_USE;
+            case ANVIL, CHIPPED_ANVIL, DAMAGED_ANVIL -> RegionFlag.ANVIL_USE;
+            default -> material.name().endsWith("_SHULKER_BOX") ? RegionFlag.SHULKER_BOX_USE : null;
+        };
+    }
+
     private static boolean isGhastFireball(EntityExplodeEvent event) {
         if (!(event.getEntity() instanceof Fireball fireball)) return false;
         return fireball.getShooter() instanceof Ghast;
-    }
-
-    public boolean isAnvil(Material material) {
-        return Tag.ANVIL.isTagged(material);
     }
 }
