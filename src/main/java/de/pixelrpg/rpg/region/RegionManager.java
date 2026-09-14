@@ -179,7 +179,7 @@ public final class RegionManager {
         return globalRegion(location.getWorld().getName()).flag(flag);
     }
 
-    /** Returns whether a location is an explicitly configured spawn point for the supplied hostile mob. */
+    /** Returns whether a location is an explicitly configured spawn point for the supplied entity type. */
     public boolean isExplicitSpawnPoint(Location location, String mobType) {
         if (location == null || location.getWorld() == null || mobType == null) return false;
         String normalized = SpawnMobType.normalize(mobType);
@@ -224,10 +224,41 @@ public final class RegionManager {
 
     private static Map<RegionFlag, Boolean> defaultGlobalFlags() {
         EnumMapBuilder builder = new EnumMapBuilder();
-        builder.put(RegionFlag.PVP, true).put(RegionFlag.MONSTER_SPAWN, true).put(RegionFlag.BLOCK_BREAK, true)
-                .put(RegionFlag.BLOCK_PLACE, true).put(RegionFlag.FIRE_SPREAD, false).put(RegionFlag.LAVA_FLOW, false)
-                .put(RegionFlag.EXPLOSION, false).put(RegionFlag.CREEPER_EXPLOSION, false)
-                .put(RegionFlag.GHAST_FIREBALL, false).put(RegionFlag.ENDERMAN_GRIEF, false);
+        builder.put(RegionFlag.PVP, true)
+                .put(RegionFlag.MOB_DAMAGE, true)
+                .put(RegionFlag.MONSTER_SPAWN, true)
+                .put(RegionFlag.MOB_SPAWNING, true)
+                .put(RegionFlag.DENY_SPAWN, false)
+                .put(RegionFlag.BLOCK_BREAK, true)
+                .put(RegionFlag.BLOCK_PLACE, true)
+                .put(RegionFlag.INTERACT, true)
+                .put(RegionFlag.USE, true)
+                .put(RegionFlag.CHEST_ACCESS, true)
+                .put(RegionFlag.DAMAGE_ANIMALS, true)
+                .put(RegionFlag.ITEM_DROP, true)
+                .put(RegionFlag.ITEM_PICKUP, true)
+                .put(RegionFlag.FALL_DAMAGE, true)
+                .put(RegionFlag.FIRE_SPREAD, false)
+                .put(RegionFlag.LAVA_FLOW, false)
+                .put(RegionFlag.WATER_FLOW, true)
+                .put(RegionFlag.EXPLOSION, false)
+                .put(RegionFlag.TNT, false)
+                .put(RegionFlag.CREEPER_EXPLOSION, false)
+                .put(RegionFlag.GHAST_FIREBALL, false)
+                .put(RegionFlag.ENDERMAN_GRIEF, false)
+                .put(RegionFlag.LIGHTNING, true)
+                .put(RegionFlag.CROP_GROWTH, true)
+                .put(RegionFlag.LEAF_DECAY, true)
+                .put(RegionFlag.BLOCK_TRAMPLING, true)
+                .put(RegionFlag.USE_ANVIL, true)
+                .put(RegionFlag.ENTRY, true)
+                .put(RegionFlag.EXIT, true)
+                .put(RegionFlag.RESPAWN_ANCHORS, true)
+                .put(RegionFlag.SLEEP, true)
+                .put(RegionFlag.ENDERPEARL, true)
+                .put(RegionFlag.CHORUS_FRUIT_TELEPORT, true)
+                .put(RegionFlag.NATURAL_HEALTH_REGEN, true)
+                .put(RegionFlag.NATURAL_HUNGER_DRAIN, true);
         return builder.build();
     }
 
