@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 
 /** Persists region definitions without expanding polygons into block lists. */
 public final class RegionRepository {
-    private static final int CURRENT_FORMAT_VERSION = 7;
+    private static final int CURRENT_FORMAT_VERSION = 8;
 
     private final File file;
     private final Logger logger;
@@ -111,7 +111,6 @@ public final class RegionRepository {
         return List.copyOf(result);
     }
 
-    /** Returns and clears the migration marker so the caller can schedule persistence off-thread. */
     public boolean consumeMigrationNeeded() {
         if (!migrationNeeded) return false;
         migrationNeeded = false;
@@ -139,7 +138,6 @@ public final class RegionRepository {
         return Map.copyOf(result);
     }
 
-    /** Saves the world-wide defaults while preserving all normal regions. */
     public synchronized void saveGlobalFlags(Map<String, Map<RegionFlag, Boolean>> globalFlags) {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         yaml.set("format-version", CURRENT_FORMAT_VERSION);
@@ -191,39 +189,8 @@ public final class RegionRepository {
     }
 
     private static void migrateLegacyFlags(EnumMap<RegionFlag, Boolean> flags) {
-        mapLegacy(flags, RegionFlag.INTERACT, RegionFlag.ENTITY_INTERACTION, RegionFlag.ITEM_FRAME_USE, RegionFlag.ARMOR_STAND_USE);
-        mapLegacy(flags, RegionFlag.USE,
-                RegionFlag.DOOR_USE, RegionFlag.TRAPDOOR_USE, RegionFlag.FENCE_GATE_USE,
-                RegionFlag.BUTTON_USE, RegionFlag.LEVER_USE, RegionFlag.PRESSURE_PLATE_USE,
-                RegionFlag.NOTE_BLOCK_USE, RegionFlag.JUKEBOX_USE, RegionFlag.COMPOSTER_USE,
-                RegionFlag.LECTERN_USE, RegionFlag.BEEHIVE_USE, RegionFlag.BEE_NEST_USE,
-                RegionFlag.CAKE_USE);
-        mapLegacy(flags, RegionFlag.CHEST_ACCESS,
-                RegionFlag.CHEST_USE, RegionFlag.BARREL_USE, RegionFlag.SHULKER_BOX_USE,
-                RegionFlag.HOPPER_USE, RegionFlag.DROPPER_USE, RegionFlag.DISPENSER_USE,
-                RegionFlag.FURNACE_USE, RegionFlag.BLAST_FURNACE_USE, RegionFlag.SMOKER_USE,
-                RegionFlag.BREWING_STAND_USE, RegionFlag.ENCHANTING_TABLE_USE,
-                RegionFlag.CRAFTING_TABLE_USE, RegionFlag.ANVIL_USE,
-                RegionFlag.GRINDSTONE_USE, RegionFlag.STONECUTTER_USE, RegionFlag.LOOM_USE,
-                RegionFlag.CARTOGRAPHY_TABLE_USE, RegionFlag.SMITHING_TABLE_USE);
-        if (flags.containsKey(RegionFlag.MONSTER_SPAWN)) {
-            boolean value = flags.get(RegionFlag.MONSTER_SPAWN);
-            if (!value) {
-                for (RegionFlag flag : RegionFlag.forCategory(RegionFlagCategory.MOB_SPAWN)) {
-                    if (flag.name().startsWith("SPAWN_")) flags.putIfAbsent(flag, false);
-                }
-            }
-        }
-        flags.remove(RegionFlag.INTERACT);
-        flags.remove(RegionFlag.USE);
-        flags.remove(RegionFlag.CHEST_ACCESS);
-        flags.remove(RegionFlag.MONSTER_SPAWN);
-    }
-
-    private static void mapLegacy(EnumMap<RegionFlag, Boolean> flags, RegionFlag legacy, RegionFlag... replacements) {
-        Boolean value = flags.get(legacy);
-        if (value == null || value) return;
-        for (RegionFlag replacement : replacements) flags.putIfAbsent(replacement, false);
+        // Legacy flag names are intentionally ignored. Current RegionFlag values are read directly above;
+        // removed legacy keys are discarded through the IllegalArgumentException catch.
     }
 
     private void writeAtomically(YamlConfiguration yaml) {
@@ -274,9 +241,7 @@ public final class RegionRepository {
         flags.put(RegionFlag.CHORUS_FRUIT_TELEPORT, true);
         flags.put(RegionFlag.NATURAL_HEALTH_REGEN, true);
         flags.put(RegionFlag.NATURAL_HUNGER_DRAIN, true);
-        for (RegionFlag flag : RegionFlag.values()) {
-            if (flag.category() != RegionFlagCategory.LEGACY) flags.putIfAbsent(flag, true);
-        }
+        for (RegionFlag flag : RegionFlag.values()) flags.putIfAbsent(flag, true);
         return flags;
     }
 
