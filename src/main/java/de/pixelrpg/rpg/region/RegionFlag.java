@@ -5,8 +5,8 @@ import java.util.List;
 
 /** Fine-grained region permissions grouped by gameplay category. */
 public enum RegionFlag {
-    ENTRY(RegionFlagCategory.GENERAL, "Region betreten"),
-    EXIT(RegionFlagCategory.GENERAL, "Region verlassen"),
+    ENTRY(RegionFlagCategory.REGION, "Region betreten"),
+    EXIT(RegionFlagCategory.REGION, "Region verlassen"),
 
     BLOCK_BREAK(RegionFlagCategory.BLOCKS, "Blöcke abbauen"),
     BLOCK_PLACE(RegionFlagCategory.BLOCKS, "Blöcke platzieren"),
