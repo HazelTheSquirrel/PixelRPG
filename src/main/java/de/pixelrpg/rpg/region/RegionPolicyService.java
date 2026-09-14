@@ -229,7 +229,7 @@ public final class RegionPolicyService {
             case "ZOMBIE" -> RegionFlag.SPAWN_ZOMBIE;
             case "DROWNED" -> RegionFlag.SPAWN_DROWNED;
             case "HUSK" -> RegionFlag.SPAWN_HUSK;
-            case "PIG_ZOMBIE" -> RegionFlag.SPAWN_PIG_ZOMBIE;
+            case "ZOMBIFIED_PIGLIN" -> RegionFlag.SPAWN_PIG_ZOMBIE;
             case "ZOMBIE_VILLAGER" -> RegionFlag.SPAWN_ZOMBIE_VILLAGER;
             default -> null;
         };
