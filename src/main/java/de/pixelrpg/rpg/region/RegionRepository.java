@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 
 /** Persists region definitions without expanding polygons into block lists. */
 public final class RegionRepository {
-    private static final int CURRENT_FORMAT_VERSION = 6;
+    private static final int CURRENT_FORMAT_VERSION = 7;
 
     private final File file;
     private final Logger logger;
@@ -194,13 +194,18 @@ public final class RegionRepository {
         mapLegacy(flags, RegionFlag.INTERACT, RegionFlag.ENTITY_INTERACTION);
         mapLegacy(flags, RegionFlag.USE,
                 RegionFlag.DOOR_USE, RegionFlag.TRAPDOOR_USE, RegionFlag.FENCE_GATE_USE,
-                RegionFlag.BUTTON_USE, RegionFlag.LEVER_USE, RegionFlag.PRESSURE_PLATE_USE);
+                RegionFlag.BUTTON_USE, RegionFlag.LEVER_USE, RegionFlag.PRESSURE_PLATE_USE,
+                RegionFlag.NOTE_BLOCK_USE, RegionFlag.JUKEBOX_USE, RegionFlag.COMPOSTER_USE,
+                RegionFlag.LECTERN_USE, RegionFlag.BEEHIVE_USE, RegionFlag.BEE_NEST_USE,
+                RegionFlag.CAKE_USE);
         mapLegacy(flags, RegionFlag.CHEST_ACCESS,
                 RegionFlag.CHEST_USE, RegionFlag.BARREL_USE, RegionFlag.SHULKER_BOX_USE,
                 RegionFlag.HOPPER_USE, RegionFlag.DROPPER_USE, RegionFlag.DISPENSER_USE,
                 RegionFlag.FURNACE_USE, RegionFlag.BLAST_FURNACE_USE, RegionFlag.SMOKER_USE,
                 RegionFlag.BREWING_STAND_USE, RegionFlag.ENCHANTING_TABLE_USE,
-                RegionFlag.CRAFTING_TABLE_USE, RegionFlag.ANVIL_USE);
+                RegionFlag.CRAFTING_TABLE_USE, RegionFlag.ANVIL_USE,
+                RegionFlag.GRINDSTONE_USE, RegionFlag.STONECUTTER_USE, RegionFlag.LOOM_USE,
+                RegionFlag.CARTOGRAPHY_TABLE_USE, RegionFlag.SMITHING_TABLE_USE);
         if (flags.containsKey(RegionFlag.MONSTER_SPAWN)) {
             boolean value = flags.get(RegionFlag.MONSTER_SPAWN);
             if (!value) {
@@ -240,15 +245,38 @@ public final class RegionRepository {
     private static EnumMap<RegionFlag, Boolean> defaultGlobalFlags() {
         EnumMap<RegionFlag, Boolean> flags = new EnumMap<>(RegionFlag.class);
         flags.put(RegionFlag.PVP, true);
-        flags.put(RegionFlag.MONSTER_SPAWN, true);
+        flags.put(RegionFlag.MOB_SPAWNING, true);
+        flags.put(RegionFlag.DENY_SPAWN, false);
         flags.put(RegionFlag.BLOCK_BREAK, true);
         flags.put(RegionFlag.BLOCK_PLACE, true);
+        flags.put(RegionFlag.ENTITY_INTERACTION, true);
+        flags.put(RegionFlag.DAMAGE_ANIMALS, true);
+        flags.put(RegionFlag.ITEM_DROP, true);
+        flags.put(RegionFlag.ITEM_PICKUP, true);
+        flags.put(RegionFlag.FALL_DAMAGE, true);
         flags.put(RegionFlag.FIRE_SPREAD, false);
         flags.put(RegionFlag.LAVA_FLOW, false);
+        flags.put(RegionFlag.WATER_FLOW, true);
         flags.put(RegionFlag.EXPLOSION, false);
+        flags.put(RegionFlag.TNT, false);
         flags.put(RegionFlag.CREEPER_EXPLOSION, false);
         flags.put(RegionFlag.GHAST_FIREBALL, false);
         flags.put(RegionFlag.ENDERMAN_GRIEF, false);
+        flags.put(RegionFlag.LIGHTNING, true);
+        flags.put(RegionFlag.CROP_GROWTH, true);
+        flags.put(RegionFlag.LEAF_DECAY, true);
+        flags.put(RegionFlag.BLOCK_TRAMPLING, true);
+        flags.put(RegionFlag.ENTRY, true);
+        flags.put(RegionFlag.EXIT, true);
+        flags.put(RegionFlag.RESPAWN_ANCHORS, true);
+        flags.put(RegionFlag.SLEEP, true);
+        flags.put(RegionFlag.ENDERPEARL, true);
+        flags.put(RegionFlag.CHORUS_FRUIT_TELEPORT, true);
+        flags.put(RegionFlag.NATURAL_HEALTH_REGEN, true);
+        flags.put(RegionFlag.NATURAL_HUNGER_DRAIN, true);
+        for (RegionFlag flag : RegionFlag.values()) {
+            if (flag.category() != RegionFlagCategory.LEGACY) flags.putIfAbsent(flag, true);
+        }
         return flags;
     }
 
