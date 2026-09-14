@@ -39,21 +39,24 @@ public final class RegionPolicyService {
     }
 
     public boolean allowsPvp(Player attacker, Player victim) {
-        return regions.hasFlag(attacker.getLocation(), RegionFlag.PVP)
-                && regions.hasFlag(victim.getLocation(), RegionFlag.PVP);
+        return allowsFlag(attacker, attacker.getLocation(), RegionFlag.PVP)
+                && allowsFlag(victim, victim.getLocation(), RegionFlag.PVP);
     }
 
     public boolean allowsMobDamage(EntityDamageEvent event) {
+        if (event.getEntity() instanceof Player player && isRegionMemberOrOwner(player)) return true;
         return !(event.getEntity() instanceof Monster)
                 || regions.hasFlag(event.getEntity().getLocation(), RegionFlag.MOB_DAMAGE);
     }
 
     public boolean allowsAnimalDamage(EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player player && isRegionMemberOrOwner(player)) return true;
         return !(event.getEntity() instanceof Animals)
                 || regions.hasFlag(event.getEntity().getLocation(), RegionFlag.DAMAGE_ANIMALS);
     }
 
     public boolean allowsFallDamage(EntityDamageEvent event) {
+        if (event.getEntity() instanceof Player player && isRegionMemberOrOwner(player)) return true;
         return event.getCause() != EntityDamageEvent.DamageCause.FALL
                 || regions.hasFlag(event.getEntity().getLocation(), RegionFlag.FALL_DAMAGE);
     }
@@ -66,38 +69,45 @@ public final class RegionPolicyService {
         if (managed) return true;
         if (!regions.hasFlag(location, RegionFlag.MOB_SPAWNING)) return false;
         if (regions.hasFlag(location, RegionFlag.DENY_SPAWN)) return false;
-        if (!(entity instanceof Monster)) return true;
         RegionFlag mobFlag = monsterSpawnFlag(event.getEntityType().name());
-        return mobFlag == null || regions.hasFlag(location, mobFlag);
+        if (mobFlag != null) return regions.hasFlag(location, mobFlag);
+        return !(entity instanceof Monster) || regions.hasFlag(location, RegionFlag.MOB_SPAWNING);
     }
 
-    public boolean allowsBlockBreak(Location location) { return regions.hasFlag(location, RegionFlag.BLOCK_BREAK); }
-    public boolean allowsBlockPlace(Location location) { return regions.hasFlag(location, RegionFlag.BLOCK_PLACE); }
+    public boolean allowsBlockBreak(Player player, Location location) {
+        return allowsFlag(player, location, RegionFlag.BLOCK_BREAK);
+    }
+
+    public boolean allowsBlockPlace(Player player, Location location) {
+        return allowsFlag(player, location, RegionFlag.BLOCK_PLACE);
+    }
 
     /** Applies the fine-grained entity interaction permission. */
-    public boolean allowsEntityInteraction(Entity entity) {
+    public boolean allowsEntityInteraction(Player player, Entity entity) {
         if (entity == null) return true;
-        if (entity instanceof ItemFrame) return regions.hasFlag(entity.getLocation(), RegionFlag.ITEM_FRAME_USE);
-        if (entity instanceof ArmorStand) return regions.hasFlag(entity.getLocation(), RegionFlag.ARMOR_STAND_USE);
-        return regions.hasFlag(entity.getLocation(), RegionFlag.ENTITY_INTERACTION);
+        RegionFlag flag;
+        if (entity instanceof ItemFrame) flag = RegionFlag.ITEM_FRAME_USE;
+        else if (entity instanceof ArmorStand) flag = RegionFlag.ARMOR_STAND_USE;
+        else flag = RegionFlag.ENTITY_INTERACTION;
+        return allowsFlag(player, entity.getLocation(), flag);
     }
 
     /** Resolves a clicked block to its fine-grained interaction permission. */
-    public boolean allowsUse(Block block) {
+    public boolean allowsUse(Player player, Block block) {
         if (block == null) return true;
         RegionFlag flag = interactionFlag(block.getType());
-        return flag == null || regions.hasFlag(block.getLocation(), flag);
+        return flag == null || allowsFlag(player, block.getLocation(), flag);
     }
 
     /** Resolves a container block to its fine-grained container permission. */
-    public boolean allowsContainerAccess(Block block) {
+    public boolean allowsContainerAccess(Player player, Block block) {
         if (block == null) return true;
         RegionFlag flag = containerFlag(block.getType());
-        return flag == null || regions.hasFlag(block.getLocation(), flag);
+        return flag == null || allowsFlag(player, block.getLocation(), flag);
     }
 
-    public boolean allowsItemDrop(Location location) { return regions.hasFlag(location, RegionFlag.ITEM_DROP); }
-    public boolean allowsItemPickup(Location location) { return regions.hasFlag(location, RegionFlag.ITEM_PICKUP); }
+    public boolean allowsItemDrop(Player player) { return allowsFlag(player, player.getLocation(), RegionFlag.ITEM_DROP); }
+    public boolean allowsItemPickup(Player player, Location location) { return allowsFlag(player, location, RegionFlag.ITEM_PICKUP); }
 
     public boolean allowsFireSpread(BlockSpreadEvent event) {
         Material type = event.getNewState().getType();
@@ -139,12 +149,13 @@ public final class RegionPolicyService {
     public boolean allowsCropGrowth(BlockGrowEvent event) { return regions.hasFlag(event.getBlock().getLocation(), RegionFlag.CROP_GROWTH); }
     public boolean allowsLeafDecay(Location location) { return regions.hasFlag(location, RegionFlag.LEAF_DECAY); }
     public boolean allowsTrampling(EntityInteractEvent event) { return regions.hasFlag(event.getBlock().getLocation(), RegionFlag.BLOCK_TRAMPLING); }
-    public boolean allowsRespawnAnchor(Location location) { return regions.hasFlag(location, RegionFlag.RESPAWN_ANCHORS); }
-    public boolean allowsSleep(Location location) { return regions.hasFlag(location, RegionFlag.SLEEP); }
-    public boolean allowsEnderPearl(Location location) { return regions.hasFlag(location, RegionFlag.ENDERPEARL); }
-    public boolean allowsChorusFruit(Location location) { return regions.hasFlag(location, RegionFlag.CHORUS_FRUIT_TELEPORT); }
+    public boolean allowsRespawnAnchor(Player player, Location location) { return allowsFlag(player, location, RegionFlag.RESPAWN_ANCHORS); }
+    public boolean allowsSleep(Player player, Location location) { return allowsFlag(player, location, RegionFlag.SLEEP); }
+    public boolean allowsEnderPearl(Player player, Location location) { return allowsFlag(player, location, RegionFlag.ENDERPEARL); }
+    public boolean allowsChorusFruit(Player player) { return allowsFlag(player, player.getLocation(), RegionFlag.CHORUS_FRUIT_TELEPORT); }
 
     public boolean allowsNaturalRegen(EntityRegainHealthEvent event) {
+        if (event.getEntity() instanceof Player player && isRegionMemberOrOwner(player)) return true;
         EntityRegainHealthEvent.RegainReason reason = event.getRegainReason();
         boolean natural = reason == EntityRegainHealthEvent.RegainReason.REGEN
                 || reason == EntityRegainHealthEvent.RegainReason.SATIATED;
@@ -153,11 +164,26 @@ public final class RegionPolicyService {
 
     public boolean allowsNaturalHunger(FoodLevelChangeEvent event) {
         if (!(event.getEntity() instanceof Player player) || event.getFoodLevel() >= player.getFoodLevel()) return true;
-        return regions.hasFlag(player.getLocation(), RegionFlag.NATURAL_HUNGER_DRAIN);
+        return allowsFlag(player, player.getLocation(), RegionFlag.NATURAL_HUNGER_DRAIN);
     }
 
     public boolean allowsEntry(Location location) { return regions.hasFlag(location, RegionFlag.ENTRY); }
     public boolean allowsExit(Location location) { return regions.hasFlag(location, RegionFlag.EXIT); }
+
+    /** Returns whether the player is owner/member of the most specific region at the location. */
+    private boolean isRegionMemberOrOwner(Player player) {
+        return regions.find(player.getLocation())
+                .map(region -> region.isOwner(player.getUniqueId()) || region.isMember(player.getUniqueId()))
+                .orElse(false);
+    }
+
+    /** Evaluates a player action while bypassing the region flag for owners and members. */
+    private boolean allowsFlag(Player player, Location location, RegionFlag flag) {
+        if (player == null || location == null) return regions.hasFlag(location, flag);
+        return regions.find(location)
+                .map(region -> region.isOwner(player.getUniqueId()) || region.isMember(player.getUniqueId()) || regions.hasFlag(location, flag))
+                .orElse(true);
+    }
 
     private static RegionFlag monsterSpawnFlag(String entityType) {
         return switch (entityType) {
