@@ -1,9 +1,7 @@
 package de.pixelrpg.rpg.dialogue;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
-import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.guild.GuildManager;
-import de.pixelrpg.rpg.item.SoulboundService;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -12,9 +10,7 @@ import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +54,6 @@ public final class ReceptionDialog {
                 new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager).open();
             }));
         } else {
-            // Reception order: Registrierung aufheben, Party, Gilde, Seelenbindung, Scoreboard.
             actions.add(dialogueEngine.actionButton(Component.text("PixelRPG-Registrierung aufheben"), NamedTextColor.RED, this::openLeaveConfirmation));
             if (partyManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Party", NamedTextColor.AQUA), NamedTextColor.AQUA,
@@ -68,7 +63,6 @@ public final class ReceptionDialog {
                 actions.add(dialogueEngine.actionButton(Component.text("Gilde", NamedTextColor.GOLD), NamedTextColor.GOLD,
                         target -> new GuildDialog(guildManager, profileManager, dialogueEngine).open(target)));
             }
-            actions.add(dialogueEngine.actionButton(Component.text("Seelenbindung"), NamedTextColor.LIGHT_PURPLE, this::openSoulbindSelection));
             actions.add(dialogueEngine.actionButton(
                     Component.text(profile.isScoreboardEnabled() ? "Scoreboard ausschalten" : "Scoreboard einschalten", NamedTextColor.GOLD),
                     NamedTextColor.GOLD, this::toggleScoreboard));
@@ -84,63 +78,6 @@ public final class ReceptionDialog {
         }
         scoreboardService.setEnabled(target, !scoreboardService.isEnabled(target));
         new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager).open();
-    }
-
-    private void openSoulbindSelection(Player target) {
-        List<ActionButton> actions = new ArrayList<>();
-        List<Integer> slots = new ArrayList<>();
-        for (int slot = 0; slot < target.getInventory().getSize(); slot++) {
-            ItemStack item = target.getInventory().getItem(slot);
-            if (!isSoulbindCandidate(item)) continue;
-            final int itemSlot = slot;
-            slots.add(itemSlot);
-            actions.add(dialogueEngine.actionButton(itemLabel(item, itemSlot), NamedTextColor.LIGHT_PURPLE, player -> openSoulbindConfirmation(player, itemSlot)));
-        }
-        if (actions.isEmpty()) {
-            dialogueEngine.openNotice(target, Component.text("Seelenbindung", NamedTextColor.GOLD), Component.text("Lege zuerst ein identifiziertes Item in den mittleren Slot.", NamedTextColor.WHITE), Component.text("Abbrechen", NamedTextColor.GRAY));
-            return;
-        }
-        List<DialogBody> body = List.of(
-                DialogBody.plainMessage(Component.text("Wähle ein identifiziertes PixelRPG-Item aus deinem Inventar. Bereits seelengebundene Items werden nicht angezeigt.", NamedTextColor.WHITE)),
-                DialogBody.plainMessage(Component.text("Verfügbare Items: " + slots.size(), NamedTextColor.GRAY)));
-        dialogueEngine.openMultiAction(target, Component.text("Seelenbindung", NamedTextColor.GOLD), body, actions, 1,
-                player -> new ReceptionDialog(player, profileManager, dialogueEngine, partyManager, guildManager).open());
-    }
-
-    private void openSoulbindConfirmation(Player target, int slot) {
-        ItemStack item = target.getInventory().getItem(slot);
-        if (!isSoulbindCandidate(item)) { openSoulbindSelection(target); return; }
-        Component itemName = itemLabel(item, slot);
-        ActionButton yes = dialogueEngine.actionButton(Component.text("Seelenbinden", NamedTextColor.LIGHT_PURPLE), NamedTextColor.LIGHT_PURPLE, player -> soulbindItem(player, slot));
-        ActionButton no = dialogueEngine.actionButton(Component.text("Abbrechen"), NamedTextColor.GRAY, this::openSoulbindSelection);
-        dialogueEngine.openConfirmation(target, Component.text("Seelenbindung", NamedTextColor.GOLD),
-                List.of(DialogBody.plainMessage(Component.text("Möchtest du " + plainName(itemName) + " wirklich seelenbinden? Diese Entscheidung kann nicht rückgängig gemacht werden.", NamedTextColor.WHITE))), yes, no);
-    }
-
-    private void soulbindItem(Player target, int slot) {
-        ItemStack item = target.getInventory().getItem(slot);
-        if (!isSoulbindCandidate(item)) { openSoulbindSelection(target); return; }
-        SoulboundService.Result result = SoulboundService.apply(item);
-        switch (result) {
-            case SUCCESS -> target.sendMessage(Component.text("Item ist jetzt seelengebunden!", NamedTextColor.GREEN));
-            case ALREADY_SOULBOUND -> target.sendMessage(Component.text("Dieses Item ist bereits seelengebunden.", NamedTextColor.RED));
-            case NOT_IDENTIFIED -> target.sendMessage(Component.text("Nur identifizierte Items können seelengebunden werden.", NamedTextColor.RED));
-        }
-    }
-
-    private boolean isSoulbindCandidate(ItemStack item) {
-        if (item == null || item.getType().isAir() || !item.hasItemMeta()) return false;
-        var pdc = item.getItemMeta().getPersistentDataContainer();
-        return Boolean.TRUE.equals(pdc.get(RPGKeys.Item.identified(), org.bukkit.persistence.PersistentDataType.BOOLEAN)) && !SoulboundService.isSoulbound(item);
-    }
-
-    private Component itemLabel(ItemStack item, int slot) {
-        Component name = item.hasItemMeta() && item.getItemMeta().hasDisplayName() ? item.getItemMeta().displayName() : Component.text(item.getType().key().value());
-        return name.decoration(TextDecoration.ITALIC, false).append(Component.text(" ×" + item.getAmount() + " [Slot " + (slot + 1) + "]", NamedTextColor.GRAY));
-    }
-
-    private String plainName(Component component) {
-        return net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(component);
     }
 
     private void openLeaveConfirmation(Player target) {
