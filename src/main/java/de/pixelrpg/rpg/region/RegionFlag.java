@@ -68,9 +68,14 @@ public enum RegionFlag {
     SPAWN_CREEPER(RegionFlagCategory.MOB_SPAWN, "Creeper"),
     SPAWN_ENDERMAN(RegionFlagCategory.MOB_SPAWN, "Enderman"),
     SPAWN_ENDERMITE(RegionFlagCategory.MOB_SPAWN, "Endermite"),
+    SPAWN_GHAST(RegionFlagCategory.MOB_SPAWN, "Ghast"),
     SPAWN_GIANT(RegionFlagCategory.MOB_SPAWN, "Giant"),
     SPAWN_GUARDIAN(RegionFlagCategory.MOB_SPAWN, "Guardian"),
     SPAWN_ELDER_GUARDIAN(RegionFlagCategory.MOB_SPAWN, "Elder Guardian"),
+    SPAWN_HOGLIN(RegionFlagCategory.MOB_SPAWN, "Hoglin"),
+    SPAWN_MAGMA_CUBE(RegionFlagCategory.MOB_SPAWN, "Magmawürfel"),
+    SPAWN_PHANTOM(RegionFlagCategory.MOB_SPAWN, "Phantom"),
+    SPAWN_SLIME(RegionFlagCategory.MOB_SPAWN, "Schleim"),
     SPAWN_PIGLIN(RegionFlagCategory.MOB_SPAWN, "Piglin"),
     SPAWN_PIGLIN_BRUTE(RegionFlagCategory.MOB_SPAWN, "Piglin Brute"),
     SPAWN_PILLAGER(RegionFlagCategory.MOB_SPAWN, "Pillager"),
@@ -130,13 +135,8 @@ public enum RegionFlag {
         this.displayName = displayName;
     }
 
-    public RegionFlagCategory category() {
-        return category;
-    }
-
-    public String displayName() {
-        return displayName;
-    }
+    public RegionFlagCategory category() { return category; }
+    public String displayName() { return displayName; }
 
     public static List<RegionFlag> forCategory(RegionFlagCategory category) {
         return Arrays.stream(values()).filter(flag -> flag.category == category).toList();
