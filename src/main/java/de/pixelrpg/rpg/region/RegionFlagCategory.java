@@ -11,7 +11,8 @@ public enum RegionFlagCategory {
     ENVIRONMENT("Umwelt"),
     EXPLOSIONS("Explosionen"),
     MOVEMENT("Bewegung & Teleport"),
-    PLAYER("Spieler");
+    PLAYER("Spieler"),
+    LEGACY("Legacy");
 
     private final String displayName;
 
