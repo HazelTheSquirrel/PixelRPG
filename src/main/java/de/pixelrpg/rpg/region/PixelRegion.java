@@ -109,8 +109,16 @@ public final class PixelRegion {
     /** Returns whether this region explicitly defines the supplied rule. */
     public boolean hasFlag(RegionFlag flag) { return flags.containsKey(flag); }
 
-    /** Returns whether the supplied rule is enabled for this region; unset flags default to true. */
-    public boolean flag(RegionFlag flag) { return flags.getOrDefault(flag, true); }
+    /** Returns whether the supplied rule is enabled; global regions use the current built-in default when unset. */
+    public boolean flag(RegionFlag flag) { return flags.getOrDefault(flag, defaultFlag(flag)); }
+
+    private static boolean defaultFlag(RegionFlag flag) {
+        return switch (flag) {
+            case FIRE_SPREAD, LAVA_FLOW, EXPLOSION, TNT, CREEPER_EXPLOSION, GHAST_FIREBALL,
+                 ENDERMAN_GRIEF, DENY_SPAWN -> false;
+            default -> true;
+        };
+    }
 
     public boolean isOwner(UUID playerId) { return !global && playerId != null && playerId.equals(ownerId); }
     public boolean isMember(UUID playerId) { return playerId != null && members.contains(playerId); }
