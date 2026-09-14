@@ -256,7 +256,7 @@ public final class RegionManager {
                 .put(RegionFlag.NATURAL_HEALTH_REGEN, true)
                 .put(RegionFlag.NATURAL_HUNGER_DRAIN, true);
         for (RegionFlag flag : RegionFlag.values()) {
-            if (flag.category() != RegionFlagCategory.LEGACY && !builder.contains(flag)) builder.put(flag, true);
+            if (!builder.contains(flag)) builder.put(flag, true);
         }
         return builder.build();
     }
@@ -343,8 +343,18 @@ public final class RegionManager {
 
     private static final class EnumMapBuilder {
         private final java.util.EnumMap<RegionFlag, Boolean> values = new java.util.EnumMap<>(RegionFlag.class);
-        EnumMapBuilder put(RegionFlag flag, boolean value) { values.put(flag, value); return this; }
-        boolean contains(RegionFlag flag) { return values.containsKey(flag); }
-        Map<RegionFlag, Boolean> build() { return Map.copyOf(values); }
+
+        private EnumMapBuilder put(RegionFlag flag, boolean enabled) {
+            values.put(flag, enabled);
+            return this;
+        }
+
+        private boolean contains(RegionFlag flag) {
+            return values.containsKey(flag);
+        }
+
+        private Map<RegionFlag, Boolean> build() {
+            return Map.copyOf(values);
+        }
     }
 }
