@@ -26,7 +26,6 @@ import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.LightningStrikeEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
@@ -37,6 +36,7 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.weather.LightningStrikeEvent;
 
 import java.util.Objects;
 
@@ -127,12 +127,17 @@ public final class RegionListener implements Listener {
         if (editor.isTool(event.getItem()) || editor.isSpawnTool(event.getItem())) return;
         Block block = event.getClickedBlock();
         if (block == null) return;
-        if (!policy.allowsUse(block.getLocation())) event.setCancelled(true);
-        if (!event.isCancelled() && Tag.ANVIL.isTagged(block.getType()) && !policy.allowsAnvil(block.getLocation())) {
+        if (!policy.allowsUse(block.getLocation())) {
+            event.setCancelled(true);
+            return;
+        }
+        if (Tag.ANVIL.isTagged(block.getType()) && !policy.allowsAnvil(block.getLocation())) {
+            event.setCancelled(true);
+            return;
+        }
+        if (block.getType() == Material.RESPAWN_ANCHOR && !policy.allowsRespawnAnchor(block.getLocation())) {
             event.setCancelled(true);
         }
-        if (!event.isCancelled() && block.getType() == Material.RESPAWN_ANCHOR
-                && !policy.allowsRespawnAnchor(block.getLocation())) event.setCancelled(true);
     }
 
     /** Applies the region container-access policy. */
@@ -240,6 +245,7 @@ public final class RegionListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEnderPearlTeleport(PlayerTeleportEvent event) {
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL
+                && event.getTo() != null
                 && !policy.allowsEnderPearl(event.getTo())) event.setCancelled(true);
     }
 
