@@ -40,7 +40,11 @@ public final class QuestBehavior implements NpcBehavior {
     @Override
     public void onInteract(Player player, RPGNpc npc) {
         if (!profileManager.isRegistered(player.getUniqueId())) {
-            player.sendMessage(Component.text("Du musst zuerst Rathausmitglied sein.", NamedTextColor.RED));
+            dialogueEngine.openNotice(
+                    player,
+                    Component.text("Questgeber", NamedTextColor.GOLD),
+                    Component.text("Du musst zuerst registriertes Rathausmitglied sein.", NamedTextColor.WHITE),
+                    Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
         openQuestRanges(player);
