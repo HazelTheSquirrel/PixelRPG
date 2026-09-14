@@ -42,7 +42,11 @@ public final class BankerBehavior implements NpcBehavior {
     @Override
     public void onInteract(Player player, RPGNpc npc) {
         if (!profileManager.isRegistered(player.getUniqueId())) {
-            player.sendMessage(Component.text("Du musst registriertes Rathausmitglied sein.", NamedTextColor.RED));
+            dialogueEngine.openNotice(
+                    player,
+                    Component.text("Bank", NamedTextColor.DARK_GREEN),
+                    Component.text("Du musst zuerst registriertes Rathausmitglied sein.", NamedTextColor.WHITE),
+                    Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
         guildBankAccess.open(player);
