@@ -63,7 +63,10 @@ public final class RegionPolicyService {
                 || regions.isExplicitSpawnPoint(location, event.getEntityType().name());
         if (managed) return true;
         if (!regions.hasFlag(location, RegionFlag.MOB_SPAWNING)) return false;
-        return !regions.hasFlag(location, RegionFlag.DENY_SPAWN);
+        if (regions.hasFlag(location, RegionFlag.DENY_SPAWN)) return false;
+        if (!(entity instanceof Monster)) return true;
+        RegionFlag mobFlag = monsterSpawnFlag(event.getEntityType().name());
+        return mobFlag == null || regions.hasFlag(location, mobFlag);
     }
 
     public boolean allowsBlockBreak(Location location) {
@@ -190,6 +193,46 @@ public final class RegionPolicyService {
 
     public boolean allowsExit(Location location) {
         return regions.hasFlag(location, RegionFlag.EXIT);
+    }
+
+    private static RegionFlag monsterSpawnFlag(String entityType) {
+        return switch (entityType) {
+            case "BOGGED" -> RegionFlag.SPAWN_BOGGED;
+            case "PARCHED" -> RegionFlag.SPAWN_PARCHED;
+            case "SKELETON" -> RegionFlag.SPAWN_SKELETON;
+            case "STRAY" -> RegionFlag.SPAWN_STRAY;
+            case "WITHER_SKELETON" -> RegionFlag.SPAWN_WITHER_SKELETON;
+            case "BLAZE" -> RegionFlag.SPAWN_BLAZE;
+            case "BREEZE" -> RegionFlag.SPAWN_BREEZE;
+            case "CREAKING" -> RegionFlag.SPAWN_CREAKING;
+            case "CREEPER" -> RegionFlag.SPAWN_CREEPER;
+            case "ENDERMAN" -> RegionFlag.SPAWN_ENDERMAN;
+            case "ENDERMITE" -> RegionFlag.SPAWN_ENDERMITE;
+            case "GIANT" -> RegionFlag.SPAWN_GIANT;
+            case "GUARDIAN" -> RegionFlag.SPAWN_GUARDIAN;
+            case "ELDER_GUARDIAN" -> RegionFlag.SPAWN_ELDER_GUARDIAN;
+            case "PIGLIN" -> RegionFlag.SPAWN_PIGLIN;
+            case "PIGLIN_BRUTE" -> RegionFlag.SPAWN_PIGLIN_BRUTE;
+            case "PILLAGER" -> RegionFlag.SPAWN_PILLAGER;
+            case "EVOKER" -> RegionFlag.SPAWN_EVOKER;
+            case "ILLUSIONER" -> RegionFlag.SPAWN_ILLUSIONER;
+            case "VINDICATOR" -> RegionFlag.SPAWN_VINDICATOR;
+            case "RAVAGER" -> RegionFlag.SPAWN_RAVAGER;
+            case "WITCH" -> RegionFlag.SPAWN_WITCH;
+            case "SILVERFISH" -> RegionFlag.SPAWN_SILVERFISH;
+            case "SPIDER" -> RegionFlag.SPAWN_SPIDER;
+            case "CAVE_SPIDER" -> RegionFlag.SPAWN_CAVE_SPIDER;
+            case "VEX" -> RegionFlag.SPAWN_VEX;
+            case "WARDEN" -> RegionFlag.SPAWN_WARDEN;
+            case "WITHER" -> RegionFlag.SPAWN_WITHER;
+            case "ZOGLIN" -> RegionFlag.SPAWN_ZOGLIN;
+            case "ZOMBIE" -> RegionFlag.SPAWN_ZOMBIE;
+            case "DROWNED" -> RegionFlag.SPAWN_DROWNED;
+            case "HUSK" -> RegionFlag.SPAWN_HUSK;
+            case "PIG_ZOMBIE" -> RegionFlag.SPAWN_PIG_ZOMBIE;
+            case "ZOMBIE_VILLAGER" -> RegionFlag.SPAWN_ZOMBIE_VILLAGER;
+            default -> null;
+        };
     }
 
     private static RegionFlag interactionFlag(Material material) {
