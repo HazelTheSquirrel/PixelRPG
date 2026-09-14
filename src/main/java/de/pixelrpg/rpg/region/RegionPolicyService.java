@@ -22,7 +22,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
-import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 
@@ -177,8 +176,9 @@ public final class RegionPolicyService {
     }
 
     public boolean allowsNaturalRegen(EntityRegainHealthEvent event) {
-        RegainReason reason = event.getRegainReason();
-        boolean natural = reason == RegainReason.REGEN || reason == RegainReason.SATIATED;
+        EntityRegainHealthEvent.RegainReason reason = event.getRegainReason();
+        boolean natural = reason == EntityRegainHealthEvent.RegainReason.REGEN
+                || reason == EntityRegainHealthEvent.RegainReason.SATIATED;
         return !natural || regions.hasFlag(event.getEntity().getLocation(), RegionFlag.NATURAL_HEALTH_REGEN);
     }
 
@@ -242,7 +242,16 @@ public final class RegionPolicyService {
         if (Tag.BUTTONS.isTagged(material)) return RegionFlag.BUTTON_USE;
         if (Tag.PRESSURE_PLATES.isTagged(material)) return RegionFlag.PRESSURE_PLATE_USE;
         if (material == Material.LEVER) return RegionFlag.LEVER_USE;
-        return null;
+        return switch (material) {
+            case NOTE_BLOCK -> RegionFlag.NOTE_BLOCK_USE;
+            case JUKEBOX -> RegionFlag.JUKEBOX_USE;
+            case COMPOSTER -> RegionFlag.COMPOSTER_USE;
+            case LECTERN -> RegionFlag.LECTERN_USE;
+            case BEEHIVE -> RegionFlag.BEEHIVE_USE;
+            case BEE_NEST -> RegionFlag.BEE_NEST_USE;
+            case CAKE -> RegionFlag.CAKE_USE;
+            default -> null;
+        };
     }
 
     private static RegionFlag containerFlag(Material material) {
@@ -259,6 +268,11 @@ public final class RegionPolicyService {
             case ENCHANTING_TABLE -> RegionFlag.ENCHANTING_TABLE_USE;
             case CRAFTING_TABLE -> RegionFlag.CRAFTING_TABLE_USE;
             case ANVIL, CHIPPED_ANVIL, DAMAGED_ANVIL -> RegionFlag.ANVIL_USE;
+            case GRINDSTONE -> RegionFlag.GRINDSTONE_USE;
+            case STONECUTTER -> RegionFlag.STONECUTTER_USE;
+            case LOOM -> RegionFlag.LOOM_USE;
+            case CARTOGRAPHY_TABLE -> RegionFlag.CARTOGRAPHY_TABLE_USE;
+            case SMITHING_TABLE -> RegionFlag.SMITHING_TABLE_USE;
             default -> material.name().endsWith("_SHULKER_BOX") ? RegionFlag.SHULKER_BOX_USE : null;
         };
     }
