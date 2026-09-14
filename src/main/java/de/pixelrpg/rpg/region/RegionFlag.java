@@ -94,9 +94,10 @@ public enum RegionFlag {
     NATURAL_HEALTH_REGEN(RegionFlagCategory.PLAYER, "Natürliche Heilung"),
     NATURAL_HUNGER_DRAIN(RegionFlagCategory.PLAYER, "Natürlicher Hunger"),
     SLEEP(RegionFlagCategory.PLAYER, "Schlafen"),
-    RESPAWN_ANCHORS(RegionFlagCategory.PLAYER, "Respawn-Anker"),
-    ENDERPEARL(RegionFlagCategory.PLAYER, "Enderperlen-Teleport"),
-    CHORUS_FRUIT_TELEPORT(RegionFlagCategory.PLAYER, "Chorusfrucht-Teleport"),
+
+    RESPAWN_ANCHORS(RegionFlagCategory.MOVEMENT, "Respawn-Anker"),
+    ENDERPEARL(RegionFlagCategory.MOVEMENT, "Enderperlen-Teleport"),
+    CHORUS_FRUIT_TELEPORT(RegionFlagCategory.MOVEMENT, "Chorusfrucht-Teleport"),
 
     @Deprecated
     INTERACT(RegionFlagCategory.LEGACY, "Legacy: Entity-Interaktion"),
