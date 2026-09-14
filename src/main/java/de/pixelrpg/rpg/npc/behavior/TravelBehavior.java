@@ -7,12 +7,9 @@ import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
-
-import java.util.List;
 
 public final class TravelBehavior implements NpcBehavior {
     private final NpcManager npcManager;
@@ -30,7 +27,11 @@ public final class TravelBehavior implements NpcBehavior {
     @Override
     public void onInteract(Player player, RPGNpc npc) {
         if (!profileManager.isRegistered(player.getUniqueId())) {
-            player.sendMessage(Component.text("Du musst registriertes Rathausmitglied sein.", NamedTextColor.RED));
+            dialogueEngine.openNotice(
+                    player,
+                    Component.text("Schnellreise", NamedTextColor.LIGHT_PURPLE),
+                    Component.text("Du musst zuerst registriertes Rathausmitglied sein.", NamedTextColor.WHITE),
+                    Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
         var profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
