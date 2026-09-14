@@ -55,29 +55,19 @@ public enum RegionFlag {
     DAMAGE_ANIMALS(RegionFlagCategory.COMBAT, "Tierschaden"),
     FALL_DAMAGE(RegionFlagCategory.COMBAT, "Fallschaden"),
 
-    MOB_SPAWNING(RegionFlagCategory.MOB_SPAWN, "Mob-Spawning"),
-    DENY_SPAWN(RegionFlagCategory.MOB_SPAWN, "Spawning vollständig verbieten"),
+    MOB_SPAWNING(RegionFlagCategory.MOB_SPAWN, "Overworld-Mob-Spawning"),
+    DENY_SPAWN(RegionFlagCategory.MOB_SPAWN, "Overworld-Spawning vollständig verbieten"),
     SPAWN_BOGGED(RegionFlagCategory.MOB_SPAWN, "Bogged"),
     SPAWN_PARCHED(RegionFlagCategory.MOB_SPAWN, "Parched"),
     SPAWN_SKELETON(RegionFlagCategory.MOB_SPAWN, "Skelett"),
     SPAWN_STRAY(RegionFlagCategory.MOB_SPAWN, "Stray"),
     SPAWN_WITHER_SKELETON(RegionFlagCategory.MOB_SPAWN, "Wither-Skelett"),
-    SPAWN_BLAZE(RegionFlagCategory.MOB_SPAWN, "Blaze"),
-    SPAWN_BREEZE(RegionFlagCategory.MOB_SPAWN, "Breeze"),
-    SPAWN_CREAKING(RegionFlagCategory.MOB_SPAWN, "Creaking"),
     SPAWN_CREEPER(RegionFlagCategory.MOB_SPAWN, "Creeper"),
     SPAWN_ENDERMAN(RegionFlagCategory.MOB_SPAWN, "Enderman"),
     SPAWN_ENDERMITE(RegionFlagCategory.MOB_SPAWN, "Endermite"),
-    SPAWN_GHAST(RegionFlagCategory.MOB_SPAWN, "Ghast"),
     SPAWN_GIANT(RegionFlagCategory.MOB_SPAWN, "Giant"),
     SPAWN_GUARDIAN(RegionFlagCategory.MOB_SPAWN, "Guardian"),
     SPAWN_ELDER_GUARDIAN(RegionFlagCategory.MOB_SPAWN, "Elder Guardian"),
-    SPAWN_HOGLIN(RegionFlagCategory.MOB_SPAWN, "Hoglin"),
-    SPAWN_MAGMA_CUBE(RegionFlagCategory.MOB_SPAWN, "Magmawürfel"),
-    SPAWN_PHANTOM(RegionFlagCategory.MOB_SPAWN, "Phantom"),
-    SPAWN_SLIME(RegionFlagCategory.MOB_SPAWN, "Schleim"),
-    SPAWN_PIGLIN(RegionFlagCategory.MOB_SPAWN, "Piglin"),
-    SPAWN_PIGLIN_BRUTE(RegionFlagCategory.MOB_SPAWN, "Piglin Brute"),
     SPAWN_PILLAGER(RegionFlagCategory.MOB_SPAWN, "Pillager"),
     SPAWN_EVOKER(RegionFlagCategory.MOB_SPAWN, "Evoker"),
     SPAWN_ILLUSIONER(RegionFlagCategory.MOB_SPAWN, "Illusioner"),
@@ -90,7 +80,6 @@ public enum RegionFlag {
     SPAWN_VEX(RegionFlagCategory.MOB_SPAWN, "Vex"),
     SPAWN_WARDEN(RegionFlagCategory.MOB_SPAWN, "Warden"),
     SPAWN_WITHER(RegionFlagCategory.MOB_SPAWN, "Wither"),
-    SPAWN_ZOGLIN(RegionFlagCategory.MOB_SPAWN, "Zoglin"),
     SPAWN_ZOMBIE(RegionFlagCategory.MOB_SPAWN, "Zombie"),
     SPAWN_DROWNED(RegionFlagCategory.MOB_SPAWN, "Ertrunkener"),
     SPAWN_HUSK(RegionFlagCategory.MOB_SPAWN, "Husk"),
@@ -116,16 +105,7 @@ public enum RegionFlag {
 
     RESPAWN_ANCHORS(RegionFlagCategory.MOVEMENT, "Respawn-Anker"),
     ENDERPEARL(RegionFlagCategory.MOVEMENT, "Enderperlen-Teleport"),
-    CHORUS_FRUIT_TELEPORT(RegionFlagCategory.MOVEMENT, "Chorusfrucht-Teleport"),
-
-    @Deprecated
-    INTERACT(RegionFlagCategory.LEGACY, "Legacy: Entity-Interaktion"),
-    @Deprecated
-    USE(RegionFlagCategory.LEGACY, "Legacy: Block-/Item-Nutzung"),
-    @Deprecated
-    CHEST_ACCESS(RegionFlagCategory.LEGACY, "Legacy: Container-Zugriff"),
-    @Deprecated
-    MONSTER_SPAWN(RegionFlagCategory.LEGACY, "Legacy: Monster-Spawns");
+    CHORUS_FRUIT_TELEPORT(RegionFlagCategory.MOVEMENT, "Chorusfrucht-Teleport");
 
     private final RegionFlagCategory category;
     private final String displayName;
