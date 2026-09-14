@@ -71,13 +71,8 @@ public final class RegionPolicyService {
         return mobFlag == null || regions.hasFlag(location, mobFlag);
     }
 
-    public boolean allowsBlockBreak(Location location) {
-        return regions.hasFlag(location, RegionFlag.BLOCK_BREAK);
-    }
-
-    public boolean allowsBlockPlace(Location location) {
-        return regions.hasFlag(location, RegionFlag.BLOCK_PLACE);
-    }
+    public boolean allowsBlockBreak(Location location) { return regions.hasFlag(location, RegionFlag.BLOCK_BREAK); }
+    public boolean allowsBlockPlace(Location location) { return regions.hasFlag(location, RegionFlag.BLOCK_PLACE); }
 
     /** Applies the fine-grained entity interaction permission. */
     public boolean allowsEntityInteraction(Entity entity) {
@@ -101,13 +96,8 @@ public final class RegionPolicyService {
         return flag == null || regions.hasFlag(block.getLocation(), flag);
     }
 
-    public boolean allowsItemDrop(Location location) {
-        return regions.hasFlag(location, RegionFlag.ITEM_DROP);
-    }
-
-    public boolean allowsItemPickup(Location location) {
-        return regions.hasFlag(location, RegionFlag.ITEM_PICKUP);
-    }
+    public boolean allowsItemDrop(Location location) { return regions.hasFlag(location, RegionFlag.ITEM_DROP); }
+    public boolean allowsItemPickup(Location location) { return regions.hasFlag(location, RegionFlag.ITEM_PICKUP); }
 
     public boolean allowsFireSpread(BlockSpreadEvent event) {
         Material type = event.getNewState().getType();
@@ -145,37 +135,14 @@ public final class RegionPolicyService {
                 || regions.hasFlag(event.getBlock().getLocation(), RegionFlag.ENDERMAN_GRIEF);
     }
 
-    public boolean allowsLightning(Location location) {
-        return regions.hasFlag(location, RegionFlag.LIGHTNING);
-    }
-
-    public boolean allowsCropGrowth(BlockGrowEvent event) {
-        return regions.hasFlag(event.getBlock().getLocation(), RegionFlag.CROP_GROWTH);
-    }
-
-    public boolean allowsLeafDecay(Location location) {
-        return regions.hasFlag(location, RegionFlag.LEAF_DECAY);
-    }
-
-    public boolean allowsTrampling(EntityInteractEvent event) {
-        return regions.hasFlag(event.getBlock().getLocation(), RegionFlag.BLOCK_TRAMPLING);
-    }
-
-    public boolean allowsRespawnAnchor(Location location) {
-        return regions.hasFlag(location, RegionFlag.RESPAWN_ANCHORS);
-    }
-
-    public boolean allowsSleep(Location location) {
-        return regions.hasFlag(location, RegionFlag.SLEEP);
-    }
-
-    public boolean allowsEnderPearl(Location location) {
-        return regions.hasFlag(location, RegionFlag.ENDERPEARL);
-    }
-
-    public boolean allowsChorusFruit(Location location) {
-        return regions.hasFlag(location, RegionFlag.CHORUS_FRUIT_TELEPORT);
-    }
+    public boolean allowsLightning(Location location) { return regions.hasFlag(location, RegionFlag.LIGHTNING); }
+    public boolean allowsCropGrowth(BlockGrowEvent event) { return regions.hasFlag(event.getBlock().getLocation(), RegionFlag.CROP_GROWTH); }
+    public boolean allowsLeafDecay(Location location) { return regions.hasFlag(location, RegionFlag.LEAF_DECAY); }
+    public boolean allowsTrampling(EntityInteractEvent event) { return regions.hasFlag(event.getBlock().getLocation(), RegionFlag.BLOCK_TRAMPLING); }
+    public boolean allowsRespawnAnchor(Location location) { return regions.hasFlag(location, RegionFlag.RESPAWN_ANCHORS); }
+    public boolean allowsSleep(Location location) { return regions.hasFlag(location, RegionFlag.SLEEP); }
+    public boolean allowsEnderPearl(Location location) { return regions.hasFlag(location, RegionFlag.ENDERPEARL); }
+    public boolean allowsChorusFruit(Location location) { return regions.hasFlag(location, RegionFlag.CHORUS_FRUIT_TELEPORT); }
 
     public boolean allowsNaturalRegen(EntityRegainHealthEvent event) {
         EntityRegainHealthEvent.RegainReason reason = event.getRegainReason();
@@ -189,13 +156,8 @@ public final class RegionPolicyService {
         return regions.hasFlag(player.getLocation(), RegionFlag.NATURAL_HUNGER_DRAIN);
     }
 
-    public boolean allowsEntry(Location location) {
-        return regions.hasFlag(location, RegionFlag.ENTRY);
-    }
-
-    public boolean allowsExit(Location location) {
-        return regions.hasFlag(location, RegionFlag.EXIT);
-    }
+    public boolean allowsEntry(Location location) { return regions.hasFlag(location, RegionFlag.ENTRY); }
+    public boolean allowsExit(Location location) { return regions.hasFlag(location, RegionFlag.EXIT); }
 
     private static RegionFlag monsterSpawnFlag(String entityType) {
         return switch (entityType) {
@@ -210,9 +172,14 @@ public final class RegionPolicyService {
             case "CREEPER" -> RegionFlag.SPAWN_CREEPER;
             case "ENDERMAN" -> RegionFlag.SPAWN_ENDERMAN;
             case "ENDERMITE" -> RegionFlag.SPAWN_ENDERMITE;
+            case "GHAST" -> RegionFlag.SPAWN_GHAST;
             case "GIANT" -> RegionFlag.SPAWN_GIANT;
             case "GUARDIAN" -> RegionFlag.SPAWN_GUARDIAN;
             case "ELDER_GUARDIAN" -> RegionFlag.SPAWN_ELDER_GUARDIAN;
+            case "HOGLIN" -> RegionFlag.SPAWN_HOGLIN;
+            case "MAGMA_CUBE" -> RegionFlag.SPAWN_MAGMA_CUBE;
+            case "PHANTOM" -> RegionFlag.SPAWN_PHANTOM;
+            case "SLIME" -> RegionFlag.SPAWN_SLIME;
             case "PIGLIN" -> RegionFlag.SPAWN_PIGLIN;
             case "PIGLIN_BRUTE" -> RegionFlag.SPAWN_PIGLIN_BRUTE;
             case "PILLAGER" -> RegionFlag.SPAWN_PILLAGER;
