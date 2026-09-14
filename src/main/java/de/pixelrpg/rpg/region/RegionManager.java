@@ -66,7 +66,7 @@ public final class RegionManager {
                                                                  List<RegionSpawnPoint> spawnPoints) {
         if (regions.containsKey(id)) return RegionGeometry.ValidationResult.invalid("Eine Region mit dieser ID existiert bereits.");
         if (worldName == null || worldName.isBlank()) return RegionGeometry.ValidationResult.invalid("Eine Welt ist erforderlich.");
-        if (minY > maxY) return RegionGeometry.ValidationResult.invalid("MinY darf nicht größer als MaxY sein.");
+        if (minY > maxY) return RegionGeometry.ValidationResult.invalid("MinY darf nicht größer als maxY sein.");
         var validation = RegionGeometry.validate(points);
         if (!validation.valid()) return validation;
 
@@ -226,14 +226,11 @@ public final class RegionManager {
         EnumMapBuilder builder = new EnumMapBuilder();
         builder.put(RegionFlag.PVP, true)
                 .put(RegionFlag.MOB_DAMAGE, true)
-                .put(RegionFlag.MONSTER_SPAWN, true)
                 .put(RegionFlag.MOB_SPAWNING, true)
                 .put(RegionFlag.DENY_SPAWN, false)
                 .put(RegionFlag.BLOCK_BREAK, true)
                 .put(RegionFlag.BLOCK_PLACE, true)
-                .put(RegionFlag.INTERACT, true)
-                .put(RegionFlag.USE, true)
-                .put(RegionFlag.CHEST_ACCESS, true)
+                .put(RegionFlag.ENTITY_INTERACTION, true)
                 .put(RegionFlag.DAMAGE_ANIMALS, true)
                 .put(RegionFlag.ITEM_DROP, true)
                 .put(RegionFlag.ITEM_PICKUP, true)
@@ -250,7 +247,6 @@ public final class RegionManager {
                 .put(RegionFlag.CROP_GROWTH, true)
                 .put(RegionFlag.LEAF_DECAY, true)
                 .put(RegionFlag.BLOCK_TRAMPLING, true)
-                .put(RegionFlag.USE_ANVIL, true)
                 .put(RegionFlag.ENTRY, true)
                 .put(RegionFlag.EXIT, true)
                 .put(RegionFlag.RESPAWN_ANCHORS, true)
@@ -259,6 +255,9 @@ public final class RegionManager {
                 .put(RegionFlag.CHORUS_FRUIT_TELEPORT, true)
                 .put(RegionFlag.NATURAL_HEALTH_REGEN, true)
                 .put(RegionFlag.NATURAL_HUNGER_DRAIN, true);
+        for (RegionFlag flag : RegionFlag.values()) {
+            if (flag.category() != RegionFlagCategory.LEGACY && !builder.contains(flag)) builder.put(flag, true);
+        }
         return builder.build();
     }
 
@@ -345,6 +344,7 @@ public final class RegionManager {
     private static final class EnumMapBuilder {
         private final java.util.EnumMap<RegionFlag, Boolean> values = new java.util.EnumMap<>(RegionFlag.class);
         EnumMapBuilder put(RegionFlag flag, boolean value) { values.put(flag, value); return this; }
+        boolean contains(RegionFlag flag) { return values.containsKey(flag); }
         Map<RegionFlag, Boolean> build() { return Map.copyOf(values); }
     }
 }
