@@ -74,6 +74,11 @@ public final class RegionPolicyService {
         return regions.hasFlag(location, RegionFlag.BLOCK_PLACE);
     }
 
+    /** Applies the fine-grained entity interaction permission. */
+    public boolean allowsEntityInteraction(Location location) {
+        return regions.hasFlag(location, RegionFlag.ENTITY_INTERACTION);
+    }
+
     /** Resolves a clicked block to its fine-grained interaction permission. */
     public boolean allowsUse(Block block) {
         if (block == null) return true;
