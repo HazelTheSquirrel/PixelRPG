@@ -117,7 +117,7 @@ public final class RegionListener implements Listener {
     /** Applies the fine-grained entity-interaction policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityInteract(PlayerInteractAtEntityEvent event) {
-        if (!policy.allowsEntityInteraction(event.getRightClicked().getLocation())) event.setCancelled(true);
+        if (!policy.allowsEntityInteraction(event.getRightClicked())) event.setCancelled(true);
     }
 
     /** Applies the fine-grained block interaction policy. */
@@ -235,22 +235,16 @@ public final class RegionListener implements Listener {
                 && !policy.allowsChorusFruit(event.getPlayer().getLocation())) event.setCancelled(true);
     }
 
-    /** Applies the region ender-pearl teleport policy. */
+    /** Applies the region ender-pearl teleport policy and all teleport boundary policies. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onEnderPearlTeleport(PlayerTeleportEvent event) {
+    public void onTeleport(PlayerTeleportEvent event) {
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL
                 && event.getTo() != null
                 && !policy.allowsEnderPearl(event.getTo())) {
             event.setCancelled(true);
             return;
         }
-        enforceTeleportBoundary(event);
-    }
-
-    /** Applies the region entry and exit policy to all player teleports, including non-pearl teleports. */
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onTeleportBoundary(PlayerTeleportEvent event) {
-        enforceTeleportBoundary(event);
+        if (event.getTo() == null || !allowsBoundaryCrossing(event.getFrom(), event.getTo())) event.setCancelled(true);
     }
 
     /** Applies the region natural-health-regen policy. */
@@ -289,10 +283,6 @@ public final class RegionListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         transitions.clear(event.getPlayer().getUniqueId());
-    }
-
-    private void enforceTeleportBoundary(PlayerTeleportEvent event) {
-        if (event.getTo() == null || !allowsBoundaryCrossing(event.getFrom(), event.getTo())) event.setCancelled(true);
     }
 
     private boolean allowsBoundaryCrossing(Location fromLocation, Location toLocation) {
