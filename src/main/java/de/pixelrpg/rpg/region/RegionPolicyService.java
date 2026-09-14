@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.region;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.ArmorStand;
@@ -64,7 +65,7 @@ public final class RegionPolicyService {
     public boolean allowsMonsterSpawn(CreatureSpawnEvent event) {
         LivingEntity entity = event.getEntity();
         Location location = event.getLocation();
-        if (location.getWorld() == null || location.getWorld().getEnvironment() != org.bukkit.World.Environment.NORMAL) return true;
+        if (location.getWorld() == null || location.getWorld().getEnvironment() != World.Environment.NORMAL) return true;
         boolean managed = spawnService.isManagedSpawn(entity)
                 || regions.isExplicitSpawnPoint(location, event.getEntityType().name());
         if (managed) return true;
@@ -72,7 +73,7 @@ public final class RegionPolicyService {
         if (regions.hasFlag(location, RegionFlag.DENY_SPAWN)) return false;
         RegionFlag mobFlag = monsterSpawnFlag(event.getEntityType().name());
         if (mobFlag != null) return regions.hasFlag(location, mobFlag);
-        return !(entity instanceof Monster) || regions.hasFlag(location, RegionFlag.MOB_SPAWNING);
+        return true;
     }
 
     public boolean allowsBlockBreak(Player player, Location location) {
@@ -192,13 +193,12 @@ public final class RegionPolicyService {
             case "PARCHED" -> RegionFlag.SPAWN_PARCHED;
             case "SKELETON" -> RegionFlag.SPAWN_SKELETON;
             case "STRAY" -> RegionFlag.SPAWN_STRAY;
-            case "WITHER_SKELETON" -> RegionFlag.SPAWN_WITHER_SKELETON;
             case "CREEPER" -> RegionFlag.SPAWN_CREEPER;
             case "ENDERMAN" -> RegionFlag.SPAWN_ENDERMAN;
-            case "ENDERMITE" -> RegionFlag.SPAWN_ENDERMITE;
-            case "GIANT" -> RegionFlag.SPAWN_GIANT;
             case "GUARDIAN" -> RegionFlag.SPAWN_GUARDIAN;
             case "ELDER_GUARDIAN" -> RegionFlag.SPAWN_ELDER_GUARDIAN;
+            case "BREEZE" -> RegionFlag.SPAWN_BREEZE;
+            case "CREAKING" -> RegionFlag.SPAWN_CREAKING;
             case "PILLAGER" -> RegionFlag.SPAWN_PILLAGER;
             case "EVOKER" -> RegionFlag.SPAWN_EVOKER;
             case "ILLUSIONER" -> RegionFlag.SPAWN_ILLUSIONER;
@@ -208,13 +208,12 @@ public final class RegionPolicyService {
             case "SILVERFISH" -> RegionFlag.SPAWN_SILVERFISH;
             case "SPIDER" -> RegionFlag.SPAWN_SPIDER;
             case "CAVE_SPIDER" -> RegionFlag.SPAWN_CAVE_SPIDER;
-            case "VEX" -> RegionFlag.SPAWN_VEX;
+            case "PHANTOM" -> RegionFlag.SPAWN_PHANTOM;
+            case "SLIME" -> RegionFlag.SPAWN_SLIME;
             case "WARDEN" -> RegionFlag.SPAWN_WARDEN;
-            case "WITHER" -> RegionFlag.SPAWN_WITHER;
             case "ZOMBIE" -> RegionFlag.SPAWN_ZOMBIE;
             case "DROWNED" -> RegionFlag.SPAWN_DROWNED;
             case "HUSK" -> RegionFlag.SPAWN_HUSK;
-            case "ZOMBIFIED_PIGLIN" -> RegionFlag.SPAWN_PIG_ZOMBIE;
             case "ZOMBIE_VILLAGER" -> RegionFlag.SPAWN_ZOMBIE_VILLAGER;
             default -> null;
         };
