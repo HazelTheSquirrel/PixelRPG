@@ -50,6 +50,13 @@ npc:
   look-radius: 3.0
   nameplate-radius: 5.0
   look-interval-ticks: 5
+  skin:
+    mineskin:
+      api-base: "https://api.mineskin.org"
+      api-key: ""
+      user-agent: "PixelRPG/1.0"
+      visibility: "unlisted"
+      variant: "auto"
 
 quests:
   party-share-range: 24.0
