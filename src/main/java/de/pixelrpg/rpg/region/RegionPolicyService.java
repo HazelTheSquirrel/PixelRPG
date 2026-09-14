@@ -15,6 +15,7 @@ import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
+import org.bukkit.event.block.TNTPrimeEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -24,11 +25,10 @@ import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.LightningStrikeEvent;
-import org.bukkit.event.entity.TNTPrimeEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.weather.LightningStrikeEvent;
 
 /** Domain policy for region gameplay flags. Paper event adapters delegate decisions here. */
 public final class RegionPolicyService {
@@ -172,8 +172,9 @@ public final class RegionPolicyService {
     }
 
     public boolean allowsNaturalRegen(EntityRegainHealthEvent event) {
-        return event.getRegainReason() != RegainReason.NATURAL
-                || regions.hasFlag(event.getEntity().getLocation(), RegionFlag.NATURAL_HEALTH_REGEN);
+        RegainReason reason = event.getRegainReason();
+        boolean natural = reason == RegainReason.REGEN || reason == RegainReason.SATIATED;
+        return !natural || regions.hasFlag(event.getEntity().getLocation(), RegionFlag.NATURAL_HEALTH_REGEN);
     }
 
     public boolean allowsNaturalHunger(FoodLevelChangeEvent event) {
