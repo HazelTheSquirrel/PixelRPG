@@ -64,6 +64,7 @@ public final class RegionPolicyService {
     public boolean allowsMonsterSpawn(CreatureSpawnEvent event) {
         LivingEntity entity = event.getEntity();
         Location location = event.getLocation();
+        if (location.getWorld() == null || location.getWorld().getEnvironment() != org.bukkit.World.Environment.NORMAL) return true;
         boolean managed = spawnService.isManagedSpawn(entity)
                 || regions.isExplicitSpawnPoint(location, event.getEntityType().name());
         if (managed) return true;
@@ -192,22 +193,12 @@ public final class RegionPolicyService {
             case "SKELETON" -> RegionFlag.SPAWN_SKELETON;
             case "STRAY" -> RegionFlag.SPAWN_STRAY;
             case "WITHER_SKELETON" -> RegionFlag.SPAWN_WITHER_SKELETON;
-            case "BLAZE" -> RegionFlag.SPAWN_BLAZE;
-            case "BREEZE" -> RegionFlag.SPAWN_BREEZE;
-            case "CREAKING" -> RegionFlag.SPAWN_CREAKING;
             case "CREEPER" -> RegionFlag.SPAWN_CREEPER;
             case "ENDERMAN" -> RegionFlag.SPAWN_ENDERMAN;
             case "ENDERMITE" -> RegionFlag.SPAWN_ENDERMITE;
-            case "GHAST" -> RegionFlag.SPAWN_GHAST;
             case "GIANT" -> RegionFlag.SPAWN_GIANT;
             case "GUARDIAN" -> RegionFlag.SPAWN_GUARDIAN;
             case "ELDER_GUARDIAN" -> RegionFlag.SPAWN_ELDER_GUARDIAN;
-            case "HOGLIN" -> RegionFlag.SPAWN_HOGLIN;
-            case "MAGMA_CUBE" -> RegionFlag.SPAWN_MAGMA_CUBE;
-            case "PHANTOM" -> RegionFlag.SPAWN_PHANTOM;
-            case "SLIME" -> RegionFlag.SPAWN_SLIME;
-            case "PIGLIN" -> RegionFlag.SPAWN_PIGLIN;
-            case "PIGLIN_BRUTE" -> RegionFlag.SPAWN_PIGLIN_BRUTE;
             case "PILLAGER" -> RegionFlag.SPAWN_PILLAGER;
             case "EVOKER" -> RegionFlag.SPAWN_EVOKER;
             case "ILLUSIONER" -> RegionFlag.SPAWN_ILLUSIONER;
@@ -220,7 +211,6 @@ public final class RegionPolicyService {
             case "VEX" -> RegionFlag.SPAWN_VEX;
             case "WARDEN" -> RegionFlag.SPAWN_WARDEN;
             case "WITHER" -> RegionFlag.SPAWN_WITHER;
-            case "ZOGLIN" -> RegionFlag.SPAWN_ZOGLIN;
             case "ZOMBIE" -> RegionFlag.SPAWN_ZOMBIE;
             case "DROWNED" -> RegionFlag.SPAWN_DROWNED;
             case "HUSK" -> RegionFlag.SPAWN_HUSK;
