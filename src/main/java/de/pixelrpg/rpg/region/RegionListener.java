@@ -102,58 +102,59 @@ public final class RegionListener implements Listener {
         if (!policy.allowsMonsterSpawn(event)) event.setCancelled(true);
     }
 
-    /** Applies the region block-break policy. */
+    /** Applies the region block-break policy while exempting region owners and members. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (!policy.allowsBlockBreak(event.getBlock().getLocation())) event.setCancelled(true);
+        if (!policy.allowsBlockBreak(event.getPlayer(), event.getBlock().getLocation())) event.setCancelled(true);
     }
 
-    /** Applies the region block-place policy. */
+    /** Applies the region block-place policy while exempting region owners and members. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (!policy.allowsBlockPlace(event.getBlock().getLocation())) event.setCancelled(true);
+        if (!policy.allowsBlockPlace(event.getPlayer(), event.getBlock().getLocation())) event.setCancelled(true);
     }
 
-    /** Applies the fine-grained entity-interaction policy. */
+    /** Applies the fine-grained entity-interaction policy while exempting region owners and members. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onEntityInteract(PlayerInteractAtEntityEvent event) {
-        if (!policy.allowsEntityInteraction(event.getRightClicked())) event.setCancelled(true);
+        if (!policy.allowsEntityInteraction(event.getPlayer(), event.getRightClicked())) event.setCancelled(true);
     }
 
-    /** Applies the fine-grained block interaction policy. */
+    /** Applies the fine-grained block interaction policy while exempting region owners and members. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockUse(PlayerInteractEvent event) {
         if (editor.isTool(event.getItem()) || editor.isSpawnTool(event.getItem())) return;
         Block block = event.getClickedBlock();
         if (block == null) return;
-        if (!policy.allowsUse(block)) {
+        if (!policy.allowsUse(event.getPlayer(), block)) {
             event.setCancelled(true);
             return;
         }
-        if (block.getType() == Material.RESPAWN_ANCHOR && !policy.allowsRespawnAnchor(block.getLocation())) {
+        if (block.getType() == Material.RESPAWN_ANCHOR
+                && !policy.allowsRespawnAnchor(event.getPlayer(), block.getLocation())) {
             event.setCancelled(true);
         }
     }
 
-    /** Applies the fine-grained container-access policy. */
+    /** Applies the fine-grained container-access policy while exempting region owners and members. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInventoryOpen(InventoryOpenEvent event) {
+        if (!(event.getPlayer() instanceof Player player)) return;
         if (!(event.getInventory().getHolder() instanceof org.bukkit.inventory.BlockInventoryHolder holder)) return;
-        if (!policy.allowsContainerAccess(holder.getBlock())) event.setCancelled(true);
+        if (!policy.allowsContainerAccess(player, holder.getBlock())) event.setCancelled(true);
     }
 
-    /** Applies the region item-drop policy. */
+    /** Applies the region item-drop policy while exempting region owners and members. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onItemDrop(PlayerDropItemEvent event) {
-        if (!policy.allowsItemDrop(event.getPlayer().getLocation())) event.setCancelled(true);
+        if (!policy.allowsItemDrop(event.getPlayer())) event.setCancelled(true);
     }
 
-    /** Applies the region item-pickup policy. */
+    /** Applies the region item-pickup policy while exempting region owners and members. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onItemPickup(EntityPickupItemEvent event) {
-        if (event.getEntity() instanceof Player && !policy.allowsItemPickup(event.getItem().getLocation())) {
-            event.setCancelled(true);
-        }
+        if (event.getEntity() instanceof Player player
+                && !policy.allowsItemPickup(player, event.getItem().getLocation())) event.setCancelled(true);
     }
 
     /** Applies the region fire-spread policy. */
@@ -219,20 +220,21 @@ public final class RegionListener implements Listener {
     /** Applies the region farmland and block-trampling policy. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockTrampling(EntityInteractEvent event) {
+        if (event.getEntity() instanceof Player player && isRegionMemberOrOwner(player, event.getBlock().getLocation())) return;
         if (!policy.allowsTrampling(event)) event.setCancelled(true);
     }
 
-    /** Applies the region sleep policy. */
+    /** Applies the region sleep policy while exempting region owners and members. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSleep(PlayerBedEnterEvent event) {
-        if (!policy.allowsSleep(event.getBed().getLocation())) event.setCancelled(true);
+        if (!policy.allowsSleep(event.getPlayer(), event.getBed().getLocation())) event.setCancelled(true);
     }
 
     /** Applies the region chorus-fruit teleport policy without relying on the deprecated teleport cause. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onChorusFruitConsume(PlayerItemConsumeEvent event) {
         if (event.getItem().getType() == Material.CHORUS_FRUIT
-                && !policy.allowsChorusFruit(event.getPlayer().getLocation())) event.setCancelled(true);
+                && !policy.allowsChorusFruit(event.getPlayer())) event.setCancelled(true);
     }
 
     /** Applies the region ender-pearl teleport policy and all teleport boundary policies. */
@@ -240,20 +242,20 @@ public final class RegionListener implements Listener {
     public void onTeleport(PlayerTeleportEvent event) {
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL
                 && event.getTo() != null
-                && !policy.allowsEnderPearl(event.getTo())) {
+                && !policy.allowsEnderPearl(event.getPlayer(), event.getTo())) {
             event.setCancelled(true);
             return;
         }
         if (event.getTo() == null || !allowsBoundaryCrossing(event.getFrom(), event.getTo())) event.setCancelled(true);
     }
 
-    /** Applies the region natural-health-regen policy. */
+    /** Applies the region natural-health-regen policy while exempting region owners and members. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onNaturalRegen(EntityRegainHealthEvent event) {
         if (!policy.allowsNaturalRegen(event)) event.setCancelled(true);
     }
 
-    /** Applies the region natural-hunger-drain policy. */
+    /** Applies the region natural-hunger-drain policy while exempting region owners and members. */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onNaturalHunger(FoodLevelChangeEvent event) {
         if (!policy.allowsNaturalHunger(event)) event.setCancelled(true);
@@ -263,6 +265,7 @@ public final class RegionListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onRegionBoundary(PlayerMoveEvent event) {
         if (event.getTo() == null || sameBlock(event.getFrom(), event.getTo())) return;
+        if (isRegionMemberOrOwner(event.getPlayer(), event.getTo())) return;
         if (!allowsBoundaryCrossing(event.getFrom(), event.getTo())) event.setCancelled(true);
     }
 
@@ -290,6 +293,12 @@ public final class RegionListener implements Listener {
         PixelRegion to = regions.find(toLocation).orElse(null);
         if (from == null || to == null || from.id().equals(to.id())) return true;
         return policy.allowsExit(fromLocation) && policy.allowsEntry(toLocation);
+    }
+
+    private boolean isRegionMemberOrOwner(Player player, Location location) {
+        return regions.find(location)
+                .map(region -> region.isOwner(player.getUniqueId()) || region.isMember(player.getUniqueId()))
+                .orElse(false);
     }
 
     private static boolean sameBlock(Location a, Location b) {
