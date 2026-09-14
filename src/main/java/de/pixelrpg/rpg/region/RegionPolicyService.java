@@ -5,10 +5,13 @@ import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Animals;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Enderman;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Ghast;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
@@ -77,8 +80,11 @@ public final class RegionPolicyService {
     }
 
     /** Applies the fine-grained entity interaction permission. */
-    public boolean allowsEntityInteraction(Location location) {
-        return regions.hasFlag(location, RegionFlag.ENTITY_INTERACTION);
+    public boolean allowsEntityInteraction(Entity entity) {
+        if (entity == null) return true;
+        if (entity instanceof ItemFrame) return regions.hasFlag(entity.getLocation(), RegionFlag.ITEM_FRAME_USE);
+        if (entity instanceof ArmorStand) return regions.hasFlag(entity.getLocation(), RegionFlag.ARMOR_STAND_USE);
+        return regions.hasFlag(entity.getLocation(), RegionFlag.ENTITY_INTERACTION);
     }
 
     /** Resolves a clicked block to its fine-grained interaction permission. */
@@ -153,10 +159,6 @@ public final class RegionPolicyService {
 
     public boolean allowsTrampling(EntityInteractEvent event) {
         return regions.hasFlag(event.getBlock().getLocation(), RegionFlag.BLOCK_TRAMPLING);
-    }
-
-    public boolean allowsAnvil(Location location) {
-        return regions.hasFlag(location, RegionFlag.ANVIL_USE);
     }
 
     public boolean allowsRespawnAnchor(Location location) {
