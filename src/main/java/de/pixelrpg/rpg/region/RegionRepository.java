@@ -191,7 +191,7 @@ public final class RegionRepository {
     }
 
     private static void migrateLegacyFlags(EnumMap<RegionFlag, Boolean> flags) {
-        mapLegacy(flags, RegionFlag.INTERACT, RegionFlag.ENTITY_INTERACTION);
+        mapLegacy(flags, RegionFlag.INTERACT, RegionFlag.ENTITY_INTERACTION, RegionFlag.ITEM_FRAME_USE, RegionFlag.ARMOR_STAND_USE);
         mapLegacy(flags, RegionFlag.USE,
                 RegionFlag.DOOR_USE, RegionFlag.TRAPDOOR_USE, RegionFlag.FENCE_GATE_USE,
                 RegionFlag.BUTTON_USE, RegionFlag.LEVER_USE, RegionFlag.PRESSURE_PLATE_USE,
