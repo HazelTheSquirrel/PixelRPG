@@ -14,7 +14,6 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 /** Provides the native Paper dialog used to navigate and toggle categorized region flags. */
 public final class RegionFlagDialogService {
@@ -36,8 +35,8 @@ public final class RegionFlagDialogService {
     private void showCategories(Player player, PixelRegion region) {
         List<ActionButton> actions = new ArrayList<>();
         for (RegionFlagCategory category : RegionFlagCategory.values()) {
-            if (category == RegionFlagCategory.LEGACY || RegionFlag.forCategory(category).isEmpty()) continue;
             List<RegionFlag> flags = RegionFlag.forCategory(category);
+            if (flags.isEmpty()) continue;
             long enabled = flags.stream().filter(flag -> effectiveFlag(region, flag)).count();
             actions.add(ActionButton.builder(Component.text(category.displayName(), NamedTextColor.WHITE))
                     .tooltip(Component.text(enabled + "/" + flags.size() + " aktiviert – Kategorie öffnen", NamedTextColor.GRAY))
