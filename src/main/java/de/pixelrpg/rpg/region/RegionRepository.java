@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 
 /** Persists region definitions without expanding polygons into block lists. */
 public final class RegionRepository {
-    private static final int CURRENT_FORMAT_VERSION = 5;
+    private static final int CURRENT_FORMAT_VERSION = 6;
 
     private final File file;
     private final Logger logger;
@@ -70,6 +70,7 @@ public final class RegionRepository {
                         } catch (IllegalArgumentException ignored) { }
                     }
                 }
+                migrateLegacyFlags(flags);
 
                 Map<String, String> properties = new HashMap<>();
                 ConfigurationSection propertySection = yaml.getConfigurationSection(base + ".properties");
@@ -132,6 +133,7 @@ public final class RegionRepository {
                     catch (IllegalArgumentException ignored) { }
                 }
             }
+            migrateLegacyFlags(values);
             result.put(world, Map.copyOf(values));
         }
         return Map.copyOf(result);
@@ -186,6 +188,37 @@ public final class RegionRepository {
         if (formatVersion >= CURRENT_FORMAT_VERSION) return;
         migrationNeeded = true;
         logger.info("regions.yml requires migration to format version " + CURRENT_FORMAT_VERSION + "; migration will be persisted asynchronously.");
+    }
+
+    private static void migrateLegacyFlags(EnumMap<RegionFlag, Boolean> flags) {
+        mapLegacy(flags, RegionFlag.INTERACT, RegionFlag.ENTITY_INTERACTION);
+        mapLegacy(flags, RegionFlag.USE,
+                RegionFlag.DOOR_USE, RegionFlag.TRAPDOOR_USE, RegionFlag.FENCE_GATE_USE,
+                RegionFlag.BUTTON_USE, RegionFlag.LEVER_USE, RegionFlag.PRESSURE_PLATE_USE);
+        mapLegacy(flags, RegionFlag.CHEST_ACCESS,
+                RegionFlag.CHEST_USE, RegionFlag.BARREL_USE, RegionFlag.SHULKER_BOX_USE,
+                RegionFlag.HOPPER_USE, RegionFlag.DROPPER_USE, RegionFlag.DISPENSER_USE,
+                RegionFlag.FURNACE_USE, RegionFlag.BLAST_FURNACE_USE, RegionFlag.SMOKER_USE,
+                RegionFlag.BREWING_STAND_USE, RegionFlag.ENCHANTING_TABLE_USE,
+                RegionFlag.CRAFTING_TABLE_USE, RegionFlag.ANVIL_USE);
+        if (flags.containsKey(RegionFlag.MONSTER_SPAWN)) {
+            boolean value = flags.get(RegionFlag.MONSTER_SPAWN);
+            if (!value) {
+                for (RegionFlag flag : RegionFlag.forCategory(RegionFlagCategory.MOB_SPAWN)) {
+                    if (flag.name().startsWith("SPAWN_")) flags.putIfAbsent(flag, false);
+                }
+            }
+        }
+        flags.remove(RegionFlag.INTERACT);
+        flags.remove(RegionFlag.USE);
+        flags.remove(RegionFlag.CHEST_ACCESS);
+        flags.remove(RegionFlag.MONSTER_SPAWN);
+    }
+
+    private static void mapLegacy(EnumMap<RegionFlag, Boolean> flags, RegionFlag legacy, RegionFlag... replacements) {
+        Boolean value = flags.get(legacy);
+        if (value == null || value) return;
+        for (RegionFlag replacement : replacements) flags.putIfAbsent(replacement, false);
     }
 
     private void writeAtomically(YamlConfiguration yaml) {
