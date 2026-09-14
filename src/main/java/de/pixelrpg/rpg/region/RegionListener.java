@@ -2,7 +2,6 @@ package de.pixelrpg.rpg.region;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.Player;
@@ -241,7 +240,17 @@ public final class RegionListener implements Listener {
     public void onEnderPearlTeleport(PlayerTeleportEvent event) {
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL
                 && event.getTo() != null
-                && !policy.allowsEnderPearl(event.getTo())) event.setCancelled(true);
+                && !policy.allowsEnderPearl(event.getTo())) {
+            event.setCancelled(true);
+            return;
+        }
+        enforceTeleportBoundary(event);
+    }
+
+    /** Applies the region entry and exit policy to all player teleports, including non-pearl teleports. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onTeleportBoundary(PlayerTeleportEvent event) {
+        enforceTeleportBoundary(event);
     }
 
     /** Applies the region natural-health-regen policy. */
@@ -260,15 +269,7 @@ public final class RegionListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onRegionBoundary(PlayerMoveEvent event) {
         if (event.getTo() == null || sameBlock(event.getFrom(), event.getTo())) return;
-        PixelRegion from = regions.find(event.getFrom()).orElse(null);
-        PixelRegion to = regions.find(event.getTo()).orElse(null);
-        if (from != null && to != null && !from.id().equals(to.id()) && !policy.allowsExit(event.getFrom())) {
-            event.setCancelled(true);
-            return;
-        }
-        if (from != null && to != null && !from.id().equals(to.id()) && !policy.allowsEntry(event.getTo())) {
-            event.setCancelled(true);
-        }
+        if (!allowsBoundaryCrossing(event.getFrom(), event.getTo())) event.setCancelled(true);
     }
 
     /** Detects region enter and leave transitions for players. */
@@ -288,6 +289,17 @@ public final class RegionListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         transitions.clear(event.getPlayer().getUniqueId());
+    }
+
+    private void enforceTeleportBoundary(PlayerTeleportEvent event) {
+        if (event.getTo() == null || !allowsBoundaryCrossing(event.getFrom(), event.getTo())) event.setCancelled(true);
+    }
+
+    private boolean allowsBoundaryCrossing(Location fromLocation, Location toLocation) {
+        PixelRegion from = regions.find(fromLocation).orElse(null);
+        PixelRegion to = regions.find(toLocation).orElse(null);
+        if (from == null || to == null || from.id().equals(to.id())) return true;
+        return policy.allowsExit(fromLocation) && policy.allowsEntry(toLocation);
     }
 
     private static boolean sameBlock(Location a, Location b) {
