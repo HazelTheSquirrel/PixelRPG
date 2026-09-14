@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Provides the native Paper dialog used to toggle region flags one by one. */
+/** Provides the native Paper dialog used to navigate and toggle categorized region flags. */
 public final class RegionFlagDialogService {
     private final RegionManager regions;
 
@@ -24,56 +24,93 @@ public final class RegionFlagDialogService {
         this.regions = Objects.requireNonNull(regions);
     }
 
-    /** Opens the flag list for a region after validating the player's edit rights. */
+    /** Opens the categorized flag menu after validating the player's edit rights. */
     public void open(Player player, PixelRegion region) {
         if (!canEdit(player, region)) {
             player.sendMessage(Component.text("Du darfst die Flags dieser Region nicht bearbeiten.", NamedTextColor.RED));
             return;
         }
-        show(player, region);
+        showCategories(player, region);
     }
 
-    private void show(Player player, PixelRegion region) {
-        List<DialogBody> body = List.of(
-                DialogBody.plainMessage(Component.text("Region: ", NamedTextColor.GRAY)
-                        .append(Component.text(region.name(), NamedTextColor.GOLD).decorate(TextDecoration.BOLD))),
-                DialogBody.plainMessage(Component.text("Klicke auf ein Flag, um es direkt umzuschalten. Änderungen werden sofort gespeichert.", NamedTextColor.GRAY))
-        );
+    private void showCategories(Player player, PixelRegion region) {
         List<ActionButton> actions = new ArrayList<>();
-        for (RegionFlag flag : RegionFlag.values()) {
-            boolean explicit = region.isGlobal() || region.hasFlag(flag);
-            boolean enabled = effectiveFlag(region, flag);
-            actions.add(ActionButton.builder(flagLabel(flag, enabled, explicit))
-                    .tooltip(Component.text(
-                            explicit ? (enabled ? "Klicken: deaktivieren" : "Klicken: aktivieren") : "Geerbt von der globalen Region – klicken setzt ein eigenes Flag",
-                            NamedTextColor.GRAY
-                    ))
+        for (RegionFlagCategory category : RegionFlagCategory.values()) {
+            if (category == RegionFlagCategory.LEGACY || RegionFlag.forCategory(category).isEmpty()) continue;
+            List<RegionFlag> flags = RegionFlag.forCategory(category);
+            long enabled = flags.stream().filter(flag -> effectiveFlag(region, flag)).count();
+            actions.add(ActionButton.builder(Component.text(category.displayName(), NamedTextColor.WHITE))
+                    .tooltip(Component.text(enabled + "/" + flags.size() + " aktiviert – Kategorie öffnen", NamedTextColor.GRAY))
                     .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
-                        if (!(audience instanceof Player target)) return;
-                        UUID regionId = region.id();
-                        PixelRegion current = region.isGlobal()
-                                ? regions.globalRegion(region.worldName())
-                                : regions.get(regionId).orElse(null);
-                        if (current == null || !canEdit(target, current)) {
-                            target.sendMessage(Component.text("Du darfst diese Region nicht mehr bearbeiten.", NamedTextColor.RED));
-                            return;
-                        }
-                        boolean currentValue = effectiveFlag(current, flag);
-                        if (current.isGlobal()) regions.setGlobalFlag(current.worldName(), flag, !currentValue);
-                        else {
-                            current.setFlag(flag, !currentValue);
-                            regions.save();
-                        }
-                        PixelRegion refreshed = current.isGlobal() ? regions.globalRegion(current.worldName()) : regions.get(regionId).orElse(current);
-                        show(target, refreshed);
+                        if (audience instanceof Player target) showCategory(target, region, category);
                     }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
                     .width(260)
                     .build());
         }
+
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(Component.text("PixelRPG – Region Flags", NamedTextColor.GOLD))
-                    .body(body)
+                    .body(List.of(
+                            DialogBody.plainMessage(Component.text("Region: ", NamedTextColor.GRAY)
+                                    .append(Component.text(region.name(), NamedTextColor.GOLD).decorate(TextDecoration.BOLD))),
+                            DialogBody.plainMessage(Component.text("Wähle eine Kategorie. Die einzelnen Berechtigungen können unabhängig voneinander gesetzt werden.", NamedTextColor.GRAY))
+                    ))
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .build());
+            builder.type(DialogType.multiAction(actions, null, 2));
+        }));
+    }
+
+    private void showCategory(Player player, PixelRegion region, RegionFlagCategory category) {
+        PixelRegion current = region.isGlobal()
+                ? regions.globalRegion(region.worldName())
+                : regions.get(region.id()).orElse(null);
+        if (current == null || !canEdit(player, current)) return;
+
+        List<ActionButton> actions = new ArrayList<>();
+        for (RegionFlag flag : RegionFlag.forCategory(category)) {
+            boolean explicit = current.isGlobal() || current.hasFlag(flag);
+            boolean enabled = effectiveFlag(current, flag);
+            actions.add(ActionButton.builder(flagLabel(flag, enabled, explicit))
+                    .tooltip(Component.text(
+                            explicit ? (enabled ? "Klicken: deaktivieren" : "Klicken: aktivieren")
+                                    : "Geerbt – klicken setzt ein eigenes Flag",
+                            NamedTextColor.GRAY
+                    ))
+                    .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
+                        if (!(audience instanceof Player target)) return;
+                        PixelRegion refreshed = current.isGlobal()
+                                ? regions.globalRegion(current.worldName())
+                                : regions.get(current.id()).orElse(null);
+                        if (refreshed == null || !canEdit(target, refreshed)) return;
+                        boolean value = effectiveFlag(refreshed, flag);
+                        if (refreshed.isGlobal()) regions.setGlobalFlag(refreshed.worldName(), flag, !value);
+                        else {
+                            refreshed.setFlag(flag, !value);
+                            regions.save();
+                        }
+                        showCategory(target, refreshed, category);
+                    }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
+                    .width(260)
+                    .build());
+        }
+
+        ActionButton back = ActionButton.builder(Component.text("← Kategorien", NamedTextColor.YELLOW))
+                .tooltip(Component.text("Zurück zur Kategorienübersicht", NamedTextColor.GRAY))
+                .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
+                    if (audience instanceof Player target) showCategories(target, current);
+                }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
+                .width(260)
+                .build();
+        actions.add(back);
+
+        player.showDialog(Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Region – " + category.displayName(), NamedTextColor.GOLD))
+                    .body(List.of(DialogBody.plainMessage(Component.text(
+                            "Einzelne Berechtigungen unabhängig voneinander konfigurieren.", NamedTextColor.GRAY))))
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .build());
