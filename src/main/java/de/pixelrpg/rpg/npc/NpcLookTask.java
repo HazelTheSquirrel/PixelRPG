@@ -15,26 +15,25 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
-/** Event-driven NPC look and nameplate controller. NPCs are evaluated when nearby players cross block boundaries. */
+/** Event-driven NPC look and per-player visibility controller. */
 public final class NpcLookTask implements Listener {
+    private static final double INTERACTION_RADIUS = 5.0D;
+    private static final double INTERACTION_RADIUS_SQUARED = INTERACTION_RADIUS * INTERACTION_RADIUS;
+
     private final Plugin plugin;
-    private final double lookRadius;
-    private final double lookRadiusSquared;
-    private final double nameplateRadius;
     private boolean started;
 
-    public NpcLookTask(Plugin plugin, NpcManager npcManager, double lookRadius, double nameplateRadius, int ignoredIntervalTicks) {
+    public NpcLookTask(Plugin plugin, NpcManager npcManager, double ignoredLookRadius, double ignoredNameplateRadius, int ignoredIntervalTicks) {
         this.plugin = plugin;
-        this.lookRadius = Math.max(1.0D, lookRadius);
-        this.lookRadiusSquared = this.lookRadius * this.lookRadius;
-        this.nameplateRadius = Math.max(this.lookRadius, nameplateRadius);
     }
 
     public void start() {
         if (started) return;
         started = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        for (Player player : plugin.getServer().getOnlinePlayers()) updateAround(player.getLocation());
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            updateAround(player.getLocation());
+        }
     }
 
     public void stop() {
@@ -43,13 +42,13 @@ public final class NpcLookTask implements Listener {
         started = false;
     }
 
-    // A player joining can immediately become the nearest target for nearby NPCs.
+    // A player joining can immediately enter the interaction radius of nearby NPCs.
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         updateAround(event.getPlayer().getLocation());
     }
 
-    // NPC look and nameplate state wakes only when the player crosses a block boundary near the NPC.
+    // NPC visibility and look direction update when the player crosses a block boundary.
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
         if (!event.hasChangedBlock()) return;
@@ -57,7 +56,7 @@ public final class NpcLookTask implements Listener {
         updateAround(event.getTo());
     }
 
-    // A disconnect can change the nearest-player target and nameplate state of NPCs in the player's old area.
+    // A disconnect can change NPC visibility and the active look target for nearby players.
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         updateAround(event.getPlayer().getLocation());
@@ -65,36 +64,47 @@ public final class NpcLookTask implements Listener {
 
     private void updateAround(Location center) {
         if (center == null || center.getWorld() == null) return;
-        double searchRadius = Math.max(lookRadius, nameplateRadius);
-        for (Entity entity : center.getNearbyEntities(searchRadius, searchRadius, searchRadius)) {
+
+        for (Entity entity : center.getNearbyEntities(INTERACTION_RADIUS, INTERACTION_RADIUS, INTERACTION_RADIUS)) {
             if (!(entity instanceof LivingEntity living)) continue;
             if (!living.getPersistentDataContainer().has(RPGKeys.Npc.npcId(), PersistentDataType.STRING)) continue;
-            Location npcLocation = living.getLocation();
-            double distanceSquared = npcLocation.distanceSquared(center);
-            if (distanceSquared > searchRadius * searchRadius) continue;
-            updateNpc(living, npcLocation);
+            updateNpc(living);
         }
     }
 
-    private void updateNpc(LivingEntity living, Location npcLocation) {
+    private void updateNpc(LivingEntity living) {
         if (!living.isValid()) return;
 
-        Player nearestLookTarget = null;
-        double nearestLookDistanceSquared = lookRadiusSquared;
-        boolean playerInNameplateRange = false;
+        Location npcLocation = living.getLocation();
+        boolean playerInRange = false;
+        Player nearestPlayer = null;
+        double nearestDistanceSquared = INTERACTION_RADIUS_SQUARED;
 
-        for (Player player : npcLocation.getNearbyPlayers(nameplateRadius)) {
+        for (Player player : npcLocation.getNearbyPlayers(INTERACTION_RADIUS)) {
             double distanceSquared = player.getLocation().distanceSquared(npcLocation);
-            if (distanceSquared <= nameplateRadius * nameplateRadius) {
-                playerInNameplateRange = true;
-            }
-            if (distanceSquared <= nearestLookDistanceSquared) {
-                nearestLookDistanceSquared = distanceSquared;
-                nearestLookTarget = player;
+            if (distanceSquared > INTERACTION_RADIUS_SQUARED) continue;
+
+            playerInRange = true;
+            if (distanceSquared < nearestDistanceSquared) {
+                nearestDistanceSquared = distanceSquared;
+                nearestPlayer = player;
             }
         }
 
-        living.setCustomNameVisible(playerInNameplateRange);
-        if (nearestLookTarget != null) living.lookAt(nearestLookTarget.getEyeLocation(), LookAnchor.EYES);
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            if (player.getWorld() != npcLocation.getWorld()) continue;
+            double distanceSquared = player.getLocation().distanceSquared(npcLocation);
+            if (distanceSquared <= INTERACTION_RADIUS_SQUARED) {
+                player.showEntity(plugin, living);
+            } else {
+                player.hideEntity(plugin, living);
+            }
+        }
+
+        if (nearestPlayer != null) {
+            living.lookAt(nearestPlayer.getEyeLocation(), LookAnchor.EYES);
+        }
+
+        living.setCustomNameVisible(playerInRange);
     }
 }
