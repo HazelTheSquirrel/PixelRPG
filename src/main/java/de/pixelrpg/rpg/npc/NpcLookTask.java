@@ -109,8 +109,6 @@ public final class NpcLookTask implements Listener {
         if (!mannequin.isValid()) return;
 
         TextDisplay nameDisplay = getOrCreateNameDisplay(npc, mannequin.getLocation());
-        if (nameDisplay == null) return;
-
         nameDisplay.text(Component.text(npc.name(), npc.type().getColor()));
         nameDisplay.teleport(mannequin.getLocation().add(0.0D, NAME_HEIGHT_OFFSET, 0.0D));
 
@@ -135,11 +133,8 @@ public final class NpcLookTask implements Listener {
             }
         }
 
-        if (nearestPlayer != null) {
-            mannequin.getLocation().getWorld();
-            if (mannequin instanceof LivingEntity living) {
-                living.lookAt(nearestPlayer.getEyeLocation(), LookAnchor.EYES);
-            }
+        if (nearestPlayer != null && mannequin instanceof LivingEntity living) {
+            living.lookAt(nearestPlayer.getEyeLocation(), LookAnchor.EYES);
         }
     }
 
