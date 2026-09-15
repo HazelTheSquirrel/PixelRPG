@@ -66,7 +66,7 @@ public final class MannequinSkinResolver {
 
         profileFuture.thenAcceptAsync(profile -> Bukkit.getScheduler().runTask(plugin, () -> {
             if (mannequin.isValid()) {
-                mannequin.setProfile(ResolvableProfile.resolvableProfile(profile));
+                mannequin.setProfile(profile);
             }
         })).exceptionally(exception -> {
             PLAYER_PROFILE_CACHE.remove(normalizedName, profileFuture);
@@ -78,7 +78,7 @@ public final class MannequinSkinResolver {
 
     private static CompletableFuture<ResolvableProfile> resolvePlayerProfile(String playerName) {
         ResolvableProfile profile = ResolvableProfile.resolvableProfile().name(playerName).build();
-        return profile.resolve().thenApplyAsync(updatedProfile -> ResolvableProfile.resolvableProfile(updatedProfile));
+        return profile.resolve().thenApplyAsync(ResolvableProfile::resolvableProfile);
     }
 
     private static boolean isUrl(String source) {
