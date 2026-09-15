@@ -301,7 +301,8 @@ public final class ExternalSkinService {
         if (value.length() > MAX_URL_LENGTH) return null;
         try {
             URI uri = URI.create(value);
-            if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) return null;
+            String scheme = uri.getScheme();
+            if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) || uri.getHost() == null) return null;
             if (uri.getUserInfo() != null || uri.getFragment() != null) return null;
             return uri.toString();
         } catch (IllegalArgumentException exception) {
