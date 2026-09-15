@@ -6,11 +6,17 @@ import org.bukkit.entity.Mannequin;
 import org.bukkit.plugin.Plugin;
 
 import java.net.URI;
+import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 
 /** Resolves Mojang player names and external skin URLs for mannequins. */
 public final class MannequinSkinResolver {
+    private static final ConcurrentMap<String, CompletableFuture<ResolvableProfile>> PLAYER_PROFILE_CACHE = new ConcurrentHashMap<>();
+
     private MannequinSkinResolver() {
     }
 
@@ -49,20 +55,30 @@ public final class MannequinSkinResolver {
     }
 
     private static void applyPlayerName(Mannequin mannequin, String playerName, Plugin plugin, Logger logger) {
-        if (playerName.length() > 16) {
-            logger.warning("Invalid mannequin player skin name '" + playerName + "': names cannot exceed 16 characters.");
+        String normalizedName = playerName.toLowerCase(Locale.ROOT);
+        if (playerName.length() < 3 || playerName.length() > 16) {
+            logger.warning("Invalid mannequin player skin name '" + playerName + "': names must contain 3 to 16 characters.");
             return;
         }
 
-        ResolvableProfile profile = ResolvableProfile.resolvableProfile().name(playerName).build();
-        mannequin.setProfile(profile);
-        profile.resolve().thenAcceptAsync(updatedProfile -> Bukkit.getScheduler().runTask(plugin, () -> {
-            if (mannequin.isValid()) mannequin.setProfile(ResolvableProfile.resolvableProfile(updatedProfile));
+        CompletableFuture<ResolvableProfile> profileFuture = PLAYER_PROFILE_CACHE.computeIfAbsent(normalizedName,
+                ignored -> resolvePlayerProfile(playerName));
+
+        profileFuture.thenAcceptAsync(profile -> Bukkit.getScheduler().runTask(plugin, () -> {
+            if (mannequin.isValid()) {
+                mannequin.setProfile(ResolvableProfile.resolvableProfile(profile));
+            }
         })).exceptionally(exception -> {
+            PLAYER_PROFILE_CACHE.remove(normalizedName, profileFuture);
             Throwable cause = unwrap(exception);
             logger.warning("Failed to resolve player skin for mannequin '" + playerName + "': " + message(cause));
             return null;
         });
+    }
+
+    private static CompletableFuture<ResolvableProfile> resolvePlayerProfile(String playerName) {
+        ResolvableProfile profile = ResolvableProfile.resolvableProfile().name(playerName).build();
+        return profile.resolve().thenApplyAsync(updatedProfile -> ResolvableProfile.resolvableProfile(updatedProfile));
     }
 
     private static boolean isUrl(String source) {
@@ -77,7 +93,7 @@ public final class MannequinSkinResolver {
     }
 
     private static boolean looksLikeUrl(String source) {
-        String lower = source.toLowerCase(java.util.Locale.ROOT);
+        String lower = source.toLowerCase(Locale.ROOT);
         return lower.startsWith("http://")
                 || lower.startsWith("https://")
                 || lower.startsWith("www.")
