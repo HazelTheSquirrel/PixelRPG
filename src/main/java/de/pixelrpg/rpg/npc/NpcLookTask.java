@@ -76,35 +76,34 @@ public final class NpcLookTask implements Listener {
         if (!living.isValid()) return;
 
         Location npcLocation = living.getLocation();
-        boolean playerInRange = false;
         Player nearestPlayer = null;
         double nearestDistanceSquared = INTERACTION_RADIUS_SQUARED;
-
-        for (Player player : npcLocation.getNearbyPlayers(INTERACTION_RADIUS)) {
-            double distanceSquared = player.getLocation().distanceSquared(npcLocation);
-            if (distanceSquared > INTERACTION_RADIUS_SQUARED) continue;
-
-            playerInRange = true;
-            if (distanceSquared < nearestDistanceSquared) {
-                nearestDistanceSquared = distanceSquared;
-                nearestPlayer = player;
-            }
-        }
+        boolean anyPlayerInRange = false;
 
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             if (player.getWorld() != npcLocation.getWorld()) continue;
+
             double distanceSquared = player.getLocation().distanceSquared(npcLocation);
-            if (distanceSquared <= INTERACTION_RADIUS_SQUARED) {
+            boolean inRange = distanceSquared <= INTERACTION_RADIUS_SQUARED;
+            player.setInvisible(false);
+
+            if (inRange) {
+                anyPlayerInRange = true;
                 player.showEntity(plugin, living);
+                if (distanceSquared < nearestDistanceSquared) {
+                    nearestDistanceSquared = distanceSquared;
+                    nearestPlayer = player;
+                }
             } else {
                 player.hideEntity(plugin, living);
             }
         }
 
+        // The entity's real custom name is only rendered while at least one viewer is inside the radius.
+        living.setCustomNameVisible(anyPlayerInRange);
+
         if (nearestPlayer != null) {
             living.lookAt(nearestPlayer.getEyeLocation(), LookAnchor.EYES);
         }
-
-        living.setCustomNameVisible(playerInRange);
     }
 }
