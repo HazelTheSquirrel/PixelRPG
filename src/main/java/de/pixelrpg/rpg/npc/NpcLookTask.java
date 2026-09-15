@@ -85,7 +85,6 @@ public final class NpcLookTask implements Listener {
 
             double distanceSquared = player.getLocation().distanceSquared(npcLocation);
             boolean inRange = distanceSquared <= INTERACTION_RADIUS_SQUARED;
-            player.setInvisible(false);
 
             if (inRange) {
                 anyPlayerInRange = true;
@@ -99,7 +98,7 @@ public final class NpcLookTask implements Listener {
             }
         }
 
-        // The entity's real custom name is only rendered while at least one viewer is inside the radius.
+        // The configured NPC name is only rendered while at least one viewer is inside the radius.
         living.setCustomNameVisible(anyPlayerInRange);
 
         if (nearestPlayer != null) {
