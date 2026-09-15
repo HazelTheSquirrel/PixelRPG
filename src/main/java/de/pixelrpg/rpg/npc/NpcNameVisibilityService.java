@@ -1,14 +1,9 @@
 package de.pixelrpg.rpg.npc;
 
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.world.entity.Entity;
 import org.bukkit.entity.Player;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.logging.Level;
@@ -16,7 +11,10 @@ import java.util.logging.Logger;
 
 /** Sends the native entity name visibility metadata to individual Paper clients. */
 public final class NpcNameVisibilityService {
-    private static final EntityDataAccessor<Boolean> DATA_CUSTOM_NAME_VISIBLE = resolveCustomNameVisibilityAccessor();
+    private static final String ENTITY_CLASS = "net.minecraft.world.entity.Entity";
+    private static final String DATA_ACCESSOR_CLASS = "net.minecraft.network.syncher.EntityDataAccessor";
+    private static final String DATA_VALUE_CLASS = "net.minecraft.network.syncher.SynchedEntityData$DataValue";
+    private static final String PACKET_CLASS = "net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket";
 
     private final Logger logger;
 
@@ -27,29 +25,68 @@ public final class NpcNameVisibilityService {
     public void setVisible(Player player, org.bukkit.entity.Entity entity, boolean visible) {
         if (!player.isOnline() || !entity.isValid()) return;
 
-        SynchedEntityData.DataValue<Boolean> value = SynchedEntityData.DataValue.create(
-                DATA_CUSTOM_NAME_VISIBLE,
-                visible
-        );
-        Packet<?> packet = new ClientboundSetEntityDataPacket(entity.getEntityId(), List.of(value));
-
         try {
-            Object connection = player.getConnection();
-            Method send = connection.getClass().getMethod("send", Packet.class);
-            send.invoke(connection, packet);
+            Object dataAccessor = resolveCustomNameVisibilityAccessor();
+            Object dataValue = createDataValue(dataAccessor, visible);
+            Object packet = createEntityDataPacket(entity.getEntityId(), dataValue);
+            sendPacket(player, packet);
         } catch (ReflectiveOperationException | RuntimeException exception) {
-            logger.log(Level.WARNING, "Failed to update NPC name visibility for " + player.getName(), exception);
+            logger.log(Level.WARNING,
+                    "Failed to update NPC name visibility for " + player.getName(),
+                    exception);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static EntityDataAccessor<Boolean> resolveCustomNameVisibilityAccessor() {
-        try {
-            Field field = Entity.class.getDeclaredField("DATA_CUSTOM_NAME_VISIBLE");
-            field.setAccessible(true);
-            return (EntityDataAccessor<Boolean>) field.get(null);
-        } catch (ReflectiveOperationException exception) {
-            throw new ExceptionInInitializerError(exception);
+    private static Object resolveCustomNameVisibilityAccessor() throws ReflectiveOperationException {
+        Class<?> entityClass = Class.forName(ENTITY_CLASS);
+        Field field = entityClass.getDeclaredField("DATA_CUSTOM_NAME_VISIBLE");
+        field.setAccessible(true);
+        return field.get(null);
+    }
+
+    private static Object createDataValue(Object dataAccessor, boolean visible) throws ReflectiveOperationException {
+        Class<?> dataValueClass = Class.forName(DATA_VALUE_CLASS);
+        Method create = dataValueClass.getMethod("create", Class.forName(DATA_ACCESSOR_CLASS), Object.class);
+        return create.invoke(null, dataAccessor, visible);
+    }
+
+    private static Object createEntityDataPacket(int entityId, Object dataValue) throws ReflectiveOperationException {
+        Class<?> packetClass = Class.forName(PACKET_CLASS);
+        Constructor<?> constructor = packetClass.getConstructor(int.class, List.class);
+        return constructor.newInstance(entityId, List.of(dataValue));
+    }
+
+    private static void sendPacket(Player player, Object packet) throws ReflectiveOperationException {
+        Object connection = player.getConnection();
+        Object packetListener = findPacketListener(connection);
+        Method send = findSendMethod(packetListener.getClass());
+        send.invoke(packetListener, packet);
+    }
+
+    private static Object findPacketListener(Object connection) throws ReflectiveOperationException {
+        Class<?> type = connection.getClass();
+        while (type != null) {
+            try {
+                Field field = type.getDeclaredField("packetListener");
+                field.setAccessible(true);
+                return field.get(connection);
+            } catch (NoSuchFieldException ignored) {
+                type = type.getSuperclass();
+            }
         }
+        throw new NoSuchFieldException("packetListener");
+    }
+
+    private static Method findSendMethod(Class<?> type) throws ReflectiveOperationException {
+        Class<?> current = type;
+        while (current != null) {
+            for (Method method : current.getDeclaredMethods()) {
+                if (!method.getName().equals("send") || method.getParameterCount() != 1) continue;
+                method.setAccessible(true);
+                return method;
+            }
+            current = current.getSuperclass();
+        }
+        throw new NoSuchMethodException("send(Packet)");
     }
 }
