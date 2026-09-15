@@ -10,7 +10,9 @@ import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -19,6 +21,7 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,7 +30,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Resolves player names, Mojang textures, skin images and skin pages for mannequins. */
+/** Resolves and caches player skins and external skin sources for mannequins. */
 public final class ExternalSkinService {
     private static final String TEXTURES_HOST = "textures.minecraft.net";
     private static final String TEXTURE_PATH_PREFIX = "/texture/";
@@ -43,11 +46,15 @@ public final class ExternalSkinService {
     private static final Pattern IMAGE_URL_PATTERN = Pattern.compile(
             "https?://[^\\\"'<>\\s]+\\.(?:png|jpe?g)(?:\\?[^\\\"'<>\\s]*)?",
             Pattern.CASE_INSENSITIVE);
+    private static final Pattern RELATIVE_IMAGE_PATTERN = Pattern.compile(
+            "(?:src|content|href)\\s*=\\s*[\\\"']([^\\\"']+\\.(?:png|jpe?g)(?:\\?[^\\\"']*)?)[\\\"']",
+            Pattern.CASE_INSENSITIVE);
 
     private final Plugin plugin;
     private final Logger logger;
     private final HttpClient httpClient;
     private final ConcurrentMap<String, ProfileProperty> resolvedCache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, CompletableFuture<ProfileProperty>> inFlight = new ConcurrentHashMap<>();
 
     public ExternalSkinService(Plugin plugin) {
         this.plugin = plugin;
@@ -77,13 +84,23 @@ public final class ExternalSkinService {
             return CompletableFuture.completedFuture(cached);
         }
 
+        return inFlight.computeIfAbsent(source, key -> resolveUncached(key)
+                .whenComplete((property, exception) -> inFlight.remove(key)));
+    }
+
+    private CompletableFuture<ProfileProperty> resolveUncached(String source) {
         if (isMinecraftTextureUrl(source)) {
             ProfileProperty property = unsignedTextureProperty(source);
             resolvedCache.put(source, property);
             return CompletableFuture.completedFuture(property);
         }
 
-        HttpRequest request = HttpRequest.newBuilder(URI.create(source))
+        URI uri = URI.create(source);
+        if (!isSafeExternalUri(uri)) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Skin URL points to a local or private address"));
+        }
+
+        HttpRequest request = HttpRequest.newBuilder(uri)
                 .timeout(REQUEST_TIMEOUT)
                 .header("User-Agent", "PixelRPG/1.0 Minecraft-Skin-Resolver")
                 .header("Accept", "text/html, image/png, image/jpeg, application/json;q=0.9, */*;q=0.1")
@@ -96,12 +113,22 @@ public final class ExternalSkinService {
                         return CompletableFuture.failedFuture(new IllegalStateException(
                                 "Skin source returned HTTP " + response.statusCode()));
                     }
+
+                    long contentLength = response.headers().firstValueAsLong("Content-Length").orElse(-1L);
+                    if (contentLength > MAX_RESPONSE_BYTES) {
+                        return CompletableFuture.failedFuture(new IllegalStateException("Skin source response is too large"));
+                    }
+
                     byte[] body = response.body();
                     if (body.length > MAX_RESPONSE_BYTES) {
                         return CompletableFuture.failedFuture(new IllegalStateException("Skin source response is too large"));
                     }
 
                     URI finalUri = response.uri();
+                    if (!isSafeExternalUri(finalUri)) {
+                        return CompletableFuture.failedFuture(new IllegalStateException("Skin source redirected to a local or private address"));
+                    }
+
                     String contentType = response.headers().firstValue("Content-Type").orElse("").toLowerCase(Locale.ROOT);
                     if (contentType.startsWith("image/") || looksLikeImageUrl(finalUri.toString())) {
                         return generateSignedSkin(finalUri.toString());
@@ -149,8 +176,16 @@ public final class ExternalSkinService {
     }
 
     private CompletableFuture<ProfileProperty> generateSignedSkin(String imageUrl) {
-        String json = "{\"url\":\"" + escapeJson(imageUrl) + "\",\"variant\":\"auto\",\"visibility\":\"unlisted\"}";
+        if (!isSafeExternalUri(URI.create(imageUrl))) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Skin image URL points to a local or private address"));
+        }
 
+        ProfileProperty cached = resolvedCache.get(imageUrl);
+        if (cached != null) {
+            return CompletableFuture.completedFuture(cached);
+        }
+
+        String json = "{\"url\":\"" + escapeJson(imageUrl) + "\",\"variant\":\"auto\",\"visibility\":\"unlisted\"}";
         HttpRequest request = HttpRequest.newBuilder(URI.create(MINESKIN_API))
                 .timeout(REQUEST_TIMEOUT)
                 .header("User-Agent", "PixelRPG/1.0 Minecraft-Skin-Resolver")
@@ -172,9 +207,9 @@ public final class ExternalSkinService {
                     try {
                         JsonObject root = JsonParser.parseString(
                                 new String(response.body(), StandardCharsets.UTF_8)).getAsJsonObject();
-                        JsonObject skin = root.getAsJsonObject("skin");
-                        JsonObject texture = skin.getAsJsonObject("texture");
-                        JsonObject data = texture.getAsJsonObject("data");
+                        JsonObject data = root.getAsJsonObject("skin")
+                                .getAsJsonObject("texture")
+                                .getAsJsonObject("data");
                         String value = data.get("value").getAsString();
                         String signature = data.get("signature").getAsString();
                         if (value.isBlank() || signature.isBlank()) {
@@ -200,7 +235,15 @@ public final class ExternalSkinService {
                     return;
                 }
 
-                mannequin.setProfile(ResolvableProfile.resolvableProfile().addProperty(property).build());
+                ResolvableProfile current = mannequin.getProfile();
+                if (sameTextureProperty(current, property)) {
+                    result.complete(null);
+                    return;
+                }
+
+                mannequin.setProfile(ResolvableProfile.resolvableProfile(current)
+                        .addProperty(property)
+                        .build());
                 refreshForNearbyPlayers(mannequin);
                 result.complete(null);
             } catch (RuntimeException exception) {
@@ -220,6 +263,13 @@ public final class ExternalSkinService {
         }
     }
 
+    private static boolean sameTextureProperty(ResolvableProfile profile, ProfileProperty property) {
+        return profile.properties().stream()
+                .filter(existing -> existing.name().equals(property.name()))
+                .anyMatch(existing -> existing.value().equals(property.value())
+                        && java.util.Objects.equals(existing.signature(), property.signature()));
+    }
+
     private static String findTextureUrl(String content) {
         Matcher matcher = TEXTURE_URL_PATTERN.matcher(content);
         return matcher.find() ? matcher.group() : null;
@@ -227,31 +277,26 @@ public final class ExternalSkinService {
 
     private static Set<String> findImageUrls(String html, URI baseUri) {
         Set<String> candidates = new LinkedHashSet<>();
+
         Matcher matcher = IMAGE_URL_PATTERN.matcher(html);
         while (matcher.find() && candidates.size() < MAX_PAGE_CANDIDATES) {
-            String candidate = matcher.group();
-            try {
-                URI uri = URI.create(candidate);
-                if (isHttpUrl(uri) && isLikelySkinImage(uri)) {
-                    candidates.add(uri.toString());
-                }
-            } catch (IllegalArgumentException ignored) {
-            }
+            addCandidate(candidates, URI.create(matcher.group()));
         }
 
-        Matcher relativeMatcher = Pattern.compile(
-                "(?:src|content|href)\\s*=\\s*[\\\"']([^\\\"']+\\.(?:png|jpe?g)(?:\\?[^\\\"']*)?)[\\\"']",
-                Pattern.CASE_INSENSITIVE).matcher(html);
+        Matcher relativeMatcher = RELATIVE_IMAGE_PATTERN.matcher(html);
         while (relativeMatcher.find() && candidates.size() < MAX_PAGE_CANDIDATES) {
             try {
-                URI uri = baseUri.resolve(relativeMatcher.group(1));
-                if (isHttpUrl(uri) && isLikelySkinImage(uri)) {
-                    candidates.add(uri.toString());
-                }
+                addCandidate(candidates, baseUri.resolve(relativeMatcher.group(1)));
             } catch (IllegalArgumentException ignored) {
             }
         }
         return candidates;
+    }
+
+    private static void addCandidate(Set<String> candidates, URI uri) {
+        if (isSafeExternalUri(uri) && isLikelySkinImage(uri)) {
+            candidates.add(uri.toString());
+        }
     }
 
     private static boolean isLikelySkinImage(URI uri) {
@@ -285,8 +330,39 @@ public final class ExternalSkinService {
         }
     }
 
-    private static boolean isHttpUrl(URI uri) {
-        return "https".equalsIgnoreCase(uri.getScheme()) || "http".equalsIgnoreCase(uri.getScheme());
+    private static boolean isSafeExternalUri(URI uri) {
+        if (uri == null || uri.getHost() == null) return false;
+        if (!("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()))) return false;
+        if (uri.getUserInfo() != null || uri.getFragment() != null) return false;
+
+        try {
+            InetAddress[] addresses = InetAddress.getAllByName(uri.getHost());
+            for (InetAddress address : addresses) {
+                if (address.isAnyLocalAddress()
+                        || address.isLoopbackAddress()
+                        || address.isLinkLocalAddress()
+                        || address.isSiteLocalAddress()
+                        || isPrivateOrReserved(address)) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (UnknownHostException exception) {
+            return false;
+        }
+    }
+
+    private static boolean isPrivateOrReserved(InetAddress address) {
+        byte[] bytes = address.getAddress();
+        if (bytes.length == 4) {
+            int a = bytes[0] & 0xFF;
+            int b = bytes[1] & 0xFF;
+            return a == 0 || a == 10 || (a == 100 && b >= 64 && b <= 127)
+                    || (a == 169 && b == 254) || (a == 172 && b >= 16 && b <= 31)
+                    || (a == 192 && b == 0) || (a == 192 && b == 168)
+                    || (a == 198 && (b == 18 || b == 19)) || a >= 224;
+        }
+        return address.isSiteLocalAddress() || address.isLinkLocalAddress();
     }
 
     private static ProfileProperty unsignedTextureProperty(String textureUrl) {
