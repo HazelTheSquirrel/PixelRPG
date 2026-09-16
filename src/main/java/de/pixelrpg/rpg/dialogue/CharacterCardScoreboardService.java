@@ -13,7 +13,6 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.RenderType;
-import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.LinkedHashMap;
@@ -102,10 +101,6 @@ public final class CharacterCardScoreboardService {
     private void set(Player player, String key, int value) {
         Objective objective = objectives.get(key);
         if (objective != null) objective.getScore(player.getName()).setScore(Math.max(0, value));
-    }
-
-    private Score score(Player player, String key) {
-        return objectives.get(key).getScore(player.getName());
     }
 
     private int round(double value) {
