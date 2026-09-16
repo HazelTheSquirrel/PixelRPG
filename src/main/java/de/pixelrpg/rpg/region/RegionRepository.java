@@ -65,12 +65,10 @@ public final class RegionRepository {
                 if (flagSection != null) {
                     for (String key : flagSection.getKeys(false)) {
                         try {
-                            boolean value = flagSection.getBoolean(key);
-                            flags.put(RegionFlag.valueOf(key), formatVersion < 3 ? !value : value);
+                            flags.put(RegionFlag.valueOf(key), flagSection.getBoolean(key));
                         } catch (IllegalArgumentException ignored) { }
                     }
                 }
-                migrateLegacyFlags(flags);
 
                 Map<String, String> properties = new HashMap<>();
                 ConfigurationSection propertySection = yaml.getConfigurationSection(base + ".properties");
@@ -132,7 +130,6 @@ public final class RegionRepository {
                     catch (IllegalArgumentException ignored) { }
                 }
             }
-            migrateLegacyFlags(values);
             result.put(world, Map.copyOf(values));
         }
         return Map.copyOf(result);
@@ -186,11 +183,6 @@ public final class RegionRepository {
         if (formatVersion >= CURRENT_FORMAT_VERSION) return;
         migrationNeeded = true;
         logger.info("regions.yml requires migration to format version " + CURRENT_FORMAT_VERSION + "; migration will be persisted asynchronously.");
-    }
-
-    private static void migrateLegacyFlags(EnumMap<RegionFlag, Boolean> flags) {
-        // Legacy flag names are intentionally ignored. Current RegionFlag values are read directly above;
-        // removed legacy keys are discarded through the IllegalArgumentException catch.
     }
 
     private void writeAtomically(YamlConfiguration yaml) {
