@@ -5,6 +5,7 @@ import io.papermc.paper.datacomponent.item.Consumable;
 import io.papermc.paper.datacomponent.item.FoodProperties;
 import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -56,7 +57,9 @@ public final class FoodService implements Listener {
 
         FoodDefinition food = definitions.find(id).orElse(null);
         if (food == null || food.effectType().isBlank() || food.effectDurationSeconds() <= 0) return;
-        PotionEffectType type = PotionEffectType.getByName(food.effectType());
+
+        NamespacedKey effectKey = NamespacedKey.minecraft(food.effectType().trim().toLowerCase(java.util.Locale.ROOT));
+        PotionEffectType type = Registry.POTION_EFFECT_TYPE.get(effectKey);
         if (type == null) return;
 
         Player player = event.getPlayer();
