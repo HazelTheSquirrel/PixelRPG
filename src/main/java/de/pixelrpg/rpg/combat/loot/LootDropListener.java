@@ -64,6 +64,7 @@ public final class LootDropListener implements Listener {
         this.definedItemsByMaterial = itemService.definitions().stream()
                 .filter(definition -> !definition.adminOnly())
                 .filter(definition -> !definition.unique())
+                .filter(definition -> definition.material() != Material.CLOCK)
                 .collect(Collectors.groupingBy(ItemDefinition::material, Collectors.toList()));
         Bukkit.getPluginManager().registerEvents(new FireballWeaponListener(
                 plugin.getPlayerProfileManager(), plugin.getStatEngine()), plugin);
