@@ -32,6 +32,7 @@ public final class ItemDefinitionRegistry {
     private void load(Plugin plugin) {
         loadFile(plugin, "item-definitions.json");
         loadFile(plugin, "boss-reward-items.json");
+        loadFile(plugin, "food-definitions.json");
     }
 
     private void loadFile(Plugin plugin, String fileName) {
@@ -55,7 +56,11 @@ public final class ItemDefinitionRegistry {
         ItemRarity rarity = enumValue(ItemRarity.class, json, "rarity", id);
         ItemCategory category = enumValue(ItemCategory.class, json, "category", id);
         ItemCategory resolved = GearCategoryRegistry.resolve(material).orElse(null);
-        if (resolved != category) throw new IllegalStateException("Category " + category + " does not match material " + material + " for " + id);
+        if (category == ItemCategory.FOOD) {
+            if (material != Material.CLOCK) throw new IllegalStateException("Food items must use CLOCK as their base material for " + id);
+        } else if (resolved != category) {
+            throw new IllegalStateException("Category " + category + " does not match material " + material + " for " + id);
+        }
 
         int itemLevel = integer(json, "itemLevel", 1);
         int requiredLevel = integer(json, "requiredLevel", itemLevel);
