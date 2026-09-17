@@ -22,8 +22,9 @@ import java.util.UUID;
 public final class ItemService implements ItemAPI {
     private final ItemDefinitionRegistry definitions;
     private final UniqueItemService uniqueItems;
+    private final FoodService foodService;
     public ItemService(Plugin plugin) { this(plugin, new UniqueItemService(plugin)); }
-    public ItemService(Plugin plugin, UniqueItemService uniqueItems) { this.definitions = new ItemDefinitionRegistry(plugin); this.uniqueItems = uniqueItems; }
+    public ItemService(Plugin plugin, UniqueItemService uniqueItems) { this.definitions = new ItemDefinitionRegistry(plugin); this.uniqueItems = uniqueItems; this.foodService = new FoodService(plugin); }
     @Override public Optional<ItemStack> createItem(Material material, ItemRarity rarity, int itemLevel) { if (rarity == ItemRarity.UNIQUE) return Optional.empty(); return RPGItemBuilder.createItem(material, rarity, itemLevel); }
     @Override public Optional<ItemStack> createItem(String itemId) { return createDefinedItem(itemId, 0, false); }
     public Optional<ItemStack> createAdminItem(String itemId) { return createDefinedItem(itemId, 0, true); }
@@ -54,6 +55,33 @@ public final class ItemService implements ItemAPI {
         ItemDefinition definition = definitions.find(itemId).orElse(null); if (definition == null) return Optional.empty(); if (definition.adminOnly() && !admin) return Optional.empty(); if (definition.unique() && !admin) return Optional.empty();
         boolean claimed = false;
         if (definition.unique()) { if (!uniqueItems.claim(definition)) return Optional.empty(); claimed = true; }
+
+        if (definition.category() == ItemCategory.FOOD) {
+            ItemStack item = new ItemStack(definition.material());
+            ItemMeta meta = item.getItemMeta();
+            var pdc = meta.getPersistentDataContainer();
+            pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, true);
+            pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, definition.id());
+            pdc.set(RPGKeys.Item.instanceId(), PersistentDataType.STRING, UUID.randomUUID().toString());
+            pdc.set(RPGKeys.Item.rarity(), PersistentDataType.STRING, definition.rarity().name());
+            pdc.set(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER, definition.itemLevel());
+            pdc.set(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER, definition.requiredLevel());
+            pdc.set(RPGKeys.Item.category(), PersistentDataType.STRING, definition.category().name());
+            pdc.set(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN, false);
+            pdc.set(RPGKeys.Item.resourcepackId(), PersistentDataType.STRING, definition.resourcepackId());
+            pdc.set(RPGKeys.Item.unique(), PersistentDataType.BOOLEAN, false);
+            pdc.set(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE, 0.0D);
+            meta.displayName(Component.text(definition.name(), NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
+            item.setItemMeta(meta);
+            try {
+                foodService.configure(item, definition);
+            } catch (RuntimeException exception) {
+                if (claimed) uniqueItems.release(definition);
+                throw exception;
+            }
+            return Optional.of(item);
+        }
+
         int itemLevel = explicitItemLevel > 0 ? explicitItemLevel : definition.itemLevel(); ItemStack item = RPGItemBuilder.createItem(definition.id(), definition.name(), definition.material(), definition.rarity(), itemLevel).orElse(null);
         if (item == null) { if (claimed) uniqueItems.release(definition); return Optional.empty(); }
         ItemMeta meta = item.getItemMeta(); var pdc = meta.getPersistentDataContainer(); pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, definition.id()); pdc.set(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER, definition.requiredLevel()); pdc.set(RPGKeys.Item.resourcepackId(), PersistentDataType.STRING, definition.resourcepackId()); pdc.set(RPGKeys.Item.unique(), PersistentDataType.BOOLEAN, definition.unique()); pdc.set(RPGKeys.Item.instanceId(), PersistentDataType.STRING, UUID.randomUUID().toString()); if (!definition.equipmentSlot().isBlank()) pdc.set(RPGKeys.Item.equipmentSlot(), PersistentDataType.STRING, definition.equipmentSlot()); if (!definition.setId().isBlank()) pdc.set(RPGKeys.Item.setId(), PersistentDataType.STRING, definition.setId()); double gearscore = Math.round(itemLevel * definition.rarity().getStatMultiplier() * definition.gearscoreModifier() * 10.0D) / 10.0D; pdc.set(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE, gearscore); if (definition.soulbound()) pdc.set(RPGKeys.Item.soulbound(), PersistentDataType.BOOLEAN, true); if (!definition.weaponAbility().isBlank()) { pdc.set(RPGKeys.Item.weaponAbility(), PersistentDataType.STRING, definition.weaponAbility()); pdc.set(RPGKeys.Item.weaponAbilityCooldownMillis(), PersistentDataType.LONG, definition.weaponAbilityCooldownMillis()); }
