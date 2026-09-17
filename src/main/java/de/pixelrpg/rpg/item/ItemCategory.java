@@ -22,7 +22,9 @@ public enum ItemCategory {
     SHIELD(ItemStatProfile.SHIELD, EquipmentSlotGroup.OFFHAND,
             Component.text("Shield", NamedTextColor.AQUA)),
     TOOL(ItemStatProfile.TOOL, EquipmentSlotGroup.MAINHAND,
-            Component.text("Tool", NamedTextColor.YELLOW));
+            Component.text("Tool", NamedTextColor.YELLOW)),
+    FOOD(ItemStatProfile.FOOD, EquipmentSlotGroup.ANY,
+            Component.text("Food", NamedTextColor.GREEN));
 
     private final ItemStatProfile profile;
     private final EquipmentSlotGroup slotGroup;
