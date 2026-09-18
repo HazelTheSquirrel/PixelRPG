@@ -4,6 +4,7 @@ import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.Consumable;
 import io.papermc.paper.datacomponent.item.FoodProperties;
 import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation;
+import net.kyori.adventure.key.Key;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.entity.Player;
@@ -43,6 +44,7 @@ public final class FoodService implements Listener {
         item.setData(DataComponentTypes.CONSUMABLE, Consumable.consumable()
                 .consumeSeconds(1.6F)
                 .animation(animation(definition.id()))
+                .sound(Key.key("minecraft:entity.generic.eat"))
                 .hasConsumeParticles(true));
     }
 
