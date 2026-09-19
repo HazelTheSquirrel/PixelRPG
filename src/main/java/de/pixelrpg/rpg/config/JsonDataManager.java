@@ -51,8 +51,19 @@ public final class JsonDataManager {
                 throw new IllegalStateException("JSON root must be an object: " + path);
             }
             JsonObject object = element.getAsJsonObject();
-            if (fileName.equals("recipes/crafting-recipes.json") && !object.has("recipes")) {
-                return repairCraftingRecipes(path);
+            if (fileName.equals("recipes/crafting-recipes.json")) {
+                if (!object.has("recipes")) {
+                    return repairCraftingRecipes(path);
+                }
+                JsonElement recipes = object.get("recipes");
+                if (!recipes.isJsonArray()) {
+                    return repairCraftingRecipes(path);
+                }
+                for (JsonElement recipe : recipes.getAsJsonArray()) {
+                    if (!recipe.isJsonObject() || !recipe.getAsJsonObject().has("category")) {
+                        return repairCraftingRecipes(path);
+                    }
+                }
             }
             return object;
         } catch (Exception exception) {
