@@ -73,24 +73,145 @@ public final class ProfessionDialog {
                     "Du hast diesen Beruf noch nicht erlernt. Sprich mit einem passenden Berufslehrer.");
             return;
         }
+
         int level = professionService.getLevel(player.getUniqueId(), profession);
         List<DialogBody> body = new ArrayList<>(List.of(
                 DialogBody.plainMessage(Component.text(profession.description(), NamedTextColor.WHITE)),
-                DialogBody.plainMessage(Component.text("Level " + level + "/" + Profession.MAX_LEVEL, NamedTextColor.AQUA))));
+                DialogBody.plainMessage(Component.text("Level " + level + "/" + Profession.MAX_LEVEL, NamedTextColor.AQUA))
+        ));
+
         List<ActionButton> actions = new ArrayList<>();
         List<Quest> professionQuests = professionQuests(profession);
-        if (!professionQuests.isEmpty()) {
-            actions.add(dialogueEngine.actionButton(Component.text("Berufsquests (" + professionQuests.size() + ")"), NamedTextColor.YELLOW,
-                    target -> openProfessionQuests(target, profession)));
-        }
         List<CraftRecipe> recipes = craftingService.recipes(profession);
+
         if (!recipes.isEmpty()) {
-            actions.add(dialogueEngine.actionButton(Component.text("Rezepte (" + recipes.size() + ")"), NamedTextColor.GREEN,
-                    target -> openProfessionRecipes(target, profession)));
+            actions.add(dialogueEngine.actionButton(
+                    Component.text("Rezepte (" + recipes.size() + ")"),
+                    NamedTextColor.GREEN,
+                    target -> openProfessionRecipeCategories(target, profession)
+            ));
         }
-        if (actions.isEmpty()) body.add(DialogBody.plainMessage(Component.text("Du hast noch keine Inhalte freigeschaltet.", NamedTextColor.WHITE)));
-        dialogueEngine.openMultiAction(player, Component.text(profession.displayName(), NamedTextColor.GOLD), body, actions, 1,
-                target -> open(target));
+        if (!professionQuests.isEmpty()) {
+            actions.add(dialogueEngine.actionButton(
+                    Component.text("Berufsquests (" + professionQuests.size() + ")"),
+                    NamedTextColor.YELLOW,
+                    target -> openProfessionQuests(target, profession)
+            ));
+        }
+
+        if (actions.isEmpty()) {
+            body.add(DialogBody.plainMessage(Component.text("Du hast noch keine Inhalte freigeschaltet.", NamedTextColor.WHITE)));
+        }
+
+        dialogueEngine.openMultiAction(
+                player,
+                Component.text(profession.displayName(), NamedTextColor.GOLD),
+                body,
+                actions,
+                1,
+                target -> open(target)
+        );
+    }
+
+    private void openProfessionRecipeCategories(Player player, Profession profession) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered()) return;
+
+        int professionLevel = professionService.getLevel(player.getUniqueId(), profession);
+        List<ActionButton> actions = new ArrayList<>();
+        List<DialogBody> body = List.of(
+                DialogBody.plainMessage(Component.text(
+                        "Wähle eine Rezeptkategorie für " + profession.displayName() + ".",
+                        NamedTextColor.WHITE
+                )),
+                DialogBody.plainMessage(Component.text(
+                        "Dein Beruflevel: " + professionLevel + "/" + Profession.MAX_LEVEL,
+                        NamedTextColor.AQUA
+                ))
+        );
+
+        for (CraftingCategory category : CraftingCategory.values()) {
+            List<CraftRecipe> categoryRecipes = craftingService.recipes(profession).stream()
+                    .filter(recipe -> recipe.category() == category)
+                    .sorted(Comparator.comparingInt(CraftRecipe::requiredProfessionLevel).thenComparing(CraftRecipe::displayName))
+                    .toList();
+            if (categoryRecipes.isEmpty()) continue;
+
+            actions.add(dialogueEngine.actionButton(
+                    Component.text(category.displayName() + " (" + categoryRecipes.size() + ")"),
+                    NamedTextColor.GREEN,
+                    target -> openProfessionRecipeCategory(target, profession, category)
+            ));
+        }
+
+        actions.add(dialogueEngine.actionButton(
+                Component.text("Zurück"),
+                NamedTextColor.WHITE,
+                target -> openProfession(target, profession)
+        ));
+
+        dialogueEngine.openMultiAction(
+                player,
+                Component.text(profession.displayName() + " – Rezeptkategorien", NamedTextColor.GOLD),
+                body,
+                actions,
+                2
+        );
+    }
+
+    private void openProfessionRecipeCategory(Player player, Profession profession, CraftingCategory category) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered()) return;
+
+        int professionLevel = professionService.getLevel(player.getUniqueId(), profession);
+        List<CraftRecipe> recipes = craftingService.recipes(profession).stream()
+                .filter(recipe -> recipe.category() == category)
+                .sorted(Comparator.comparingInt(CraftRecipe::requiredProfessionLevel).thenComparing(CraftRecipe::displayName))
+                .toList();
+
+        List<DialogBody> body = List.of(
+                DialogBody.plainMessage(Component.text(
+                        category.displayName() + " für " + profession.displayName(),
+                        NamedTextColor.WHITE
+                )),
+                DialogBody.plainMessage(Component.text(
+                        "Dein Beruflevel: " + professionLevel + "/" + Profession.MAX_LEVEL,
+                        NamedTextColor.AQUA
+                ))
+        );
+
+        List<ActionButton> actions = new ArrayList<>();
+        for (CraftRecipe recipe : recipes) {
+            boolean unlocked = craftingService.isUnlocked(player, recipe);
+            String state = unlocked ? " • freigeschaltet" : " • gesperrt";
+            actions.add(dialogueEngine.actionButton(
+                    Component.text(recipe.displayName() + state),
+                    unlocked ? NamedTextColor.GREEN : NamedTextColor.YELLOW,
+                    target -> openRecipeDetails(target, recipe, false,
+                            back -> openProfessionRecipeCategory(back, profession, category))
+            ));
+        }
+
+        if (actions.isEmpty()) {
+            body = List.of(DialogBody.plainMessage(Component.text(
+                    "In dieser Kategorie sind aktuell keine Rezepte vorhanden.",
+                    NamedTextColor.WHITE
+            )));
+        }
+
+        actions.add(dialogueEngine.actionButton(
+                Component.text("← Kategorien"),
+                NamedTextColor.WHITE,
+                target -> openProfessionRecipeCategories(target, profession)
+        ));
+
+        dialogueEngine.openMultiAction(
+                player,
+                Component.text(profession.displayName() + " – " + category.displayName(), NamedTextColor.GOLD),
+                body,
+                actions,
+                2
+        );
     }
 
     private List<Quest> professionQuests(Profession profession) {
@@ -122,28 +243,6 @@ public final class ProfessionDialog {
         }
         if (actions.isEmpty()) body.add(DialogBody.plainMessage(Component.text("Aktuell sind keine Berufsquests vorhanden.", NamedTextColor.WHITE)));
         dialogueEngine.openMultiAction(player, Component.text(profession.displayName() + " – Berufsquests", NamedTextColor.GOLD), body, actions, 1,
-                target -> openProfession(target, profession));
-    }
-
-    private void openProfessionRecipes(Player player, Profession profession) {
-        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegistered()) return;
-        int professionLevel = professionService.getLevel(player.getUniqueId(), profession);
-        List<CraftRecipe> recipes = craftingService.recipes(profession);
-        List<DialogBody> body = new ArrayList<>();
-        body.add(DialogBody.plainMessage(Component.text("Rezepte für " + profession.displayName(), NamedTextColor.WHITE)));
-        body.add(DialogBody.plainMessage(Component.text("Dein Beruflevel: " + professionLevel + "/" + Profession.MAX_LEVEL, NamedTextColor.AQUA)));
-        body.add(DialogBody.plainMessage(Component.text("Alle Rezepte werden angezeigt. Gesperrte Rezepte zeigen ihre Anforderungen.", NamedTextColor.GRAY)));
-        List<ActionButton> actions = new ArrayList<>();
-        for (CraftRecipe recipe : recipes) {
-            boolean unlocked = craftingService.isUnlocked(player, recipe);
-            String state = unlocked ? " • freigeschaltet" : " • gesperrt";
-            actions.add(dialogueEngine.actionButton(Component.text(recipe.displayName() + state),
-                    unlocked ? NamedTextColor.GREEN : NamedTextColor.YELLOW,
-                    target -> openRecipeDetails(target, recipe, false)));
-        }
-        if (actions.isEmpty()) body.add(DialogBody.plainMessage(Component.text("Aktuell sind keine Rezepte vorhanden.", NamedTextColor.WHITE)));
-        dialogueEngine.openMultiAction(player, Component.text(profession.displayName() + " – Rezepte", NamedTextColor.GOLD), body, actions, 2,
                 target -> openProfession(target, profession));
     }
 
@@ -194,55 +293,110 @@ public final class ProfessionDialog {
     }
 
     /** Opens a complete recipe description before crafting or buying the recipe. */
+    /** Opens a complete recipe description before crafting or buying the recipe. */
     public void openRecipeDetails(Player player, CraftRecipe recipe, boolean allowPurchase) {
+        openRecipeDetails(player, recipe, allowPurchase,
+                target -> openProfessionRecipeCategories(target, recipe.profession()));
+    }
+
+    private void openRecipeDetails(Player player, CraftRecipe recipe, boolean allowPurchase, Consumer<Player> back) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) {
             dialogueEngine.openUnavailable(player, "Rezept", "Du bist noch nicht registriert.");
             return;
         }
+
         Profession profession = recipe.profession();
         int professionLevel = professionService.getLevel(player.getUniqueId(), profession);
         boolean learned = profile.hasLearnedProfession(profession);
         boolean unlocked = craftingService.isUnlocked(player, recipe);
         boolean levelAvailable = professionLevel >= recipe.requiredProfessionLevel();
+
         List<DialogBody> body = new ArrayList<>();
         body.add(DialogBody.plainMessage(Component.text("Ergebnis: " + recipe.displayName(), NamedTextColor.WHITE)));
-        body.add(DialogBody.plainMessage(Component.text("Benötigt: " + profession.displayName() + " Level " + recipe.requiredProfessionLevel(), NamedTextColor.WHITE)));
+        body.add(DialogBody.plainMessage(Component.text(
+                "Kategorie: " + recipe.category().displayName(), NamedTextColor.AQUA)));
+        body.add(DialogBody.plainMessage(Component.text(
+                "Benötigt: " + profession.displayName() + " Level " + recipe.requiredProfessionLevel(),
+                levelAvailable ? NamedTextColor.AQUA : NamedTextColor.RED)));
         body.add(DialogBody.plainMessage(Component.text("Materialien:", NamedTextColor.WHITE)));
+
         for (Map.Entry<Material, Integer> cost : recipe.costs().entrySet()) {
-            body.add(DialogBody.plainMessage(Component.text("• " + cost.getValue() + "x " + QuestText.itemNamePlain(cost.getKey().name()), NamedTextColor.WHITE)));
+            body.add(DialogBody.plainMessage(Component.text(
+                    "• " + cost.getValue() + "x " + QuestText.itemNamePlain(cost.getKey().name()),
+                    NamedTextColor.WHITE)));
         }
         for (Map.Entry<String, Integer> cost : recipe.itemCosts().entrySet()) {
-            body.add(DialogBody.plainMessage(Component.text("• " + cost.getValue() + "x " + recipeItemName(cost.getKey()), NamedTextColor.WHITE)));
+            body.add(DialogBody.plainMessage(Component.text(
+                    "• " + cost.getValue() + "x " + recipeItemName(cost.getKey()),
+                    NamedTextColor.WHITE)));
         }
+
         List<ActionButton> actions = new ArrayList<>();
         if (unlocked && learned) {
-            actions.add(dialogueEngine.actionButton(Component.text("Herstellen"), levelAvailable ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY, target -> {
-                var result = craftingService.craft(target, recipe.id());
-                target.sendMessage(Component.text(result.message(), result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
-                if (result.success()) openRecipeDetails(target, recipe, false);
-            }));
+            actions.add(dialogueEngine.actionButton(
+                    Component.text("Herstellen"),
+                    levelAvailable ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
+                    target -> {
+                        var result = craftingService.craft(target, recipe.id());
+                        target.sendMessage(Component.text(
+                                result.message(),
+                                result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
+                        if (result.success()) {
+                            openRecipeDetails(target, recipe, false, back);
+                        }
+                    }));
         } else if (allowPurchase && learned && !recipe.vanillaRecipe()) {
-            String unlockText = recipe.requiredQuestId().isBlank() ? "Rezept freischalten" + (recipe.unlockPrice() > 0L ? " • " + recipe.unlockPrice() + " Gold" : "") : "Rezept über Quest freischalten";
-            actions.add(dialogueEngine.actionButton(Component.text(unlockText), levelAvailable ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY, target -> {
-                var result = craftingService.unlockRecipe(target, recipe);
-                target.sendMessage(Component.text(result.message(), result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
-                if (result.success()) openRecipeDetails(target, recipe, true);
-            }));
+            String unlockText = recipe.requiredQuestId().isBlank()
+                    ? "Rezept freischalten" + (recipe.unlockPrice() > 0L
+                    ? " • " + recipe.unlockPrice() + " Gold" : "")
+                    : "Rezept über Quest freischalten";
+            actions.add(dialogueEngine.actionButton(
+                    Component.text(unlockText),
+                    levelAvailable ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
+                    target -> {
+                        var result = craftingService.unlockRecipe(target, recipe);
+                        target.sendMessage(Component.text(
+                                result.message(),
+                                result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
+                        if (result.success()) {
+                            openRecipeDetails(target, recipe, true, back);
+                        }
+                    }));
         }
+
         if (!recipe.requiredQuestId().isBlank() && !unlocked) {
-            Quest quest = questManager == null ? null : questManager.getRepository().getQuest(recipe.requiredQuestId());
-            Component questLabel = quest == null ? Component.text("Unbekannte Quest", NamedTextColor.RED) : QuestText.title(quest).color(NamedTextColor.AQUA);
-            body.add(DialogBody.plainMessage(Component.text("Quest: ", NamedTextColor.WHITE).append(questLabel)));
-            if (quest != null) body.add(DialogBody.plainMessage(QuestText.objective(quest).color(NamedTextColor.GRAY)));
+            Quest quest = questManager == null
+                    ? null
+                    : questManager.getRepository().getQuest(recipe.requiredQuestId());
+            Component questLabel = quest == null
+                    ? Component.text("Unbekannte Quest", NamedTextColor.RED)
+                    : QuestText.title(quest).color(NamedTextColor.AQUA);
+            body.add(DialogBody.plainMessage(
+                    Component.text("Quest: ", NamedTextColor.WHITE).append(questLabel)));
+            if (quest != null) {
+                body.add(DialogBody.plainMessage(QuestText.objective(quest).color(NamedTextColor.GRAY)));
+            }
         }
-        if (recipe.unlockPrice() > 0L && !unlocked) body.add(DialogBody.plainMessage(Component.text("Preis: " + recipe.unlockPrice() + " Gold", NamedTextColor.GOLD)));
-        if (!learned) body.add(DialogBody.plainMessage(Component.text("Du musst diesen Beruf zuerst erlernen.", NamedTextColor.WHITE)));
-        Consumer<Player> back = target -> {
-            if (allowPurchase) openTrainerRecipes(target, profession);
-            else openProfessionRecipes(target, profession);
-        };
-        dialogueEngine.openMultiAction(player, Component.text(recipe.displayName(), NamedTextColor.GOLD), body, actions, 1, back);
+        if (recipe.unlockPrice() > 0L && !unlocked) {
+            body.add(DialogBody.plainMessage(
+                    Component.text("Preis: " + recipe.unlockPrice() + " Gold", NamedTextColor.GOLD)));
+        }
+        if (!learned) {
+            body.add(DialogBody.plainMessage(
+                    Component.text("Du musst diesen Beruf zuerst erlernen.", NamedTextColor.WHITE)));
+        }
+
+        actions.add(dialogueEngine.actionButton(
+                Component.text("Zurück"), NamedTextColor.WHITE, back));
+
+        dialogueEngine.openMultiAction(
+                player,
+                Component.text(recipe.displayName(), NamedTextColor.GOLD),
+                body,
+                actions,
+                1
+        );
     }
 
     private String recipeItemName(String itemId) {
