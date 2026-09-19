@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-/** Registry for PixelRPG-only profession recipes. Recipe data is kept under data/recipes for clean content separation. */
+/** Registry for profession recipes whose inputs and outputs are vanilla Minecraft items. */
 public final class CraftingRecipeRegistry {
     private static final String RECIPE_DATA_PATH = "recipes/crafting-recipes.json";
     private final Map<String, CraftRecipe> recipes = new LinkedHashMap<>();
@@ -36,22 +36,12 @@ public final class CraftingRecipeRegistry {
         return Optional.ofNullable(recipes.get(canonicalRecipeId(id)));
     }
 
-    /** Resolves the player-facing recipe label for a crafted PixelRPG result item. */
     public Optional<String> findDisplayNameByResultItemId(String itemId) {
-        if (itemId == null || itemId.isBlank()) return Optional.empty();
-        String canonical = canonicalItemId(itemId);
-        List<String> labels = recipes.values().stream()
-                .filter(recipe -> !recipe.resultItemId().isBlank())
-                .filter(recipe -> canonicalItemId(recipe.resultItemId()).equals(canonical))
-                .map(CraftRecipe::displayName)
-                .distinct()
-                .toList();
-        return labels.size() == 1 ? Optional.of(labels.getFirst()) : Optional.empty();
+        return Optional.empty();
     }
 
     public boolean hasResultItemId(String itemId) {
-        String canonical = canonicalItemId(itemId);
-        return recipes.values().stream().anyMatch(recipe -> !recipe.resultItemId().isBlank() && canonicalItemId(recipe.resultItemId()).equals(canonical));
+        return false;
     }
 
     private void loadDefinitions(Plugin plugin) {
@@ -66,6 +56,10 @@ public final class CraftingRecipeRegistry {
             if (recipes.containsKey(id)) throw new IllegalStateException("Duplicate crafting recipe: " + id);
 
             Profession profession = enumValue(Profession.class, json, "profession", id);
+            if (profession == Profession.WOODCUTTER || profession == Profession.FISHERMAN) {
+                throw new IllegalStateException("Passive profession cannot define crafting recipes: " + id);
+            }
+
             Material result = resolveResultMaterial(required(json, "result"));
             if (result == null || result.isAir()) throw new IllegalStateException("Unknown crafting result for " + id + ": " + required(json, "result"));
 
@@ -73,7 +67,11 @@ public final class CraftingRecipeRegistry {
             if (maximumRarity == ItemRarity.UNIQUE) throw new IllegalStateException("UNIQUE is not valid for craftable recipe " + id);
 
             Map<Material, Integer> costs = parseCosts(json, id);
-            Map<String, Integer> itemCosts = parseItemCosts(json, id);
+            if (json.has("itemCosts") && !json.getAsJsonObject("itemCosts").isEmpty()) {
+                throw new IllegalStateException("Custom PixelRPG itemCosts are not allowed for vanilla profession recipes: " + id);
+            }
+            Map<String, Integer> itemCosts = Map.of();
+
             int level = json.has("requiredProfessionLevel") ? json.get("requiredProfessionLevel").getAsInt() : 1;
             if (level < Profession.MIN_LEVEL || level > Profession.MAX_LEVEL) {
                 throw new IllegalStateException("Invalid requiredProfessionLevel for " + id + ": " + level);
@@ -88,28 +86,24 @@ public final class CraftingRecipeRegistry {
             String quest = json.has("requiredQuestId") ? json.get("requiredQuestId").getAsString() : "";
             boolean defaultUnlocked = json.has("unlockedByDefault") && json.get("unlockedByDefault").getAsBoolean();
             String label = json.has("label") ? json.get("label").getAsString() : pretty(result);
-            String resultItemId = json.has("resultItemId")
-                    ? canonicalItemId(json.get("resultItemId").getAsString())
-                    : canonicalItemId(id);
+            if (json.has("resultItemId") && !json.get("resultItemId").getAsString().isBlank()) {
+                throw new IllegalStateException("Custom PixelRPG resultItemId is not allowed for vanilla profession recipes: " + id);
+            }
+
             String potionType = json.has("potionType") ? json.get("potionType").getAsString() : "";
             String enchantment = json.has("enchantment") ? json.get("enchantment").getAsString() : "";
             int enchantmentLevel = json.has("enchantmentLevel") ? json.get("enchantmentLevel").getAsInt() : 0;
 
             recipes.put(id, new CraftRecipe(profession, id, label, result, amount, maximumRarity, costs, itemCosts,
-                    level, price, quest, defaultUnlocked, false, resultItemId, potionType, enchantment, enchantmentLevel));
+                    level, price, quest, defaultUnlocked, false, "", potionType, enchantment, enchantmentLevel));
         }
     }
 
     private void validateDependencies() {
+        // Kept as a compatibility guard: vanilla profession recipes intentionally have no recipe dependencies.
         for (CraftRecipe recipe : recipes.values()) {
-            for (String rawDependency : recipe.itemCosts().keySet()) {
-                String dependencyId = canonicalRecipeId(rawDependency);
-                if (!recipes.containsKey(dependencyId)) {
-                    throw new IllegalStateException("Unknown recipe dependency for " + recipe.id() + ": " + rawDependency);
-                }
-                if (dependencyId.equals(recipe.id())) {
-                    throw new IllegalStateException("Recipe cannot depend on itself: " + recipe.id());
-                }
+            if (!recipe.itemCosts().isEmpty()) {
+                throw new IllegalStateException("Vanilla profession recipes cannot depend on custom items: " + recipe.id());
             }
         }
 
@@ -123,14 +117,6 @@ public final class CraftingRecipeRegistry {
     private void validateDependencyPath(String recipeId, Set<String> visiting, Set<String> visited) {
         if (visited.contains(recipeId)) return;
         if (!visiting.add(recipeId)) throw new IllegalStateException("Circular crafting recipe dependency detected at " + recipeId);
-
-        CraftRecipe recipe = recipes.get(recipeId);
-        if (recipe != null) {
-            for (String rawDependency : recipe.itemCosts().keySet()) {
-                validateDependencyPath(canonicalRecipeId(rawDependency), visiting, visited);
-            }
-        }
-
         visiting.remove(recipeId);
         visited.add(recipeId);
     }
@@ -154,32 +140,10 @@ public final class CraftingRecipeRegistry {
         return result;
     }
 
-    private static Map<String, Integer> parseItemCosts(JsonObject json, String id) {
-        JsonObject costs = json.has("itemCosts") ? json.getAsJsonObject("itemCosts") : null;
-        if (costs == null || costs.isEmpty()) return Map.of();
-        Map<String, Integer> result = new LinkedHashMap<>();
-        for (var entry : costs.entrySet()) {
-            String itemId = canonicalItemId(entry.getKey());
-            int amount = entry.getValue().getAsInt();
-            if (itemId.isBlank() || amount <= 0) throw new IllegalStateException("Invalid item cost for " + id + ": " + entry.getKey());
-            result.merge(itemId, amount, Integer::sum);
-        }
-        return result;
-    }
-
     private static String canonicalRecipeId(String raw) {
         String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
         if (value.startsWith("pixelrpg:")) value = value.substring("pixelrpg:".length());
         return value.replace('/', ':');
-    }
-
-    private static String canonicalItemId(String raw) {
-        String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
-        if (!value.startsWith("pixelrpg:")) value = "pixelrpg:" + value;
-        String body = value.substring("pixelrpg:".length());
-        int slash = body.indexOf('/');
-        if (slash > 0) body = body.substring(0, slash) + ":" + body.substring(slash + 1);
-        return "pixelrpg:" + body;
     }
 
     private static String required(JsonObject json, String key) {
@@ -188,8 +152,11 @@ public final class CraftingRecipeRegistry {
     }
 
     private static <E extends Enum<E>> E enumValue(Class<E> type, JsonObject json, String key, String id) {
-        try { return Enum.valueOf(type, required(json, key).toUpperCase(Locale.ROOT)); }
-        catch (IllegalArgumentException exception) { throw new IllegalStateException("Invalid " + key + " for " + id, exception); }
+        try {
+            return Enum.valueOf(type, required(json, key).toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalStateException("Invalid " + key + " for " + id, exception);
+        }
     }
 
     private static String pretty(Material material) {
