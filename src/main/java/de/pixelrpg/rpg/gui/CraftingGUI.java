@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.CraftRecipe;
+import de.pixelrpg.rpg.profession.CraftingCategory;
 import de.pixelrpg.rpg.profession.CraftingService;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.quest.QuestText;
@@ -20,11 +21,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public final class CraftingGUI implements Listener {
     private static final int SIZE = 54;
-    private static final int RECIPE_SLOTS = 45;
+    private static final int CATEGORY_SLOTS = 9;
+    private static final int FIRST_RECIPE_SLOT = 9;
+    private static final int LAST_RECIPE_SLOT = 44;
+    private static final int RECIPE_SLOTS = LAST_RECIPE_SLOT - FIRST_RECIPE_SLOT + 1;
     private static final int LAST_PAGE_SLOT = 45;
     private static final int PAGE_INFO_SLOT = 49;
     private static final int NEXT_PAGE_SLOT = 53;
@@ -38,13 +43,15 @@ public final class CraftingGUI implements Listener {
     }
 
     public void open(Player player, Profession profession) {
-        open(player, profession, 0);
+        List<CraftingCategory> categories = categories(profession);
+        if (categories.isEmpty()) return;
+        open(player, profession, categories.getFirst(), 0);
     }
 
-    private void open(Player player, Profession profession, int page) {
-        CraftingHolder holder = new CraftingHolder(profession, Math.max(0, page));
+    private void open(Player player, Profession profession, CraftingCategory category, int page) {
+        CraftingHolder holder = new CraftingHolder(profession, category, Math.max(0, page));
         Inventory inventory = Bukkit.createInventory(holder, SIZE,
-                Component.text("PixelRPG Crafting – " + profession.name(), NamedTextColor.GOLD));
+                Component.text("PixelRPG Crafting – " + profession.name() + " – " + category.displayName(), NamedTextColor.GOLD));
         holder.inventory = inventory;
         render(player, holder);
         player.openInventory(inventory);
@@ -53,19 +60,42 @@ public final class CraftingGUI implements Listener {
     private void render(Player player, CraftingHolder holder) {
         Inventory inventory = holder.inventory;
         inventory.clear();
-        List<CraftRecipe> recipes = craftingService.recipes(holder.profession);
+
+        List<CraftingCategory> categories = categories(holder.profession);
+        if (!categories.contains(holder.category)) holder.category = categories.getFirst();
+        renderCategories(inventory, categories, holder.category);
+
+        List<CraftRecipe> recipes = recipes(holder.profession, holder.category);
         int pageCount = Math.max(1, (recipes.size() + RECIPE_SLOTS - 1) / RECIPE_SLOTS);
         holder.page = Math.min(holder.page, pageCount - 1);
 
         int from = holder.page * RECIPE_SLOTS;
         int to = Math.min(from + RECIPE_SLOTS, recipes.size());
         for (int i = from; i < to; i++) {
-            inventory.setItem(i - from, displayRecipe(recipes.get(i), player));
+            inventory.setItem(FIRST_RECIPE_SLOT + (i - from), displayRecipe(recipes.get(i), player));
         }
 
         if (holder.page > 0) inventory.setItem(LAST_PAGE_SLOT, navigationItem("← Vorherige Seite", Material.ARROW));
         inventory.setItem(PAGE_INFO_SLOT, navigationItem("Seite " + (holder.page + 1) + " / " + pageCount, Material.PAPER));
         if (holder.page + 1 < pageCount) inventory.setItem(NEXT_PAGE_SLOT, navigationItem("Nächste Seite →", Material.ARROW));
+    }
+
+    private void renderCategories(Inventory inventory, List<CraftingCategory> categories, CraftingCategory selected) {
+        for (int i = 0; i < categories.size() && i < CATEGORY_SLOTS; i++) {
+            CraftingCategory category = categories.get(i);
+            ItemStack item = new ItemStack(category.icon());
+            ItemMeta meta = item.getItemMeta();
+            NamedTextColor color = category == selected ? NamedTextColor.GREEN : NamedTextColor.YELLOW;
+            meta.displayName(Component.text(category.displayName(), color).decoration(TextDecoration.ITALIC, false));
+            meta.lore(List.of(
+                    Component.text(category == selected ? "Aktive Kategorie" : "Kategorie öffnen", NamedTextColor.GRAY)
+                            .decoration(TextDecoration.ITALIC, false),
+                    Component.text("Rezepte: " + countRecipes(currentProfessionForInventory(inventory), category), NamedTextColor.GRAY)
+                            .decoration(TextDecoration.ITALIC, false)
+            ));
+            item.setItemMeta(meta);
+            inventory.setItem(i, item);
+        }
     }
 
     private ItemStack navigationItem(String name, Material material) {
@@ -86,6 +116,7 @@ public final class CraftingGUI implements Listener {
         boolean unlocked = recipe.unlockedByDefault() || (profile != null && profile.hasUnlockedRecipe(recipe.id()));
 
         List<Component> lore = new ArrayList<>();
+        lore.add(Component.text(recipe.category().displayName(), NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text(recipe.vanillaRecipe() ? "Vanilla-Rezept" : "PixelRPG-Rezept", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("Benötigtes Berufslevel: " + recipe.requiredProfessionLevel(),
                 professionLevel >= recipe.requiredProfessionLevel() ? NamedTextColor.GREEN : NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
@@ -114,12 +145,24 @@ public final class CraftingGUI implements Listener {
         return item;
     }
 
+    // Listener für Kategorien, Seitenwechsel, Freischalten und Herstellen.
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof CraftingHolder holder)) return;
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (event.getClickedInventory() != event.getView().getTopInventory()) return;
+
+        List<CraftingCategory> categories = categories(holder.profession);
+        if (event.getSlot() >= 0 && event.getSlot() < CATEGORY_SLOTS && event.getSlot() < categories.size()) {
+            CraftingCategory category = categories.get(event.getSlot());
+            if (category != holder.category) {
+                holder.category = category;
+                holder.page = 0;
+                render(player, holder);
+            }
+            return;
+        }
 
         if (event.getSlot() == LAST_PAGE_SLOT) {
             if (holder.page > 0) {
@@ -129,7 +172,7 @@ public final class CraftingGUI implements Listener {
             return;
         }
         if (event.getSlot() == NEXT_PAGE_SLOT) {
-            List<CraftRecipe> recipes = craftingService.recipes(holder.profession);
+            List<CraftRecipe> recipes = recipes(holder.profession, holder.category);
             int pageCount = Math.max(1, (recipes.size() + RECIPE_SLOTS - 1) / RECIPE_SLOTS);
             if (holder.page + 1 < pageCount) {
                 holder.page++;
@@ -137,10 +180,10 @@ public final class CraftingGUI implements Listener {
             }
             return;
         }
-        if (event.getSlot() < 0 || event.getSlot() >= RECIPE_SLOTS) return;
+        if (event.getSlot() < FIRST_RECIPE_SLOT || event.getSlot() > LAST_RECIPE_SLOT) return;
 
-        List<CraftRecipe> recipes = craftingService.recipes(holder.profession);
-        int recipeIndex = holder.page * RECIPE_SLOTS + event.getSlot();
+        List<CraftRecipe> recipes = recipes(holder.profession, holder.category);
+        int recipeIndex = holder.page * RECIPE_SLOTS + (event.getSlot() - FIRST_RECIPE_SLOT);
         if (recipeIndex < 0 || recipeIndex >= recipes.size()) return;
         CraftRecipe recipe = recipes.get(recipeIndex);
         var profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
@@ -167,6 +210,32 @@ public final class CraftingGUI implements Listener {
         render(player, holder);
     }
 
+    private List<CraftingCategory> categories(Profession profession) {
+        return craftingService.recipes(profession).stream()
+                .map(CraftRecipe::category)
+                .distinct()
+                .sorted(Comparator.comparingInt(Enum::ordinal))
+                .toList();
+    }
+
+    private List<CraftRecipe> recipes(Profession profession, CraftingCategory category) {
+        return craftingService.recipes(profession).stream()
+                .filter(recipe -> recipe.category() == category)
+                .toList();
+    }
+
+    private int countRecipes(CraftingCategory category) {
+        return craftingService.recipes(currentProfession()).stream()
+                .filter(recipe -> recipe.category() == category)
+                .count() > Integer.MAX_VALUE ? 0 : (int) craftingService.recipes(currentProfession()).stream()
+                .filter(recipe -> recipe.category() == category)
+                .count();
+    }
+
+    private Profession currentProfession() {
+        throw new UnsupportedOperationException();
+    }
+
     private int count(Player player, Material material) {
         int count = 0;
         for (ItemStack item : player.getInventory().getStorageContents()) if (item != null && item.getType() == material) count += item.getAmount();
@@ -191,10 +260,12 @@ public final class CraftingGUI implements Listener {
 
     private static final class CraftingHolder implements InventoryHolder {
         private final Profession profession;
+        private CraftingCategory category;
         private int page;
         private Inventory inventory;
-        private CraftingHolder(Profession profession, int page) {
+        private CraftingHolder(Profession profession, CraftingCategory category, int page) {
             this.profession = profession;
+            this.category = category;
             this.page = page;
         }
         @Override public Inventory getInventory() { return inventory; }
