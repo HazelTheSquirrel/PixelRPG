@@ -7,6 +7,7 @@ import java.util.Map;
 
 public record CraftRecipe(
         Profession profession,
+        CraftingCategory category,
         String id,
         String label,
         Material resultMaterial,
@@ -26,6 +27,7 @@ public record CraftRecipe(
 ) {
     public CraftRecipe {
         if (profession == null) throw new IllegalArgumentException("Profession must not be null");
+        if (category == null) throw new IllegalArgumentException("Recipe category must not be null");
         if (id == null || id.isBlank()) throw new IllegalArgumentException("Recipe id must not be blank");
         if (label == null || label.isBlank()) throw new IllegalArgumentException("Recipe label must not be blank");
         if (resultMaterial == null || resultMaterial.isAir()) throw new IllegalArgumentException("Result material must be valid");
