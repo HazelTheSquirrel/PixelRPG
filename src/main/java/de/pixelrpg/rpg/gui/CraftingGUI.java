@@ -224,16 +224,10 @@ public final class CraftingGUI implements Listener {
                 .toList();
     }
 
-    private int countRecipes(CraftingCategory category) {
-        return craftingService.recipes(currentProfession()).stream()
-                .filter(recipe -> recipe.category() == category)
-                .count() > Integer.MAX_VALUE ? 0 : (int) craftingService.recipes(currentProfession()).stream()
+    private int countRecipes(Profession profession, CraftingCategory category) {
+        return (int) craftingService.recipes(profession).stream()
                 .filter(recipe -> recipe.category() == category)
                 .count();
-    }
-
-    private Profession currentProfession() {
-        throw new UnsupportedOperationException();
     }
 
     private int count(Player player, Material material) {
