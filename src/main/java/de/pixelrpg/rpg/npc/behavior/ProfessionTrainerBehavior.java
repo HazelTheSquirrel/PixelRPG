@@ -53,7 +53,7 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
         if (profile.hasLearnedProfession(profession)) {
-            professionDialog.openTrainerRecipes(player, profession);
+            professionDialog.openProfession(player, profession);
             return;
         }
 
