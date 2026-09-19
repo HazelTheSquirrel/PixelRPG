@@ -192,7 +192,7 @@ public final class ProfessionActivityListener implements Listener {
     @EventHandler
     public void onQuestCompleted(QuestCompletedEvent event) {
         Profession profession = professionForQuest(event.getQuestId());
-        if (profession == null) return;
+        if (profession == null || profession == Profession.WOODCUTTER || profession == Profession.FISHERMAN) return;
         professionService.addExperience(event.getPlayer(), profession, 40L);
     }
 
