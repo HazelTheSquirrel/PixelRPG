@@ -56,6 +56,7 @@ public final class CraftingRecipeRegistry {
             if (recipes.containsKey(id)) throw new IllegalStateException("Duplicate crafting recipe: " + id);
 
             Profession profession = enumValue(Profession.class, json, "profession", id);
+            CraftingCategory category = CraftingCategory.from(required(json, "category"), id);
             if (profession == Profession.WOODCUTTER || profession == Profession.FISHERMAN) {
                 throw new IllegalStateException("Passive profession cannot define crafting recipes: " + id);
             }
@@ -94,7 +95,7 @@ public final class CraftingRecipeRegistry {
             String enchantment = json.has("enchantment") ? json.get("enchantment").getAsString() : "";
             int enchantmentLevel = json.has("enchantmentLevel") ? json.get("enchantmentLevel").getAsInt() : 0;
 
-            recipes.put(id, new CraftRecipe(profession, id, label, result, amount, maximumRarity, costs, itemCosts,
+            recipes.put(id, new CraftRecipe(profession, category, id, label, result, amount, maximumRarity, costs, itemCosts,
                     level, price, quest, defaultUnlocked, false, "", potionType, enchantment, enchantmentLevel));
         }
     }
