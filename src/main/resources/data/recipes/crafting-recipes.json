@@ -1084,7 +1084,7 @@
       "profession": "ALCHEMIST",
       "result": "POTION",
       "costs": {
-        "TURTLE_HELMET": 1,
+        "TURTLE_SCUTE": 5,
         "NETHER_WART": 1,
         "GLASS_BOTTLE": 1
       },
