@@ -4,6 +4,7 @@ import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.CraftRecipe;
+import de.pixelrpg.rpg.profession.CraftingCategory;
 import de.pixelrpg.rpg.profession.CraftingService;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.profession.ProfessionService;
@@ -292,7 +293,6 @@ public final class ProfessionDialog {
         private Component component() { return component; }
     }
 
-    /** Opens a complete recipe description before crafting or buying the recipe. */
     /** Opens a complete recipe description before crafting or buying the recipe. */
     public void openRecipeDetails(Player player, CraftRecipe recipe, boolean allowPurchase) {
         openRecipeDetails(player, recipe, allowPurchase,
