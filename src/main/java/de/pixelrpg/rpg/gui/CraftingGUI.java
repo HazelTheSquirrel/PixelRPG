@@ -63,7 +63,7 @@ public final class CraftingGUI implements Listener {
 
         List<CraftingCategory> categories = categories(holder.profession);
         if (!categories.contains(holder.category)) holder.category = categories.getFirst();
-        renderCategories(inventory, categories, holder.category);
+        renderCategories(inventory, categories, holder.category, holder.profession);
 
         List<CraftRecipe> recipes = recipes(holder.profession, holder.category);
         int pageCount = Math.max(1, (recipes.size() + RECIPE_SLOTS - 1) / RECIPE_SLOTS);
@@ -80,7 +80,7 @@ public final class CraftingGUI implements Listener {
         if (holder.page + 1 < pageCount) inventory.setItem(NEXT_PAGE_SLOT, navigationItem("Nächste Seite →", Material.ARROW));
     }
 
-    private void renderCategories(Inventory inventory, List<CraftingCategory> categories, CraftingCategory selected) {
+    private void renderCategories(Inventory inventory, List<CraftingCategory> categories, CraftingCategory selected, Profession profession) {
         for (int i = 0; i < categories.size() && i < CATEGORY_SLOTS; i++) {
             CraftingCategory category = categories.get(i);
             ItemStack item = new ItemStack(category.icon());
@@ -90,7 +90,7 @@ public final class CraftingGUI implements Listener {
             meta.lore(List.of(
                     Component.text(category == selected ? "Aktive Kategorie" : "Kategorie öffnen", NamedTextColor.GRAY)
                             .decoration(TextDecoration.ITALIC, false),
-                    Component.text("Rezepte: " + countRecipes(currentProfessionForInventory(inventory), category), NamedTextColor.GRAY)
+                    Component.text("Rezepte: " + countRecipes(profession, category), NamedTextColor.GRAY)
                             .decoration(TextDecoration.ITALIC, false)
             ));
             item.setItemMeta(meta);
@@ -214,7 +214,7 @@ public final class CraftingGUI implements Listener {
         return craftingService.recipes(profession).stream()
                 .map(CraftRecipe::category)
                 .distinct()
-                .sorted(Comparator.comparingInt(Enum::ordinal))
+                .sorted(Comparator.comparingInt(CraftingCategory::ordinal))
                 .toList();
     }
 
