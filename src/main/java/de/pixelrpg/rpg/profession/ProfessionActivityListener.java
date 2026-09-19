@@ -47,13 +47,11 @@ public final class ProfessionActivityListener implements Listener {
             Material.SADDLE
     );
 
-    private final PixelRPGPlugin plugin;
     private final ProfessionService professionService;
     private final Set<BlockPosition> automatedTreeFelling = new HashSet<>();
     private final Random random = new Random();
 
-    public ProfessionActivityListener(PixelRPGPlugin plugin, ProfessionService professionService) {
-        this.plugin = plugin;
+    public ProfessionActivityListener(ProfessionService professionService) {
         this.professionService = professionService;
     }
 
@@ -124,13 +122,7 @@ public final class ProfessionActivityListener implements Listener {
         int level = professionService.getLevel(player.getUniqueId(), Profession.WOODCUTTER);
         if (level < 20) return;
 
-        double chance = switch (level) {
-            case 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39 -> 0.10D;
-            case 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59 -> 0.20D;
-            case 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79 -> 0.25D;
-            case 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99 -> 0.30D;
-            default -> 0.40D;
-        };
+        double chance = level >= 100 ? 0.40D : level >= 80 ? 0.30D : level >= 60 ? 0.25D : 0.20D;
         if (random.nextDouble() >= chance) return;
 
         Material logType = event.getBlockState().getType();
@@ -220,17 +212,14 @@ public final class ProfessionActivityListener implements Listener {
 
         for (org.bukkit.block.Block log : logs) {
             BlockPosition position = BlockPosition.of(log);
-            if (position.equals(BlockPosition.of(start))) continue;
-            automatedTreeFelling.add(position);
+            if (!position.equals(BlockPosition.of(start))) automatedTreeFelling.add(position);
         }
 
         for (org.bukkit.block.Block log : logs) {
             if (log.equals(start) || log.getType().isAir()) continue;
             BlockPosition position = BlockPosition.of(log);
             if (!automatedTreeFelling.contains(position)) continue;
-            if (player.breakBlock(log)) {
-                automatedTreeFelling.remove(position);
-            }
+            if (player.breakBlock(log)) automatedTreeFelling.remove(position);
         }
     }
 
@@ -264,7 +253,7 @@ public final class ProfessionActivityListener implements Listener {
 
     private boolean looksLikeNaturalTree(org.bukkit.block.Block start, List<org.bukkit.block.Block> logs) {
         org.bukkit.block.Block base = logs.stream()
-                .min(java.util.Comparator.comparingInt(block -> block.getY()))
+                .min(java.util.Comparator.comparingInt(org.bukkit.block.Block::getY))
                 .orElse(start);
         if (!TREE_GROUND.contains(base.getRelative(org.bukkit.block.BlockFace.DOWN).getType())) return false;
 
