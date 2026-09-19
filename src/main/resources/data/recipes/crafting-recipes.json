@@ -587,6 +587,595 @@
       "unlockPrice": 10000,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false
+    },
+    {
+      "id": "farmer:melon_block",
+      "label": "Melonenblock",
+      "profession": "FARMER",
+      "result": "MELON",
+      "costs": {
+        "MELON_SLICE": 9
+      },
+      "requiredProfessionLevel": 5,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "farmer:cake",
+      "label": "Kuchen",
+      "profession": "FARMER",
+      "result": "CAKE",
+      "costs": {
+        "WHEAT": 3,
+        "SUGAR": 2,
+        "EGG": 1,
+        "MILK_BUCKET": 3
+      },
+      "requiredProfessionLevel": 15,
+      "unlockPrice": 250,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "farmer:cookie",
+      "label": "Keks",
+      "profession": "FARMER",
+      "result": "COOKIE",
+      "costs": {
+        "WHEAT": 2,
+        "COCOA_BEANS": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 700,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "resultAmount": 8
+    },
+    {
+      "id": "farmer:beetroot_soup",
+      "label": "Rote-Bete-Suppe",
+      "profession": "FARMER",
+      "result": "BEETROOT_SOUP",
+      "costs": {
+        "BEETROOT": 6,
+        "BOWL": 1
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 1600,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "farmer:pumpkin_seeds",
+      "label": "Kürbiskerne",
+      "profession": "FARMER",
+      "result": "PUMPKIN_SEEDS",
+      "costs": {
+        "PUMPKIN": 1
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 3500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "resultAmount": 4
+    },
+    {
+      "id": "farmer:melon_seeds",
+      "label": "Melonenkerne",
+      "profession": "FARMER",
+      "result": "MELON_SEEDS",
+      "costs": {
+        "MELON": 1
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 7500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "resultAmount": 9
+    },
+    {
+      "id": "blacksmith:iron_axe",
+      "label": "Eisenaxt",
+      "profession": "BLACKSMITH",
+      "result": "IRON_AXE",
+      "costs": {
+        "IRON_INGOT": 3,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 5,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:iron_shovel",
+      "label": "Eisenschaufel",
+      "profession": "BLACKSMITH",
+      "result": "IRON_SHOVEL",
+      "costs": {
+        "IRON_INGOT": 1,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 15,
+      "unlockPrice": 250,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:iron_hoe",
+      "label": "Eisenhacke",
+      "profession": "BLACKSMITH",
+      "result": "IRON_HOE",
+      "costs": {
+        "IRON_INGOT": 2,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 700,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_sword",
+      "label": "Diamantschwert",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_SWORD",
+      "costs": {
+        "DIAMOND": 2,
+        "STICK": 1
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 1600,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:diamond_axe",
+      "label": "Diamantaxt",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_AXE",
+      "costs": {
+        "DIAMOND": 3,
+        "STICK": 2
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 3500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "blacksmith:hopper",
+      "label": "Trichter",
+      "profession": "BLACKSMITH",
+      "result": "HOPPER",
+      "costs": {
+        "IRON_INGOT": 5,
+        "CHEST": 1
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 7500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:writable_book",
+      "label": "Buch und Feder",
+      "profession": "SCHOLAR",
+      "result": "WRITABLE_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "INK_SAC": 1,
+        "FEATHER": 1
+      },
+      "requiredProfessionLevel": 5,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:compass",
+      "label": "Kompass",
+      "profession": "SCHOLAR",
+      "result": "COMPASS",
+      "costs": {
+        "IRON_INGOT": 4,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 15,
+      "unlockPrice": 250,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:clock",
+      "label": "Uhr",
+      "profession": "SCHOLAR",
+      "result": "CLOCK",
+      "costs": {
+        "GOLD_INGOT": 4,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 700,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:map",
+      "label": "Karte",
+      "profession": "SCHOLAR",
+      "result": "MAP",
+      "costs": {
+        "PAPER": 8,
+        "COMPASS": 1
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 1600,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:cartography_table",
+      "label": "Kartentisch",
+      "profession": "SCHOLAR",
+      "result": "CARTOGRAPHY_TABLE",
+      "costs": {
+        "PAPER": 2,
+        "OAK_PLANKS": 4
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 3500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "scholar:recovery_compass",
+      "label": "Bergungskompass",
+      "profession": "SCHOLAR",
+      "result": "RECOVERY_COMPASS",
+      "costs": {
+        "COMPASS": 1,
+        "ECHO_SHARD": 8
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 7500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "cook:cooked_chicken",
+      "label": "Gebratenes Hühnchen",
+      "profession": "COOK",
+      "result": "COOKED_CHICKEN",
+      "costs": {
+        "CHICKEN": 1
+      },
+      "requiredProfessionLevel": 5,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "cook:cooked_cod",
+      "label": "Gebratener Kabeljau",
+      "profession": "COOK",
+      "result": "COOKED_COD",
+      "costs": {
+        "COD": 1
+      },
+      "requiredProfessionLevel": 15,
+      "unlockPrice": 250,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "cook:cooked_salmon",
+      "label": "Gebratener Lachs",
+      "profession": "COOK",
+      "result": "COOKED_SALMON",
+      "costs": {
+        "SALMON": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 700,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "cook:cooked_mutton",
+      "label": "Gebratenes Hammelfleisch",
+      "profession": "COOK",
+      "result": "COOKED_MUTTON",
+      "costs": {
+        "MUTTON": 1
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 1600,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "cook:baked_potato",
+      "label": "Ofenkartoffel",
+      "profession": "COOK",
+      "result": "BAKED_POTATO",
+      "costs": {
+        "POTATO": 1
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 3500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "cook:mushroom_stew",
+      "label": "Pilzsuppe",
+      "profession": "COOK",
+      "result": "MUSHROOM_STEW",
+      "costs": {
+        "RED_MUSHROOM": 1,
+        "BROWN_MUSHROOM": 1,
+        "BOWL": 1
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 7500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "tailor:leather_helmet",
+      "label": "Lederhelm",
+      "profession": "TAILOR",
+      "result": "LEATHER_HELMET",
+      "costs": {
+        "LEATHER": 5
+      },
+      "requiredProfessionLevel": 5,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "tailor:leather_leggings",
+      "label": "Lederhose",
+      "profession": "TAILOR",
+      "result": "LEATHER_LEGGINGS",
+      "costs": {
+        "LEATHER": 7
+      },
+      "requiredProfessionLevel": 15,
+      "unlockPrice": 250,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "tailor:leather_boots",
+      "label": "Lederstiefel",
+      "profession": "TAILOR",
+      "result": "LEATHER_BOOTS",
+      "costs": {
+        "LEATHER": 4
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 700,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "tailor:shears",
+      "label": "Schere",
+      "profession": "TAILOR",
+      "result": "SHEARS",
+      "costs": {
+        "IRON_INGOT": 2
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 1600,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "tailor:loom",
+      "label": "Webstuhl",
+      "profession": "TAILOR",
+      "result": "LOOM",
+      "costs": {
+        "STRING": 2,
+        "OAK_PLANKS": 2
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 3500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "tailor:white_banner",
+      "label": "Weißes Banner",
+      "profession": "TAILOR",
+      "result": "WHITE_BANNER",
+      "costs": {
+        "WHITE_WOOL": 6,
+        "STICK": 1
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 7500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "alchemist:poison_potion",
+      "label": "Gifttrank",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "SPIDER_EYE": 1,
+        "NETHER_WART": 1,
+        "GLASS_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 5,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "alchemist:water_breathing_potion",
+      "label": "Trank der Wasseratmung",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "PUFFERFISH": 1,
+        "NETHER_WART": 1,
+        "GLASS_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 15,
+      "unlockPrice": 250,
+      "rarity": "COMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "alchemist:leaping_potion",
+      "label": "Trank des Springens",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "RABBIT_FOOT": 1,
+        "NETHER_WART": 1,
+        "GLASS_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 700,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "alchemist:slow_falling_potion",
+      "label": "Trank des sanften Falls",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "PHANTOM_MEMBRANE": 1,
+        "NETHER_WART": 1,
+        "GLASS_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 1600,
+      "rarity": "RARE",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "alchemist:regeneration_potion",
+      "label": "Trank der Regeneration",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "GHAST_TEAR": 1,
+        "NETHER_WART": 1,
+        "GLASS_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 3500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "alchemist:turtle_master_potion",
+      "label": "Trank des Schildkrötenmeisters",
+      "profession": "ALCHEMIST",
+      "result": "POTION",
+      "costs": {
+        "TURTLE_HELMET": 1,
+        "NETHER_WART": 1,
+        "GLASS_BOTTLE": 1
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 7500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false
+    },
+    {
+      "id": "mason:brick_stairs",
+      "label": "Ziegeltreppe",
+      "profession": "MASON",
+      "result": "BRICK_STAIRS",
+      "costs": {
+        "BRICKS": 6
+      },
+      "requiredProfessionLevel": 5,
+      "unlockPrice": 100,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "resultAmount": 4
+    },
+    {
+      "id": "mason:brick_slab",
+      "label": "Ziegelstufe",
+      "profession": "MASON",
+      "result": "BRICK_SLAB",
+      "costs": {
+        "BRICKS": 3
+      },
+      "requiredProfessionLevel": 15,
+      "unlockPrice": 250,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "resultAmount": 6
+    },
+    {
+      "id": "mason:stone_brick_stairs",
+      "label": "Steinziegeltreppe",
+      "profession": "MASON",
+      "result": "STONE_BRICK_STAIRS",
+      "costs": {
+        "STONE_BRICKS": 6
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 700,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "resultAmount": 4
+    },
+    {
+      "id": "mason:stone_brick_slab",
+      "label": "Steinziegelstufe",
+      "profession": "MASON",
+      "result": "STONE_BRICK_SLAB",
+      "costs": {
+        "STONE_BRICKS": 3
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 1600,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "resultAmount": 6
+    },
+    {
+      "id": "mason:polished_diorite",
+      "label": "Polierter Diorit",
+      "profession": "MASON",
+      "result": "POLISHED_DIORITE",
+      "costs": {
+        "DIORITE": 4
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 3500,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "resultAmount": 4
+    },
+    {
+      "id": "mason:polished_granite",
+      "label": "Polierter Granit",
+      "profession": "MASON",
+      "result": "POLISHED_GRANITE",
+      "costs": {
+        "GRANITE": 4
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 7500,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "resultAmount": 4
     }
   ]
 }
