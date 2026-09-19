@@ -23,7 +23,7 @@ public final class ProfessionSystem {
     }
 
     public void register() {
-        plugin.getServer().getPluginManager().registerEvents(new ProfessionActivityListener(plugin, professionService), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new ProfessionActivityListener(professionService), plugin);
     }
 
     public ProfessionService professionService() { return professionService; }
