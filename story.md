@@ -1,166 +1,358 @@
-Die Welt war schon da, lange bevor ein Mensch seinen ersten Schritt auf ihren Boden setzte, und vielleicht war gerade das ihr größtes Geheimnis, denn niemand kannte ihren Anfang, niemand hatte ihre Geburt gesehen, und in keiner erhaltenen Schrift stand der Name dessen, der Berge, Wälder, Ozeane und die tiefen Höhlen unter ihnen erschaffen hatte. Die Welt war einfach gewesen. Über ihr spannte sich der Himmel, unter ihr lagen die Schichten der Erde, und jenseits dessen, was die meisten Augen sehen konnten, warteten zwei andere Reiche, die nicht weniger wirklich waren als die Oberwelt selbst. Der Nether war heiß, fremd und voller Leben, und tief in seinen roten Weiten lebten die Piglins, deren Bastionen schon damals von einer eigenen Kultur zeugten. Das Ende dagegen war so fern von allem, was die Bewohner der Oberwelt verstanden, dass es beinahe wie ein Gedanke wirkte, den die Welt selbst vergessen hatte. Doch auch dort gab es Leben, und irgendwann würde die Grenze zwischen diesen Reichen von den Händen sterblicher Wesen überschritten werden.
+Am Anfang war keine Stadt, kein König, kein Held und kein Name, den irgendjemand hätte aufschreiben können. Es gab nur die Welt.
 
-Dann kamen die Menschen, oder zumindest jene frühen Völker, aus deren langen Zeitaltern die späteren Ruinen hervorgehen sollten. Sie waren nicht ein einziges Reich und nicht eine einzige Rasse, sondern viele Gemeinschaften, die durch etwas anderes verbunden waren: durch ihren Hunger nach Wissen. Sie lernten, Holz zu formen und Stein zu brechen, Erz zu schmelzen und Werkzeuge zu schaffen. Aus Werkzeug wurde Handwerk, aus Handwerk wurde Architektur, aus Architektur wurde Wissenschaft, und aus Wissenschaft entstand etwas, das sie Magie nannten, obwohl niemand mit Gewissheit sagen konnte, wo Wissenschaft endete und Magie begann. Sie bauten Tempel, Straßen, Minen und gewaltige Hallen. Sie erforschten Redstone, Tränke, Verzauberungen und die geheimnisvollen Kräfte, die in Erfahrung, Kristallen, Seelen und fremden Materialien zu liegen schienen. Jahrhunderte später würde man diese verlorene Epoche die Ära der Alten Baumeister nennen, obwohl niemand mehr wusste, ob die Menschen dieser Zeit sich selbst jemals so genannt hatten.
+Niemand weiß, ob die Welt erschaffen wurde, ob sie schon immer existierte oder ob Oberwelt, Nether und Ende einst eine einzige Wirklichkeit gewesen waren. Keine erhaltene Chronik reicht bis zu diesem ersten Augenblick zurück. Es gibt keine Hand, die in einer sicheren Überlieferung als Schöpfer genannt wird, und keine Stimme, die erzählen könnte, was vor den Bergen, vor den Meeren, vor den Wäldern und vor dem ersten Leben gewesen ist. Die älteste Wahrheit, die geblieben ist, ist deshalb zugleich die einfachste: Die Welt war bereits da.
 
-Ihre Welt wuchs mit ihrem Wissen. Sie bauten dort, wo heute nur noch Ruinen stehen. Manche Siedlungen verschwanden unter dem Sand, andere wurden von Pflanzen überwuchert, wieder andere sanken tief unter die Erde. Trail Ruins, verlassene Minenschächte, Tempel, Monumente und andere Bauwerke blieben zurück, obwohl ihre Namen und ihre Erbauer längst vergessen wurden. Nicht alles stammte aus derselben Kultur. Die Welt war niemals ein einziges Reich gewesen. Sie war ein Mosaik aus Zivilisationen, die kamen, bauten, kämpften, handelten und wieder verschwanden. Doch über allen Unterschieden stand eine gemeinsame Erkenntnis, die ihre Geschichte verändern sollte: Die Welt war größer, als sie gedacht hatten.
+Über ihr spannte sich der Himmel. Wasser bedeckte weite Teile des Landes. Wälder wuchsen an Berghängen, Flüsse zogen durch Ebenen, und tief unter der Erde lagen Höhlen, Erzadern und die dunklen Räume, die erst viel später von intelligenten Wesen betreten werden sollten. Leben entstand und verging. Tiere bewegten sich durch die Landschaft, Pflanzen wuchsen aus Erde und Licht, und die Welt folgte ihren eigenen Regeln, lange bevor jemand diese Regeln verstand.
 
-Die erste große Grenze war der Nether. Ein Portal wurde geöffnet, und plötzlich war die Entfernung zwischen zwei Wirklichkeiten keine Entfernung mehr. Wo zuvor nur Feuer und Legenden gewesen waren, fanden die Alten Baumeister Netherquarz, Glowstone, Netherwarzen, Gold und Seelensand. Sie fanden Landschaften, die nach anderen Regeln zu funktionieren schienen, und Wesen, die ihre Heimat niemals verlassen hatten. Besonders die Piglins wurden zu einem entscheidenden Teil ihrer Geschichte. Sie lebten im Nether, besaßen Bastionen, kannten den Wert des Goldes und betrachteten ihre Heimat nicht als unbewohntes Land, sondern als das, was sie immer gewesen war: ihr Zuhause.
+Doch die Oberwelt war nicht allein.
 
-Zuerst begegneten sich beide Seiten vorsichtig. Die Bewohner der Oberwelt brachten Gegenstände und suchten nach Ressourcen, die es in ihrer eigenen Welt nicht gab, und die Piglins handelten mit dem, was der Nether hervorbrachte. Für eine Weile genügte das. Doch Handel trägt in sich bereits den Keim des Begehrens. Je mehr die Menschen vom Nether verstanden, desto mehr wollten sie besitzen. Sie wollten Gold, Ressourcen, sichere Wege, Portale und schließlich Kontrolle. Die Piglins sahen in den Fremden immer weniger Händler und immer mehr Eindringlinge. Ein Handelsplatz wurde geplündert, ein Portal befestigt, ein Außenposten errichtet, eine Bastion angegriffen. Auf jeden Angriff folgte Vergeltung, und aus Vergeltung wurde Krieg.
+Jenseits ihrer Grenzen existierte der Nether, eine fremde Dimension aus Feuer, Lava, Seelensand und gewaltigen roten Ebenen. Auch dort war Leben entstanden. Pilze wuchsen, Ghasts trieben durch die Weite, Blazes wachten über alte Festungen, und in den Wastes, Wäldern und Tälern lebten die Piglins. Sie waren keine Eindringlinge in einer verlassenen Welt. Der Nether war ihre Heimat. Sie errichteten Bastionen, sammelten Gold und entwickelten eine eigene Kultur, deren älteste Wurzeln heute ebenso schwer zu erkennen sind wie die der Bewohner der Oberwelt.
 
-Der Krieg hatte keinen einzelnen Beginn, den später jemand hätte benennen können. Er wuchs aus tausend Entscheidungen, von denen jede für sich klein genug gewesen war, um gerechtfertigt zu wirken. Bald waren die Portale keine Tore des Handels mehr, sondern militärische Durchgänge. Netherfestungen wurden errichtet und ausgebaut. Bastionen wurden befestigt. Handelswege wurden Frontlinien. Der Nether wurde nicht länger nur erforscht, sondern umkämpft, und die Alten Baumeister begannen zu glauben, dass nur eine größere Macht diesen Krieg beenden könne.
+Und irgendwo jenseits aller vertrauten Wege lag das Ende.
 
-In den Festungen studierten sie die Kräfte des Nethers. Sie untersuchten Seelensand, weil darin etwas zu liegen schien, das gewöhnlicher Erde fehlte. Sie beobachteten die Energie der Seelen, untersuchten Witherskelett-Schädel und suchten nach einer Möglichkeit, die Macht des Nethers in eine Waffe zu verwandeln. Was als Forschung begonnen hatte, wurde militärische Wissenschaft, und militärische Wissenschaft wurde zu Verzweiflung. Sie wollten etwas erschaffen, das stark genug war, eine Armee zu vernichten, etwas, das den Krieg mit einem einzigen Schlag beenden konnte.
+Es war kein Ort, den die ersten Bewohner der Oberwelt kannten. Eine dunkle, fremdartige Welt aus schwebenden Inseln, Void und seltsamen Lebensformen, deren Regeln sich der Vorstellung der Oberwelt entzogen. Dort existierte der Enderdrache. Ob er seit Anbeginn dort lebte, ob er selbst Teil einer älteren Geschichte war oder woher seine Macht stammte, wusste niemand. Das Ende bewahrte sein Geheimnis, bevor ein Mensch überhaupt wusste, dass es existierte.
 
-So entstand der Wither.
+So verging eine Zeit, die niemand zählen konnte.
 
-Seelensand sollte die Energie liefern, Witherskelett-Schädel sollten als Träger dienen, Netherenergie sollte die Konstruktion stabilisieren. Mehrere Forschergruppen arbeiteten daran, und niemand glaubte, dass sie ein Wesen erschaffen würden, das sich ihrer Kontrolle entzog. Sie glaubten an Formeln, an Berechnungen, an ihre eigenen Fähigkeiten. Sie glaubten, dass Wissen Macht bedeutete und Macht beherrschbar war.
+Dann begann die Zeit der Menschen.
 
-Dann erwachte der Wither.
+Sie kamen nicht als ein einziges Volk und gründeten kein einziges Reich. Sie waren viele Gemeinschaften, die über Generationen hinweg lernten, bauten, handelten, forschten und kämpften. Sie lernten, Holz zu schlagen, Stein zu bearbeiten und Erz zu schmelzen. Aus einfachen Werkzeugen wurden bessere Werkzeuge. Aus Häusern wurden Dörfer. Aus Dörfern wurden Städte. Aus Erfahrung wurde Wissen, und Wissen wurde weitergegeben.
 
-In dem Augenblick, in dem seine Kraft frei wurde, verstanden seine Schöpfer, dass sie keine Waffe gebaut hatten. Sie hatten eine Katastrophe geboren. Der Wither kannte keinen Befehl und unterschied nicht zwischen Feind und Schöpfer. Er bewegte sich durch Festungen, durch Schlachtfelder und durch jene Orte, an denen die Alten geglaubt hatten, sicher zu sein. Feuer, Explosion und Zerstörung folgten ihm. Portale brachen zusammen, Bastionen wurden verwüstet, Festungen wurden zu Gräbern und selbst die Landschaft des Nethers wurde von dem Krieg gezeichnet, den die Alten begonnen hatten.
+Sie entdeckten Redstone und seine seltsamen Eigenschaften. Sie entwickelten Maschinen, Fallen und Mechanismen. Sie fanden Wege, Gegenstände zu verzaubern. Sie brauten Tränke. Sie verstanden die Kraft von Erfahrung. Sie errichteten Bibliotheken und Werkstätten und begannen, die Welt nicht mehr nur zu bewohnen, sondern sie zu erforschen.
 
-Viele starben. Einige der Toten blieben nicht tot. In den Netherfestungen, wo Seelenenergie und die Kraft des Nethers über Generationen in den Mauern und Böden gespeichert worden waren, veränderten sich Körper. Knochen wurden schwarz, Erinnerung zerfiel, und aus den Überresten jener Katastrophe entstanden die Wesen, die spätere Zeitalter als Witherskelette kennen würden. Sie waren keine Diener des Withers. Sie waren sein Vermächtnis, die lebenden Narben eines Krieges, der seine eigenen Schöpfer überlebt hatte.
+Mit der Zeit entstanden Bauwerke, die selbst Jahrhunderte überdauern konnten. Tempel wurden errichtet. Minenschächte durchzogen die Erde. Ruinen blieben in Dschungeln und Wüsten zurück. Unterirdische Anlagen wurden gebaut. Monumente entstanden in den Ozeanen. Und tief unter der Erde errichteten unbekannte Baumeister jene Strongholds, die später zum wichtigsten Zeugnis ihrer letzten großen Flucht werden sollten.
 
-Der Wither allein zerstörte die Welt der Alten nicht, doch er war der Wendepunkt. Der Krieg mit den Piglins hatte ihre Handelswege zerrissen, die Kämpfe um Portale hatten ihre Kräfte erschöpft, und die Suche nach dem Ende hatte Expeditionen verschlungen. Nun war auch ihre mächtigste Waffe außer Kontrolle geraten. Reiche zerfielen. Bibliotheken brannten. Forscher starben. Portale wurden versiegelt. Manche Menschen versteckten ihr Wissen, andere flohen, und wieder andere beschlossen, dass die Welt vielleicht sicherer wäre, wenn niemand mehr wüsste, was ihre Vorfahren gewusst hatten.
+Diese Menschen waren nicht allmächtig. Sie kannten Krankheit, Hunger, Krieg und Tod. Doch sie besaßen etwas, das ihre Geschichte von allen späteren Zeitaltern unterschied: Sie wollten wissen, was hinter der nächsten Grenze lag.
 
-Das Zeitalter der Alten Baumeister endete nicht an einem einzigen Tag. Es starb langsam. Erst starben die Reiche, dann die Städte, dann die Sprachen und zuletzt die Erinnerungen. Doch während an der Oberfläche und im Nether eine Welt zerfiel, suchten andere Überlebende nach einem Ort, den selbst der Krieg nicht erreichen konnte.
+Aus den vielen Kulturen dieser langen Epoche wurde in der späteren Überlieferung die Bezeichnung Alte Baumeister. Es war kein Name, den sie selbst nachweislich trugen. Es war der Versuch einer späteren Welt, all jene verlorenen Zivilisationen unter einem Begriff zusammenzufassen, deren Bauwerke überall in der Welt verstreut lagen.
 
-Sie gingen tief unter die Erde.
+Sie waren keine einzige Nation.
 
-Dort fanden sie das Sculk.
+Sie waren ein Zeitalter.
 
-Es war kein gewöhnlicher Stein. Es reagierte auf Bewegung, auf Geräusche, auf Lebewesen und auf Tod. Es breitete sich aus und schien Energie zu speichern. Für die Alten war das zunächst ein Wunder. Sie wollten es als Energiequelle nutzen, als Sensor, als Archiv und als Schutzsystem. Sculk konnte Vibrationen wahrnehmen und auf Bewegungen reagieren. Es konnte ihnen ermöglichen, Eindringlinge zu erkennen, ohne dass ein Wächter sie sehen musste. Es schien sogar die Energie des Todes aufnehmen zu können.
+Und dieses Zeitalter begann, die Grenzen der Welt zu öffnen.
 
-Die Alten bauten tief unter der Erde eine gewaltige Stadt. Ihre Hallen lagen fern von der Oberfläche, ihre Straßen waren breit, ihre Räume gewaltig, und in ihrer Architektur lag der verzweifelte Versuch, eine Zukunft zu schaffen, nachdem die Vergangenheit bereits zerbrochen war. Sie glaubten, hier überleben zu können. Sie glaubten, das Sculk beherrschen zu können.
+Die erste große Grenze war der Nether.
 
-Sie irrten sich.
+Irgendwann wurde ein Portal geschaffen. Ob die ersten Versuche zufällig waren, ob die Alten die Mechanik über Generationen entwickelten oder ob ein Teil dieses Wissens aus einer noch älteren Quelle stammte, ist vergessen. Sicher ist nur, dass eines Tages Feuer einen Rahmen aus Obsidian berührte und eine Tür in eine andere Dimension entstand.
 
-Denn Sculk war nicht passiv.
+Die Alten traten hindurch.
 
-Es reagierte.
+Sie fanden eine Welt, die sich jeder bisherigen Erfahrung widersetzte. Lava floss durch gewaltige Höhlen. Feuer brannte in der Ferne. Seelensand lag zwischen den Felsen. Netherquarz und Glowstone boten neue Möglichkeiten. Netherwarzen eröffneten neue Wege der Alchemie. Gold war reichlich vorhanden. Und überall gab es Zeichen dafür, dass sie nicht die ersten waren, die diese Welt bewohnten.
+
+Die Piglins beobachteten die Fremden.
+
+Zuerst war Vorsicht stärker als Feindschaft. Die Menschen brachten Gegenstände aus ihrer Welt und erhielten Materialien aus dem Nether. Gold wurde zum Mittelpunkt des Austauschs. Die ersten Handelsbeziehungen waren ein Wunder. Zwei Welten, die niemals füreinander bestimmt schienen, konnten miteinander sprechen, ohne dieselbe Sprache zu besitzen.
+
+Doch die Menschen wollten mehr.
+
+Mehr Gold.
+
+Mehr Ressourcen.
+
+Mehr Netherwarzen.
+
+Mehr sichere Wege.
+
+Mehr Portale.
+
+Mehr Einfluss.
+
+Der Nether war für die Alten zunächst eine Entdeckung gewesen. Dann wurde er ein Handelsgebiet. Schließlich wurde er ein Gebiet, das sie besitzen wollten.
+
+Für die Piglins war es niemals ein Gebiet gewesen.
+
+Es war ihre Heimat.
+
+Der Konflikt begann nicht mit einer Schlacht, die später in einem Buch festgehalten wurde. Er begann mit Grenzüberschreitungen. Mit einem Außenposten, der länger blieb als vereinbart. Mit Ressourcen, die genommen wurden. Mit einer Bastion, die angegriffen wurde. Mit Vergeltung. Mit einer weiteren Expedition. Mit einem weiteren Angriff.
+
+Jede Seite glaubte, auf den Angriff der anderen zu reagieren.
+
+Und genau deshalb wuchs der Krieg.
+
+Die Portale wurden zu militärischen Toren. Handelswege wurden zu Frontlinien. Bastionen wurden befestigt. Netherfestungen wurden errichtet und ausgebaut. Die Oberwelt und der Nether waren nun nicht mehr nur miteinander verbunden. Sie waren miteinander im Krieg.
+
+Die Alten glaubten, dass sie diesen Krieg gewinnen konnten.
+
+Doch der Krieg war nicht ihr größtes Problem.
+
+Ihr größtes Problem war ihr Glaube, dass jede Macht kontrolliert werden konnte, wenn man nur genug über sie wusste.
+
+In den Netherfestungen begannen Forscher, die Kräfte des Nethers zu untersuchen. Sie studierten Seelensand. Sie untersuchten Witherskelett-Schädel. Sie erforschten die Energie, die im Nether an Tod und Seele gebunden zu sein schien. Was zunächst wissenschaftliche Neugier gewesen war, wurde zu einer militärischen Suche.
+
+Sie wollten eine Waffe.
+
+Nicht irgendeine Waffe.
+
+Eine Waffe, die den Krieg beenden konnte.
+
+Aus Seelensand, Schädeln und Netherenergie erschufen sie den Wither.
+
+Sie glaubten, er würde gehorchen.
+
+Sie glaubten, er würde nur ihre Feinde vernichten.
+
+Sie glaubten, Wissen bedeute Kontrolle.
+
+Dann erwachte er.
+
+Der Wither war keine Maschine.
+
+Er war keine gewöhnliche Kreatur.
+
+Er war eine Katastrophe.
+
+Er zerstörte, was vor ihm lag. Feind und Schöpfer waren für ihn gleich. Festungen wurden verwüstet. Portale brachen zusammen. Bastionen wurden getroffen. Der Netherkrieg wurde zu einem Krieg gegen etwas, das keine Seite mehr kontrollieren konnte.
+
+Die Alten verloren Menschen.
+
+Die Piglins verloren Menschen.
+
+Beide Welten verloren Orte.
+
+Und in den Netherfestungen blieb eine weitere Spur zurück.
+
+Die Toten jener Katastrophe wurden von der Macht des Nethers verändert. Knochen wurden dunkel, Körper zerfielen, und aus den Überresten jener Zeit entstanden die Witherskelette, wie sie später genannt wurden. Sie waren keine Armee des Withers. Sie waren seine Hinterlassenschaft, die sichtbare Erinnerung daran, dass die Alten eine Macht erschaffen hatten, deren Folgen sie nicht verstanden hatten.
+
+Der Wither war nicht der einzige Grund für den Untergang der Alten.
+
+Aber er war der Moment, in dem ihre Selbstsicherheit zerbrach.
+
+Reiche fielen. Handelswege brachen zusammen. Wissen ging verloren. Bibliotheken brannten. Städte wurden verlassen. Manche Menschen flohen in entlegene Gebiete. Andere versiegelten ihre Forschung. Wieder andere suchten unter der Erde nach einer Zuflucht, die der Krieg nicht erreichen konnte.
+
+Dort begann eine neue Katastrophe.
+
+Tief unter der Erde fanden die Alten das Sculk.
+
+Es war anders als alles, was sie zuvor erforscht hatten. Es reagierte auf Vibrationen. Es konnte Bewegung wahrnehmen. Es schien mit dem Tod verbunden zu sein. Wo Lebewesen starben, breitete es sich aus. Es wirkte wie ein lebendes Netzwerk, ein Material und zugleich etwas, das mehr war als Material.
+
+Die Alten sahen darin eine Möglichkeit.
+
+Sie wollten Sculk verstehen.
+
+Vielleicht wollten sie es als Energiequelle verwenden. Vielleicht als Sensor. Vielleicht als Archiv. Vielleicht als Schutzsystem.
+
+Sie bauten eine gewaltige Stadt tief unter der Erde.
+
+Die Ancient City wurde zu einem Ort des Wissens und der Zuflucht. Ihre Hallen waren riesig. Ihre Straßen führten zwischen gewaltigen Bauwerken hindurch. Archive, Forschungseinrichtungen und verborgene Räume wurden geschaffen. Dort wollten die letzten Alten etwas bewahren, das an der Oberfläche bereits verloren ging: ihre Zukunft.
+
+Doch das Sculk ließ sich nicht einfach in eine Maschine verwandeln.
 
 Es breitete sich aus.
 
-Es verband Räume miteinander und speicherte die Spuren jener, die durch sie gingen. Die Energie der Toten nährte es. Je mehr die Bewohner der Stadt versuchten, ihre Forschung zu erweitern, desto stärker wurde das System, das sie geschaffen hatten. Irgendwann entstand etwas, das niemand geplant hatte.
+Es reagierte.
 
-Ein Körper.
+Es speicherte die Spuren des Lebens.
 
-Ein Wesen, das nicht sehen musste, weil es hören konnte. Ein Wesen, das Bewegungen durch Vibrationen wahrnahm, das Gerüche unterscheiden konnte und dessen bloße Existenz mit dem Sculk verbunden war.
+Und je mehr die Alten es benutzten, desto stärker wurde es.
 
-Der Warden erwachte.
+Irgendwann entstand aus diesem System etwas, das niemand geplant hatte.
 
-Er war keine perfekte Waffe. Er war die Antwort des Sculks auf Eindringlinge. Je mehr sich die Menschen bewegten, desto leichter fand er sie. Je mehr sie kämpften, desto mehr Energie erhielt das Sculk. Die Verteidigung der Stadt war selbst zu ihrer größten Bedrohung geworden.
+Der Warden.
 
-Die Ancient City wurde zu einem Gefängnis.
+Er war blind und doch nicht hilflos. Er hörte, roch und spürte. Er reagierte auf Vibrationen und machte jede Bewegung in seiner Nähe gefährlich. Was als Verteidigung gedacht gewesen sein mochte, war zu einem Gefängnis geworden.
 
-Die Bewohner verriegelten Türen. Archive wurden zurückgelassen. Forschungsräume wurden versiegelt. Einige versuchten, den Warden aufzuhalten. Sie starben. Andere rannten. Auch sie starben. Die letzten Überlebenden nahmen nur mit, was sie tragen konnten, und ließen ihre Stadt hinter sich.
+Die Ancient City verstummte.
 
-Die Ancient City blieb zurück.
+Die Bewohner versuchten, den Warden aufzuhalten.
 
-Still.
+Einige kämpften.
 
-Dunkel.
+Einige versteckten sich.
 
-Und lebendig.
+Einige versuchten, ihre Familien zu retten.
 
-Diejenigen, die entkamen, wussten, dass es keinen Ort mehr gab, an dem sie sicher waren. Die Oberwelt war verwüstet, der Nether vom Krieg gezeichnet, die Städte unter der Erde verloren. Doch die Alten besaßen noch eine Möglichkeit, die sie seit Generationen erforscht hatten.
+Andere rannten.
+
+Viele starben.
+
+Die letzten Überlebenden ließen ihre Stadt zurück.
+
+Sie versiegelten Räume.
+
+Sie ließen Bücher und Artefakte zurück.
+
+Sie nahmen nur mit, was sie tragen konnten.
+
+Hinter ihnen blieb eine Stadt, die nicht tot war.
+
+Sie war nur allein.
+
+Nun blieb den Alten nur noch eine letzte Möglichkeit.
 
 Das Ende.
 
-Sie hatten Strongholds gebaut, gewaltige Anlagen tief unter der Erde, in denen Karten, Wissen und Portale bewahrt wurden. Dort lagen die letzten Wege in eine andere Welt. Die Augen des Endes konnten den Weg zu diesen Orten weisen. Enderperlen waren zum Schlüssel geworden, und aus ihrer Kraft und der Energie des Nethers entstand ein Wegweiser, der die Strongholds verriet.
+Schon lange vor ihrer Flucht hatten sie Strongholds errichtet. Diese gewaltigen unterirdischen Anlagen waren Teil ihres Wissens über die Grenzen der Welt. Dort wurden Karten aufbewahrt, Bibliotheken eingerichtet und die letzten Wege zu einem anderen Reich vorbereitet.
 
-Was einst Neugier gewesen war, wurde nun Flucht.
+Die Enderperle war ein Schlüssel.
 
-Die letzten Gruppen zogen durch die zerfallende Welt zu den Strongholds. Manche erreichten sie nicht. Manche konnten die Portale nicht aktivieren. Manche weigerten sich, das Ende zu betreten. Doch andere gingen hindurch.
+Aus ihr und der Kraft des Blaze Powder entstand das Auge des Endes. Es konnte den Weg zu den Strongholds weisen. Die Alten hatten eine Methode gefunden, eine Tür zu suchen, die tief unter der Erde verborgen lag.
 
-Sie glaubten, sie würden entkommen.
+Vielleicht hatten sie einst aus Neugier nach dem Ende gesucht.
 
-Sie wurden Gefangene.
+Jetzt suchten sie es aus Verzweiflung.
 
-Das Ende war nicht leer. Es war fremd, schwarz und weit, und über seinen Inseln lag der Void. Dort lebten Endermen, Shulker und andere Wesen, und über allem stand der Enderdrache. Die Flüchtlinge fanden keine neue Heimat. Sie fanden eine Welt, aus der es keinen einfachen Weg zurück gab.
+Die Überlebenden zogen zu den Strongholds.
 
-Die Portale waren geöffnet worden, aber die Verbindung, die sie sich erhofft hatten, wurde zu einer Einbahnstraße ihres Schicksals.
+Nicht alle erreichten sie.
 
-Sie waren im Ende gefangen.
+Nicht alle konnten das Portal aktivieren.
 
-Zuerst bauten sie.
+Nicht alle wagten den letzten Schritt.
 
-Sie sammelten.
+Doch einige gingen.
 
-Sie forschten.
+Sie glaubten, das Ende würde ihnen Sicherheit geben.
 
-Sie suchten nach einem Weg zurück.
+Es gab ihnen Exil.
 
-Dann begannen sich ihre Körper zu verändern.
+Das Portal führte in eine Welt, die anders war als alles, was sie kannten. Endsteine lagen auf schwebenden Inseln. Der Void verschluckte jeden, der zu tief fiel. Chorus wuchs aus dem fremden Boden. Endermen bewegten sich durch die Dunkelheit. Shulker verbargen sich in den später entstehenden Endstädten.
 
-Das Leben im Ende war anders. Die Nahrung war begrenzt, die Umgebung fremd, und die Kräfte dieser Welt wirkten über Generationen auf die letzten Menschen ein. Sie fanden Chorusfrüchte und nutzten sie. Mit jeder Generation wurde die Verbindung zwischen ihnen und der Welt des Endes stärker. Ihre Körper wurden größer und schlanker. Ihre Augen veränderten sich. Ihre Beziehung zum Raum wurde anders. Was einst fremde Magie gewesen war, wurde Teil ihrer Existenz.
+Und über dem Zentrum des Endes flog der Enderdrache.
 
-Sie begannen, zwischen Orten zu springen.
+Niemand weiß, woher er stammte.
 
-Sie waren nicht mehr vollständig Menschen.
+Niemand weiß, ob er immer dort gewesen war.
 
-Doch sie waren auch nicht vollständig etwas anderes.
+Niemand weiß, ob die Alten ihn als Wächter betrachteten, als Gefängniswärter oder einfach als ein Wesen, dessen Macht sie nicht verstehen konnten.
+
+Was sie wussten, war genug:
+
+Sie konnten nicht einfach nach Hause zurückkehren.
+
+Die letzte Flucht war zu einem Exil geworden.
+
+Die Alten bauten im Ende.
+
+Sie suchten Nahrung.
+
+Sie erforschten Chorusfrüchte.
+
+Sie versuchten, ihre Körper an die neue Welt anzupassen.
+
+Generationen vergingen.
+
+Und mit den Generationen veränderten sie sich.
+
+Ihre Körper wurden größer und schlanker. Ihre Augen wurden anders. Ihre Verbindung zum Raum veränderte sich. Teleportation, einst eine fremde Kraft, wurde Teil ihres Wesens.
+
+Doch die schlimmste Veränderung geschah in ihren Erinnerungen.
+
+Sie vergaßen ihre Heimat.
+
+Sie vergaßen ihre Namen.
+
+Sie vergaßen ihre Sprache.
+
+Sie vergaßen, warum sie einst gebaut hatten.
 
 Sie wurden zu den Endermen.
 
-Ihre Körper waren nicht das einzige, was sich veränderte. Ihre Erinnerung zerbrach. Namen verschwanden. Sprachen verstummten. Die Erinnerung an die Oberwelt wurde zu einem Gefühl ohne Worte. Sie erinnerten sich an Orte, aber nicht mehr an deren Namen. Sie wussten noch, dass Bauen wichtig war, aber nicht mehr, warum. Sie bewegten Blöcke durch die Welt, als würde eine vergessene Aufgabe in ihnen weiterleben.
+Die Endermen waren die letzten Nachfahren jener Alten, die durch das Endportal geflohen waren. Ihre Kultur war zerbrochen, aber nicht vollständig verschwunden. In ihnen blieb etwas zurück.
+
+Sie trugen Blöcke.
+
+Sie bauten.
+
+Sie bewegten sich zwischen Orten.
+
+Sie wanderten durch die Dimensionen.
+
+Ihre Hände erinnerten sich an eine Aufgabe, deren Bedeutung ihr Verstand verloren hatte.
 
 Vielleicht suchten sie eine Heimat.
 
-Vielleicht bauten sie aus Instinkt.
+Vielleicht versuchten sie, etwas wieder aufzubauen.
 
-Vielleicht versuchten sie, die Welt selbst wieder so zu ordnen, wie sie sie einst gekannt hatten.
+Vielleicht war das Bauen nur der letzte Reflex einer Zivilisation, die einst geglaubt hatte, alles verstehen zu können.
 
-Niemand konnte es sagen.
+Die Endermen erschienen schließlich nicht nur im Ende. Sie wanderten auch durch Nether und Oberwelt. Ihre Fähigkeit, sich zu teleportieren, wurde zu einem letzten Echo des Wissens, das ihre Vorfahren einst über die Grenzen der Dimensionen besessen hatten.
 
-Die Endermen waren die lebenden Ruinen ihrer eigenen Zivilisation.
+Im Ende entstanden weitere Bauwerke. Endstädte erhoben sich über dem Void. Schiffe lagen über den Inseln. Shulker bewachten die Gebäude. Elytra wurden Teil einer Welt, in der die Erinnerung an ihre Erbauer immer weiter zerfiel.
 
-Sie waren nicht nur Bewohner des Endes. Sie tauchten auch in der Oberwelt und im Nether auf, als hätten sie gelernt, die Grenzen zwischen den Dimensionen zu überschreiten. Ihre Teleportation war mehr als eine Fähigkeit. Sie war das letzte Echo des alten Wissens über die Grenzen der Welt.
+Die Alten waren nicht an einem einzigen Tag gestorben.
 
-Die Alten waren verschwunden, doch ihre Bauwerke blieben.
+Sie waren vergessen worden.
 
-Im Ende entstanden Endstädte, gewaltige Ruinen einer späteren Phase dieses verlorenen Volkes. Schiffe lagen über dem Void. Shulker bewachten die Hallen. Elytra zeugten von einem Wissen, das noch immer nicht vollständig verstanden wurde. Doch auch diese Städte konnten die Vergangenheit nicht zurückbringen.
+Und während sie im Ende zu etwas Neuem wurden, veränderte sich die Oberwelt.
 
-Das Ende der Alten war kein einzelner Tod.
+Neue Gemeinschaften entstanden.
 
-Es war der Verlust ihrer Erinnerung daran, wer sie gewesen waren.
+Dörfer wurden gegründet.
 
-Währenddessen heilte die Oberwelt langsam.
+Villager entwickelten Berufe, Handel und eigene Traditionen. Sie bauten Häuser, Felder und Arbeitsplätze. Sie lebten nicht mehr in der Welt der Alten, sondern in einer neuen Welt, deren Vergangenheit nur noch in Ruinen sichtbar war.
 
-Die Ruinen wurden überwuchert. Minen füllten sich mit Spinnennetzen. Strongholds wurden zu vergessenen Labyrinthen. Netherfestungen blieben über Lava stehen. Bastionen verfielen. Ancient Cities versanken im Sculk. Die Welt vergaß ihre Erbauer.
+Doch auch diese neue Gesellschaft blieb nicht ohne Konflikte.
 
-Doch Leben blieb.
+Einige Bewohner suchten nach Wissen, das die Dörfer längst aufgegeben hatten. Sie experimentierten, forschten und wollten Macht gewinnen. Aus solchen Abspaltungen entstanden die Illager. Sie entwickelten ihre eigenen Siedlungen und Außenposten und begannen, die Villager nicht mehr als Gemeinschaft, sondern als Gegner zu betrachten.
 
-Neue Gemeinschaften entstanden aus späteren Generationen von Bewohnern. Die heutigen Villager entwickelten Dörfer, Berufe, Handel und eine eigene Gesellschaft. Sie waren nicht einfach die ungebrochenen Erben eines einzigen alten Reiches. Sie waren eine neue Zivilisationslinie, die nach dem Zusammenbruch der alten Welt ihren eigenen Weg gegangen war.
+Pillager zogen durch die Welt. Vindicators kämpften. Evoker beherrschten seltsame Magie. Woodland Mansions wurden zu Symbolen einer Gesellschaft, die sich von den Dörfern entfernt hatte.
 
-Doch auch diese Gesellschaft blieb nicht ohne Spaltung.
+Die Welt hatte eine neue Zivilisation bekommen.
 
-Einige suchten nach altem Wissen, nach Macht und nach Dingen, die in den Dörfern längst verboten oder vergessen waren. Aus solchen Abspaltungen entwickelten sich die Illager. Pillager, Vindicator und Evoker gehörten zur Geschichte derselben Welt, doch sie hatten sich von der Gemeinschaft der Villager entfernt. Die einen bauten ihre Gesellschaft auf Handel und Gemeinschaft, die anderen suchten Macht, Eroberung und Wissen.
+Aber sie hatte ihre Vergangenheit verloren.
 
-Außenposten entstanden. Patrouillen zogen durch die Landschaft. Dörfer wurden angegriffen. Gefangene wurden genommen. Die neue Welt hatte ihre eigenen Konflikte entwickelt, ohne zu wissen, dass sie nicht die erste Generation war, die glaubte, ihre Probleme durch Macht lösen zu können.
+Die Ruinen der Alten wurden zu Orten voller Geschichten, die niemand mehr vollständig erzählen konnte. Minenschächte verfielen. Tempel wurden überwuchert. Dungeons wurden von Kreaturen bewohnt. Strongholds lagen tief unter der Erde. Netherfestungen standen noch immer über Lava. Bastionen erinnerten an die Piglins und den Krieg. Ancient Cities ruhten im Sculk.
 
-Inmitten dieser Welt entstanden Gilden und Berufe. Schmiede bewahrten die Kunst des Metalls, Bauern die Nahrung, Köche die Rezepte, Schneider Stoff und Kleidung, Alchemisten die Tränke, Steinmetze das Handwerk der Gebäude, Fischer die Gewässer und Holzfäller die Wälder. Doch unter ihnen gab es jene, die mehr wissen wollten.
+Die Welt sah lebendig aus.
 
-Einer von ihnen war der Gelehrte.
+Und doch lag über ihr eine tiefe Einsamkeit.
 
-Er sammelte Bücher, studierte Verzauberungen, untersuchte Ruinen und suchte nach Zusammenhängen zwischen den Fragmenten der Vergangenheit. Er wusste, dass die heutige Welt auf Wissen aufbaute, das sie selbst nicht mehr vollständig verstand. Jede Antwort führte zu einer neuen Frage. Ein Fragment führte zu einer Ancient City, eine Ancient City zu den Alten, die Alten zum Nether, der Nether zum Wither, eine Enderperle zu den Endermen und ein Auge des Endes zu einem Stronghold.
+Denn überall waren Zeichen dafür, dass vor den heutigen Bewohnern jemand hier gewesen war.
 
-Doch nicht jeder wollte, dass diese Fragen beantwortet wurden.
+In dieser Zeit entstanden Gilden und Berufe, die das Leben der Gegenwart prägten. Schmiede bewahrten die Kunst des Metalls. Bauern ernährten die Dörfer. Fischer kannten die Gewässer. Holzfäller sorgten für Baumaterial. Steinmetze bauten. Schneider fertigten Kleidung. Köche bewahrten Rezepte. Alchemisten brauten Tränke.
 
-Elyan Voss hatte die Ruinen studiert und erkannt, was aus dem Wissen der Alten geworden war. Er wusste von den alten Waffen und von den Fehlern, die beinahe die Welt zerstört hatten. Er glaubte, Wissen müsse bewahrt werden, aber gefährliches Wissen müsse verborgen bleiben. Aus dieser Idee entstand das Haus der Stille. Anfangs war es ein Schutzbund. Später wurde daraus Kontrolle. Bücher verschwanden, Karten wurden versteckt, Hinweise wurden beseitigt und Gelehrte wurden beobachtet.
+Und unter ihnen gab es Gelehrte.
 
-Das Haus glaubte, dass manche Wahrheiten zu gefährlich seien.
+Menschen, die nicht akzeptieren wollten, dass die Ruinen ohne Bedeutung waren.
 
-Ihm gegenüber standen die Suchenden. Sie wollten Antworten, Schätze, Ruhm oder Macht. Sie durchsuchten Ruinen, reisten in den Nether, stiegen in Ancient Cities hinab und suchten Strongholds. Manche suchten die Wahrheit, andere suchten nur das, was sie aus der Wahrheit gewinnen konnten.
+Der Gelehrte wurde zu einem Bewahrer von Wissen. Er studierte Verzauberungen, alte Schriften und Artefakte. Er wusste, dass die Welt voller Antworten war, aber auch voller Gefahren. Denn die Geschichte hatte bereits gezeigt, was geschah, wenn Wissen ohne Verständnis benutzt wurde.
 
-Und während diese Menschen über die Vergangenheit stritten, schlief die Welt weiter.
+Einer der Menschen, die diese Lektion besonders ernst nahmen, war Elyan Voss.
 
-Dann erwachte ein Mensch.
+Er studierte die Hinterlassenschaften der Alten und erkannte die Gefahr, die in vergessenen Waffen lag. Für ihn war Wissen nicht nur eine Möglichkeit, sondern eine Verantwortung. Er wollte verhindern, dass die Fehler der Alten wiederholt wurden.
+
+Aus diesem Gedanken entstand das Haus der Stille.
+
+Zuerst war es ein Schutzbund.
+
+Dann wurde es ein Wächter über Geheimnisse.
+
+Schriften wurden versteckt.
+
+Karten wurden versiegelt.
+
+Artefakte verschwanden.
+
+Wissen wurde kontrolliert.
+
+Elyans Idee war Schutz gewesen. Seine Nachfolger machten daraus Kontrolle.
+
+Doch nicht jeder akzeptierte diese Stille.
+
+Die Suchenden zogen hinaus in die Welt. Einige wollten Wahrheit. Andere wollten Reichtum. Manche suchten Ruhm. Andere wollten Macht. Sie erforschten Ruinen, suchten Strongholds, stiegen in Ancient Cities hinab und wagten sich in den Nether.
+
+So entstand ein unsichtbarer Kampf um die Vergangenheit.
+
+Das Haus der Stille wollte sie bewahren, indem es sie verbarg.
+
+Die Suchenden wollten sie bewahren, indem sie sie fanden.
+
+Und irgendwo zwischen beiden stand die Welt selbst, die keine Seite um Erlaubnis fragte.
+
+Dann kam der Fremde.
+
+Er erwachte in der Oberwelt.
 
 Er wusste nicht, wer er war.
 
-Er kannte keinen Namen, keine Familie und keine Geschichte, die er hätte erzählen können. Er stand in der Oberwelt, unter einem offenen Himmel, und vor ihm lagen Wälder, Berge und Ebenen. In PixelRPG würde man ihn Steve nennen, den Menschen, mit dem die bekannte Minecraft-Geschichte beginnt.
+Er wusste nicht, woher er kam.
+
+Er hatte keine Erinnerung an eine Familie, keine Geschichte, keinen Namen, den er hätte aussprechen können.
+
+Später würde man ihn Steve nennen.
+
+Aber in seinem ersten Moment war er einfach nur ein Mensch unter einem offenen Himmel.
 
 Er war kein Auserwählter.
 
@@ -168,141 +360,191 @@ Keine Prophezeiung hatte ihn angekündigt.
 
 Kein König hatte auf ihn gewartet.
 
-Die Welt brauchte ihn nicht.
+Kein Gott hatte ihm eine Aufgabe gegeben.
 
-Und gerade deshalb begann seine Geschichte.
+Die Welt war schon da, bevor er die Augen öffnete.
 
-Sein erster Tag war klein. Er schlug Holz. Er baute eine Werkbank. Er fertigte Werkzeuge. Er suchte Nahrung und Stein. Als die Nacht kam, verstand er, dass diese Welt gefährlich war. Zombies kamen aus der Dunkelheit, Skelette schossen aus der Ferne, Spinnen bewegten sich durch die Nacht und Creeper kamen lautlos näher, bis ihre Explosionen die Stille zerrissen.
+Und genau deshalb war sein erster Schritt so bedeutend.
+
+Er musste selbst herausfinden, was diese Welt war.
+
+Er schlug Holz.
+
+Er fertigte Werkzeuge.
+
+Er suchte Stein.
+
+Er fand Nahrung.
+
+Er baute ein erstes Versteck.
+
+Als die Nacht kam und die Kreaturen aus der Dunkelheit traten, lernte er, dass diese Welt nicht freundlich war.
+
+Zombies kamen.
+
+Skelette schossen.
+
+Spinnen krochen durch die Nacht.
+
+Creeper näherten sich lautlos.
 
 Steve überlebte.
 
-Dann lernte er.
+Am nächsten Morgen begann er erneut.
 
-Er fand Eisen, später Diamanten. Er baute ein Zuhause. Er traf Dörfer und Villager. Er lernte, dass die Welt schon existierte, bevor er sie betreten hatte. Die Dörfer waren bewohnt, bevor er kam. Die Ruinen waren alt, bevor er sie fand. Der Nether wartete bereits. Die Strongholds waren bereits gebaut.
+Holz wurde zu Stein.
 
-Er war nicht der Anfang dieser Welt.
+Stein wurde zu Eisen.
 
-Er war nur der nächste Teil ihrer Geschichte.
+Eisen führte zu Diamanten.
 
-Mit der Zeit begann er die Einsamkeit zu verstehen, die über der Welt lag. Überall war Leben, und doch gab es kaum jemanden, der ihm Antworten geben konnte. Ein Dorf hatte Bewohner, aber keine Erinnerung an die Menschen, die die Ruinen gebaut hatten. Eine alte Festung stand im Nether, aber niemand konnte erzählen, warum sie errichtet worden war. Eine Ancient City lag unter der Erde, aber ihre Straßen waren leer. Und wenn Steve eine alte Musikplatte fand, konnte er manchmal hören, dass vor ihm jemand gelebt hatte.
+Diamanten führten zu stärkerem Werkzeug.
 
-Besonders die Platten 13 und 11 wurden zu Schatten einer Vergangenheit, die keine Stimme mehr besaß.
+Stärkeres Werkzeug führte zu tieferen Höhlen.
 
-Disc 13 klang nicht wie ein Lied. Sie klang wie ein Moment. Schritte. Atem. Entfernung. Unruhe. Etwas, das näherkam. Die Aufnahme schien aus einer Zeit zu stammen, in der Worte nicht mehr ausreichten.
+Und je tiefer Steve ging, desto mehr begann er zu verstehen, dass die Welt vor ihm bereits gelebt hatte.
 
-Disc 11 war noch verstörender. Sie war beschädigt, unvollständig, als hätte jemand versucht, einen Augenblick festzuhalten, von dem er wusste, dass er vielleicht sein letzter sein würde. Geräusche. Bewegung. Etwas nähert sich. Dann Stille.
+Er fand Dörfer.
 
-Niemand konnte sagen, wer die Aufnahmen gemacht hatte.
+Er traf Villager.
 
-Doch Steve verstand etwas Entscheidendes:
+Er sah ihre Häuser, ihre Felder und ihre Berufe.
 
-Die Vergangenheit musste nicht vollständig erhalten sein, um wahr zu sein.
+Er fand Ruinen, deren Erbauer niemand kannte.
 
-Manchmal blieb von einem Menschen nur ein Geräusch.
+Er fand verlassene Minenschächte.
 
-Manchmal von einer Zivilisation nur ein Gebäude.
+Er fand Tempel.
 
-Manchmal von einem Krieg nur ein schwarzer Schädel.
-
-Manchmal von einer ganzen Welt nur eine Tür.
-
-Steve begann, diese Spuren zu verfolgen.
-
-Er betrat den Nether.
-
-Die Hitze schlug ihm entgegen, und zum ersten Mal stand er dort, wo die Alten einst Handel getrieben und Krieg geführt hatten. Er sah Piglins, Bastionen und Netherfestungen. Er sah die Witherskelette durch die Korridore ziehen. Er sammelte ihre Schädel, ohne zu wissen, dass er damit Überreste jener Katastrophe in den Händen hielt, die eine Zivilisation zu Fall gebracht hatte.
-
-Er lernte die Piglins kennen. Sie waren keine einfachen Monster. Sie besaßen ihre eigenen Regeln, ihren Stolz und ihre Vorstellung von Besitz. Gold war ihnen wichtig. Der Nether war ihre Heimat. Und Steve begann zu verstehen, dass die Geschichte des Nethers niemals so einfach gewesen war, wie die alten Geschichten der Oberwelt behaupteten.
-
-Er fand die Spuren des Krieges.
-
-Er sah Bastionen als Narben eines Volkes.
-
-Er sah Netherfestungen als Narben eines anderen.
-
-Und irgendwann hörte er vom Wither.
-
-Er erfuhr, wie die Alten Seelensand und Witherskelett-Schädel verwendet hatten. Vielleicht fand er Aufzeichnungen des Gelehrten. Vielleicht ein Fragment in einer Festung. Vielleicht nur die logische Verbindung zwischen Dingen, die niemand mehr zusammengefügt hatte.
-
-Doch dann begriff er etwas, das gefährlicher war als jede Geschichte:
-
-Er konnte denselben Wither erschaffen.
-
-Die Zutaten existierten noch.
-
-Die Welt hatte das Wissen nicht vollständig verloren.
-
-Sie hatte es nur vergessen.
-
-Steve konnte dieselbe Kreatur herbeirufen, die einst eine Zivilisation zerstört hatte.
-
-Er musste entscheiden, was er mit diesem Wissen tat.
-
-Und vielleicht war dies die erste wirkliche Prüfung seiner Geschichte.
-
-Nicht, ob er mächtig genug war.
-
-Sondern ob er verstand, dass Macht Konsequenzen besitzt.
-
-Doch der Nether war nicht das Ende seiner Suche.
-
-Tiefer unter der Erde fand er die Ancient Cities.
-
-Er stieg hinab und entdeckte eine Welt, die nicht wie eine gewöhnliche Ruine wirkte. Die gewaltigen Straßen und Hallen waren von Sculk bedeckt. Jede Bewegung schien zu laut. Jede Fackel wirkte wie ein Fremdkörper. Die Stadt war nicht tot.
-
-Sie wartete.
-
-Steve lernte, leise zu sein.
-
-Er sah die Sculk-Sensoren reagieren.
-
-Er hörte die Dunkelheit.
-
-Und irgendwann erwachte der Warden.
-
-Für Steve war er kein gewöhnliches Monster. Er war die Antwort auf eine alte Frage. Er war der Wächter einer Zivilisation, die geglaubt hatte, ihre eigene Verteidigung kontrollieren zu können.
-
-Steve floh.
-
-Nicht weil er schwach war.
-
-Sondern weil er verstand.
-
-Manchmal ist Überleben keine Niederlage.
-
-Manchmal ist es das einzige, was die Vergangenheit einem Menschen noch beibringen kann.
-
-Aus der Ancient City nahm er Wissen, aber keine Gewissheit. Er wusste nun, dass die Alten nicht einfach verschwunden waren. Sie hatten gekämpft. Sie hatten experimentiert. Sie hatten verloren. Und manche von ihnen waren geflohen.
-
-Er suchte nach dem Weg dieser Flucht.
+Er fand Monumente.
 
 Er fand Strongholds.
 
-Dort wurde die Vergangenheit plötzlich greifbar.
+Und irgendwann fand er Musik.
 
-Steinmauern.
+Disc 13 war keine gewöhnliche Melodie.
 
-Bibliotheken.
+Sie klang wie eine Erinnerung.
 
-Dunkle Korridore.
+Schritte.
 
-Räume, die seit Jahrhunderten niemand mehr betreten hatte.
+Atem.
 
-Und schließlich der Portalraum.
+Entfernung.
 
-Steve stand vor einem Rahmen aus Stein, in dem Augen des Endes fehlten.
+Etwas, das sich näherte.
 
-Er verstand, dass dies keine gewöhnliche Tür war.
+Dann Stille.
 
-Es war die letzte Tür einer verlorenen Zivilisation.
+Disc 11 war beschädigt, als hätte jemand versucht, einen Augenblick festzuhalten, der niemals für andere Ohren bestimmt gewesen war. Geräusche. Bewegung. Gefahr. Panik. Ein Fragment eines Lebens, das niemand mehr erklären konnte.
 
-Die Alten waren hier gewesen.
+Steve hörte diese Platten und verstand etwas, das kein Buch ihm hätte beibringen können:
 
-Vielleicht hatten sie hier gezittert.
+Die Vergangenheit war nicht tot.
 
-Vielleicht hatten sie sich verabschiedet.
+Sie war nur fragmentiert.
 
-Vielleicht hatten sie geglaubt, endlich gerettet zu sein.
+Jedes Fragment konnte zu einer Geschichte führen.
+
+Ein Witherskelett führte zum Nether.
+
+Der Nether führte zum Krieg.
+
+Der Krieg führte zum Wither.
+
+Der Wither führte zum Untergang.
+
+Der Untergang führte zu den Ancient Cities.
+
+Die Ancient Cities führten zum Sculk.
+
+Das Sculk führte zum Warden.
+
+Der Warden führte zur Flucht.
+
+Die Flucht führte zu den Strongholds.
+
+Die Strongholds führten zum Ende.
+
+Und das Ende führte zu den Endermen.
+
+Steve begann, diese Geschichte selbst zu verfolgen.
+
+Er betrat den Nether.
+
+Die Hitze schlug ihm entgegen.
+
+Er sah Piglins und Bastionen.
+
+Er sah die Spuren des alten Krieges.
+
+Er betrat Netherfestungen und sah Witherskelette durch ihre Korridore ziehen.
+
+Er sammelte ihre Schädel.
+
+Und irgendwann erkannte er, dass die Welt noch immer die Zutaten für den größten Fehler der Alten bewahrte.
+
+Er konnte den Wither selbst erschaffen.
+
+Das Wissen war nicht verschwunden.
+
+Es hatte nur seinen Zusammenhang verloren.
+
+Steve wusste nun, dass Macht nicht deshalb sicher wurde, weil man sie benutzen konnte.
+
+Er wusste, was geschehen war.
+
+Und dennoch war der Wither Teil seiner Welt.
+
+Die Vergangenheit hatte ihn nicht nur vor Gefahren gewarnt.
+
+Sie hatte ihm gezeigt, dass jede Entscheidung einen Preis hatte.
+
+Später stieg Steve tiefer.
+
+Er fand die Ancient Cities.
+
+Er sah die Sculk-Matten über den Boden wachsen.
+
+Er hörte die Sensoren reagieren.
+
+Er verstand, dass jeder Schritt eine Entscheidung war.
+
+Dann erwachte der Warden.
+
+Steve kämpfte nicht um Ruhm.
+
+Er floh.
+
+Denn er begriff, dass manche Dinge nicht besiegt werden mussten, um eine Prüfung zu bestehen.
+
+Manchmal bestand die Prüfung darin, zu erkennen, dass man nicht kämpfen sollte.
+
+Aus der Dunkelheit nahm er Wissen mit.
+
+Und die Gewissheit, dass die Alten nicht einfach verschwunden waren.
+
+Sie waren geflohen.
+
+Steve begann, nach dem Weg ihrer Flucht zu suchen.
+
+Er fand Strongholds.
+
+Er fand Bibliotheken.
+
+Er fand leere Räume.
+
+Er fand den Portalraum.
+
+Dort verstand er endgültig, dass die Strongholds keine gewöhnlichen Ruinen waren.
+
+Sie waren die letzte Tür einer verlorenen Zivilisation.
+
+Die Alten hatten hier gestanden.
+
+Sie hatten die Augen des Endes eingesetzt.
+
+Sie hatten vielleicht geglaubt, dass hinter diesem Portal Rettung lag.
 
 Steve setzte die Augen ein.
 
@@ -310,231 +552,307 @@ Eines nach dem anderen.
 
 Das Portal erwachte.
 
-Für einen Moment war alles still.
+Die Oberfläche, die Dörfer, der Nether, die Bastionen, die Ancient Cities, der Wither, die Endermen, die Ruinen und die Strongholds schienen für einen Augenblick zu einer einzigen Geschichte zu werden.
 
-Die Oberwelt.
+Dann sprang Steve.
 
-Der Nether.
+Das Ende war still.
 
-Der Wither.
+Schwarz.
 
-Die Piglins.
+Weit.
 
-Die Ancient Cities.
+Fremd.
 
-Das Sculk.
+Endermen bewegten sich über die Inseln.
 
-Der Warden.
+Chorus wuchs aus dem Endstein.
 
-Die Strongholds.
+Endstädte ragten über dem Void.
 
-Die Endermen.
+Und über allem flog der Enderdrache.
 
-Alles schien auf diesen Augenblick zugelaufen zu sein.
+Steve sah das Wesen, das am Ende all seiner Fragen stand.
 
-Steve sprang.
+Der Drache war kein Diener eines geheimen höheren Feindes.
 
-Das Ende empfing ihn mit Stille.
+Er war nicht nur ein Schlüssel zu einer noch größeren Bedrohung.
 
-Schwarz und weit lag der Void unter den Inseln. Endermen bewegten sich durch die Landschaft. Chorus wuchs aus fremdem Boden. In der Ferne standen Endstädte über dem Nichts, und in ihren Mauern lagen die letzten großen Spuren jener Zivilisation, deren Ursprung Steve erst langsam verstanden hatte.
-
-Dann sah er den Enderdrachen.
-
-Er flog über die Insel.
+Er war der Endpunkt dieser ersten Reise.
 
 Die Kristalle auf den Obsidianpfeilern hielten seine Kraft aufrecht.
 
-Steve erkannte, dass dieser Drache nicht einfach ein Gegner war, der zufällig am Ende einer Reise wartete. Er war der letzte Wächter einer Welt, in der die Alten ihr letztes Kapitel geschrieben hatten. Ob er sie einst gefangen hielt oder ob sie Gefangene ihrer eigenen Entscheidungen geworden waren, konnte Steve nicht wissen.
-
-Aber er wusste, was er tun musste.
-
-Er zerstörte die Kristalle.
+Steve zerstörte sie.
 
 Einen nach dem anderen.
 
 Der Drache wurde verwundbar.
 
-Die Insel bebte unter seinen Angriffen.
+Der Kampf begann.
 
-Steve kämpfte nicht für eine Prophezeiung.
+Steve kämpfte für nichts, was ihm vorher versprochen worden war.
 
-Nicht für ein Königreich.
+Keine Krone wartete.
 
-Nicht für eine Krone.
+Kein Thron.
 
-Er kämpfte, weil er selbst bis hierher gekommen war.
+Keine Belohnung, die den Tod der Alten ungeschehen machen konnte.
 
-Er hatte die Welt nicht gerettet, weil sie ihn auserwählt hatte.
+Er kämpfte, weil er selbst die letzte Tür geöffnet hatte.
 
-Er hatte sie erreicht, weil er jeden Schritt selbst gegangen war.
+Der Drache griff an.
 
-Der Kampf dauerte lange.
+Steve wich aus.
 
-Dann fiel der Drache.
+Der Void lag unter ihm.
 
-Seine Energie brach auseinander, und für einen Augenblick schien selbst der Void still zu werden.
+Die Kristalle zerbrachen.
 
-Steve stand allein auf der Insel.
+Die Insel bebte.
 
-Vor ihm lag das Ende.
+Und schließlich fiel der Enderdrache.
 
-Hinter ihm lag die Geschichte.
+Seine Macht brach auseinander.
 
-Die Alten hatten gebaut.
+Die Energie des Endes veränderte sich.
 
-Sie hatten gelernt.
+Für einen Augenblick war die Welt still.
 
-Sie hatten den Nether entdeckt.
+Steve stand dort, wo die Alten einst ihr letztes Kapitel begonnen hatten.
 
-Sie hatten mit den Piglins gehandelt.
+Er blickte über das Ende.
 
-Sie hatten Krieg geführt.
+Er sah die Endermen.
 
-Sie hatten den Wither erschaffen.
+Er sah die Endstädte.
 
-Sie hatten ihre Welt verloren.
+Er sah die Ruinen.
 
-Sie hatten Sculk erforscht.
+Und er verstand, dass er nicht einfach einen Gegner besiegt hatte.
 
-Sie hatten den Warden geweckt.
+Er hatte eine Geschichte zu Ende erzählt.
 
-Sie waren durch Strongholds geflohen.
+Die Geschichte begann mit einer Welt, deren Ursprung niemand kannte.
 
-Sie waren in das Ende gegangen.
+Sie führte durch die ersten Zivilisationen.
 
-Dort hatten sie ihre Körper verändert und ihre Erinnerung verloren.
+Durch die Alten Baumeister.
 
-Sie waren zu Endermen geworden.
+Durch ihre Entdeckungen.
 
-Ihre Städte waren Ruinen.
+Durch den Nether.
 
-Ihre Musik war zu Fragmenten geworden.
+Durch die Piglins.
 
-Ihre Geschichte war zu einem Gerücht geworden.
+Durch Handel und Krieg.
 
-Und nun war ein anderer Mensch durch dieselbe Tür gegangen.
+Durch die Netherfestungen.
 
-Doch Steve war nicht gekommen, um ihre Geschichte zu wiederholen.
+Durch die Erschaffung des Withers.
 
-Er war gekommen, um sie zu Ende zu erzählen.
+Durch die Katastrophe.
 
-Er blickte über die Insel.
+Durch die Witherskelette.
 
-Die Endermen bewegten sich in der Ferne.
+Durch den Untergang.
 
-Die Endstädte standen noch.
+Durch das Sculk.
 
-Die Welt war nicht geheilt.
+Durch die Ancient Cities.
 
-Die Fragen waren nicht verschwunden.
+Durch den Warden.
 
-Er wusste immer noch nicht, wer die Welt erschaffen hatte.
+Durch die Flucht.
 
-Er wusste nicht, was der Enderdrache ursprünglich gewesen war.
+Durch die Strongholds.
 
-Er wusste nicht, wie die ersten Portale entstanden waren.
+Durch die Augen des Endes.
+
+Durch das Exil.
+
+Durch die Mutation.
+
+Durch die Entstehung der Endermen.
+
+Durch das Vergessen.
+
+Durch Villager und Illager.
+
+Durch die neue Zivilisation.
+
+Durch die Gilden.
+
+Durch die Gelehrten.
+
+Durch das Haus der Stille.
+
+Durch die Suchenden.
+
+Durch die verlorenen Schallplatten.
+
+Und schließlich durch einen Fremden, der erwachte, ohne zu wissen, dass er am Ende einer Geschichte stand, die Jahrhunderte vor ihm begonnen hatte.
+
+Steve wusste noch immer nicht, wer die Welt erschaffen hatte.
+
+Er wusste nicht, ob das Ende immer existiert hatte.
+
+Er wusste nicht, woher der Enderdrache stammte.
 
 Er wusste nicht, was das Sculk in seiner tiefsten Natur war.
 
-Er wusste nicht, ob jenseits des bekannten Endes weitere Geheimnisse warteten.
+Er wusste nicht, wie die ersten Portale geschaffen worden waren.
 
-Aber zum ersten Mal verstand er, dass nicht jede Frage eine Antwort brauchte, damit eine Geschichte vollständig sein konnte.
+Er wusste nicht, ob jenseits des bekannten Endes noch weitere Wahrheiten lagen.
 
-Die Alten waren verschwunden.
+Aber diese Fragen machten seine Reise nicht unvollständig.
 
-Doch ihre Welt hatte überlebt.
+Denn nicht jede Geschichte endet damit, dass jedes Geheimnis erklärt wird.
 
-Die Dörfer würden weiterleben.
+Manche Geschichten enden damit, dass der letzte bekannte Weg gegangen wurde.
 
-Die Villager würden handeln.
-
-Die Illager würden ihre Kriege führen.
-
-Die Piglins würden ihre Bastionen bewachen.
-
-Die Netherfestungen würden über der Lava stehen.
-
-Die Ancient Cities würden in der Dunkelheit ruhen.
-
-Die Strongholds würden ihre leeren Portale bewahren.
-
-Die Endermen würden weiterwandern und Blöcke tragen, ohne vielleicht jemals zu wissen, warum.
-
-Und irgendwo in der Oberwelt würden alte Platten darauf warten, dass jemand sie fand.
-
-Vielleicht würde jemand Disc 11 hören und sich fragen, wer dort gelaufen war.
-
-Vielleicht würde jemand Disc 13 hören und in den Geräuschen die Angst eines längst verstorbenen Menschen erkennen.
-
-Vielleicht würde jemand den Wither erschaffen und nicht verstehen, dass er gerade eine Entscheidung aus der Vergangenheit wiederholte.
-
-Vielleicht würde jemand eines Tages erneut ein Portal öffnen.
-
-Doch die erste große Geschichte war vorbei.
-
-Nicht die Geschichte der Welt.
-
-Nur diese Geschichte.
-
-Denn die Welt war älter als Steve gewesen und würde älter werden als jeder Mensch, der nach ihm kommen würde.
+Steve hatte diesen Weg gegangen.
 
 Die Alten hatten geglaubt, sie könnten die Welt beherrschen.
 
-Steve hatte gelernt, dass man Teil einer Welt werden konnte, ohne sie zu besitzen.
+Sie hatten gelernt, wie man baut.
 
-Er hatte mit Holz begonnen.
+Wie man verzaubert.
 
-Mit Stein weitergemacht.
+Wie man Portale öffnet.
 
-Eisen gefunden.
+Wie man Energie benutzt.
 
-Diamanten gefunden.
+Wie man Leben verändert.
 
-Magie gelernt.
+Doch sie hatten nicht gelernt, wann man aufhören muss.
 
-Den Nether betreten.
+Sie erschufen den Wither.
 
-Die Narben des Krieges gesehen.
+Sie verloren ihre Welt.
 
-Die Dunkelheit der Ancient Cities gehört.
+Sie erschufen Sculk.
 
-Die Strongholds gefunden.
+Sie weckten den Warden.
 
-Die Augen des Endes eingesetzt.
+Sie flohen.
 
-Die letzte Tür geöffnet.
+Sie fanden das Ende.
 
-Und im Ende hatte er den Drachen fallen sehen.
+Dort verloren sie schließlich ihre Körper, ihre Sprache und ihre Erinnerung.
 
-Lange blieb er dort stehen.
+Ihre Nachkommen wurden zu Endermen.
 
-Dann blickte er noch einmal über die fremden Inseln.
+Ihre Städte wurden zu Ruinen.
 
-Die Ruinen.
+Ihre Geschichten wurden zu Geräuschen auf alten Platten.
 
-Die Endermen.
+Und dennoch hatte die Welt sie nicht vollständig vergessen.
 
-Den Void.
+Jeder Stronghold erinnerte an sie.
 
-Die Stille.
+Jede Netherfestung erinnerte an sie.
 
-Er wusste nicht, was hinter der nächsten Grenze lag.
+Jede Ancient City erinnerte an sie.
 
-Aber er wusste, dass seine Geschichte nicht damit begonnen hatte, dass die Welt ihn erwartete.
+Jeder Witherschädel erinnerte an sie.
 
-Sie hatte damit begonnen, dass er erwachte.
+Jeder Enderman erinnerte an sie.
 
-Und vielleicht war das die größte Wahrheit dieser Welt:
+Und vielleicht war genau das die eigentliche Geschichte dieser Welt:
 
-Dass niemand dazu bestimmt war, ihre Geschichte zu schreiben.
+Nichts verschwindet vollständig.
 
-Man musste sie selbst betreten.
+Es verändert nur seine Form.
 
-Man musste selbst entscheiden.
+Ein Gebäude wird zu einer Ruine.
 
-Man musste selbst bauen, selbst fallen, selbst lernen und selbst weitergehen.
+Eine Ruine wird zu einer Legende.
 
-Die Welt war schon da.
+Eine Legende wird zu einem Gerücht.
+
+Ein Gerücht wird zu einer Frage.
+
+Und irgendwann findet jemand die Frage und beginnt wieder zu suchen.
+
+Steve war dieser Jemand.
+
+Doch seine Suche endete hier.
+
+Nicht weil die Welt keine Geheimnisse mehr besaß.
+
+Sondern weil der erste große Weg abgeschlossen war.
+
+Der Enderdrache war gefallen.
+
+Die erste Saga war beendet.
+
+Die Welt blieb.
+
+Die Dörfer blieben.
+
+Die Villager blieben.
+
+Die Illager blieben.
+
+Die Piglins blieben.
+
+Der Nether blieb.
+
+Die Ancient Cities blieben.
+
+Die Strongholds blieben.
+
+Die Endermen blieben.
+
+Die Ruinen blieben.
+
+Die Schallplatten blieben.
+
+Die Fragen blieben.
+
+Und irgendwo in der Ferne warteten bereits neue Wege auf jene, die eines Tages bereit waren, sie zu gehen.
+
+Doch das gehörte nicht mehr zu dieser Geschichte.
+
+Diese Geschichte begann mit einer Welt, deren Anfang niemand kennt.
+
+Sie führte durch das Aufblühen der Zivilisation.
+
+Durch Wissen und Neugier.
+
+Durch Krieg und Gier.
+
+Durch den Wither.
+
+Durch Sculk und den Warden.
+
+Durch Flucht und Exil.
+
+Durch die Entstehung der Endermen.
+
+Durch Jahrhunderte des Vergessens.
+
+Durch die Einsamkeit der modernen Welt.
+
+Durch das Erwachen eines Fremden.
+
+Durch seine ersten Schritte.
+
+Durch seine Suche.
+
+Durch seine Reise in den Nether.
+
+Durch die Dunkelheit der Ancient Cities.
+
+Durch die Strongholds.
+
+Durch das Endportal.
+
+Durch das Ende.
+
+Durch den letzten Kampf.
+
+Und schließlich durch den Fall des Enderdrachen.
 
 Die Alten kamen und bauten.
 
@@ -546,11 +864,29 @@ Die Welt vergaß sie.
 
 Dann kam ein Fremder.
 
-Er wurde Teil ihrer Geschichte.
+Er wusste nichts.
+
+Er lernte.
+
+Er überlebte.
+
+Er wurde Teil dieser Welt.
+
+Er fand ihre Vergangenheit.
+
+Er ging ihren letzten Weg.
 
 Er fand das Ende.
 
 Und dort fiel der Drache.
+
+Die Welt war nicht vorbei.
+
+Minecraft war nicht vorbei.
+
+Die Zukunft war offen.
+
+Aber die erste Geschichte von PixelRPG war erzählt.
 
 Das Ende war erreicht.
 
