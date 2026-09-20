@@ -21,22 +21,31 @@ import java.util.logging.Level;
 public final class DataDrivenDialogueLoader {
     private final Plugin plugin;
     private final Gson gson = new Gson();
+    private final PlayerKnowledgeStore knowledgeStore;
+    private final WorldState worldState;
 
-    public DataDrivenDialogueLoader(Plugin plugin) {
+    public DataDrivenDialogueLoader(Plugin plugin, PlayerKnowledgeStore knowledgeStore, WorldState worldState) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
+        this.knowledgeStore = Objects.requireNonNull(knowledgeStore, "knowledgeStore");
+        this.worldState = Objects.requireNonNull(worldState, "worldState");
     }
 
     public void loadInto(DialogueTreeService service) {
         File root = new File(plugin.getDataFolder(), "dialogues");
-        if (!root.exists()) {
-            copyDefaults(root);
-        }
+        if (!root.exists()) copyDefaults(root);
         if (!root.isDirectory()) return;
+        loadDirectory(service, root);
+    }
 
-        File[] files = root.listFiles((directory, name) -> name.endsWith(".json"));
+    private void loadDirectory(DialogueTreeService service, File directory) {
+        File[] files = directory.listFiles();
         if (files == null) return;
-
         for (File file : files) {
+            if (file.isDirectory()) {
+                loadDirectory(service, file);
+                continue;
+            }
+            if (!file.getName().endsWith(".json")) continue;
             try (FileReader reader = new FileReader(file, StandardCharsets.UTF_8)) {
                 JsonObject rootObject = JsonParser.parseReader(reader).getAsJsonObject();
                 service.register(parseTree(rootObject, file.getName()));
@@ -62,6 +71,7 @@ public final class DataDrivenDialogueLoader {
                 node.getAsJsonArray("body").forEach(entry ->
                         body.add(DialogBody.plainMessage(Component.text(entry.getAsString()))));
             }
+
             List<DialogueOption> options = new ArrayList<>();
             if (node.has("options")) {
                 node.getAsJsonArray("options").forEach(entry -> {
@@ -70,11 +80,13 @@ public final class DataDrivenDialogueLoader {
                     String next = option.has("next") && !option.get("next").isJsonNull()
                             ? option.get("next").getAsString() : null;
                     boolean completes = option.has("completes") && option.get("completes").getAsBoolean();
+                    String condition = option.has("condition") ? option.get("condition").getAsString() : "always";
+                    String action = option.has("action") ? option.get("action").getAsString() : "none";
                     options.add(new DialogueOption(
                             Component.text(label),
-                            DialogueCondition.always(),
+                            parseCondition(condition, sourceName),
                             next,
-                            DialogueOption.DialogueAction.none(),
+                            parseAction(action, sourceName),
                             completes));
                 });
             }
@@ -82,6 +94,40 @@ public final class DataDrivenDialogueLoader {
             nodes.add(new DialogueNode(nodeId, Component.text(title), body, options, once));
         });
         return new DialogueTree(id, startNode, nodes);
+    }
+
+    private DialogueCondition parseCondition(String raw, String sourceName) {
+        if (raw == null || raw.isBlank() || raw.equals("always")) return DialogueConditions.always();
+        if (raw.startsWith("knowledge:")) {
+            return DialogueConditions.playerKnows(knowledgeStore, value(raw, "knowledge:", sourceName));
+        }
+        if (raw.startsWith("world:")) {
+            return DialogueConditions.worldFlag(worldState, value(raw, "world:", sourceName));
+        }
+        if (raw.startsWith("npc:")) {
+            return DialogueConditions.npc(value(raw, "npc:", sourceName));
+        }
+        throw new IllegalArgumentException("Unknown dialogue condition '" + raw + "' in " + sourceName);
+    }
+
+    private DialogueOption.DialogueAction parseAction(String raw, String sourceName) {
+        if (raw == null || raw.isBlank() || raw.equals("none")) return DialogueActions.none();
+        if (raw.startsWith("learn:")) {
+            return DialogueActions.learn(knowledgeStore, value(raw, "learn:", sourceName));
+        }
+        if (raw.startsWith("world:set:")) {
+            return DialogueActions.setWorldFlag(worldState, value(raw, "world:set:", sourceName));
+        }
+        if (raw.startsWith("world:clear:")) {
+            return DialogueActions.clearWorldFlag(worldState, value(raw, "world:clear:", sourceName));
+        }
+        throw new IllegalArgumentException("Unknown dialogue action '" + raw + "' in " + sourceName);
+    }
+
+    private String value(String raw, String prefix, String sourceName) {
+        String value = raw.substring(prefix.length()).trim();
+        if (value.isBlank()) throw new IllegalArgumentException("Missing value for '" + prefix + "' in " + sourceName);
+        return value;
     }
 
     private String required(JsonObject object, String key, String sourceName) {
@@ -92,9 +138,10 @@ public final class DataDrivenDialogueLoader {
     }
 
     private void copyDefaults(File root) {
-        if (!root.mkdirs()) return;
+        File npcDirectory = new File(root, "npc");
+        if (!npcDirectory.mkdirs() && !npcDirectory.isDirectory()) return;
         try {
-            Files.writeString(new File(root, "resident.json").toPath(), """
+            Files.writeString(new File(npcDirectory, "resident.json").toPath(), """
                     {
                       "id": "npc.resident.basic",
                       "start": "greeting",
@@ -111,13 +158,14 @@ public final class DataDrivenDialogueLoader {
                             {
                               "label": "Danke.",
                               "next": null,
+                              "action": "learn:world.basic.resident",
                               "completes": true
                             }
                           ]
                         }
                       ]
                     }
-                    """);
+                    """, StandardCharsets.UTF_8);
         } catch (IOException exception) {
             plugin.getLogger().log(Level.WARNING, "Failed to create default resident dialogue.", exception);
         }
