@@ -9,6 +9,7 @@ public final class CompanionProgression {
     }
 
     public int maxLevel(CompanionDefinition definition) {
+        if (definition.rarity().isUnique()) return 1;
         return Math.min(registry.maxLevel(), definition.progression().maxLevel());
     }
 
@@ -36,7 +37,7 @@ public final class CompanionProgression {
     }
 
     public CompanionInstance addExperience(CompanionDefinition definition, CompanionInstance instance, long baseExperience) {
-        if (baseExperience <= 0L || instance.level() >= maxLevel(definition)) return instance;
+        if (definition.rarity().isUnique() || baseExperience <= 0L || instance.level() >= maxLevel(definition)) return instance;
         long gained = Math.max(1L, Math.round(baseExperience * definition.rarity().experienceMultiplier()));
         long total = instance.experience() + gained;
         return instance.withProgress(levelForExperience(definition, total), total);
