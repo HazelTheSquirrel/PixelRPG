@@ -138,7 +138,10 @@ public final class CompanionFollowTask implements Listener {
             registeredRuntimeCompanions.put(ownerId, companionId);
         }
 
-        if (living instanceof Mannequin mannequin) mannequinController.tick(owner, mannequin);
+        if (living instanceof Mannequin mannequin) {
+            mannequinController.tick(owner, mannequin);
+            mannequin.setRotation(owner.getYaw(), 0.0F);
+        }
         if (dirtyRuntimeOwners.remove(ownerId)) updateRuntimeState(owner, living, definition);
 
         if (definition.mount().enabled() && mountController.isMounted(owner, living)) {
@@ -215,7 +218,7 @@ public final class CompanionFollowTask implements Listener {
     }
 
     private int resolveRuntimeLevel(Player owner, CompanionDefinition definition, LivingEntity entity) {
-        if (definition.rarity().isUnique()) return Math.max(1, Math.min(definition.progression().maxLevel(), entity.getPersistentDataContainer().getOrDefault(RPGKeys.Companion.level(), PersistentDataType.INTEGER, 1)));
+        if (definition.rarity().isUnique()) return 1;
         int ownerLevel = guildApi == null ? 1 : guildApi.getLevel(owner.getUniqueId());
         int level = Math.max(1, Math.min(99, ownerLevel));
         entity.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, level);
