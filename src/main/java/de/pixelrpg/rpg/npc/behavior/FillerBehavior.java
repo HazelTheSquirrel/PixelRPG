@@ -43,8 +43,7 @@ public final class FillerBehavior implements NpcBehavior {
 
         questManager.progressTalkToNpc(player, npc.id());
         dialogueTreeService.open(player,
-                new DialogueTreeService.RPGNpcContext(
-                        de.pixelrpg.rpg.dialogue.DialogueContext.forNpc(player, npc)),
+                de.pixelrpg.rpg.dialogue.DialogueContext.forNpc(player, npc),
                 "npc.resident.basic");
     }
 }
