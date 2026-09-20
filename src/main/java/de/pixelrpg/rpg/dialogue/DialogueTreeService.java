@@ -36,13 +36,13 @@ public final class DialogueTreeService {
         open(player, DialogueContext.forPlayer(player), tree, tree.startNodeId());
     }
 
-    public void open(Player player, RPGNpcContext npcContext, String treeId) {
+    public void open(Player player, DialogueContext context, String treeId) {
         DialogueTree tree = trees.get(treeId);
         if (tree == null) {
             dialogueEngine.openUnavailable(player, "Dialog", "Dieser Dialog ist nicht verfügbar.");
             return;
         }
-        open(player, npcContext.context(), tree, tree.startNodeId());
+        open(player, context, tree, tree.startNodeId());
     }
 
     public void open(Player player, DialogueTree tree, String nodeId) {
@@ -100,14 +100,5 @@ public final class DialogueTreeService {
     private String stateKey(DialogueContext context, DialogueTree tree, DialogueNode node) {
         String npcId = context.npcOptional().map(npc -> npc.id()).orElse("player");
         return npcId + ":" + tree.id() + ":" + node.id();
-    }
-
-    public record RPGNpcContext(DialogueContext context) {
-        public RPGNpcContext {
-            Objects.requireNonNull(context, "context");
-            if (context.npcOptional().isEmpty()) {
-                throw new IllegalArgumentException("NPC dialogue context requires an NPC");
-            }
-        }
     }
 }
