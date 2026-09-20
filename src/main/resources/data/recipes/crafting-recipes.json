@@ -1436,7 +1436,7 @@
       "profession": "FARMER",
       "result": "SUGAR",
       "costs": {
-        "SUGARCANE": 1
+        "SUGAR_CANE": 1
       },
       "requiredProfessionLevel": 10,
       "unlockPrice": 900,
@@ -1917,7 +1917,7 @@
       "costs": {
         "RED_MUSHROOM": 1,
         "BROWN_MUSHROOM": 1,
-        "FLOWER": 1,
+        "DANDELION": 1,
         "BOWL": 1
       },
       "requiredProfessionLevel": 55,
