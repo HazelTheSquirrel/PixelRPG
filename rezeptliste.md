@@ -2,26 +2,28 @@
 
 **Branch:** `test`  
 **Quelle:** `src/main/resources/data/recipes/crafting-recipes.json`  
-**Stand:** aktueller Rezeptkatalog auf `test`.
 
 ## Verbindliche Regeln
 
 - Ausschließlich echte **Minecraft-Vanilla-Items** als Input und Output.
-- Keine Custom-Items, erfundenen Zwischenprodukte oder frei erfundenen Itemnamen.
-- PixelRPG-Rezepte dürfen beliebige Kombinationen und Mengen verwenden; sie müssen keine Vanilla-Crafting-Rezepte nachbilden.
+- Keine Custom-Items oder erfundenen Zwischenprodukte.
+- PixelRPG-Rezepte dürfen beliebige Kombinationen und Mengen verwenden.
 - Der Beruf bestimmt die Zuständigkeit des Rezepts.
-- Kategorien halten den Katalog pro Beruf übersichtlich.
+- Kategorien halten den Katalog übersichtlich.
 - `FISHERMAN` und `WOODCUTTER` bleiben passive Berufe ohne normale Crafting-Rezepte.
+- Der Gelehrte verwendet bei verzauberten Büchern jeweils die **höchste Vanilla-Verzauberungsstufe**.
+- Der Alchemist verwendet bei aufwertbaren Tränken jeweils die **höchste verfügbare Trankstufe** (Stufe II).
+- Die Dialogoberfläche verwendet für Titel, Beschreibungen, Kategorien, Zustände und Aktionen deutsche Texte.
 
 ## Berufsübersicht
 
-| Beruf | Rezeptanzahl | Kategorien |
+| Beruf | Rezepte | Kategorien |
 |---|---:|---|
 | SCHMIED | 61 | `TOOLS`, `WEAPONS`, `ARMOR`, `UTILITY`, `MATERIALS`, `CRAFTING` |
 | GELEHRTER | 29 | `BOOKS`, `KNOWLEDGE`, `ARCANE`, `UTILITY` |
 | LANDWIRT | 25 | `CROPS`, `PROCESSING`, `PRODUCE`, `SPECIALTIES`, `UTILITY` |
 | KOCH | 23 | `BASIC_FOOD`, `MEALS`, `COOKED_FOOD`, `SPECIALTIES` |
-| SCHNEIDER | 25 | `TEXTILES`, `DECORATION`, `LEATHER`, `CRAFTING` |
+| SCHNEIDER | 26 | `TEXTILES`, `DECORATION`, `LEATHER`, `CRAFTING` |
 | ALCHEMIST | 39 | `POTIONS`, `SPECIAL_MATERIALS` |
 | STEINMETZ | 58 | `STONE_BLOCKS`, `STAIRS_SLABS`, `CHISELED` |
 
@@ -286,7 +288,7 @@
 
 # SCHNEIDER
 
-**Domäne:** Textilien, Teppiche, Betten, Banner, Leder und textile Werkzeuge.
+**Domäne:** Textilien, Teppiche, Betten, Banner, Leder und textile Verarbeitung.
 
 ## TEXTILES
 
@@ -325,6 +327,7 @@
 | 4x LEATHER | LEATHER_BOOTS | 25 | UNCOMMON |
 | 1x LEATHER + 6x STRING | BUNDLE | 45 | RARE |
 | 7x LEATHER | LEATHER_HORSE_ARMOR | 55 | EPIC |
+| 4x ROTTEN_FLESH | LEATHER | 10 | COMMON |
 
 ## CRAFTING
 
@@ -337,7 +340,7 @@
 
 # ALCHEMIST
 
-**Domäne:** Tränke, alchemistische Verarbeitung und die Herstellung besonderer Vanilla-Gegenstände.
+**Domäne:** Tränke, alchemistische Verarbeitung und besondere Vanilla-Gegenstände.
 
 ## POTIONS
 
@@ -473,7 +476,7 @@
 
 **Status:** passiv – aktuell keine normalen Crafting-Rezepte.
 
-Der Beruf liefert Vanilla-Fänge und Beute, die als Rohstoffe für andere Berufe verwendet werden können.
+Vanilla-Fänge und Beute können als Rohstoffe für andere Berufe dienen.
 
 - COD
 - SALMON
@@ -491,7 +494,7 @@ Der Beruf liefert Vanilla-Fänge und Beute, die als Rohstoffe für andere Berufe
 
 **Status:** passiv – aktuell keine normalen Crafting-Rezepte.
 
-Der Beruf liefert Vanilla-Holz und Holzrohstoffe für andere Berufe.
+Vanilla-Holz und Holzrohstoffe können als Zutaten für andere Berufe dienen.
 
 - OAK_LOG
 - SPRUCE_LOG
@@ -508,16 +511,21 @@ Der Beruf liefert Vanilla-Holz und Holzrohstoffe für andere Berufe.
 
 ---
 
-# Cross-Profession-Prinzip
+# Besondere Rezeptänderungen
 
-Rezepte dürfen Rohstoffe verwenden, die typischerweise von anderen Berufen geliefert werden. Beispiele:
+- **Gelehrter:** Effizienz V, Glück III, Schärfe V und Schutz IV werden als jeweils maximale Vanilla-Stufe hergestellt.
+- **Alchemist:** Heilung II, Stärke II, Schnelligkeit II, Springen II, Gift II, Regeneration II und Schildkrötenmeister II werden als höchste verfügbare Stufe hergestellt. Tränke ohne stärkere Stufe bleiben auf ihrer normalen Vanilla-Stufe.
+- **Schneider:** `4x ROTTEN_FLESH → 1x LEATHER` in der Kategorie `LEATHER`.
 
-- Landwirt → Rohstoffe für Koch und Gelehrten.
-- Fischer → Fisch und seltene Beute für Koch und Alchemist.
-- Holzfäller → Holz für Schmied, Schneider, Gelehrten und andere Berufe.
-- Steinmetz → Baublöcke für Gelehrten und andere Handwerksketten.
-- Schmied → Metallgegenstände, die wiederum als Zutaten für höherstufige Rezepte dienen.
+## Dialogsprache
 
-Der Katalog beschreibt damit **Beruf → Kategorie → Vanilla-Output**, statt eine unübersichtliche globale Rezeptliste zu führen.
+Alle für die Berufs- und Rezept-Dialoge sichtbaren Texte bleiben Deutsch, insbesondere:
 
-> Diese Datei dokumentiert den aktuellen Katalog. Änderungen an `crafting-recipes.json` müssen hier entsprechend nachgezogen werden.
+- Berufe und Berufsbeschreibungen
+- Rezeptkategorien
+- Rezeptnamen
+- Freischaltungs- und Herstellungsaktionen
+- Statusmeldungen wie „freigeschaltet“, „gesperrt“, „Herstellen“ und „Zurück“
+- Zutaten- und Levelangaben
+
+Diese Datei dokumentiert den aktuellen Katalog auf `test`.
