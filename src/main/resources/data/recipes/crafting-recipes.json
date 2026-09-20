@@ -1276,7 +1276,7 @@
     },
     {
       "id": "scholar:efficiency_book",
-      "label": "Verzaubertes Buch: Effizienz",
+      "label": "Verzaubertes Buch: Effizienz V",
       "profession": "SCHOLAR",
       "result": "ENCHANTED_BOOK",
       "costs": {
@@ -1294,7 +1294,7 @@
     },
     {
       "id": "scholar:fortune_book",
-      "label": "Verzaubertes Buch: Glück",
+      "label": "Verzaubertes Buch: Glück III",
       "profession": "SCHOLAR",
       "result": "ENCHANTED_BOOK",
       "costs": {
@@ -1312,7 +1312,7 @@
     },
     {
       "id": "scholar:sharpness_book",
-      "label": "Verzaubertes Buch: Schärfe",
+      "label": "Verzaubertes Buch: Schärfe V",
       "profession": "SCHOLAR",
       "result": "ENCHANTED_BOOK",
       "costs": {
@@ -1330,7 +1330,7 @@
     },
     {
       "id": "scholar:protection_book",
-      "label": "Verzaubertes Buch: Schutz",
+      "label": "Verzaubertes Buch: Schutz IV",
       "profession": "SCHOLAR",
       "result": "ENCHANTED_BOOK",
       "costs": {
@@ -2445,7 +2445,7 @@
     },
     {
       "id": "alchemist:healing",
-      "label": "Trank der Heilung",
+      "label": "Trank der Heilung II",
       "profession": "ALCHEMIST",
       "result": "POTION",
       "costs": {
@@ -2462,7 +2462,7 @@
     },
     {
       "id": "alchemist:strength",
-      "label": "Trank der Stärke",
+      "label": "Trank der Stärke II",
       "profession": "ALCHEMIST",
       "result": "POTION",
       "costs": {
@@ -2479,7 +2479,7 @@
     },
     {
       "id": "alchemist:swiftness",
-      "label": "Trank der Schnelligkeit",
+      "label": "Trank der Schnelligkeit II",
       "profession": "ALCHEMIST",
       "result": "POTION",
       "costs": {
@@ -2547,7 +2547,7 @@
     },
     {
       "id": "alchemist:leaping",
-      "label": "Trank des Springens",
+      "label": "Trank des Springens II",
       "profession": "ALCHEMIST",
       "result": "POTION",
       "costs": {
@@ -2581,7 +2581,7 @@
     },
     {
       "id": "alchemist:poison",
-      "label": "Gifttrank",
+      "label": "Gifttrank II",
       "profession": "ALCHEMIST",
       "result": "POTION",
       "costs": {
@@ -2614,7 +2614,7 @@
     },
     {
       "id": "alchemist:regeneration",
-      "label": "Trank der Regeneration",
+      "label": "Trank der Regeneration II",
       "profession": "ALCHEMIST",
       "result": "POTION",
       "costs": {
@@ -2631,7 +2631,7 @@
     },
     {
       "id": "alchemist:turtle_master",
-      "label": "Trank des Schildkrötenmeisters",
+      "label": "Trank des Schildkrötenmeisters II",
       "profession": "ALCHEMIST",
       "result": "POTION",
       "costs": {
