@@ -22,6 +22,10 @@ public record DialogueOption(
     public interface DialogueAction {
         void execute(Player player);
 
+        default void execute(DialogueContext context) {
+            execute(context.player());
+        }
+
         static DialogueAction none() {
             return player -> { };
         }
