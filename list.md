@@ -242,9 +242,13 @@ Vorhanden:
 - Companion Dialog
 
 Offen:
-- alle 28 Unlocks ingame prüfen
-- Combat-/Mount-Balancing
-- Equipment-Balancing
+- Passive-Verhalten geprüft: normale Companion-Definitionen sind passiv; Combat ist für sie standardmäßig deaktiviert.
+- Companion-Werte werden im Runtime-Companion tatsächlich auf MAX_HEALTH / ATTACK_DAMAGE / MOVEMENT_SPEED / ARMOR usw. angewendet.
+- Unique Companions verwenden kein Level-Scaling mehr und bleiben auf Level 1 / festen Werten.
+- Hazel nutzt als Skin-Quelle `HazelTheSquirrel` und schaut horizontal.
+- Offen: alle 28 Unlocks ingame prüfen
+- Offen: Combat-/Mount-Balancing
+- Offen: Equipment-Balancing
 
 ---
 
@@ -263,7 +267,7 @@ Vorhanden:
 - Mob Nameplates
 - Combat Events
 
-## 🟡 Weapon Abilities / Skills
+## 🟡 Weapon Abilities / Skills – REVIEW OFFEN
 Vorhanden:
 - WeaponAbilityEngine
 - SkillInputListener
@@ -279,6 +283,8 @@ Beispiele:
 
 Offen:
 - vollständige Ability-Inventur
+- pro Ability konkrete Beschreibung von Trigger, Ziel, Schaden/Effekt, Dauer, Cooldown und Einschränkungen
+- prüfen, ob jede Ability tatsächlich mit ihrem Item verknüpft und ingame auslösbar ist
 - Gameplay-Abdeckung
 - Balancing
 
@@ -326,6 +332,7 @@ Offen:
 - Loot-Balance
 - Phasen/Mechaniken testen
 - tatsächliche Erreichbarkeit
+- **Health- und Damage-Multiplikatoren wurden für den aktuellen Stand technisch um 50 % reduziert.**
 
 ---
 
@@ -407,7 +414,7 @@ Offen:
 
 # 10. Shops / Economy
 
-## 🟡 Shops FAST FERTIG
+## 🟢 Shops – FERTIG
 
 Vorhanden:
 - ShopEntry
@@ -420,11 +427,9 @@ Vorhanden:
 - Migration alter Formate
 - shops.yml Persistenz
 
-Offen:
-- vollständige Shop-Bestückung
-- Preise
-- Economy-Balance
-- NPC-Abdeckung
+Status:
+- Shop-System und bestehende Shop-Funktionalität werden ab jetzt als **FERTIG** geführt.
+- Keine weitere Shop-Implementierung geplant; spätere Preis-/Economy-Anpassungen gehören zum Balancing.
 
 ## 🟡 Economy FAST FERTIG
 
@@ -486,7 +491,9 @@ Offen:
 
 # 12. Regionen / World Rules
 
-## 🟡 FAST FERTIG – Engine
+## ⚪ REGIONEN – PAUSIERT
+
+Die Region-Engine ist vorhanden, die weitere Welt-/Regionen-Ausgestaltung wird bewusst pausiert.
 
 Vorhanden:
 - PixelRegion
@@ -517,7 +524,7 @@ Region-Typen:
 - BOSS_ZONE
 - OTHER
 
-Offen:
+Pausiert:
 - konkrete Weltregionen
 - Grenzen
 - Flags
@@ -599,7 +606,9 @@ Vorhanden:
 
 # 15. Resourcepack
 
-## 🟡 FAST FERTIG / VALIDIEREN
+## ⚪ RESOURCEPACK – PAUSIERT
+
+Die weitere Resourcepack-Ausarbeitung wird bewusst pausiert.
 
 Vorhanden:
 - `resourcepack/`
@@ -610,7 +619,7 @@ Vorhanden:
 - Textures-Struktur
 - README
 
-Offen:
+Pausiert:
 - vollständige Abdeckung aller PixelRPG-Items
 - fehlende Modelle/Texturen
 - visuelle Konsistenz
@@ -652,16 +661,18 @@ Offen:
 - [ ] Boss-Content
 - [ ] Boss-Rewards
 
-## 🟡 Noch einmal anfassen / fast fertig
-- [ ] Professionen
+## 🟡 Noch einmal anfassen / offen
+- [ ] Professionen – offene Stellen prüfen
+- [ ] Berufe – Rezeptumfang erweitern
 - [ ] NPC-World-Population
 - [ ] Dialoge
-- [ ] Shops
 - [ ] Economy
+- [ ] Skills / Weapon Abilities – genaue Ability-Inventur und Beschreibungen
+- [ ] Guild-City-/World-Content
+
+## ⚪ Pausiert
 - [ ] Regionen
 - [ ] Resourcepack
-- [ ] Skills / Weapon Abilities
-- [ ] Guild-City-/World-Content
 
 ## 🔴 Noch offen
 - [ ] Story / Kampagne
