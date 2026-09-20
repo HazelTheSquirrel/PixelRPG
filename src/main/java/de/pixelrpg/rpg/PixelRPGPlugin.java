@@ -216,12 +216,12 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0), getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
         DialogueEngine dialogueEngine = new DialogueEngine();
-        dialogueTreeService = new DialogueTreeService(this, dialogueEngine);
-        new DataDrivenDialogueLoader(this, playerKnowledgeStore, worldState).loadInto(dialogueTreeService);
         playerKnowledgeStore = new PlayerKnowledgeStore(this);
         playerKnowledgeStore.load();
         worldState = new WorldState(this);
         worldState.load();
+        dialogueTreeService = new DialogueTreeService(this, dialogueEngine);
+        new DataDrivenDialogueLoader(this, playerKnowledgeStore, worldState).loadInto(dialogueTreeService);
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager, itemService);
         companionService = new CompanionService(this);
