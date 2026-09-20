@@ -894,459 +894,6 @@
       "category": "ARMOR"
     },
     {
-      "id": "scholar:paper",
-      "label": "Papier",
-      "profession": "SCHOLAR",
-      "result": "PAPER",
-      "costs": {
-        "SUGAR_CANE": 3
-      },
-      "requiredProfessionLevel": 1,
-      "unlockPrice": 0,
-      "rarity": "COMMON",
-      "unlockedByDefault": true,
-      "category": "BOOKS"
-    },
-    {
-      "id": "scholar:book",
-      "label": "Buch",
-      "profession": "SCHOLAR",
-      "result": "BOOK",
-      "costs": {
-        "PAPER": 3,
-        "LEATHER": 1
-      },
-      "requiredProfessionLevel": 5,
-      "unlockPrice": 400,
-      "rarity": "COMMON",
-      "unlockedByDefault": false,
-      "category": "BOOKS"
-    },
-    {
-      "id": "scholar:bookshelf",
-      "label": "Bücherregal",
-      "profession": "SCHOLAR",
-      "result": "BOOKSHELF",
-      "costs": {
-        "BOOK": 3,
-        "OAK_PLANKS": 3
-      },
-      "requiredProfessionLevel": 15,
-      "unlockPrice": 1400,
-      "rarity": "COMMON",
-      "unlockedByDefault": false,
-      "category": "BOOKS"
-    },
-    {
-      "id": "scholar:lectern",
-      "label": "Lesepult",
-      "profession": "SCHOLAR",
-      "result": "LECTERN",
-      "costs": {
-        "BOOKSHELF": 1,
-        "OAK_SLAB": 4
-      },
-      "requiredProfessionLevel": 35,
-      "unlockPrice": 3400,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "KNOWLEDGE"
-    },
-    {
-      "id": "scholar:compass",
-      "label": "Kompass",
-      "profession": "SCHOLAR",
-      "result": "COMPASS",
-      "costs": {
-        "IRON_INGOT": 4,
-        "REDSTONE": 1
-      },
-      "requiredProfessionLevel": 20,
-      "unlockPrice": 1900,
-      "rarity": "COMMON",
-      "unlockedByDefault": false,
-      "category": "KNOWLEDGE"
-    },
-    {
-      "id": "scholar:clock",
-      "label": "Uhr",
-      "profession": "SCHOLAR",
-      "result": "CLOCK",
-      "costs": {
-        "GOLD_INGOT": 4,
-        "REDSTONE": 1
-      },
-      "requiredProfessionLevel": 25,
-      "unlockPrice": 2400,
-      "rarity": "COMMON",
-      "unlockedByDefault": false,
-      "category": "KNOWLEDGE"
-    },
-    {
-      "id": "scholar:map",
-      "label": "Karte",
-      "profession": "SCHOLAR",
-      "result": "MAP",
-      "costs": {
-        "PAPER": 8,
-        "COMPASS": 1
-      },
-      "requiredProfessionLevel": 30,
-      "unlockPrice": 2900,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "KNOWLEDGE"
-    },
-    {
-      "id": "scholar:spyglass",
-      "label": "Fernrohr",
-      "profession": "SCHOLAR",
-      "result": "SPYGLASS",
-      "costs": {
-        "COPPER_INGOT": 2,
-        "AMETHYST_SHARD": 1
-      },
-      "requiredProfessionLevel": 45,
-      "unlockPrice": 4400,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "KNOWLEDGE"
-    },
-    {
-      "id": "scholar:recovery_compass",
-      "label": "Bergungskompass",
-      "profession": "SCHOLAR",
-      "result": "RECOVERY_COMPASS",
-      "costs": {
-        "COMPASS": 1,
-        "ECHO_SHARD": 8
-      },
-      "requiredProfessionLevel": 80,
-      "unlockPrice": 7900,
-      "rarity": "EPIC",
-      "unlockedByDefault": false,
-      "category": "ARCANE"
-    },
-    {
-      "id": "scholar:ender_eye",
-      "label": "Enderauge",
-      "profession": "SCHOLAR",
-      "result": "ENDER_EYE",
-      "costs": {
-        "ENDER_PEARL": 1,
-        "BLAZE_POWDER": 1
-      },
-      "requiredProfessionLevel": 70,
-      "unlockPrice": 6900,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "ARCANE"
-    },
-    {
-      "id": "scholar:ender_chest",
-      "label": "Endertruhe",
-      "profession": "SCHOLAR",
-      "result": "ENDER_CHEST",
-      "costs": {
-        "OBSIDIAN": 8,
-        "ENDER_EYE": 1
-      },
-      "requiredProfessionLevel": 85,
-      "unlockPrice": 8400,
-      "rarity": "EPIC",
-      "unlockedByDefault": false,
-      "category": "ARCANE"
-    },
-    {
-      "id": "scholar:enchanting_table",
-      "label": "Zaubertisch",
-      "profession": "SCHOLAR",
-      "result": "ENCHANTING_TABLE",
-      "costs": {
-        "BOOK": 1,
-        "DIAMOND": 2,
-        "OBSIDIAN": 4
-      },
-      "requiredProfessionLevel": 75,
-      "unlockPrice": 7400,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "ARCANE"
-    },
-    {
-      "id": "scholar:beacon",
-      "label": "Leuchtfeuer",
-      "profession": "SCHOLAR",
-      "result": "BEACON",
-      "costs": {
-        "GLASS": 5,
-        "OBSIDIAN": 3,
-        "NETHER_STAR": 1
-      },
-      "requiredProfessionLevel": 95,
-      "unlockPrice": 9400,
-      "rarity": "EPIC",
-      "unlockedByDefault": false,
-      "category": "ARCANE"
-    },
-    {
-      "id": "scholar:end_crystal",
-      "label": "Endkristall",
-      "profession": "SCHOLAR",
-      "result": "END_CRYSTAL",
-      "costs": {
-        "GLASS": 7,
-        "GHAST_TEAR": 1,
-        "ENDER_EYE": 1
-      },
-      "requiredProfessionLevel": 90,
-      "unlockPrice": 8900,
-      "rarity": "EPIC",
-      "unlockedByDefault": false,
-      "category": "ARCANE"
-    },
-    {
-      "id": "scholar:respawn_anchor",
-      "label": "Respawn-Anker",
-      "profession": "SCHOLAR",
-      "result": "RESPAWN_ANCHOR",
-      "costs": {
-        "GLOWSTONE": 6,
-        "CRYING_OBSIDIAN": 3
-      },
-      "requiredProfessionLevel": 85,
-      "unlockPrice": 8400,
-      "rarity": "EPIC",
-      "unlockedByDefault": false,
-      "category": "ARCANE"
-    },
-    {
-      "id": "scholar:lodestone",
-      "label": "Leitstein",
-      "profession": "SCHOLAR",
-      "result": "LODESTONE",
-      "costs": {
-        "CHISELED_STONE_BRICKS": 8,
-        "IRON_INGOT": 1
-      },
-      "requiredProfessionLevel": 65,
-      "unlockPrice": 6400,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "KNOWLEDGE"
-    },
-    {
-      "id": "scholar:experience_bottle",
-      "label": "Erfahrungsfläschchen",
-      "profession": "SCHOLAR",
-      "result": "EXPERIENCE_BOTTLE",
-      "costs": {
-        "GLASS_BOTTLE": 1,
-        "GLOWSTONE_DUST": 2,
-        "REDSTONE": 2
-      },
-      "requiredProfessionLevel": 90,
-      "unlockPrice": 8900,
-      "rarity": "EPIC",
-      "unlockedByDefault": false,
-      "category": "ARCANE"
-    },
-    {
-      "id": "scholar:firework_rocket",
-      "label": "Feuerwerksrakete",
-      "profession": "SCHOLAR",
-      "result": "FIREWORK_ROCKET",
-      "costs": {
-        "PAPER": 1,
-        "GUNPOWDER": 2
-      },
-      "requiredProfessionLevel": 50,
-      "unlockPrice": 4900,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "UTILITY"
-    },
-    {
-      "id": "scholar:firework_star",
-      "label": "Feuerwerksstern",
-      "profession": "SCHOLAR",
-      "result": "FIREWORK_STAR",
-      "costs": {
-        "GUNPOWDER": 1,
-        "GLOWSTONE_DUST": 1
-      },
-      "requiredProfessionLevel": 55,
-      "unlockPrice": 5400,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "UTILITY"
-    },
-    {
-      "id": "scholar:redstone_torch",
-      "label": "Redstonefackel",
-      "profession": "SCHOLAR",
-      "result": "REDSTONE_TORCH",
-      "costs": {
-        "REDSTONE": 1,
-        "STICK": 1
-      },
-      "requiredProfessionLevel": 15,
-      "unlockPrice": 1400,
-      "rarity": "COMMON",
-      "unlockedByDefault": false,
-      "category": "UTILITY"
-    },
-    {
-      "id": "scholar:observer",
-      "label": "Beobachter",
-      "profession": "SCHOLAR",
-      "result": "OBSERVER",
-      "costs": {
-        "COBBLESTONE": 6,
-        "REDSTONE": 2,
-        "QUARTZ": 1
-      },
-      "requiredProfessionLevel": 70,
-      "unlockPrice": 6900,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "UTILITY"
-    },
-    {
-      "id": "scholar:comparator",
-      "label": "Redstone-Komparator",
-      "profession": "SCHOLAR",
-      "result": "COMPARATOR",
-      "costs": {
-        "STONE": 3,
-        "REDSTONE_TORCH": 3,
-        "QUARTZ": 1
-      },
-      "requiredProfessionLevel": 65,
-      "unlockPrice": 6400,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "UTILITY"
-    },
-    {
-      "id": "scholar:dispenser",
-      "label": "Spender",
-      "profession": "SCHOLAR",
-      "result": "DISPENSER",
-      "costs": {
-        "COBBLESTONE": 7,
-        "BOW": 1,
-        "REDSTONE": 1
-      },
-      "requiredProfessionLevel": 60,
-      "unlockPrice": 5900,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "UTILITY"
-    },
-    {
-      "id": "scholar:dropper",
-      "label": "Werfer",
-      "profession": "SCHOLAR",
-      "result": "DROPPER",
-      "costs": {
-        "COBBLESTONE": 7,
-        "REDSTONE": 1
-      },
-      "requiredProfessionLevel": 55,
-      "unlockPrice": 5400,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "UTILITY"
-    },
-    {
-      "id": "scholar:target",
-      "label": "Zielblock",
-      "profession": "SCHOLAR",
-      "result": "TARGET",
-      "costs": {
-        "HAY_BLOCK": 1,
-        "REDSTONE": 4
-      },
-      "requiredProfessionLevel": 50,
-      "unlockPrice": 4900,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "UTILITY"
-    },
-    {
-      "id": "scholar:efficiency_book",
-      "label": "Verzaubertes Buch: Effizienz V",
-      "profession": "SCHOLAR",
-      "result": "ENCHANTED_BOOK",
-      "costs": {
-        "BOOK": 1,
-        "LAPIS_LAZULI": 5,
-        "DIAMOND": 1
-      },
-      "requiredProfessionLevel": 70,
-      "unlockPrice": 6900,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "BOOKS",
-      "enchantment": "efficiency",
-      "enchantmentLevel": 5
-    },
-    {
-      "id": "scholar:fortune_book",
-      "label": "Verzaubertes Buch: Glück III",
-      "profession": "SCHOLAR",
-      "result": "ENCHANTED_BOOK",
-      "costs": {
-        "BOOK": 1,
-        "LAPIS_LAZULI": 6,
-        "EMERALD": 2
-      },
-      "requiredProfessionLevel": 80,
-      "unlockPrice": 7900,
-      "rarity": "EPIC",
-      "unlockedByDefault": false,
-      "category": "BOOKS",
-      "enchantment": "fortune",
-      "enchantmentLevel": 3
-    },
-    {
-      "id": "scholar:sharpness_book",
-      "label": "Verzaubertes Buch: Schärfe V",
-      "profession": "SCHOLAR",
-      "result": "ENCHANTED_BOOK",
-      "costs": {
-        "BOOK": 1,
-        "LAPIS_LAZULI": 5,
-        "IRON_INGOT": 2
-      },
-      "requiredProfessionLevel": 75,
-      "unlockPrice": 7400,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "BOOKS",
-      "enchantment": "sharpness",
-      "enchantmentLevel": 5
-    },
-    {
-      "id": "scholar:protection_book",
-      "label": "Verzaubertes Buch: Schutz IV",
-      "profession": "SCHOLAR",
-      "result": "ENCHANTED_BOOK",
-      "costs": {
-        "BOOK": 1,
-        "LAPIS_LAZULI": 5,
-        "DIAMOND": 1
-      },
-      "requiredProfessionLevel": 75,
-      "unlockPrice": 7400,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "BOOKS",
-      "enchantment": "protection",
-      "enchantmentLevel": 4
-    },
-    {
       "id": "farmer:wheat_seeds",
       "label": "Weizensamen",
       "profession": "FARMER",
@@ -3852,6 +3399,1161 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "LEATHER"
+    },
+    {
+      "id": "scholar:paper",
+      "label": "Papier",
+      "profession": "SCHOLAR",
+      "result": "PAPER",
+      "costs": {
+        "SUGAR_CANE": 3
+      },
+      "requiredProfessionLevel": 1,
+      "unlockPrice": 0,
+      "rarity": "COMMON",
+      "unlockedByDefault": true,
+      "category": "BOOKS"
+    },
+    {
+      "id": "scholar:book",
+      "label": "Buch",
+      "profession": "SCHOLAR",
+      "result": "BOOK",
+      "costs": {
+        "PAPER": 3,
+        "LEATHER": 1
+      },
+      "requiredProfessionLevel": 5,
+      "unlockPrice": 400,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "category": "BOOKS"
+    },
+    {
+      "id": "scholar:bookshelf",
+      "label": "Bücherregal",
+      "profession": "SCHOLAR",
+      "result": "BOOKSHELF",
+      "costs": {
+        "BOOK": 3,
+        "OAK_PLANKS": 3
+      },
+      "requiredProfessionLevel": 15,
+      "unlockPrice": 1400,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "category": "BOOKS"
+    },
+    {
+      "id": "scholar:lectern",
+      "label": "Lesepult",
+      "profession": "SCHOLAR",
+      "result": "LECTERN",
+      "costs": {
+        "BOOKSHELF": 1,
+        "OAK_SLAB": 4
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 3400,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "category": "KNOWLEDGE"
+    },
+    {
+      "id": "scholar:compass",
+      "label": "Kompass",
+      "profession": "SCHOLAR",
+      "result": "COMPASS",
+      "costs": {
+        "IRON_INGOT": 4,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 20,
+      "unlockPrice": 1900,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "category": "KNOWLEDGE"
+    },
+    {
+      "id": "scholar:clock",
+      "label": "Uhr",
+      "profession": "SCHOLAR",
+      "result": "CLOCK",
+      "costs": {
+        "GOLD_INGOT": 4,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 25,
+      "unlockPrice": 2400,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "category": "KNOWLEDGE"
+    },
+    {
+      "id": "scholar:map",
+      "label": "Karte",
+      "profession": "SCHOLAR",
+      "result": "MAP",
+      "costs": {
+        "PAPER": 8,
+        "COMPASS": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "category": "KNOWLEDGE"
+    },
+    {
+      "id": "scholar:spyglass",
+      "label": "Fernrohr",
+      "profession": "SCHOLAR",
+      "result": "SPYGLASS",
+      "costs": {
+        "COPPER_INGOT": 2,
+        "AMETHYST_SHARD": 1
+      },
+      "requiredProfessionLevel": 45,
+      "unlockPrice": 4400,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "category": "KNOWLEDGE"
+    },
+    {
+      "id": "scholar:recovery_compass",
+      "label": "Bergungskompass",
+      "profession": "SCHOLAR",
+      "result": "RECOVERY_COMPASS",
+      "costs": {
+        "COMPASS": 1,
+        "ECHO_SHARD": 8
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 7900,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "ARCANE"
+    },
+    {
+      "id": "scholar:ender_eye",
+      "label": "Enderauge",
+      "profession": "SCHOLAR",
+      "result": "ENDER_EYE",
+      "costs": {
+        "ENDER_PEARL": 1,
+        "BLAZE_POWDER": 1
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 6900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "ARCANE"
+    },
+    {
+      "id": "scholar:ender_chest",
+      "label": "Endertruhe",
+      "profession": "SCHOLAR",
+      "result": "ENDER_CHEST",
+      "costs": {
+        "OBSIDIAN": 8,
+        "ENDER_EYE": 1
+      },
+      "requiredProfessionLevel": 85,
+      "unlockPrice": 8400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "ARCANE"
+    },
+    {
+      "id": "scholar:enchanting_table",
+      "label": "Zaubertisch",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTING_TABLE",
+      "costs": {
+        "BOOK": 1,
+        "DIAMOND": 2,
+        "OBSIDIAN": 4
+      },
+      "requiredProfessionLevel": 75,
+      "unlockPrice": 7400,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "ARCANE"
+    },
+    {
+      "id": "scholar:beacon",
+      "label": "Leuchtfeuer",
+      "profession": "SCHOLAR",
+      "result": "BEACON",
+      "costs": {
+        "GLASS": 5,
+        "OBSIDIAN": 3,
+        "NETHER_STAR": 1
+      },
+      "requiredProfessionLevel": 95,
+      "unlockPrice": 9400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "ARCANE"
+    },
+    {
+      "id": "scholar:end_crystal",
+      "label": "Endkristall",
+      "profession": "SCHOLAR",
+      "result": "END_CRYSTAL",
+      "costs": {
+        "GLASS": 7,
+        "GHAST_TEAR": 1,
+        "ENDER_EYE": 1
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 8900,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "ARCANE"
+    },
+    {
+      "id": "scholar:respawn_anchor",
+      "label": "Respawn-Anker",
+      "profession": "SCHOLAR",
+      "result": "RESPAWN_ANCHOR",
+      "costs": {
+        "GLOWSTONE": 6,
+        "CRYING_OBSIDIAN": 3
+      },
+      "requiredProfessionLevel": 85,
+      "unlockPrice": 8400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "ARCANE"
+    },
+    {
+      "id": "scholar:lodestone",
+      "label": "Leitstein",
+      "profession": "SCHOLAR",
+      "result": "LODESTONE",
+      "costs": {
+        "CHISELED_STONE_BRICKS": 8,
+        "IRON_INGOT": 1
+      },
+      "requiredProfessionLevel": 65,
+      "unlockPrice": 6400,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "KNOWLEDGE"
+    },
+    {
+      "id": "scholar:experience_bottle",
+      "label": "Erfahrungsfläschchen",
+      "profession": "SCHOLAR",
+      "result": "EXPERIENCE_BOTTLE",
+      "costs": {
+        "GLASS_BOTTLE": 1,
+        "GLOWSTONE_DUST": 2,
+        "REDSTONE": 2
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 8900,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "ARCANE"
+    },
+    {
+      "id": "scholar:firework_rocket",
+      "label": "Feuerwerksrakete",
+      "profession": "SCHOLAR",
+      "result": "FIREWORK_ROCKET",
+      "costs": {
+        "PAPER": 1,
+        "GUNPOWDER": 2
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 4900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "UTILITY"
+    },
+    {
+      "id": "scholar:firework_star",
+      "label": "Feuerwerksstern",
+      "profession": "SCHOLAR",
+      "result": "FIREWORK_STAR",
+      "costs": {
+        "GUNPOWDER": 1,
+        "GLOWSTONE_DUST": 1
+      },
+      "requiredProfessionLevel": 55,
+      "unlockPrice": 5400,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "UTILITY"
+    },
+    {
+      "id": "scholar:redstone_torch",
+      "label": "Redstonefackel",
+      "profession": "SCHOLAR",
+      "result": "REDSTONE_TORCH",
+      "costs": {
+        "REDSTONE": 1,
+        "STICK": 1
+      },
+      "requiredProfessionLevel": 15,
+      "unlockPrice": 1400,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "category": "UTILITY"
+    },
+    {
+      "id": "scholar:observer",
+      "label": "Beobachter",
+      "profession": "SCHOLAR",
+      "result": "OBSERVER",
+      "costs": {
+        "COBBLESTONE": 6,
+        "REDSTONE": 2,
+        "QUARTZ": 1
+      },
+      "requiredProfessionLevel": 70,
+      "unlockPrice": 6900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "UTILITY"
+    },
+    {
+      "id": "scholar:comparator",
+      "label": "Redstone-Komparator",
+      "profession": "SCHOLAR",
+      "result": "COMPARATOR",
+      "costs": {
+        "STONE": 3,
+        "REDSTONE_TORCH": 3,
+        "QUARTZ": 1
+      },
+      "requiredProfessionLevel": 65,
+      "unlockPrice": 6400,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "UTILITY"
+    },
+    {
+      "id": "scholar:dispenser",
+      "label": "Spender",
+      "profession": "SCHOLAR",
+      "result": "DISPENSER",
+      "costs": {
+        "COBBLESTONE": 7,
+        "BOW": 1,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 60,
+      "unlockPrice": 5900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "UTILITY"
+    },
+    {
+      "id": "scholar:dropper",
+      "label": "Werfer",
+      "profession": "SCHOLAR",
+      "result": "DROPPER",
+      "costs": {
+        "COBBLESTONE": 7,
+        "REDSTONE": 1
+      },
+      "requiredProfessionLevel": 55,
+      "unlockPrice": 5400,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "UTILITY"
+    },
+    {
+      "id": "scholar:target",
+      "label": "Zielblock",
+      "profession": "SCHOLAR",
+      "result": "TARGET",
+      "costs": {
+        "HAY_BLOCK": 1,
+        "REDSTONE": 4
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 4900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "UTILITY"
+    },
+    {
+      "id": "scholar:aqua_affinity_book",
+      "label": "Verzaubertes Buch: Wasseraffinität I",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 5,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 20,
+      "unlockPrice": 1900,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "AQUA_AFFINITY",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:bane_of_arthropods_book",
+      "label": "Verzaubertes Buch: Nemesis der Gliederfüßer V",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 25,
+      "unlockPrice": 2400,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "BANE_OF_ARTHROPODS",
+      "enchantmentLevel": 5
+    },
+    {
+      "id": "scholar:binding_curse_book",
+      "label": "Verzaubertes Buch: Fluch der Bindung I",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 5,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "BINDING_CURSE",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:blast_protection_book",
+      "label": "Verzaubertes Buch: Explosionsschutz IV",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "BLAST_PROTECTION",
+      "enchantmentLevel": 4
+    },
+    {
+      "id": "scholar:breach_book",
+      "label": "Verzaubertes Buch: Durchbruch IV",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 4900,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "BREACH",
+      "enchantmentLevel": 4
+    },
+    {
+      "id": "scholar:channeling_book",
+      "label": "Verzaubertes Buch: Entladung I",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 5,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 40,
+      "unlockPrice": 3900,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "CHANNELING",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:density_book",
+      "label": "Verzaubertes Buch: Dichte V",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 4900,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "DENSITY",
+      "enchantmentLevel": 5
+    },
+    {
+      "id": "scholar:depth_strider_book",
+      "label": "Verzaubertes Buch: Wasserläufer III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "DEPTH_STRIDER",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:efficiency_book",
+      "label": "Verzaubertes Buch: Effizienz V",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 25,
+      "unlockPrice": 2400,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "EFFICIENCY",
+      "enchantmentLevel": 5
+    },
+    {
+      "id": "scholar:feather_falling_book",
+      "label": "Verzaubertes Buch: Federfall IV",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 25,
+      "unlockPrice": 2400,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "FEATHER_FALLING",
+      "enchantmentLevel": 4
+    },
+    {
+      "id": "scholar:fire_aspect_book",
+      "label": "Verzaubertes Buch: Verbrennung II",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 5,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 25,
+      "unlockPrice": 2400,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "FIRE_ASPECT",
+      "enchantmentLevel": 2
+    },
+    {
+      "id": "scholar:fire_protection_book",
+      "label": "Verzaubertes Buch: Feuerschutz IV",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "FIRE_PROTECTION",
+      "enchantmentLevel": 4
+    },
+    {
+      "id": "scholar:flame_book",
+      "label": "Verzaubertes Buch: Flamme I",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 5,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "FLAME",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:fortune_book",
+      "label": "Verzaubertes Buch: Glück III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 3400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "FORTUNE",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:frost_walker_book",
+      "label": "Verzaubertes Buch: Eisläufer II",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 5,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 3400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "FROST_WALKER",
+      "enchantmentLevel": 2
+    },
+    {
+      "id": "scholar:impaling_book",
+      "label": "Verzaubertes Buch: Harpune V",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 3400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "IMPALING",
+      "enchantmentLevel": 5
+    },
+    {
+      "id": "scholar:infinity_book",
+      "label": "Verzaubertes Buch: Unendlichkeit I",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 5,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 40,
+      "unlockPrice": 3900,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "INFINITY",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:knockback_book",
+      "label": "Verzaubertes Buch: Rückstoß II",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 5,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 25,
+      "unlockPrice": 2400,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "KNOCKBACK",
+      "enchantmentLevel": 2
+    },
+    {
+      "id": "scholar:looting_book",
+      "label": "Verzaubertes Buch: Plünderung III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 40,
+      "unlockPrice": 3900,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "LOOTING",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:loyalty_book",
+      "label": "Verzaubertes Buch: Treue III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 3400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "LOYALTY",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:luck_of_the_sea_book",
+      "label": "Verzaubertes Buch: Glück des Meeres III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 3400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "LUCK_OF_THE_SEA",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:lunge_book",
+      "label": "Verzaubertes Buch: Elan III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 45,
+      "unlockPrice": 4400,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "LUNGE",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:lure_book",
+      "label": "Verzaubertes Buch: Köder III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "LURE",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:mending_book",
+      "label": "Verzaubertes Buch: Reparatur I",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 5,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 4900,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "MENDING",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:multishot_book",
+      "label": "Verzaubertes Buch: Mehrfachschuss I",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 5,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 3400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "MULTISHOT",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:piercing_book",
+      "label": "Verzaubertes Buch: Durchschuss IV",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 3400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "PIERCING",
+      "enchantmentLevel": 4
+    },
+    {
+      "id": "scholar:power_book",
+      "label": "Verzaubertes Buch: Stärke V",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 3400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "POWER",
+      "enchantmentLevel": 5
+    },
+    {
+      "id": "scholar:projectile_protection_book",
+      "label": "Verzaubertes Buch: Schussschutz IV",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "PROJECTILE_PROTECTION",
+      "enchantmentLevel": 4
+    },
+    {
+      "id": "scholar:protection_book",
+      "label": "Verzaubertes Buch: Schutz IV",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "PROTECTION",
+      "enchantmentLevel": 4
+    },
+    {
+      "id": "scholar:punch_book",
+      "label": "Verzaubertes Buch: Schlag II",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 5,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "PUNCH",
+      "enchantmentLevel": 2
+    },
+    {
+      "id": "scholar:quick_charge_book",
+      "label": "Verzaubertes Buch: Schnellladen III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "QUICK_CHARGE",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:respiration_book",
+      "label": "Verzaubertes Buch: Atmung III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "RESPIRATION",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:riptide_book",
+      "label": "Verzaubertes Buch: Sog III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 40,
+      "unlockPrice": 3900,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "RIPTIDE",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:sharpness_book",
+      "label": "Verzaubertes Buch: Schärfe V",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 3400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "SHARPNESS",
+      "enchantmentLevel": 5
+    },
+    {
+      "id": "scholar:silk_touch_book",
+      "label": "Verzaubertes Buch: Behutsamkeit I",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 5,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 40,
+      "unlockPrice": 3900,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "SILK_TOUCH",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:smite_book",
+      "label": "Verzaubertes Buch: Bann V",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 8,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "SMITE",
+      "enchantmentLevel": 5
+    },
+    {
+      "id": "scholar:soul_speed_book",
+      "label": "Verzaubertes Buch: Seelengeschwindigkeit III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 45,
+      "unlockPrice": 4400,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "SOUL_SPEED",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:sweeping_edge_book",
+      "label": "Verzaubertes Buch: Schwungkraft III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 3400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "SWEEPING_EDGE",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:swift_sneak_book",
+      "label": "Verzaubertes Buch: Flinkes Schleichen III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 45,
+      "unlockPrice": 4400,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "SWIFT_SNEAK",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:thorns_book",
+      "label": "Verzaubertes Buch: Dornen III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 1
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 3400,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "THORNS",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:unbreaking_book",
+      "label": "Verzaubertes Buch: Haltbarkeit III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "UNBREAKING",
+      "enchantmentLevel": 3
+    },
+    {
+      "id": "scholar:vanishing_curse_book",
+      "label": "Verzaubertes Buch: Fluch des Verschwindens I",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 5,
+        "EMERALD": 1
+      },
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2900,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "VANISHING_CURSE",
+      "enchantmentLevel": 1
+    },
+    {
+      "id": "scholar:wind_burst_book",
+      "label": "Verzaubertes Buch: Windstoß III",
+      "profession": "SCHOLAR",
+      "result": "ENCHANTED_BOOK",
+      "costs": {
+        "BOOK": 1,
+        "LAPIS_LAZULI": 6,
+        "DIAMOND": 2
+      },
+      "requiredProfessionLevel": 50,
+      "unlockPrice": 4900,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "category": "BOOKS",
+      "enchantment": "WIND_BURST",
+      "enchantmentLevel": 3
     }
   ]
 }
