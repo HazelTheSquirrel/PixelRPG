@@ -217,7 +217,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcLookTask.start();
         DialogueEngine dialogueEngine = new DialogueEngine();
         dialogueTreeService = new DialogueTreeService(this, dialogueEngine);
-        new DataDrivenDialogueLoader(this).loadInto(dialogueTreeService);
+        new DataDrivenDialogueLoader(this, playerKnowledgeStore, worldState).loadInto(dialogueTreeService);
         playerKnowledgeStore = new PlayerKnowledgeStore(this);
         playerKnowledgeStore.load();
         worldState = new WorldState(this);
