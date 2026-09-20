@@ -52,8 +52,8 @@ public final class BossRepository {
             if (biomes.isEmpty()) { Biome legacyBiome = parseBiome(section.getString("biome")); if (legacyBiome != null) biomes.add(legacyBiome); }
             definition.setBiomes(biomes);
             definition.setLevel(section.getInt("level", 30));
-            definition.setHealthMultiplier(section.getDouble("health-multiplier", 4.0));
-            definition.setDamageMultiplier(section.getDouble("damage-multiplier", 1.5));
+            definition.setHealthMultiplier(section.getDouble("health-multiplier", 4.0) * 0.5D);
+            definition.setDamageMultiplier(section.getDouble("damage-multiplier", 1.5) * 0.5D);
             definition.setScaleMultiplier(section.getDouble("scale-multiplier", 1.35));
             definition.setAttackIntervalTicks(section.getInt("attack-interval-ticks", 100));
             definition.setAttackPatternIds(section.getStringList("attack-patterns"));
