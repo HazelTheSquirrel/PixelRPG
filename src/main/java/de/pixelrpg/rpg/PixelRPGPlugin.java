@@ -38,6 +38,10 @@ import de.pixelrpg.rpg.core.LifecycleCoordinator;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.dialogue.DialogueCommand;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.DialogueTreeService;
+import de.pixelrpg.rpg.dialogue.DataDrivenDialogueLoader;
+import de.pixelrpg.rpg.dialogue.PlayerKnowledgeStore;
+import de.pixelrpg.rpg.dialogue.WorldState;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
@@ -138,6 +142,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private RegionEditor regionEditor;
     private RegionSpawnService regionSpawnService;
     private GuildManager guildManager;
+    private DialogueTreeService dialogueTreeService;
+    private PlayerKnowledgeStore playerKnowledgeStore;
+    private WorldState worldState;
 
     @Override
     public void onEnable() {
@@ -209,6 +216,12 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0), getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
         DialogueEngine dialogueEngine = new DialogueEngine();
+        dialogueTreeService = new DialogueTreeService(this, dialogueEngine);
+        new DataDrivenDialogueLoader(this).loadInto(dialogueTreeService);
+        playerKnowledgeStore = new PlayerKnowledgeStore(this);
+        playerKnowledgeStore.load();
+        worldState = new WorldState(this);
+        worldState.load();
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager, itemService);
         companionService = new CompanionService(this);
@@ -220,7 +233,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogue, dialogueEngine, playerProfileManager));
         bankerBehavior = new BankerBehavior(playerProfileManager, dialogueEngine);
         npcBehaviorRegistry.register(bankerBehavior);
-        npcBehaviorRegistry.register(new FillerBehavior(questManager, playerProfileManager, dialogueEngine));
+        npcBehaviorRegistry.register(new FillerBehavior(questManager, playerProfileManager, dialogueEngine, dialogueTreeService));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_BLACKSMITH, Profession.BLACKSMITH, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_SCHOLAR, Profession.SCHOLAR, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FARMER, Profession.FARMER, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
@@ -279,6 +292,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         lifecycle.register(() -> regionEditor.shutdown());
         lifecycle.register(() -> regionSpawnService.stop());
         lifecycle.register(() -> bankerBehavior.shutdown());
+        lifecycle.register(() -> dialogueTreeService.shutdown());
+        lifecycle.register(() -> playerKnowledgeStore.shutdown());
+        lifecycle.register(() -> worldState.shutdown());
         RootCommand rootCommand = new RootCommand(this, itemService);
         rootCommand.register(new CompanionSubCommand(companionService));
         rootCommand.register(new NpcSubCommand(npcManager));
@@ -338,4 +354,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public CompanionService getCompanionService() { return companionService; }
     public RegionManager getRegionManager() { return regionManager; }
     public RegionEditor getRegionEditor() { return regionEditor; }
+    public DialogueTreeService getDialogueTreeService() { return dialogueTreeService; }
+    public PlayerKnowledgeStore getPlayerKnowledgeStore() { return playerKnowledgeStore; }
+    public WorldState getWorldState() { return worldState; }
 }
