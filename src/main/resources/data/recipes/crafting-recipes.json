@@ -1308,7 +1308,7 @@
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "fortune",
-      "enchantmentLevel": 5
+      "enchantmentLevel": 3
     },
     {
       "id": "scholar:sharpness_book",
@@ -1344,7 +1344,7 @@
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "protection",
-      "enchantmentLevel": 5
+      "enchantmentLevel": 4
     },
     {
       "id": "farmer:wheat_seeds",
@@ -2458,7 +2458,7 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "HEALING"
+      "potionType": "STRONG_HEALING"
     },
     {
       "id": "alchemist:strength",
@@ -2475,7 +2475,7 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "STRENGTH"
+      "potionType": "STRONG_STRENGTH"
     },
     {
       "id": "alchemist:swiftness",
@@ -2492,7 +2492,7 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "SWIFTNESS"
+      "potionType": "STRONG_SWIFTNESS"
     },
     {
       "id": "alchemist:fire_resistance",
@@ -2560,7 +2560,7 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "LEAPING"
+      "potionType": "STRONG_LEAPING"
     },
     {
       "id": "alchemist:slow_falling",
@@ -2594,7 +2594,7 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "POISON"
+      "potionType": "STRONG_POISON"
     },
     {
       "id": "alchemist:weakness",
@@ -2627,7 +2627,7 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "REGENERATION"
+      "potionType": "STRONG_REGENERATION"
     },
     {
       "id": "alchemist:turtle_master",
@@ -2644,7 +2644,7 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "TURTLE_MASTER"
+      "potionType": "STRONG_TURTLE_MASTER"
     },
     {
       "id": "alchemist:luck",
@@ -3838,6 +3838,20 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "CHISELED"
+    },
+    {
+      "id": "tailor:rotten_flesh_to_leather",
+      "label": "Leder aus verrottetem Fleisch",
+      "profession": "TAILOR",
+      "result": "LEATHER",
+      "costs": {
+        "ROTTEN_FLESH": 4
+      },
+      "requiredProfessionLevel": 10,
+      "unlockPrice": 900,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "category": "LEATHER"
     }
   ]
 }
