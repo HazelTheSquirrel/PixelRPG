@@ -40,9 +40,10 @@ public final class MannequinCompanionController {
         }
 
         String skin = definition.visual().skinSource();
-        if (!skin.isBlank() && !skin.equals(appliedSkins.get(mannequin.getUniqueId()))) {
-            appliedSkins.put(mannequin.getUniqueId(), skin);
-            MannequinSkinResolver.apply(mannequin, skin, plugin.getLogger());
+        UUID mannequinId = mannequin.getUniqueId();
+        if (!skin.isBlank() && !skin.equals(appliedSkins.get(mannequinId))) {
+            MannequinSkinResolver.apply(mannequin, skin, plugin.getLogger())
+                    .thenRun(() -> appliedSkins.put(mannequinId, skin));
         }
 
         mannequin.setImmovable(false);
