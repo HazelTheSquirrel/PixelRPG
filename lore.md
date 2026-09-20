@@ -1,539 +1,505 @@
 # PixelRPG – Lore
 
-> **Status:** Living Canon / vollständige Grundlage der ersten Saga  
+> **Status:** Living Canon / Minecraft-Chronik erweitert durch PixelRPG  
 > **Branch:** Dialore  
-> **Zeitraum:** Vom Ursprung der bekannten Geschichte bis zum Fall des Enderdrachen  
-> **Zweck:** Grundlage für Welt, NPCs, Quests, Fraktionen, Dialoge, Berufe, Artefakte und spätere Story-Systeme.
->
-> **Wichtige Festlegung:** Das Regionen-System wird nicht Teil dieser Lore-Struktur. Orte und Schauplätze existieren erzählerisch, aber die Lore wird nicht von einer technischen Regionsaufteilung abhängig gemacht.
+> **Zeitraum:** Von den frühesten bekannten Ereignissen der Minecraft-Welt bis zum Fall des Enderdrachen  
+> **Zweck:** Verbindliche Grundlage für Welt, NPCs, Quests, Fraktionen, Dialoge, Berufe, Artefakte und spätere Story-Systeme.
 
 ---
 
-# 1. Die Geschichte, die Minecraft offenließ
+# 1. Grundsatz: Wir erzählen Minecraft
 
-Minecraft gab der Welt ihre Regeln.
+PixelRPG ist **keine eigene Welt neben Minecraft**.
 
-PixelRPG gibt ihren Bewohnern eine Geschichte.
+PixelRPG spielt in **der Welt von Minecraft selbst**.
 
-Die Welt ist dieselbe: Oberwelt, Nether und Ende. Dörfer, Ruinen, Tempel, Strongholds, Bastionen, Netherfestungen, Endstädte, Verzauberungen, Tränke, Enderperlen und die großen Kreaturen gehören zu ihrer Realität.
+Wir sind mit dem Beginn der bekannten Minecraft-Geschichte gekommen.
 
-Doch Minecraft beantwortet viele der Fragen, die hinter diesen Dingen liegen, nicht vollständig.
+Die Oberwelt ist unsere Oberwelt.
 
-Wer baute die Strongholds?
+Der Nether ist unser Nether.
 
-Warum existieren Portale?
+Das Ende ist unser Ende.
 
-Warum gibt es Ruinen von Kulturen, deren Namen niemand mehr kennt?
+Dörfer, Villager, Illager, Piglins, Endermen, Creeper, Zombies, Skelette, Hexen, Wächter, Shulker und alle anderen bekannten Wesen gehören zu derselben Welt, die Minecraft vorgibt.
 
-Warum finden sich Spuren alter Zivilisationen an Orten, an denen heute kaum jemand lebt?
+Minecraft liefert den Kanon, die Regeln und die sichtbare Welt.
 
-Warum kennen die Menschen den Nether, fürchten ihn aber gleichzeitig?
+**PixelRPG erzählt die Geschichte, die Minecraft zwischen diesen Dingen offen gelassen hat.**
 
-Warum existieren Endermen in der Oberwelt?
+Wir erfinden deshalb nicht einfach eine zweite Fantasywelt.
 
-Warum steht im Zentrum des Endes ein Drache?
+Wir nehmen Minecraft ernst.
 
-PixelRPG nimmt diese offenen Fragen und macht daraus keine Erklärung der gesamten Minecraft-Welt.
+Wenn Minecraft sagt, dass etwas existiert, existiert es bei uns.
 
-Es erzählt eine Geschichte innerhalb dieser Welt.
+Wenn Minecraft eine Geschichte nur andeutet, bauen wir sie aus.
 
-Eine Geschichte über Menschen.
+Wenn Minecraft eine Frage offenlässt, dürfen wir daraus eine Geschichte machen.
 
-Über vergessene Völker.
+Wenn Minecraft etwas niemals eindeutig beantwortet, muss PixelRPG nicht so tun, als wäre die Antwort schon bekannt.
 
-Über Wissen.
+Das Ziel ist:
 
-Über Krieg.
-
-Über Schuld.
-
-Über Freundschaft.
-
-Über die Angst vor dem Unbekannten.
-
-Und über einen Menschen, der ohne Vergangenheit aufwacht und am Ende dort ankommt, wo die Geschichte der Welt ihren äußersten Punkt erreicht.
+**Nicht Minecraft ersetzen. Minecraft erzählen.**
 
 ---
 
-# 2. Die Welt vor den Menschen
+# 2. Der Anfang
 
-Niemand kennt den wirklichen Anfang.
+Am Anfang unserer Chronik steht nicht der Spieler.
 
-Es gibt keine erhaltene Schrift, die den ersten Tag der Welt beschreibt.
+Am Anfang steht die Welt.
 
-Die ältesten Gelehrten unterscheiden deshalb zwischen dem **Anfang der Welt** und dem **Beginn der überlieferten Geschichte**.
+Die Welt war bereits da.
 
-Der Anfang der Welt ist unbekannt.
+Oberwelt, Nether und Ende existieren unabhängig von der späteren Zivilisation.
 
-Die überlieferte Geschichte beginnt mit den ersten Spuren von Zivilisation.
+Niemand kennt den ersten Augenblick.
 
-Diese Unterscheidung ist wichtig.
+Es gibt keine erhaltene Chronik darüber, wer die Welt erschaffen hat oder ob sie überhaupt einen einzelnen Anfang hatte.
 
-Denn selbst die ältesten Völker waren nicht die Ersten.
+Diese Frage bleibt offen.
 
-Sie waren nur die Ersten, deren Spuren lange genug überlebten.
-
----
-
-# 3. Die drei Welten
-
-Die Welt besteht aus drei bekannten Dimensionen.
-
-## Die Oberwelt
-
-Die Oberwelt ist die Heimat der heutigen Zivilisation.
-
-Dörfer, Wälder, Berge, Ozeane, Wüsten und unterirdische Anlagen bilden den Lebensraum der Menschen und anderer Völker.
-
-Für die meisten Bewohner ist sie die gesamte Welt.
-
-## Der Nether
-
-Der Nether ist eine eigene Welt aus Feuer, Lava, Seelen, Basalt und fremdem Leben.
-
-Er ist kein Untergrund der Oberwelt.
-
-Er ist eine Dimension.
-
-Seine Völker besitzen eigene Geschichte, eigene Konflikte und eigene Erinnerungen.
-
-## Das Ende
-
-Das Ende ist die am wenigsten verstandene Dimension.
-
-Schwebende Inseln, der Void, Endermen, Chorus, Shulker, Endstädte und der Enderdrache gehören zu einer Welt, deren Regeln sich der gewöhnlichen Vorstellung entziehen.
-
-Diese drei Welten waren niemals bedeutungslos voneinander getrennt.
-
-Irgendwann fanden die Bewohner der Oberwelt einen Weg, die Grenzen zwischen ihnen zu überwinden.
-
-Damit begann die älteste Katastrophe der bekannten Geschichte.
+Unsere Geschichte beginnt dort, wo Minecraft erste Spuren von Leben, Zivilisation und Veränderung zeigt.
 
 ---
 
-# 4. Die ersten Völker
+# 3. Die Oberwelt
 
-Die ältesten Völker sind heute nicht mehr eindeutig zu unterscheiden.
+Die Oberwelt ist die Heimat der meisten bekannten Zivilisationen.
 
-Ihre Namen sind verloren.
+Wälder wachsen.
 
-Ihre Sprachen sind teilweise verschwunden.
+Flüsse fließen.
 
-Ihre Gräber wurden zu Ruinen.
+Ozeane bedecken weite Teile der Welt.
 
-Ihre Straßen wurden von Wäldern überwachsen.
+Berge stehen über alten Höhlen.
 
-Ihre Städte wurden unter Erde begraben.
+Dörfer entstehen.
 
-Ihre Geschichte blieb in dem zurück, was nicht zerstört werden konnte.
+Burgen werden gebaut.
 
-Stein.
+Tempel werden verlassen.
 
-Obsidian.
+Minen werden gegraben.
 
-Metall.
+Unter der Oberfläche liegen Strukturen, deren Erbauer längst vergessen sind.
 
-Magische Gegenstände.
+Die Oberwelt ist deshalb nicht jung.
 
-Redstone.
+Sie ist alt.
 
-Bibliotheken.
+Sehr alt.
 
-Monumente.
+Die heutige Zivilisation lebt auf den Überresten früherer Zeitalter.
+
+---
+
+# 4. Die ersten Bewohner und die vergessenen Erbauer
+
+Minecraft zeigt überall Spuren früherer Kulturen.
+
+Ruinen.
+
+Trail Ruins.
+
+Verlassene Minen.
+
+Dungeons.
+
+Tempel.
+
+Ozeanmonumente.
+
+Ancient Cities.
+
+Woodland Mansions.
 
 Strongholds.
 
-Und in manchen Fällen nur ein einzelnes Artefakt.
+Die moderne Welt kennt nicht mehr alle Völker, die diese Orte geschaffen haben.
 
-Diese Völker werden in der Gegenwart gemeinsam als die **Alten** bezeichnet.
+In der Forschung werden viele dieser unbekannten Kulturen zusammenfassend als **die Alten** bezeichnet.
 
-Der Begriff ist kein historischer Eigenname.
+Das ist kein historischer Eigenname.
 
-Er ist ein Hilfsbegriff der modernen Gelehrten.
+Es ist ein moderner Sammelbegriff.
 
-Die Alten waren kein einziges Volk.
+Die Alten waren niemals ein einziges Volk.
 
-Sie waren viele Kulturen.
+Es gab unterschiedliche Kulturen, Sprachen, Glaubensvorstellungen, Reiche und Gemeinschaften.
 
-Einige waren Händler.
+Manche handelten.
 
-Einige waren Baumeister.
+Manche bauten.
 
-Einige waren Krieger.
+Manche kämpften.
 
-Einige waren Forscher.
+Manche erforschten Magie.
 
-Einige suchten die Grenzen der Welt.
+Manche suchten nach anderen Welten.
 
-Und einige gingen zu weit.
-
----
-
-# 5. Die drei großen Fragen der Alten
-
-Aus erhaltenen Schriften lässt sich erkennen, dass sich viele alte Kulturen mit drei Fragen beschäftigten.
-
-**Was liegt hinter unserer Welt?**
-
-**Kann man die Grenzen zwischen den Welten durchbrechen?**
-
-**Was geschieht mit einem Wesen, wenn es stirbt?**
-
-Diese drei Fragen führten zu drei großen Wissensgebieten:
-
-- Portale
-- Magie
-- Seelenforschung
-
-Spätere Generationen verbanden diese Dinge miteinander.
-
-Damit begann der gefährlichste Abschnitt der alten Geschichte.
+Und manche verschwanden.
 
 ---
 
-# 6. Das Zeitalter der Entdeckung
+# 5. Das Zeitalter der Entdeckung
 
-Die Alten lernten, dass die Welt größer war als die Oberwelt.
+Irgendwann entdeckten Bewohner der Oberwelt, dass ihre Welt nicht die einzige war.
 
-Sie fanden Wege, den Nether zu erreichen.
+Der Nether wurde erreicht.
 
-Zuerst waren Portale selten.
+Portale wurden verstanden.
 
-Dann wurden sie gebaut.
+Neue Materialien wurden gefunden.
 
-Handelswege entstanden.
+Glowstone.
 
-Gold wurde wichtig.
+Netherquarz.
 
-Netherquarz wurde entdeckt.
+Netherwarzen.
 
-Glowstone wurde erforscht.
+Gold.
 
-Feuer wurde kontrollierbarer.
+Seltsame Kreaturen.
 
-Neue Werkzeuge und Waffen entstanden.
+Neue Gefahren.
 
-Der Nether war gefährlich.
+Neue Möglichkeiten.
 
-Aber er war auch wertvoll.
+Der Nether wurde zuerst als fremde und gefährliche Dimension verstanden.
 
-Die ersten Expeditionen kamen zurück.
+Dann als Quelle von Wissen.
 
-Andere kamen nicht zurück.
+Dann als Quelle von Reichtum.
 
-Mit jeder erfolgreichen Reise wuchs die Überzeugung:
-
-Die Dimensionen konnten beherrscht werden.
-
-Diese Überzeugung sollte sich als einer der größten Fehler der Geschichte herausstellen.
+Und schließlich als Teil der bekannten Welt.
 
 ---
 
-# 7. Das alte Nether
+# 6. Der Nether war niemals leer
 
-Der Nether war niemals leer.
+Der Nether besitzt seine eigene Geschichte.
 
-Piglins besaßen Gemeinschaften, Traditionen und eine besondere Beziehung zu Gold.
+Piglins leben dort.
 
-Bastionen wurden zu Zentren ihrer Kultur.
+Bastionen zeugen von ihrer Kultur.
 
-Netherfestungen entstanden.
+Netherfestungen stehen zwischen Lava und Feuer.
 
-Blazes wurden Teil der Gefahren dieser Welt.
+Witherskelette bewachen alte Anlagen.
 
-Die Bewohner der Oberwelt verstanden den Nether zunächst nur als Ressource.
+Blazes gehören zu den Geheimnissen der Festungen.
 
-Die Bewohner des Nethers sahen die Oberwelt als Eindringling.
+Der Nether ist kein Dungeon.
 
-Beide Seiten entwickelten ihre eigene Geschichte.
+Er ist eine Welt.
 
-Und beide Seiten erzählten später, dass die jeweils andere Seite den Konflikt begonnen habe.
+Die Bewohner der Oberwelt verstanden das nur langsam.
+
+Für die Menschen war der Nether zunächst ein Ort, den man betreten konnte.
+
+Für die Piglins war er Heimat.
+
+Dieser Unterschied wird später entscheidend.
 
 ---
 
-# 8. Das Goldzeitalter
+# 7. Das Zeitalter des Handels
 
-Für kurze Zeit schien die Verbindung zwischen Oberwelt und Nether zu funktionieren.
+Zwischen Oberwelt und Nether entstand Kontakt.
 
-Handel florierte.
+Gold wurde zu einem wichtigen Bindeglied.
 
-Gold wechselte die Hände.
+Piglins und Menschen handelten.
 
 Nethermaterialien gelangten in die Oberwelt.
 
-Die ersten großen Werkstätten entstanden.
+Wissen über Tränke, Magie, Schmiedekunst und Portale verbreitete sich.
 
-Gelehrte sammelten Wissen über Magie und Verzauberungen.
+Die Verbindung zwischen den Welten brachte Wohlstand.
 
-Schmiede entwickelten neue Verfahren.
+Aber Wohlstand erzeugt Bedürfnisse.
 
-Alchemisten untersuchten Netherpflanzen und andere fremde Materialien.
+Mehr Gold.
 
-Baumeister übernahmen Techniken aus beiden Welten.
+Mehr Ressourcen.
 
-Diese Epoche wird in den wenigen erhaltenen Texten als das **Goldzeitalter** bezeichnet.
+Mehr Portale.
 
-Doch Gold war nicht das Einzige, was aus dem Nether kam.
+Mehr Expeditionen.
 
-Auch Angst kam mit ihm.
+Die Oberwelt begann, den Nether nicht mehr nur zu erforschen.
 
----
-
-# 9. Der Bruch
-
-Der Handel hatte einen Preis.
-
-Immer mehr Ressourcen wurden aus dem Nether entnommen.
-
-Immer mehr Portale wurden gebaut.
-
-Immer mehr Menschen betraten eine Welt, die sie nicht verstanden.
-
-Die Piglins wehrten sich.
-
-Zunächst gegen einzelne Expeditionen.
-
-Dann gegen Handelsstationen.
-
-Schließlich gegen befestigte Außenposten.
-
-Die Oberwelt antwortete mit Soldaten.
-
-Was als Konflikt um Ressourcen begann, wurde zu einem Krieg zwischen Welten.
+Sie begann, ihn auszubeuten.
 
 ---
 
-# 10. Der Krieg der Portale
+# 8. Der Krieg zwischen den Welten
 
-Der Krieg veränderte die Oberwelt und den Nether.
+Der Konflikt kam nicht an einem einzigen Tag.
 
-Portale wurden zu strategischen Punkten.
+Es gab keinen einzigen Moment, in dem plötzlich Krieg herrschte.
 
-Netherfestungen wurden befestigt.
+Es gab Grenzverletzungen.
 
-Bastionen wurden zu Kriegszentren.
+Gestohlene Ressourcen.
 
-Karawanen verschwanden.
+Zerstörte Handelsplätze.
 
-Handelsrouten brachen zusammen.
+Vergeltung.
 
-Städte verloren ihre Versorgung.
+Neue Expeditionen.
 
-Die Menschen bauten unterirdische Anlagen.
+Neue Angriffe.
 
-Die Angst vor Angriffen führte zu immer größeren Befestigungen.
+Neue Vergeltung.
 
-Einige der späteren Ruinen der Welt stammen aus dieser Zeit.
+Die Menschen erzählten später, die Piglins hätten den Krieg begonnen.
 
-Der Krieg dauerte lange genug, dass eine Generation geboren wurde, die nichts anderes kannte.
+Die Piglins erzählten später, die Menschen seien als Erste gekommen und hätten genommen, was ihnen nicht gehörte.
 
-Für sie war Frieden keine Erinnerung.
+Beide Geschichten enthalten Teile der Wahrheit.
 
-Er war eine Legende.
+Der Krieg entstand aus vielen Entscheidungen.
 
 ---
 
-# 11. Der Krieg der Seelen
+# 9. Die Portale
 
-Während die Soldaten kämpften, arbeiteten Gelehrte an einer anderen Frage.
+Portale wurden zu den wichtigsten strategischen Punkten der alten Welt.
 
-Was ist eine Seele?
+Wer ein Portal kontrollierte, kontrollierte einen Weg zwischen den Dimensionen.
 
-Kann sie gespeichert werden?
+Festungen wurden gebaut.
 
-Kann sie bewegt werden?
+Bastionen wurden befestigt.
 
-Kann sie Energie liefern?
+Handelsrouten entstanden.
 
-Kann man einen Körper ohne Seele zurückbringen?
+Armeen zogen durch Portale.
 
-Die Forschung konzentrierte sich auf Seelensand und andere Erscheinungen des Nethers.
+Flüchtlinge flohen durch Portale.
 
-Die Forscher glaubten, damit den Krieg beenden zu können.
+Andere versiegelten ihre Portale aus Angst.
 
-Sie wollten eine Waffe schaffen, die jede Armee vernichten konnte.
+Die Welt wurde dadurch gleichzeitig größer und gefährlicher.
 
-Sie erschufen etwas, das niemand kontrollieren konnte.
+---
 
-Den Wither.
+# 10. Magie und Verzauberungen
+
+Magie war nie vollständig verstanden.
+
+Verzauberungen wurden entdeckt, weitergegeben und verändert.
+
+Bücher wurden zu Trägern von Wissen.
+
+Erfahrene Gelehrte konnten Waffen, Werkzeuge und Rüstungen mit Kräften versehen, die weit über gewöhnliches Handwerk hinausgingen.
+
+Doch auch hier galt:
+
+Wissen wurde nicht immer verstanden.
+
+Viele heutige Menschen kennen ein Rezept, ohne zu wissen, warum es funktioniert.
+
+Viele kennen eine Verzauberung, ohne ihren Ursprung zu kennen.
+
+Das ist eines der großen Erbe der Alten.
+
+---
+
+# 11. Die Seelen
+
+Die Alten stellten irgendwann eine gefährliche Frage:
+
+**Was ist eine Seele?**
+
+Seelensand und die seltsamen Erscheinungen des Nethers schienen Hinweise zu liefern.
+
+Forscher begannen, mit Seelenenergie zu experimentieren.
+
+Sie wollten Krankheiten heilen.
+
+Sie wollten Verstorbene verstehen.
+
+Sie wollten Soldaten stärken.
+
+Und schließlich wollten sie Waffen erschaffen.
+
+Damit begann ein Abschnitt der Geschichte, den spätere Generationen nur noch als **Krieg der Seelen** kennen.
 
 ---
 
 # 12. Der Wither
 
-Die genaue Entstehung des Withers ist Teil des PixelRPG-Kanons.
+Minecraft kennt den Wither.
 
-Eine Gruppe von Gelehrten und Kriegsmagiern entwickelte ein Ritual, das Seelensand, Witherskelett-Schädel und konzentrierte Netherenergie miteinander verband.
+PixelRPG erzählt, was hinter seiner Entstehung geschah.
 
-Das Ziel war eine kontrollierbare Waffe.
+Die alten Forscher verwendeten Seelensand, Witherskelett-Schädel und Netherenergie in einem verbotenen Ritual.
 
-Der Versuch scheiterte.
+Sie wollten eine kontrollierbare Macht schaffen.
 
-Der Wither war keine Waffe.
+Eine Waffe.
 
-Er war eine Katastrophe.
+Etwas, das den Krieg beenden sollte.
 
-Er unterschied nicht zwischen Soldaten und Zivilisten.
+Sie scheiterten.
 
-Er unterschied nicht zwischen Oberwelt und Nether.
+Der Wither gehorchte niemandem.
 
-Er zerstörte.
+Er zerstörte seine Erschaffer.
 
-Die alten Reiche konnten ihn nicht dauerhaft kontrollieren.
+Er zerstörte ihre Feinde.
 
-Viele ihrer größten Anlagen wurden vernichtet.
+Er zerstörte Anlagen.
+
+Er zerstörte Wissen.
+
+Er wurde zu einer Katastrophe.
+
+Der Wither ist damit Teil der Minecraft-Geschichte und zugleich einer der größten historischen Wendepunkte unserer erweiterten Chronik.
+
+---
+
+# 13. Der Fall der Alten
+
+Der Wither war nicht der einzige Grund für den Untergang der alten Zivilisationen.
+
+Aber er beschleunigte ihn.
+
+Reiche zerfielen.
 
 Bibliotheken gingen verloren.
 
 Portale wurden aufgegeben.
 
-Die Alten begannen zu sterben.
+Städte verfielen.
 
----
+Familien flohen.
 
-# 13. Das Ende des alten Zeitalters
+Alte Sprachen verschwanden.
 
-Der Wither war nicht der einzige Grund für den Fall der Alten.
+Wissen wurde von Generation zu Generation weniger.
 
-Aber er war der letzte Schlag.
-
-Reiche zerfielen.
-
-Gelehrte starben.
-
-Karten verschwanden.
-
-Portale wurden versiegelt.
-
-Die Überlebenden zogen sich zurück.
-
-Manche gingen in die Wälder.
-
-Manche gründeten kleine Siedlungen.
-
-Manche flohen in den Nether.
-
-Manche verschwanden.
-
-Und einige hinterließen Anlagen, deren Zweck die nächsten Generationen nicht mehr verstanden.
-
-Die Welt trat in das **Zeitalter des Vergessens** ein.
+Die Menschen verloren ihre eigene Vergangenheit.
 
 ---
 
 # 14. Das Zeitalter des Vergessens
 
-Das Vergessen war kein einzelnes Ereignis.
+Das Vergessen geschah langsam.
 
-Es war ein Prozess.
+Ein Gelehrter starb.
 
-Jede Generation wusste weniger als die vorherige.
+Sein Schüler kannte nur noch einen Teil seines Wissens.
 
-Eine Bibliothek wurde zerstört.
+Dessen Schüler kannte nur noch einen Teil davon.
 
-Ein Meister starb.
+Nach vielen Generationen blieb nur eine Legende.
 
-Eine Sprache verschwand.
+Aus einem König wurde ein Name.
 
-Ein Rezept wurde vergessen.
+Aus einer Stadt wurde eine Ruine.
 
-Ein Portal wurde zugemauert.
+Aus einer Bibliothek wurde ein Mythos.
 
-Ein Name wurde nur noch als Titel weitergegeben.
+Aus einem Portal wurde eine Wand aus Obsidian.
 
-Nach Jahrhunderten wusste niemand mehr, dass die Welt einmal verbunden gewesen war.
+Die Welt wurde nicht kleiner.
 
-Die Menschen sahen Ruinen.
-
-Sie wussten nicht mehr, wer sie gebaut hatte.
-
-Sie fanden Strongholds.
-
-Sie wussten nicht mehr, warum.
-
-Sie fanden alte Waffen.
-
-Sie kannten ihren Ursprung nicht.
-
-Sie fanden Verzauberungen.
-
-Sie nutzten sie, ohne ihre Geschichte zu kennen.
-
-Die Welt wurde kleiner.
-
-Nicht weil sie kleiner geworden war.
-
-Sondern weil die Menschen weniger von ihr verstanden.
+**Das Wissen über sie wurde kleiner.**
 
 ---
 
-# 15. Die neue Zivilisation
+# 15. Die heutige Minecraft-Welt
 
-Aus den Überlebenden entstanden neue Gemeinschaften.
+Aus den Überlebenden entstanden die Gemeinschaften, die wir heute kennen.
 
-Dörfer wurden gegründet.
+Dörfer.
 
-Familien wurden sesshaft.
+Handwerker.
 
-Handwerk wurde wieder wichtig.
+Händler.
 
-Nahrung wurde wichtiger als alte Kriege.
+Reisende.
 
-Sicherheit wurde wichtiger als Forschung.
+Abenteurer.
 
-Die neue Zivilisation hatte keine großen Reiche.
+Gelehrte.
 
-Sie hatte Menschen, die versuchten, den nächsten Winter zu überleben.
+Illager-Gemeinschaften.
 
-Aus dieser Welt entstehen später die Gilden.
+Andere Völker.
 
----
+Die Welt wurde wieder bewohnbar.
 
-# 16. Die Gilden
+Aber sie wurde nicht wieder so, wie sie einmal gewesen war.
 
-Gilden entstanden aus praktischer Notwendigkeit.
-
-Handwerker brauchten Schutz.
-
-Händler brauchten Wege.
-
-Reisende brauchten Unterstützung.
-
-Gelehrte brauchten Archive.
-
-Abenteurer brauchten Auftraggeber.
-
-Aus kleinen Vereinigungen entstanden organisierte Gilden.
-
-Sie wurden zu den wichtigsten Institutionen der modernen Welt.
-
-Eine Gilde ist dabei nicht nur ein Gebäude.
-
-Sie ist ein Netzwerk aus Menschen.
-
-Sie besitzt Regeln.
-
-Rivalen.
-
-Freunde.
-
-Feinde.
-
-Lehrlinge.
-
-Meister.
-
-Schulden.
-
-Geheimnisse.
-
-Und Geschichten.
+Die Menschen lebten auf den Resten einer Geschichte, deren größten Teil sie nicht mehr kannten.
 
 ---
 
-# 17. Die Neun Berufe
+# 16. Dörfer und Villager
 
-Die neun großen Berufe der modernen Zivilisation sind:
+Dörfer sind ein wichtiger Teil der modernen Welt.
+
+Villager besitzen Berufe, Handel, Familien und Gemeinschaften.
+
+Sie sind keine bloßen Kulissen.
+
+Sie haben Erinnerungen.
+
+Sie erzählen Geschichten.
+
+Sie kennen Gefahren.
+
+Sie handeln mit anderen Dörfern.
+
+Manche haben Angst vor der Nacht.
+
+Manche fürchten Plünderer.
+
+Manche erinnern sich an Angriffe, die ihre Kinder nur noch aus Erzählungen kennen.
+
+Die Dorfbewohner sind Teil der Geschichte der Welt.
+
+---
+
+# 17. Illager und die dunkle Seite der Zivilisation
+
+Nicht alle Menschen leben in Dörfern.
+
+Illager-Gemeinschaften entwickelten sich außerhalb der normalen Dorfgesellschaft.
+
+Pillager, Vindicator, Evoker und andere Illager sind keine zufälligen Gegner.
+
+Sie sind Teil derselben Welt.
+
+Ihre Burgen und Außenposten erzählen von Macht, Abgrenzung und Konflikten.
+
+Die moderne Welt ist nicht nur eine Geschichte vom Wiederaufbau.
+
+Sie ist auch eine Geschichte von Spaltung.
+
+---
+
+# 18. Die Gilden
+
+In dieser Welt entstehen Gilden.
+
+Sie sind keine neue Fantasywelt neben Minecraft.
+
+Sie sind eine Entwicklung der bestehenden Zivilisation.
+
+Gilden organisieren Handwerk, Wissen, Handel, Reisen und Abenteuer.
+
+Sie bilden das soziale Fundament von PixelRPG.
+
+Die wichtigsten Berufe sind:
 
 1. Schmied
 2. Gelehrter
@@ -545,1655 +511,842 @@ Die neun großen Berufe der modernen Zivilisation sind:
 8. Fischer
 9. Holzfäller
 
-Diese Berufe sind nicht nur wirtschaftliche Rollen.
-
-Sie bewahren Teile der Welt.
-
-Der Schmied kennt Metall.
-
-Der Gelehrte kennt Wissen.
-
-Der Bauer kennt Nahrung.
-
-Der Koch kennt Versorgung.
-
-Der Schneider kennt Stoff und Schutz.
-
-Der Alchemist kennt Körper und Reagenzien.
-
-Der Steinmetz kennt Bauwerke.
-
-Der Fischer kennt Wasser und die Dinge, die darin verloren gehen.
-
-Der Holzfäller kennt Wälder und Wege.
-
-Keiner besitzt die ganze Wahrheit.
-
-Zusammen ergeben sie ein Bild der Welt.
+Jeder Beruf bewahrt einen Teil der Minecraft-Welt.
 
 ---
 
-# 18. Der Gelehrte
+# 19. Der Gelehrte
 
-Der Gelehrte besitzt eine besondere Stellung.
-
-Er sammelt, was andere vergessen.
+Der Gelehrte bewahrt Wissen.
 
 Er untersucht Verzauberungen.
 
-Er bewahrt alte Bücher.
+Er studiert Bücher.
 
-Er studiert Portale.
+Er erforscht Ruinen.
+
+Er sammelt Hinweise auf die Alten.
 
 Er untersucht Enderperlen.
 
-Er sucht nach Hinweisen auf die Alten.
+Er versucht, die Bedeutung der Strongholds zu verstehen.
 
-Der größte Schatz eines Gelehrten ist deshalb kein Gold.
+Der Gelehrte kennt alle bekannten Verzauberungen bis zur höchsten bekannten Stufe.
 
-Es ist eine Information, die sonst niemand mehr besitzt.
+Aber Wissen bedeutet nicht automatisch Verständnis.
 
-Der Gelehrte kann alle bekannten Verzauberungen bis zu ihrer höchsten bekannten Stufe verstehen.
-
-Doch mit jedem neuen Wissen entsteht eine weitere Frage.
-
-Und einige Antworten hätten besser vergessen bleiben sollen.
+Je mehr der Gelehrte entdeckt, desto mehr Fragen entstehen.
 
 ---
 
-# 19. Die Bank und das Vertrauen
+# 20. Die Ruinen der Welt
 
-Mit wachsendem Handel entstand ein weiteres Problem.
+Die Ruinen sind unsere Archive.
 
-Wer besitzt was?
+Eine Trail Ruin erzählt eine Geschichte.
 
-Wer garantiert Schulden?
+Eine Ancient City erzählt eine andere.
 
-Wer bewahrt das Vermögen einer Gilde?
+Ein Ozeanmonument eine weitere.
 
-Wer sorgt dafür, dass ein Händler nicht alles verliert, wenn seine Karawane verschwindet?
+Eine Bastion erzählt die Geschichte des Nethers.
 
-Aus diesem Problem entstand das moderne Bankwesen.
+Eine Netherfestung erzählt von einer alten Verbindung zwischen Welten.
 
-Banker gehören deshalb zu den unscheinbaren, aber mächtigen Figuren der Welt.
+Eine Woodland Mansion zeigt, dass selbst die moderne Welt ihre eigenen unbekannten Kulturen besitzt.
 
-Ein Banker trägt keine Rüstung.
+Ein Stronghold ist etwas anderes.
 
-Er braucht meistens auch keine.
-
-Er besitzt etwas Wertvolleres:
-
-Vertrauen.
-
-Wer die Bücher einer Bank kontrolliert, kennt die wirtschaftliche Geschichte einer Stadt.
-
-Und manchmal auch Geheimnisse, die nie in Geschichtsbüchern stehen werden.
+Ein Stronghold ist ein Hinweis.
 
 ---
 
-# 20. Die Welt der Reisenden
+# 21. Die Strongholds
 
-Reisen verbindet die Zivilisation.
+Die Strongholds gehören zu den größten ungelösten Geheimnissen der Minecraft-Welt.
 
-Händler bringen Waren.
+Ihre Erbauer sind unbekannt.
 
-Abenteurer bringen Nachrichten.
+Ihr ursprünglicher Zweck ist vergessen.
 
-Gelehrte suchen Ruinen.
+Doch in ihren Tiefen befindet sich das Endportal.
 
-Fischer verkaufen Funde.
+Damit wissen wir:
 
-Schmiede suchen seltene Materialien.
+**Die Alten kannten das Ende.**
 
-Alchemisten suchen Pflanzen.
+Die Strongholds waren Teil der Suche nach dieser dritten Dimension.
 
-Reisende bringen Gerüchte.
-
-Darum besitzt jeder Weg eine Geschichte.
-
-Ein Weg kann sicher sein.
-
-Ein anderer wird gemieden.
-
-Ein dritter ist nur wenigen bekannt.
-
-Ein vierter existiert auf keiner offiziellen Karte.
-
-Die Welt wird nicht durch ein technisches Regionen-System definiert.
-
-Sie wird durch Menschen, Wege und Erinnerungen verbunden.
+Warum sie danach verschwanden, ist eine der großen Fragen unserer Geschichte.
 
 ---
 
-# 21. Die Ruinen
+# 22. Die Enderperlen
 
-Die Ruinen der Welt sind die offenen Wunden der Vergangenheit.
+Enderperlen sind ein weiteres Bindeglied.
 
-Trail Ruins.
+Sie stehen in Verbindung mit Endermen.
 
-Tempel.
+Sie ermöglichen eine Form von Teleportation.
 
-Verlassene Minen.
+Sie zeigen, dass die Grenzen zwischen Ort und Ort nicht so fest sind, wie Menschen glauben.
 
-Ozeanmonumente.
+Ihre Existenz ist ein Hinweis darauf, dass das Ende nicht nur ein ferner Ort ist.
 
-Ancient Cities.
-
-Bastionen.
-
-Netherfestungen.
-
-Strongholds.
-
-Jede Struktur erzählt etwas.
-
-Aber nicht jede erzählt die Wahrheit.
-
-Ein Monument kann von seinen Erbauern anders beschrieben worden sein als von ihren Feinden.
-
-Eine Ruine kann später von einem anderen Volk übernommen worden sein.
-
-Ein Buch kann absichtlich lügen.
-
-Eine Statue kann einen Verräter als Helden darstellen.
-
-Archäologie ist deshalb keine Suche nach Gegenständen.
-
-Sie ist eine Suche nach Erinnerung.
+Es berührt die anderen Welten bereits.
 
 ---
 
-# 22. Die Chronisten
+# 23. Die Augen des Endes
 
-Nach dem Zeitalter des Vergessens entstanden die ersten modernen Chronisten.
+Aus Wissen des Nethers und Wissen über Enderperlen entsteht das Auge des Endes.
 
-Sie sammelten alte Texte.
+Es ist ein Gegenstand, der zwei Dimensionen miteinander verbindet.
 
-Sie verglichen Ruinen.
+Es führt den Suchenden zu einem Stronghold.
 
-Sie markierten bekannte Strongholds.
+Damit beginnt eine neue Form der Erforschung.
 
-Sie untersuchten Portale.
+Nicht mehr:
 
-Sie erstellten Listen über alte Völker.
+**Was ist dort?**
 
-Doch die Chronisten hatten ein Problem.
+Sondern:
 
-Fast jede Quelle widersprach einer anderen.
-
-Deshalb entstanden drei Arten von Geschichte.
-
-**Was bewiesen ist.**
-
-**Was wahrscheinlich ist.**
-
-**Was erzählt wird.**
-
-PixelRPG unterscheidet diese Ebenen bewusst.
+**Warum wollten die Alten dorthin?**
 
 ---
 
-# 23. Die Legende vom ersten Portalbauer
+# 24. Die Endermen
 
-Eine der ältesten Geschichten erzählt von einer Person, die nur als **Der Erste Portalbauer** bekannt ist.
-
-Der Erste Portalbauer soll entdeckt haben, dass die Welt nicht an den Grenzen der Oberwelt endet.
-
-Er soll den ersten dauerhaften Weg in den Nether geschaffen haben.
-
-Ob diese Person wirklich existierte, ist unbekannt.
-
-Einige Forscher glauben, dass es nie eine einzelne Person gab.
-
-Andere glauben, dass der Name nur deshalb überlebt hat, weil diese Person etwas getan hat, das niemand wiederholen konnte.
-
-Ein Fragment einer alten Inschrift trägt nur einen Satz:
-
-> „Wir öffneten die Tür, weil wir glaubten, dahinter läge nur ein weiterer Raum.“
-
----
-
-# 24. Die verlorene Bibliothek
-
-Eine zweite Legende handelt von der **Bibliothek von Arkan**.
-
-Sie soll das größte Archiv der Alten gewesen sein.
-
-Dort sollen Aufzeichnungen über Netherreisen, Verzauberungen und Portale gesammelt worden sein.
-
-Die Bibliothek verschwand während des Falls der Alten.
-
-Niemand weiß, ob sie zerstört wurde.
-
-Manche behaupten, ihre Bücher seien verteilt worden.
-
-Andere behaupten, die Bibliothek existiere noch.
-
-Diese Geschichte wird später wichtig.
-
-Denn ein Teil der Informationen, die zum Ende führen, stammt aus genau dieser Überlieferung.
-
----
-
-# 25. Der Hüter der Bibliothek
-
-Ein Name taucht in mehreren alten Fragmenten auf:
-
-**Elyan Voss.**
-
-Elyan war nach PixelRPG-Kanon der letzte bekannte Hüter der Bibliothek von Arkan.
-
-Er war kein König.
-
-Kein Krieger.
-
-Kein großer Magier.
-
-Er war Archivar.
-
-Als die Alten fielen, erkannte Elyan, dass ihre Bücher nicht gerettet werden konnten.
-
-Er konnte nur entscheiden, welche Informationen überleben sollten.
-
-Er zerlegte die wichtigsten Aufzeichnungen.
-
-Ein Teil wurde versteckt.
-
-Ein Teil wurde verschlüsselt.
-
-Ein Teil wurde absichtlich falsch abgeschrieben.
-
-Sein Ziel war nicht, die Wahrheit für immer zu verbergen.
-
-Sein Ziel war, zu verhindern, dass die nächste Generation denselben Fehler wiederholte.
-
----
-
-# 26. Das Geheimnis der Strongholds
-
-Elyans Aufzeichnungen enthalten einen entscheidenden Hinweis:
-
-Strongholds waren keine gewöhnlichen Festungen.
-
-Sie waren Beobachtungs- und Zugangsanlagen.
-
-Ihre Erbauer suchten nach dem Ende.
-
-Sie wussten, dass eine dritte Dimension existiert.
-
-Sie wussten, dass der Zugang nicht einfach geöffnet werden durfte.
-
-Darum wurden die Anlagen tief unter der Erde gebaut.
-
-Darum wurden Portale verborgen.
-
-Darum wurden Hinweise getrennt.
-
-Die Strongholds waren keine Tore, die man finden sollte.
-
-Sie waren Tore, die man erst finden durfte, wenn man verstand, wonach man suchte.
-
----
-
-# 27. Die Enderperle
-
-Enderperlen wurden zu einem der wichtigsten Beweise.
-
-Sie zeigten, dass Raum selbst überwunden werden konnte.
-
-Gelehrte bemerkten, dass Enderperlen mit den Erscheinungen der Endermen verbunden waren.
-
-Damit entstand eine gefährliche Theorie:
-
-Wenn Enderperlen einen Zusammenhang mit dem Ende besitzen, könnten sie der Schlüssel zum Zugang sein.
-
-Diese Theorie führte zur Suche nach den sogenannten **Augen des Endes**.
-
----
-
-# 28. Das Auge des Endes
-
-Das Auge des Endes ist kein gewöhnlicher Gegenstand.
-
-Es verbindet zwei Wissensgebiete:
-
-Netherwissen.
-
-Endwissen.
-
-Seine Herstellung setzt Materialien aus beiden Welten voraus.
-
-Damit ist es ein Beweis dafür, dass die Alten Dimensionen nicht isoliert betrachteten.
-
-Das Auge ist ein Wegweiser.
-
-Es führt nicht einfach zu einem Ort.
-
-Es führt zu einer Entscheidung.
-
-Wer ihm folgt, sucht das Ende.
-
----
-
-# 29. Die Endermen
-
-Endermen sind die sichtbarste Verbindung zwischen Oberwelt und Ende.
-
-Sie erscheinen in verschiedenen Welten.
+Endermen existieren in mehreren Dimensionen.
 
 Sie können sich teleportieren.
 
 Sie bewegen Blöcke.
 
-Sie reagieren auf Blicke.
+Sie reagieren auf die Blicke anderer Wesen.
 
-Ihre Sprache bleibt für die meisten Menschen unverständlich.
+Ihre Herkunft ist unbekannt.
 
-Die moderne Forschung besitzt keine endgültige Antwort über ihre Herkunft.
+PixelRPG erklärt ihre Existenz nicht vollständig.
 
-PixelRPG legt deshalb bewusst fest:
+Nicht weil wir keine Idee haben.
 
-Die Endermen sind kein vollständig gelöstes Rätsel.
+Sondern weil die Geschichte der Endermen größer sein soll als eine einfache Antwort.
 
-Einige alte Texte behaupten, sie seien Überlebende einer verlorenen Zivilisation.
+Sie gehören zur Minecraft-Welt.
 
-Andere Texte beschreiben sie als Wesen, die schon vor den Alten existierten.
-
-Keine Quelle beweist eine dieser Aussagen.
+Ihre Wahrheit muss gefunden werden, nicht erfunden werden.
 
 ---
 
-# 30. Das Ende
+# 25. Das Ende
 
-Das Ende ist die letzte Grenze.
+Das Ende ist real.
 
-Der Himmel ist anders.
+Es ist keine Legende.
 
-Der Boden schwebt.
+Es ist keine andere Welt hinter einem Märchen.
 
-Der Void wartet unter jeder Insel.
+Es existiert.
 
-Die Natur folgt anderen Regeln.
+Die Alten fanden den Weg dorthin.
 
-Und in der Mitte steht der Enderdrache.
+Und irgendetwas geschah.
 
-Das Ende wirkt nicht wie ein Ort, den jemand einfach bewohnt.
+Ihre Expeditionen endeten.
 
-Es wirkt wie ein Ort, der auf etwas wartet.
+Ihre Strongholds wurden verlassen.
 
----
+Ihre Geschichte brach ab.
 
-# 31. Die Endstädte
+Im Zentrum des Endes lebt ein Wesen, das die Menschen nur unter einem Namen kennen:
 
-Die Endstädte sind der Beweis, dass das Ende nicht leer ist.
-
-Ihre Architektur ist fremdartig.
-
-Shulker bewachen ihre Wege.
-
-Schätze liegen in ihren Türmen.
-
-Doch in der ersten Saga werden diese Städte nicht vollständig erklärt.
-
-Der Spieler kann sie sehen.
-
-Er kann sie betreten.
-
-Er kann ihre Schätze finden.
-
-Aber er erhält nicht die Antwort auf jedes Rätsel.
-
-Das Ende soll am Ende der ersten Saga größer wirken als die Geschichte, die der Spieler gerade beendet hat.
+**Der Enderdrache.**
 
 ---
 
-# 32. Der Enderdrache
+# 26. Der Enderdrache
 
-Der Enderdrache ist der Mittelpunkt der ersten Saga.
+Der Enderdrache ist das mächtigste bekannte Wesen des Endes.
 
-Er ist das stärkste bekannte Wesen des Endes.
+Seine genaue Herkunft bleibt unbekannt.
 
-Endkristalle halten ihn am Leben.
+Ob er Wächter, Herrscher, Gefangener oder etwas anderes ist, wissen die Menschen nicht.
 
-Die Obsidian-Säulen tragen die Kristalle.
+Aber eines wissen sie:
 
-Seine Existenz ist mit dem zentralen Endsystem verbunden.
+Er bewacht das Ende.
 
-Niemand weiß vollständig, ob er Wächter oder Gefangener ist.
+Der Enderdrache ist kein nachträglich erfundener Endgegner.
 
-PixelRPG beantwortet diese Frage innerhalb der ersten Saga nicht endgültig.
+Er ist Teil der Minecraft-Welt selbst.
 
-Denn die Geschichte handelt nicht davon, den Ursprung des Drachen vollständig zu erklären.
+PixelRPG macht aus ihm deshalb keinen größeren kosmischen Mythos.
 
-Sie handelt davon, ihn zu erreichen.
-
----
-
-# 33. Die Gegenwart
-
-Viele Jahrhunderte nach dem Fall der Alten ist die Welt wieder stabil.
-
-Nicht friedlich.
-
-Aber stabil.
-
-Dörfer bestehen.
-
-Gilden wachsen.
-
-Handel funktioniert.
-
-Berufe werden weitergegeben.
-
-Banken verwalten Vermögen.
-
-Gelehrte sammeln Bücher.
-
-Abenteurer suchen Ruinen.
-
-Der Nether ist bekannt, aber gefährlich.
-
-Das Ende ist bekannt, aber unerreichbar.
-
-Für die meisten Menschen endet die Welt dort, wo die Karten enden.
-
-Dann kommt der Spieler.
+Er ist der Punkt, an dem unsere erste große Geschichte endet.
 
 ---
 
-# 34. The Summoning
+# 27. Der Beginn von PixelRPG
 
-Niemand weiß, warum der Spieler erwacht.
+Und dann kommen **wir**.
 
-Er erwacht in der Oberwelt.
+Nicht in eine neue Welt.
 
-Er kennt seinen Weg nicht.
+Nicht in ein anderes Universum.
 
-Seine Vergangenheit ist nicht verfügbar.
+Wir kommen in diese Welt.
 
-Er besitzt keinen bekannten Platz in den Archiven.
+Der Spieler erwacht in der Oberwelt.
 
-Er hat keine Gilde.
+Er besitzt keine bekannte Geschichte.
 
-Keinen anerkannten Beruf.
+Niemand kennt seinen Namen.
 
-Keine Geschichte, die andere erzählen können.
+Niemand weiß, woher er gekommen ist.
 
-Die erste Person, die ihn ernst nimmt, ist ein Vertreter der Rezeption.
+Er ist nicht der Auserwählte einer Prophezeiung.
 
-Die Registrierung ist der erste Schritt.
+Er ist ein Mensch in Minecraft.
 
-Nicht weil der Spieler dadurch zum Helden wird.
-
-Sondern weil die Welt ihm zum ersten Mal einen Platz gibt.
+Er muss sich seinen Platz selbst schaffen.
 
 ---
 
-# 35. Der Spieler
+# 28. The Summoning
 
-Der Spieler ist zu Beginn kein Auserwählter.
+Das Erwachen ist der Anfang der persönlichen Geschichte.
 
-Es gibt keine Krone.
+Der Spieler sieht eine Welt, die für ihn gleichzeitig vertraut und fremd ist.
 
-Keine Prophezeiung.
+Er trifft auf Menschen.
 
-Keinen Titel.
+Er findet ein Dorf.
 
-Er ist jemand, der eine Welt betritt, die bereits existiert.
+Er sieht Handwerk.
 
-Er muss sich seinen Ruf verdienen.
+Er hört Gerüchte.
 
-Er lernt einen Beruf.
+Er lernt die Regeln dieser Welt.
 
-Er hilft Menschen.
+Schließlich führt sein Weg zur Rezeption der Gilde.
 
-Er macht Fehler.
-
-Er verdient Geld.
-
-Er verliert Geld.
-
-Er findet Freunde.
-
-Er trifft Feinde.
-
-Er entdeckt Dinge.
-
-Und irgendwann stellt er fest, dass die Welt, in der er lebt, auf einer Geschichte aufgebaut ist, die niemand mehr vollständig kennt.
+Dort beginnt sein Leben als Abenteurer.
 
 ---
 
-# 36. Die Rezeption
+# 29. Der Spieler
 
-Die Rezeption ist das Tor zur modernen Welt.
+Der Spieler ist kein Fremdkörper in Minecraft.
 
-Hier werden Reisende registriert.
+Er ist eine Figur dieser Welt.
 
-Hier beginnen Aufträge.
+Er kann arbeiten.
 
-Hier erhalten neue Abenteurer ihre erste Orientierung.
+Handeln.
 
-Die Mitarbeiter der Rezeption kennen die Welt nicht vollständig.
+Kämpfen.
 
-Aber sie kennen die Menschen.
+Forschen.
 
-Sie wissen, welche Gilden Hilfe brauchen.
+Reisen.
 
-Welche Händler unterwegs sind.
+Freundschaften schließen.
 
-Welche Reisenden nicht zurückgekehrt sind.
+Feinde gewinnen.
 
-Welche Orte gemieden werden.
+Fehler machen.
 
-Damit wird die Rezeption zum ersten Knotenpunkt der Geschichte des Spielers.
+Geschichten verändern.
 
----
+Seine Bedeutung entsteht nicht durch eine Prophezeiung.
 
-# 37. Die erste Gilde
-
-Die Gilde ist zunächst nur eine Organisation.
-
-Doch sie wird zum Mittelpunkt des Abenteurerlebens.
-
-Die Gilde braucht Ressourcen.
-
-Sie braucht Mitglieder.
-
-Sie braucht Informationen.
-
-Sie braucht Vertrauen.
-
-Mit der Zeit erkennt der Spieler, dass die Gilde selbst Teil der Geschichte ist.
-
-Ihre Archive enthalten Fragmente der Alten.
-
-Ihre älteren Mitglieder kennen Geschichten, die nicht in Büchern stehen.
-
-Ihre Aufträge führen an Orte, die auf keiner gewöhnlichen Handelskarte verzeichnet sind.
+Sie entsteht durch seine Taten.
 
 ---
 
-# 38. Die neun Wege
+# 30. Die große Geschichte
 
-Der Spieler kann durch die Berufe unterschiedliche Teile der Welt kennenlernen.
+Die persönliche Reise des Spielers beginnt klein.
 
-Der Schmied hört Geschichten über Waffen.
+Eine Aufgabe.
 
-Der Gelehrte findet alte Schriften.
+Ein Dorf.
 
-Der Bauer erfährt, welche Dörfer hungern.
+Ein Beruf.
 
-Der Koch kennt Reisende und Versorgungslinien.
+Ein Auftrag.
 
-Der Schneider kennt Stoffhändler und alte Kleidung.
+Ein verlorener Gegenstand.
 
-Der Alchemist entdeckt verbotene Reagenzien.
-
-Der Steinmetz erkennt Bauwerke.
-
-Der Fischer findet Dinge, die andere nie sehen.
-
-Der Holzfäller kennt Wege durch Wälder.
-
-Damit wird der Beruf des Spielers Teil seiner persönlichen Geschichte.
-
----
-
-# 39. Die ersten Quests
-
-Die Geschichte beginnt klein.
-
-Ein Händler braucht Hilfe.
-
-Ein Bauer verliert seine Ernte.
-
-Ein Fischer findet einen seltsamen Gegenstand.
-
-Ein Schmied braucht Material.
-
-Ein Gelehrter sucht ein Buch.
-
-Ein Reisender kommt nicht zurück.
-
-Eine Gilde benötigt Unterstützung.
-
-Der Spieler erledigt diese Aufgaben.
-
-Zunächst wirken sie voneinander getrennt.
-
-Sie sind es nicht.
-
-Immer wieder tauchen dieselben Symbole auf.
-
-Alte Schrift.
-
-Unbekannte Bauweisen.
-
-Hinweise auf Portale.
-
-Enderperlen.
-
-Und schließlich Strongholds.
-
----
-
-# 40. Das erste große Geheimnis
-
-Der Spieler erkennt, dass die Ruinen nicht zufällig verteilt sind.
-
-Verschiedene Funde enthalten dieselben Zeichen.
-
-Gelehrte erkennen dieselben Muster in alten Büchern.
-
-Steinmetze erkennen dieselbe Bauweise.
-
-Alchemisten finden dieselben Materialien in alten Rezepten.
-
-Die Welt beginnt sich zu verbinden.
-
-Der Spieler merkt:
-
-Die Geschichte der Alten ist nicht tot.
-
-Sie liegt überall unter der Oberfläche.
-
----
-
-# 41. Die Rückkehr der Vergangenheit
-
-Mit jeder Entdeckung verändert sich die Gegenwart.
-
-Eine alte Ruine wird geöffnet.
-
-Ein neues Archiv entsteht.
-
-Eine Gilde streitet darüber, wem ein Fund gehört.
-
-Händler wollen seltene Materialien verkaufen.
-
-Gelehrte wollen sie untersuchen.
-
-Krieger wollen sie als Waffen nutzen.
-
-Der Spieler steht zwischen diesen Interessen.
-
-Damit wird die Vergangenheit wieder politisch.
-
----
-
-# 42. Die Fraktionen der Gegenwart
-
-Die Welt besitzt keine einzige zentrale Macht.
-
-Sie besteht aus vielen Interessen.
-
-## Die Gilden
-
-Sie wollen Wissen und Einfluss.
-
-## Die Händler
-
-Sie wollen sichere Wege und profitable Waren.
-
-## Die Gelehrten
-
-Sie wollen Antworten.
-
-## Die Handwerker
-
-Sie wollen Ressourcen und Sicherheit.
-
-## Die Banken
-
-Sie wollen Stabilität.
-
-## Die Abenteurer
-
-Sie wollen Freiheit, Ruhm und Entdeckungen.
-
-## Die Netherhändler
-
-Sie wollen Zugang zu Waren und akzeptieren Risiken, die andere vermeiden.
-
-## Die Suchenden
-
-Sie wollen die Wahrheit über die Alten und das Ende.
-
-Diese Gruppen müssen nicht gut oder böse sein.
-
-Sie wollen unterschiedliche Dinge.
-
----
-
-# 43. Die Suchenden
-
-Die **Suchenden** sind keine einzelne Gilde.
-
-Sie sind ein Netzwerk aus Menschen, die glauben, dass die Welt ihre Vergangenheit zurückholen muss.
-
-Einige sind Gelehrte.
-
-Einige Abenteurer.
-
-Einige Händler.
-
-Einige ehemalige Soldaten.
-
-Sie treffen sich selten offen.
-
-Sie sammeln Hinweise.
-
-Sie kaufen alte Bücher.
-
-Sie suchen Strongholds.
-
-Sie untersuchen Enderperlen.
-
-Ihre Mitglieder sind nicht automatisch Freunde.
-
-Manche wollen Wissen teilen.
-
-Andere wollen es kontrollieren.
-
----
-
-# 44. Der Gegenspieler
-
-Die erste Saga benötigt keinen Weltenzerstörer.
-
-Ihr zentraler Gegenspieler ist eine Idee:
-
-**Die Wahrheit muss kontrolliert werden.**
-
-Einflussreiche Menschen glauben, dass die Welt die Vergangenheit vergessen sollte.
-
-Sie fürchten, dass alte Portale wieder Kriege auslösen.
-
-Sie fürchten den Nether.
-
-Sie fürchten das Ende.
-
-Und sie fürchten den Spieler, weil dieser Fragen stellt.
-
-Der Gegenspieler der ersten Saga ist deshalb nicht stärker als der Enderdrache.
-
-Er ist menschlicher.
-
-Er glaubt, dass er die Welt schützt.
-
----
-
-# 45. Das Haus der Stille
-
-Das Haus der Stille ist eine geheime Vereinigung, die alte gefährliche Informationen unterdrückt.
-
-Seine Mitglieder zerstören nicht jedes Wissen.
-
-Sie entscheiden, welches Wissen überleben darf.
-
-Sie glauben an einen Grundsatz:
-
-> „Eine Welt, die alles weiß, ist eine Welt, die alles wiederholt.“
-
-Sie haben alte Bücher vernichtet.
-
-Expeditionen verhindert.
-
-Forscher beobachtet.
-
-Und in manchen Fällen Menschen verschwinden lassen.
-
-Der Spieler wird ihre Existenz erst spät erkennen.
-
----
-
-# 46. Die Wahrheit über Elyan
-
-Elyan Voss, der letzte Hüter der Bibliothek von Arkan, war der Gründer des Hauses der Stille.
-
-Doch seine Absicht war anders als die seiner Nachfolger.
-
-Elyan wollte Wissen verstecken, bis eine Generation auftauchte, die damit umgehen konnte.
-
-Jahrhunderte später wurde aus Schutz Kontrolle.
-
-Das Haus der Stille wurde zu dem, was Elyan verhindern wollte.
-
-Damit zeigt die Geschichte:
-
-Gute Absichten können schlechte Systeme erschaffen.
-
----
-
-# 47. Die erste große Reise
-
-Der Spieler verfolgt die Spur eines alten Dokuments.
-
-Das Dokument enthält keine Karte.
-
-Es enthält eine Reihe von Hinweisen.
+Ein Gerücht.
 
 Eine Ruine.
 
-Ein alter Brunnen.
+Eine Begegnung.
 
-Eine Netherfestung.
-
-Eine Bibliothek.
-
-Eine Enderperle.
-
-Und schließlich ein Stronghold.
-
-Der Weg ist kein einzelner Auftrag.
-
-Er ist eine Kette von Geschichten.
-
-Jeder Schritt verlangt Wissen aus einem anderen Teil der Welt.
-
----
-
-# 48. Der Nether kehrt zurück
-
-Um die Hinweise zu verstehen, muss der Spieler erneut den Nether betreten.
-
-Dort entdeckt er, dass auch die Piglins Erinnerungen besitzen.
-
-Nicht an die Alten.
-
-Sondern an den Krieg.
-
-Ein alter Piglin bewahrt eine Geschichte, die der menschlichen Überlieferung widerspricht.
-
-Die Menschen behaupten, sie hätten den Nether betreten, um Handel zu treiben.
-
-Die Piglins erzählen:
-
-Die Menschen kamen, bauten Straßen, nahmen Gold und nannten das Land ihres.
-
-Der Spieler erkennt:
-
-Geschichte besitzt zwei Seiten.
-
----
-
-# 49. Das Erbe des Krieges
-
-Der alte Krieg ist vorbei.
-
-Aber seine Folgen sind nicht verschwunden.
-
-Piglins misstrauen Menschen.
-
-Menschen fürchten Piglins.
-
-Alte Bastionen enthalten Hinweise.
-
-Netherfestungen enthalten weitere.
-
-Die Welt beginnt zu verstehen, dass der Krieg nicht aus einem einzigen Verrat entstanden ist.
-
-Er entstand aus vielen kleinen Entscheidungen.
-
-Genau wie die Katastrophe des Withers.
-
----
-
-# 50. Der Wither und die Schuld
-
-Der Spieler findet Hinweise darauf, dass die Erschaffer des Withers glaubten, sie würden die Welt retten.
-
-Sie wollten eine Waffe.
-
-Sie wollten Frieden durch Überlegenheit.
-
-Sie wollten den Krieg beenden.
-
-Stattdessen erschufen sie eine größere Katastrophe.
-
-Der Wither wird damit zum historischen Spiegel des Spielers:
-
-Nur weil man etwas tun kann, bedeutet es nicht, dass man es tun sollte.
-
----
-
-# 51. Das zweite große Geheimnis
-
-Die Hinweise aus Nether und Oberwelt ergeben ein gemeinsames Muster.
-
-Die Alten kannten das Ende.
-
-Sie haben Strongholds nicht gebaut, um dort zu leben.
-
-Sie bauten sie, um das Ende zu erreichen.
-
-Aber sie gingen nicht gemeinsam.
-
-Etwas geschah.
-
-Die Expeditionen brachen ab.
-
-Die Portale wurden vergessen.
-
-Und irgendwann war nur noch der Mythos übrig.
-
----
-
-# 52. Die Stronghold-Suche
-
-Die Suchenden beginnen eine Expedition.
-
-Der Spieler wird Teil davon.
-
-Mehrere Gruppen wollen den Stronghold erreichen.
-
-Gelehrte wollen Wissen.
-
-Händler wollen Artefakte.
-
-Das Haus der Stille will verhindern, dass das Portal geöffnet wird.
-
-Abenteurer wollen Ruhm.
-
-Der Spieler will Antworten.
-
-Damit treffen die persönlichen Interessen der Welt auf die größte Frage der Geschichte.
-
----
-
-# 53. Das Portal
-
-Im Inneren des Strongholds findet der Spieler die letzte Verbindung zur alten Welt.
-
-Bibliotheken.
-
-Zellen.
-
-Steinräume.
-
-Portalkammern.
+Doch irgendwann bemerkt der Spieler, dass dieselben Spuren immer wieder auftauchen.
 
 Alte Zeichen.
 
-Und das Endportal.
+Alte Portale.
 
-Die Gruppe erkennt:
+Enderperlen.
 
-Das Portal wurde nicht vergessen.
+Strongholds.
 
-Es wurde verlassen.
+Netherfestungen.
 
-Jemand war hier.
+Geschichten über die Alten.
 
-Jemand hat es benutzt.
-
-Und jemand ist nicht zurückgekehrt.
+Die Welt beginnt miteinander verbunden zu wirken.
 
 ---
 
-# 54. Die Entscheidung
+# 31. Die Suchenden
 
-Der Spieler kann nicht mehr zurück in ein einfaches Leben.
+Ein Teil der modernen Bevölkerung will die Vergangenheit verstehen.
 
-Er hat die Welt hinter sich gelassen, die er am Anfang kannte.
+Diese Menschen werden als **Suchende** bezeichnet.
 
-Er weiß nun:
+Sie sind keine einheitliche Organisation.
 
-Das Ende existiert.
+Einige wollen Wissen.
 
-Der Enderdrache existiert.
+Einige wollen Reichtum.
 
-Die Alten wussten davon.
+Einige wollen Ruhm.
 
-Das Haus der Stille hat es gewusst.
+Einige wollen die Fehler der Vergangenheit verhindern.
 
-Die Gilden werden davon erfahren.
+Andere wollen die alten Mächte selbst besitzen.
 
-Die Geschichte kann nicht mehr zurückgedreht werden.
-
-Das Portal wird aktiviert.
+Die Suchenden werden zu einem wichtigen Bestandteil der Geschichte.
 
 ---
 
-# 55. Das Ende
+# 32. Das Haus der Stille
+
+Eine Gruppe glaubt dagegen, dass manche Wahrheiten verborgen bleiben müssen.
+
+Sie nennen sich das **Haus der Stille**.
+
+Ihr Grundsatz lautet:
+
+> „Was vergessen wurde, wurde vielleicht aus einem Grund vergessen.“
+
+Sie verhindern Expeditionen.
+
+Sie verstecken Bücher.
+
+Sie zerstören gefährliche Aufzeichnungen.
+
+Sie beobachten Gelehrte.
+
+Sie glauben, die Welt zu schützen.
+
+Damit entsteht der zentrale menschliche Konflikt unserer Geschichte:
+
+**Soll die Vergangenheit bewahrt werden, selbst wenn ihre Geheimnisse gefährlich sind?**
+
+---
+
+# 33. Elyan Voss
+
+Elyan Voss ist eine Figur unseres erweiterten Minecraft-Kanons.
+
+Er war ein Gelehrter und Archivar.
+
+Er sammelte Wissen über die Alten.
+
+Er erforschte Portale.
+
+Er untersuchte Strongholds.
+
+Er glaubte, dass Wissen Verantwortung braucht.
+
+Als er erkannte, welche Fehler die Alten begangen hatten, begann er Informationen zu verstecken.
+
+Aus dieser Idee entstand später das Haus der Stille.
+
+Elyan wollte Wissen bewahren.
+
+Seine Nachfolger wollten Wissen kontrollieren.
+
+Damit wurde aus Schutz Unterdrückung.
+
+---
+
+# 34. Die Geschichte des Netherkriegs
+
+Der Spieler entdeckt, dass die Geschichte des Krieges zwischen Oberwelt und Nether nicht so einfach ist.
+
+Menschen erzählen ihre Geschichte.
+
+Piglins erzählen ihre.
+
+Bastionen zeigen ihre.
+
+Netherfestungen zeigen eine andere.
+
+Es gibt keine einzige Quelle, die alles erklärt.
+
+Der Spieler muss die Geschichte zusammensetzen.
+
+Dadurch wird Minecraft selbst zum historischen Rätsel.
+
+---
+
+# 35. Die Geschichte des Withers
+
+Der Spieler entdeckt außerdem, dass der Wither nicht einfach nur ein Monster ist.
+
+Seine Existenz war eine Entscheidung.
+
+Menschen wollten Macht.
+
+Sie wollten den Krieg gewinnen.
+
+Sie wollten etwas erschaffen, das größer war als ihre Gegner.
+
+Und sie erschufen eine Katastrophe.
+
+Der Wither wird dadurch zu einer Warnung:
+
+**Die gefährlichsten Monster der Welt können aus den Entscheidungen ihrer Bewohner entstehen.**
+
+---
+
+# 36. Der Weg zum Stronghold
+
+Die Hinweise führen immer wieder zu Strongholds.
+
+Der Spieler beginnt zu verstehen:
+
+Die Alten kannten das Ende.
+
+Sie suchten es.
+
+Sie bauten Anlagen.
+
+Sie erschufen Portale.
+
+Sie gingen durch.
+
+Und danach verschwand ihre Geschichte.
+
+Warum?
+
+Diese Frage wird zum Mittelpunkt der ersten Saga.
+
+---
+
+# 37. Das Endportal
+
+Im Stronghold findet der Spieler das Portal.
+
+Es ist keine neue Erfindung.
+
+Es ist ein Teil der Welt, der die ganze Zeit dort war.
+
+Die Alten haben es gebaut.
+
+Die moderne Welt hat nur vergessen, was es bedeutet.
+
+Der Spieler setzt die Augen des Endes ein.
+
+Das Portal erwacht.
+
+Und die Geschichte der Welt erreicht ihren äußersten Punkt.
+
+---
+
+# 38. Das Ende der ersten Saga
 
 Der Spieler betritt das Ende.
 
-Er sieht eine Welt, die keine seiner bisherigen Erfahrungen vorbereitet hat.
+Er sieht die Inseln.
 
-Kein Dorf.
+Den Void.
 
-Keine Straße.
+Die Endermen.
 
-Keinen Handel.
+Die Kristalle.
 
-Keine Gilde.
-
-Keine vertraute Ordnung.
-
-Nur Inseln.
-
-Void.
-
-Endermen.
-
-Kristalle.
+Die Endstädte.
 
 Und den Drachen.
 
-Hier endet die Welt, wie der Spieler sie kennt.
+Die Reise, die in der Oberwelt begann, endet dort, wo die Minecraft-Welt ihre größte Grenze zeigt.
 
-Hier beginnt die letzte Prüfung.
+Der Spieler kämpft.
 
----
+Die Kristalle fallen.
 
-# 56. Die letzte Schlacht
-
-Der Kampf gegen den Enderdrachen ist keine Prüfung der Herkunft des Spielers.
-
-Er ist keine Prophezeiung.
-
-Er ist die Konsequenz der gesamten Reise.
-
-Der Spieler hat gelernt.
-
-Er hat gearbeitet.
-
-Er hat gekämpft.
-
-Er hat Wissen gesammelt.
-
-Er hat Menschen kennengelernt.
-
-Er hat Fehler gemacht.
-
-Er hat sich entschieden.
-
-Jetzt steht er vor dem stärksten bekannten Wesen dieser Welt.
-
-Die Endkristalle werden zerstört.
-
-Der Drache wird verwundbar.
-
-Die Schlacht endet.
-
-Der Enderdrache fällt.
-
----
-
-# 57. Das Ende vom Ende
-
-Der Tod des Enderdrachen ist der endgültige Abschluss der ersten großen PixelRPG-Saga.
-
-Nicht der Anfang einer noch größeren Bedrohung.
-
-Nicht die Enthüllung eines geheimen „wahren Bosses“.
-
-Nicht die Ankündigung, dass alles nur ein Vorspiel war.
-
-Der Spieler hat gewonnen.
-
-Die Reise hat ein Ende.
-
-Die Frage, die am Anfang stand, wurde beantwortet.
-
-Der Spieler erreichte das Ende.
-
-Und der Drache fiel.
-
----
-
-# 58. Was danach bleibt
-
-Die Welt existiert weiter.
-
-Dörfer leben.
-
-Gilden arbeiten.
-
-Händler reisen.
-
-Banken handeln.
-
-Berufe werden weitergegeben.
-
-Menschen erzählen die Geschichte des Spielers.
-
-Das Ende bleibt bestehen.
-
-Endstädte bleiben unerforscht oder nur teilweise verstanden.
-
-Endermen bleiben ein Rätsel.
-
-Die Geschichte der Alten besitzt weiterhin Lücken.
-
-Doch diese Dinge werden nicht benutzt, um das gerade erreichte Ende zu entwerten.
-
-Sie sind Möglichkeiten für eine spätere Zeit.
-
-Die erste Saga bleibt abgeschlossen.
-
----
-
-# 59. Die großen Charaktere
-
-Die Lore soll langfristig von wiederkehrenden Figuren getragen werden.
-
-Wichtige Figuren der ersten Saga sind deshalb:
-
-## Elyan Voss
-
-Letzter Hüter der Bibliothek von Arkan.
-
-Begründer des Hauses der Stille.
-
-Seine Entscheidungen prägen Jahrhunderte.
-
-## Der Meisterschmied
-
-Ein alter Schmied, der erkennt, dass moderne Waffen auf vergessenen Techniken beruhen.
-
-## Die erste Gelehrte
-
-Eine Forscherin, die gegen das Haus der Stille arbeitet, weil sie glaubt, dass Wissen geteilt werden muss.
-
-## Der Banker
-
-Ein Mann, der mehr über die Bewegungen alter Artefakte weiß, als er zugibt.
-
-## Der Netherhändler
-
-Ein Händler zwischen zwei Welten, der den Krieg nicht vergessen hat.
-
-## Der Chronist
-
-Ein Historiker, der versucht, widersprüchliche Quellen zusammenzuführen.
-
-## Der Spieler
-
-Die einzige Figur, deren vollständige Identität nicht von der Vergangenheit bestimmt wird.
-
----
-
-# 60. Charaktere sollen Geschichten besitzen
-
-Ein NPC darf niemals nur existieren, damit ein Spieler einen Knopf drücken kann.
-
-Ein NPC hat:
-
-- eine Vergangenheit
-- Beziehungen
-- Ziele
-- Ängste
-- Vorurteile
-- Geheimnisse
-- Hoffnungen
-- Fehler
-
-Ein Schmied kann seinen Sohn verloren haben.
-
-Ein Gelehrter kann Angst davor haben, denselben Fehler wie die Alten zu machen.
-
-Ein Banker kann eine Schuld besitzen, die nicht mit Geld bezahlt werden kann.
-
-Ein Händler kann einem Piglin sein Leben verdanken.
-
-Ein Reisender kann seit Jahren nach einer verschwundenen Person suchen.
-
-Diese Geschichten bilden später die Grundlage für Dialoge.
-
----
-
-# 61. Dialoge
-
-Dialoge sollen die Lore nicht erklären wie ein Lehrbuch.
-
-Sie sollen sie erleben lassen.
-
-Ein NPC sagt nicht:
-
-„Vor 800 Jahren begann der Krieg zwischen Oberwelt und Nether.“
-
-Er sagt:
-
-„Mein Großvater hat mir beigebracht, niemals Gold in den Händen eines Piglins zu zeigen. Sein Großvater hat ihm beigebracht, niemals einem Menschen zu vertrauen.“
-
-Der Spieler lernt die Geschichte durch Menschen.
-
-Nicht durch Infotafeln.
-
----
-
-# 62. Die Wahrheit in Fragmenten
-
-Die vollständige Wahrheit wird selten in einem Gespräch erzählt.
-
-Ein NPC kennt einen Teil.
-
-Ein Buch einen anderen.
-
-Eine Ruine einen dritten.
-
-Ein Feind besitzt vielleicht den vierten.
-
-Der Spieler setzt alles zusammen.
-
-So wird Lore zu Gameplay.
-
----
-
-# 63. Die Hauptgeschichte und die Nebenhandlungen
-
-Die Hauptgeschichte folgt dem Weg:
-
-**Erwachen → Registrierung → Beruf → Gilde → Entdeckung → Vergangenheit → Nether → Stronghold → Ende → Enderdrache**
-
-Die Nebenhandlungen erzählen:
-
-- Familien
-- Gilden
-- Handel
-- Kriminalität
-- verlorene Expeditionen
-- alte Artefakte
-- persönliche Rache
-- Freundschaften
-- Rivalitäten
-- den Krieg zwischen Oberwelt und Nether
-- die Geschichte des Withers
-- verbotene Magie
-- die Geschichte der Alten
-
-Nicht jede Nebenhandlung muss zum Enderdrachen führen.
-
-Das ist Absicht.
-
----
-
-# 64. Die Welt darf widersprechen
-
-Ein Bauer darf eine andere Geschichte kennen als ein Gelehrter.
-
-Ein Piglin darf eine andere Version des Krieges erzählen als ein Mensch.
-
-Ein alter Händler darf behaupten, dass Elyan Voss ein Held war.
-
-Ein anderes Buch kann ihn als Verräter beschreiben.
-
-Der Spieler muss nicht sofort wissen, wer recht hat.
-
-Die Welt darf widersprüchlich sein.
-
-Denn Menschen erinnern sich unterschiedlich.
-
----
-
-# 65. Die großen Themen
-
-Die erste Saga besitzt fünf zentrale Themen.
-
-## Erinnerung
-
-Was bleibt von einer Welt, wenn niemand mehr ihre Geschichte kennt?
-
-## Wissen
-
-Ist jede Wahrheit wertvoll?
-
-## Macht
-
-Was geschieht, wenn Menschen Macht schneller gewinnen als Verantwortung?
-
-## Identität
-
-Wer ist ein Mensch, wenn seine Vergangenheit fehlt?
-
-## Ende
-
-Was passiert, wenn man endlich das Ziel erreicht, nach dem man sein ganzes Leben gesucht hat?
-
----
-
-# 66. Der rote Faden
-
-Alle großen Elemente der Lore hängen zusammen.
-
-Der Wither zeigt die Gefahr unkontrollierter Macht.
-
-Der Krieg zeigt die Folgen von Angst und Besitz.
-
-Das Vergessen zeigt die Folgen verlorenen Wissens.
-
-Die Gilden zeigen den Wiederaufbau.
-
-Der Spieler zeigt den Beginn einer neuen Generation.
-
-Das Stronghold zeigt die vergessene Verbindung.
-
-Das Ende zeigt die Grenze.
-
-Der Enderdrache ist der letzte Gegner dieser Geschichte.
-
----
-
-# 67. Die erste Saga in fünf Teilen
-
-## Teil I – Der Fremde
-
-Der Spieler erwacht.
-
-Er registriert sich.
-
-Er lernt die Welt kennen.
-
-Er erlernt einen Beruf.
-
-Er begegnet Gilden und Menschen.
-
-## Teil II – Die vergessene Welt
-
-Ruinen und Artefakte führen zu den Alten.
-
-Das Haus der Stille wird entdeckt.
-
-Die Geschichte des Withers und des Netherkriegs wird sichtbar.
-
-## Teil III – Der Krieg, der nie endete
-
-Der Spieler reist in den Nether.
-
-Er erkennt die andere Seite der Geschichte.
-
-Die alten Konflikte werden persönlich.
-
-## Teil IV – Die Tür
-
-Die Hinweise führen zum Stronghold.
-
-Die Vergangenheit wird verständlich.
-
-Das Endportal wird geöffnet.
-
-## Teil V – Das Ende
-
-Der Spieler betritt das Ende.
-
-Er kämpft gegen den Enderdrachen.
+Der Enderdrache wird verwundbar.
 
 Der Drache fällt.
 
-Die Saga endet.
+---
+
+# 39. Das Ende vom Ende
+
+**Der Tod des Enderdrachen ist der verbindliche Abschluss der ersten PixelRPG-Saga.**
+
+Hier wird nicht plötzlich ein „wahrer Endboss“ enthüllt.
+
+Hier wird nicht erklärt, dass alles nur ein Vorspiel war.
+
+Hier beginnt nicht heimlich eine größere Bedrohung.
+
+Der Spieler hat das Ziel erreicht.
+
+Die erste große Geschichte von Minecraft, wie PixelRPG sie erzählt, ist abgeschlossen.
+
+**Das Ende ist erreicht.**
+
+**Das Ende vom Ende.**
 
 ---
 
-# 68. Der Spieler als Legende
-
-Nach dem Fall des Enderdrachen verändert sich die Wahrnehmung des Spielers.
-
-Am Anfang war er niemand.
-
-Dann war er Abenteurer.
-
-Dann wurde er Suchender.
-
-Dann wurde er Entdecker.
-
-Dann wurde er Kämpfer.
-
-Am Ende wird er Teil der Geschichte.
-
-Nicht weil eine Prophezeiung ihn dazu bestimmt hat.
-
-Sondern weil er gehandelt hat.
-
-Das ist der Kern des PixelRPG-Helden.
-
----
-
-# 69. Das Vermächtnis des Spielers
-
-Menschen werden sich später an unterschiedliche Dinge erinnern.
-
-Ein Schmied erinnert sich an jemanden, der ihm half.
-
-Ein Bauer erinnert sich an eine gerettete Ernte.
-
-Ein Gelehrter erinnert sich an die Person, die das Portal öffnete.
-
-Ein Piglin erinnert sich vielleicht an einen Menschen, der zugehört hat.
-
-Ein Händler erinnert sich an einen Auftrag.
-
-Eine Gilde erinnert sich an ein Mitglied.
-
-Die Welt kennt nicht nur eine Version des Helden.
-
-Sie kennt viele.
-
----
-
-# 70. Was Minecraft offenließ
-
-Minecraft liefert die Kulisse.
-
-PixelRPG liefert:
-
-- Geschichte
-- Charaktere
-- Beziehungen
-- politische Konflikte
-- persönliche Schicksale
-- Gilden
-- wirtschaftliche Interessen
-- historische Figuren
-- konkrete Gründe für vergangene Ereignisse
-- eine nachvollziehbare Chronologie
-- eine Hauptfigur
-- eine abgeschlossene Saga
-
-Damit übernimmt PixelRPG bewusst den Teil, den Minecraft nie vollständig erzählen wollte.
-
-Nicht indem Minecraft umgeschrieben wird.
-
-Sondern indem die offenen Räume mit einer eigenen Geschichte gefüllt werden.
-
----
-
-# 71. Was bewusst offen bleibt
-
-Einige Fragen werden auch am Ende der ersten Saga nicht endgültig beantwortet.
-
-- Woher die Welt ursprünglich stammt.
-- Was vor den Alten existierte.
-- Die vollständige Herkunft der Endermen.
-- Die vollständige Geschichte der Endstädte.
-- Die endgültige Natur des Enderdrachen.
-- Was außerhalb der bekannten Teile des Endes existiert.
-- Ob alle alten Völker wirklich verschwunden sind.
-- Was aus den letzten unbekannten Portalen wurde.
-- Was aus Elyans ursprünglichen Aufzeichnungen verloren ging.
-
-Diese Fragen sind keine Fehler.
-
-Sie sind der Raum, aus dem spätere Geschichten entstehen können.
-
----
-
-# 72. Der Kanon
-
-Für PixelRPG gelten vier Ebenen.
-
-## Ebene I – Minecraft
-
-Bekannte Elemente der Minecraft-Welt bleiben Bestandteil des Settings.
-
-## Ebene II – Offene Minecraft-Fragen
-
-Dinge, die Minecraft nicht eindeutig erklärt, dürfen interpretiert werden.
-
-## Ebene III – PixelRPG-Kanon
-
-Eigene Personen, Fraktionen, Ereignisse, Gilden, Beziehungen und historische Zusammenhänge gehören zum PixelRPG-Kanon.
-
-## Ebene IV – spätere Geheimnisse
-
-Nicht jedes Geheimnis der Welt wird in der ersten Saga gelöst.
-
----
-
-# 73. Die wichtigste Regel der Lore
-
-PixelRPG soll niemals versuchen, jede einzelne Sache zu erklären.
-
-Eine Welt ohne Geheimnisse ist keine Welt.
-
-Sie ist ein Lexikon.
-
-Die Lore soll deshalb Antworten geben, wo eine Geschichte sie braucht.
-
-Und Fragen offenlassen, wo ein Geheimnis die Welt größer macht.
-
----
-
-# 74. Die Geschichte endet mit dem Sieg
-
-Die erste Saga endet nicht mit einer Niederlage.
-
-Sie endet nicht mit einem Cliffhanger.
-
-Sie endet nicht mit einem größeren Feind.
-
-Sie endet mit einem Sieg.
-
-Der Spieler steht nach dem Kampf im Ende.
-
-Der Drache ist gefallen.
-
-Die Kristalle sind zerstört.
-
-Das Ziel wurde erreicht.
-
-Die lange Suche ist vorbei.
+# 40. Danach
 
 Die Welt bleibt bestehen.
 
-Und zum ersten Mal seit Beginn der Reise gibt es keine nächste Tür, die geöffnet werden muss.
+Minecraft hört nicht auf, nur weil der Spieler den Enderdrachen besiegt hat.
+
+Dörfer leben weiter.
+
+Villager handeln.
+
+Piglins leben im Nether.
+
+Illager verfolgen ihre eigenen Ziele.
+
+Gilden bestehen fort.
+
+Die Menschen erzählen die Geschichte des Spielers.
+
+Endstädte bleiben.
+
+Endermen bleiben.
+
+Ruinen bleiben.
+
+Die Welt bleibt voller Geheimnisse.
+
+Aber die erste Saga bleibt beendet.
 
 ---
 
-# 75. Das Ende vom Ende
+# 41. Was PixelRPG mit Minecraft macht
 
-Die erste große Geschichte von PixelRPG beginnt mit einem Menschen ohne Vergangenheit.
+PixelRPG fügt Minecraft keine fremde Welt hinzu.
 
-Sie führt durch Dörfer.
+PixelRPG gibt Minecraft eine fortlaufende Geschichte.
 
-Durch Gilden.
+Wir nehmen:
 
-Durch Berufe.
+- die bekannten Dimensionen
+- die bekannten Kreaturen
+- die bekannten Strukturen
+- die bekannten Gegenstände
+- die bekannten Mechaniken
+- die bekannten Rätsel
+- die offenen Fragen
 
-Durch Freundschaften.
+und verbinden sie erzählerisch.
 
-Durch Ruinen.
+Minecraft ist die Grundlage.
 
-Durch vergessene Geschichte.
-
-Durch den Nether.
-
-Durch die Erinnerung an einen Krieg.
-
-Durch das Vermächtnis des Withers.
-
-Durch die Strongholds.
-
-Durch ein Portal.
-
-Ins Ende.
-
-Und schließlich zum Enderdrachen.
-
-Der Spieler besiegt ihn.
-
-Damit endet die erste Saga.
-
-Nicht weil es nichts mehr zu erzählen gibt.
-
-Sondern weil diese Geschichte erzählt wurde.
+PixelRPG ist die Chronik.
 
 ---
 
-# 76. Die Chronik von PixelRPG
+# 42. Der Kanon
 
-Die vollständige erste Chronik lautet:
+Für unsere Entwicklung gelten deshalb vier Ebenen.
 
-**Die Welt existierte vor den heutigen Menschen.**
+## Ebene I – Minecraft-Kanon
 
-**Die Alten fanden Wege zwischen den Dimensionen.**
+Alles, was Minecraft eindeutig vorgibt, bleibt unverändert.
 
-**Der Nether wurde erreicht.**
+## Ebene II – Minecraft-Lücken
 
-**Handel wurde zu Krieg.**
+Wo Minecraft bewusst oder bisher nicht vollständig erzählt, dürfen wir eine passende Geschichte entwickeln.
 
-**Aus dem Krieg entstand der Versuch, den Wither zu erschaffen.**
+## Ebene III – PixelRPG-Erweiterung
 
-**Der Wither zerstörte einen Teil der alten Welt.**
+Eigene Figuren, Dialoge, Beziehungen, Ereignisse und Zusammenhänge füllen diese Lücken.
 
-**Die Alten fielen.**
+## Ebene IV – zukünftige Geheimnisse
 
-**Wissen ging verloren.**
-
-**Die neue Zivilisation entstand.**
-
-**Gilden und Berufe bewahrten Teile der Welt.**
-
-**Der Spieler erwachte ohne bekannte Vergangenheit.**
-
-**Er wurde registriert.**
-
-**Er wurde Abenteurer.**
-
-**Er wurde Suchender.**
-
-**Er entdeckte die Geschichte der Alten.**
-
-**Er sah die andere Seite des Netherkriegs.**
-
-**Er fand die Spur der Strongholds.**
-
-**Er öffnete das Endportal.**
-
-**Er betrat das Ende.**
-
-**Er stellte sich dem Enderdrachen.**
-
-**Und er gewann.**
+Nicht jede offene Frage muss in der ersten Saga beantwortet werden.
 
 ---
 
-# 77. Der letzte Satz
+# 43. Was wir nicht tun
+
+Wir erfinden keine zweite Welt.
+
+Wir ersetzen keine Minecraft-Völker durch eigene Völker.
+
+Wir schreiben die bestehenden Dimensionen nicht um.
+
+Wir erklären nicht jede Minecraft-Mechanik künstlich.
+
+Wir machen aus Minecraft keinen bloßen Skin für ein eigenes Fantasy-Universum.
+
+**Wir erzählen Minecraft.**
+
+---
+
+# 44. Was wir tun
+
+Wir geben den Menschen Namen.
+
+Wir geben Dörfern Geschichten.
+
+Wir geben Gilden Vergangenheit.
+
+Wir geben Kriegen Ursachen.
+
+Wir geben Ruinen Erinnerungen.
+
+Wir geben Gegenständen Bedeutung.
+
+Wir geben offenen Minecraft-Fragen mögliche Antworten.
+
+Wir verbinden Orte, Figuren und Ereignisse.
+
+Und wir lassen dort Geheimnisse bestehen, wo Minecraft selbst Raum dafür lässt.
+
+---
+
+# 45. Die Welt als Geschichte
+
+Jeder Ort kann Teil der Chronik sein.
+
+Ein Dorf kann einen alten Krieg erinnern.
+
+Eine Ruine kann einen vergessenen König erwähnen.
+
+Eine Netherfestung kann Hinweise auf den Krieg enthalten.
+
+Eine Bastion kann die Geschichte der Piglins erzählen.
+
+Eine Ancient City kann eine völlig andere Seite der Vergangenheit zeigen.
+
+Ein Stronghold kann den Übergang zum Ende erklären.
+
+Ein End City kann Fragen aufwerfen, die erst nach der ersten Saga wichtig werden.
+
+Die Welt selbst erzählt.
+
+---
+
+# 46. Dialoge als Minecraft-Geschichte
+
+Dialoge werden diese Chronik nicht vorlesen.
+
+Sie werden sie **leben lassen**.
+
+Ein Villager erzählt vielleicht von einem Angriff.
+
+Ein Gelehrter kennt eine alte Inschrift.
+
+Ein Piglin kennt die Geschichte des Goldkriegs.
+
+Ein Schmied besitzt ein Werkzeug, dessen Ursprung niemand mehr kennt.
+
+Ein Banker kennt die Herkunft eines alten Artefakts.
+
+Ein Chronist hat eine andere Version.
+
+Der Spieler setzt die Teile zusammen.
+
+So wird die Lore zum Spiel.
+
+---
+
+# 47. Die erste Saga
+
+Die erste Saga besteht aus fünf großen Teilen.
+
+## I – Der Fremde
+
+Der Spieler erwacht.
+
+Er lernt die Welt kennen.
+
+Er findet seinen Platz.
+
+## II – Die vergessene Vergangenheit
+
+Ruinen und Geschichten führen zu den Alten.
+
+## III – Nether
+
+Der Spieler entdeckt die Geschichte des Konflikts zwischen den Dimensionen.
+
+## IV – Stronghold
+
+Die Spuren führen zum Endportal.
+
+## V – Das Ende
+
+Der Spieler betritt das Ende und besiegt den Enderdrachen.
+
+---
+
+# 48. Der rote Faden
+
+Die gesamte Geschichte verbindet Minecrafts bekannte Elemente:
+
+**Die Welt existiert.**
+
+**Die Alten hinterlassen ihre Ruinen.**
+
+**Der Nether wird entdeckt.**
+
+**Handel wird zu Konflikt.**
+
+**Der Wither entsteht.**
+
+**Alte Zivilisationen zerfallen.**
+
+**Wissen geht verloren.**
+
+**Neue Zivilisationen entstehen.**
+
+**Die moderne Welt baut sich auf.**
+
+**Der Spieler erwacht.**
+
+**Der Spieler entdeckt die Vergangenheit.**
+
+**Der Spieler versteht den Netherkrieg.**
+
+**Der Spieler findet die Strongholds.**
+
+**Der Spieler öffnet das Endportal.**
+
+**Der Spieler betritt das Ende.**
+
+**Der Spieler besiegt den Enderdrachen.**
+
+**Das Ende vom Ende.**
+
+---
+
+# 49. Die großen Themen
+
+Die Geschichte von Minecraft, die PixelRPG erzählt, handelt nicht nur von Kämpfen.
+
+Sie handelt von:
+
+- Erinnerung
+- Vergessen
+- Wissen
+- Macht
+- Verantwortung
+- Krieg
+- Verlust
+- Identität
+- Freundschaft
+- Entdeckung
+- dem Umgang mit Vergangenheit
+- und dem Mut, eine unbekannte Tür zu öffnen
+
+Der Spieler ist dabei nicht der Mittelpunkt der gesamten Welt.
+
+Er wird erst im Verlauf der Geschichte wichtig.
+
+Das macht seine Reise glaubwürdig.
+
+---
+
+# 50. Die offenen Fragen
+
+Auch nach dem Enderdrachen bleiben Fragen.
+
+Woher stammen die Endermen wirklich?
+
+Wer errichtete alle Strongholds?
+
+Was geschah mit den letzten Bewohnern der alten Zivilisationen?
+
+Wie entstanden die Endstädte?
+
+Was war der Enderdrache wirklich?
+
+Was geschah mit allen alten Portalen?
+
+Was liegt jenseits dessen, was wir kennen?
+
+Diese Fragen bleiben offen.
+
+Nicht weil die Lore unvollständig ist.
+
+Sondern weil Minecraft selbst Raum für Geschichte lässt.
+
+---
+
+# 51. Die verbindliche Lore-Regel
+
+Wenn Minecraft etwas eindeutig vorgibt:
+
+**Wir übernehmen es.**
+
+Wenn Minecraft etwas offenlässt:
+
+**Wir dürfen es erzählen.**
+
+Wenn Minecraft etwas nur andeutet:
+
+**Wir bauen darauf auf.**
+
+Wenn Minecraft keine Antwort besitzt:
+
+**Wir können eine Antwort zu unserer Geschichte machen, solange sie Minecraft nicht widerspricht.**
+
+Damit ist PixelRPG keine Konkurrenz zu Minecraft.
+
+Es ist unsere Art, Minecrafts Geschichte vollständig zu erzählen.
+
+---
+
+# 52. Der letzte Satz der ersten Chronik
 
 Die Welt war schon da.
 
-Der Spieler kam dazu.
+Die Menschen kamen.
 
-Er kannte seine Vergangenheit nicht.
+Sie bauten.
 
-Also baute er sich eine neue.
+Sie kämpften.
+
+Sie vergaßen.
+
+Sie erinnerten sich.
+
+Und irgendwann kam ein Fremder.
+
+Er lernte diese Welt kennen.
+
+Er wurde Teil ihrer Geschichte.
 
 Er suchte nach Antworten.
 
-Er fand Geschichten.
+Er fand das Ende.
 
-Er suchte die Wahrheit.
+Und dort wartete der Enderdrache.
 
-Er fand Menschen.
+Der Drache fiel.
 
-Er suchte das Ende.
-
-Und als er es erreichte, musste er nichts mehr beweisen.
-
-Der Enderdrache fiel.
-
-Die Suche war vorbei.
+Die Geschichte war erzählt.
 
 **Das Ende war erreicht.**
 
@@ -2203,14 +1356,16 @@ Die Suche war vorbei.
 
 ## Quellen- und Kanon-Hinweis
 
-Minecraft-Fakten und bekannte Minecraft-Elemente bilden die Grundlage dieser Geschichte.
+Minecraft bildet den verbindlichen Weltrahmen dieser Lore.
 
-Wo Minecraft keine eindeutige Geschichte vorgibt, verwendet PixelRPG einen eigenen Kanon.
+PixelRPG erfindet keine parallele Welt, sondern erweitert die Geschichte innerhalb der Minecraft-Welt.
 
-Die konkreten Figuren, Fraktionen, Ereignisse, historischen Zusammenhänge und Charaktergeschichten dieses Dokuments sind PixelRPG-Lore.
+Bekannte Minecraft-Elemente bleiben erhalten.
 
-Community-Theorien werden nicht als offizieller Minecraft-Kanon behandelt.
+Wo Minecraft offen bleibt, entwickelt PixelRPG einen eigenen, kompatiblen Erzählkanon.
 
-Die Lore ist ausdrücklich eine eigene Geschichte innerhalb der Minecraft-Welt.
+Community-Theorien sind nicht automatisch Minecraft-Kanon.
 
-**Aktueller und verbindlicher Endpunkt der ersten Saga: Der Tod des Enderdrachen.**
+Der aktuelle verbindliche Abschluss der ersten Saga ist:
+
+**Der Tod des Enderdrachen.**
