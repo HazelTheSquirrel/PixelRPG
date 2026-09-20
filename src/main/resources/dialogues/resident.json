@@ -1,0 +1,22 @@
+{
+  "id": "npc.resident.basic",
+  "start": "greeting",
+  "nodes": [
+    {
+      "id": "greeting",
+      "title": "Bewohner",
+      "body": [
+        "Die Welt war schon da, lange bevor du sie betreten hast.",
+        "Wenn du wissen willst, was hier geschieht, sprich mit den Menschen, die hier leben."
+      ],
+      "once": false,
+      "options": [
+        {
+          "label": "Danke.",
+          "next": null,
+          "completes": true
+        }
+      ]
+    }
+  ]
+}
