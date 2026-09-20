@@ -9,6 +9,10 @@ import java.util.function.Predicate;
 public interface DialogueCondition {
     boolean test(Player player);
 
+    default boolean test(DialogueContext context) {
+        return test(context.player());
+    }
+
     static DialogueCondition always() {
         return player -> true;
     }
