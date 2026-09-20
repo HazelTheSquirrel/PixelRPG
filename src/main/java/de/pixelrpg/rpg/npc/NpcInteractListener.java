@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.npc;
 
 import de.pixelrpg.rpg.quest.QuestManager;
+import de.pixelrpg.rpg.dialogue.DialogueContext;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -27,7 +28,7 @@ public final class NpcInteractListener implements Listener {
             questManager.progressTalkToNpc(event.getPlayer(), npc.id());
             behaviorRegistry.get(npc.type()).ifPresent(behavior -> {
                 event.setCancelled(true);
-                behavior.onInteract(event.getPlayer(), npc);
+                behavior.onInteract(DialogueContext.forNpc(event.getPlayer(), npc));
             });
         });
     }
