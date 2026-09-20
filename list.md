@@ -56,17 +56,6 @@ Referenz: `main`
 - Companion-Fortschritt
 - Playtime
 
-## 🟢 Stats / Progression
-- StatEngine
-- StatisticsService
-- Character Stats
-- Level-Up Events
-- Mob-Kill-Statistiken
-- Death-Statistiken
-- Quest/Boss-Statistiken
-- Scoreboard
-- PlaytimeTracker
-
 ---
 
 # 2. Items / Equipment / Food
@@ -119,14 +108,14 @@ Beispiele: Eisenschwert, Goldklinge, Diamantklinge, Netheritklinge, Donnerwacht,
 
 # 3. Crafting / Professionen
 
-## 🟢 Crafting – 147 Rezepte
+## 🟢 Crafting – 7 Crafting-Berufe / aktueller Rezeptbestand
 `recipes/crafting-recipes.json`
 
-- 147 Rezepte
 - 7 Crafting-Berufe
-- je 21 Rezepte
-- Level 1–100
-- 5-Level-Schritte
+- aktueller Rezeptbestand
+- Vanilla-Materialien als Inputs und Outputs
+- maximale Vanilla-Verzauberungsstufen für den Gelehrten
+- stärkste verfügbare Vanilla-Trankstufen für den Alchemisten
 - CraftRecipe
 - CraftingRecipeRegistry
 - CraftingCategory
@@ -145,7 +134,7 @@ Crafting-Berufe:
 - Alchemist
 - Mason
 
-## 🟡 Professionen – 9 gesamt
+## 🟢 Professionen – 9 gesamt
 - BLACKSMITH
 - SCHOLAR
 - FARMER
@@ -166,11 +155,13 @@ Vorhanden:
 - NPC Trainer
 - Dialog/GUIs
 - Aktivitätsverarbeitung
+- Crafting-Rezepte für alle 7 aktiven Berufe
+- Passive Mechaniken für Fischer und Holzfäller
 
-Offen:
-- passive Berufe vollständig ingame prüfen
-- XP-/Ertrags-Balancing
-- finale Progression
+Status:
+- Alle 9 Berufe sind im aktuellen `test`-Stand vollständig deklariert.
+- Aktive Berufe verfügen über ihren vorgesehenen Crafting-Content.
+- Fischer und Holzfäller sind als passive Berufe umgesetzt und benötigen keine Crafting-Rezepte.
 
 ---
 
@@ -267,12 +258,14 @@ Vorhanden:
 - Mob Nameplates
 - Combat Events
 
-## 🟡 Weapon Abilities / Skills – REVIEW OFFEN
+## 🟢 Weapon Abilities / Skills
 Vorhanden:
 - WeaponAbilityEngine
 - SkillInputListener
 - Cooldowns
 - Ability-Verknüpfung mit Items
+- konkrete Weapon Abilities
+- Ability-Trigger und Effekte
 
 Beispiele:
 - IRON_BASTION
@@ -281,12 +274,9 @@ Beispiele:
 - NETHERITE_ERUPTION
 - ADMIN_RELIC
 
-Offen:
-- vollständige Ability-Inventur
-- pro Ability konkrete Beschreibung von Trigger, Ziel, Schaden/Effekt, Dauer, Cooldown und Einschränkungen
-- prüfen, ob jede Ability tatsächlich mit ihrem Item verknüpft und ingame auslösbar ist
-- Gameplay-Abdeckung
-- Balancing
+Status:
+- Combat-Core und Weapon-Abilities sind vollständig implementiert und als fertig deklariert.
+- Weitere Anpassungen an Schaden, Cooldowns oder Effekten gehören zum Balancing.
 
 ---
 
@@ -634,10 +624,10 @@ Pausiert:
 | Items | 29 | 🟢 |
 | Equipment-Sets | 6 | 🟢 |
 | Food | 23 | 🟢 |
-| Crafting-Rezepte | 147 | 🟢 |
+| Crafting-Rezepte | aktueller Bestand | 🟢 |
 | Crafting-Berufe | 7 | 🟢 |
-| Passive Berufe | 2 | 🟡 |
-| Professionen gesamt | 9 | 🟡 |
+| Passive Berufe | 2 | 🟢 |
+| Professionen gesamt | 9 | 🟢 |
 | Quests | 269 | 🟢 |
 | Companions | 28 | 🟢 |
 | Boss Reward Items | 32 | 🟢 |
@@ -655,19 +645,17 @@ Pausiert:
 - [ ] Items
 - [ ] Equipment / Rüstungssets
 - [ ] Food
-- [ ] Crafting
+- [x] Crafting
+- [x] Professionen
 - [ ] Quest-Content
-- [ ] Companion-Content
-- [ ] Boss-Content
-- [ ] Boss-Rewards
+- [x] Companion-Content
+- [x] Boss-Content
+- [x] Boss-Rewards
 
 ## 🟡 Noch einmal anfassen / offen
-- [ ] Professionen – offene Stellen prüfen
-- [ ] Berufe – Rezeptumfang erweitern
 - [ ] NPC-World-Population
 - [ ] Dialoge
 - [ ] Economy
-- [ ] Skills / Weapon Abilities – genaue Ability-Inventur und Beschreibungen
 - [ ] Guild-City-/World-Content
 
 ## ⚪ Pausiert
