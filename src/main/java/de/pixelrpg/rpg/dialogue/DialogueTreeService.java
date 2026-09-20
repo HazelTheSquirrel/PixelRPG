@@ -33,17 +33,30 @@ public final class DialogueTreeService {
             dialogueEngine.openUnavailable(player, "Dialog", "Dieser Dialog ist nicht verfügbar.");
             return;
         }
-        open(player, tree, tree.startNodeId());
+        open(player, DialogueContext.forPlayer(player), tree, tree.startNodeId());
+    }
+
+    public void open(Player player, RPGNpcContext npcContext, String treeId) {
+        DialogueTree tree = trees.get(treeId);
+        if (tree == null) {
+            dialogueEngine.openUnavailable(player, "Dialog", "Dieser Dialog ist nicht verfügbar.");
+            return;
+        }
+        open(player, npcContext.context(), tree, tree.startNodeId());
     }
 
     public void open(Player player, DialogueTree tree, String nodeId) {
+        open(player, DialogueContext.forPlayer(player), tree, nodeId);
+    }
+
+    public void open(Player player, DialogueContext context, DialogueTree tree, String nodeId) {
         DialogueNode node = tree.node(nodeId).orElse(null);
         if (node == null) {
             dialogueEngine.openUnavailable(player, "Dialog", "Dieser Dialogschritt ist nicht verfügbar.");
             return;
         }
 
-        String stateKey = stateKey(tree, node);
+        String stateKey = stateKey(context, tree, node);
         if (node.once() && progressStore.hasSeen(player.getUniqueId(), stateKey)) {
             dialogueEngine.openUnavailable(player, "Dialog", "Diesen Dialog hast du bereits gesehen.");
             return;
@@ -52,8 +65,9 @@ public final class DialogueTreeService {
         progressStore.markSeen(player.getUniqueId(), stateKey);
         var actions = new ArrayList<ActionButton>();
         for (DialogueOption option : node.options()) {
-            if (!option.condition().test(player)) continue;
-            actions.add(dialogueEngine.actionButton(option.label(), target -> select(target, tree, node, option)));
+            if (!option.condition().test(context)) continue;
+            actions.add(dialogueEngine.actionButton(option.label(),
+                    target -> select(target, context, tree, node, option)));
         }
 
         if (actions.isEmpty()) {
@@ -70,19 +84,30 @@ public final class DialogueTreeService {
         progressStore.shutdown();
     }
 
-    private void select(Player player, DialogueTree tree, DialogueNode node, DialogueOption option) {
+    private void select(Player player, DialogueContext context, DialogueTree tree,
+                        DialogueNode node, DialogueOption option) {
         if (option.completesCurrentNode()) {
-            progressStore.markCompleted(player.getUniqueId(), stateKey(tree, node));
+            progressStore.markCompleted(player.getUniqueId(), stateKey(context, tree, node));
         }
-        option.action().execute(player);
+        option.action().execute(context);
         if (option.nextNodeId() != null && !option.nextNodeId().isBlank()) {
-            open(player, tree, option.nextNodeId());
+            open(player, context, tree, option.nextNodeId());
         } else {
             player.closeDialog();
         }
     }
 
-    private String stateKey(DialogueTree tree, DialogueNode node) {
-        return tree.id() + ":" + node.id();
+    private String stateKey(DialogueContext context, DialogueTree tree, DialogueNode node) {
+        String npcId = context.npcOptional().map(npc -> npc.id()).orElse("player");
+        return npcId + ":" + tree.id() + ":" + node.id();
+    }
+
+    public record RPGNpcContext(DialogueContext context) {
+        public RPGNpcContext {
+            Objects.requireNonNull(context, "context");
+            if (context.npcOptional().isEmpty()) {
+                throw new IllegalArgumentException("NPC dialogue context requires an NPC");
+            }
+        }
     }
 }
