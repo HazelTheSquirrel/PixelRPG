@@ -72,11 +72,11 @@ public final class MannequinSkinResolver {
         CompletableFuture<ResolvableProfile> profileFuture = PLAYER_PROFILE_CACHE.computeIfAbsent(
                 normalizedName, ignored -> resolvePlayerProfile(playerName));
 
-        return profileFuture.thenAcceptAsync(profile -> Bukkit.getScheduler().runTask(plugin, () -> {
+        return profileFuture.thenAcceptAsync(profile -> {
             if (!mannequin.isValid()) return;
             mannequin.setProfile(profile);
-            refreshForNearbyPlayers(mannequin);
-        })).whenComplete((ignored, exception) -> {
+            refreshForNearbyPlayers(mannequin, plugin);
+        }, runnable -> Bukkit.getScheduler().runTask(plugin, runnable)).whenComplete((ignored, exception) -> {
             if (exception == null) return;
             PLAYER_PROFILE_CACHE.remove(normalizedName, profileFuture);
             Throwable cause = unwrap(exception);
@@ -89,11 +89,11 @@ public final class MannequinSkinResolver {
         return profile.resolve().thenApplyAsync(ResolvableProfile::resolvableProfile);
     }
 
-    private static void refreshForNearbyPlayers(Mannequin mannequin) {
+    private static void refreshForNearbyPlayers(Mannequin mannequin, Plugin plugin) {
         for (Entity entity : mannequin.getNearbyEntities(64.0D, 64.0D, 64.0D)) {
             if (entity instanceof Player player) {
-                player.hideEntity(Bukkit.getPluginManager().getPlugin("PixelRPG"), mannequin);
-                player.showEntity(Bukkit.getPluginManager().getPlugin("PixelRPG"), mannequin);
+                player.hideEntity(plugin, mannequin);
+                player.showEntity(plugin, mannequin);
             }
         }
     }
@@ -115,7 +115,7 @@ public final class MannequinSkinResolver {
                 || lower.startsWith("https://")
                 || lower.startsWith("www.")
                 || lower.contains("/")
-                || lower.contains("\")
+                || lower.contains("\\")
                 || lower.matches("^[a-z0-9.-]+:[0-9]+(?:/.*)?$");
     }
 
