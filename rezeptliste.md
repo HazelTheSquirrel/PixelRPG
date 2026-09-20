@@ -137,10 +137,49 @@
 | 3x SUGAR_CANE | PAPER | 1 | COMMON |
 | 3x PAPER + 1x LEATHER | BOOK | 5 | COMMON |
 | 3x BOOK + 3x OAK_PLANKS | BOOKSHELF | 15 | COMMON |
-| 1x BOOK + 5x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK | 70 | RARE |
-| 1x BOOK + 6x LAPIS_LAZULI + 2x EMERALD | ENCHANTED_BOOK | 80 | EPIC |
-| 1x BOOK + 5x LAPIS_LAZULI + 2x IRON_INGOT | ENCHANTED_BOOK | 75 | RARE |
-| 1x BOOK + 5x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK | 75 | RARE |
+| 1x BOOK + 5x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Wasseraffinität I | 20 | UNCOMMON |
+| 1x BOOK + 8x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Nemesis der Gliederfüßer V | 25 | RARE |
+| 1x BOOK + 5x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Fluch der Bindung I | 30 | RARE |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Explosionsschutz IV | 30 | RARE |
+| 1x BOOK + 6x LAPIS_LAZULI + 2x DIAMOND | ENCHANTED_BOOK – Durchbruch IV | 50 | LEGENDARY |
+| 1x BOOK + 5x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Entladung I | 40 | EPIC |
+| 1x BOOK + 8x LAPIS_LAZULI + 2x DIAMOND | ENCHANTED_BOOK – Dichte V | 50 | LEGENDARY |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Wasserläufer III | 30 | RARE |
+| 1x BOOK + 8x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Effizienz V | 25 | RARE |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Federfall IV | 25 | RARE |
+| 1x BOOK + 5x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Verbrennung II | 25 | RARE |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Feuerschutz IV | 30 | RARE |
+| 1x BOOK + 5x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Flamme I | 30 | RARE |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Glück III | 35 | EPIC |
+| 1x BOOK + 5x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Eisläufer II | 35 | EPIC |
+| 1x BOOK + 8x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Harpune V | 35 | EPIC |
+| 1x BOOK + 5x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Unendlichkeit I | 40 | EPIC |
+| 1x BOOK + 5x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Rückstoß II | 25 | RARE |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Plünderung III | 40 | EPIC |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Treue III | 35 | EPIC |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Glück des Meeres III | 35 | EPIC |
+| 1x BOOK + 6x LAPIS_LAZULI + 2x DIAMOND | ENCHANTED_BOOK – Elan III | 45 | LEGENDARY |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Köder III | 30 | RARE |
+| 1x BOOK + 5x LAPIS_LAZULI + 2x DIAMOND | ENCHANTED_BOOK – Reparatur I | 50 | LEGENDARY |
+| 1x BOOK + 5x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Mehrfachschuss I | 35 | EPIC |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Durchschuss IV | 35 | EPIC |
+| 1x BOOK + 8x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Stärke V | 35 | EPIC |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Schussschutz IV | 30 | RARE |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Schutz IV | 30 | RARE |
+| 1x BOOK + 5x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Schlag II | 30 | RARE |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Schnellladen III | 30 | RARE |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Atmung III | 30 | RARE |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Sog III | 40 | EPIC |
+| 1x BOOK + 8x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Schärfe V | 35 | EPIC |
+| 1x BOOK + 5x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Behutsamkeit I | 40 | EPIC |
+| 1x BOOK + 8x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Bann V | 30 | RARE |
+| 1x BOOK + 6x LAPIS_LAZULI + 2x DIAMOND | ENCHANTED_BOOK – Seelengeschwindigkeit III | 45 | LEGENDARY |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Schwungkraft III | 35 | EPIC |
+| 1x BOOK + 6x LAPIS_LAZULI + 2x DIAMOND | ENCHANTED_BOOK – Flinkes Schleichen III | 45 | LEGENDARY |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x DIAMOND | ENCHANTED_BOOK – Dornen III | 35 | EPIC |
+| 1x BOOK + 6x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Haltbarkeit III | 30 | RARE |
+| 1x BOOK + 5x LAPIS_LAZULI + 1x EMERALD | ENCHANTED_BOOK – Fluch des Verschwindens I | 30 | RARE |
+| 1x BOOK + 6x LAPIS_LAZULI + 2x DIAMOND | ENCHANTED_BOOK – Windstoß III | 50 | LEGENDARY |
 
 ## KNOWLEDGE
 
@@ -178,8 +217,6 @@
 | 7x COBBLESTONE + 1x BOW + 1x REDSTONE | DISPENSER | 60 | RARE |
 | 7x COBBLESTONE + 1x REDSTONE | DROPPER | 55 | RARE |
 | 1x HAY_BLOCK + 4x REDSTONE | TARGET | 50 | RARE |
-
----
 
 # LANDWIRT
 
@@ -513,9 +550,13 @@ Vanilla-Holz und Holzrohstoffe können als Zutaten für andere Berufe dienen.
 
 # Besondere Rezeptänderungen
 
-- **Gelehrter:** Effizienz V, Glück III, Schärfe V und Schutz IV werden als jeweils maximale Vanilla-Stufe hergestellt.
+- **Gelehrter:** Alle 43 Vanilla-Verzauberungen von Minecraft 26.2 werden als ENCHANTED_BOOK angeboten, jeweils ausschließlich auf ihrer maximalen Vanilla-Stufe.
 - **Alchemist:** Heilung II, Stärke II, Schnelligkeit II, Springen II, Gift II, Regeneration II und Schildkrötenmeister II werden als höchste verfügbare Stufe hergestellt. Tränke ohne stärkere Stufe bleiben auf ihrer normalen Vanilla-Stufe.
 - **Schneider:** `4x ROTTEN_FLESH → 1x LEATHER` in der Kategorie `LEATHER`.
+
+## Verzauberungen des Gelehrten
+
+Der Gelehrte bietet alle 43 Vanilla-Verzauberungen von Minecraft 26.2 an. Jede Verzauberung wird ausschließlich in ihrer maximalen Vanilla-Stufe angeboten; dazu gehören auch Flüche und die aktuellen Verzauberungen für Streitkolben und Speere.
 
 ## Dialogsprache
 
