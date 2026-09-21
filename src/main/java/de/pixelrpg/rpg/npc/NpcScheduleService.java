@@ -15,6 +15,7 @@ public final class NpcScheduleService {
     private final NpcManager npcManager;
     private final NpcProfileStore profileStore;
     private final NamespacedKey activityKey;
+    private final NpcScheduleStore scheduleStore;
     private BukkitTask task;
 
     public NpcScheduleService(Plugin plugin, NpcManager npcManager, NpcProfileStore profileStore) {
@@ -22,6 +23,8 @@ public final class NpcScheduleService {
         this.npcManager = Objects.requireNonNull(npcManager, "npcManager");
         this.profileStore = Objects.requireNonNull(profileStore, "profileStore");
         this.activityKey = new NamespacedKey(plugin, "npc_activity");
+        this.scheduleStore = new NpcScheduleStore(plugin);
+        this.scheduleStore.load();
     }
 
     public void start() {
@@ -39,7 +42,7 @@ public final class NpcScheduleService {
                 if (activity.equals(previous)) return;
                 entity.getPersistentDataContainer().set(activityKey, PersistentDataType.STRING, activity);
                 npcManager.getByEntity(uuid).ifPresent(npc ->
-                        entity.teleport(scheduledLocation(npc.location(), activity)));
+                        entity.teleport(scheduleStore.resolve(profile.schedule(), activity, npc.location())));
             });
         }
     }
@@ -51,16 +54,6 @@ public final class NpcScheduleService {
         if (hour < 18L) return "social";
         if (hour < 22L) return schedule.equalsIgnoreCase("guard") ? "guard" : "social";
         return "sleep";
-    }
-
-    private Location scheduledLocation(Location home, String activity) {
-        Location target = home.clone();
-        return switch (activity) {
-            case "work" -> target.add(2.0D, 0.0D, 0.0D);
-            case "social" -> target.add(-2.0D, 0.0D, 1.0D);
-            case "guard" -> target.add(0.0D, 0.0D, 2.0D);
-            default -> target;
-        };
     }
 
     public void shutdown() {
