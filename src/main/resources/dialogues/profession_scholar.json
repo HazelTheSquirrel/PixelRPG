@@ -4,10 +4,10 @@
   "nodes":[
     {"id":"greeting","title":"Gelehrter","body":["Wissen ist ein Handwerk. Eine Verzauberung ist nur dann wertvoll, wenn du verstehst, was sie verändert.","Bücher, Wissen, Zaubertisch und Verzauberungen"],"once":false,"options":[
       {"label":"Erzähl mir mehr.","next":"craft","action":"meet","completes":true},
-      {"label":"Ich bin bereit.","next":null,"action":"meet","completes":true}
+      {"label":"Ich bin bereit.","action":"meet","completes":true}
     ]},
     {"id":"craft","title":"Gelehrter","body":["Ein Beruf ist keine Menüfunktion. Er ist eine Fähigkeit, die du in der Welt anwenden musst.","Wenn du bereit bist, zeige ich dir, was ich anbieten kann."],"once":false,"options":[
-      {"label":"Zeig es mir.","next":null,"action":"meet","completes":true}
+      {"label":"Zeig es mir.","action":"meet","completes":true}
     ]}
   ]
 }
