@@ -7,15 +7,21 @@ import org.bukkit.entity.Entity;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Vector;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class NpcScheduleService {
+    private static final double MOVEMENT_SPEED = 0.18D;
     private final Plugin plugin;
     private final NpcManager npcManager;
     private final NpcProfileStore profileStore;
     private final NamespacedKey activityKey;
     private final NpcScheduleStore scheduleStore;
+    private final Map<UUID, Location> destinations = new ConcurrentHashMap<>();
     private BukkitTask task;
 
     public NpcScheduleService(Plugin plugin, NpcManager npcManager, NpcProfileStore profileStore) {
@@ -29,21 +35,46 @@ public final class NpcScheduleService {
 
     public void start() {
         if (task != null) return;
-        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 40L, 40L);
+        task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 2L, 2L);
     }
 
     private void tick() {
         for (var uuid : npcManager.getSpawnedEntityUuids()) {
             Entity entity = Bukkit.getEntity(uuid);
-            if (entity == null || !entity.isValid()) continue;
+            if (entity == null || !entity.isValid()) {
+                destinations.remove(uuid);
+                continue;
+            }
+
             npcManager.getByEntity(uuid).flatMap(npc -> profileStore.get(npc.id())).ifPresent(profile -> {
                 String activity = activity(profile.schedule(), entity.getWorld().getTime());
                 String previous = entity.getPersistentDataContainer().get(activityKey, PersistentDataType.STRING);
-                if (activity.equals(previous)) return;
-                entity.getPersistentDataContainer().set(activityKey, PersistentDataType.STRING, activity);
-                npcManager.getByEntity(uuid).ifPresent(npc ->
-                        entity.teleport(scheduleStore.resolve(profile.schedule(), activity, npc.location())));
+                if (!activity.equals(previous)) {
+                    entity.getPersistentDataContainer().set(activityKey, PersistentDataType.STRING, activity);
+                    npcManager.getByEntity(uuid).ifPresent(npc ->
+                            destinations.put(uuid, scheduleStore.resolve(profile.schedule(), activity, npc.location())));
+                }
+
+                Location destination = destinations.get(uuid);
+                if (destination != null) moveTowards(entity, destination);
             });
+        }
+    }
+
+    private void moveTowards(Entity entity, Location destination) {
+        if (!destination.getWorld().equals(entity.getWorld())) return;
+        Location current = entity.getLocation();
+        Vector delta = destination.toVector().subtract(current.toVector());
+        double distance = delta.length();
+        if (distance <= MOVEMENT_SPEED) {
+            entity.teleport(destination.clone().setDirection(current.getDirection()));
+            return;
+        }
+
+        Vector step = delta.normalize().multiply(MOVEMENT_SPEED);
+        Location next = current.clone().add(step);
+        if (next.getBlock().isPassable() && next.clone().add(0, 1, 0).getBlock().isPassable()) {
+            entity.teleport(next);
         }
     }
 
@@ -59,5 +90,6 @@ public final class NpcScheduleService {
     public void shutdown() {
         if (task != null) task.cancel();
         task = null;
+        destinations.clear();
     }
 }
