@@ -165,6 +165,12 @@ public final class DataDrivenDialogueLoader {
             if (parts.length != 3) throw new IllegalArgumentException("npc_relation requires npcId:relation:minimum in " + sourceName);
             return DialogueConditions.npcRelationship(npcNetworkRelationshipStore, parts[0], parts[1], parseInteger(parts[2], sourceName));
         }
+        if (raw.startsWith("player_faction:")) {
+            requireStore(playerFactionRelationships, "player faction relationships", sourceName);
+            String[] parts = value(raw, "player_faction:", sourceName).split(":", 2);
+            if (parts.length != 2) throw new IllegalArgumentException("player_faction requires faction:minimum in " + sourceName);
+            return DialogueConditions.playerFactionRelationship(playerFactionRelationships, parseFaction(parts[0], sourceName), parseInteger(parts[1], sourceName));
+        }
         if (raw.startsWith("faction_relation:")) {
             requireStore(factionRelationshipStore, "faction relationships", sourceName);
             String[] parts = value(raw, "faction_relation:", sourceName).split(":", 3);
@@ -214,6 +220,12 @@ public final class DataDrivenDialogueLoader {
             String[] parts = value(raw, "npc_relationship:", sourceName).split(":", 3);
             if (parts.length != 3) throw new IllegalArgumentException("npc_relationship requires npcId:relation:amount in " + sourceName);
             return DialogueActions.adjustNpcRelationship(npcNetworkRelationshipStore, parts[0], parts[1], parseInteger(parts[2], sourceName));
+        }
+        if (raw.startsWith("player_faction_relationship:")) {
+            requireStore(playerFactionRelationships, "player faction relationships", sourceName);
+            String[] parts = value(raw, "player_faction_relationship:", sourceName).split(":", 2);
+            if (parts.length != 2) throw new IllegalArgumentException("player_faction_relationship requires faction:amount in " + sourceName);
+            return DialogueActions.adjustPlayerFactionRelationship(playerFactionRelationships, parseFaction(parts[0], sourceName), parseInteger(parts[1], sourceName));
         }
         if (raw.startsWith("faction_relationship:")) {
             requireStore(factionRelationshipStore, "faction relationships", sourceName);
