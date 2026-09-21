@@ -38,6 +38,7 @@ import de.pixelrpg.rpg.core.LifecycleCoordinator;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.dialogue.DialogueCommand;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.DialogueDomainState;
 import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.dialogue.DataDrivenDialogueLoader;
 import de.pixelrpg.rpg.dialogue.PlayerKnowledgeStore;
@@ -278,6 +279,18 @@ public final class PixelRPGPlugin extends JavaPlugin {
         worldState = new WorldState(this);
         worldState.load();
         dialogueTreeService = new DialogueTreeService(this, dialogueEngine);
+        DialogueDomainState dialogueDomainState = new DialogueDomainState(
+                playerKnowledgeStore,
+                npcKnowledgeStore,
+                worldState,
+                npcRelationshipStore,
+                npcNetworkRelationshipStore,
+                playerFactionRelationshipStore,
+                factionRelationshipStore,
+                loreRegistry,
+                questManager,
+                playerProfileManager,
+                npcProfileStore);
         new DataDrivenDialogueLoader(this, playerKnowledgeStore, worldState, npcKnowledgeStore, npcRelationshipStore, loreRegistry, questManager, playerProfileManager, npcProfileStore, playerFactionRelationshipStore, npcNetworkRelationshipStore, factionRelationshipStore).loadInto(dialogueTreeService);
         getServer().getPluginManager().registerEvents(new WorldStateListener(worldState, playerKnowledgeStore), this);
         getServer().getPluginManager().registerEvents(new PlayerStructureDiscoveryListener(worldState, playerKnowledgeStore, loreRegistry), this);
@@ -318,7 +331,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new BossCombustListener(), this);
         getServer().getPluginManager().registerEvents(new MobExperienceListener(playerProfileManager, mobScalingConfig), this);
-        getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry, questManager), this);
+        getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry, questManager, dialogueDomainState), this);
         getServer().getPluginManager().registerEvents(new QuestMobKillListener(questManager), this);
         getServer().getPluginManager().registerEvents(new PartyDisconnectListener(partyManager), this);
         getServer().getPluginManager().registerEvents(new BossDeathListener(bossManager), this);
