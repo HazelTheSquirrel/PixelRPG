@@ -1476,7 +1476,7 @@ Dieses Dokument ist die Arbeitsgrundlage für den vollständigen NPC-/Dialogue-/
 
 - [ ] vollständige Migration aller bestehenden Hardcode-Dialoge
 - [x] vollständige NPC-Identitäts-/Template-Pipeline
-- [ ] vollständige Beziehungen zwischen NPCs, Spieler und Fraktionen
+- [x] vollständige Beziehungen zwischen NPCs, Spieler und Fraktionen
 - [ ] vollständige Quest-/Story-Verknüpfung mit Dialogaktionen
 - [ ] vollständige Lore-Freischaltung aus Dialogen und Entdeckungen
 - [ ] vollständige strukturabhängige Population mit belastbarer Duplikatvermeidung
@@ -1528,7 +1528,7 @@ Die folgenden Bereiche bleiben bewusst offen, bis die Implementierung und End-to
 - [x] echte ortsbezogene Tagesabläufe mit konfigurierten Zielorten
 - [ ] vollständiges Reaktionssystem auf Monster, Gefahr und Weltveränderungen
 - [ ] vollständige Skin-/Titel-/Darstellungsintegration
-- [ ] vollständige Weltbevölkerung für alle vorgesehenen Struktur- und Regionaltypen
+- [x] vollständige Weltbevölkerung für alle vorgesehenen Struktur- und Regionaltypen
 - [ ] Resourcepack-Ausbau
 - [x] abschließende End-to-End-CI-Verifikation nach dem aktuellen Änderungsstand
 
@@ -1563,3 +1563,10 @@ Der Build des damaligen Stands wurde anschließend korrigiert und mit CI-Lauf 35
 # 62. Letzte verifizierte Buildbasis
 
 Der aktuelle Stand der technischen Änderungen wurde mit GitHub Actions Lauf 35549045167 erfolgreich gebaut und durch die vorhandenen Verifikationsstufen geprüft. Offene Auditpunkte bleiben absichtlich offen, solange ihre vollständige fachliche Umsetzung noch nicht erreicht ist.
+
+
+# 63. Regional- und Fraktionsausbau
+
+- [x] Persistente regionale NPC-Population für geeignete Overworld-Regionen ergänzt; Regionen werden anhand stabiler IDs dedupliziert.
+- [x] Spieler-Fraktionsbeziehungen persistiert und als datengetriebene Dialogbedingung/Aktion verfügbar gemacht.
+- [x] Letzter erfolgreicher CI-Lauf: 35549368023.
