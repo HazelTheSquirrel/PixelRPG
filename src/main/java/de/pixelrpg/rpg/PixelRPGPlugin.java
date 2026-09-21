@@ -170,6 +170,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private StructureNpcManager structureNpcManager;
     private NpcScheduleService npcScheduleService;
     private NpcPresentationService npcPresentationService;
+    private RegionalNpcPopulationManager regionalNpcPopulationManager;
 
     @Override
     public void onEnable() {
@@ -244,6 +245,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcIdentityService.synchronize();
         npcPresentationService = new NpcPresentationService(this, npcManager, npcProfileStore);
         npcPresentationService.refreshAll();
+        regionalNpcPopulationManager = new RegionalNpcPopulationManager(this, npcManager, npcProfileStore);
+        regionalNpcPopulationManager.load();
+        getServer().getPluginManager().registerEvents(regionalNpcPopulationManager, this);
         npcKnowledgeStore = new NpcKnowledgeStore(this);
         npcKnowledgeStore.load();
         npcRelationshipStore = new NpcRelationshipStore(this);
