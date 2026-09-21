@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.companion;
 
 import de.pixelrpg.rpg.core.RPGKeys;
+import de.pixelrpg.rpg.npc.MannequinSkinResolver;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -8,6 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -267,7 +269,19 @@ public final class CompanionService {
             Location spawnLocation = player.getLocation().clone().add(1.0D, 0.0D, 1.0D); Entity entity = player.getWorld().spawnEntity(spawnLocation, selected.entityType());
             if (!(entity instanceof LivingEntity living)) { entity.remove(); return; }
             living.getPersistentDataContainer().set(RPGKeys.Companion.id(), PersistentDataType.STRING, selected.id()); living.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, selected.level()); living.getPersistentDataContainer().set(RPGKeys.Companion.rarity(), PersistentDataType.STRING, selected.rarity().name());
-            living.customName(Component.text(selected.name())); living.setCustomNameVisible(true); if (living instanceof Mob mob) { mob.setAware(true); mob.setTarget(null); }
+            living.customName(Component.text(selected.name())); living.setCustomNameVisible(true);
+
+            // Unique mannequin companions may define a fixed player name or external skin URL.
+            // Keep this path independent from the generic NPC manager.
+            CompanionDefinition definition = registry.require(selected.id());
+            if (living instanceof Mannequin mannequin) {
+                String skinSource = definition.visual().skinSource();
+                if (skinSource != null && !skinSource.isBlank()) {
+                    MannequinSkinResolver.apply(mannequin, skinSource, plugin.getLogger());
+                }
+            }
+
+            if (living instanceof Mob mob) { mob.setAware(true); mob.setTarget(null); }
             CompanionDefinition definition = registry.require(selected.id());
             applyEquipmentToEntity(player.getUniqueId(), selected.id(), living);
             mountController.prepare(living, definition.mount(), player);
