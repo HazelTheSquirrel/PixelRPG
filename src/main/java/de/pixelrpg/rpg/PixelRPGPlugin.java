@@ -53,6 +53,7 @@ import de.pixelrpg.rpg.lore.LoreCommand;
 import de.pixelrpg.rpg.npc.NpcProfileStore;
 import de.pixelrpg.rpg.npc.NpcIdentityService;
 import de.pixelrpg.rpg.npc.NpcDangerReactionListener;
+import de.pixelrpg.rpg.npc.NpcPresentationService;
 import de.pixelrpg.rpg.npc.StructureNpcManager;
 import de.pixelrpg.rpg.npc.NpcScheduleService;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
@@ -167,6 +168,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private LoreRegistry loreRegistry;
     private StructureNpcManager structureNpcManager;
     private NpcScheduleService npcScheduleService;
+    private NpcPresentationService npcPresentationService;
 
     @Override
     public void onEnable() {
@@ -239,6 +241,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcProfileStore.synchronize(npcManager.getAll());
         npcIdentityService = new NpcIdentityService(npcManager, npcProfileStore);
         npcIdentityService.synchronize();
+        npcPresentationService = new NpcPresentationService(this, npcManager, npcProfileStore);
+        npcPresentationService.refreshAll();
         npcKnowledgeStore = new NpcKnowledgeStore(this);
         npcKnowledgeStore.load();
         npcRelationshipStore = new NpcRelationshipStore(this);
@@ -249,7 +253,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         factionRelationshipStore.load();
         loreRegistry = new LoreRegistry(this);
         loreRegistry.load();
-        structureNpcManager = new StructureNpcManager(this, npcManager, npcProfileStore, npcKnowledgeStore);
+        structureNpcManager = new StructureNpcManager(this, npcManager, npcProfileStore, npcKnowledgeStore, npcPresentationService);
         getServer().getPluginManager().registerEvents(structureNpcManager, this);
         npcScheduleService = new NpcScheduleService(this, npcManager, npcProfileStore);
         npcScheduleService.start();
