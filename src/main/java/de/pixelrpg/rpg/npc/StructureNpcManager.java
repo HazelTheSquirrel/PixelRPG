@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -71,14 +73,17 @@ public final class StructureNpcManager implements Listener {
     @EventHandler
     public void onChunkLoad(ChunkLoadEvent event) {
         World world = event.getWorld();
+        boolean changed = false;
         for (GeneratedStructure generated : world.getStructures(event.getChunk().getX(), event.getChunk().getZ())) {
             String key = structureIdentity(world, generated);
-            if (!initializedStructures.add(key)) continue;
+            if (initializedStructures.contains(key)) continue;
             List<StructureNpcTemplate> selected = templates.getOrDefault(structureKey(generated.getStructure()), List.of());
             if (selected.isEmpty()) continue;
             spawnForStructure(world, generated, key, selected);
+            initializedStructures.add(key);
+            changed = true;
         }
-        saveState();
+        if (changed) saveState();
     }
 
     private void spawnForStructure(World world, GeneratedStructure generated, String identity, List<StructureNpcTemplate> selected) {
@@ -125,9 +130,17 @@ public final class StructureNpcManager implements Listener {
 
     private String structureIdentity(World world, GeneratedStructure structure) {
         BoundingBox box = structure.getBoundingBox();
-        return world.getKey() + ":" + structureKey(structure.getStructure()) + ":" +
+        String raw = world.getKey() + ":" + structureKey(structure.getStructure()) + ":" +
                 box.getMinX() + ":" + box.getMinY() + ":" + box.getMinZ() + ":" +
                 box.getMaxX() + ":" + box.getMaxY() + ":" + box.getMaxZ();
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(raw.getBytes(StandardCharsets.UTF_8));
+            StringBuilder builder = new StringBuilder(digest.length * 2);
+            for (byte value : digest) builder.append(String.format("%02x", value));
+            return builder.toString();
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
     }
 
     private void saveState() {
