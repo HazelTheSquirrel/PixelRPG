@@ -415,5 +415,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public NpcProfileStore getNpcProfileStore() { return npcProfileStore; }
     public NpcKnowledgeStore getNpcKnowledgeStore() { return npcKnowledgeStore; }
     public NpcRelationshipStore getNpcRelationshipStore() { return npcRelationshipStore; }
+    public NpcNetworkRelationshipStore getNpcNetworkRelationshipStore() { return npcNetworkRelationshipStore; }
+    public FactionRelationshipStore getFactionRelationshipStore() { return factionRelationshipStore; }
     public LoreRegistry getLoreRegistry() { return loreRegistry; }
 }
