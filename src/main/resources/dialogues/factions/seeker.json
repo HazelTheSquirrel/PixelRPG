@@ -1,17 +1,64 @@
 {
-  "id":"npc.faction.seeker",
-  "start":"greeting",
-  "nodes":[
-    {"id":"greeting","title":"Suchender","body":["Wir suchen, was andere längst aufgegeben haben: Ruinen, Artefakte und Antworten.","Manche von uns suchen Wahrheit. Andere suchen nur, was sie verkaufen können."],"once":false,"options":[
-      {"label":"Was suchst du?","next":"ancient","action":"meet","completes":true},
-      {"label":"Ich suche selbst.","action":"meet","completes":true}
-    ]},
-    {"id":"ancient","title":"Suchender","body":["Die Ancient City ist kein Schatzkeller. Dort unten findest du Spuren einer Welt, die ihre eigenen Geheimnisse nicht überlebt hat.","Wenn du hingehst, solltest du wissen, warum."],"once":false,"options":[
-      {"label":"Was weißt du über den Warden?","next":"warden","action":"lore:ancient_city","completes":true},
-      {"label":"Ich werde vorsichtig sein.","completes":true}
-    ]},
-    {"id":"warden","title":"Suchender","body":["Nur Geschichten. Und einige davon widersprechen sich.","Ich weiß nur, dass dort unten etwas wacht, das man nicht wie ein gewöhnliches Monster behandeln sollte."],"once":false,"options:[
-      {"label":"Verstanden.","completes":true}
-    ]}
+  "id": "npc.faction.seeker",
+  "start": "greeting",
+  "nodes": [
+    {
+      "id": "greeting",
+      "title": "Suchender",
+      "body": [
+        "Wir suchen, was andere längst aufgegeben haben: Ruinen, Artefakte und Antworten.",
+        "Manche von uns suchen Wahrheit. Andere suchen nur, was sie verkaufen können."
+      ],
+      "once": false,
+      "options": [
+        {
+          "label": "Was suchst du?",
+          "next": "ancient",
+          "action": "meet",
+          "completes": true
+        },
+        {
+          "label": "Ich suche selbst.",
+          "action": "meet",
+          "completes": true
+        }
+      ]
+    },
+    {
+      "id": "ancient",
+      "title": "Suchender",
+      "body": [
+        "Die Ancient City ist kein Schatzkeller. Dort unten findest du Spuren einer Welt, die ihre eigenen Geheimnisse nicht überlebt hat.",
+        "Wenn du hingehst, solltest du wissen, warum."
+      ],
+      "once": false,
+      "options": [
+        {
+          "label": "Was weißt du über den Warden?",
+          "next": "warden",
+          "action": "lore:ancient_city",
+          "completes": true
+        },
+        {
+          "label": "Ich werde vorsichtig sein.",
+          "completes": true
+        }
+      ]
+    },
+    {
+      "id": "warden",
+      "title": "Suchender",
+      "body": [
+        "Nur Geschichten. Und einige davon widersprechen sich.",
+        "Ich weiß nur, dass dort unten etwas wacht, das man nicht wie ein gewöhnliches Monster behandeln sollte."
+      ],
+      "once": false,
+      "options": [
+        {
+          "label": "Verstanden.",
+          "completes": true
+        }
+      ]
+    }
   ]
 }
