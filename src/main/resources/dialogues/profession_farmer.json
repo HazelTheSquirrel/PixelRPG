@@ -1,0 +1,13 @@
+{
+  "id":"npc.profession.farmer",
+  "start":"greeting",
+  "nodes":[
+    {"id":"greeting","title":"Landwirt","body":["Ein gutes Feld belohnt Geduld. Wer die Welt ernähren will, muss sie zuerst beobachten.","Pflanzen, Feldarbeit und landwirtschaftliche Erzeugnisse"],"once":false,"options":[
+      {"label":"Erzähl mir mehr.","next":"craft","action":"meet","completes":true},
+      {"label":"Ich bin bereit.","next":null,"action":"meet","completes":true}
+    ]},
+    {"id":"craft","title":"Landwirt","body":["Ein Beruf ist keine Menüfunktion. Er ist eine Fähigkeit, die du in der Welt anwenden musst.","Wenn du bereit bist, zeige ich dir, was ich anbieten kann."],"once":false,"options":[
+      {"label":"Zeig es mir.","next":null,"action":"meet","completes":true}
+    ]}
+  ]
+}
