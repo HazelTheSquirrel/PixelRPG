@@ -15,6 +15,7 @@ public final class DialogueTreeService {
     private final DialogueEngine dialogueEngine;
     private final DialogueProgressStore progressStore;
     private final Map<String, DialogueTree> trees = new ConcurrentHashMap<>();
+    private volatile DialogueDomainState domainState;
 
     public DialogueTreeService(Plugin plugin, DialogueEngine dialogueEngine) {
         this.dialogueEngine = Objects.requireNonNull(dialogueEngine, "dialogueEngine");
@@ -23,6 +24,10 @@ public final class DialogueTreeService {
     }
 
     public void register(DialogueTree tree) { trees.put(tree.id(), tree); }
+
+    public void setDomainState(DialogueDomainState domainState) {
+        this.domainState = Objects.requireNonNull(domainState, "domainState");
+    }
 
     public void open(Player player, String treeId) {
         open(player, DialogueContext.forPlayer(player), treeId, () -> player.closeDialog());
@@ -33,6 +38,7 @@ public final class DialogueTreeService {
     }
 
     public void open(Player player, DialogueContext context, String treeId, Runnable completion) {
+        context = normalizeContext(context);
         DialogueTree tree = trees.get(treeId);
         if (tree == null) {
             dialogueEngine.openUnavailable(player, "Dialog", "Dieser Dialog ist nicht verfügbar.");
@@ -81,6 +87,11 @@ public final class DialogueTreeService {
     }
 
     public void shutdown() { progressStore.shutdown(); }
+
+    private DialogueContext normalizeContext(DialogueContext context) {
+        if (context.domainStateOptional().isPresent() || domainState == null) return context;
+        return new DialogueContext(context.player(), context.npc(), context.world(), context.location(), domainState);
+    }
 
     private void select(Player player, DialogueContext context, DialogueTree tree,
                          DialogueNode node, DialogueOption option, Runnable completion) {
