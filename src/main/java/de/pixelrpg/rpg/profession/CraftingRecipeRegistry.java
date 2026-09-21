@@ -61,7 +61,7 @@ public final class CraftingRecipeRegistry {
                 throw new IllegalStateException("Passive profession cannot define crafting recipes: " + id);
             }
 
-            Material result = resolveResultMaterial(required(json, "result"));
+            Material result = resolveMaterial(required(json, "result"));
             if (result == null || result.isAir()) throw new IllegalStateException("Unknown crafting result for " + id + ": " + required(json, "result"));
 
             ItemRarity maximumRarity = enumValue(ItemRarity.class, json, "rarity", id);
@@ -122,8 +122,20 @@ public final class CraftingRecipeRegistry {
         visited.add(recipeId);
     }
 
-    private static Material resolveResultMaterial(String raw) {
+    private static Material resolveMaterial(String raw) {
         String value = raw.trim().toUpperCase(Locale.ROOT);
+
+        // Minecraft/Paper uses GOLDEN_* for gold tools, weapons and armor.
+        // The recipe data historically used the shorter GOLD_* names.
+        if (value.startsWith("GOLD_")) {
+            value = "GOLDEN_" + value.substring("GOLD_".length());
+        }
+
+        // There is no vanilla DIAMOND_INGOT item. Diamond recipes use DIAMOND.
+        if (value.equals("DIAMOND_INGOT")) {
+            value = "DIAMOND";
+        }
+
         if (value.equals("CHAIN")) value = "IRON_CHAIN";
         return Material.matchMaterial(value);
     }
@@ -133,7 +145,7 @@ public final class CraftingRecipeRegistry {
         if (costs == null || costs.isEmpty()) return Map.of();
         Map<Material, Integer> result = new EnumMap<>(Material.class);
         for (var entry : costs.entrySet()) {
-            Material material = Material.matchMaterial(entry.getKey());
+            Material material = resolveMaterial(entry.getKey());
             int amount = entry.getValue().getAsInt();
             if (material == null || material.isAir() || amount <= 0) throw new IllegalStateException("Invalid cost for " + id + ": " + entry.getKey());
             result.merge(material, amount, Integer::sum);
