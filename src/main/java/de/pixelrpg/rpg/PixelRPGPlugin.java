@@ -333,7 +333,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         lifecycle.register(() -> loreRegistry.shutdown());
         lifecycle.register(() -> npcRelationshipStore.shutdown());
         lifecycle.register(() -> npcKnowledgeStore.shutdown());
-        lifecycle.register(() -> npcIdentityService.synchronize());
         lifecycle.register(() -> npcProfileStore.shutdown());
         RootCommand rootCommand = new RootCommand(this, itemService);
         rootCommand.register(new CompanionSubCommand(companionService));
