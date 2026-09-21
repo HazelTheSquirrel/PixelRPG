@@ -49,7 +49,9 @@ public final class WorldStateListener implements Listener {
         if (entity instanceof EnderDragon) {
             worldState.set("story.ender_dragon.defeated");
             worldState.set("saga.first.complete");
-            knowledgeStore.learn(event.getEntity().getKiller() == null ? java.util.UUID.randomUUID() : event.getEntity().getKiller().getUniqueId(), "ender_dragon.defeated");
+            if (event.getEntity().getKiller() != null) {
+                knowledgeStore.learn(event.getEntity().getKiller().getUniqueId(), "ender_dragon.defeated");
+            }
         } else if (entity instanceof Wither) {
             worldState.set("wither.defeated");
             if (entity.getKiller() != null) {
