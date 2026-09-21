@@ -116,7 +116,7 @@ tasks.register('verifyPixelRpgDialogueData') {
     group = 'verification'
     description = 'Validates data-driven dialogue trees and cross-references before packaging.'
     doLast {
-        def parser = new groovy.json.JsonSlurper()
+        def parser = new groovy.json.JsonSlurperClassic()
         def dialogueRoot = file('src/main/resources/dialogues')
         def loreFile = file('src/main/resources/data/lore.json')
         def loreEntries = parser.parse(loreFile)
