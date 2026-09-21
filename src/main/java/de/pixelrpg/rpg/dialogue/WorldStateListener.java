@@ -45,7 +45,7 @@ public final class WorldStateListener implements Listener {
     /** Records major first-saga boss outcomes in the shared world state. */
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        Entity entity = event.getEntity();
+        org.bukkit.entity.LivingEntity entity = event.getEntity();
         if (entity instanceof EnderDragon) {
             worldState.set("story.ender_dragon.defeated");
             worldState.set("saga.first.complete");
