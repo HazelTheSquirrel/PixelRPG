@@ -8,6 +8,7 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -30,7 +31,7 @@ public final class NpcRelationshipStore {
         values.clear();
         if (!file.exists()) return;
         Type type = new TypeToken<Map<String, Integer>>() { }.getType();
-        try (FileReader reader = new FileReader(file)) {
+        try (FileReader reader = new FileReader(file, StandardCharsets.UTF_8)) {
             Map<String, Integer> loaded = gson.fromJson(reader, type);
             if (loaded != null) values.putAll(loaded);
         } catch (IOException | RuntimeException exception) {
@@ -56,7 +57,7 @@ public final class NpcRelationshipStore {
     }
 
     public void save() {
-        try (FileWriter writer = new FileWriter(file)) { gson.toJson(values, writer); }
+        try (FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8)) { gson.toJson(values, writer); }
         catch (IOException exception) { plugin.getLogger().log(Level.WARNING, "Failed to save npc-relationships.json", exception); }
     }
 
