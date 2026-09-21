@@ -69,8 +69,18 @@ public final class ExternalSkinService {
         ProfileProperty cached = getCached(normalized);
         if (cached != null) return CompletableFuture.completedFuture(cached);
 
-        return IN_FLIGHT.computeIfAbsent(normalized, key -> fetchProperty(key)
-                .whenComplete((ignored, throwable) -> IN_FLIGHT.remove(key)));
+        CompletableFuture<ProfileProperty> existing = IN_FLIGHT.get(normalized);
+        if (existing != null) return existing;
+
+        CompletableFuture<ProfileProperty> created = fetchProperty(normalized);
+        CompletableFuture<ProfileProperty> raced = IN_FLIGHT.putIfAbsent(normalized, created);
+        CompletableFuture<ProfileProperty> selected = raced == null ? created : raced;
+
+        if (raced == null) {
+            created.whenComplete((ignored, throwable) -> IN_FLIGHT.remove(normalized, created));
+        }
+
+        return selected;
     }
 
     private CompletableFuture<ProfileProperty> fetchProperty(String normalized) {
