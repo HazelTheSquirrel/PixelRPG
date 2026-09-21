@@ -210,7 +210,14 @@ public final class DataDrivenDialogueLoader {
             for (String action : actions) {
                 if (!action.isBlank()) parsed.add(parseAction(action.trim(), sourceName));
             }
-            return context -> parsed.forEach(action -> action.execute(context));
+            return new DialogueOption.DialogueAction() {
+                @Override public void execute(org.bukkit.entity.Player player) {
+                    parsed.forEach(action -> action.execute(player));
+                }
+                @Override public void execute(DialogueContext context) {
+                    parsed.forEach(action -> action.execute(context));
+                }
+            };
         }
         if (raw.equals("meet")) {
             requireStore(npcRelationshipStore, "NPC relationships", sourceName);
