@@ -1,0 +1,31 @@
+{
+  "id":"npc.resident.scholar",
+  "start":"greeting",
+  "nodes":[
+    {
+      "id":"greeting",
+      "title":"Gelehrter",
+      "body":[
+        "Wissen ist ein Handwerk. Eine Verzauberung ist nur dann wertvoll, wenn du verstehst, was sie verändert.",
+        "Ich sammle Bücher, Berichte und Fragmente aus Orten, die älter sind als unsere Dörfer."
+      ],
+      "once":false,
+      "options":[
+        {"label":"Was suchst du?","next":"research","action":"meet","completes":true},
+        {"label":"Danke.","next":null,"action":"meet","completes":true}
+      ]
+    },
+    {
+      "id":"research",
+      "title":"Gelehrter",
+      "body":[
+        "Ich suche keine Geschichten, die sich gut anhören. Ich suche Spuren, die sich überprüfen lassen.",
+        "Wenn du etwas Altes findest, bring mir nicht nur die Legende. Bring mir den Beweis."
+      ],
+      "once":false,
+      "options":[
+        {"label":"Ich werde darauf achten.","next":null,"action":"learn:world.history","completes":true}
+      ]
+    }
+  ]
+}
