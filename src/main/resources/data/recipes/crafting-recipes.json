@@ -186,8 +186,8 @@
       "profession": "BLACKSMITH",
       "result": "DIAMOND_PICKAXE",
       "costs": {
-        "DIAMOND_INGOT": 3,
-        "STICK": 2
+        "STICK": 2,
+        "DIAMOND": 3
       },
       "requiredProfessionLevel": 45,
       "unlockPrice": 4400,
@@ -201,8 +201,8 @@
       "profession": "BLACKSMITH",
       "result": "DIAMOND_AXE",
       "costs": {
-        "DIAMOND_INGOT": 3,
-        "STICK": 2
+        "STICK": 2,
+        "DIAMOND": 3
       },
       "requiredProfessionLevel": 45,
       "unlockPrice": 4400,
@@ -216,8 +216,8 @@
       "profession": "BLACKSMITH",
       "result": "DIAMOND_SHOVEL",
       "costs": {
-        "DIAMOND_INGOT": 1,
-        "STICK": 2
+        "STICK": 2,
+        "DIAMOND": 1
       },
       "requiredProfessionLevel": 45,
       "unlockPrice": 4400,
@@ -231,8 +231,8 @@
       "profession": "BLACKSMITH",
       "result": "DIAMOND_HOE",
       "costs": {
-        "DIAMOND_INGOT": 2,
-        "STICK": 2
+        "STICK": 2,
+        "DIAMOND": 2
       },
       "requiredProfessionLevel": 45,
       "unlockPrice": 4400,
@@ -242,7 +242,7 @@
     },
     {
       "id": "blacksmith:copper_sword",
-      "label": "KupferSchwert",
+      "label": "Kupferschwert",
       "profession": "BLACKSMITH",
       "result": "COPPER_SWORD",
       "costs": {
@@ -257,7 +257,7 @@
     },
     {
       "id": "blacksmith:iron_sword",
-      "label": "EisenSchwert",
+      "label": "Eisenschwert",
       "profession": "BLACKSMITH",
       "result": "IRON_SWORD",
       "costs": {
@@ -272,9 +272,9 @@
     },
     {
       "id": "blacksmith:gold_sword",
-      "label": "GoldSchwert",
+      "label": "Goldschwert",
       "profession": "BLACKSMITH",
-      "result": "GOLD_SWORD",
+      "result": "GOLDEN_SWORD",
       "costs": {
         "GOLD_INGOT": 2,
         "STICK": 1
@@ -287,12 +287,12 @@
     },
     {
       "id": "blacksmith:diamond_sword",
-      "label": "DiamantSchwert",
+      "label": "Diamantschwert",
       "profession": "BLACKSMITH",
       "result": "DIAMOND_SWORD",
       "costs": {
-        "DIAMOND_INGOT": 2,
-        "STICK": 1
+        "STICK": 1,
+        "DIAMOND": 2
       },
       "requiredProfessionLevel": 50,
       "unlockPrice": 4900,
@@ -302,9 +302,9 @@
     },
     {
       "id": "blacksmith:netherite_sword",
-      "label": "NetheritSchwert",
+      "label": "Netheritschwert",
       "profession": "BLACKSMITH",
-      "result": "DIAMOND_SWORD",
+      "result": "NETHERITE_SWORD",
       "costs": {
         "NETHERITE_INGOT": 2,
         "STICK": 1
@@ -317,7 +317,7 @@
     },
     {
       "id": "blacksmith:copper_spear",
-      "label": "KupferSpeer",
+      "label": "Kupferspeer",
       "profession": "BLACKSMITH",
       "result": "COPPER_SPEAR",
       "costs": {
@@ -332,7 +332,7 @@
     },
     {
       "id": "blacksmith:iron_spear",
-      "label": "EisenSpeer",
+      "label": "Eisenspeer",
       "profession": "BLACKSMITH",
       "result": "IRON_SPEAR",
       "costs": {
@@ -347,9 +347,9 @@
     },
     {
       "id": "blacksmith:gold_spear",
-      "label": "GoldSpeer",
+      "label": "Goldspeer",
       "profession": "BLACKSMITH",
-      "result": "GOLD_SPEAR",
+      "result": "GOLDEN_SPEAR",
       "costs": {
         "GOLD_INGOT": 2,
         "STICK": 1
@@ -362,12 +362,12 @@
     },
     {
       "id": "blacksmith:diamond_spear",
-      "label": "DiamantSpeer",
+      "label": "Diamantspeer",
       "profession": "BLACKSMITH",
       "result": "DIAMOND_SPEAR",
       "costs": {
-        "DIAMOND_INGOT": 2,
-        "STICK": 1
+        "STICK": 1,
+        "DIAMOND": 2
       },
       "requiredProfessionLevel": 50,
       "unlockPrice": 4900,
@@ -377,9 +377,9 @@
     },
     {
       "id": "blacksmith:netherite_spear",
-      "label": "NetheritSpeer",
+      "label": "Netheritspeer",
       "profession": "BLACKSMITH",
-      "result": "DIAMOND_SPEAR",
+      "result": "NETHERITE_SPEAR",
       "costs": {
         "NETHERITE_INGOT": 2,
         "STICK": 1
@@ -408,7 +408,7 @@
     },
     {
       "id": "blacksmith:copper_helmet",
-      "label": "KupferHelm",
+      "label": "Kupferhelm",
       "profession": "BLACKSMITH",
       "result": "COPPER_HELMET",
       "costs": {
@@ -422,7 +422,7 @@
     },
     {
       "id": "blacksmith:copper_chestplate",
-      "label": "KupferBrustplatte",
+      "label": "Kupferharnisch",
       "profession": "BLACKSMITH",
       "result": "COPPER_CHESTPLATE",
       "costs": {
@@ -436,7 +436,7 @@
     },
     {
       "id": "blacksmith:copper_leggings",
-      "label": "KupferBeinschutz",
+      "label": "Kupferbeinschutz",
       "profession": "BLACKSMITH",
       "result": "COPPER_LEGGINGS",
       "costs": {
@@ -450,7 +450,7 @@
     },
     {
       "id": "blacksmith:copper_boots",
-      "label": "KupferStiefel",
+      "label": "Kupferstiefel",
       "profession": "BLACKSMITH",
       "result": "COPPER_BOOTS",
       "costs": {
@@ -464,7 +464,7 @@
     },
     {
       "id": "blacksmith:iron_helmet",
-      "label": "EisenHelm",
+      "label": "Eisenhelm",
       "profession": "BLACKSMITH",
       "result": "IRON_HELMET",
       "costs": {
@@ -478,7 +478,7 @@
     },
     {
       "id": "blacksmith:iron_chestplate",
-      "label": "EisenBrustplatte",
+      "label": "Eisenharnisch",
       "profession": "BLACKSMITH",
       "result": "IRON_CHESTPLATE",
       "costs": {
@@ -492,7 +492,7 @@
     },
     {
       "id": "blacksmith:iron_leggings",
-      "label": "EisenBeinschutz",
+      "label": "Eisenbeinschutz",
       "profession": "BLACKSMITH",
       "result": "IRON_LEGGINGS",
       "costs": {
@@ -506,7 +506,7 @@
     },
     {
       "id": "blacksmith:iron_boots",
-      "label": "EisenStiefel",
+      "label": "Eisenstiefel",
       "profession": "BLACKSMITH",
       "result": "IRON_BOOTS",
       "costs": {
@@ -520,9 +520,9 @@
     },
     {
       "id": "blacksmith:gold_helmet",
-      "label": "GoldHelm",
+      "label": "Goldhelm",
       "profession": "BLACKSMITH",
-      "result": "GOLD_HELMET",
+      "result": "GOLDEN_HELMET",
       "costs": {
         "GOLD_INGOT": 5
       },
@@ -534,9 +534,9 @@
     },
     {
       "id": "blacksmith:gold_chestplate",
-      "label": "GoldBrustplatte",
+      "label": "Goldharnisch",
       "profession": "BLACKSMITH",
-      "result": "GOLD_CHESTPLATE",
+      "result": "GOLDEN_CHESTPLATE",
       "costs": {
         "GOLD_INGOT": 8
       },
@@ -548,9 +548,9 @@
     },
     {
       "id": "blacksmith:gold_leggings",
-      "label": "GoldBeinschutz",
+      "label": "Goldbeinschutz",
       "profession": "BLACKSMITH",
-      "result": "GOLD_LEGGINGS",
+      "result": "GOLDEN_LEGGINGS",
       "costs": {
         "GOLD_INGOT": 7
       },
@@ -562,9 +562,9 @@
     },
     {
       "id": "blacksmith:gold_boots",
-      "label": "GoldStiefel",
+      "label": "Goldstiefel",
       "profession": "BLACKSMITH",
-      "result": "GOLD_BOOTS",
+      "result": "GOLDEN_BOOTS",
       "costs": {
         "GOLD_INGOT": 4
       },
@@ -576,11 +576,11 @@
     },
     {
       "id": "blacksmith:diamond_helmet",
-      "label": "DiamantHelm",
+      "label": "Diamanthelm",
       "profession": "BLACKSMITH",
       "result": "DIAMOND_HELMET",
       "costs": {
-        "DIAMOND_INGOT": 5
+        "DIAMOND": 5
       },
       "requiredProfessionLevel": 60,
       "unlockPrice": 5900,
@@ -590,11 +590,11 @@
     },
     {
       "id": "blacksmith:diamond_chestplate",
-      "label": "DiamantBrustplatte",
+      "label": "Diamantharnisch",
       "profession": "BLACKSMITH",
       "result": "DIAMOND_CHESTPLATE",
       "costs": {
-        "DIAMOND_INGOT": 8
+        "DIAMOND": 8
       },
       "requiredProfessionLevel": 60,
       "unlockPrice": 5900,
@@ -604,11 +604,11 @@
     },
     {
       "id": "blacksmith:diamond_leggings",
-      "label": "DiamantBeinschutz",
+      "label": "Diamantbeinschutz",
       "profession": "BLACKSMITH",
       "result": "DIAMOND_LEGGINGS",
       "costs": {
-        "DIAMOND_INGOT": 7
+        "DIAMOND": 7
       },
       "requiredProfessionLevel": 60,
       "unlockPrice": 5900,
@@ -618,11 +618,11 @@
     },
     {
       "id": "blacksmith:diamond_boots",
-      "label": "DiamantStiefel",
+      "label": "Diamantstiefel",
       "profession": "BLACKSMITH",
       "result": "DIAMOND_BOOTS",
       "costs": {
-        "DIAMOND_INGOT": 4
+        "DIAMOND": 4
       },
       "requiredProfessionLevel": 60,
       "unlockPrice": 5900,
@@ -824,7 +824,7 @@
     },
     {
       "id": "blacksmith:copper_horse_armor",
-      "label": "Kupfer-Pferderüstung",
+      "label": "Kupferner Rossharnisch",
       "profession": "BLACKSMITH",
       "result": "COPPER_HORSE_ARMOR",
       "costs": {
@@ -838,7 +838,7 @@
     },
     {
       "id": "blacksmith:copper_nautilus_armor",
-      "label": "Kupfer-Nautilus-Rüstung",
+      "label": "Kupferner Nautiluspanzer",
       "profession": "BLACKSMITH",
       "result": "COPPER_NAUTILUS_ARMOR",
       "costs": {
@@ -853,7 +853,7 @@
     },
     {
       "id": "blacksmith:diamond_horse_armor",
-      "label": "Diamant-Pferderüstung",
+      "label": "Diamantener Rossharnisch",
       "profession": "BLACKSMITH",
       "result": "DIAMOND_HORSE_ARMOR",
       "costs": {
@@ -867,7 +867,7 @@
     },
     {
       "id": "blacksmith:golden_horse_armor",
-      "label": "Gold-Pferderüstung",
+      "label": "Goldener Rossharnisch",
       "profession": "BLACKSMITH",
       "result": "GOLDEN_HORSE_ARMOR",
       "costs": {
@@ -881,7 +881,7 @@
     },
     {
       "id": "blacksmith:iron_horse_armor",
-      "label": "Eisen-Pferderüstung",
+      "label": "Eiserner Rossharnisch",
       "profession": "BLACKSMITH",
       "result": "IRON_HORSE_ARMOR",
       "costs": {
@@ -1049,7 +1049,7 @@
     },
     {
       "id": "farmer:dried_kelp_block",
-      "label": "Seetangblock",
+      "label": "Getrockneter Seetangblock",
       "profession": "FARMER",
       "result": "DRIED_KELP_BLOCK",
       "costs": {
@@ -1091,7 +1091,7 @@
     },
     {
       "id": "farmer:sugar_block",
-      "label": "Zuckerblock",
+      "label": "Honigblock",
       "profession": "FARMER",
       "result": "HONEY_BLOCK",
       "costs": {
@@ -1458,7 +1458,7 @@
     },
     {
       "id": "cook:suspicious_stew",
-      "label": "Mysteriöse Suppe",
+      "label": "Seltsame Suppe",
       "profession": "COOK",
       "result": "SUSPICIOUS_STEW",
       "costs": {
@@ -1564,7 +1564,7 @@
     },
     {
       "id": "cook:dried_kelp",
-      "label": "Knuspriger Seetang",
+      "label": "Getrockneter Seetang",
       "profession": "COOK",
       "result": "DRIED_KELP",
       "costs": {
@@ -1961,7 +1961,7 @@
     },
     {
       "id": "alchemist:water",
-      "label": "Wassertrank",
+      "label": "Wasserflasche",
       "profession": "ALCHEMIST",
       "result": "POTION",
       "costs": {
@@ -2852,7 +2852,7 @@
     },
     {
       "id": "mason:stone_slab",
-      "label": "STONE Platte",
+      "label": "Steinstufe",
       "profession": "MASON",
       "result": "STONE_SLAB",
       "costs": {
@@ -2866,7 +2866,7 @@
     },
     {
       "id": "mason:stone_stairs",
-      "label": "STONE Stufe",
+      "label": "Steintreppe",
       "profession": "MASON",
       "result": "STONE_STAIRS",
       "costs": {
@@ -2884,7 +2884,7 @@
       "profession": "MASON",
       "result": "COBBLESTONE_WALL",
       "costs": {
-        "STONE": 3
+        "COBBLESTONE": 3
       },
       "requiredProfessionLevel": 70,
       "unlockPrice": 6900,
@@ -2894,7 +2894,7 @@
     },
     {
       "id": "mason:stone_bricks_slab",
-      "label": "STONE_BRICKS Platte",
+      "label": "Steinziegelstufe",
       "profession": "MASON",
       "result": "STONE_BRICK_SLAB",
       "costs": {
@@ -2908,7 +2908,7 @@
     },
     {
       "id": "mason:stone_bricks_stairs",
-      "label": "STONE_BRICKS Stufe",
+      "label": "Steinziegeltreppe",
       "profession": "MASON",
       "result": "STONE_BRICK_STAIRS",
       "costs": {
@@ -2922,7 +2922,7 @@
     },
     {
       "id": "mason:stone_bricks_wall",
-      "label": "STONE_BRICKS Mauer",
+      "label": "Steinziegelmauer",
       "profession": "MASON",
       "result": "STONE_BRICK_WALL",
       "costs": {
@@ -2936,9 +2936,9 @@
     },
     {
       "id": "mason:deepslate_slab",
-      "label": "DEEPSLATE Platte",
+      "label": "Bruchtiefenschieferstufe",
       "profession": "MASON",
-      "result": "DEEPSLATE_SLAB",
+      "result": "COBBLED_DEEPSLATE_SLAB",
       "costs": {
         "DEEPSLATE": 2
       },
@@ -2950,9 +2950,9 @@
     },
     {
       "id": "mason:deepslate_stairs",
-      "label": "DEEPSLATE Stufe",
+      "label": "Bruchtiefenschiefertreppe",
       "profession": "MASON",
-      "result": "DEEPSLATE_STAIRS",
+      "result": "COBBLED_DEEPSLATE_STAIRS",
       "costs": {
         "DEEPSLATE": 3
       },
@@ -2964,11 +2964,11 @@
     },
     {
       "id": "mason:deepslate_wall",
-      "label": "DEEPSLATE Mauer",
+      "label": "Bruchtiefenschiefermauer",
       "profession": "MASON",
-      "result": "DEEPSLATE_WALL",
+      "result": "COBBLED_DEEPSLATE_WALL",
       "costs": {
-        "DEEPSLATE": 3
+        "COBBLED_DEEPSLATE": 3
       },
       "requiredProfessionLevel": 70,
       "unlockPrice": 6900,
@@ -2978,7 +2978,7 @@
     },
     {
       "id": "mason:polished_blackstone_slab",
-      "label": "POLISHED_BLACKSTONE Platte",
+      "label": "Polierte Schwarzsteinstufe",
       "profession": "MASON",
       "result": "POLISHED_BLACKSTONE_SLAB",
       "costs": {
@@ -2992,7 +2992,7 @@
     },
     {
       "id": "mason:polished_blackstone_stairs",
-      "label": "POLISHED_BLACKSTONE Stufe",
+      "label": "Polierte Schwarzsteintreppe",
       "profession": "MASON",
       "result": "POLISHED_BLACKSTONE_STAIRS",
       "costs": {
@@ -3006,7 +3006,7 @@
     },
     {
       "id": "mason:polished_blackstone_wall",
-      "label": "POLISHED_BLACKSTONE Mauer",
+      "label": "Polierte Schwarzsteinmauer",
       "profession": "MASON",
       "result": "POLISHED_BLACKSTONE_WALL",
       "costs": {
@@ -3020,7 +3020,7 @@
     },
     {
       "id": "mason:end_stone_bricks_slab",
-      "label": "END_STONE_BRICKS Platte",
+      "label": "Endsteinziegelstufe",
       "profession": "MASON",
       "result": "END_STONE_BRICK_SLAB",
       "costs": {
@@ -3034,7 +3034,7 @@
     },
     {
       "id": "mason:end_stone_bricks_stairs",
-      "label": "END_STONE_BRICKS Stufe",
+      "label": "Endsteinziegeltreppe",
       "profession": "MASON",
       "result": "END_STONE_BRICK_STAIRS",
       "costs": {
@@ -3048,7 +3048,7 @@
     },
     {
       "id": "mason:end_stone_bricks_wall",
-      "label": "END_STONE_BRICKS Mauer",
+      "label": "Endsteinziegelmauer",
       "profession": "MASON",
       "result": "END_STONE_BRICK_WALL",
       "costs": {
@@ -3062,7 +3062,7 @@
     },
     {
       "id": "mason:prismarine_slab",
-      "label": "PRISMARINE Platte",
+      "label": "Prismarinstufe",
       "profession": "MASON",
       "result": "PRISMARINE_SLAB",
       "costs": {
@@ -3076,7 +3076,7 @@
     },
     {
       "id": "mason:prismarine_stairs",
-      "label": "PRISMARINE Stufe",
+      "label": "Prismarintreppe",
       "profession": "MASON",
       "result": "PRISMARINE_STAIRS",
       "costs": {
@@ -3090,7 +3090,7 @@
     },
     {
       "id": "mason:prismarine_wall",
-      "label": "PRISMARINE Mauer",
+      "label": "Prismarinmauer",
       "profession": "MASON",
       "result": "PRISMARINE_WALL",
       "costs": {
@@ -3104,7 +3104,7 @@
     },
     {
       "id": "mason:quartz_block_slab",
-      "label": "QUARTZ_BLOCK Platte",
+      "label": "Quarzstufe",
       "profession": "MASON",
       "result": "QUARTZ_SLAB",
       "costs": {
@@ -3118,7 +3118,7 @@
     },
     {
       "id": "mason:quartz_block_stairs",
-      "label": "QUARTZ_BLOCK Stufe",
+      "label": "Quarztreppe",
       "profession": "MASON",
       "result": "QUARTZ_STAIRS",
       "costs": {
@@ -3174,7 +3174,7 @@
     },
     {
       "id": "mason:chiseled_quartz",
-      "label": "Gemeißelter Quarz",
+      "label": "Gemeißelter Quarzblock",
       "profession": "MASON",
       "result": "CHISELED_QUARTZ_BLOCK",
       "costs": {
@@ -3286,7 +3286,7 @@
     },
     {
       "id": "mason:glass_pane",
-      "label": "Glasscheiben",
+      "label": "Glasscheibe",
       "profession": "MASON",
       "result": "GLASS_PANE",
       "costs": {
@@ -3328,7 +3328,7 @@
     },
     {
       "id": "mason:concrete",
-      "label": "Beton",
+      "label": "Weißer Beton",
       "profession": "MASON",
       "result": "WHITE_CONCRETE",
       "costs": {
