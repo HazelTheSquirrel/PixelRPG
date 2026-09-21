@@ -204,6 +204,14 @@ public final class DataDrivenDialogueLoader {
 
     private DialogueOption.DialogueAction parseAction(String raw, String sourceName) {
         if (raw == null || raw.isBlank() || raw.equals("none")) return DialogueActions.none();
+        if (raw.indexOf(';') >= 0) {
+            String[] actions = raw.split(";");
+            List<DialogueOption.DialogueAction> parsed = new ArrayList<>();
+            for (String action : actions) {
+                if (!action.isBlank()) parsed.add(parseAction(action.trim(), sourceName));
+            }
+            return context -> parsed.forEach(action -> action.execute(context));
+        }
         if (raw.equals("meet")) {
             requireStore(npcRelationshipStore, "NPC relationships", sourceName);
             return DialogueActions.meetNpc(npcRelationshipStore);
