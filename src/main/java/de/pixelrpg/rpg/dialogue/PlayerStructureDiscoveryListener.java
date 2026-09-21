@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.dialogue;
 
 import org.bukkit.NamespacedKey;
+import io.papermc.paper.registry.RegistryAccess;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -26,7 +27,7 @@ public final class PlayerStructureDiscoveryListener implements Listener {
         if (event.getFrom().getChunk().equals(event.getTo().getChunk())) return;
         World world = event.getPlayer().getWorld();
         for (GeneratedStructure structure : world.getStructures(event.getTo().getChunk().getX(), event.getTo().getChunk().getZ())) {
-            NamespacedKey key = org.bukkit.RegistryAccess.registryAccess()
+            NamespacedKey key = RegistryAccess.registryAccess()
                     .getRegistry(io.papermc.paper.registry.RegistryKey.STRUCTURE)
                     .getKey(structure.getStructure());
             if (key == null || !key.getNamespace().equals(NamespacedKey.MINECRAFT)) continue;
