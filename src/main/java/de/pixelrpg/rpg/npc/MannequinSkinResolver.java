@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.npc;
 
+import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
@@ -20,6 +21,35 @@ public final class MannequinSkinResolver {
     private static final ConcurrentMap<String, CompletableFuture<ResolvableProfile>> PLAYER_PROFILE_CACHE = new ConcurrentHashMap<>();
 
     private MannequinSkinResolver() {
+    }
+
+    public static CompletableFuture<Void> applyStoredTexture(Mannequin mannequin, String value, String signature, Plugin plugin) {
+        if (mannequin == null || !mannequin.isValid() || value == null || value.isBlank()) {
+            return CompletableFuture.completedFuture(null);
+        }
+        ProfileProperty property = new ProfileProperty("textures", value, signature);
+        CompletableFuture<Void> result = new CompletableFuture<>();
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            try {
+                if (!mannequin.isValid()) {
+                    result.complete(null);
+                    return;
+                }
+                ResolvableProfile current = mannequin.getProfile();
+                ResolvableProfile.Builder builder = ResolvableProfile.resolvableProfile()
+                        .name(current.name())
+                        .uuid(current.uuid())
+                        .addProperties(current.properties())
+                        .addProperty(property)
+                        .skinPatch(current.skinPatch());
+                mannequin.setProfile(builder.build());
+                refreshForNearbyPlayers(mannequin, plugin);
+                result.complete(null);
+            } catch (RuntimeException exception) {
+                result.completeExceptionally(exception);
+            }
+        });
+        return result;
     }
 
     public static CompletableFuture<Void> apply(Mannequin mannequin, String skinSource, Logger logger) {
