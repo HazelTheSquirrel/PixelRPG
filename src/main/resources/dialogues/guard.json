@@ -1,0 +1,11 @@
+{
+  "id":"npc.resident.guard","start":"greeting","nodes":[
+    {"id":"greeting","title":"Wächter","body":["Nachts wird ein Dorf klein.","Dann zählt nicht, wer die größte Geschichte kennt, sondern wer aufpasst."],"once":false,"options":[
+      {"label":"Hast du etwas Ungewöhnliches gesehen?","next":"danger","action":"meet","completes":true},
+      {"label":"Bleib wachsam.","next":null,"action":"meet","completes":true}
+    ]},
+    {"id":"danger","title":"Wächter","body":["Monster sind nicht das Einzige, worüber ich mir Sorgen mache. Manche Orte fühlen sich falsch an, obwohl dort niemand lebt."],"once":false,"options":[
+      {"label":"Ich werde vorsichtig sein.","next":null,"action":"learn:ancient_city","completes":true}
+    ]}
+  ]
+}
