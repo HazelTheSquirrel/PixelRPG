@@ -35,6 +35,7 @@ public final class DataDrivenDialogueLoader {
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
     private final NpcProfileStore profileStore;
+    private final PlayerFactionRelationshipStore playerFactionRelationships;
     private final NpcNetworkRelationshipStore npcNetworkRelationshipStore;
     private final FactionRelationshipStore factionRelationshipStore;
 
@@ -63,6 +64,7 @@ public final class DataDrivenDialogueLoader {
         this.questManager = questManager;
         this.profileManager = profileManager;
         this.profileStore = profileStore;
+        this.playerFactionRelationships = playerFactionRelationships;
         this.npcNetworkRelationshipStore = npcNetworkRelationshipStore;
         this.factionRelationshipStore = factionRelationshipStore;
     }
