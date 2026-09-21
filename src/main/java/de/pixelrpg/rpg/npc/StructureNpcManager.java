@@ -100,7 +100,7 @@ public final class StructureNpcManager implements Listener {
             if (existing != null) continue;
             Location location = base.clone().add(index * 1.5D, 0.0D, 0.0D);
             try {
-                RPGNpc npc = npcManager.createWithId(npcId, NpcType.FILLER,
+                RPGNpc npc = npcManager.createWithId(npcId, npcTypeFor(template),
                         template.name(), location, null, template.profession());
                 NpcProfile profile = new NpcProfile(
                         npc.id(), template.title(), template.category(), template.role(), template.profession(),
@@ -117,6 +117,25 @@ public final class StructureNpcManager implements Listener {
             }
         }
         return complete;
+    }
+
+    private NpcType npcTypeFor(StructureNpcTemplate template) {
+        if (template.category() == NpcCategory.STORY) return NpcType.STORY;
+        if (template.category() == NpcCategory.QUEST) return NpcType.QUEST;
+        if (template.category() == NpcCategory.TRAVELER) return NpcType.TRAVEL;
+        if (template.category() == NpcCategory.MERCHANT) return NpcType.SHOP;
+        if (template.profession() == null) return NpcType.FILLER;
+        return switch (template.profession()) {
+            case BLACKSMITH -> NpcType.PROFESSION_BLACKSMITH;
+            case SCHOLAR -> NpcType.PROFESSION_SCHOLAR;
+            case FARMER -> NpcType.PROFESSION_FARMER;
+            case COOK -> NpcType.PROFESSION_COOK;
+            case TAILOR -> NpcType.PROFESSION_TAILOR;
+            case ALCHEMIST -> NpcType.PROFESSION_ALCHEMIST;
+            case MASON -> NpcType.PROFESSION_MASON;
+            case FISHERMAN -> NpcType.PROFESSION_FISHERMAN;
+            case WOODCUTTER -> NpcType.PROFESSION_WOODCUTTER;
+        };
     }
 
     private Location findSpawnLocation(World world, BoundingBox box) {
