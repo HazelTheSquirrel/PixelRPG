@@ -282,7 +282,6 @@ public final class CompanionService {
             }
 
             if (living instanceof Mob mob) { mob.setAware(true); mob.setTarget(null); }
-            CompanionDefinition definition = registry.require(selected.id());
             applyEquipmentToEntity(player.getUniqueId(), selected.id(), living);
             mountController.prepare(living, definition.mount(), player);
             activeEntities.put(player.getUniqueId(), entity.getUniqueId());
