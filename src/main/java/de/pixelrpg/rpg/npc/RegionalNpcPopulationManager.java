@@ -54,8 +54,8 @@ public final class RegionalNpcPopulationManager implements Listener {
         World world = chunk.getWorld();
         if (world.getEnvironment() != World.Environment.NORMAL) return;
 
-        int regionX = Math.floorDiv(chunk.getX(), 16);
-        int regionZ = Math.floorDiv(chunk.getZ(), 16);
+        int regionX = Math.floorDiv(chunk.getX(), 32);
+        int regionZ = Math.floorDiv(chunk.getZ(), 32);
         String regionId = world.getUID() + ":" + regionX + ":" + regionZ;
         if (populatedRegions.contains(regionId)) return;
 
