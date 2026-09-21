@@ -1,0 +1,1 @@
+{"id":"npc.function.shop","start":"greeting","nodes":[{"id":"greeting","title":"Händler","body":["Willkommen. Wenn du etwas brauchst, kann ich dir meine Waren zeigen."],"once":false,"options":[{"label":"Zeig mir deine Waren.","next":null,"action":"meet","completes":true}]}]}
