@@ -1,8 +1,11 @@
 package de.pixelrpg.rpg.npc.behavior;
 
+import de.pixelrpg.rpg.dialogue.DialogueContext;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.npc.NpcBehavior;
+import de.pixelrpg.rpg.npc.NpcProfileStore;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -19,41 +22,72 @@ import java.util.Optional;
 
 public final class StoryBehavior implements NpcBehavior {
     private final StoryManager storyManager;
-    private final StoryNpcDialogue dialogue;
+    private final StoryNpcDialogue fallbackDialogue;
     private final DialogueEngine dialogueEngine;
     private final PlayerProfileManager profileManager;
+    private final DialogueTreeService dialogueTreeService;
+    private final NpcProfileStore profileStore;
 
-    public StoryBehavior(StoryManager storyManager, StoryNpcDialogue dialogue, DialogueEngine dialogueEngine, PlayerProfileManager profileManager) {
+    public StoryBehavior(
+            StoryManager storyManager,
+            StoryNpcDialogue fallbackDialogue,
+            DialogueEngine dialogueEngine,
+            PlayerProfileManager profileManager,
+            DialogueTreeService dialogueTreeService,
+            NpcProfileStore profileStore) {
         this.storyManager = storyManager;
-        this.dialogue = dialogue;
+        this.fallbackDialogue = fallbackDialogue;
         this.dialogueEngine = dialogueEngine;
         this.profileManager = profileManager;
+        this.dialogueTreeService = dialogueTreeService;
+        this.profileStore = profileStore;
     }
 
-    @Override public NpcType type() { return NpcType.STORY; }
+    @Override
+    public NpcType type() {
+        return NpcType.STORY;
+    }
 
+    // Zuständig für den storyabhängigen Einstieg eines Story-NPCs und das anschließende Öffnen des bestehenden Storysystems.
     @Override
     public void onInteract(Player player, RPGNpc npc) {
         if (!profileManager.isRegistered(player.getUniqueId())) {
             player.sendMessage(Component.text("Du musst registriertes Rathausmitglied sein.", NamedTextColor.RED));
             return;
         }
+
         Optional<StoryChapter> next = storyManager.getNextChapterFor(player.getUniqueId());
+        Runnable chapterCompletion = () -> openNextChapterOrFallback(player, npc, next);
+
+        String treeId = profileStore.getOrCreate(npc).dialogueTreeId();
+        dialogueTreeService.open(
+                player,
+                DialogueContext.forNpc(player, npc),
+                treeId,
+                chapterCompletion);
+    }
+
+    private void openNextChapterOrFallback(Player player, RPGNpc npc, Optional<StoryChapter> next) {
         if (next.isEmpty()) {
-            dialogue.begin(player, npc);
+            fallbackDialogue.begin(player, npc);
             return;
         }
+
         StoryChapter chapter = next.get();
         dialogueEngine.openMultiAction(
                 player,
                 Component.text("Geschichte", NamedTextColor.GOLD),
                 List.of(DialogBody.plainMessage(Component.text(chapter.title(), NamedTextColor.YELLOW))),
-                List.of(dialogueEngine.actionButton(Component.text("Kapitel lesen"), NamedTextColor.GREEN, target -> {
-                    target.openBook(StoryBookFactory.build(chapter));
-                    storyManager.completeChapter(target, chapter);
-                    target.sendMessage(Component.text("Kapitel freigeschaltet: " + chapter.title(), NamedTextColor.GREEN));
-                })),
-                1
-        );
+                List.of(dialogueEngine.actionButton(
+                        Component.text("Kapitel lesen"),
+                        NamedTextColor.GREEN,
+                        target -> {
+                            target.openBook(StoryBookFactory.build(chapter));
+                            storyManager.completeChapter(target, chapter);
+                            target.sendMessage(Component.text(
+                                    "Kapitel freigeschaltet: " + chapter.title(),
+                                    NamedTextColor.GREEN));
+                        })),
+                1);
     }
 }
