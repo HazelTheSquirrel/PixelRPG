@@ -45,6 +45,7 @@ import de.pixelrpg.rpg.dialogue.WorldState;
 import de.pixelrpg.rpg.dialogue.NpcKnowledgeStore;
 import de.pixelrpg.rpg.dialogue.NpcRelationshipStore;
 import de.pixelrpg.rpg.dialogue.NpcNetworkRelationshipStore;
+import de.pixelrpg.rpg.dialogue.NpcRelationshipDefinitionStore;
 import de.pixelrpg.rpg.dialogue.FactionRelationshipStore;
 import de.pixelrpg.rpg.dialogue.WorldStateListener;
 import de.pixelrpg.rpg.dialogue.PlayerStructureDiscoveryListener;
@@ -249,6 +250,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcRelationshipStore.load();
         npcNetworkRelationshipStore = new NpcNetworkRelationshipStore(this);
         npcNetworkRelationshipStore.load();
+        new NpcRelationshipDefinitionStore(this).loadInto(npcNetworkRelationshipStore);
         factionRelationshipStore = new FactionRelationshipStore(this);
         factionRelationshipStore.load();
         loreRegistry = new LoreRegistry(this);
