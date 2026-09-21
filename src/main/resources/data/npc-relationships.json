@@ -1,0 +1,20 @@
+[
+  {
+    "firstNpcId": "elyan_voss",
+    "secondNpcId": "house_of_silence_keeper",
+    "relation": "mentor",
+    "value": 100
+  },
+  {
+    "firstNpcId": "house_of_silence_keeper",
+    "secondNpcId": "elyan_voss",
+    "relation": "mentor",
+    "value": 100
+  },
+  {
+    "firstNpcId": "seeker_npc",
+    "secondNpcId": "elyan_voss",
+    "relation": "respect",
+    "value": 60
+  }
+]
