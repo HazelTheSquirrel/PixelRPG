@@ -409,5 +409,205 @@
       "questRelevant": true,
       "loreRelevant": true
     }
+  ],
+  "minecraft:shipwreck": [
+    {
+      "name": "Lio",
+      "title": "Wrackforscher",
+      "category": "SEEKER",
+      "role": "Forscher",
+      "profession": "SCHOLAR",
+      "faction": "SEEKERS",
+      "origin": "Küste",
+      "personality": "ruhig und beharrlich",
+      "traits": [
+        "neugierig",
+        "vorsichtig"
+      ],
+      "knowledge": [
+        "world.history"
+      ],
+      "behavior": "investigate",
+      "schedule": "seeker",
+      "dialogueTreeId": "npc.resident.scholar",
+      "storyRelevant": true,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
+  ],
+  "minecraft:ocean_ruin_cold": [
+    {
+      "name": "Nera",
+      "title": "Ruinenforscherin",
+      "category": "SEEKER",
+      "role": "Forscherin",
+      "profession": "SCHOLAR",
+      "faction": "SEEKERS",
+      "origin": "Kalte See",
+      "personality": "geduldig und aufmerksam",
+      "traits": [
+        "neugierig",
+        "vorsichtig"
+      ],
+      "knowledge": [
+        "world.history"
+      ],
+      "behavior": "investigate",
+      "schedule": "seeker",
+      "dialogueTreeId": "npc.resident.scholar",
+      "storyRelevant": true,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
+  ],
+  "minecraft:ocean_ruin_warm": [
+    {
+      "name": "Jaro",
+      "title": "Ruinenforscher",
+      "category": "SEEKER",
+      "role": "Forscher",
+      "profession": "SCHOLAR",
+      "faction": "SEEKERS",
+      "origin": "Warme See",
+      "personality": "neugierig und methodisch",
+      "traits": [
+        "neugierig",
+        "vorsichtig"
+      ],
+      "knowledge": [
+        "world.history"
+      ],
+      "behavior": "investigate",
+      "schedule": "seeker",
+      "dialogueTreeId": "npc.resident.scholar",
+      "storyRelevant": true,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
+  ],
+  "minecraft:ruined_portal": [
+    {
+      "name": "Venn",
+      "title": "Portalwanderer",
+      "category": "SEEKER",
+      "role": "Forscher",
+      "profession": "SCHOLAR",
+      "faction": "SEEKERS",
+      "origin": "Verfallenes Portal",
+      "personality": "vorsichtig und fasziniert",
+      "traits": [
+        "neugierig",
+        "vorsichtig"
+      ],
+      "knowledge": [
+        "nether.war"
+      ],
+      "behavior": "investigate",
+      "schedule": "seeker",
+      "dialogueTreeId": "npc.resident.scholar",
+      "storyRelevant": true,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
+  ],
+  "minecraft:nether_fossil": [
+    {
+      "name": "Rik",
+      "title": "Fossilienkundler",
+      "category": "SEEKER",
+      "role": "Forscher",
+      "profession": "SCHOLAR",
+      "faction": "SEEKERS",
+      "origin": "Nether",
+      "personality": "ernst und neugierig",
+      "traits": [
+        "neugierig",
+        "vorsichtig"
+      ],
+      "knowledge": [
+        "nether.war"
+      ],
+      "behavior": "investigate",
+      "schedule": "seeker",
+      "dialogueTreeId": "npc.resident.scholar",
+      "storyRelevant": true,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
+  ],
+  "minecraft:trial_chambers": [
+    {
+      "name": "Tala",
+      "title": "Prüfungssucherin",
+      "category": "SEEKER",
+      "role": "Forscherin",
+      "profession": "SCHOLAR",
+      "faction": "SEEKERS",
+      "origin": "Unterwelt",
+      "personality": "mutig und methodisch",
+      "traits": [
+        "neugierig",
+        "vorsichtig"
+      ],
+      "knowledge": [
+        "world.history"
+      ],
+      "behavior": "investigate",
+      "schedule": "seeker",
+      "dialogueTreeId": "npc.resident.scholar",
+      "storyRelevant": true,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
+  ],
+  "minecraft:monument": [
+    {
+      "name": "Sora",
+      "title": "Tiefenforscherin",
+      "category": "SEEKER",
+      "role": "Forscherin",
+      "profession": "SCHOLAR",
+      "faction": "SEEKERS",
+      "origin": "Ozeanmonument",
+      "personality": "vorsichtig und ausdauernd",
+      "traits": [
+        "neugierig",
+        "vorsichtig"
+      ],
+      "knowledge": [
+        "world.history"
+      ],
+      "behavior": "investigate",
+      "schedule": "seeker",
+      "dialogueTreeId": "npc.resident.scholar",
+      "storyRelevant": true,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
+  ],
+  "minecraft:swamp_hut": [
+    {
+      "name": "Mira",
+      "title": "Sumpfforscherin",
+      "category": "SEEKER",
+      "role": "Forscherin",
+      "profession": "SCHOLAR",
+      "faction": "SEEKERS",
+      "origin": "Sumpf",
+      "personality": "misstrauisch und neugierig",
+      "traits": [
+        "neugierig",
+        "vorsichtig"
+      ],
+      "knowledge": [
+        "world.history"
+      ],
+      "behavior": "investigate",
+      "schedule": "seeker",
+      "dialogueTreeId": "npc.resident.scholar",
+      "storyRelevant": true,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
   ]
 }
