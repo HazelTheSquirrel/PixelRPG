@@ -2,10 +2,10 @@
   "id":"npc.resident.fisherman","start":"greeting","nodes":[
     {"id":"greeting","title":"Fischer","body":["Das Wasser bewahrt Dinge, die niemand mehr sucht.","Manchmal ziehe ich etwas aus dem Fluss, das älter wirkt als das Dorf."],"once":false,"options":[
       {"label":"Hast du etwas gefunden?","next":"find","action":"meet","completes":true},
-      {"label":"Petri Heil.","next":null,"action":"meet","completes":true}
+      {"label":"Petri Heil.","action":"meet","completes":true}
     ]},
     {"id":"find","title":"Fischer","body":["Keine Antwort, nur Fragmente. Genau das ist das Problem mit der Vergangenheit."],"once":false,"options":[
-      {"label":"Verstanden.","next":null,"completes":true}
+      {"label":"Verstanden.","completes":true}
     ]}
   ]
 }
