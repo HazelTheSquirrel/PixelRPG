@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.npc.behavior;
 
 import de.pixelrpg.rpg.dialogue.DialogueContext;
+import de.pixelrpg.rpg.dialogue.DialogueDomainState;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
@@ -27,6 +28,7 @@ public final class StoryBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final DialogueTreeService dialogueTreeService;
     private final NpcProfileStore profileStore;
+    private final DialogueDomainState domainState;
 
     public StoryBehavior(
             StoryManager storyManager,
@@ -34,13 +36,15 @@ public final class StoryBehavior implements NpcBehavior {
             DialogueEngine dialogueEngine,
             PlayerProfileManager profileManager,
             DialogueTreeService dialogueTreeService,
-            NpcProfileStore profileStore) {
+            NpcProfileStore profileStore,
+            DialogueDomainState domainState) {
         this.storyManager = storyManager;
         this.fallbackDialogue = fallbackDialogue;
         this.dialogueEngine = dialogueEngine;
         this.profileManager = profileManager;
         this.dialogueTreeService = dialogueTreeService;
         this.profileStore = profileStore;
+        this.domainState = domainState;
     }
 
     @Override
@@ -50,7 +54,9 @@ public final class StoryBehavior implements NpcBehavior {
 
     // Zuständig für den storyabhängigen Einstieg eines Story-NPCs und das anschließende Öffnen des bestehenden Storysystems.
     @Override
-    public void onInteract(Player player, RPGNpc npc) {
+    public void onInteract(DialogueContext context) {
+        Player player = context.player();
+        RPGNpc npc = context.npc();
         if (!profileManager.isRegistered(player.getUniqueId())) {
             player.sendMessage(Component.text("Du musst registriertes Rathausmitglied sein.", NamedTextColor.RED));
             return;
@@ -62,7 +68,7 @@ public final class StoryBehavior implements NpcBehavior {
         String treeId = profileStore.getOrCreate(npc).dialogueTreeId();
         dialogueTreeService.open(
                 player,
-                DialogueContext.forNpc(player, npc),
+                context,
                 treeId,
                 chapterCompletion);
     }
