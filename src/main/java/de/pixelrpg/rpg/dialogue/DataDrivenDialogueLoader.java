@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import de.pixelrpg.rpg.lore.LoreRegistry;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
 import org.bukkit.plugin.Plugin;
@@ -25,7 +26,7 @@ public final class DataDrivenDialogueLoader {
     private final WorldState worldState;
     private final NpcKnowledgeStore npcKnowledgeStore;
     private final NpcRelationshipStore npcRelationshipStore;
-    private final de.pixelrpg.rpg.lore.LoreRegistry loreRegistry;
+    private final LoreRegistry loreRegistry;
 
     public DataDrivenDialogueLoader(Plugin plugin, PlayerKnowledgeStore knowledgeStore, WorldState worldState) {
         this(plugin, knowledgeStore, worldState, null, null, null);
@@ -37,7 +38,7 @@ public final class DataDrivenDialogueLoader {
             WorldState worldState,
             NpcKnowledgeStore npcKnowledgeStore,
             NpcRelationshipStore npcRelationshipStore,
-            de.pixelrpg.rpg.lore.LoreRegistry loreRegistry) {
+            LoreRegistry loreRegistry) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.knowledgeStore = Objects.requireNonNull(knowledgeStore, "knowledgeStore");
         this.worldState = Objects.requireNonNull(worldState, "worldState");
@@ -117,19 +118,52 @@ public final class DataDrivenDialogueLoader {
         if (raw.startsWith("knowledge:")) {
             return DialogueConditions.playerKnows(knowledgeStore, value(raw, "knowledge:", sourceName));
         }
+        if (raw.startsWith("npc_knowledge:")) {
+            requireStore(npcKnowledgeStore, "npc knowledge", sourceName);
+            return DialogueConditions.npcKnows(npcKnowledgeStore, value(raw, "npc_knowledge:", sourceName));
+        }
+        if (raw.equals("met")) {
+            requireStore(npcRelationshipStore, "NPC relationships", sourceName);
+            return DialogueConditions.hasMet(npcRelationshipStore);
+        }
         if (raw.startsWith("world:")) {
             return DialogueConditions.worldFlag(worldState, value(raw, "world:", sourceName));
         }
         if (raw.startsWith("npc:")) {
             return DialogueConditions.npc(value(raw, "npc:", sourceName));
         }
+        if (raw.startsWith("dimension:")) {
+            return DialogueConditions.dimension(value(raw, "dimension:", sourceName));
+        }
+        if (raw.startsWith("item:")) {
+            return DialogueConditions.hasItem(value(raw, "item:", sourceName));
+        }
         throw new IllegalArgumentException("Unknown dialogue condition '" + raw + "' in " + sourceName);
     }
 
     private DialogueOption.DialogueAction parseAction(String raw, String sourceName) {
         if (raw == null || raw.isBlank() || raw.equals("none")) return DialogueActions.none();
+        if (raw.equals("meet")) {
+            requireStore(npcRelationshipStore, "NPC relationships", sourceName);
+            return DialogueActions.meetNpc(npcRelationshipStore);
+        }
+        if (raw.startsWith("relationship:")) {
+            requireStore(npcRelationshipStore, "NPC relationships", sourceName);
+            String value = value(raw, "relationship:", sourceName);
+            String[] parts = value.split(":", 2);
+            if (parts.length != 2) throw new IllegalArgumentException("Relationship action requires relation:amount in " + sourceName);
+            return DialogueActions.adjustRelationship(npcRelationshipStore, parts[0], parseInteger(parts[1], sourceName));
+        }
         if (raw.startsWith("learn:")) {
             return DialogueActions.learn(knowledgeStore, value(raw, "learn:", sourceName));
+        }
+        if (raw.startsWith("learn_npc:")) {
+            requireStore(npcKnowledgeStore, "NPC knowledge", sourceName);
+            return DialogueActions.learnNpc(npcKnowledgeStore, value(raw, "learn_npc:", sourceName));
+        }
+        if (raw.startsWith("lore:")) {
+            requireLore(sourceName);
+            return DialogueActions.discoverLore(loreRegistry, knowledgeStore, value(raw, "lore:", sourceName));
         }
         if (raw.startsWith("world:set:")) {
             return DialogueActions.setWorldFlag(worldState, value(raw, "world:set:", sourceName));
@@ -138,6 +172,22 @@ public final class DataDrivenDialogueLoader {
             return DialogueActions.clearWorldFlag(worldState, value(raw, "world:clear:", sourceName));
         }
         throw new IllegalArgumentException("Unknown dialogue action '" + raw + "' in " + sourceName);
+    }
+
+    private int parseInteger(String raw, String sourceName) {
+        try {
+            return Integer.parseInt(raw.trim());
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("Invalid relationship amount in " + sourceName, exception);
+        }
+    }
+
+    private void requireStore(Object store, String name, String sourceName) {
+        if (store == null) throw new IllegalStateException("Dialogue file " + sourceName + " requires " + name + " but the store is not configured.");
+    }
+
+    private void requireLore(String sourceName) {
+        if (loreRegistry == null) throw new IllegalStateException("Dialogue file " + sourceName + " requires the lore registry but it is not configured.");
     }
 
     private String value(String raw, String prefix, String sourceName) {
