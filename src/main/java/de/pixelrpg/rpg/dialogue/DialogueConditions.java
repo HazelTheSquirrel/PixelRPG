@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.dialogue;
 
 import org.bukkit.Material;
+import de.pixelrpg.rpg.npc.NpcFaction;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -70,6 +71,22 @@ public final class DialogueConditions {
                 };
             }
         };
+    }
+
+    public static DialogueCondition npcRelationship(NpcNetworkRelationshipStore store, String otherNpcId, String relation, int minimum) {
+        Objects.requireNonNull(store, "store");
+        return new DialogueCondition() {
+            @Override public boolean test(Player player) { return false; }
+            @Override public boolean test(DialogueContext context) {
+                return context.npcOptional().map(npc ->
+                        store.get(npc.id(), otherNpcId, relation) >= minimum).orElse(false);
+            }
+        };
+    }
+
+    public static DialogueCondition factionRelationship(FactionRelationshipStore store, NpcFaction first, NpcFaction second, int minimum) {
+        Objects.requireNonNull(store, "store");
+        return player -> store.get(first, second) >= minimum;
     }
 
     public static DialogueCondition hasItem(String materialName) {
