@@ -49,6 +49,7 @@ import de.pixelrpg.rpg.dialogue.FactionRelationshipStore;
 import de.pixelrpg.rpg.dialogue.WorldStateListener;
 import de.pixelrpg.rpg.dialogue.PlayerStructureDiscoveryListener;
 import de.pixelrpg.rpg.lore.LoreRegistry;
+import de.pixelrpg.rpg.lore.LoreCommand;
 import de.pixelrpg.rpg.npc.NpcProfileStore;
 import de.pixelrpg.rpg.npc.NpcIdentityService;
 import de.pixelrpg.rpg.npc.NpcDangerReactionListener;
@@ -359,11 +360,14 @@ public final class PixelRPGPlugin extends JavaPlugin {
         PaperBasicCommandAdapter partyAdapter = new PaperBasicCommandAdapter("pixelrpgparty", partyCommand, partyCommand, "rpg.member");
         PaperBasicCommandAdapter questLogAdapter = new PaperBasicCommandAdapter("pixelrpgquestlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member");
         PaperBasicCommandAdapter dialogueAdapter = new PaperBasicCommandAdapter("pixelrpgdialogue", new DialogueCommand(playerProfileManager, dialogueEngine), null, "rpg.member");
+        LoreCommand loreCommand = new LoreCommand(playerProfileManager, playerKnowledgeStore, loreRegistry, dialogueEngine);
+        PaperBasicCommandAdapter loreAdapter = new PaperBasicCommandAdapter("pixelrpglore", loreCommand, loreCommand, "rpg.member");
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             event.registrar().register("pixelrpg", rpgCommand);
             event.registrar().register("pixelrpgparty", partyAdapter);
             event.registrar().register("pixelrpgquestlog", questLogAdapter);
             event.registrar().register("pixelrpgdialogue", dialogueAdapter);
+            event.registrar().register("pixelrpglore", loreAdapter);
         });
     }
 
