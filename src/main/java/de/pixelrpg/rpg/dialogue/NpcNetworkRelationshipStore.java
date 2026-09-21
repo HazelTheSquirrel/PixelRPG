@@ -42,6 +42,12 @@ public final class NpcNetworkRelationshipStore {
         return values.getOrDefault(key(firstNpcId, secondNpcId, relation), 0);
     }
 
+    public void set(String firstNpcId, String secondNpcId, String relation, int value) {
+        if (firstNpcId == null || secondNpcId == null || relation == null || relation.isBlank()) return;
+        values.put(key(firstNpcId, secondNpcId, relation), value);
+        save();
+    }
+
     public void adjust(String firstNpcId, String secondNpcId, String relation, int amount) {
         if (firstNpcId == null || secondNpcId == null || relation == null || relation.isBlank()) return;
         values.merge(key(firstNpcId, secondNpcId, relation), amount, Integer::sum);
