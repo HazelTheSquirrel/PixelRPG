@@ -28,7 +28,8 @@ public final class NpcIdentityService {
             if (isPlaceholder(npc.name())) {
                 String name = generatedName(npc.id());
                 npcManager.rename(npc.id(), name);
-                profile = profile.withIdentity(profile.title(), profile.category(), profile.role(), profile.faction(),
+                String title = profile.title().isBlank() ? defaultTitle(profile.category()) : profile.title();
+                profile = profile.withIdentity(title, profile.category(), profile.role(), profile.faction(),
                         profile.origin(), profile.personality(), profile.traits(), profile.behavior(),
                         profile.schedule(), profile.dialogueTreeId());
                 profileStore.put(profile);
@@ -38,6 +39,25 @@ public final class NpcIdentityService {
 
     private boolean isPlaceholder(String name) {
         return name == null || name.isBlank() || name.equalsIgnoreCase("NPC");
+    }
+
+    private String defaultTitle(NpcCategory category) {
+        return switch (category) {
+            case FARMER -> "Bäuerin";
+            case FISHERMAN -> "Fischer";
+            case CRAFTSPERSON -> "Handwerker";
+            case SCHOLAR -> "Gelehrter";
+            case SEEKER -> "Suchender";
+            case GUARD -> "Wächter";
+            case TRAVELER -> "Reisender";
+            case MERCHANT -> "Händler";
+            case ELDER -> "Ältester";
+            case CHILD -> "Kind";
+            case STORY -> "Chronist";
+            case QUEST -> "Auftraggeber";
+            case FACTION -> "Fraktionsmitglied";
+            default -> "Bewohner";
+        };
     }
 
     private String generatedName(String npcId) {
