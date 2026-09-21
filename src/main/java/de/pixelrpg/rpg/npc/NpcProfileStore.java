@@ -10,6 +10,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +32,10 @@ public final class NpcProfileStore {
 
     public void load() {
         profiles.clear();
+        copyDefaultIfMissing();
         if (!file.exists()) return;
         Type type = new TypeToken<Map<String, NpcProfile>>() { }.getType();
-        try (FileReader reader = new FileReader(file)) {
+        try (FileReader reader = new FileReader(file, StandardCharsets.UTF_8)) {
             Map<String, NpcProfile> loaded = gson.fromJson(reader, type);
             if (loaded != null) profiles.putAll(loaded);
         } catch (IOException | RuntimeException exception) {
@@ -48,7 +51,9 @@ public final class NpcProfileStore {
         if (changed) save();
     }
 
-    public Optional<NpcProfile> get(String npcId) { return Optional.ofNullable(profiles.get(npcId)); }
+    public Optional<NpcProfile> get(String npcId) {
+        return Optional.ofNullable(profiles.get(npcId));
+    }
 
     public NpcProfile getOrCreate(RPGNpc npc) {
         NpcProfile profile = profiles.computeIfAbsent(npc.id(), ignored -> NpcProfile.resident(npc));
@@ -61,15 +66,32 @@ public final class NpcProfileStore {
         save();
     }
 
-    public Collection<NpcProfile> all() { return List.copyOf(profiles.values()); }
+    public Collection<NpcProfile> all() {
+        return List.copyOf(profiles.values());
+    }
 
     public void save() {
-        try (FileWriter writer = new FileWriter(file)) {
+        try (FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8)) {
             gson.toJson(profiles, writer);
         } catch (IOException exception) {
             plugin.getLogger().log(Level.WARNING, "Failed to save npc-profiles.json", exception);
         }
     }
 
-    public void shutdown() { save(); }
+    public void shutdown() {
+        save();
+    }
+
+    private void copyDefaultIfMissing() {
+        if (file.exists()) return;
+        try {
+            File parent = file.getParentFile();
+            if (parent != null) Files.createDirectories(parent.toPath());
+            plugin.saveResource("data/npc-profiles.json", false);
+            File source = new File(plugin.getDataFolder(), "data/npc-profiles.json");
+            if (source.exists()) Files.copy(source.toPath(), file.toPath());
+        } catch (IOException | IllegalArgumentException exception) {
+            plugin.getLogger().log(Level.WARNING, "Failed to create default npc-profiles.json", exception);
+        }
+    }
 }
