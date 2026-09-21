@@ -1475,17 +1475,17 @@ Dieses Dokument ist die Arbeitsgrundlage für den vollständigen NPC-/Dialogue-/
 ## 51.2 Aktueller Ausbau
 
 - [ ] vollständige Migration aller bestehenden Hardcode-Dialoge
-- [ ] vollständige NPC-Identitäts-/Template-Pipeline
+- [x] vollständige NPC-Identitäts-/Template-Pipeline
 - [ ] vollständige Beziehungen zwischen NPCs, Spieler und Fraktionen
 - [ ] vollständige Quest-/Story-Verknüpfung mit Dialogaktionen
 - [ ] vollständige Lore-Freischaltung aus Dialogen und Entdeckungen
 - [ ] vollständige strukturabhängige Population mit belastbarer Duplikatvermeidung
-- [ ] echte ortsbezogene Tagesabläufe statt technischer Bewegungs-Platzhalter
+- [x] echte ortsbezogene Tagesabläufe statt technischer Bewegungs-Platzhalter
 - [ ] vollständige Story-NPC-Ausarbeitung für Elyan Voss, Haus der Stille und Suchende
 - [ ] Reaktionssystem auf Monster, Gefahr, wichtige Weltereignisse und Saga-Fortschritt
 - [ ] vollständige Skin-/Titel-/Identitätsintegration
 - [ ] Resourcepack-Ausbau
-- [ ] End-to-End-CI-Verifikation
+- [x] End-to-End-CI-Verifikation
 
 ## 51.3 CI-Befund
 
@@ -1530,7 +1530,7 @@ Die folgenden Bereiche bleiben bewusst offen, bis die Implementierung und End-to
 - [ ] vollständige Skin-/Titel-/Darstellungsintegration
 - [ ] vollständige Weltbevölkerung für alle vorgesehenen Struktur- und Regionaltypen
 - [ ] Resourcepack-Ausbau
-- [ ] abschließende End-to-End-CI-Verifikation nach dem aktuellen Änderungsstand
+- [x] abschließende End-to-End-CI-Verifikation nach dem aktuellen Änderungsstand
 
 ## 58.3 Verbindliche Qualitätsregel
 
@@ -1558,3 +1558,8 @@ Der Build des damaligen Stands wurde anschließend korrigiert und mit CI-Lauf 35
 - [x] NPC-Profile können optionale Skin-Quellen tragen.
 - [x] NPC-Titel und Skin-Quellen werden über eine gemeinsame Präsentationspipeline auf Mannequins angewendet.
 - [x] Struktur-NPCs durchlaufen dieselbe Identitäts-/Präsentationspipeline.
+
+
+# 62. Letzte verifizierte Buildbasis
+
+Der aktuelle Stand der technischen Änderungen wurde mit GitHub Actions Lauf 35549045167 erfolgreich gebaut und durch die vorhandenen Verifikationsstufen geprüft. Offene Auditpunkte bleiben absichtlich offen, solange ihre vollständige fachliche Umsetzung noch nicht erreicht ist.
