@@ -1791,3 +1791,483 @@ Für den aktuellen Branchstand wurde zur End-to-End-Verifikation der Draft-PR `#
 **Verifikationsstatus:** CI-Lauf 35551737724 ausstehend.
 
 Der Audit wird erst nach erfolgreichem Abschluss dieses Laufs als endgültig verifiziert betrachtet.
+
+
+# 68. Forensische Revalidierung – aktueller Branchstand
+
+**Prüfdatum:** 2026-09-21  
+**Branch:** `Dialore`  
+**Aktueller Commit:** `25dfa606486d4ef0ab3c3eb5640902fe0a54399b`  
+**Commit:** `Close forensic Dialore audit implementation gaps`  
+**Referenz:** `main`  
+**Prüfmethode:** Repository-Tree, Build-/Gradle-Konfiguration, zentrale Laufzeitklassen, Daten-/Dialogdefinitionen, Vergleich mit `main`, GitHub-Actions-Logs und konkrete Compilerfehler.
+
+> **Wichtig:** Dieser Abschnitt ist die maßgebliche Revalidierung des tatsächlichen Repositoryzustands. Frühere pauschale Aussagen wie „Auditstatus: 100 %“ werden durch diesen Befund ersetzt, sofern sie dem aktuellen Quellcode oder der aktuellen CI-Verifikation widersprechen.
+
+## 68.1 Repository-Inventar
+
+Der aktuelle Tree enthält:
+
+- 391 Dateien insgesamt
+- 277 Java-Dateien
+- 99 JSON-Dateien
+- 4 Markdown-Dateien
+- 31 Java-Dateien im NPC-Bereich
+- 38 Java-Dateien im Dialog-/Knowledge-/WorldState-Bereich
+- 26 datengetriebene Dialog-JSON-Dateien
+- 57 Resourcepack-Dateien
+
+Der Branch liegt gegenüber `main` aktuell **287 Commits voraus** und **0 Commits zurück**. Der Branch ist damit ein eigenständiger, umfangreicher Entwicklungsstand und nicht lediglich ein kleiner Lore-Patch.
+
+## 68.2 Build- und Verifikationsbefund
+
+Für den exakt geprüften Commit `25dfa606486d4ef0ab3c3eb5640902fe0a54399b` existiert GitHub-Actions-Lauf **35551752064**.
+
+Ergebnis:
+
+- Set up job: erfolgreich
+- Checkout: erfolgreich
+- Java 25: erfolgreich
+- Gradle 9.2.0: erfolgreich
+- **Build PixelRPG: fehlgeschlagen**
+- Source API boundary verification: nicht ausgeführt
+- Plugin artifact verification: nicht ausgeführt
+
+Der Build ist daher aktuell **nicht verifiziert erfolgreich**.
+
+Der Compiler meldet mindestens zwei konkrete Fehler:
+
+1. `StructureNpcManager.java:105` verwendet einen `NpcProfile`-Konstruktor mit einer Signatur, die im aktuellen `NpcProfile` nicht existiert.
+2. `StoryBehavior.java:23` implementiert nur `onInteract(DialogueContext)`, während `NpcBehavior` weiterhin die abstrakte Methode `onInteract(Player, RPGNpc)` verlangt.
+
+Damit ist der aktuelle Commit **nicht kompilierbar**.
+
+## 68.3 Build-Basis
+
+Die verbindliche technische Basis ist im Repository weiterhin korrekt hinterlegt:
+
+- Paperweight Userdev `2.0.0-beta.21`
+- Paper Dev Bundle `26.2.build.121-stable`
+- Java 25
+- Shadow `9.6.1`
+- Gson `2.13.1`
+- HikariCP `7.0.2`
+- MySQL Connector/J `9.7.0`
+- `paper-plugin.yml`
+- Shadow-Relocations für Gson, HikariCP und MySQL
+- bestehende Source-Boundary-Prüfung
+- bestehende Shadow-/JDBC-Prüfung
+- `check` bindet die Verifikationsaufgaben weiterhin ein
+
+Diese Build-Infrastruktur ist vorhanden und wurde bei der aktuellen fehlgeschlagenen Ausführung nicht als Fehlerursache festgestellt.
+
+## 68.4 NPC-Architektur
+
+### Tatsächlich vorhanden
+
+Der Branch besitzt inzwischen getrennte Modelle für:
+
+- `NpcType`
+- `NpcFunction`
+- `NpcCategory`
+- `NpcProfile`
+- `NpcFaction`
+- `NpcIdentityService`
+- `NpcProfileStore`
+- `NpcPresentationService`
+- `NpcScheduleService`
+- `NpcDangerReactionListener`
+- `RegionalNpcPopulationManager`
+- `StructureNpcManager`
+
+`NpcType` enthält aktuell keine `NpcFunction`-Menge mehr. Die funktionale Zuordnung liegt im `NpcProfile`.
+
+Das entspricht dem in Abschnitt 8 des Audit beschriebenen Architekturziel deutlich besser als der frühere Zustand.
+
+### Forensischer Vorbehalt
+
+Die Trennung ist auf Modellebene vorhanden, aber die gesamte bestehende Laufzeitarchitektur verwendet weiterhin `NpcType` für Verhaltens-/Registry-Auswahl. Damit ist die fachliche Trennung der Datenmodelle hergestellt, aber eine vollständige Entfernung der alten typbasierten Laufzeitkopplung ist nicht automatisch bewiesen.
+
+**Befund:** Architektur weitgehend umgesetzt; vollständige Laufzeitentkopplung muss bei der weiteren Implementierung separat geprüft werden.
+
+## 68.5 NPC-Identität
+
+`NpcIdentityService` erzeugt deterministische Namen aus stabiler NPC-ID und erkennt definierte Platzhalter wie:
+
+- `npc`
+- `wanderer`
+- `traveler`
+- `wanderer npc`
+
+Profile können Titel, Kategorie, Rolle, Fraktion, Herkunft, Persönlichkeit, Traits, Verhalten, Schedule und Dialogbaum tragen.
+
+Regionale NPCs und bestehende NPCs werden durch dieselbe Identitätspipeline geführt.
+
+**Befund:** technische Identitätsbasis vorhanden.
+
+**Einschränkung:** Eine deterministische Namensliste ist noch keine vollständig ausgereifte soziale Charaktergenerierung. Persönliche Beziehungen, individuelle Biografie und kontextabhängige Erinnerungen müssen zusätzlich über die vorhandenen Systeme tatsächlich befüllt und genutzt werden.
+
+## 68.6 DialogueContext / Domain State
+
+`DialogueContext` enthält aktuell:
+
+- Player
+- NPC
+- World
+- Location
+- optional `DialogueDomainState`
+
+`DialogueDomainState` bündelt:
+
+- PlayerKnowledge
+- NpcKnowledge
+- WorldState
+- Spieler-NPC-Beziehungen
+- NPC-NPC-Beziehungen
+- Spieler-Fraktionsbeziehungen
+- Fraktionsbeziehungen
+- LoreRegistry
+- QuestManager
+- PlayerProfileManager
+- NpcProfileStore
+
+Damit ist das im Audit geforderte zentrale Domänenmodell grundsätzlich vorhanden.
+
+**Forensischer Befund:** Die Architektur ist vorhanden, aber nicht jeder Dialogpfad erzeugt zwingend einen Context mit gesetztem Domain State. Es existieren weiterhin kompatible `DialogueContext`-Factorypfade ohne `DialogueDomainState`.
+
+**Bewertung:** zentraler Domain-State vorhanden, vollständige Durchsetzung auf allen Interaktionspfaden noch zu verifizieren.
+
+## 68.7 Datengetriebene Dialoge
+
+Vorhanden sind datengetriebene Dialogdefinitionen für:
+
+- Bewohner
+- Personen
+- Story
+- Farmer
+- Fischer
+- Gelehrter
+- Handwerker
+- Reisende
+- Wächter
+- Berufs-NPCs
+- Fraktionen
+- Elyan Voss
+- Haus der Stille
+- Suchende
+- Bank
+- Empfang
+- Quest
+- Shop
+
+Der Loader unterstützt unter anderem:
+
+- Wissen
+- NPC-Wissen
+- Treffen
+- Beziehungen
+- Fraktionen
+- Dimensionen
+- Items
+- Queststatus
+- WorldState
+- Questaktionen
+- Loreaktionen
+- Wissensaktionen
+- Beziehungsaktionen
+
+**Befund:** Das datengetriebene Dialogfundament ist umfangreich vorhanden.
+
+**Offen:** Eine vollständige forensische Prüfung, dass jeder funktionale/narrative Dialoginhalt tatsächlich ohne unnötigen Java-Bypass definiert ist, ist noch nicht durch einen automatisierten Vollständigkeitstest abgesichert.
+
+## 68.8 PlayerKnowledge / NpcKnowledge
+
+PlayerKnowledge und NpcKnowledge sind getrennt modelliert und persistent.
+
+Das entspricht dem Audit-Grundsatz, dass Spieler und NPCs nicht automatisch dasselbe Wissen besitzen.
+
+**Technischer Befund:** Die aktuellen Stores verwenden teilweise `FileReader`/`FileWriter` ohne explizite UTF-8-Angabe, während andere neue Persistenzklassen bereits explizit UTF-8 verwenden.
+
+Das ist kein nachgewiesener Buildfehler, aber eine Konsistenz-/Portabilitätsabweichung innerhalb der Persistenzschicht.
+
+## 68.9 Beziehungen und Fraktionen
+
+Vorhanden sind:
+
+- NPC-Spieler-Beziehungen
+- NPC-NPC-Netzwerkbeziehungen
+- Beziehungsdefinitionen
+- Fraktionsbeziehungen
+- Spieler-Fraktionsbeziehungen
+- datengetriebene Dialogbedingungen
+- datengetriebene Dialogaktionen
+
+**Befund:** Die technische Beziehungsinfrastruktur ist vorhanden.
+
+**Offen:** Die reine Existenz von Stores beweist noch keine vollständige inhaltliche Nutzung durch die gesamte Weltbevölkerung. Die Datenabdeckung und tatsächliche Reaktionsdichte der NPCs bleibt ein Content-/Integrationspunkt.
+
+## 68.10 Story
+
+StoryManager, StoryChapter und StoryBookFactory existieren weiterhin.
+
+Story-NPCs werden vor der bestehenden Storyfunktion über den datengetriebenen Dialogweg geführt.
+
+Die bestehende Kapitel-/Buchfunktion bleibt Java-seitig.
+
+Das entspricht der im Audit formulierten Ausnahme für dynamische UI-/Engine-Funktionen.
+
+**Forensischer Fehler:** Der aktuelle `StoryBehavior` kompiliert nicht gegen das aktuelle `NpcBehavior`-Interface, weil die verpflichtende `onInteract(Player, RPGNpc)`-Methode fehlt.
+
+Damit ist die Storyarchitektur konzeptionell vorhanden, aber der aktuelle Branchzustand ist technisch nicht funktionsfähig.
+
+## 68.11 Lore
+
+Vorhanden sind:
+
+- verbindliches `lore.md`
+- `LoreEntry`
+- `LoreRegistry`
+- `data/lore.json`
+- PlayerKnowledge-Anbindung
+- Voraussetzungen für Lore-Freischaltungen
+- Strukturentdeckung → Wissen/Lore-Verknüpfung
+
+**Befund:** Lore-System technisch vorhanden.
+
+**Offen:** Die vollständige Abdeckung der 63 Lore-/Storybereiche durch spielbare Entdeckungsquellen ist nicht durch einen automatisierten Konsistenzcheck nachgewiesen.
+
+## 68.12 Weltzustand
+
+`WorldState` ist persistent vorhanden.
+
+Zusätzlich existieren Listener für:
+
+- Advancements
+- Strukturentdeckungen
+- relevante Dimensionen
+- Wither-Ereignisse
+- Enderdrachen-Ereignisse
+
+Damit ist die gewünschte Verbindung von Weltzustand, Wissen und Dialogen technisch angelegt.
+
+**Offen:** Ein zentraler Schema-/Referenzcheck gegen alle im Content verwendeten WorldState-IDs fehlt.
+
+## 68.13 Strukturpopulation
+
+`StructureNpcManager` erkennt Strukturen über die aktuelle Paper-26.2-Registry-Struktur und erzeugt NPCs chunkbezogen.
+
+Die Strukturidentität basiert auf:
+
+- Welt
+- Struktur-Key
+- Bounding Box
+- SHA-256
+
+Die Persistenz verhindert doppelte Initialisierung.
+
+Die Population ist wiederanlaufbar, wenn eine einzelne NPC-Erzeugung fehlschlägt.
+
+**Forensischer Fehler:** Die aktuelle Implementierung erzeugt in `StructureNpcManager` einen `NpcProfile` mit einer veralteten Konstruktor-Signatur. Dadurch ist dieser Pfad derzeit nicht kompilierbar.
+
+**Bewertung:** Architektur vorhanden, aktueller Implementierungsstand gebrochen.
+
+## 68.14 Regionale Population
+
+`RegionalNpcPopulationManager`:
+
+- arbeitet ausschließlich bei neuen Chunks,
+- beschränkt sich auf die Overworld,
+- verwendet 32×32-Chunk-Regionen,
+- persistiert bereits bearbeitete Regionen,
+- erzeugt höchstens einen regionalen NPC pro Region,
+- führt die Identitätspipeline aus.
+
+**Befund:** technische regionale Population vorhanden.
+
+**Einschränkung:** Die Population ist derzeit bewusst einfach und biomebasiert. Sie bildet noch keine vollständige siedlungs-/straßen-/strukturabhängige Weltbevölkerung mit sozialer Dichte ab.
+
+## 68.15 Tagesabläufe
+
+`NpcScheduleService`:
+
+- liest persistente Schedule-Daten,
+- bestimmt Aktivität anhand der Minecraft-Tageszeit,
+- löst Zielorte über `NpcScheduleStore` auf,
+- bewegt NPCs kontinuierlich,
+- prüft Passierbarkeit,
+- hält Ziele relativ zur Heimatposition.
+
+Das ist gegenüber einem reinen Teleport-Ansatz deutlich weiterentwickelt.
+
+**Befund:** funktionale Schedule-Grundlage vorhanden.
+
+**Offen:** keine vollständige Navigation, kein echtes Arbeits-/Sozialverhalten und keine umfangreiche situationsabhängige Verhaltensmaschine.
+
+## 68.16 Gefahrreaktionen
+
+`NpcDangerReactionListener` verwendet die aktuelle Paper-26.2-`EntityTargetLivingEntityEvent`-Pipeline.
+
+Profile beeinflussen Sicherheitsverhalten:
+
+- Wächter
+- Reisende
+- Suchende
+- Story-NPCs
+- Kinder
+- Standardbewohner
+
+**Befund:** profilabhängige Gefahrreaktion vorhanden.
+
+**Offen:** Das System bleibt ereignisorientiert und einfach. Vollständige Reaktionen auf Wetter, Tageszeit, Monstergruppen, Fraktionskonflikte, Storyereignisse und lokale Gefahren sind nicht als vollständige Verhaltensmaschine umgesetzt.
+
+## 68.17 Präsentation
+
+`NpcPresentationService` verarbeitet:
+
+- NPC-Namen
+- Titel
+- Skin-Quelle
+- Mannequin-Darstellung
+
+Struktur-NPCs können dieselbe Pipeline verwenden.
+
+**Befund:** zentrale Präsentationspipeline vorhanden.
+
+**Offen:** Die vollständige Asset-/Skin-Abdeckung aller Kategorien, Fraktionen und Storyfiguren ist nicht durch einen automatisierten Asset-Referenzcheck abgesichert.
+
+## 68.18 Resourcepack
+
+Der Branch enthält ein Resourcepack mit:
+
+- Dialog-Textur
+- Lore-Textur
+- Quest-Textur
+- Fraktions-Textur
+- Item-Modellen
+- Food-Modellen
+- deutscher Lokalisierung
+- `pack.mcmeta`
+
+Die Dateien sind im Repository tatsächlich vorhanden.
+
+**Befund:** Resourcepack-Grundlage vorhanden.
+
+**Einschränkung:** Vorhandene Assets beweisen nicht automatisch vollständige Laufzeitintegration aller Assets.
+
+## 68.19 Minecraft-/PixelRPG-Lore
+
+`lore.md` ist als Minecraft-first PixelRPG-Chronik ausgearbeitet.
+
+Die Chronik:
+
+- überschreibt bekannten Minecraft-Canon nicht,
+- kennzeichnet PixelRPG-Erweiterungen,
+- behandelt „Alte Baumeister“ als PixelRPG-Sammelbegriff,
+- endet die erste Saga mit dem Enderdrachen,
+- lässt offene Fragen für spätere Inhalte bestehen.
+
+`story.md` ist als kontinuierliche Gesamtgeschichte ohne Kapitelunterbrechung angelegt.
+
+**Befund:** narrative Grundlage vorhanden.
+
+## 68.20 G-Interaktion
+
+Die Audit-Ausnahme bleibt erhalten:
+
+`G → minecraft:quick_actions`
+
+Der G-Pfad wird nicht in das NPC-Dialogsystem umgebaut.
+
+**Befund:** Architekturentscheidung weiterhin konsistent.
+
+## 68.21 Persistenz- und Lebenszyklusrisiken
+
+Forensisch relevant:
+
+1. Mehrere neue Stores speichern direkt bei einzelnen Änderungen. Das ist funktional, kann bei sehr häufigen Dialog-/Beziehungsaktionen unnötige Dateischreiblast erzeugen.
+2. Nicht alle Persistenzklassen verwenden explizit UTF-8.
+3. Die aktuelle Build-Verifikation stoppt vor den Source-/Artifact-Gates, sobald Java-Kompilierung fehlschlägt.
+4. Struktur- und Regionalpopulation besitzen getrennte Persistenzdateien; ein zentraler Population-Lifecycle-Manager existiert nicht.
+5. Der aktuelle Branch muss nach jedem API-/Modelwechsel zwingend gegen alle Konstruktor-/Interface-Aufrufer geprüft werden.
+
+## 68.22 Konkrete aktuelle Blocker
+
+### BLOCKER 1 — StructureNpcManager
+
+Aktuell:
+
+`new NpcProfile(...)`
+
+verwendet eine Signatur mit zusätzlichem Skin-/Profilparameter, die nicht zum vorhandenen Konstruktor passt.
+
+**Status:** Build-blockierend.
+
+### BLOCKER 2 — StoryBehavior
+
+Aktuell implementiert `StoryBehavior` nur:
+
+`onInteract(DialogueContext)`
+
+während `NpcBehavior` weiterhin die abstrakte Methode:
+
+`onInteract(Player, RPGNpc)`
+
+verlangt.
+
+**Status:** Build-blockierend.
+
+## 68.23 Audit-Matrix
+
+| Bereich | Befund |
+|---|---|
+| Lore-Grundlage | umgesetzt |
+| Erste Saga / Enderdrachen-Abschluss | umgesetzt |
+| NPC-Identität | umgesetzt, Content-Ausbau offen |
+| NPC-Kategorie/Funktion | technisch getrennt, Laufzeitkopplung prüfen |
+| Filler-Identitäten | technische Basis umgesetzt |
+| Data-driven Dialog | weitgehend umgesetzt |
+| DialogueContext | Domain State vorhanden, vollständige Durchsetzung prüfen |
+| PlayerKnowledge | umgesetzt |
+| NpcKnowledge | umgesetzt |
+| Beziehungen | technische Basis umgesetzt |
+| Fraktionen | technische Basis umgesetzt |
+| LoreRegistry | umgesetzt |
+| WorldState | umgesetzt |
+| Story-NPCs | Architektur umgesetzt, aktueller Compilefehler |
+| Berufe | Dialog-Einstieg vorhanden, Funktionslogik erhalten |
+| Gelehrter | vorhandener Berufs-/Dialogpfad |
+| Tagesabläufe | technische Basis umgesetzt |
+| Gefahrreaktionen | technische Basis umgesetzt |
+| Strukturpopulation | Architektur umgesetzt, aktueller Compilefehler |
+| Regionalpopulation | umgesetzt, inhaltlich vereinfacht |
+| Präsentation | technische Pipeline umgesetzt |
+| Resourcepack | Assets vorhanden |
+| Build-Verifikation | **fehlgeschlagen** |
+| Artifact-Verifikation | nicht erreicht |
+| Auditstatus | **nicht 100 %** |
+
+## 68.24 Maßgeblicher Status
+
+Der Branch `Dialore` besitzt inzwischen einen erheblichen Teil der geplanten Architektur. Die vorherige 100-%-Aussage war jedoch zu weitgehend.
+
+Der aktuelle, belastbare Status lautet:
+
+**Architektur:** weit fortgeschritten.  
+**Content-/World-Ausbau:** weit fortgeschritten, aber nicht vollständig forensisch abgesichert.  
+**Build:** aktuell fehlgeschlagen.  
+**CI-Verifikation:** aktuell nicht bestanden.  
+**Audit:** **nicht 100 %**.
+
+Die beiden konkreten Compilerfehler müssen zuerst behoben werden. Danach muss ein vollständiger GitHub-Actions-Lauf erfolgreich durchlaufen, bevor erneut eine technische Abschlussmarkierung erfolgen darf.
+
+## 68.25 Verbindliche nächste Prüfreihenfolge
+
+1. `NpcProfile`-/`StructureNpcManager`-Konstruktorvertrag synchronisieren.
+2. `NpcBehavior`-/`StoryBehavior`-Interfacevertrag synchronisieren.
+3. vollständigen Java-Build erneut ausführen.
+4. Source-API-Boundary-Prüfung ausführen.
+5. Shadow-/Artifact-/JDBC-Prüfung ausführen.
+6. danach die verbleibenden fachlichen Auditpunkte gegen den tatsächlichen Laufzeitpfad prüfen.
+7. Erst danach einen neuen Abschlussstatus setzen.
+
+**Keine 100-%-Markierung erfolgt, solange diese Nachweise fehlen.**
