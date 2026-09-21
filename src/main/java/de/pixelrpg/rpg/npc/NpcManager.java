@@ -10,6 +10,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
+import com.destroystokyo.paper.profile.ProfileProperty;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
@@ -41,6 +42,7 @@ public final class NpcManager {
     private final Map<String, UUID> spawnedEntityByNpcId = new ConcurrentHashMap<>();
     private final Map<UUID, String> entityToId = new ConcurrentHashMap<>();
     private final Map<NpcChunkKey, List<String>> npcChunkIndex = new ConcurrentHashMap<>();
+    private final Map<String, StoredSkin> resolvedSkinsByNpcId = new ConcurrentHashMap<>();
     private final AtomicInteger nextId = new AtomicInteger(1);
     private final ExecutorService persistenceExecutor;
     private CompletableFuture<Void> persistenceChain = CompletableFuture.completedFuture(null);
@@ -61,6 +63,7 @@ public final class NpcManager {
         despawnAllTracked();
         npcsById.clear();
         npcChunkIndex.clear();
+        resolvedSkinsByNpcId.clear();
         if (!file.exists()) return;
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
@@ -81,6 +84,11 @@ public final class NpcManager {
             Location location = new Location(world, section.getDouble("x"), section.getDouble("y"), section.getDouble("z"),
                     (float) section.getDouble("yaw"), (float) section.getDouble("pitch"));
             String skinSource = section.getString("skin-source", null);
+            String skinValue = section.getString("skin-value", null);
+            String skinSignature = section.getString("skin-signature", null);
+            if (skinValue != null && !skinValue.isBlank()) {
+                resolvedSkinsByNpcId.put(id, new StoredSkin(skinValue, skinSignature));
+            }
             Profession profession = parseProfession(section.getString("profession"));
             if (profession == null) profession = professionFor(type);
 
@@ -135,7 +143,15 @@ public final class NpcManager {
             entity.setCustomNameVisible(false);
             entity.getPersistentDataContainer().set(RPGKeys.Npc.npcType(), PersistentDataType.STRING, npc.type().name());
             entity.getPersistentDataContainer().set(RPGKeys.Npc.npcId(), PersistentDataType.STRING, npc.id());
-            if (npc.hasCustomSkin()) MannequinSkinResolver.apply(entity, npc.skinSource(), plugin.getLogger());
+            if (npc.hasCustomSkin()) {
+                StoredSkin storedSkin = resolvedSkinsByNpcId.get(npc.id());
+                if (storedSkin != null) {
+                    MannequinSkinResolver.applyStoredTexture(entity, storedSkin.value(), storedSkin.signature(), plugin);
+                } else {
+                    MannequinSkinResolver.apply(entity, npc.skinSource(), plugin.getLogger())
+                            .thenRun(() -> rememberResolvedSkin(npc.id(), entity.getUniqueId()));
+                }
+            }
         });
 
         spawnedEntityByNpcId.put(npc.id(), mannequin.getUniqueId());
@@ -174,11 +190,15 @@ public final class NpcManager {
         if (existing == null) return false;
         RPGNpc updated = new RPGNpc(existing.id(), existing.type(), existing.name(), existing.location(), newSkinSource, existing.profession());
         npcsById.put(npcId, updated);
+        resolvedSkinsByNpcId.remove(npcId);
         saveAll();
         UUID entityUuid = spawnedEntityByNpcId.get(npcId);
         if (entityUuid != null) {
             Entity entity = Bukkit.getEntity(entityUuid);
-            if (entity instanceof Mannequin mannequin) MannequinSkinResolver.apply(mannequin, newSkinSource, plugin.getLogger());
+            if (entity instanceof Mannequin mannequin) {
+                MannequinSkinResolver.apply(mannequin, newSkinSource, plugin.getLogger())
+                        .thenRun(() -> rememberResolvedSkin(npcId, mannequin.getUniqueId()));
+            }
         }
         return true;
     }
@@ -256,7 +276,9 @@ public final class NpcManager {
             snapshot.put(npc.id(), new NpcSnapshot(
                     npc.id(), npc.type().name(), npc.name(), location.getWorld().getName(),
                     location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch(),
-                    npc.skinSource(), npc.profession() == null ? null : npc.profession().name()));
+                    npc.skinSource(), npc.profession() == null ? null : npc.profession().name(),
+                    Optional.ofNullable(resolvedSkinsByNpcId.get(npc.id())).map(StoredSkin::value).orElse(null),
+                    Optional.ofNullable(resolvedSkinsByNpcId.get(npc.id())).map(StoredSkin::signature).orElse(null)));
         }
         int next = nextId.get();
         persistenceChain = persistenceChain.handle((ignored, throwable) -> null)
@@ -277,6 +299,8 @@ public final class NpcManager {
             yaml.set(path + ".yaw", (double) npc.yaw());
             yaml.set(path + ".pitch", (double) npc.pitch());
             if (npc.skinSource() != null && !npc.skinSource().isBlank()) yaml.set(path + ".skin-source", npc.skinSource());
+            if (npc.skinValue() != null && !npc.skinValue().isBlank()) yaml.set(path + ".skin-value", npc.skinValue());
+            if (npc.skinSignature() != null && !npc.skinSignature().isBlank()) yaml.set(path + ".skin-signature", npc.skinSignature());
             if (npc.profession() != null) yaml.set(path + ".profession", npc.profession());
         }
 
@@ -296,7 +320,25 @@ public final class NpcManager {
     }
 
     private record NpcSnapshot(String id, String type, String name, String world, double x, double y, double z,
-                               float yaw, float pitch, String skinSource, String profession) { }
+                               float yaw, float pitch, String skinSource, String profession, String skinValue,
+                               String skinSignature) { }
+
+    private void rememberResolvedSkin(String npcId, UUID entityUuid) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            RPGNpc npc = npcsById.get(npcId);
+            Entity entity = Bukkit.getEntity(entityUuid);
+            if (npc == null || !(entity instanceof Mannequin mannequin) || !mannequin.isValid()) return;
+            ProfileProperty texture = mannequin.getProfile().properties().stream()
+                    .filter(property -> "textures".equals(property.getName()))
+                    .findFirst()
+                    .orElse(null);
+            if (texture == null || texture.getValue() == null || texture.getValue().isBlank()) return;
+            resolvedSkinsByNpcId.put(npcId, new StoredSkin(texture.getValue(), texture.getSignature()));
+            saveAll();
+        });
+    }
+
+    private record StoredSkin(String value, String signature) { }
 
     private void addToChunkIndex(RPGNpc npc) {
         Location location = npc.location();
