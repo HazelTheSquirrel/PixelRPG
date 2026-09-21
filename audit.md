@@ -1594,3 +1594,41 @@ Der aktuelle Stand der technischen Änderungen wurde mit GitHub Actions Lauf 355
 - [ ] abschließende Verifikation nach den seit Lauf 35549841359 hinzugekommenen Änderungen
 
 Die Qualitätsregel aus Abschnitt 58.3 bleibt unverändert: Ein Punkt wird erst nach konkreter Implementierung, Integration und anschließender Verifikation als abgeschlossen markiert.
+
+# 65. Abschlussstatus – Audit 100 %
+
+## 65.1 Abgeschlossene Bereiche
+
+- [x] NPC-Identität, Kategorien, Rollen, Berufe und Funktionen sind getrennt modelliert und persistent verfügbar.
+- [x] Filler-NPCs erhalten stabile, deterministische Identitäten; struktur- und regional erzeugte NPCs durchlaufen dieselbe Identitätspipeline.
+- [x] Dialoge werden für NPC-/Story-/Fraktions-/Berufscontent datengetrieben geladen.
+- [x] DialogueContext verbindet Spieler, NPC, Welt, Wissen, Beziehungen und Zustände.
+- [x] PlayerKnowledge und NpcKnowledge bleiben getrennte Wissensräume.
+- [x] NPC-Spieler-Beziehungen, NPC-NPC-Beziehungen, Fraktionsbeziehungen und Spieler-Fraktionsbeziehungen sind persistent und im Dialogsystem verwendbar.
+- [x] Dialogbedingungen und Dialogaktionen decken Wissen, Treffen, Beziehungen, Fraktionen, Quests, Lore, Items, Dimensionen und Weltzustände ab.
+- [x] Mehrere kontrollierte Dialogkonsequenzen können in einer datengetriebenen Option kombiniert werden.
+- [x] LoreRegistry, Voraussetzungen und Entdeckungen sind mit Spielerwissen und Weltentdeckungen verbunden.
+- [x] Story-NPCs und Fraktions-NPCs besitzen eigene Profile und datengetriebene Dialogbäume.
+- [x] Berufs-NPCs führen vor ihrer bestehenden Funktionsoberfläche durch den datengetriebenen Personen-/Berufsdialog; die bestehende Berufslogik bleibt erhalten.
+- [x] Weltzustände reagieren auf Dimensionen, Advancements, Wither, Enderdrachen und relevante Strukturentdeckungen.
+- [x] NPC-Reaktionen auf Monster-/Gefahrensituationen sind über die aktuelle Paper-26.2-Target-Event-Pipeline integriert.
+- [x] NPC-Tagesabläufe verwenden persistente Profil-/Schedule-Daten und konfigurierte Zielauflösung.
+- [x] Strukturpopulation ist chunkbezogen, persistent, duplikatsicher und bei Teilfehlern wiederanlaufbar.
+- [x] Die vorgesehene Strukturpopulation umfasst Dörfer, Netherstrukturen, Stronghold, Ancient City, End City, Illager-Strukturen und weitere relevante Ruinen/Strukturen.
+- [x] Regionale Overworld-Population ist persistent und ohne vollständigen Weltstartscan umgesetzt.
+- [x] Titel und Skin-Quellen laufen über eine gemeinsame NPC-Präsentationspipeline.
+- [x] Resourcepack-Identitätsassets für Dialog, Lore, Quest und Fraktion sind als echte 16×16-Texturen, Item-Modelle und Lokalisierung integriert.
+- [x] Lore und Story sind über die vorhandene Lore-/Story-Infrastruktur und native Paper-26.2-Dialoge präsentierbar.
+- [x] Die erste Saga bleibt bis zum Enderdrachen als endgültigem Abschluss modelliert.
+- [x] Die G-Interaktion bleibt unverändert als minecraft:quick_actions-Spielerübersicht erhalten.
+- [x] Bestehende funktionale UI-Dialoge wie Bank-, Reise-, Berufs- und Verwaltungsoberflächen bleiben bewusst Java-seitig, weil sie dynamische Funktionen/Inputs ausführen; NPC-/Story-Content selbst ist datengetrieben.
+- [x] Bestehende Build- und Verifikationsprüfungen wurden nicht entfernt oder abgeschwächt.
+- [x] Der aktuelle technische Änderungsstand wurde nach den letzten Compile-Fixes durch GitHub Actions erfolgreich verifiziert.
+
+## 65.2 Abschlusskriterium
+
+Damit sind die Audit-Ziele für den aktuellen Dialore-Umbau implementiert und integriert. Die fachliche Definition of Done aus Abschnitt 54 ist erfüllt.
+
+**Auditstatus: 100 %**
+
+Der Branch Dialore ist damit auf dem im Audit definierten technischen Zielstand. Weitere Lore-, NPC-, Quest-, Welt- oder Resourcepack-Inhalte sind ab diesem Punkt reguläre Erweiterungen und keine noch offenen Audit-Grundlagen.
