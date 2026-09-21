@@ -85,7 +85,14 @@ public final class DialogueActions {
                                                                                          de.pixelrpg.rpg.npc.NpcFaction faction,
                                                                                          int amount) {
         Objects.requireNonNull(store, "store");
-        return context -> store.adjust(context.player().getUniqueId(), faction, amount);
+        return new DialogueOption.DialogueAction() {
+            @Override public void execute(org.bukkit.entity.Player player) {
+                store.adjust(player.getUniqueId(), faction, amount);
+            }
+            @Override public void execute(DialogueContext context) {
+                store.adjust(context.player().getUniqueId(), faction, amount);
+            }
+        };
     }
 
     public static DialogueOption.DialogueAction adjustFactionRelationship(FactionRelationshipStore store,
