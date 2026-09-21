@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Executes persistent, branching PixelRPG dialogue trees through native Minecraft dialogs. */
 public final class DialogueTreeService {
     private final DialogueEngine dialogueEngine;
     private final DialogueProgressStore progressStore;
@@ -23,33 +22,34 @@ public final class DialogueTreeService {
         this.progressStore.load();
     }
 
-    public void register(DialogueTree tree) {
-        trees.put(tree.id(), tree);
-    }
+    public void register(DialogueTree tree) { trees.put(tree.id(), tree); }
 
     public void open(Player player, String treeId) {
-        DialogueTree tree = trees.get(treeId);
-        if (tree == null) {
-            dialogueEngine.openUnavailable(player, "Dialog", "Dieser Dialog ist nicht verfügbar.");
-            return;
-        }
-        open(player, DialogueContext.forPlayer(player), tree, tree.startNodeId());
+        open(player, DialogueContext.forPlayer(player), treeId, () -> player.closeDialog());
     }
 
     public void open(Player player, DialogueContext context, String treeId) {
+        open(player, context, treeId, () -> player.closeDialog());
+    }
+
+    public void open(Player player, DialogueContext context, String treeId, Runnable completion) {
         DialogueTree tree = trees.get(treeId);
         if (tree == null) {
             dialogueEngine.openUnavailable(player, "Dialog", "Dieser Dialog ist nicht verfügbar.");
             return;
         }
-        open(player, context, tree, tree.startNodeId());
+        open(player, context, tree, tree.startNodeId(), completion);
     }
 
     public void open(Player player, DialogueTree tree, String nodeId) {
-        open(player, DialogueContext.forPlayer(player), tree, nodeId);
+        open(player, DialogueContext.forPlayer(player), tree, nodeId, () -> player.closeDialog());
     }
 
     public void open(Player player, DialogueContext context, DialogueTree tree, String nodeId) {
+        open(player, context, tree, nodeId, () -> player.closeDialog());
+    }
+
+    public void open(Player player, DialogueContext context, DialogueTree tree, String nodeId, Runnable completion) {
         DialogueNode node = tree.node(nodeId).orElse(null);
         if (node == null) {
             dialogueEngine.openUnavailable(player, "Dialog", "Dieser Dialogschritt ist nicht verfügbar.");
@@ -67,7 +67,7 @@ public final class DialogueTreeService {
         for (DialogueOption option : node.options()) {
             if (!option.condition().test(context)) continue;
             actions.add(dialogueEngine.actionButton(option.label(),
-                    target -> select(target, context, tree, node, option)));
+                    target -> select(target, context, tree, node, option, completion)));
         }
 
         if (actions.isEmpty()) {
@@ -80,20 +80,16 @@ public final class DialogueTreeService {
                 Math.min(2, Math.max(1, actions.size())));
     }
 
-    public void shutdown() {
-        progressStore.shutdown();
-    }
+    public void shutdown() { progressStore.shutdown(); }
 
     private void select(Player player, DialogueContext context, DialogueTree tree,
-                        DialogueNode node, DialogueOption option) {
-        if (option.completesCurrentNode()) {
-            progressStore.markCompleted(player.getUniqueId(), stateKey(context, tree, node));
-        }
+                         DialogueNode node, DialogueOption option, Runnable completion) {
+        if (option.completesCurrentNode()) progressStore.markCompleted(player.getUniqueId(), stateKey(context, tree, node));
         option.action().execute(context);
         if (option.nextNodeId() != null && !option.nextNodeId().isBlank()) {
-            open(player, context, tree, option.nextNodeId());
+            open(player, context, tree, option.nextNodeId(), completion);
         } else {
-            player.closeDialog();
+            completion.run();
         }
     }
 
