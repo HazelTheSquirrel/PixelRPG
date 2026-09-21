@@ -81,32 +81,41 @@ public final class StructureNpcManager implements Listener {
             if (initializedStructures.contains(key)) continue;
             List<StructureNpcTemplate> selected = templates.getOrDefault(structureKey(generated.getStructure()), List.of());
             if (selected.isEmpty()) continue;
-            spawnForStructure(world, generated, key, selected);
-            initializedStructures.add(key);
-            changed = true;
+            if (spawnForStructure(world, generated, key, selected)) {
+                initializedStructures.add(key);
+                changed = true;
+            }
         }
         if (changed) saveState();
     }
 
-    private void spawnForStructure(World world, GeneratedStructure generated, String identity, List<StructureNpcTemplate> selected) {
+    private boolean spawnForStructure(World world, GeneratedStructure generated, String identity, List<StructureNpcTemplate> selected) {
         BoundingBox box = generated.getBoundingBox();
         Location base = findSpawnLocation(world, box);
+        boolean complete = true;
         for (int index = 0; index < selected.size(); index++) {
             StructureNpcTemplate template = selected.get(index);
+            String npcId = "structure." + identity + "." + index;
+            RPGNpc existing = npcManager.getById(npcId).orElse(null);
+            if (existing != null) continue;
             Location location = base.clone().add(index * 1.5D, 0.0D, 0.0D);
-            String npcId = "structure." + Integer.toHexString(identity.hashCode()) + "." + index;
-            if (npcManager.getById(npcId).isPresent()) continue;
-            RPGNpc npc = npcManager.createWithId(npcId, NpcType.FILLER,
-                    template.name(), location, null, template.profession());
-                        NpcProfile profile = new NpcProfile(
-                    npc.id(), template.title(), template.category(), template.role(), template.profession(),
-                    template.faction(), template.origin(), template.personality(), Set.copyOf(template.traits()),
-                    Set.copyOf(template.knowledge()), Set.of(), Set.of(), template.behavior(), template.schedule(),
-                    template.dialogueTreeId(), template.storyRelevant(), template.questRelevant(), template.loreRelevant(), template.skinSource());
-            profileStore.put(profile);
-            presentationService.refresh(npc);
-            for (String knowledge : template.knowledge()) npcKnowledgeStore.learn(npc.id(), knowledge);
+            try {
+                RPGNpc npc = npcManager.createWithId(npcId, NpcType.FILLER,
+                        template.name(), location, null, template.profession());
+                NpcProfile profile = new NpcProfile(
+                        npc.id(), template.title(), template.category(), template.role(), template.profession(),
+                        template.faction(), template.origin(), template.personality(), Set.copyOf(template.traits()),
+                        Set.copyOf(template.knowledge()), Set.of(), Set.of(), template.behavior(), template.schedule(),
+                        template.dialogueTreeId(), template.storyRelevant(), template.questRelevant(), template.loreRelevant(), template.skinSource());
+                profileStore.put(profile);
+                presentationService.refresh(npc);
+                for (String knowledge : template.knowledge()) npcKnowledgeStore.learn(npc.id(), knowledge);
+            } catch (RuntimeException exception) {
+                complete = false;
+                plugin.getLogger().warning("Failed to populate structure " + identity + " NPC " + npcId + ": " + exception.getMessage());
+            }
         }
+        return complete;
     }
 
     private Location findSpawnLocation(World world, BoundingBox box) {
