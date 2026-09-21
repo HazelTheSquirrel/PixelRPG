@@ -136,6 +136,11 @@ tasks.register('verifyPixelRpgDialogueData') {
             if (!nodeIds.contains(start)) throw new GradleException('Dialogue start node ' + start + ' does not exist in ' + sourceFile)
             nodes.each { node ->
                 (node.options ?: []).each { option ->
+                    def allowedOptionKeys = ['label', 'next', 'condition', 'action', 'completes'] as Set
+                    def unknownOptionKeys = option.keySet().findAll { !allowedOptionKeys.contains(it.toString()) }
+                    if (!unknownOptionKeys.isEmpty()) {
+                        throw new GradleException('Unknown dialogue option field(s) in ' + sourceFile + ': ' + unknownOptionKeys)
+                    }
                     def next = option.next
                     if (next != null && next.toString() && !nodeIds.contains(next.toString())) {
                         throw new GradleException('Dialogue option in ' + sourceFile + ' points to missing node ' + next)
