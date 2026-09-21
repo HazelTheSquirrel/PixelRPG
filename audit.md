@@ -1495,3 +1495,45 @@ Daher gilt:
 - Kein Build-Erfolg wird behauptet.
 - Keine Verifikationsstufe wird als bestanden markiert, solange kein vollständiger Lauf vorliegt.
 - Nach weiteren Änderungen muss ein vollständiger CI-Lauf abgewartet und bei echten Compile-/Testfehlern anhand des konkreten Logs korrigiert werden.
+
+
+# 58. Umsetzungsstatus – laufender Vollausbau
+
+## 58.1 Seit Status 51 zusätzlich umgesetzt
+
+- [x] Datengetriebener Dialogloader unterstützt NPC-Wissen, NPC-Treffen, Beziehungen, Dimensionen und Items als Bedingungen.
+- [x] Datengetriebener Dialogloader unterstützt NPC-Treffen, Beziehungswerte, NPC-Wissen, Lore-Freischaltungen und Weltzustände als Aktionen.
+- [x] Datengetriebene Dialoge können Queststatus prüfen sowie Quests annehmen, abschließen und abbrechen.
+- [x] Quest-, Story-, Lore-, NPC- und WorldState-Systeme sind im zentralen DialogueContext-Laufweg verbunden.
+- [x] Story-NPCs durchlaufen vor der bestehenden Kapitel-/Storyfunktion einen datengetriebenen Dialog.
+- [x] NPC-Profile besitzen eine persistente, datengetriebene Definitionsquelle.
+- [x] Beispielprofile für Elyan Voss, Haus der Stille und Suchende ergänzt.
+- [x] Data-driven Dialoge für Elyan Voss, Haus der Stille und Suchende ergänzt.
+- [x] Strukturentdeckungen können passende Lore-Einträge für den Spieler freischalten.
+- [x] Advancement-Ereignisse spiegeln relevante Dimension-, Ancient-City-, Stronghold- und End-Entdeckungen in PlayerKnowledge und WorldState.
+- [x] LoreRegistry prüft Voraussetzungen vor einer Freischaltung.
+- [x] Paper-26.2-RegistryAccess-Nutzung für Strukturregistrierung wurde auf die aktuelle RegistryAccess/RegistryKey-Struktur gebracht.
+- [x] Der vollständige CI-Lauf 35547496257 auf Dialore war erfolgreich.
+
+## 58.2 Noch nicht als fertig markieren
+
+Die folgenden Bereiche bleiben bewusst offen, bis die Implementierung und End-to-End-Verifikation tatsächlich abgeschlossen sind:
+
+- [ ] vollständige Migration aller funktionalen Hardcode-Dialoge
+- [ ] vollständige NPC-NPC-Beziehungen und Fraktionsbeziehungen
+- [ ] vollständige automatische Charakter-/Identitätsgenerierung aus Templates
+- [ ] vollständige Quest-/Story-Konsequenzpipeline ohne Sonderlogik
+- [ ] vollständige Lore-Präsentation im Spiel
+- [ ] belastbare Strukturpopulation inklusive Wiederanlauf-/Konfliktfällen
+- [ ] echte ortsbezogene Tagesabläufe mit konfigurierten Zielorten
+- [ ] vollständiges Reaktionssystem auf Monster, Gefahr und Weltveränderungen
+- [ ] vollständige Skin-/Titel-/Darstellungsintegration
+- [ ] vollständige Weltbevölkerung für alle vorgesehenen Struktur- und Regionaltypen
+- [ ] Resourcepack-Ausbau
+- [ ] abschließende End-to-End-CI-Verifikation nach dem aktuellen Änderungsstand
+
+## 58.3 Verbindliche Qualitätsregel
+
+Kein Punkt wird als abgeschlossen markiert, nur weil die technische Basis vorhanden ist. Ein Punkt wird erst auf [x] gesetzt, wenn seine konkrete Funktion im bestehenden PixelRPG-System implementiert, in die vorhandene Architektur integriert und durch den Build-/Verifikationslauf bestätigt wurde.
+
+Der Audit-Stand bleibt damit bewusst unter 100 %, bis alle offenen Punkte tatsächlich abgeschlossen sind.
