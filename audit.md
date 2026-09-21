@@ -1540,7 +1540,7 @@ Der Audit-Stand bleibt damit bewusst unter 100 %, bis alle offenen Punkte tatsä
 
 # 59. Verifikationshinweis
 
-Der aktuelle Branchstand wird derzeit durch GitHub Actions geprüft. Der jüngste Lauf 35548302198 ist noch nicht abgeschlossen; der vorherige Lauf 35548292388 wurde durch die Branch-Concurrency beendet, bevor der Build ausgeführt wurde. Daher wird der Auditstand weiterhin nicht künstlich auf 100 % gesetzt.
+Der Build des damaligen Stands wurde anschließend korrigiert und mit CI-Lauf 35548793733 erfolgreich verifiziert. Für nachfolgende Änderungen bleibt eine neue End-to-End-Verifikation erforderlich.
 
 
 # 60. Verifikationsstand nach Build-Fix
