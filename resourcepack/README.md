@@ -12,3 +12,15 @@ Geplante Erweiterungspunkte:
 - UI-Elemente
 
 Die aktuelle Engine verwendet weiterhin die nativen Paper-26.2-Dialoge und benötigt für den funktionalen Dialogablauf kein Resourcepack.
+
+
+## Integrierte Identitätsassets
+
+Die Engine- und Resourcepack-Schicht enthält jetzt vier eigenständige 16×16-Pixel-Symbole für die semantischen Bereiche:
+
+- `pixelrpg:gui/dialogue`
+- `pixelrpg:gui/lore`
+- `pixelrpg:gui/quest`
+- `pixelrpg:gui/faction`
+
+Dazu existieren passende Item-Modelle unter `assets/pixelrpg/models/item/`. Die Symbole sind damit als stabile Resourcepack-Assets vorhanden und können von zukünftigen nativen Dialog-/GUI-Komponenten referenziert werden.
