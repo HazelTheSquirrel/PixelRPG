@@ -5,6 +5,8 @@ import de.pixelrpg.rpg.dialogue.BankDialog;
 import de.pixelrpg.rpg.dialogue.BankInventoryListener;
 import de.pixelrpg.rpg.dialogue.BankStorageService;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.DialogueContext;
+import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.dialogue.GuildBankAccessDialog;
 import de.pixelrpg.rpg.guild.GuildBankService;
 import de.pixelrpg.rpg.guild.GuildManager;
@@ -24,10 +26,12 @@ public final class BankerBehavior implements NpcBehavior {
     private final TradeDepotManager tradeDepot;
     private final GuildBankService guildBankService;
     private final GuildBankAccessDialog guildBankAccess;
+    private final DialogueTreeService dialogueTreeService;
 
-    public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
+    public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, DialogueTreeService dialogueTreeService) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
+        this.dialogueTreeService = dialogueTreeService;
         this.bankStorage = new BankStorageService(PixelRPGPlugin.getInstance());
         PixelRPGPlugin.getInstance().getServer().getPluginManager().registerEvents(new BankInventoryListener(bankStorage), PixelRPGPlugin.getInstance());
         this.tradeDepot = new TradeDepotManager(PixelRPGPlugin.getInstance(), profileManager, bankStorage, dialogueEngine);
@@ -49,7 +53,7 @@ public final class BankerBehavior implements NpcBehavior {
                     Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
-        guildBankAccess.open(player);
+        dialogueTreeService.open(player, DialogueContext.forNpc(player, npc), "npc.function.bank", () -> guildBankAccess.open(player));
     }
 
     public void shutdown() {
