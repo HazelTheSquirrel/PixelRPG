@@ -48,6 +48,7 @@ import de.pixelrpg.rpg.dialogue.WorldStateListener;
 import de.pixelrpg.rpg.dialogue.PlayerStructureDiscoveryListener;
 import de.pixelrpg.rpg.lore.LoreRegistry;
 import de.pixelrpg.rpg.npc.NpcProfileStore;
+import de.pixelrpg.rpg.npc.NpcIdentityService;
 import de.pixelrpg.rpg.npc.StructureNpcManager;
 import de.pixelrpg.rpg.npc.NpcScheduleService;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
@@ -154,6 +155,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private PlayerKnowledgeStore playerKnowledgeStore;
     private WorldState worldState;
     private NpcProfileStore npcProfileStore;
+    private NpcIdentityService npcIdentityService;
     private NpcKnowledgeStore npcKnowledgeStore;
     private NpcRelationshipStore npcRelationshipStore;
     private LoreRegistry loreRegistry;
@@ -229,6 +231,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcProfileStore = new NpcProfileStore(this);
         npcProfileStore.load();
         npcProfileStore.synchronize(npcManager.getAll());
+        npcIdentityService = new NpcIdentityService(npcManager, npcProfileStore);
+        npcIdentityService.synchronize();
         npcKnowledgeStore = new NpcKnowledgeStore(this);
         npcKnowledgeStore.load();
         npcRelationshipStore = new NpcRelationshipStore(this);
@@ -329,6 +333,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         lifecycle.register(() -> loreRegistry.shutdown());
         lifecycle.register(() -> npcRelationshipStore.shutdown());
         lifecycle.register(() -> npcKnowledgeStore.shutdown());
+        lifecycle.register(() -> npcIdentityService.synchronize());
         lifecycle.register(() -> npcProfileStore.shutdown());
         RootCommand rootCommand = new RootCommand(this, itemService);
         rootCommand.register(new CompanionSubCommand(companionService));
