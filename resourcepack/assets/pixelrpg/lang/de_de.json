@@ -6,5 +6,9 @@
   "pixelrpg.faction.house_of_silence": "Haus der Stille",
   "pixelrpg.faction.seekers": "Die Suchenden",
   "pixelrpg.faction.village": "Dorfgemeinschaft",
-  "pixelrpg.faction.independent": "Unabhängige"
+  "pixelrpg.faction.independent": "Unabhängige",
+  "pixelrpg.icon.dialogue": "Dialog",
+  "pixelrpg.icon.lore": "Lore",
+  "pixelrpg.icon.quest": "Quest",
+  "pixelrpg.icon.faction": "Fraktion"
 }
