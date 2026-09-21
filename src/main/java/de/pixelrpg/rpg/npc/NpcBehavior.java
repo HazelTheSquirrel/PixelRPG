@@ -8,7 +8,9 @@ public interface NpcBehavior {
 
     NpcType type();
 
-    void onInteract(Player player, RPGNpc npc);
+    default void onInteract(Player player, RPGNpc npc) {
+        onInteract(DialogueContext.forNpc(player, npc));
+    }
 
     default void onInteract(DialogueContext context) {
         onInteract(context.player(), context.npc());
