@@ -103,12 +103,11 @@ public final class StructureNpcManager implements Listener {
                 RPGNpc npc = npcManager.createWithId(npcId, NpcType.FILLER,
                         template.name(), location, null, template.profession());
                 NpcProfile profile = new NpcProfile(
-                        npc.id(), template.title(), template.category(), template.role(),
-                        template.profession() == null ? null : java.util.Set.of(NpcFunction.PROFESSION),
-                        template.profession(), template.faction(), template.origin(), template.personality(),
-                        Set.copyOf(template.traits()), Set.copyOf(template.knowledge()), Set.of(), Set.of(),
-                        template.behavior(), template.schedule(), template.dialogueTreeId(),
-                        template.storyRelevant(), template.questRelevant(), template.loreRelevant(), template.skinSource());
+                        npc.id(), template.title(), template.category(), template.role(), template.profession(),
+                        template.faction(), template.origin(), template.personality(), Set.copyOf(template.traits()),
+                        Set.copyOf(template.knowledge()), Set.of(), Set.of(), template.behavior(), template.schedule(),
+                        template.dialogueTreeId(), template.storyRelevant(), template.questRelevant(), template.loreRelevant(),
+                        template.skinSource());
                 profileStore.put(profile);
                 presentationService.refresh(npc);
                 for (String knowledge : template.knowledge()) npcKnowledgeStore.learn(npc.id(), knowledge);
