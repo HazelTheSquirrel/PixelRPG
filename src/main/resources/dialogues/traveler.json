@@ -2,10 +2,10 @@
   "id":"npc.resident.traveler","start":"greeting","nodes":[
     {"id":"greeting","title":"Reisende","body":["Ich bleibe nie lange an einem Ort.","Wer viel reist, sieht vor allem, wie wenig die Menschen voneinander wissen."],"once":false,"options":[
       {"label":"Was liegt jenseits der Wege?","next":"roads","action":"meet","completes":true},
-      {"label":"Gute Reise.","next":null,"action":"meet","completes":true}
+      {"label":"Gute Reise.","action":"meet","completes":true}
     ]},
     {"id":"roads","title":"Reisende","body":["Festungen. Ruinen. Dörfer. Und Türen, die besser geschlossen bleiben.","Mehr erzähle ich dir, wenn du mir beweist, dass du zurückkommst."],"once":false,"options":[
-      {"label":"Abgemacht.","next":null,"action":"learn:world.history","completes":true}
+      {"label":"Abgemacht.","action":"learn:world.history","completes":true}
     ]}
   ]
 }
