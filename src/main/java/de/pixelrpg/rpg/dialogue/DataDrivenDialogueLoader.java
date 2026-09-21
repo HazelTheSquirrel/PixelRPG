@@ -35,9 +35,11 @@ public final class DataDrivenDialogueLoader {
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
     private final NpcProfileStore profileStore;
+    private final NpcNetworkRelationshipStore npcNetworkRelationshipStore;
+    private final FactionRelationshipStore factionRelationshipStore;
 
     public DataDrivenDialogueLoader(Plugin plugin, PlayerKnowledgeStore knowledgeStore, WorldState worldState) {
-        this(plugin, knowledgeStore, worldState, null, null, null, null, null, null);
+        this(plugin, knowledgeStore, worldState, null, null, null, null, null, null, null, null);
     }
 
     public DataDrivenDialogueLoader(
@@ -49,7 +51,9 @@ public final class DataDrivenDialogueLoader {
             LoreRegistry loreRegistry,
             QuestManager questManager,
             PlayerProfileManager profileManager,
-            NpcProfileStore profileStore) {
+            NpcProfileStore profileStore,
+            NpcNetworkRelationshipStore npcNetworkRelationshipStore,
+            FactionRelationshipStore factionRelationshipStore) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.knowledgeStore = Objects.requireNonNull(knowledgeStore, "knowledgeStore");
         this.worldState = Objects.requireNonNull(worldState, "worldState");
@@ -59,6 +63,8 @@ public final class DataDrivenDialogueLoader {
         this.questManager = questManager;
         this.profileManager = profileManager;
         this.profileStore = profileStore;
+        this.npcNetworkRelationshipStore = npcNetworkRelationshipStore;
+        this.factionRelationshipStore = factionRelationshipStore;
     }
 
     public void loadInto(DialogueTreeService service) {
@@ -150,6 +156,18 @@ public final class DataDrivenDialogueLoader {
                 }
             };
         }
+        if (raw.startsWith("npc_relation:")) {
+            requireStore(npcNetworkRelationshipStore, "NPC network relationships", sourceName);
+            String[] parts = value(raw, "npc_relation:", sourceName).split(":", 3);
+            if (parts.length != 3) throw new IllegalArgumentException("npc_relation requires npcId:relation:minimum in " + sourceName);
+            return DialogueConditions.npcRelationship(npcNetworkRelationshipStore, parts[0], parts[1], parseInteger(parts[2], sourceName));
+        }
+        if (raw.startsWith("faction_relation:")) {
+            requireStore(factionRelationshipStore, "faction relationships", sourceName);
+            String[] parts = value(raw, "faction_relation:", sourceName).split(":", 3);
+            if (parts.length != 3) throw new IllegalArgumentException("faction_relation requires first:second:minimum in " + sourceName);
+            return DialogueConditions.factionRelationship(factionRelationshipStore, parseFaction(parts[0], sourceName), parseFaction(parts[1], sourceName), parseInteger(parts[2], sourceName));
+        }
         if (raw.startsWith("quest_active:")) {
             requireQuests(sourceName);
             String questId = value(raw, "quest_active:", sourceName);
@@ -187,6 +205,18 @@ public final class DataDrivenDialogueLoader {
             String[] parts = value.split(":", 2);
             if (parts.length != 2) throw new IllegalArgumentException("Relationship action requires relation:amount in " + sourceName);
             return DialogueActions.adjustRelationship(npcRelationshipStore, parts[0], parseInteger(parts[1], sourceName));
+        }
+        if (raw.startsWith("npc_relationship:")) {
+            requireStore(npcNetworkRelationshipStore, "NPC network relationships", sourceName);
+            String[] parts = value(raw, "npc_relationship:", sourceName).split(":", 3);
+            if (parts.length != 3) throw new IllegalArgumentException("npc_relationship requires npcId:relation:amount in " + sourceName);
+            return DialogueActions.adjustNpcRelationship(npcNetworkRelationshipStore, parts[0], parts[1], parseInteger(parts[2], sourceName));
+        }
+        if (raw.startsWith("faction_relationship:")) {
+            requireStore(factionRelationshipStore, "faction relationships", sourceName);
+            String[] parts = value(raw, "faction_relationship:", sourceName).split(":", 3);
+            if (parts.length != 3) throw new IllegalArgumentException("faction_relationship requires first:second:amount in " + sourceName);
+            return DialogueActions.adjustFactionRelationship(factionRelationshipStore, parseFaction(parts[0], sourceName), parseFaction(parts[1], sourceName), parseInteger(parts[2], sourceName));
         }
         if (raw.startsWith("quest:accept:")) {
             requireQuests(sourceName);
@@ -228,6 +258,14 @@ public final class DataDrivenDialogueLoader {
             @Override public void execute(org.bukkit.entity.Player player) { action.test(player); }
             @Override public void execute(DialogueContext context) { action.test(context.player()); }
         };
+    }
+
+    private NpcFaction parseFaction(String raw, String sourceName) {
+        try {
+            return NpcFaction.valueOf(raw.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException("Unknown faction '" + raw + "' in " + sourceName, exception);
+        }
     }
 
     private int parseInteger(String raw, String sourceName) {
