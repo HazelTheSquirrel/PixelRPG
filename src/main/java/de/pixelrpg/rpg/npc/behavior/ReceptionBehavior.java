@@ -1,6 +1,8 @@
 package de.pixelrpg.rpg.npc.behavior;
 
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.DialogueContext;
+import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.dialogue.ReceptionDialog;
 import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.npc.NpcBehavior;
@@ -14,11 +16,13 @@ public final class ReceptionBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
     private final PartyManager partyManager;
+    private final DialogueTreeService dialogueTreeService;
 
-    public ReceptionBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, PartyManager partyManager) {
+    public ReceptionBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, PartyManager partyManager, DialogueTreeService dialogueTreeService) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.partyManager = partyManager;
+        this.dialogueTreeService = dialogueTreeService;
     }
 
     @Override
@@ -27,6 +31,7 @@ public final class ReceptionBehavior implements NpcBehavior {
     @Override
     public void onInteract(Player player, RPGNpc npc) {
         GuildManager guildManager = GuildManager.getInstance(de.pixelrpg.rpg.PixelRPGPlugin.getInstance(), profileManager);
-        new ReceptionDialog(player, profileManager, dialogueEngine, partyManager, guildManager).open();
+        dialogueTreeService.open(player, DialogueContext.forNpc(player, npc), "npc.function.reception", () ->
+                new ReceptionDialog(player, profileManager, dialogueEngine, partyManager, guildManager).open());
     }
 }
