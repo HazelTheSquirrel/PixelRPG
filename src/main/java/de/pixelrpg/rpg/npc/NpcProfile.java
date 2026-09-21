@@ -50,6 +50,7 @@ public record NpcProfile(
     public NpcProfile {
         title = title == null ? "" : title;
         role = role == null ? "" : role;
+        category = category == null ? NpcCategory.RESIDENT : category;
         functions = Set.copyOf(functions == null || functions.isEmpty()
                 ? functionsForCategory(category, profession)
                 : functions);
@@ -58,7 +59,6 @@ public record NpcProfile(
         behavior = behavior == null ? "resident" : behavior;
         schedule = schedule == null ? "resident" : schedule;
         dialogueTreeId = dialogueTreeId == null ? "npc.resident.basic" : dialogueTreeId;
-        category = category == null ? NpcCategory.RESIDENT : category;
         faction = faction == null ? NpcFaction.NONE : faction;
         traits = Set.copyOf(traits == null ? Set.of() : traits);
         knowledge = Set.copyOf(knowledge == null ? Set.of() : knowledge);
