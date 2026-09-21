@@ -4,10 +4,10 @@
   "nodes":[
     {"id":"greeting","title":"Chronist","body":["Ich kenne die Geschichte nicht vollständig.","Aber ich weiß, dass unsere Welt älter ist als unsere Dörfer und dass manche Antworten unter der Erde liegen."],"once":false,"options":[
       {"label":"Erzähl mir mehr.","next":"archives","action":"meet","completes":true},
-      {"label":"Später.","next":null,"action":"meet","completes":true}
+      {"label":"Später.","action":"meet","completes":true}
     ]},
     {"id":"archives","title":"Chronist","body":["Manche Dinge sind Wissen. Andere sind Gerüchte. Und manches ist nur eine Theorie, die zu oft wiederholt wurde.","Wenn du selbst findest, was unter der Welt verborgen liegt, wird dein Wissen größer als meines."],"once":false,"options":[
-      {"label":"Ich werde suchen.","next":null,"action":"learn:world.history","completes":true}
+      {"label":"Ich werde suchen.","action":"learn:world.history","completes":true}
     ]}
   ]
 }
