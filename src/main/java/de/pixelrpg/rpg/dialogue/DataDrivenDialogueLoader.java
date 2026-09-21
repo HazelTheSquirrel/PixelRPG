@@ -143,7 +143,12 @@ public final class DataDrivenDialogueLoader {
         if (raw.startsWith("faction:")) {
             if (profileStore == null) throw new IllegalStateException("Faction condition requires NPC profiles in " + sourceName);
             NpcFaction faction = NpcFaction.valueOf(value(raw, "faction:", sourceName).toUpperCase(java.util.Locale.ROOT));
-            return player -> false;
+            return new DialogueCondition() {
+                @Override public boolean test(org.bukkit.entity.Player player) { return false; }
+                @Override public boolean test(DialogueContext context) {
+                    return context.npcOptional().flatMap(npc -> profileStore.get(npc.id())).map(profile -> profile.faction() == faction).orElse(false);
+                }
+            };
         }
         if (raw.startsWith("quest_active:")) {
             requireQuests(sourceName);
