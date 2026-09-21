@@ -105,33 +105,13 @@ public final class MannequinSkinResolver {
      */
     private static CompletableFuture<Void> applySkinUrl(Mannequin mannequin, String skinUrl,
                                                          Plugin plugin, Logger logger) {
-        CompletableFuture<Void> result = new CompletableFuture<>();
-
-        try {
-            PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID(), "MannequinSkin");
-            PlayerTextures textures = profile.getTextures();
-            textures.setSkin(URI.create(skinUrl).toURL());
-            profile.setTextures(textures);
-
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                try {
-                    if (!mannequin.isValid()) {
-                        result.complete(null);
-                        return;
-                    }
-                    mannequin.setProfile(ResolvableProfile.resolvableProfile(profile));
-                    refreshForNearbyPlayers(mannequin, plugin);
-                    result.complete(null);
-                } catch (RuntimeException exception) {
-                    result.completeExceptionally(exception);
-                }
-            });
-        } catch (Exception exception) {
-            logger.warning("Failed to prepare mannequin skin URL '" + skinUrl + "': " + message(exception));
-            result.completeExceptionally(exception);
-        }
-
-        return result;
+        return new ExternalSkinService(plugin).apply(mannequin, skinUrl)
+                .whenComplete((ignored, exception) -> {
+                    if (exception == null) return;
+                    Throwable cause = unwrap(exception);
+                    logger.warning("Failed to resolve external mannequin skin '" + skinUrl + "': "
+                            + message(cause));
+                });
     }
 
     private static CompletableFuture<Void> applyPlayerName(Mannequin mannequin, String playerName,
