@@ -7,7 +7,7 @@
       {"label":"Ich suche Elyan Voss.","next":"elyan","action":"meet","completes":true}
     ]},
     {"id":"rules","title":"Haus der Stille","body":["Wir trennen belegte Geschichte von PixelRPG-Überlieferung, Gerücht und Theorie.","Wer sucht, muss lernen, diese Grenzen zu respektieren."],"once":false,"options:[
-      {"label":"Das verstehe ich.","next":null,"action":"learn:house.of.silence","completes":true}
+      {"label":"Das verstehe ich.","action":"learn:house.of.silence","completes":true}
     ]},
     {"id":"elyan","title":"Haus der Stille","body":["Elyan Voss findet man dort, wo alte Aufzeichnungen geprüft werden.","Wenn er dir antwortet, höre genau hin. Er weiß viel, aber nicht alles."],"once":false,"options":[
       {"label":"Danke.","next":null,"completes":true}
