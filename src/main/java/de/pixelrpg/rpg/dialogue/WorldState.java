@@ -7,6 +7,7 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -29,7 +30,7 @@ public final class WorldState {
         flags.clear();
         if (!file.exists()) return;
         Type type = new TypeToken<Map<String, Boolean>>() { }.getType();
-        try (FileReader reader = new FileReader(file)) {
+        try (FileReader reader = new FileReader(file, StandardCharsets.UTF_8)) {
             Map<String, Boolean> loaded = gson.fromJson(reader, type);
             if (loaded != null) {
                 loaded.forEach((id, enabled) -> {
@@ -60,7 +61,7 @@ public final class WorldState {
     public void save() {
         Map<String, Boolean> snapshot = new java.util.HashMap<>();
         flags.forEach(flag -> snapshot.put(flag, true));
-        try (FileWriter writer = new FileWriter(file)) {
+        try (FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8)) {
             gson.toJson(snapshot, writer);
         } catch (IOException exception) {
             plugin.getLogger().log(Level.WARNING, "Failed to save world-state.json", exception);
