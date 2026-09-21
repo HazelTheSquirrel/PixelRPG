@@ -38,8 +38,9 @@ public final class NpcPresentationService {
                     ? Component.text(npc.name(), npc.type().getColor())
                     : Component.text(npc.name() + " • " + title, npc.type().getColor());
             mannequin.customName(display);
-            if (npc.hasCustomSkin()) {
-                MannequinSkinResolver.apply(mannequin, npc.skinSource(), plugin.getLogger());
+            String skinSource = profile.skinSource() != null ? profile.skinSource() : npc.skinSource();
+            if (skinSource != null && !skinSource.isBlank()) {
+                MannequinSkinResolver.apply(mannequin, skinSource, plugin.getLogger());
             }
         }
     }
