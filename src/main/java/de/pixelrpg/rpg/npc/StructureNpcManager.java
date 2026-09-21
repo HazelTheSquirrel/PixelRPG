@@ -4,6 +4,7 @@ import de.pixelrpg.rpg.dialogue.NpcKnowledgeStore;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import io.papermc.paper.registry.RegistryAccess;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
@@ -117,7 +118,7 @@ public final class StructureNpcManager implements Listener {
     }
 
     private String structureKey(Structure structure) {
-        NamespacedKey key = org.bukkit.RegistryAccess.registryAccess()
+        NamespacedKey key = RegistryAccess.registryAccess()
                 .getRegistry(io.papermc.paper.registry.RegistryKey.STRUCTURE).getKey(structure);
         return key == null ? "" : key.toString();
     }
