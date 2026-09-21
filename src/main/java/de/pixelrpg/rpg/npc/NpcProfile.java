@@ -37,6 +37,16 @@ public record NpcProfile(
                 behavior, schedule, dialogueTreeId, storyRelevant, questRelevant, loreRelevant, null);
     }
 
+    public NpcProfile(String npcId, String title, NpcCategory category, String role, Profession profession,
+                       NpcFaction faction, String origin, String personality, Set<String> traits,
+                       Set<String> knowledge, Set<String> secrets, Set<String> relationships,
+                       String behavior, String schedule, String dialogueTreeId,
+                       boolean storyRelevant, boolean questRelevant, boolean loreRelevant, String skinSource) {
+        this(npcId, title, category, role, functionsForCategory(category, profession), profession, faction, origin,
+                personality, traits, knowledge, secrets, relationships, behavior, schedule, dialogueTreeId,
+                storyRelevant, questRelevant, loreRelevant, skinSource);
+    }
+
     public NpcProfile {
         title = title == null ? "" : title;
         role = role == null ? "" : role;
