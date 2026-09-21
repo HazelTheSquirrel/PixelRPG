@@ -1632,3 +1632,87 @@ Damit sind die Audit-Ziele für den aktuellen Dialore-Umbau implementiert und in
 **Auditstatus: 100 %**
 
 Der Branch Dialore ist damit auf dem im Audit definierten technischen Zielstand. Weitere Lore-, NPC-, Quest-, Welt- oder Resourcepack-Inhalte sind ab diesem Punkt reguläre Erweiterungen und keine noch offenen Audit-Grundlagen.
+
+
+# 66. Forensische Revalidierung des Abschlussstatus
+
+**Prüfdatum:** 2026-09-21  
+**Geprüfter Branch:** `Dialore`  
+**Geprüfter Commit:** `343a2ef74a983887967cd11e4a7984ef63aea14f`
+
+Die ursprüngliche 100-%-Markierung aus Abschnitt 65 wurde gegen den tatsächlich vorhandenen Quellcode erneut forensisch geprüft. Dabei wurden die Audit-Aussagen nicht nur anhand vorhandener Klassen, sondern anhand ihrer tatsächlichen Laufzeitverantwortung bewertet.
+
+## 66.1 Verifizierte Punkte
+
+- [x] Der aktuelle Branch ist `Dialore` und der geprüfte Stand entspricht Commit `343a2ef74a983887967cd11e4a7984ef63aea14f`.
+- [x] Der aktuelle GitHub-Actions-Build 35550141610 für genau diesen Commit ist erfolgreich.
+- [x] Java 25, Gradle 9.2.0, Build, Source-API-Grenzprüfung und Plugin-Artefaktprüfung liefen erfolgreich.
+- [x] Der native Paper-26.2-Dialogweg ist vorhanden und verwendet die aktuelle Dialog-API.
+- [x] Datengetriebene Dialoge, PlayerKnowledge, NpcKnowledge, Beziehungen, Fraktionen, Lore, Queststatus und WorldState sind technisch miteinander verbunden.
+- [x] Struktur-NPCs und regionale NPCs werden ohne vollständigen Weltstartscan erzeugt und persistent verfolgt.
+- [x] Titel und Skin-Quellen werden über die gemeinsame NPC-Präsentationspipeline verarbeitet.
+- [x] Die bestehenden funktionalen Berufs-/Bank-/Reise-/Verwaltungsoberflächen bleiben erhalten.
+
+## 66.2 Forensisch festgestellte Abweichungen
+
+### A — NPC-Typ und NPC-Funktion sind noch nicht vollständig entkoppelt
+
+Der Audit beschreibt in Abschnitt 8 eine vollständige Trennung von Identität/Kategorie und Funktion. Tatsächlich enthält `NpcType` weiterhin direkt eine Menge von `NpcFunction`-Werten. Die zusätzliche `NpcProfile`-Schicht modelliert Kategorie, Rolle, Beruf und Fraktion, beseitigt die funktionale Kopplung des bestehenden `NpcType`-Modells aber nicht vollständig.
+
+**Bewertung:** offen.
+
+### B — DialogueContext ist noch kein vollständiger Domänenkontext
+
+`DialogueContext` enthält aktuell Spieler, NPC, Welt und Position. PlayerKnowledge, NpcKnowledge, Beziehungen, Quests, Lore und WorldState werden über separate Stores/Services in den Loader und die Bedingungen/Aktionen injiziert. Das erfüllt die funktionale Verbindung, aber nicht die im Audit formulierte Zielarchitektur eines zentralen Kontexts mit direktem Zugriff auf diese Zustandsbereiche.
+
+**Bewertung:** teilweise umgesetzt, offen als Architekturziel.
+
+### C — NPC-Tagesabläufe sind technisch, aber noch keine vollständige KI-/Pathfinding-Tagesroutine
+
+Der aktuelle `NpcScheduleService` bestimmt anhand der Tageszeit eine Aktivität und teleportiert die NPC-Mannequin-Entität zu einem konfigurierten relativen Zieloffset. Das ist eine persistente, datengetriebene Schedule-Grundlage, aber noch kein vollständiges Bewegungs-/Arbeits-/Sozialverhalten mit echten Ortszielen, Navigation und situationsabhängigen Aktivitäten.
+
+**Bewertung:** technische Basis abgeschlossen; vollständiges Verhaltensziel offen.
+
+### D — Gefahrreaktion ist noch eine technische Schutzreaktion
+
+`NpcDangerReactionListener` verhindert aktuell feindliches Targeting und verschiebt betroffene NPC-Mannequins an eine sichere Position. Das erfüllt eine technische Reaktion auf Gefahr, bildet aber noch kein vollständiges charakter-, factions- oder weltzustandsabhängiges Reaktionssystem ab.
+
+**Bewertung:** technische Basis abgeschlossen; vollständiges Reaktionssystem offen.
+
+### E — Story-/Funktionskonsequenzen bleiben teilweise bewusst Java-seitig
+
+Das Audit erlaubt funktionale UI-Logik weiterhin in Java. Diese Ausnahme ist für dynamische Berufs-, Bank-, Reise- und Verwaltungsfunktionen sachgerecht. Story-NPCs besitzen zusätzlich weiterhin Java-seitige Kapitel-Fortsetzungslogik nach dem datengetriebenen Einstieg. Deshalb darf daraus nicht abgeleitet werden, dass sämtliche Story-/Quest-Konsequenzen bereits vollständig datengetrieben sind.
+
+**Bewertung:** bewusst teilweise offen; kein Buildfehler.
+
+## 66.3 Scope-Ausschlüsse für diese Audit-Revalidierung
+
+- Resourcepack-Änderungen werden in dieser Revalidierung **nicht vorgenommen**.
+- Region-System-Änderungen werden in dieser Revalidierung **nicht vorgenommen**.
+- Beide Bereiche werden ausschließlich als bestehender Repository-Zustand dokumentiert und nicht als technische Änderungsaufgabe behandelt.
+
+## 66.4 Korrigierter Abschlussstatus
+
+Die frühere Aussage **„Auditstatus: 100 %“** war als technische Vollständigkeitsbehauptung zu weit gefasst.
+
+Der belastbare Status lautet:
+
+**Build-/API-/Artefakt-Verifikation: bestanden.**
+
+**Audit-Fachstatus: noch nicht 100 %.**
+
+Offen bleiben mindestens:
+
+1. vollständige Entkopplung von `NpcType` und `NpcFunction`,
+2. vollständige Ausprägung des `DialogueContext` als zentraler Domänenkontext,
+3. vollständige NPC-Verhaltens-/Tagesablauflogik,
+4. vollständige kontextabhängige Gefahr-/Weltreaktionen,
+5. vollständige Eliminierung der verbleibenden nicht notwendigen Story-/Quest-Sonderlogik.
+
+Diese Punkte sind ab jetzt die maßgeblichen offenen Auditpunkte. Die übrigen bereits verifizierten Bereiche gelten nicht erneut als offen, solange keine konkrete Regression festgestellt wird.
+
+## 66.5 Verifikationsnachweis
+
+GitHub Actions Lauf `35550141610` wurde für den geprüften Commit erfolgreich abgeschlossen. Die Schritte **Build PixelRPG**, **Verify source API boundaries** und **Verify plugin artifact** waren erfolgreich.
+
+Damit ist der aktuelle Code technisch build-verifiziert; die fachliche Auditvollständigkeit wird getrennt davon bewertet.
