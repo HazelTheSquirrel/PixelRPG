@@ -213,6 +213,9 @@ public final class CraftingRecipeRegistry {
         if (costs == null || costs.isEmpty()) return Map.of();
         Map<Material, Integer> result = new EnumMap<>(Material.class);
         for (var entry : costs.entrySet()) {
+            if (!entry.getValue().isJsonPrimitive() || !entry.getValue().getAsJsonPrimitive().isNumber()) {
+                throw new IllegalStateException("Cost amount must be a JSON number for " + id + ": " + entry.getKey());
+            }
             Material material = resolveMaterial(entry.getKey());
             int amount = entry.getValue().getAsInt();
             if (material == null || material.isAir() || amount <= 0) throw new IllegalStateException("Invalid cost for " + id + ": " + entry.getKey());
