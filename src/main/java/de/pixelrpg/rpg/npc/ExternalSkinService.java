@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.npc;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import org.bukkit.Bukkit;
@@ -8,6 +9,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.UUID;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -144,7 +146,9 @@ public final class ExternalSkinService {
                     result.complete(null);
                     return;
                 }
-                mannequin.setProfile(ResolvableProfile.resolvableProfile().addProperty(property).build());
+                PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID(), "MannequinSkin");
+                profile.setProperty(property);
+                mannequin.setProfile(ResolvableProfile.resolvableProfile(profile));
                 Bukkit.getOnlinePlayers().forEach(player -> {
                     if (player.getWorld().equals(mannequin.getWorld())
                             && player.getLocation().distanceSquared(mannequin.getLocation()) <= 4096.0D) {
