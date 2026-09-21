@@ -1,34 +1,413 @@
 {
-  "minecraft:village_plains":[
-    {"name":"Mara","title":"Dorfkundin","category":"FARMER","role":"Bäuerin","profession":"FARMER","faction":"VILLAGE","origin":"Dorf","personality":"freundlich und praktisch","traits":["hilfsbereit","bodenständig"],"knowledge":["world.history"],"behavior":"farm","schedule":"resident","dialogueTreeId":"npc.resident.farmer","storyRelevant":false,"questRelevant":false,"loreRelevant":true},
-    {"name":"Tomas","title":"Handwerker","category":"CRAFTSPERSON","role":"Handwerker","profession":"BLACKSMITH","faction":"VILLAGE","origin":"Dorf","personality":"ruhig und aufmerksam","traits":["geduldig","präzise"],"knowledge":[],"behavior":"craft","schedule":"resident","dialogueTreeId":"npc.resident.craftsperson","storyRelevant":false,"questRelevant":false,"loreRelevant":false},
-    {"name":"Edrik","title":"Dorfwächter","category":"GUARD","role":"Wächter","profession":null,"faction":"VILLAGE","origin":"Dorf","personality":"wachsam und pflichtbewusst","traits":["aufmerksam","mutig"],"knowledge":[],"behavior":"guard","schedule":"guard","dialogueTreeId":"npc.resident.guard","storyRelevant":false,"questRelevant":false,"loreRelevant":true}
+  "minecraft:village_plains": [
+    {
+      "name": "Mara",
+      "title": "Dorfkundin",
+      "category": "FARMER",
+      "role": "Bäuerin",
+      "profession": "FARMER",
+      "faction": "VILLAGE",
+      "origin": "Dorf",
+      "personality": "freundlich und praktisch",
+      "traits": [
+        "hilfsbereit",
+        "bodenständig"
+      ],
+      "knowledge": [
+        "world.history"
+      ],
+      "behavior": "farm",
+      "schedule": "resident",
+      "dialogueTreeId": "npc.resident.farmer",
+      "storyRelevant": false,
+      "questRelevant": false,
+      "loreRelevant": true
+    },
+    {
+      "name": "Tomas",
+      "title": "Handwerker",
+      "category": "CRAFTSPERSON",
+      "role": "Handwerker",
+      "profession": "BLACKSMITH",
+      "faction": "VILLAGE",
+      "origin": "Dorf",
+      "personality": "ruhig und aufmerksam",
+      "traits": [
+        "geduldig",
+        "präzise"
+      ],
+      "knowledge": [],
+      "behavior": "craft",
+      "schedule": "resident",
+      "dialogueTreeId": "npc.resident.craftsperson",
+      "storyRelevant": false,
+      "questRelevant": false,
+      "loreRelevant": false
+    },
+    {
+      "name": "Edrik",
+      "title": "Dorfwächter",
+      "category": "GUARD",
+      "role": "Wächter",
+      "profession": null,
+      "faction": "VILLAGE",
+      "origin": "Dorf",
+      "personality": "wachsam und pflichtbewusst",
+      "traits": [
+        "aufmerksam",
+        "mutig"
+      ],
+      "knowledge": [],
+      "behavior": "guard",
+      "schedule": "guard",
+      "dialogueTreeId": "npc.resident.guard",
+      "storyRelevant": false,
+      "questRelevant": false,
+      "loreRelevant": true
+    }
   ],
-  "minecraft:village_desert":[
-    {"name":"Nalia","title":"Dorfkundin","category":"FARMER","role":"Bäuerin","profession":"FARMER","faction":"VILLAGE","origin":"Wüstendorf","personality":"freundlich und zäh","traits":["ausdauernd","hilfsbereit"],"knowledge":["world.history"],"behavior":"farm","schedule":"resident","dialogueTreeId":"npc.resident.farmer","storyRelevant":false,"questRelevant":false,"loreRelevant":true}
+  "minecraft:village_desert": [
+    {
+      "name": "Nalia",
+      "title": "Dorfkundin",
+      "category": "FARMER",
+      "role": "Bäuerin",
+      "profession": "FARMER",
+      "faction": "VILLAGE",
+      "origin": "Wüstendorf",
+      "personality": "freundlich und zäh",
+      "traits": [
+        "ausdauernd",
+        "hilfsbereit"
+      ],
+      "knowledge": [
+        "world.history"
+      ],
+      "behavior": "farm",
+      "schedule": "resident",
+      "dialogueTreeId": "npc.resident.farmer",
+      "storyRelevant": false,
+      "questRelevant": false,
+      "loreRelevant": true
+    }
   ],
-  "minecraft:village_savanna":[
-    {"name":"Kato","title":"Reisender Handwerker","category":"CRAFTSPERSON","role":"Handwerker","profession":"MASON","faction":"VILLAGE","origin":"Savannendorf","personality":"neugierig und gesellig","traits":["neugierig","gesellig"],"knowledge":[],"behavior":"craft","schedule":"resident","dialogueTreeId":"npc.resident.craftsperson","storyRelevant":false,"questRelevant":false,"loreRelevant":false}
+  "minecraft:village_savanna": [
+    {
+      "name": "Kato",
+      "title": "Reisender Handwerker",
+      "category": "CRAFTSPERSON",
+      "role": "Handwerker",
+      "profession": "MASON",
+      "faction": "VILLAGE",
+      "origin": "Savannendorf",
+      "personality": "neugierig und gesellig",
+      "traits": [
+        "neugierig",
+        "gesellig"
+      ],
+      "knowledge": [],
+      "behavior": "craft",
+      "schedule": "resident",
+      "dialogueTreeId": "npc.resident.craftsperson",
+      "storyRelevant": false,
+      "questRelevant": false,
+      "loreRelevant": false
+    }
   ],
-  "minecraft:village_snowy":[
-    {"name":"Runa","title":"Fischerin","category":"FISHERMAN","role":"Fischerin","profession":"FISHERMAN","faction":"VILLAGE","origin":"Schneedorf","personality":"ruhig und beobachtend","traits":["ruhig","beobachtend"],"knowledge":[],"behavior":"fish","schedule":"resident","dialogueTreeId":"npc.resident.fisherman","storyRelevant":false,"questRelevant":false,"loreRelevant":false}
+  "minecraft:village_snowy": [
+    {
+      "name": "Runa",
+      "title": "Fischerin",
+      "category": "FISHERMAN",
+      "role": "Fischerin",
+      "profession": "FISHERMAN",
+      "faction": "VILLAGE",
+      "origin": "Schneedorf",
+      "personality": "ruhig und beobachtend",
+      "traits": [
+        "ruhig",
+        "beobachtend"
+      ],
+      "knowledge": [],
+      "behavior": "fish",
+      "schedule": "resident",
+      "dialogueTreeId": "npc.resident.fisherman",
+      "storyRelevant": false,
+      "questRelevant": false,
+      "loreRelevant": false
+    }
   ],
-  "minecraft:village_taiga":[
-    {"name":"Borin","title":"Holzfäller","category":"CRAFTSPERSON","role":"Holzfäller","profession":"WOODCUTTER","faction":"VILLAGE","origin":"Taigadorf","personality":"direkt und zuverlässig","traits":["zuverlässig","direkt"],"knowledge":[],"behavior":"work","schedule":"resident","dialogueTreeId":"npc.resident.craftsperson","storyRelevant":false,"questRelevant":false,"loreRelevant":false}
+  "minecraft:village_taiga": [
+    {
+      "name": "Borin",
+      "title": "Holzfäller",
+      "category": "CRAFTSPERSON",
+      "role": "Holzfäller",
+      "profession": "WOODCUTTER",
+      "faction": "VILLAGE",
+      "origin": "Taigadorf",
+      "personality": "direkt und zuverlässig",
+      "traits": [
+        "zuverlässig",
+        "direkt"
+      ],
+      "knowledge": [],
+      "behavior": "work",
+      "schedule": "resident",
+      "dialogueTreeId": "npc.resident.craftsperson",
+      "storyRelevant": false,
+      "questRelevant": false,
+      "loreRelevant": false
+    }
   ],
-  "minecraft:fortress":[
-    {"name":"Varek","title":"Wächter der Festung","category":"GUARD","role":"Wächter","profession":null,"faction":"INDEPENDENT","origin":"Netherfestung","personality":"ernst und vorsichtig","traits":["ernst","vorsichtig"],"knowledge":["nether.war"],"behavior":"guard","schedule":"guard","dialogueTreeId":"npc.resident.guard","storyRelevant":true,"questRelevant":false,"loreRelevant":true}
+  "minecraft:fortress": [
+    {
+      "name": "Varek",
+      "title": "Wächter der Festung",
+      "category": "GUARD",
+      "role": "Wächter",
+      "profession": null,
+      "faction": "INDEPENDENT",
+      "origin": "Netherfestung",
+      "personality": "ernst und vorsichtig",
+      "traits": [
+        "ernst",
+        "vorsichtig"
+      ],
+      "knowledge": [
+        "nether.war"
+      ],
+      "behavior": "guard",
+      "schedule": "guard",
+      "dialogueTreeId": "npc.resident.guard",
+      "storyRelevant": true,
+      "questRelevant": false,
+      "loreRelevant": true
+    }
   ],
-  "minecraft:bastion_remnant":[
-    {"name":"Sira","title":"Grenzgängerin","category":"TRAVELER","role":"Reisende","profession":null,"faction":"INDEPENDENT","origin":"Nether","personality":"misstrauisch und neugierig","traits":["misstrauisch","neugierig"],"knowledge":["nether.war"],"behavior":"travel","schedule":"traveler","dialogueTreeId":"npc.resident.traveler","storyRelevant":true,"questRelevant":false,"loreRelevant":true}
+  "minecraft:bastion_remnant": [
+    {
+      "name": "Sira",
+      "title": "Grenzgängerin",
+      "category": "TRAVELER",
+      "role": "Reisende",
+      "profession": null,
+      "faction": "INDEPENDENT",
+      "origin": "Nether",
+      "personality": "misstrauisch und neugierig",
+      "traits": [
+        "misstrauisch",
+        "neugierig"
+      ],
+      "knowledge": [
+        "nether.war"
+      ],
+      "behavior": "travel",
+      "schedule": "traveler",
+      "dialogueTreeId": "npc.resident.traveler",
+      "storyRelevant": true,
+      "questRelevant": false,
+      "loreRelevant": true
+    }
   ],
-  "minecraft:stronghold":[
-    {"name":"Archivist","title":"Hüter alter Wege","category":"SCHOLAR","role":"Gelehrter","profession":"SCHOLAR","faction":"HOUSE_OF_SILENCE","origin":"Stronghold","personality":"leise und besessen von Wissen","traits":["wissbegierig","vorsichtig"],"knowledge":["stronghold"],"behavior":"research","schedule":"scholar","dialogueTreeId":"npc.story.basic","storyRelevant":true,"questRelevant":false,"loreRelevant":true}
+  "minecraft:stronghold": [
+    {
+      "name": "Archivist",
+      "title": "Hüter alter Wege",
+      "category": "SCHOLAR",
+      "role": "Gelehrter",
+      "profession": "SCHOLAR",
+      "faction": "HOUSE_OF_SILENCE",
+      "origin": "Stronghold",
+      "personality": "leise und besessen von Wissen",
+      "traits": [
+        "wissbegierig",
+        "vorsichtig"
+      ],
+      "knowledge": [
+        "stronghold"
+      ],
+      "behavior": "research",
+      "schedule": "scholar",
+      "dialogueTreeId": "npc.story.basic",
+      "storyRelevant": true,
+      "questRelevant": false,
+      "loreRelevant": true
+    }
   ],
-  "minecraft:ancient_city":[
-    {"name":"Neris","title":"Sucherin der Tiefe","category":"SEEKER","role":"Sucherin","profession":"SCHOLAR","faction":"SEEKERS","origin":"Ancient City","personality":"mutig und angespannt","traits":["mutig","vorsichtig"],"knowledge":["ancient_city"],"behavior":"investigate","schedule":"seeker","dialogueTreeId":"npc.story.basic","storyRelevant":true,"questRelevant":true,"loreRelevant":true}
+  "minecraft:ancient_city": [
+    {
+      "name": "Neris",
+      "title": "Sucherin der Tiefe",
+      "category": "SEEKER",
+      "role": "Sucherin",
+      "profession": "SCHOLAR",
+      "faction": "SEEKERS",
+      "origin": "Ancient City",
+      "personality": "mutig und angespannt",
+      "traits": [
+        "mutig",
+        "vorsichtig"
+      ],
+      "knowledge": [
+        "ancient_city"
+      ],
+      "behavior": "investigate",
+      "schedule": "seeker",
+      "dialogueTreeId": "npc.story.basic",
+      "storyRelevant": true,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
   ],
-  "minecraft:end_city":[
-    {"name":"Kael","title":"Wächter der Endstadt","category":"TRAVELER","role":"Beobachter","profession":null,"faction":"INDEPENDENT","origin":"End","personality":"fremdartig und still","traits":["still","beobachtend"],"knowledge":["endermen"],"behavior":"observe","schedule":"traveler","dialogueTreeId":"npc.story.basic","storyRelevant":true,"questRelevant":false,"loreRelevant":true}
+  "minecraft:end_city": [
+    {
+      "name": "Kael",
+      "title": "Wächter der Endstadt",
+      "category": "TRAVELER",
+      "role": "Beobachter",
+      "profession": null,
+      "faction": "INDEPENDENT",
+      "origin": "End",
+      "personality": "fremdartig und still",
+      "traits": [
+        "still",
+        "beobachtend"
+      ],
+      "knowledge": [
+        "endermen"
+      ],
+      "behavior": "observe",
+      "schedule": "traveler",
+      "dialogueTreeId": "npc.story.basic",
+      "storyRelevant": true,
+      "questRelevant": false,
+      "loreRelevant": true
+    }
+  ],
+  "minecraft:pillager_outpost": [
+    {
+      "name": "Jorin",
+      "title": "Grenzwächter",
+      "category": "GUARD",
+      "role": "Beobachter",
+      "profession": null,
+      "faction": "INDEPENDENT",
+      "origin": "Grenzland",
+      "personality": "angespannt und misstrauisch",
+      "traits": [
+        "wachsam",
+        "misstrauisch"
+      ],
+      "knowledge": [
+        "illager"
+      ],
+      "behavior": "guard",
+      "schedule": "guard",
+      "dialogueTreeId": "npc.resident.guard",
+      "storyRelevant": false,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
+  ],
+  "minecraft:woodland_mansion": [
+    {
+      "name": "Mira",
+      "title": "Verborgene Beobachterin",
+      "category": "SEEKER",
+      "role": "Ermittlerin",
+      "profession": null,
+      "faction": "SEEKERS",
+      "origin": "Wälder",
+      "personality": "vorsichtig und hartnäckig",
+      "traits": [
+        "hartnäckig",
+        "vorsichtig"
+      ],
+      "knowledge": [
+        "illager"
+      ],
+      "behavior": "investigate",
+      "schedule": "seeker",
+      "dialogueTreeId": "npc.resident.traveler",
+      "storyRelevant": true,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
+  ],
+  "minecraft:desert_pyramid": [
+    {
+      "name": "Salen",
+      "title": "Ruinenforscher",
+      "category": "SEEKER",
+      "role": "Archäologe",
+      "profession": "SCHOLAR",
+      "faction": "SEEKERS",
+      "origin": "Wüste",
+      "personality": "neugierig und methodisch",
+      "traits": [
+        "neugierig",
+        "methodisch"
+      ],
+      "knowledge": [
+        "world.history"
+      ],
+      "behavior": "investigate",
+      "schedule": "seeker",
+      "dialogueTreeId": "npc.resident.scholar",
+      "storyRelevant": true,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
+  ],
+  "minecraft:jungle_temple": [
+    {
+      "name": "Teya",
+      "title": "Ruinenforscherin",
+      "category": "SEEKER",
+      "role": "Forscherin",
+      "profession": "SCHOLAR",
+      "faction": "SEEKERS",
+      "origin": "Dschungel",
+      "personality": "mutig und aufmerksam",
+      "traits": [
+        "mutig",
+        "aufmerksam"
+      ],
+      "knowledge": [
+        "world.history"
+      ],
+      "behavior": "investigate",
+      "schedule": "seeker",
+      "dialogueTreeId": "npc.resident.scholar",
+      "storyRelevant": true,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
+  ],
+  "minecraft:trail_ruins": [
+    {
+      "name": "Oren",
+      "title": "Spurenleser",
+      "category": "SEEKER",
+      "role": "Ausgräber",
+      "profession": "SCHOLAR",
+      "faction": "SEEKERS",
+      "origin": "Alte Ruinen",
+      "personality": "geduldig und besessen von Details",
+      "traits": [
+        "geduldig",
+        "gründlich"
+      ],
+      "knowledge": [
+        "world.history"
+      ],
+      "behavior": "investigate",
+      "schedule": "seeker",
+      "dialogueTreeId": "npc.resident.scholar",
+      "storyRelevant": true,
+      "questRelevant": true,
+      "loreRelevant": true
+    }
   ]
 }
