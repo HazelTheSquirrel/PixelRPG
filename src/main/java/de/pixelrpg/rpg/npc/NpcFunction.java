@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.npc;
 
 public enum NpcFunction {
+    DIALOG,
     QUEST,
     PROFESSION,
     CRAFTING,
