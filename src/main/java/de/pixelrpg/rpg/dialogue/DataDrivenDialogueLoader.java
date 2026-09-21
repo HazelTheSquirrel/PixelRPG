@@ -176,18 +176,17 @@ public final class DataDrivenDialogueLoader {
         if (raw.startsWith("quest:accept:")) {
             requireQuests(sourceName);
             String questId = value(raw, "quest:accept:", sourceName);
-            return context -> questManager.getRepository().getQuest(questId) != null
-                    && questManager.acceptQuest(context.player(), questManager.getRepository().getQuest(questId));
+            return questAction(player -> { Quest quest = questManager.getRepository().getQuest(questId); return quest != null && questManager.acceptQuest(player, quest); });
         }
         if (raw.startsWith("quest:complete:")) {
             requireQuests(sourceName);
             String questId = value(raw, "quest:complete:", sourceName);
-            return context -> questManager.completeQuest(context.player(), questId);
+            return questAction(player -> questManager.completeQuest(player, questId));
         }
         if (raw.startsWith("quest:abandon:")) {
             requireQuests(sourceName);
             String questId = value(raw, "quest:abandon:", sourceName);
-            return context -> questManager.abandonQuest(context.player(), questId);
+            return questAction(player -> questManager.abandonQuest(player, questId));
         }
         if (raw.startsWith("learn:")) {
             return DialogueActions.learn(knowledgeStore, value(raw, "learn:", sourceName));
@@ -207,6 +206,13 @@ public final class DataDrivenDialogueLoader {
             return DialogueActions.clearWorldFlag(worldState, value(raw, "world:clear:", sourceName));
         }
         throw new IllegalArgumentException("Unknown dialogue action '" + raw + "' in " + sourceName);
+    }
+
+    private DialogueOption.DialogueAction questAction(java.util.function.Predicate<org.bukkit.entity.Player> action) {
+        return new DialogueOption.DialogueAction() {
+            @Override public void execute(org.bukkit.entity.Player player) { action.test(player); }
+            @Override public void execute(DialogueContext context) { action.test(context.player()); }
+        };
     }
 
     private int parseInteger(String raw, String sourceName) {
