@@ -51,6 +51,7 @@ import de.pixelrpg.rpg.dialogue.PlayerStructureDiscoveryListener;
 import de.pixelrpg.rpg.lore.LoreRegistry;
 import de.pixelrpg.rpg.npc.NpcProfileStore;
 import de.pixelrpg.rpg.npc.NpcIdentityService;
+import de.pixelrpg.rpg.npc.NpcDangerReactionListener;
 import de.pixelrpg.rpg.npc.StructureNpcManager;
 import de.pixelrpg.rpg.npc.NpcScheduleService;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
@@ -252,6 +253,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcScheduleService = new NpcScheduleService(this, npcManager, npcProfileStore);
         npcScheduleService.start();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
+        getServer().getPluginManager().registerEvents(new NpcDangerReactionListener(npcManager), this);
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0), getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
         DialogueEngine dialogueEngine = new DialogueEngine();
