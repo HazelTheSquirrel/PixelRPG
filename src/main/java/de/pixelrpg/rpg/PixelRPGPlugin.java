@@ -270,7 +270,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcScheduleService = new NpcScheduleService(this, npcManager, npcProfileStore);
         npcScheduleService.start();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
-        getServer().getPluginManager().registerEvents(new NpcDangerReactionListener(npcManager), this);
+        getServer().getPluginManager().registerEvents(new NpcDangerReactionListener(npcManager, npcProfileStore), this);
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0), getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
         DialogueEngine dialogueEngine = new DialogueEngine();
