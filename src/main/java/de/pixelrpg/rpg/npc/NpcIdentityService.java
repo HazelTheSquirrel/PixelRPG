@@ -38,8 +38,7 @@ public final class NpcIdentityService {
                 profile = profile.withIdentity(title, profile.category(), profile.role(), profile.faction(),
                         profile.origin(), profile.personality(), profile.traits(), profile.behavior(),
                         profile.schedule(), profile.dialogueTreeId());
-                profileStore.put(profile);
-            }
+            profileStore.put(profile);
         }
     }
 
