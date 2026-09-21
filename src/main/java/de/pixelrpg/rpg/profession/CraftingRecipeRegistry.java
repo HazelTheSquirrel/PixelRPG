@@ -4,8 +4,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import de.pixelrpg.rpg.config.JsonDataManager;
 import de.pixelrpg.rpg.item.ItemRarity;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionType;
 
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -37,11 +41,16 @@ public final class CraftingRecipeRegistry {
     }
 
     public Optional<String> findDisplayNameByResultItemId(String itemId) {
-        return Optional.empty();
+        Material material = resolveMaterial(itemId);
+        if (material == null || material.isAir()) return Optional.empty();
+        return recipes.values().stream()
+                .filter(recipe -> recipe.resultMaterial() == material)
+                .map(CraftRecipe::displayName)
+                .findFirst();
     }
 
     public boolean hasResultItemId(String itemId) {
-        return false;
+        return findDisplayNameByResultItemId(itemId).isPresent();
     }
 
     private void loadDefinitions(Plugin plugin) {
@@ -73,15 +82,15 @@ public final class CraftingRecipeRegistry {
             }
             Map<String, Integer> itemCosts = Map.of();
 
-            int level = json.has("requiredProfessionLevel") ? json.get("requiredProfessionLevel").getAsInt() : 1;
+            int level = integerField(json, "requiredProfessionLevel", id, 1);
             if (level < Profession.MIN_LEVEL || level > Profession.MAX_LEVEL) {
                 throw new IllegalStateException("Invalid requiredProfessionLevel for " + id + ": " + level);
             }
 
-            int amount = json.has("resultAmount") ? json.get("resultAmount").getAsInt() : 1;
+            int amount = integerField(json, "resultAmount", id, 1);
             if (amount <= 0) throw new IllegalStateException("Invalid resultAmount for " + id + ": " + amount);
 
-            long price = json.has("unlockPrice") ? json.get("unlockPrice").getAsLong() : 0L;
+            long price = longField(json, "unlockPrice", id, 0L);
             if (price < 0L) throw new IllegalStateException("Invalid unlockPrice for " + id + ": " + price);
 
             String quest = json.has("requiredQuestId") ? json.get("requiredQuestId").getAsString() : "";
@@ -93,7 +102,8 @@ public final class CraftingRecipeRegistry {
 
             String potionType = json.has("potionType") ? json.get("potionType").getAsString() : "";
             String enchantment = json.has("enchantment") ? json.get("enchantment").getAsString() : "";
-            int enchantmentLevel = json.has("enchantmentLevel") ? json.get("enchantmentLevel").getAsInt() : 0;
+            int enchantmentLevel = integerField(json, "enchantmentLevel", id, 0);
+            validateSpecialFields(id, result, potionType, enchantment, enchantmentLevel);
 
             recipes.put(id, new CraftRecipe(profession, category, id, label, result, amount, maximumRarity, costs, itemCosts,
                     level, price, quest, defaultUnlocked, false, "", potionType, enchantment, enchantmentLevel));
@@ -147,6 +157,55 @@ public final class CraftingRecipeRegistry {
         };
 
         return Material.matchMaterial(value);
+    }
+
+    private static void validateSpecialFields(String id, Material result, String potionType, String enchantment, int enchantmentLevel) {
+        if (!potionType.isBlank()) {
+            if (result != Material.POTION && result != Material.SPLASH_POTION && result != Material.LINGERING_POTION) {
+                throw new IllegalStateException("potionType requires a potion result for " + id + ": " + result);
+            }
+            try {
+                PotionType.valueOf(potionType.trim().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
+                throw new IllegalStateException("Invalid potionType for " + id + ": " + potionType, exception);
+            }
+        }
+
+        if (!enchantment.isBlank()) {
+            if (result != Material.ENCHANTED_BOOK) {
+                throw new IllegalStateException("Enchantment recipe must produce ENCHANTED_BOOK: " + id);
+            }
+            if (enchantmentLevel <= 0) {
+                throw new IllegalStateException("Invalid enchantmentLevel for " + id + ": " + enchantmentLevel);
+            }
+            var registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT);
+            var value = registry.get(NamespacedKey.minecraft(enchantment.trim().toLowerCase(Locale.ROOT)));
+            if (value == null) {
+                throw new IllegalStateException("Unknown enchantment for " + id + ": " + enchantment);
+            }
+            if (enchantmentLevel > value.getMaxLevel()) {
+                throw new IllegalStateException("enchantmentLevel exceeds vanilla maximum for " + id + ": "
+                        + enchantment + " " + enchantmentLevel + " > " + value.getMaxLevel());
+            }
+        } else if (enchantmentLevel != 0) {
+            throw new IllegalStateException("enchantmentLevel requires an enchantment for " + id + ": " + enchantmentLevel);
+        }
+    }
+
+    private static int integerField(JsonObject json, String key, String id, int defaultValue) {
+        if (!json.has(key)) return defaultValue;
+        if (!json.get(key).isJsonPrimitive() || !json.getAsJsonPrimitive(key).isNumber()) {
+            throw new IllegalStateException(key + " must be a JSON number for " + id);
+        }
+        return json.get(key).getAsInt();
+    }
+
+    private static long longField(JsonObject json, String key, String id, long defaultValue) {
+        if (!json.has(key)) return defaultValue;
+        if (!json.get(key).isJsonPrimitive() || !json.getAsJsonPrimitive(key).isNumber()) {
+            throw new IllegalStateException(key + " must be a JSON number for " + id);
+        }
+        return json.get(key).getAsLong();
     }
 
     private static Map<Material, Integer> parseCosts(JsonObject json, String id) {
