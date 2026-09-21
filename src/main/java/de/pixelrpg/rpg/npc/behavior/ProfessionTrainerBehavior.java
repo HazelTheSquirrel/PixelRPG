@@ -7,6 +7,7 @@ import de.pixelrpg.rpg.dialogue.ProfessionDialog;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
+import de.pixelrpg.rpg.npc.NpcProfileStore;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -22,13 +23,15 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
     private final ProfessionDialog professionDialog;
     private final DialogueEngine dialogueEngine;
     private final DialogueTreeService dialogueTreeService;
+    private final NpcProfileStore profileStore;
 
     public ProfessionTrainerBehavior(NpcType type, Profession profession,
                                      PlayerProfileManager profileManager,
                                      ProfessionService professionService,
                                      DialogueEngine dialogueEngine,
                                      QuickActionsDialogService quickActions,
-                                     DialogueTreeService dialogueTreeService) {
+                                     DialogueTreeService dialogueTreeService,
+                                     NpcProfileStore profileStore) {
         this.type = type;
         this.profession = profession;
         this.profileManager = profileManager;
@@ -36,6 +39,7 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
         this.dialogueEngine = dialogueEngine;
         this.professionDialog = new ProfessionDialog(profileManager, dialogueEngine, quickActions);
         this.dialogueTreeService = dialogueTreeService;
+        this.profileStore = profileStore;
     }
 
     @Override
@@ -49,8 +53,9 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
             dialogueEngine.openUnavailable(player, profession.displayName(), "Du musst zuerst Rathausmitglied sein.");
             return;
         }
+        String treeId = profileStore.getOrCreate(npc).dialogueTreeId();
         dialogueTreeService.open(player, DialogueContext.forNpc(player, npc),
-                "npc.profession." + profession.name().toLowerCase(),
+                treeId,
                 () -> openProfessionFunction(player));
     }
 
