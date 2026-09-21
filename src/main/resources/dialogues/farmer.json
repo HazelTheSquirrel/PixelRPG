@@ -1,0 +1,11 @@
+{
+  "id":"npc.resident.farmer","start":"greeting","nodes":[
+    {"id":"greeting","title":"Bäuerin","body":["Die Felder sind ehrlich. Sie zeigen dir sofort, ob du dich gekümmert hast.","Wenn du lange bleibst, hörst du Geschichten von Reisenden."],"once":false,"options":[
+      {"label":"Was erzählen die Reisenden?","next":"rumor","action":"meet","completes":true},
+      {"label":"Danke.","next":null,"action":"meet","completes":true}
+    ]},
+    {"id":"rumor","title":"Bäuerin","body":["Sie erzählen von Ruinen, die älter sein sollen als jedes Dorf.","Ich weiß nicht, ob das stimmt. Aber Geschichten wachsen selten ohne Grund."],"once":false,"options":[
+      {"label":"Ich werde nachsehen.","next":null,"action":"learn:world.history","completes":true}
+    ]}
+  ]
+}
