@@ -12,7 +12,7 @@
       "once":false,
       "options":[
         {"label":"Was suchst du?","next":"research","action":"meet","completes":true},
-        {"label":"Danke.","next":null,"action":"meet","completes":true}
+        {"label":"Danke.","action":"meet","completes":true}
       ]
     },
     {
@@ -24,7 +24,7 @@
       ],
       "once":false,
       "options":[
-        {"label":"Ich werde darauf achten.","next":null,"action":"learn:world.history","completes":true}
+        {"label":"Ich werde darauf achten.","action":"learn:world.history","completes":true}
       ]
     }
   ]
