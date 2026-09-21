@@ -1,0 +1,13 @@
+{
+  "id":"npc.profession.alchemist",
+  "start":"greeting",
+  "nodes":[
+    {"id":"greeting","title":"Alchemist","body":["In der Alchemie ist jeder Tropfen eine Entscheidung. Fehler verzeihen sich selten.","Vanilla-Tränke und alchemistische Verarbeitung"],"once":false,"options":[
+      {"label":"Erzähl mir mehr.","next":"craft","action":"meet","completes":true},
+      {"label":"Ich bin bereit.","next":null,"action":"meet","completes":true}
+    ]},
+    {"id":"craft","title":"Alchemist","body":["Ein Beruf ist keine Menüfunktion. Er ist eine Fähigkeit, die du in der Welt anwenden musst.","Wenn du bereit bist, zeige ich dir, was ich anbieten kann."],"once":false,"options":[
+      {"label":"Zeig es mir.","next":null,"action":"meet","completes":true}
+    ]}
+  ]
+}
