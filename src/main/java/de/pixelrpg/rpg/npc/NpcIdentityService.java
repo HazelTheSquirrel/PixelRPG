@@ -70,9 +70,11 @@ public final class NpcIdentityService {
     }
 
     private String generatedName(String npcId) {
-        int hash = Math.abs(npcId.hashCode());
-        String first = FIRST_NAMES.get(hash % FIRST_NAMES.size());
-        String family = FAMILY_NAMES.get((hash / FIRST_NAMES.size()) % FAMILY_NAMES.size());
+        int hash = npcId.hashCode();
+        int firstIndex = Math.floorMod(hash, FIRST_NAMES.size());
+        int familyIndex = Math.floorMod(hash / FIRST_NAMES.size(), FAMILY_NAMES.size());
+        String first = FIRST_NAMES.get(firstIndex);
+        String family = FAMILY_NAMES.get(familyIndex);
         return first + " " + family;
     }
 }
