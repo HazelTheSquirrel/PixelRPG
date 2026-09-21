@@ -1476,7 +1476,7 @@ Dieses Dokument ist die Arbeitsgrundlage für den vollständigen NPC-/Dialogue-/
 
 - [ ] vollständige Migration aller bestehenden Hardcode-Dialoge
 - [x] vollständige NPC-Identitäts-/Template-Pipeline
-- [x] vollständige Beziehungen zwischen NPCs, Spieler und Fraktionen
+- [ ] vollständige Beziehungen zwischen NPCs, Spieler und Fraktionen
 - [ ] vollständige Quest-/Story-Verknüpfung mit Dialogaktionen
 - [ ] vollständige Lore-Freischaltung aus Dialogen und Entdeckungen
 - [ ] vollständige strukturabhängige Population mit belastbarer Duplikatvermeidung
@@ -1528,7 +1528,7 @@ Die folgenden Bereiche bleiben bewusst offen, bis die Implementierung und End-to
 - [x] echte ortsbezogene Tagesabläufe mit konfigurierten Zielorten
 - [ ] vollständiges Reaktionssystem auf Monster, Gefahr und Weltveränderungen
 - [ ] vollständige Skin-/Titel-/Darstellungsintegration
-- [x] vollständige Weltbevölkerung für alle vorgesehenen Struktur- und Regionaltypen
+- [ ] vollständige Weltbevölkerung für alle vorgesehenen Struktur- und Regionaltypen
 - [ ] Resourcepack-Ausbau
 - [x] abschließende End-to-End-CI-Verifikation nach dem aktuellen Änderungsstand
 
