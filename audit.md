@@ -1451,3 +1451,47 @@ Ab jetzt werden NPC-, Dialogue-, Lore-, Story- und Weltänderungen gegen dieses 
 Wenn eine geplante Implementierung diesem Audit widerspricht, muss die Abweichung bewusst begründet und entschieden werden.
 
 Dieses Dokument ist die Arbeitsgrundlage für den vollständigen NPC-/Dialogue-/Lore-/World-Umbau von PixelRPG.
+
+
+# 51. Umsetzungsstatus – Dialore
+
+## 51.1 Bereits umgesetzt
+
+- [x] DialogueContext als zentrale Dialogbasis eingeführt.
+- [x] persistentes PlayerKnowledge-System eingeführt.
+- [x] persistenter WorldState eingeführt.
+- [x] NPC-Wissen und NPC-Beziehungen als eigene Stores ergänzt.
+- [x] datengetriebener JSON-Dialogloader eingeführt.
+- [x] Kontextbedingungen und Dialogaktionen erweitert.
+- [x] Filler-NPCs an datengetriebene Bewohnerdialoge angebunden.
+- [x] Berufs-NPCs an Dialogbäume vor der Funktionsöffnung angebunden.
+- [x] Dialoginhalte für Bewohner-, Rollen- und Berufsgruppen ergänzt.
+- [x] strukturbezogene NPC-Verwaltung und Persistenz ergänzt.
+- [x] LoreEntry/LoreRegistry als technische Lore-Schicht ergänzt.
+- [x] WorldState-Reaktionen auf Dimensionen, Advancements, Wither und Enderdrachen ergänzt.
+- [x] NPC-Tagesablauf-Service als technische Basis ergänzt.
+- [x] bestehende Build-/API-Grenzprüfungen beibehalten.
+
+## 51.2 Aktueller Ausbau
+
+- [ ] vollständige Migration aller bestehenden Hardcode-Dialoge
+- [ ] vollständige NPC-Identitäts-/Template-Pipeline
+- [ ] vollständige Beziehungen zwischen NPCs, Spieler und Fraktionen
+- [ ] vollständige Quest-/Story-Verknüpfung mit Dialogaktionen
+- [ ] vollständige Lore-Freischaltung aus Dialogen und Entdeckungen
+- [ ] vollständige strukturabhängige Population mit belastbarer Duplikatvermeidung
+- [ ] echte ortsbezogene Tagesabläufe statt technischer Bewegungs-Platzhalter
+- [ ] vollständige Story-NPC-Ausarbeitung für Elyan Voss, Haus der Stille und Suchende
+- [ ] Reaktionssystem auf Monster, Gefahr, wichtige Weltereignisse und Saga-Fortschritt
+- [ ] vollständige Skin-/Titel-/Identitätsintegration
+- [ ] Resourcepack-Ausbau
+- [ ] End-to-End-CI-Verifikation
+
+## 51.3 CI-Befund
+
+Der GitHub-Actions-Lauf 35547071402 auf Dialore wurde durch concurrency.cancel-in-progress abgebrochen, bevor die eigentliche Build- und Verifikationsphase abgeschlossen werden konnte. Das ist kein bestätigter Java-Compilefehler.
+
+Daher gilt:
+- Kein Build-Erfolg wird behauptet.
+- Keine Verifikationsstufe wird als bestanden markiert, solange kein vollständiger Lauf vorliegt.
+- Nach weiteren Änderungen muss ein vollständiger CI-Lauf abgewartet und bei echten Compile-/Testfehlern anhand des konkreten Logs korrigiert werden.
