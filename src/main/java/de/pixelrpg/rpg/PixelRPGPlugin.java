@@ -56,6 +56,7 @@ import de.pixelrpg.rpg.npc.NpcProfileStore;
 import de.pixelrpg.rpg.npc.NpcIdentityService;
 import de.pixelrpg.rpg.npc.NpcDangerReactionListener;
 import de.pixelrpg.rpg.npc.NpcPresentationService;
+import de.pixelrpg.rpg.npc.RegionalNpcPopulationManager;
 import de.pixelrpg.rpg.npc.StructureNpcManager;
 import de.pixelrpg.rpg.npc.NpcScheduleService;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
