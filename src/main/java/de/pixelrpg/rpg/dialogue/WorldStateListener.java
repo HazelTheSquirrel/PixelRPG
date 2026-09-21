@@ -59,5 +59,23 @@ public final class WorldStateListener implements Listener {
         String key = event.getAdvancement().getKey().toString();
         knowledgeStore.learn(event.getPlayer().getUniqueId(), "advancement:" + key);
         worldState.set("advancement:" + key);
+
+        String normalized = key.toLowerCase(java.util.Locale.ROOT);
+        if (normalized.contains("nether")) {
+            worldState.set("dimension.nether.entered");
+            knowledgeStore.learn(event.getPlayer().getUniqueId(), "nether");
+        }
+        if (normalized.contains("ancient_city") || normalized.contains("swift_sneak")) {
+            worldState.set("structure.ancient_city.discovered");
+            knowledgeStore.learn(event.getPlayer().getUniqueId(), "ancient_city");
+        }
+        if (normalized.contains("stronghold") || normalized.contains("eye_of_ender")) {
+            worldState.set("structure.stronghold.discovered");
+            knowledgeStore.learn(event.getPlayer().getUniqueId(), "stronghold");
+        }
+        if (normalized.contains("end_portal") || normalized.contains("enter_end")) {
+            worldState.set("dimension.end.entered");
+            knowledgeStore.learn(event.getPlayer().getUniqueId(), "end");
+        }
     }
 }
