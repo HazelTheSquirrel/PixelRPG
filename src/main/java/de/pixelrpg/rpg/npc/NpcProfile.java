@@ -41,6 +41,21 @@ public record NpcProfile(
         relationships = Set.copyOf(relationships == null ? Set.of() : relationships);
     }
 
+    public NpcProfile withIdentity(String title, NpcCategory category, String role, NpcFaction faction,
+                                   String origin, String personality, Set<String> traits, String behavior,
+                                   String schedule, String dialogueTreeId) {
+        return new NpcProfile(
+                npcId, title, category, role, profession, faction, origin, personality, traits,
+                knowledge, secrets, relationships, behavior, schedule, dialogueTreeId,
+                storyRelevant, questRelevant, loreRelevant);
+    }
+
+    public NpcProfile withKnowledge(Set<String> knowledge) {
+        return new NpcProfile(npcId, title, category, role, profession, faction, origin, personality,
+                traits, knowledge, secrets, relationships, behavior, schedule, dialogueTreeId,
+                storyRelevant, questRelevant, loreRelevant);
+    }
+
     public static NpcProfile resident(RPGNpc npc) {
         NpcCategory category = switch (npc.type()) {
             case PROFESSION_FARMER -> NpcCategory.FARMER;
