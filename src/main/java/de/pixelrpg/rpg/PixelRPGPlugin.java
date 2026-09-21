@@ -44,6 +44,8 @@ import de.pixelrpg.rpg.dialogue.PlayerKnowledgeStore;
 import de.pixelrpg.rpg.dialogue.WorldState;
 import de.pixelrpg.rpg.dialogue.NpcKnowledgeStore;
 import de.pixelrpg.rpg.dialogue.NpcRelationshipStore;
+import de.pixelrpg.rpg.dialogue.NpcNetworkRelationshipStore;
+import de.pixelrpg.rpg.dialogue.FactionRelationshipStore;
 import de.pixelrpg.rpg.dialogue.WorldStateListener;
 import de.pixelrpg.rpg.dialogue.PlayerStructureDiscoveryListener;
 import de.pixelrpg.rpg.lore.LoreRegistry;
@@ -158,6 +160,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private NpcIdentityService npcIdentityService;
     private NpcKnowledgeStore npcKnowledgeStore;
     private NpcRelationshipStore npcRelationshipStore;
+    private NpcNetworkRelationshipStore npcNetworkRelationshipStore;
+    private FactionRelationshipStore factionRelationshipStore;
     private LoreRegistry loreRegistry;
     private StructureNpcManager structureNpcManager;
     private NpcScheduleService npcScheduleService;
@@ -237,6 +241,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcKnowledgeStore.load();
         npcRelationshipStore = new NpcRelationshipStore(this);
         npcRelationshipStore.load();
+        npcNetworkRelationshipStore = new NpcNetworkRelationshipStore(this);
+        npcNetworkRelationshipStore.load();
+        factionRelationshipStore = new FactionRelationshipStore(this);
+        factionRelationshipStore.load();
         loreRegistry = new LoreRegistry(this);
         loreRegistry.load();
         structureNpcManager = new StructureNpcManager(this, npcManager, npcProfileStore, npcKnowledgeStore);
@@ -332,6 +340,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         lifecycle.register(() -> structureNpcManager.shutdown());
         lifecycle.register(() -> loreRegistry.shutdown());
         lifecycle.register(() -> npcRelationshipStore.shutdown());
+        lifecycle.register(() -> npcNetworkRelationshipStore.shutdown());
+        lifecycle.register(() -> factionRelationshipStore.shutdown());
         lifecycle.register(() -> npcKnowledgeStore.shutdown());
         lifecycle.register(() -> npcProfileStore.shutdown());
         RootCommand rootCommand = new RootCommand(this, itemService);
