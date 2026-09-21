@@ -18,6 +18,7 @@ import org.bukkit.util.BoundingBox;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +49,7 @@ public final class StructureNpcManager implements Listener {
     private void load() {
         if (!file.exists()) copyDefault();
         if (!file.exists()) return;
-        try (FileReader reader = new FileReader(file)) {
+        try (FileReader reader = new FileReader(file, StandardCharsets.UTF_8)) {
             Map<String, List<StructureNpcTemplate>> loaded = gson.fromJson(reader,
                     new TypeToken<Map<String, List<StructureNpcTemplate>>>() { }.getType());
             if (loaded != null) templates.putAll(loaded);
@@ -57,7 +58,7 @@ public final class StructureNpcManager implements Listener {
         }
         File state = new File(plugin.getDataFolder(), "structure-npc-state.json");
         if (state.exists()) {
-            try (FileReader reader = new FileReader(state)) {
+            try (FileReader reader = new FileReader(state, StandardCharsets.UTF_8)) {
                 Set<String> loaded = gson.fromJson(reader, new TypeToken<Set<String>>() { }.getType());
                 if (loaded != null) initializedStructures.addAll(loaded);
             } catch (IOException | RuntimeException exception) {
@@ -90,8 +91,7 @@ public final class StructureNpcManager implements Listener {
             if (npcManager.getById(npcId).isPresent()) continue;
             RPGNpc npc = npcManager.createWithId(npcId, NpcType.FILLER,
                     template.name(), location, null, template.profession());
-            NpcProfile baseProfile = NpcProfile.resident(npc);
-            NpcProfile profile = new NpcProfile(
+                        NpcProfile profile = new NpcProfile(
                     npc.id(), template.title(), template.category(), template.role(), template.profession(),
                     template.faction(), template.origin(), template.personality(), Set.copyOf(template.traits()),
                     Set.copyOf(template.knowledge()), Set.of(), Set.of(), template.behavior(), template.schedule(),
@@ -132,7 +132,7 @@ public final class StructureNpcManager implements Listener {
 
     private void saveState() {
         File state = new File(plugin.getDataFolder(), "structure-npc-state.json");
-        try (FileWriter writer = new FileWriter(state)) { gson.toJson(initializedStructures, writer); }
+        try (FileWriter writer = new FileWriter(state, StandardCharsets.UTF_8)) { gson.toJson(initializedStructures, writer); }
         catch (IOException exception) { plugin.getLogger().warning("Failed to save structure NPC state: " + exception.getMessage()); }
     }
 
