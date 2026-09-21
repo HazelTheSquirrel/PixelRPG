@@ -124,7 +124,7 @@ tasks.register('verifyPixelRpgDialogueData') {
         def trees = [:]
         fileTree(dialogueRoot).matching { include '**/*.json' }.files.sort().each { sourceFile ->
             def dialogueText = sourceFile.getText('UTF-8')
-            def root = parser.parseText(dialogueText.replaceAll(/"next"\\s*:\\s*null/, '"next":""'))
+            def root = parser.parseText(dialogueText.replaceAll(/"next"\s*:\s*null/, '"next":""'))
             if (!(root instanceof Map)) throw new GradleException('Dialogue root must be an object: ' + sourceFile)
             def id = root.id as String
             def start = root.start as String
