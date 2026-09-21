@@ -25,14 +25,16 @@ public final class RegionalNpcPopulationManager implements Listener {
     private final Plugin plugin;
     private final NpcManager npcManager;
     private final NpcProfileStore profileStore;
+    private final NpcIdentityService identityService;
     private final File file;
     private final Gson gson = new Gson();
     private final Set<String> populatedRegions = new HashSet<>();
 
-    public RegionalNpcPopulationManager(Plugin plugin, NpcManager npcManager, NpcProfileStore profileStore) {
+    public RegionalNpcPopulationManager(Plugin plugin, NpcManager npcManager, NpcProfileStore profileStore, NpcIdentityService identityService) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.npcManager = Objects.requireNonNull(npcManager, "npcManager");
         this.profileStore = Objects.requireNonNull(profileStore, "profileStore");
+        this.identityService = Objects.requireNonNull(identityService, "identityService");
         this.file = new File(plugin.getDataFolder(), "regional-npc-population.json");
     }
 
@@ -78,6 +80,7 @@ public final class RegionalNpcPopulationManager implements Listener {
             }
         }
         if (existing != null) {
+            identityService.assignIdentity(existing);
             profileStore.getOrCreate(existing);
             populatedRegions.add(regionId);
             save();
