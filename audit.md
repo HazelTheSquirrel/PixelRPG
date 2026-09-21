@@ -1537,3 +1537,7 @@ Die folgenden Bereiche bleiben bewusst offen, bis die Implementierung und End-to
 Kein Punkt wird als abgeschlossen markiert, nur weil die technische Basis vorhanden ist. Ein Punkt wird erst auf [x] gesetzt, wenn seine konkrete Funktion im bestehenden PixelRPG-System implementiert, in die vorhandene Architektur integriert und durch den Build-/Verifikationslauf bestätigt wurde.
 
 Der Audit-Stand bleibt damit bewusst unter 100 %, bis alle offenen Punkte tatsächlich abgeschlossen sind.
+
+# 59. Verifikationshinweis
+
+Der aktuelle Branchstand wird derzeit durch GitHub Actions geprüft. Der jüngste Lauf 35548302198 ist noch nicht abgeschlossen; der vorherige Lauf 35548292388 wurde durch die Branch-Concurrency beendet, bevor der Build ausgeführt wurde. Daher wird der Auditstand weiterhin nicht künstlich auf 100 % gesetzt.
