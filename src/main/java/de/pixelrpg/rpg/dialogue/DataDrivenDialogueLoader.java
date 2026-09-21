@@ -40,7 +40,7 @@ public final class DataDrivenDialogueLoader {
     private final FactionRelationshipStore factionRelationshipStore;
 
     public DataDrivenDialogueLoader(Plugin plugin, PlayerKnowledgeStore knowledgeStore, WorldState worldState) {
-        this(plugin, knowledgeStore, worldState, null, null, null, null, null, null, null, null);
+        this(plugin, knowledgeStore, worldState, null, null, null, null, null, null, null, null, null);
     }
 
     public DataDrivenDialogueLoader(
@@ -53,6 +53,7 @@ public final class DataDrivenDialogueLoader {
             QuestManager questManager,
             PlayerProfileManager profileManager,
             NpcProfileStore profileStore,
+            PlayerFactionRelationshipStore playerFactionRelationships,
             NpcNetworkRelationshipStore npcNetworkRelationshipStore,
             FactionRelationshipStore factionRelationshipStore) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
