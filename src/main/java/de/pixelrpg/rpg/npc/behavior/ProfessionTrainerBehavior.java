@@ -42,7 +42,9 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
     public NpcType type() { return type; }
 
     @Override
-    public void onInteract(Player player, RPGNpc npc) {
+    public void onInteract(DialogueContext context) {
+        Player player = context.player();
+        RPGNpc npc = context.npc();
         if (!profileManager.isRegistered(player.getUniqueId())) {
             dialogueEngine.openUnavailable(player, profession.displayName(), "Du musst zuerst Rathausmitglied sein.");
             return;
