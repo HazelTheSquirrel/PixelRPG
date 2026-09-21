@@ -2880,9 +2880,9 @@
     },
     {
       "id": "mason:stone_wall",
-      "label": "STONE Mauer",
+      "label": "Bruchsteinmauer",
       "profession": "MASON",
-      "result": "STONE_WALL",
+      "result": "COBBLESTONE_WALL",
       "costs": {
         "STONE": 3
       },
@@ -3208,7 +3208,7 @@
       "costs": {
         "STONE": 3
       },
-      "requiredProfessionLevel": "65",
+      "requiredProfessionLevel": 65,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
