@@ -2,6 +2,8 @@ package de.pixelrpg.rpg.npc.behavior;
 
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.TravelDialog;
+import de.pixelrpg.rpg.dialogue.DialogueContext;
+import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.npc.NpcType;
@@ -15,11 +17,13 @@ public final class TravelBehavior implements NpcBehavior {
     private final NpcManager npcManager;
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
+    private final DialogueTreeService dialogueTreeService;
 
-    public TravelBehavior(NpcManager npcManager, PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
+    public TravelBehavior(NpcManager npcManager, PlayerProfileManager profileManager, DialogueEngine dialogueEngine, DialogueTreeService dialogueTreeService) {
         this.npcManager = npcManager;
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
+        this.dialogueTreeService = dialogueTreeService;
     }
 
     @Override public NpcType type() { return NpcType.TRAVEL; }
@@ -34,6 +38,10 @@ public final class TravelBehavior implements NpcBehavior {
                     Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
+        dialogueTreeService.open(player, DialogueContext.forNpc(player, npc), "npc.function.travel", () -> openTravelFunction(player, npc));
+    }
+
+    private void openTravelFunction(Player player, RPGNpc npc) {
         var profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         boolean firstTime = profile != null && !profile.hasUnlockedWaypoint(npc.id());
         if (firstTime) {
