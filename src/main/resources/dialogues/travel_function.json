@@ -1,0 +1,1 @@
+{"id":"npc.function.travel","start":"greeting","nodes":[{"id":"greeting","title":"Reisepunkt","body":["Die Wege verbinden Orte, die weit voneinander entfernt liegen. Ich kann dir diesen Ort als Reisepunkt zugänglich machen."],"once":false,"options":[{"label":"Weiter.","next":null,"action":"meet","completes":true}]}]}
