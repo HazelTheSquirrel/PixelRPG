@@ -20,6 +20,7 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final ProfessionService professionService;
     private final ProfessionDialog professionDialog;
+    private final DialogueEngine dialogueEngine;
     private final DialogueTreeService dialogueTreeService;
 
     public ProfessionTrainerBehavior(NpcType type, Profession profession,
@@ -32,6 +33,7 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
         this.profession = profession;
         this.profileManager = profileManager;
         this.professionService = professionService;
+        this.dialogueEngine = dialogueEngine;
         this.professionDialog = new ProfessionDialog(profileManager, dialogueEngine, quickActions);
         this.dialogueTreeService = dialogueTreeService;
     }
@@ -42,7 +44,7 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
     @Override
     public void onInteract(Player player, RPGNpc npc) {
         if (!profileManager.isRegistered(player.getUniqueId())) {
-            new DialogueEngine().openUnavailable(player, profession.displayName(), "Du musst zuerst Rathausmitglied sein.");
+            dialogueEngine.openUnavailable(player, profession.displayName(), "Du musst zuerst Rathausmitglied sein.");
             return;
         }
         dialogueTreeService.open(player, DialogueContext.forNpc(player, npc),
