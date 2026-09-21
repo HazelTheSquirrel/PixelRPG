@@ -1,0 +1,1 @@
+{"id":"npc.function.reception","start":"greeting","nodes":[{"id":"greeting","title":"Empfang","body":["Willkommen. Das Rathaus ist der erste Ort, an dem neue Bewohner ihre Angelegenheiten ordnen."],"once":false,"options":[{"label":"Ich bin bereit.","next":null,"action":"meet","completes":true}]}]}
