@@ -23,11 +23,27 @@ public final class DataDrivenDialogueLoader {
     private final Gson gson = new Gson();
     private final PlayerKnowledgeStore knowledgeStore;
     private final WorldState worldState;
+    private final NpcKnowledgeStore npcKnowledgeStore;
+    private final NpcRelationshipStore npcRelationshipStore;
+    private final de.pixelrpg.rpg.lore.LoreRegistry loreRegistry;
 
     public DataDrivenDialogueLoader(Plugin plugin, PlayerKnowledgeStore knowledgeStore, WorldState worldState) {
+        this(plugin, knowledgeStore, worldState, null, null, null);
+    }
+
+    public DataDrivenDialogueLoader(
+            Plugin plugin,
+            PlayerKnowledgeStore knowledgeStore,
+            WorldState worldState,
+            NpcKnowledgeStore npcKnowledgeStore,
+            NpcRelationshipStore npcRelationshipStore,
+            de.pixelrpg.rpg.lore.LoreRegistry loreRegistry) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.knowledgeStore = Objects.requireNonNull(knowledgeStore, "knowledgeStore");
         this.worldState = Objects.requireNonNull(worldState, "worldState");
+        this.npcKnowledgeStore = npcKnowledgeStore;
+        this.npcRelationshipStore = npcRelationshipStore;
+        this.loreRegistry = loreRegistry;
     }
 
     public void loadInto(DialogueTreeService service) {
