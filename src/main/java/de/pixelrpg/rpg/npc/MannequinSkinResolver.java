@@ -7,9 +7,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.profile.PlayerTextures;
-
 import java.net.URI;
+import com.destroystokyo.paper.profile.PlayerProfile;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -125,8 +124,18 @@ public final class MannequinSkinResolver {
                     "Invalid Minecraft player skin name"));
         }
 
+        PlayerProfile bukkitProfile = Bukkit.createProfile(playerName);
+
+        // Set the name-backed profile immediately. This keeps the mannequin usable
+        // even if the Mojang session server is temporarily slow.
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!mannequin.isValid()) return;
+            mannequin.setProfile(ResolvableProfile.resolvableProfile(bukkitProfile));
+            refreshForNearbyPlayers(mannequin, plugin);
+        });
+
         CompletableFuture<ResolvableProfile> profileFuture = PLAYER_PROFILE_CACHE.computeIfAbsent(
-                normalizedName, ignored -> resolvePlayerProfile(playerName));
+                normalizedName, ignored -> resolvePlayerProfile(bukkitProfile));
 
         return profileFuture.thenAcceptAsync(profile -> {
             if (!mannequin.isValid()) return;
@@ -141,9 +150,8 @@ public final class MannequinSkinResolver {
         });
     }
 
-    private static CompletableFuture<ResolvableProfile> resolvePlayerProfile(String playerName) {
-        ResolvableProfile profile = ResolvableProfile.resolvableProfile().name(playerName).build();
-        return profile.resolve().thenApplyAsync(ResolvableProfile::resolvableProfile);
+    private static CompletableFuture<ResolvableProfile> resolvePlayerProfile(PlayerProfile profile) {
+        return profile.update().thenApplyAsync(ResolvableProfile::resolvableProfile);
     }
 
     private static void refreshForNearbyPlayers(Mannequin mannequin, Plugin plugin) {
