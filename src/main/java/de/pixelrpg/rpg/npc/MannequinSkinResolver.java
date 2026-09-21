@@ -35,6 +35,11 @@ public final class MannequinSkinResolver {
 
         String source = skinSource.trim();
         try {
+            String playerNameFromUrl = playerNameFromUrl(source);
+            if (playerNameFromUrl != null) {
+                return applyPlayerName(mannequin, playerNameFromUrl, plugin, logger);
+            }
+
             if (isUrl(source)) {
                 String normalizedUrl = normalizeUrl(source);
                 return new ExternalSkinService(plugin).apply(mannequin, normalizedUrl)
@@ -95,6 +100,33 @@ public final class MannequinSkinResolver {
                 player.hideEntity(plugin, mannequin);
                 player.showEntity(plugin, mannequin);
             }
+        }
+    }
+
+    /**
+     * Accept legacy/configured player-name sources written as https://PlayerName.
+     * A host consisting only of a valid Minecraft username and no path is not
+     * an external skin URL; it is a player skin lookup.
+     */
+    private static String playerNameFromUrl(String source) {
+        try {
+            URI uri = URI.create(source);
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+            if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+                    || host == null
+                    || !uri.getPath().isEmpty()
+                    || uri.getQuery() != null
+                    || uri.getFragment() != null
+                    || uri.getUserInfo() != null) {
+                return null;
+            }
+            if (host.length() < 3 || host.length() > 16 || !host.matches("[A-Za-z0-9_]+")) {
+                return null;
+            }
+            return host;
+        } catch (IllegalArgumentException exception) {
+            return null;
         }
     }
 
