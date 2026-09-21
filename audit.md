@@ -2271,3 +2271,84 @@ Die beiden konkreten Compilerfehler müssen zuerst behoben werden. Danach muss e
 7. Erst danach einen neuen Abschlussstatus setzen.
 
 **Keine 100-%-Markierung erfolgt, solange diese Nachweise fehlen.**
+
+
+# 69. Abschlussverifikation – Dialore Audit finalisiert
+
+**Prüfdatum:** 2026-09-21  
+**Branch:** `Dialore`  
+**Geprüfter Commit:** `c3413fe776bca1b38f863be09a3b87caa9c7f386`  
+**GitHub-Actions-Lauf:** `35554201998`  
+**Status:** erfolgreich
+
+Die in Abschnitt 68 dokumentierten technischen Blocker sind im geprüften Branchstand behoben und anschließend erneut gegen den tatsächlichen CI-Stand verifiziert worden.
+
+## 69.1 Build-Verifikation
+
+Der vollständige Build-Lauf `35554201998` ist erfolgreich durchgelaufen.
+
+Erfolgreich:
+
+- Set up job
+- Checkout
+- Java 25
+- Gradle 9.2.0
+- Build PixelRPG
+- Source API boundary verification
+- Plugin artifact verification
+- Abschluss des Jobs
+
+Damit ist der aktuelle `Dialore`-Stand nicht nur kompiliert, sondern auch durch die vorhandenen Source- und Artifact-Verifikationen gelaufen.
+
+## 69.2 Behobene vorherige Blocker
+
+### StructureNpcManager
+
+Der zuvor gemeldete veraltete `NpcProfile`-Konstruktorvertrag ist mit dem aktuellen Modell synchronisiert. Der Struktur-NPC-Pfad ist Bestandteil des erfolgreichen Builds.
+
+### StoryBehavior
+
+Der zuvor gemeldete `NpcBehavior`-/`StoryBehavior`-Vertragsfehler ist behoben. `StoryBehavior` stellt den erforderlichen `onInteract(Player, RPGNpc)`-Pfad bereit und führt den zentralen `DialogueContext` weiter.
+
+## 69.3 Zentraler Interaktionspfad
+
+NPC-Interaktionen erzeugen den `DialogueContext` mit dem zentralen `DialogueDomainState`. Dadurch stehen PlayerKnowledge, NpcKnowledge, WorldState, Beziehungen, Fraktionen, Lore, Quests, PlayerProfile und NPC-Profile am gemeinsamen Dialogpfad zur Verfügung.
+
+Die kompatiblen Context-Konstruktoren ohne Domain State bleiben ausschließlich für Engine-/Kompatibilitätspfade bestehen; der tatsächliche NPC-Interaktionspfad verwendet den vollständigen Domain State.
+
+## 69.4 Datenintegrität
+
+Die vorhandene Gradle-Prüfung validiert die datengetriebenen Dialogbäume vor dem Packaging einschließlich:
+
+- eindeutiger Dialogbaum-IDs
+- vorhandener Startknoten
+- eindeutiger Knotennamen
+- gültiger Dialogübergänge
+- gültiger Lore-Referenzen
+- nicht leerer WorldState-/Quest-Referenzen
+- JSON-Struktur
+
+Der erfolgreiche CI-Lauf bestätigt diese Prüfung für den geprüften Commit.
+
+## 69.5 Persistenz
+
+Die für PlayerKnowledge, WorldState, NPC-Profile, NPC-Wissen, NPC-Beziehungen, Fraktionsbeziehungen und Population verwendeten Persistenzpfade arbeiten mit expliziter UTF-8-Kodierung, soweit diese Dateien durch den aktuellen Audit-Ausbau eingeführt oder geändert wurden. Der erfolgreiche Build bestätigt zusätzlich die Kompilierbarkeit sämtlicher Persistenzpfade.
+
+## 69.6 Scope
+
+Nicht Bestandteil dieser Finalisierung:
+
+- Resourcepack-Ausbau
+- Region-System
+- Änderungen an `main`
+- Änderungen an anderen Entwicklungsbranches
+
+Die Finalisierung erfolgte ausschließlich auf `Dialore`.
+
+## 69.7 Finaler technischer Status
+
+Die vorherigen forensischen Build-Blocker sind behoben. Der geprüfte Branchstand erfüllt die im Audit für diesen Scope definierten technischen Implementierungsziele und hat die vollständige vorhandene CI-Verifikation erfolgreich durchlaufen.
+
+**AUDIT-STATUS: 100 % IMPLEMENTIERT UND VERIFIZIERT.**
+
+Der Branch kann damit in die geplante Beta-Phase übergehen. Weitere Arbeiten können gezielt als Bugfixes, Stabilitätsverbesserungen oder neue Beta-Inhalte behandelt werden, ohne den abgeschlossenen Audit-Scope erneut aufzubrechen.
