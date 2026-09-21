@@ -48,8 +48,12 @@ public final class StoryBehavior implements NpcBehavior {
         return NpcType.STORY;
     }
 
-    // Zuständig für den storyabhängigen Einstieg eines Story-NPCs und das anschließende Öffnen des bestehenden Storysystems.
     @Override
+    public void onInteract(Player player, RPGNpc npc) {
+        onInteract(DialogueContext.forNpc(player, npc));
+    }
+
+    // Zuständig für den storyabhängigen Einstieg eines Story-NPCs und das anschließende Öffnen des bestehenden Storysystems.
     public void onInteract(DialogueContext context) {
         Player player = context.player();
         RPGNpc npc = context.npc();
