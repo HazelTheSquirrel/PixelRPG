@@ -102,7 +102,7 @@ public final class StructureNpcManager implements Listener {
                     npc.id(), template.title(), template.category(), template.role(), template.profession(),
                     template.faction(), template.origin(), template.personality(), Set.copyOf(template.traits()),
                     Set.copyOf(template.knowledge()), Set.of(), Set.of(), template.behavior(), template.schedule(),
-                    template.dialogueTreeId(), template.storyRelevant(), template.questRelevant(), template.loreRelevant());
+                    template.dialogueTreeId(), template.storyRelevant(), template.questRelevant(), template.loreRelevant(), template.skinSource());
             profileStore.put(profile);
             presentationService.refresh(npc);
             for (String knowledge : template.knowledge()) npcKnowledgeStore.learn(npc.id(), knowledge);
@@ -163,5 +163,5 @@ public final class StructureNpcManager implements Listener {
             String name, String title, NpcCategory category, String role, de.pixelrpg.rpg.profession.Profession profession,
             NpcFaction faction, String origin, String personality, List<String> traits, List<String> knowledge,
             String behavior, String schedule, String dialogueTreeId, boolean storyRelevant, boolean questRelevant,
-            boolean loreRelevant) { }
+            boolean loreRelevant, String skinSource) { }
 }
