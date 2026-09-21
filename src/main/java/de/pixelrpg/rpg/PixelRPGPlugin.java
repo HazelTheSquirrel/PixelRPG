@@ -41,6 +41,7 @@ import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.dialogue.DataDrivenDialogueLoader;
 import de.pixelrpg.rpg.dialogue.PlayerKnowledgeStore;
+import de.pixelrpg.rpg.dialogue.PlayerFactionRelationshipStore;
 import de.pixelrpg.rpg.dialogue.WorldState;
 import de.pixelrpg.rpg.dialogue.NpcKnowledgeStore;
 import de.pixelrpg.rpg.dialogue.NpcRelationshipStore;
@@ -159,6 +160,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private GuildManager guildManager;
     private DialogueTreeService dialogueTreeService;
     private PlayerKnowledgeStore playerKnowledgeStore;
+    private PlayerFactionRelationshipStore playerFactionRelationshipStore;
     private WorldState worldState;
     private NpcProfileStore npcProfileStore;
     private NpcIdentityService npcIdentityService;
@@ -257,6 +259,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         new NpcRelationshipDefinitionStore(this).loadInto(npcNetworkRelationshipStore);
         factionRelationshipStore = new FactionRelationshipStore(this);
         factionRelationshipStore.load();
+        playerFactionRelationshipStore = new PlayerFactionRelationshipStore(this);
+        playerFactionRelationshipStore.load();
         loreRegistry = new LoreRegistry(this);
         loreRegistry.load();
         structureNpcManager = new StructureNpcManager(this, npcManager, npcProfileStore, npcKnowledgeStore, npcPresentationService);
@@ -273,7 +277,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         worldState = new WorldState(this);
         worldState.load();
         dialogueTreeService = new DialogueTreeService(this, dialogueEngine);
-        new DataDrivenDialogueLoader(this, playerKnowledgeStore, worldState, npcKnowledgeStore, npcRelationshipStore, loreRegistry, questManager, playerProfileManager, npcProfileStore, npcNetworkRelationshipStore, factionRelationshipStore).loadInto(dialogueTreeService);
+        new DataDrivenDialogueLoader(this, playerKnowledgeStore, worldState, npcKnowledgeStore, npcRelationshipStore, loreRegistry, questManager, playerProfileManager, npcProfileStore, playerFactionRelationshipStore, npcNetworkRelationshipStore, factionRelationshipStore).loadInto(dialogueTreeService);
         getServer().getPluginManager().registerEvents(new WorldStateListener(worldState, playerKnowledgeStore), this);
         getServer().getPluginManager().registerEvents(new PlayerStructureDiscoveryListener(worldState, playerKnowledgeStore, loreRegistry), this);
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
