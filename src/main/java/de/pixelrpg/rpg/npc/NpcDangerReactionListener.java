@@ -9,24 +9,40 @@ import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 
 public final class NpcDangerReactionListener implements Listener {
     private final NpcManager npcManager;
+    private final NpcProfileStore profileStore;
 
-    public NpcDangerReactionListener(NpcManager npcManager) {
+    public NpcDangerReactionListener(NpcManager npcManager, NpcProfileStore profileStore) {
         this.npcManager = npcManager;
+        this.profileStore = profileStore;
     }
 
-    /** Prevents hostile targeting of NPC mannequins and moves the NPC to a nearby safe position. */
+    /** Prevents hostile targeting and applies a profile-aware NPC danger response. */
     @EventHandler
     public void onEntityTargetNpc(EntityTargetLivingEntityEvent event) {
         if (!(event.getTarget() instanceof Mannequin mannequin)) return;
-        if (npcManager.getByEntity(mannequin.getUniqueId()).isEmpty()) return;
+        var npcOptional = npcManager.getByEntity(mannequin.getUniqueId());
+        if (npcOptional.isEmpty()) return;
 
         event.setCancelled(true);
-        Location safe = findSafeLocation(mannequin.getLocation());
+        RPGNpc npc = npcOptional.get();
+        NpcProfile profile = profileStore.getOrCreate(npc);
+
+        if (profile.category() == NpcCategory.GUARD || profile.behavior().equalsIgnoreCase("guard")) {
+            return;
+        }
+
+        int radius = switch (profile.category()) {
+            case TRAVELER, SEEKER, STORY -> 8;
+            case CHILD -> 6;
+            default -> 4;
+        };
+
+        Location safe = findSafeLocation(mannequin.getLocation(), radius);
         if (safe != null) mannequin.teleport(safe);
     }
 
-    private Location findSafeLocation(Location origin) {
-        for (int radius = 1; radius <= 4; radius++) {
+    private Location findSafeLocation(Location origin, int maxRadius) {
+        for (int radius = 1; radius <= maxRadius; radius++) {
             for (int x = -radius; x <= radius; x++) {
                 for (int z = -radius; z <= radius; z++) {
                     if (Math.abs(x) != radius && Math.abs(z) != radius) continue;
