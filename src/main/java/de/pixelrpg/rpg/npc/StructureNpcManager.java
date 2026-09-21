@@ -34,16 +34,18 @@ public final class StructureNpcManager implements Listener {
     private final NpcManager npcManager;
     private final NpcProfileStore profileStore;
     private final NpcKnowledgeStore npcKnowledgeStore;
+    private final NpcPresentationService presentationService;
     private final File file;
     private final Gson gson = new Gson();
     private final Set<String> initializedStructures = ConcurrentHashMap.newKeySet();
     private final Map<String, List<StructureNpcTemplate>> templates = new ConcurrentHashMap<>();
 
-    public StructureNpcManager(Plugin plugin, NpcManager npcManager, NpcProfileStore profileStore, NpcKnowledgeStore npcKnowledgeStore) {
+    public StructureNpcManager(Plugin plugin, NpcManager npcManager, NpcProfileStore profileStore, NpcKnowledgeStore npcKnowledgeStore, NpcPresentationService presentationService) {
         this.plugin = plugin;
         this.npcManager = npcManager;
         this.profileStore = profileStore;
         this.npcKnowledgeStore = npcKnowledgeStore;
+        this.presentationService = presentationService;
         this.file = new File(plugin.getDataFolder(), "structure-npcs.json");
         load();
     }
@@ -102,6 +104,7 @@ public final class StructureNpcManager implements Listener {
                     Set.copyOf(template.knowledge()), Set.of(), Set.of(), template.behavior(), template.schedule(),
                     template.dialogueTreeId(), template.storyRelevant(), template.questRelevant(), template.loreRelevant());
             profileStore.put(profile);
+            presentationService.refresh(npc);
             for (String knowledge : template.knowledge()) npcKnowledgeStore.learn(npc.id(), knowledge);
         }
     }
