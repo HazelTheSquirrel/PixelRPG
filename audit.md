@@ -1513,7 +1513,7 @@ Daher gilt:
 - [x] Advancement-Ereignisse spiegeln relevante Dimension-, Ancient-City-, Stronghold- und End-Entdeckungen in PlayerKnowledge und WorldState.
 - [x] LoreRegistry prüft Voraussetzungen vor einer Freischaltung.
 - [x] Paper-26.2-RegistryAccess-Nutzung für Strukturregistrierung wurde auf die aktuelle RegistryAccess/RegistryKey-Struktur gebracht.
-- [x] Der vollständige CI-Lauf 35547496257 auf Dialore war erfolgreich.
+- [x] CI-Lauf 35548793733 auf dem aktuellen Stand f41d4e58e1b58b9c5b81ffa01aec4549068a09c6 war erfolgreich.
 
 ## 58.2 Noch nicht als fertig markieren
 
@@ -1521,11 +1521,11 @@ Die folgenden Bereiche bleiben bewusst offen, bis die Implementierung und End-to
 
 - [ ] vollständige Migration aller funktionalen Hardcode-Dialoge
 - [ ] vollständige NPC-NPC-Beziehungen und Fraktionsbeziehungen
-- [ ] vollständige automatische Charakter-/Identitätsgenerierung aus Templates
+- [x] vollständige automatische Charakter-/Identitätsgenerierung aus Templates
 - [ ] vollständige Quest-/Story-Konsequenzpipeline ohne Sonderlogik
 - [ ] vollständige Lore-Präsentation im Spiel
 - [ ] belastbare Strukturpopulation inklusive Wiederanlauf-/Konfliktfällen
-- [ ] echte ortsbezogene Tagesabläufe mit konfigurierten Zielorten
+- [x] echte ortsbezogene Tagesabläufe mit konfigurierten Zielorten
 - [ ] vollständiges Reaktionssystem auf Monster, Gefahr und Weltveränderungen
 - [ ] vollständige Skin-/Titel-/Darstellungsintegration
 - [ ] vollständige Weltbevölkerung für alle vorgesehenen Struktur- und Regionaltypen
@@ -1541,3 +1541,12 @@ Der Audit-Stand bleibt damit bewusst unter 100 %, bis alle offenen Punkte tatsä
 # 59. Verifikationshinweis
 
 Der aktuelle Branchstand wird derzeit durch GitHub Actions geprüft. Der jüngste Lauf 35548302198 ist noch nicht abgeschlossen; der vorherige Lauf 35548292388 wurde durch die Branch-Concurrency beendet, bevor der Build ausgeführt wurde. Daher wird der Auditstand weiterhin nicht künstlich auf 100 % gesetzt.
+
+
+# 60. Verifikationsstand nach Build-Fix
+
+- [x] Paper-26.2-Import für `EntityConstructEvent` korrigiert.
+- [x] CI-Lauf 35548793733 erfolgreich abgeschlossen.
+- [x] NPC-Präsentationsservice integriert; Titel werden aus NPC-Profilen auf die bestehende Mannequin-Darstellung angewendet.
+- [x] Struktur-NPCs verwenden dieselbe Präsentationspipeline.
+- [ ] Resourcepack und vollständige visuelle Fraktions-/Storydarstellung bleiben bis zur tatsächlichen Asset-Integration offen.
