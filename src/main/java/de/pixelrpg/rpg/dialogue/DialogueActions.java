@@ -81,6 +81,13 @@ public final class DialogueActions {
         };
     }
 
+    public static DialogueOption.DialogueAction adjustPlayerFactionRelationship(PlayerFactionRelationshipStore store,
+                                                                                         de.pixelrpg.rpg.npc.NpcFaction faction,
+                                                                                         int amount) {
+        Objects.requireNonNull(store, "store");
+        return context -> store.adjust(context.player().getUniqueId(), faction, amount);
+    }
+
     public static DialogueOption.DialogueAction adjustFactionRelationship(FactionRelationshipStore store,
                                                                             de.pixelrpg.rpg.npc.NpcFaction first,
                                                                             de.pixelrpg.rpg.npc.NpcFaction second,
