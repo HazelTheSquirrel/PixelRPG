@@ -1,7 +1,6 @@
 package de.pixelrpg.rpg.npc.behavior;
 
 import de.pixelrpg.rpg.dialogue.DialogueContext;
-import de.pixelrpg.rpg.dialogue.DialogueDomainState;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
@@ -28,7 +27,6 @@ public final class StoryBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final DialogueTreeService dialogueTreeService;
     private final NpcProfileStore profileStore;
-    private final DialogueDomainState domainState;
 
     public StoryBehavior(
             StoryManager storyManager,
@@ -36,15 +34,13 @@ public final class StoryBehavior implements NpcBehavior {
             DialogueEngine dialogueEngine,
             PlayerProfileManager profileManager,
             DialogueTreeService dialogueTreeService,
-            NpcProfileStore profileStore,
-            DialogueDomainState domainState) {
+            NpcProfileStore profileStore) {
         this.storyManager = storyManager;
         this.fallbackDialogue = fallbackDialogue;
         this.dialogueEngine = dialogueEngine;
         this.profileManager = profileManager;
         this.dialogueTreeService = dialogueTreeService;
         this.profileStore = profileStore;
-        this.domainState = domainState;
     }
 
     @Override
