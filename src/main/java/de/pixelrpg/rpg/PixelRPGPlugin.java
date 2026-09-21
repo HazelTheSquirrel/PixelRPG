@@ -250,7 +250,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         dialogueTreeService = new DialogueTreeService(this, dialogueEngine);
         new DataDrivenDialogueLoader(this, playerKnowledgeStore, worldState, npcKnowledgeStore, npcRelationshipStore, loreRegistry, questManager, playerProfileManager).loadInto(dialogueTreeService);
         getServer().getPluginManager().registerEvents(new WorldStateListener(worldState, playerKnowledgeStore), this);
-        getServer().getPluginManager().registerEvents(new PlayerStructureDiscoveryListener(worldState, playerKnowledgeStore), this);
+        getServer().getPluginManager().registerEvents(new PlayerStructureDiscoveryListener(worldState, playerKnowledgeStore, loreRegistry), this);
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager, itemService);
         companionService = new CompanionService(this);
