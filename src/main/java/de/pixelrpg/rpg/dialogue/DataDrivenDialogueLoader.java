@@ -5,6 +5,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.pixelrpg.rpg.lore.LoreRegistry;
+import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.quest.QuestManager;
+import de.pixelrpg.rpg.quest.Quest;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
 import org.bukkit.plugin.Plugin;
@@ -27,9 +30,11 @@ public final class DataDrivenDialogueLoader {
     private final NpcKnowledgeStore npcKnowledgeStore;
     private final NpcRelationshipStore npcRelationshipStore;
     private final LoreRegistry loreRegistry;
+    private final QuestManager questManager;
+    private final PlayerProfileManager profileManager;
 
     public DataDrivenDialogueLoader(Plugin plugin, PlayerKnowledgeStore knowledgeStore, WorldState worldState) {
-        this(plugin, knowledgeStore, worldState, null, null, null);
+        this(plugin, knowledgeStore, worldState, null, null, null, null, null);
     }
 
     public DataDrivenDialogueLoader(
@@ -38,13 +43,17 @@ public final class DataDrivenDialogueLoader {
             WorldState worldState,
             NpcKnowledgeStore npcKnowledgeStore,
             NpcRelationshipStore npcRelationshipStore,
-            LoreRegistry loreRegistry) {
+            LoreRegistry loreRegistry,
+            QuestManager questManager,
+            PlayerProfileManager profileManager) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.knowledgeStore = Objects.requireNonNull(knowledgeStore, "knowledgeStore");
         this.worldState = Objects.requireNonNull(worldState, "worldState");
         this.npcKnowledgeStore = npcKnowledgeStore;
         this.npcRelationshipStore = npcRelationshipStore;
         this.loreRegistry = loreRegistry;
+        this.questManager = questManager;
+        this.profileManager = profileManager;
     }
 
     public void loadInto(DialogueTreeService service) {
@@ -126,6 +135,16 @@ public final class DataDrivenDialogueLoader {
             requireStore(npcRelationshipStore, "NPC relationships", sourceName);
             return DialogueConditions.hasMet(npcRelationshipStore);
         }
+        if (raw.startsWith("quest_active:")) {
+            requireQuests(sourceName);
+            String questId = value(raw, "quest_active:", sourceName);
+            return player -> profileManager.getProfile(player.getUniqueId()).map(profile -> profile.hasActiveQuest(questId)).orElse(false);
+        }
+        if (raw.startsWith("quest_completed:")) {
+            requireQuests(sourceName);
+            String questId = value(raw, "quest_completed:", sourceName);
+            return player -> profileManager.getProfile(player.getUniqueId()).map(profile -> profile.hasCompletedQuest(questId)).orElse(false);
+        }
         if (raw.startsWith("world:")) {
             return DialogueConditions.worldFlag(worldState, value(raw, "world:", sourceName));
         }
@@ -153,6 +172,22 @@ public final class DataDrivenDialogueLoader {
             String[] parts = value.split(":", 2);
             if (parts.length != 2) throw new IllegalArgumentException("Relationship action requires relation:amount in " + sourceName);
             return DialogueActions.adjustRelationship(npcRelationshipStore, parts[0], parseInteger(parts[1], sourceName));
+        }
+        if (raw.startsWith("quest:accept:")) {
+            requireQuests(sourceName);
+            String questId = value(raw, "quest:accept:", sourceName);
+            return context -> questManager.getRepository().getQuest(questId) != null
+                    && questManager.acceptQuest(context.player(), questManager.getRepository().getQuest(questId));
+        }
+        if (raw.startsWith("quest:complete:")) {
+            requireQuests(sourceName);
+            String questId = value(raw, "quest:complete:", sourceName);
+            return context -> questManager.completeQuest(context.player(), questId);
+        }
+        if (raw.startsWith("quest:abandon:")) {
+            requireQuests(sourceName);
+            String questId = value(raw, "quest:abandon:", sourceName);
+            return context -> questManager.abandonQuest(context.player(), questId);
         }
         if (raw.startsWith("learn:")) {
             return DialogueActions.learn(knowledgeStore, value(raw, "learn:", sourceName));
@@ -184,6 +219,12 @@ public final class DataDrivenDialogueLoader {
 
     private void requireStore(Object store, String name, String sourceName) {
         if (store == null) throw new IllegalStateException("Dialogue file " + sourceName + " requires " + name + " but the store is not configured.");
+    }
+
+    private void requireQuests(String sourceName) {
+        if (questManager == null || profileManager == null) {
+            throw new IllegalStateException("Dialogue file " + sourceName + " requires quest integration but it is not configured.");
+        }
     }
 
     private void requireLore(String sourceName) {
