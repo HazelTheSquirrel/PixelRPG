@@ -36,9 +36,7 @@ public final class FillerBehavior implements NpcBehavior {
     }
 
     @Override
-    public void onInteract(DialogueContext context) {
-        Player player = context.player();
-        RPGNpc npc = context.npc();
+    public void onInteract(Player player, RPGNpc npc) {
         if (!profileManager.isRegistered(player.getUniqueId())) {
             dialogueEngine.openNotice(player,
                     Component.text("Bewohner", NamedTextColor.WHITE),
