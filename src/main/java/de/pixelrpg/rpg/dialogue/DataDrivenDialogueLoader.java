@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.dialogue;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import de.pixelrpg.rpg.lore.LoreRegistry;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -121,12 +122,12 @@ public final class DataDrivenDialogueLoader {
                             ? option.get("next").getAsString() : null;
                     boolean completes = option.has("completes") && option.get("completes").getAsBoolean();
                     String condition = option.has("condition") ? option.get("condition").getAsString() : "always";
-                    String action = option.has("action") ? option.get("action").getAsString() : "none";
+                    DialogueOption.DialogueAction action = parseActions(option.get("action"), sourceName);
                     options.add(new DialogueOption(
                             Component.text(label),
                             parseCondition(condition, sourceName),
                             next,
-                            parseAction(action, sourceName),
+                            action,
                             completes));
                 });
             }
@@ -134,6 +135,33 @@ public final class DataDrivenDialogueLoader {
             nodes.add(new DialogueNode(nodeId, Component.text(title), body, options, once));
         });
         return new DialogueTree(id, startNode, nodes);
+    }
+
+    private DialogueOption.DialogueAction parseActions(JsonElement element, String sourceName) {
+        if (element == null || element.isJsonNull()) return DialogueActions.none();
+        if (element.isJsonArray()) {
+            List<DialogueOption.DialogueAction> actions = new ArrayList<>();
+            element.getAsJsonArray().forEach(value -> {
+                if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
+                    throw new IllegalArgumentException("Dialogue action array must contain strings in " + sourceName);
+                }
+                actions.add(parseAction(value.getAsString(), sourceName));
+            });
+            return combineActions(actions);
+        }
+        return parseAction(element.getAsString(), sourceName);
+    }
+
+    private DialogueOption.DialogueAction combineActions(List<DialogueOption.DialogueAction> actions) {
+        if (actions.isEmpty()) return DialogueActions.none();
+        return new DialogueOption.DialogueAction() {
+            @Override public void execute(org.bukkit.entity.Player player) {
+                actions.forEach(action -> action.execute(player));
+            }
+            @Override public void execute(DialogueContext context) {
+                actions.forEach(action -> action.execute(context));
+            }
+        };
     }
 
     private DialogueCondition parseCondition(String raw, String sourceName) {
@@ -204,21 +232,6 @@ public final class DataDrivenDialogueLoader {
 
     private DialogueOption.DialogueAction parseAction(String raw, String sourceName) {
         if (raw == null || raw.isBlank() || raw.equals("none")) return DialogueActions.none();
-        if (raw.indexOf(';') >= 0) {
-            String[] actions = raw.split(";");
-            List<DialogueOption.DialogueAction> parsed = new ArrayList<>();
-            for (String action : actions) {
-                if (!action.isBlank()) parsed.add(parseAction(action.trim(), sourceName));
-            }
-            return new DialogueOption.DialogueAction() {
-                @Override public void execute(org.bukkit.entity.Player player) {
-                    parsed.forEach(action -> action.execute(player));
-                }
-                @Override public void execute(DialogueContext context) {
-                    parsed.forEach(action -> action.execute(context));
-                }
-            };
-        }
         if (raw.equals("meet")) {
             requireStore(npcRelationshipStore, "NPC relationships", sourceName);
             return DialogueActions.meetNpc(npcRelationshipStore);
