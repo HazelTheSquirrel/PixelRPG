@@ -222,6 +222,10 @@ public final class NpcManager {
         return true;
     }
 
+    public Optional<UUID> getSpawnedEntityUuid(String npcId) {
+        return Optional.ofNullable(spawnedEntityByNpcId.get(npcId));
+    }
+
     public Optional<RPGNpc> getByEntity(UUID entityUuid) {
         String id = entityToId.get(entityUuid);
         return id != null ? Optional.ofNullable(npcsById.get(id)) : Optional.empty();
