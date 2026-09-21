@@ -1570,3 +1570,27 @@ Der aktuelle Stand der technischen Änderungen wurde mit GitHub Actions Lauf 355
 - [x] Persistente regionale NPC-Population für geeignete Overworld-Regionen ergänzt; Regionen werden anhand stabiler IDs dedupliziert.
 - [x] Spieler-Fraktionsbeziehungen persistiert und als datengetriebene Dialogbedingung/Aktion verfügbar gemacht.
 - [x] Letzter erfolgreicher CI-Lauf: 35549368023.
+
+
+# 64. Umsetzungsstatus – weiterer Vollausbau
+
+## 64.1 Seit Status 63 zusätzlich verifiziert/umgesetzt
+
+- [x] Strukturpopulation ist bei Teilfehlern wiederanlaufbar: eine Struktur wird erst als initialisiert persistiert, wenn alle vorgesehenen NPCs vorhanden bzw. erfolgreich erzeugt wurden.
+- [x] Struktur-NPC-IDs verwenden die vollständige stabile Strukturidentität statt einer verkürzten Hash-ID.
+- [x] Regionale Overworld-Population verwendet die tatsächliche Minecraft-Regiongröße von 32×32 Chunks.
+- [x] Neu erzeugte regionale NPCs durchlaufen ebenfalls die zentrale Identitätsgenerierung.
+- [x] Platzhalter wie `Wanderer` werden bei der Identitätsvergabe als Platzhalter erkannt.
+- [x] Spieler-Fraktionsbeziehungen sind als datengetriebene Dialogbedingung und Dialogaktion verfügbar.
+- [x] Dialogaktionen können mehrere kontrollierte Konsequenzen in einer Definition ausführen.
+- [x] Wither- und Enderdrachen-Ereignisse schreiben neben dem globalen Weltzustand auch Spielerwissen, wenn ein Spieler als Killer bekannt ist.
+- [x] Der resultierende Stand wurde nach den Compile-Fixes durch GitHub Actions Lauf 35549841359 erfolgreich gebaut.
+
+## 64.2 Noch offene Punkte
+
+- [ ] vollständige Migration aller funktionalen Hardcode-Dialoge in datengetriebene Contentdefinitionen
+- [ ] vollständige Lore-/Story-Präsentationsassets im Resourcepack
+- [ ] vollständige Asset-Integration für Fraktions-, Quest-, Lore- und Storydarstellung
+- [ ] abschließende Verifikation nach den seit Lauf 35549841359 hinzugekommenen Änderungen
+
+Die Qualitätsregel aus Abschnitt 58.3 bleibt unverändert: Ein Punkt wird erst nach konkreter Implementierung, Integration und anschließender Verifikation als abgeschlossen markiert.
