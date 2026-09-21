@@ -11,7 +11,7 @@
       ],
       "once": false,
       "options": [
-        {"label":"Danke.","next":null,"action":"meet","completes":true},
+        {"label":"Danke.","action":"meet","completes":true},
         {"label":"Was weißt du über die Vergangenheit?","next":"past","action":"meet","completes":true}
       ]
     },
@@ -20,7 +20,7 @@
       "title":"Bewohner",
       "body":["Nicht viel. Aber ich weiß, dass unsere Welt älter ist als unsere Dörfer.","Wenn du Antworten suchst, beginne dort, wo niemand mehr lebt."],
       "once":false,
-      "options":[{"label":"Ich werde suchen.","next":null,"action":"learn:world.history","completes":true}]
+      "options":[{"label":"Ich werde suchen.","action":"learn:world.history","completes":true}]
     }
   ]
 }
