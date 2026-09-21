@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.dialogue;
 
+import de.pixelrpg.rpg.lore.LoreRegistry;
 import org.bukkit.NamespacedKey;
 import io.papermc.paper.registry.RegistryAccess;
 import org.bukkit.World;
@@ -14,10 +15,12 @@ import java.util.Objects;
 public final class PlayerStructureDiscoveryListener implements Listener {
     private final WorldState worldState;
     private final PlayerKnowledgeStore knowledgeStore;
+    private final LoreRegistry loreRegistry;
 
-    public PlayerStructureDiscoveryListener(WorldState worldState, PlayerKnowledgeStore knowledgeStore) {
+    public PlayerStructureDiscoveryListener(WorldState worldState, PlayerKnowledgeStore knowledgeStore, LoreRegistry loreRegistry) {
         this.worldState = Objects.requireNonNull(worldState, "worldState");
         this.knowledgeStore = Objects.requireNonNull(knowledgeStore, "knowledgeStore");
+        this.loreRegistry = Objects.requireNonNull(loreRegistry, "loreRegistry");
     }
 
     /** Discovers generated structures only when a player enters a new chunk. */
@@ -42,6 +45,7 @@ public final class PlayerStructureDiscoveryListener implements Listener {
             };
             if (knowledge == null) continue;
             knowledgeStore.learn(event.getPlayer().getUniqueId(), knowledge);
+            loreRegistry.discover(knowledgeStore, event.getPlayer().getUniqueId(), knowledge);
             worldState.set("structure." + id + ".discovered");
         }
     }
