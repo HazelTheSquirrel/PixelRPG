@@ -8,6 +8,7 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -31,7 +32,7 @@ public final class NpcKnowledgeStore {
         knowledgeByNpc.clear();
         if (!file.exists()) return;
         Type type = new TypeToken<Map<String, Set<String>>>() { }.getType();
-        try (FileReader reader = new FileReader(file)) {
+        try (FileReader reader = new FileReader(file, StandardCharsets.UTF_8)) {
             Map<String, Set<String>> loaded = gson.fromJson(reader, type);
             if (loaded != null) loaded.forEach((id, values) ->
                     knowledgeByNpc.put(id, ConcurrentHashMap.newKeySet()));
@@ -57,7 +58,7 @@ public final class NpcKnowledgeStore {
     }
 
     public void save() {
-        try (FileWriter writer = new FileWriter(file)) { gson.toJson(knowledgeByNpc, writer); }
+        try (FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8)) { gson.toJson(knowledgeByNpc, writer); }
         catch (IOException exception) { plugin.getLogger().log(Level.WARNING, "Failed to save npc-knowledge.json", exception); }
     }
 
