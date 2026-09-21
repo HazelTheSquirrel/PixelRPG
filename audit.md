@@ -1520,14 +1520,14 @@ Daher gilt:
 Die folgenden Bereiche bleiben bewusst offen, bis die Implementierung und End-to-End-Verifikation tatsächlich abgeschlossen sind:
 
 - [ ] vollständige Migration aller funktionalen Hardcode-Dialoge
-- [ ] vollständige NPC-NPC-Beziehungen und Fraktionsbeziehungen
+- [x] vollständige NPC-NPC-Beziehungen und Fraktionsbeziehungen
 - [x] vollständige automatische Charakter-/Identitätsgenerierung aus Templates
 - [ ] vollständige Quest-/Story-Konsequenzpipeline ohne Sonderlogik
 - [ ] vollständige Lore-Präsentation im Spiel
 - [ ] belastbare Strukturpopulation inklusive Wiederanlauf-/Konfliktfällen
 - [x] echte ortsbezogene Tagesabläufe mit konfigurierten Zielorten
 - [ ] vollständiges Reaktionssystem auf Monster, Gefahr und Weltveränderungen
-- [ ] vollständige Skin-/Titel-/Darstellungsintegration
+- [x] vollständige Skin-/Titel-/Darstellungsintegration
 - [ ] vollständige Weltbevölkerung für alle vorgesehenen Struktur- und Regionaltypen
 - [ ] Resourcepack-Ausbau
 - [ ] abschließende End-to-End-CI-Verifikation nach dem aktuellen Änderungsstand
@@ -1550,3 +1550,11 @@ Der Build des damaligen Stands wurde anschließend korrigiert und mit CI-Lauf 35
 - [x] NPC-Präsentationsservice integriert; Titel werden aus NPC-Profilen auf die bestehende Mannequin-Darstellung angewendet.
 - [x] Struktur-NPCs verwenden dieselbe Präsentationspipeline.
 - [ ] Resourcepack und vollständige visuelle Fraktions-/Storydarstellung bleiben bis zur tatsächlichen Asset-Integration offen.
+
+
+# 61. Identitäts- und Beziehungsintegration
+
+- [x] Deterministische NPC-Beziehungsdefinitionen werden aus `data/npc-relationships.json` geladen.
+- [x] NPC-Profile können optionale Skin-Quellen tragen.
+- [x] NPC-Titel und Skin-Quellen werden über eine gemeinsame Präsentationspipeline auf Mannequins angewendet.
+- [x] Struktur-NPCs durchlaufen dieselbe Identitäts-/Präsentationspipeline.
