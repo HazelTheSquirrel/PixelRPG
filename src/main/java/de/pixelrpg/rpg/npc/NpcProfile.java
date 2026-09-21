@@ -23,8 +23,19 @@ public record NpcProfile(
         String dialogueTreeId,
         boolean storyRelevant,
         boolean questRelevant,
-        boolean loreRelevant
+        boolean loreRelevant,
+        String skinSource
 ) {
+    public NpcProfile(String npcId, String title, NpcCategory category, String role, Profession profession,
+                       NpcFaction faction, String origin, String personality, Set<String> traits,
+                       Set<String> knowledge, Set<String> secrets, Set<String> relationships,
+                       String behavior, String schedule, String dialogueTreeId,
+                       boolean storyRelevant, boolean questRelevant, boolean loreRelevant) {
+        this(npcId, title, category, role, profession, faction, origin, personality, traits,
+                knowledge, secrets, relationships, behavior, schedule, dialogueTreeId,
+                storyRelevant, questRelevant, loreRelevant, null);
+    }
+
     public NpcProfile {
         title = title == null ? "" : title;
         role = role == null ? "" : role;
@@ -39,6 +50,7 @@ public record NpcProfile(
         knowledge = Set.copyOf(knowledge == null ? Set.of() : knowledge);
         secrets = Set.copyOf(secrets == null ? Set.of() : secrets);
         relationships = Set.copyOf(relationships == null ? Set.of() : relationships);
+        skinSource = skinSource == null || skinSource.isBlank() ? null : skinSource.trim();
     }
 
     public NpcProfile withIdentity(String title, NpcCategory category, String role, NpcFaction faction,
@@ -47,13 +59,13 @@ public record NpcProfile(
         return new NpcProfile(
                 npcId, title, category, role, profession, faction, origin, personality, traits,
                 knowledge, secrets, relationships, behavior, schedule, dialogueTreeId,
-                storyRelevant, questRelevant, loreRelevant);
+                storyRelevant, questRelevant, loreRelevant, skinSource);
     }
 
     public NpcProfile withKnowledge(Set<String> knowledge) {
         return new NpcProfile(npcId, title, category, role, profession, faction, origin, personality,
                 traits, knowledge, secrets, relationships, behavior, schedule, dialogueTreeId,
-                storyRelevant, questRelevant, loreRelevant);
+                storyRelevant, questRelevant, loreRelevant, skinSource);
     }
 
     public static NpcProfile resident(RPGNpc npc) {
