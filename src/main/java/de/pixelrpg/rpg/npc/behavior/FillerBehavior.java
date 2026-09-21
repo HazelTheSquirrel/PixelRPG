@@ -4,6 +4,7 @@ import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
+import de.pixelrpg.rpg.npc.NpcProfileStore;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.QuestManager;
@@ -17,13 +18,16 @@ public final class FillerBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
     private final DialogueTreeService dialogueTreeService;
+    private final NpcProfileStore profileStore;
 
     public FillerBehavior(QuestManager questManager, PlayerProfileManager profileManager,
-                           DialogueEngine dialogueEngine, DialogueTreeService dialogueTreeService) {
+                           DialogueEngine dialogueEngine, DialogueTreeService dialogueTreeService,
+                           NpcProfileStore profileStore) {
         this.questManager = questManager;
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.dialogueTreeService = dialogueTreeService;
+        this.profileStore = profileStore;
     }
 
     @Override
@@ -42,8 +46,9 @@ public final class FillerBehavior implements NpcBehavior {
         }
 
         questManager.progressTalkToNpc(player, npc.id());
+        String treeId = profileStore.getOrCreate(npc).dialogueTreeId();
         dialogueTreeService.open(player,
                 de.pixelrpg.rpg.dialogue.DialogueContext.forNpc(player, npc),
-                "npc.resident.basic");
+                treeId);
     }
 }
