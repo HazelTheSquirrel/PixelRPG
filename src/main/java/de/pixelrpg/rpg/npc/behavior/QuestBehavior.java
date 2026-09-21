@@ -1,6 +1,8 @@
 package de.pixelrpg.rpg.npc.behavior;
 
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.DialogueContext;
+import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
@@ -27,11 +29,13 @@ public final class QuestBehavior implements NpcBehavior {
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
+    private final DialogueTreeService dialogueTreeService;
 
-    public QuestBehavior(QuestManager questManager, PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
+    public QuestBehavior(QuestManager questManager, PlayerProfileManager profileManager, DialogueEngine dialogueEngine, DialogueTreeService dialogueTreeService) {
         this.questManager = questManager;
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
+        this.dialogueTreeService = dialogueTreeService;
     }
 
     @Override
@@ -47,7 +51,7 @@ public final class QuestBehavior implements NpcBehavior {
                     Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
-        openQuestRanges(player);
+        dialogueTreeService.open(player, DialogueContext.forNpc(player, npc), "npc.function.quest", () -> openQuestRanges(player));
     }
 
     private int unlockBuffer() { return questManager.getRepository().unlockEarlyLevels(); }
