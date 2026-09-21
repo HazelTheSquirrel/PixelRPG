@@ -42,6 +42,14 @@ import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.dialogue.DataDrivenDialogueLoader;
 import de.pixelrpg.rpg.dialogue.PlayerKnowledgeStore;
 import de.pixelrpg.rpg.dialogue.WorldState;
+import de.pixelrpg.rpg.dialogue.NpcKnowledgeStore;
+import de.pixelrpg.rpg.dialogue.NpcRelationshipStore;
+import de.pixelrpg.rpg.dialogue.WorldStateListener;
+import de.pixelrpg.rpg.dialogue.PlayerStructureDiscoveryListener;
+import de.pixelrpg.rpg.lore.LoreRegistry;
+import de.pixelrpg.rpg.npc.NpcProfileStore;
+import de.pixelrpg.rpg.npc.StructureNpcManager;
+import de.pixelrpg.rpg.npc.NpcScheduleService;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
@@ -145,6 +153,12 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private DialogueTreeService dialogueTreeService;
     private PlayerKnowledgeStore playerKnowledgeStore;
     private WorldState worldState;
+    private NpcProfileStore npcProfileStore;
+    private NpcKnowledgeStore npcKnowledgeStore;
+    private NpcRelationshipStore npcRelationshipStore;
+    private LoreRegistry loreRegistry;
+    private StructureNpcManager structureNpcManager;
+    private NpcScheduleService npcScheduleService;
 
     @Override
     public void onEnable() {
@@ -212,6 +226,19 @@ public final class PixelRPGPlugin extends JavaPlugin {
         playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
         npcManager = new NpcManager(this);
         npcManager.loadAll();
+        npcProfileStore = new NpcProfileStore(this);
+        npcProfileStore.load();
+        npcProfileStore.synchronize(npcManager.getAll());
+        npcKnowledgeStore = new NpcKnowledgeStore(this);
+        npcKnowledgeStore.load();
+        npcRelationshipStore = new NpcRelationshipStore(this);
+        npcRelationshipStore.load();
+        loreRegistry = new LoreRegistry(this);
+        loreRegistry.load();
+        structureNpcManager = new StructureNpcManager(this, npcManager, npcProfileStore, npcKnowledgeStore);
+        getServer().getPluginManager().registerEvents(structureNpcManager, this);
+        npcScheduleService = new NpcScheduleService(this, npcManager, npcProfileStore);
+        npcScheduleService.start();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0), getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
@@ -221,7 +248,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         worldState = new WorldState(this);
         worldState.load();
         dialogueTreeService = new DialogueTreeService(this, dialogueEngine);
-        new DataDrivenDialogueLoader(this, playerKnowledgeStore, worldState).loadInto(dialogueTreeService);
+        new DataDrivenDialogueLoader(this, playerKnowledgeStore, worldState, npcKnowledgeStore, npcRelationshipStore, loreRegistry).loadInto(dialogueTreeService);
+        getServer().getPluginManager().registerEvents(new WorldStateListener(worldState, playerKnowledgeStore), this);
+        getServer().getPluginManager().registerEvents(new PlayerStructureDiscoveryListener(worldState, playerKnowledgeStore), this);
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager, itemService);
         companionService = new CompanionService(this);
@@ -233,8 +262,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogue, dialogueEngine, playerProfileManager));
         bankerBehavior = new BankerBehavior(playerProfileManager, dialogueEngine);
         npcBehaviorRegistry.register(bankerBehavior);
-        npcBehaviorRegistry.register(new FillerBehavior(questManager, playerProfileManager, dialogueEngine, dialogueTreeService));
-        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_BLACKSMITH, Profession.BLACKSMITH, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new FillerBehavior(questManager, playerProfileManager, dialogueEngine, dialogueTreeService, npcProfileStore));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_BLACKSMITH, Profession.BLACKSMITH, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, dialogueTreeService));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_SCHOLAR, Profession.SCHOLAR, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FARMER, Profession.FARMER, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_COOK, Profession.COOK, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
@@ -295,6 +324,12 @@ public final class PixelRPGPlugin extends JavaPlugin {
         lifecycle.register(() -> dialogueTreeService.shutdown());
         lifecycle.register(() -> playerKnowledgeStore.shutdown());
         lifecycle.register(() -> worldState.shutdown());
+        lifecycle.register(() -> npcScheduleService.shutdown());
+        lifecycle.register(() -> structureNpcManager.shutdown());
+        lifecycle.register(() -> loreRegistry.shutdown());
+        lifecycle.register(() -> npcRelationshipStore.shutdown());
+        lifecycle.register(() -> npcKnowledgeStore.shutdown());
+        lifecycle.register(() -> npcProfileStore.shutdown());
         RootCommand rootCommand = new RootCommand(this, itemService);
         rootCommand.register(new CompanionSubCommand(companionService));
         rootCommand.register(new NpcSubCommand(npcManager));
@@ -357,4 +392,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public DialogueTreeService getDialogueTreeService() { return dialogueTreeService; }
     public PlayerKnowledgeStore getPlayerKnowledgeStore() { return playerKnowledgeStore; }
     public WorldState getWorldState() { return worldState; }
+    public NpcProfileStore getNpcProfileStore() { return npcProfileStore; }
+    public NpcKnowledgeStore getNpcKnowledgeStore() { return npcKnowledgeStore; }
+    public NpcRelationshipStore getNpcRelationshipStore() { return npcRelationshipStore; }
+    public LoreRegistry getLoreRegistry() { return loreRegistry; }
 }
