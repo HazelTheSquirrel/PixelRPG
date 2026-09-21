@@ -291,6 +291,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
                 questManager,
                 playerProfileManager,
                 npcProfileStore);
+        dialogueTreeService.setDomainState(dialogueDomainState);
         new DataDrivenDialogueLoader(this, playerKnowledgeStore, worldState, npcKnowledgeStore, npcRelationshipStore, loreRegistry, questManager, playerProfileManager, npcProfileStore, playerFactionRelationshipStore, npcNetworkRelationshipStore, factionRelationshipStore).loadInto(dialogueTreeService);
         getServer().getPluginManager().registerEvents(new WorldStateListener(worldState, playerKnowledgeStore), this);
         getServer().getPluginManager().registerEvents(new PlayerStructureDiscoveryListener(worldState, playerKnowledgeStore, loreRegistry), this);
