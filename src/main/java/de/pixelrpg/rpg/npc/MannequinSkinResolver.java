@@ -1,40 +1,55 @@
 package de.pixelrpg.rpg.npc;
 
-import com.destroystokyo.paper.profile.ProfileProperty;
+import com.destroystokyo.paper.profile.PlayerProfile;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.profile.PlayerTextures;
 
 import java.net.URI;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 
-/** Resolves Mojang player names and external skin URLs for mannequins. */
+/**
+ * Resolves Minecraft player names and direct skin image URLs for mannequins.
+ *
+ * Player names are resolved through Mojang/Paper profile resolution.
+ * Direct URLs are assigned through PlayerTextures#setSkin, exactly as the
+ * original 26.2 mannequin implementation did. No MineSkin or other skin API
+ * is required.
+ */
 public final class MannequinSkinResolver {
-    private static final ConcurrentMap<String, CompletableFuture<ResolvableProfile>> PLAYER_PROFILE_CACHE = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, CompletableFuture<ResolvableProfile>> PLAYER_PROFILE_CACHE =
+            new ConcurrentHashMap<>();
 
     private MannequinSkinResolver() {
     }
 
-    public static CompletableFuture<Void> applyStoredTexture(Mannequin mannequin, String value, String signature, Plugin plugin) {
+    public static CompletableFuture<Void> applyStoredTexture(Mannequin mannequin, String value,
+                                                              String signature, Plugin plugin) {
         if (mannequin == null || !mannequin.isValid() || value == null || value.isBlank()) {
             return CompletableFuture.completedFuture(null);
         }
-        ProfileProperty property = new ProfileProperty("textures", value, signature);
+
+        com.destroystokyo.paper.profile.ProfileProperty property =
+                new com.destroystokyo.paper.profile.ProfileProperty("textures", value, signature);
         CompletableFuture<Void> result = new CompletableFuture<>();
+
         Bukkit.getScheduler().runTask(plugin, () -> {
             try {
                 if (!mannequin.isValid()) {
                     result.complete(null);
                     return;
                 }
+
                 ResolvableProfile current = mannequin.getProfile();
                 ResolvableProfile.Builder builder = ResolvableProfile.resolvableProfile()
                         .name(current.name())
@@ -49,11 +64,12 @@ public final class MannequinSkinResolver {
                 result.completeExceptionally(exception);
             }
         });
+
         return result;
     }
 
     public static CompletableFuture<Void> apply(Mannequin mannequin, String skinSource, Logger logger) {
-        if (skinSource == null || skinSource.isBlank() || !mannequin.isValid()) {
+        if (mannequin == null || skinSource == null || skinSource.isBlank() || !mannequin.isValid()) {
             return CompletableFuture.completedFuture(null);
         }
 
@@ -65,21 +81,8 @@ public final class MannequinSkinResolver {
 
         String source = skinSource.trim();
         try {
-            String playerNameFromUrl = playerNameFromUrl(source);
-            if (playerNameFromUrl != null) {
-                return applyPlayerName(mannequin, playerNameFromUrl, plugin, logger);
-            }
-
             if (isUrl(source)) {
-                String normalizedUrl = normalizeUrl(source);
-                return new ExternalSkinService(plugin).apply(mannequin, normalizedUrl)
-                        .whenComplete((ignored, exception) -> {
-                            if (exception != null) {
-                                Throwable cause = unwrap(exception);
-                                logger.warning("Failed to resolve external mannequin skin '" + normalizedUrl + "': "
-                                        + message(cause));
-                            }
-                        });
+                return applySkinUrl(mannequin, source, plugin, logger);
             }
 
             if (looksLikeUrl(source)) {
@@ -90,18 +93,56 @@ public final class MannequinSkinResolver {
 
             return applyPlayerName(mannequin, source, plugin, logger);
         } catch (RuntimeException exception) {
-            logger.warning("Failed to start mannequin skin resolution for '" + source + "': " + message(exception));
+            logger.warning("Failed to start mannequin skin resolution for '" + source + "': "
+                    + message(exception));
             return CompletableFuture.failedFuture(exception);
         }
+    }
+
+    /**
+     * Applies a direct skin image URL without MineSkin, an API key, or any
+     * external skin-generation service.
+     */
+    private static CompletableFuture<Void> applySkinUrl(Mannequin mannequin, String skinUrl,
+                                                         Plugin plugin, Logger logger) {
+        CompletableFuture<Void> result = new CompletableFuture<>();
+
+        try {
+            PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID(), "MannequinSkin");
+            PlayerTextures textures = profile.getTextures();
+            textures.setSkin(URI.create(skinUrl).toURL());
+            profile.setTextures(textures);
+
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                try {
+                    if (!mannequin.isValid()) {
+                        result.complete(null);
+                        return;
+                    }
+                    mannequin.setProfile(ResolvableProfile.resolvableProfile(profile));
+                    refreshForNearbyPlayers(mannequin, plugin);
+                    result.complete(null);
+                } catch (RuntimeException exception) {
+                    result.completeExceptionally(exception);
+                }
+            });
+        } catch (Exception exception) {
+            logger.warning("Failed to prepare mannequin skin URL '" + skinUrl + "': " + message(exception));
+            result.completeExceptionally(exception);
+        }
+
+        return result;
     }
 
     private static CompletableFuture<Void> applyPlayerName(Mannequin mannequin, String playerName,
                                                             Plugin plugin, Logger logger) {
         String normalizedName = playerName.toLowerCase(Locale.ROOT);
-        if (playerName.length() < 3 || playerName.length() > 16) {
+        if (playerName.length() < 3 || playerName.length() > 16
+                || !playerName.matches("[A-Za-z0-9_]+")) {
             logger.warning("Invalid mannequin player skin name '" + playerName
-                    + "': names must contain 3 to 16 characters.");
-            return CompletableFuture.failedFuture(new IllegalArgumentException("Invalid Minecraft player skin name"));
+                    + "': names must contain 3 to 16 Minecraft username characters.");
+            return CompletableFuture.failedFuture(new IllegalArgumentException(
+                    "Invalid Minecraft player skin name"));
         }
 
         CompletableFuture<ResolvableProfile> profileFuture = PLAYER_PROFILE_CACHE.computeIfAbsent(
@@ -115,7 +156,8 @@ public final class MannequinSkinResolver {
             if (exception == null) return;
             PLAYER_PROFILE_CACHE.remove(normalizedName, profileFuture);
             Throwable cause = unwrap(exception);
-            logger.warning("Failed to resolve player skin for mannequin '" + playerName + "': " + message(cause));
+            logger.warning("Failed to resolve player skin for mannequin '" + playerName + "': "
+                    + message(cause));
         });
     }
 
@@ -133,36 +175,9 @@ public final class MannequinSkinResolver {
         }
     }
 
-    /**
-     * Accept legacy/configured player-name sources written as https://PlayerName.
-     * A host consisting only of a valid Minecraft username and no path is not
-     * an external skin URL; it is a player skin lookup.
-     */
-    private static String playerNameFromUrl(String source) {
-        try {
-            URI uri = URI.create(source);
-            String scheme = uri.getScheme();
-            String host = uri.getHost();
-            if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
-                    || host == null
-                    || !uri.getPath().isEmpty()
-                    || uri.getQuery() != null
-                    || uri.getFragment() != null
-                    || uri.getUserInfo() != null) {
-                return null;
-            }
-            if (host.length() < 3 || host.length() > 16 || !host.matches("[A-Za-z0-9_]+")) {
-                return null;
-            }
-            return host;
-        } catch (IllegalArgumentException exception) {
-            return null;
-        }
-    }
-
     private static boolean isUrl(String source) {
         try {
-            URI uri = URI.create(normalizeUrl(source));
+            URI uri = URI.create(source);
             String scheme = uri.getScheme();
             return ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
                     && uri.getHost() != null;
@@ -181,14 +196,10 @@ public final class MannequinSkinResolver {
                 || lower.matches("^[a-z0-9.-]+:[0-9]+(?:/.*)?$");
     }
 
-    private static String normalizeUrl(String source) {
-        if (source.startsWith("http://") || source.startsWith("https://")) return source;
-        return "https://" + source;
-    }
-
     private static Throwable unwrap(Throwable throwable) {
         Throwable current = throwable;
-        while ((current instanceof CompletionException || current instanceof java.util.concurrent.ExecutionException)
+        while ((current instanceof CompletionException
+                || current instanceof java.util.concurrent.ExecutionException)
                 && current.getCause() != null) {
             current = current.getCause();
         }
@@ -197,6 +208,7 @@ public final class MannequinSkinResolver {
 
     private static String message(Throwable throwable) {
         String message = throwable.getMessage();
-        return message == null || message.isBlank() ? throwable.getClass().getSimpleName() : message;
+        return message == null || message.isBlank()
+                ? throwable.getClass().getSimpleName() : message;
     }
 }
