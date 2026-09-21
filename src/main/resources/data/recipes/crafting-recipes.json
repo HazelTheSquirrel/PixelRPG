@@ -124,7 +124,7 @@
       "id": "blacksmith:gold_pickaxe",
       "label": "Goldspitzhacke",
       "profession": "BLACKSMITH",
-      "result": "GOLD_PICKAXE",
+      "result": "GOLDEN_PICKAXE",
       "costs": {
         "GOLD_INGOT": 3,
         "STICK": 2
@@ -139,7 +139,7 @@
       "id": "blacksmith:gold_axe",
       "label": "Goldaxt",
       "profession": "BLACKSMITH",
-      "result": "GOLD_AXE",
+      "result": "GOLDEN_AXE",
       "costs": {
         "GOLD_INGOT": 3,
         "STICK": 2
@@ -154,7 +154,7 @@
       "id": "blacksmith:gold_shovel",
       "label": "Goldschaufel",
       "profession": "BLACKSMITH",
-      "result": "GOLD_SHOVEL",
+      "result": "GOLDEN_SHOVEL",
       "costs": {
         "GOLD_INGOT": 1,
         "STICK": 2
@@ -169,7 +169,7 @@
       "id": "blacksmith:gold_hoe",
       "label": "Goldhacke",
       "profession": "BLACKSMITH",
-      "result": "GOLD_HOE",
+      "result": "GOLDEN_HOE",
       "costs": {
         "GOLD_INGOT": 2,
         "STICK": 2
