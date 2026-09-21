@@ -4,10 +4,10 @@
   "nodes":[
     {"id":"greeting","title":"Koch","body":["Nahrung ist mehr als Sättigung. Ein gutes Essen bringt Menschen an einen Tisch.","Gekochte Mahlzeiten und hochwertige Nahrung"],"once":false,"options":[
       {"label":"Erzähl mir mehr.","next":"craft","action":"meet","completes":true},
-      {"label":"Ich bin bereit.","next":null,"action":"meet","completes":true}
+      {"label":"Ich bin bereit.","action":"meet","completes":true}
     ]},
     {"id":"craft","title":"Koch","body":["Ein Beruf ist keine Menüfunktion. Er ist eine Fähigkeit, die du in der Welt anwenden musst.","Wenn du bereit bist, zeige ich dir, was ich anbieten kann."],"once":false,"options":[
-      {"label":"Zeig es mir.","next":null,"action":"meet","completes":true}
+      {"label":"Zeig es mir.","action":"meet","completes":true}
     ]}
   ]
 }
