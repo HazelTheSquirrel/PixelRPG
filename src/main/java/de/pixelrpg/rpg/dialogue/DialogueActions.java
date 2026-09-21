@@ -70,6 +70,25 @@ public final class DialogueActions {
         };
     }
 
+    public static DialogueOption.DialogueAction adjustNpcRelationship(NpcNetworkRelationshipStore store, String otherNpcId, String relation, int amount) {
+        Objects.requireNonNull(store, "store");
+        return new DialogueOption.DialogueAction() {
+            @Override public void execute(org.bukkit.entity.Player player) { }
+            @Override public void execute(DialogueContext context) {
+                context.npcOptional().ifPresent(npc ->
+                        store.adjust(npc.id(), otherNpcId, relation, amount));
+            }
+        };
+    }
+
+    public static DialogueOption.DialogueAction adjustFactionRelationship(FactionRelationshipStore store,
+                                                                            de.pixelrpg.rpg.npc.NpcFaction first,
+                                                                            de.pixelrpg.rpg.npc.NpcFaction second,
+                                                                            int amount) {
+        Objects.requireNonNull(store, "store");
+        return player -> store.adjust(first, second, amount);
+    }
+
     public static DialogueOption.DialogueAction discoverLore(LoreRegistry loreRegistry, PlayerKnowledgeStore knowledge, String loreId) {
         Objects.requireNonNull(loreRegistry, "loreRegistry");
         Objects.requireNonNull(knowledge, "knowledge");
