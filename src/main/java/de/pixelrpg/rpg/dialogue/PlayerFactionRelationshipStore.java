@@ -2,6 +2,8 @@ package de.pixelrpg.rpg.dialogue;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
 import de.pixelrpg.rpg.npc.NpcFaction;
 import org.bukkit.plugin.Plugin;
 
@@ -29,7 +31,8 @@ public final class PlayerFactionRelationshipStore {
         values.clear();
         if (!file.exists()) return;
         try (FileReader reader = new FileReader(file, StandardCharsets.UTF_8)) {
-            Map<String, Integer> loaded = gson.fromJson(reader, Map.class);
+            Type type = new TypeToken<Map<String, Integer>>() { }.getType();
+            Map<String, Integer> loaded = gson.fromJson(reader, type);
             if (loaded != null) {
                 loaded.forEach((key, value) -> {
                     if (value instanceof Number number) values.put(key, number.intValue());
