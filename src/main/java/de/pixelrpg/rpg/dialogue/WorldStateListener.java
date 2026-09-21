@@ -7,6 +7,7 @@ import org.bukkit.entity.Wither;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityConstructEvent;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 
@@ -50,6 +51,14 @@ public final class WorldStateListener implements Listener {
             worldState.set("saga.first.complete");
         } else if (entity instanceof Wither) {
             worldState.set("wither.defeated");
+        }
+    }
+
+    /** Records creation of the Wither as a first-saga world event. */
+    @EventHandler
+    public void onEntityConstruct(EntityConstructEvent event) {
+        if (event.getEntity() instanceof Wither) {
+            worldState.set("wither.created");
         }
     }
 
