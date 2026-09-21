@@ -1,0 +1,11 @@
+{
+  "id":"npc.resident.craftsperson","start":"greeting","nodes":[
+    {"id":"greeting","title":"Handwerker","body":["Ein Werkzeug ist nur so gut wie die Hand, die es benutzt.","Die alten Leute hier sagen, dass manche Techniken aus einer Zeit stammen, an die sich niemand erinnert."],"once":false,"options":[
+      {"label":"Arbeitest du mit alten Techniken?","next":"answer","action":"meet","completes":true},
+      {"label":"Bis später.","next":null,"action":"meet","completes":true}
+    ]},
+    {"id":"answer","title":"Handwerker","body":["Ich kenne Rezepte. Keine verlorene Wahrheit.","Wenn du wirklich verstehen willst, musst du selbst hinausgehen."],"once":false,"options":[
+      {"label":"Danke.","next":null,"action":"learn:world.history","completes":true}
+    ]}
+  ]
+}
