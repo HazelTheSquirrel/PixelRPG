@@ -270,12 +270,12 @@ public final class PixelRPGPlugin extends JavaPlugin {
         QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager, itemService);
         companionService = new CompanionService(this);
         npcBehaviorRegistry = new NpcBehaviorRegistry();
-        npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine, partyManager));
-        npcBehaviorRegistry.register(new QuestBehavior(questManager, playerProfileManager, dialogueEngine));
-        npcBehaviorRegistry.register(new ShopBehavior(shopManager, playerProfileManager, dialogueEngine));
-        npcBehaviorRegistry.register(new TravelBehavior(npcManager, playerProfileManager, dialogueEngine));
+        npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine, partyManager, dialogueTreeService));
+        npcBehaviorRegistry.register(new QuestBehavior(questManager, playerProfileManager, dialogueEngine, dialogueTreeService));
+        npcBehaviorRegistry.register(new ShopBehavior(shopManager, playerProfileManager, dialogueEngine, dialogueTreeService));
+        npcBehaviorRegistry.register(new TravelBehavior(npcManager, playerProfileManager, dialogueEngine, dialogueTreeService));
         npcBehaviorRegistry.register(new StoryBehavior(storyManager, storyNpcDialogue, dialogueEngine, playerProfileManager, dialogueTreeService, npcProfileStore));
-        bankerBehavior = new BankerBehavior(playerProfileManager, dialogueEngine);
+        bankerBehavior = new BankerBehavior(playerProfileManager, dialogueEngine, dialogueTreeService);
         npcBehaviorRegistry.register(bankerBehavior);
         npcBehaviorRegistry.register(new FillerBehavior(questManager, playerProfileManager, dialogueEngine, dialogueTreeService, npcProfileStore));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_BLACKSMITH, Profession.BLACKSMITH, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, dialogueTreeService));
