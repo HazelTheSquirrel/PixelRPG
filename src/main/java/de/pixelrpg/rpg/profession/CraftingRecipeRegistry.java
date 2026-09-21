@@ -125,18 +125,27 @@ public final class CraftingRecipeRegistry {
     private static Material resolveMaterial(String raw) {
         String value = raw.trim().toUpperCase(Locale.ROOT);
 
-        // Minecraft/Paper uses GOLDEN_* for gold tools, weapons and armor.
-        // The recipe data historically used the shorter GOLD_* names.
-        if (value.startsWith("GOLD_")) {
-            value = "GOLDEN_" + value.substring("GOLD_".length());
-        }
+        // Keep compatibility with the historical recipe data names while resolving
+        // to the canonical Paper 26.2 Material names. Do not use a broad GOLD_*
+        // prefix replacement: GOLD_INGOT, GOLD_NUGGET, GOLD_BLOCK and GOLD_ORE
+        // are already canonical names and have no GOLDEN_* counterpart.
+        value = switch (value) {
+            case "GOLD_AXE" -> "GOLDEN_AXE";
+            case "GOLD_BOOTS" -> "GOLDEN_BOOTS";
+            case "GOLD_CHESTPLATE" -> "GOLDEN_CHESTPLATE";
+            case "GOLD_HELMET" -> "GOLDEN_HELMET";
+            case "GOLD_HOE" -> "GOLDEN_HOE";
+            case "GOLD_LEGGINGS" -> "GOLDEN_LEGGINGS";
+            case "GOLD_PICKAXE" -> "GOLDEN_PICKAXE";
+            case "GOLD_SHOVEL" -> "GOLDEN_SHOVEL";
+            case "GOLD_SPEAR" -> "GOLDEN_SPEAR";
+            case "GOLD_SWORD" -> "GOLDEN_SWORD";
+            // Historical aliases used by older PixelRPG data.
+            case "DIAMOND_INGOT" -> "DIAMOND";
+            case "CHAIN" -> "IRON_CHAIN";
+            default -> value;
+        };
 
-        // There is no vanilla DIAMOND_INGOT item. Diamond recipes use DIAMOND.
-        if (value.equals("DIAMOND_INGOT")) {
-            value = "DIAMOND";
-        }
-
-        if (value.equals("CHAIN")) value = "IRON_CHAIN";
         return Material.matchMaterial(value);
     }
 
