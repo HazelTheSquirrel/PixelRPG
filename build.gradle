@@ -145,8 +145,10 @@ tasks.register('verifyPixelRpgDialogueData') {
                     if (next != null && next.toString() && !nodeIds.contains(next.toString())) {
                         throw new GradleException('Dialogue option in ' + sourceFile + ' points to missing node ' + next)
                     }
-                    def action = (option.action ?: 'none').toString()
-                    action.split(';').collect { it.trim() }.findAll { it }.each { token ->
+                    def actionValues = option.action instanceof List ? option.action : [option.action ?: 'none']
+                    actionValues.each { actionValue ->
+                        def token = actionValue.toString().trim()
+                        if (!token) throw new GradleException('Empty dialogue action in ' + sourceFile)
                         if (token.startsWith('lore:')) {
                             def loreId = token.substring('lore:'.length()).trim()
                             if (!loreIds.contains(loreId)) throw new GradleException('Dialogue ' + sourceFile + ' references unknown lore ' + loreId)
