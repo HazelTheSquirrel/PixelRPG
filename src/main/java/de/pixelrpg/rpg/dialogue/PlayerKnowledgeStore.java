@@ -7,6 +7,7 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -30,7 +31,7 @@ public final class PlayerKnowledgeStore {
         knowledgeByPlayer.clear();
         if (!file.exists()) return;
         Type type = new TypeToken<Map<UUID, Set<String>>>() { }.getType();
-        try (FileReader reader = new FileReader(file)) {
+        try (FileReader reader = new FileReader(file, StandardCharsets.UTF_8)) {
             Map<UUID, Set<String>> loaded = gson.fromJson(reader, type);
             if (loaded != null) {
                 loaded.forEach((uuid, knowledge) ->
@@ -61,7 +62,7 @@ public final class PlayerKnowledgeStore {
     }
 
     public void save() {
-        try (FileWriter writer = new FileWriter(file)) {
+        try (FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8)) {
             gson.toJson(knowledgeByPlayer, writer);
         } catch (IOException exception) {
             plugin.getLogger().log(Level.WARNING, "Failed to save player-knowledge.json", exception);
