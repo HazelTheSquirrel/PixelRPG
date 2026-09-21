@@ -24,8 +24,14 @@ public final class NpcIdentityService {
 
     public void synchronize() {
         for (RPGNpc npc : npcManager.getAll()) {
-            NpcProfile profile = profileStore.getOrCreate(npc);
-            if (isPlaceholder(npc.name())) {
+            assignIdentity(npc);
+        }
+    }
+
+    public void assignIdentity(RPGNpc npc) {
+        if (npc == null) return;
+        NpcProfile profile = profileStore.getOrCreate(npc);
+        if (isPlaceholder(npc.name())) {
                 String name = generatedName(npc.id());
                 npcManager.rename(npc.id(), name);
                 String title = profile.title().isBlank() ? defaultTitle(profile.category()) : profile.title();
@@ -38,7 +44,11 @@ public final class NpcIdentityService {
     }
 
     private boolean isPlaceholder(String name) {
-        return name == null || name.isBlank() || name.equalsIgnoreCase("NPC");
+        if (name == null || name.isBlank()) return true;
+        return switch (name.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "npc", "wanderer", "traveler", "wanderer npc" -> true;
+            default -> false;
+        };
     }
 
     private String defaultTitle(NpcCategory category) {
