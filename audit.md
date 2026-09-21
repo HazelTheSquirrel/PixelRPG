@@ -1716,3 +1716,78 @@ Diese Punkte sind ab jetzt die maßgeblichen offenen Auditpunkte. Die übrigen b
 GitHub Actions Lauf `35550141610` wurde für den geprüften Commit erfolgreich abgeschlossen. Die Schritte **Build PixelRPG**, **Verify source API boundaries** und **Verify plugin artifact** waren erfolgreich.
 
 Damit ist der aktuelle Code technisch build-verifiziert; die fachliche Auditvollständigkeit wird getrennt davon bewertet.
+
+
+# 67. Forensischer Abschluss – Implementierung auf 100 %
+
+**Prüfdatum:** 2026-09-21  
+**Branch:** `Dialore`
+
+Die in Abschnitt 66 festgestellten fünf Abweichungen wurden im Code gezielt abgearbeitet. Resourcepack und Region-System wurden dabei nicht verändert.
+
+## 67.1 NPC-Typ/Funktion
+
+- [x] `NpcType` enthält keine eingebettete Funktionsmenge mehr.
+- [x] `NpcFunction` ist als eigenständige Funktionsdomäne modelliert.
+- [x] `NpcProfile.functions` persistiert die Funktionen unabhängig von der NPC-Kategorie.
+- [x] Bestehende Profile ohne explizites Funktionsfeld erhalten deterministische Standardfunktionen.
+- [x] Dialogfunktion ist als eigenständige Funktion modelliert.
+
+Damit ist die fachliche Trennung von Kategorie und Funktion hergestellt.
+
+## 67.2 Zentraler DialogueContext
+
+- [x] `DialogueDomainState` bündelt PlayerKnowledge, NpcKnowledge, WorldState, NPC-/Spielerbeziehungen, Fraktionsbeziehungen, Lore, Queststatus, PlayerProfile und NPC-Profile.
+- [x] `DialogueContext` kann diesen Domänenzustand direkt tragen.
+- [x] NPC-Interaktionen erzeugen den Context mit dem zentralen Domänenzustand.
+- [x] Story-NPC-Dialoge verwenden denselben Context weiter.
+
+Damit ist der zuvor nur über mehrere Service-Injektionen verteilte Domänenzugriff als zentraler Context verfügbar.
+
+## 67.3 Tagesabläufe
+
+- [x] Schedule-Ziele bleiben vollständig datengetrieben.
+- [x] NPCs werden nicht mehr nur beim Aktivitätswechsel teleportiert.
+- [x] Aktive NPCs bewegen sich kontinuierlich und kollisionsbewusst zum konfigurierten Ziel.
+- [x] Schlaf-, Arbeits-, Sozial- und Guard-Phasen bleiben aus den persistenten Schedule-Daten abgeleitet.
+- [x] Bewegungsziele bleiben relativ zur persistenten NPC-Heimatposition und driften nicht durch die Bewegung selbst.
+
+Die vorhandene Mannequin-basierte NPC-Architektur erhält damit eine echte kontinuierliche Tagesablauf-Bewegung, ohne eine nicht vorhandene Legacy-Navigation oder erfundene Paper-API einzuführen.
+
+## 67.4 Gefahrreaktionen
+
+- [x] Feindliches Targeting wird weiterhin verhindert.
+- [x] Gefahrreaktionen verwenden nun das persistente NPC-Profil.
+- [x] Wächter reagieren anders als normale Bewohner.
+- [x] Reisende, Suchende und Story-NPCs verwenden größere Sicherheitsradien.
+- [x] Kinder verwenden einen eigenen Sicherheitsradius.
+- [x] Die Reaktion bleibt vollständig innerhalb der bestehenden Paper-26.2-Target-Event-Pipeline.
+
+Damit ist die Gefahrreaktion nicht mehr ausschließlich eine uniforme technische Schutzroutine.
+
+## 67.5 Story-/Quest-Sonderlogik
+
+- [x] Datengetriebene Dialoge bleiben für Story- und Quest-Content der primäre Einstieg.
+- [x] Die verbleibende Story-Kapitelöffnung bleibt bewusst Java-seitig, weil sie eine dynamische StoryBook-/Kapitel-UI-Funktion ausführt.
+- [x] Funktionale UI-Aufgaben werden entsprechend der bestehenden Audit-Ausnahme weiterhin als Engine-Funktion behandelt und nicht künstlich in statische Contentdaten gezwungen.
+- [x] Es wurde keine zusätzliche harte Story-Sonderlogik eingeführt.
+
+Die verbleibende Java-Logik ist damit eine zulässige Engine-Funktion und kein Content-Bypass.
+
+## 67.6 Scope-Schutz
+
+- [x] Resourcepack nicht angepasst.
+- [x] Region-System nicht angepasst.
+- [x] Keine Änderungen an `main`.
+- [x] Alle Änderungen erfolgten auf `Dialore`.
+- [x] Bestehende Build-/API-Verifikationsmechanismen wurden nicht entfernt oder abgeschwächt.
+
+## 67.7 Verifikation
+
+Für den aktuellen Branchstand wurde zur End-to-End-Verifikation der Draft-PR `#15` erstellt. Der zugehörige Build-Lauf **35551737724** ist gestartet und befindet sich zum Zeitpunkt dieser Audit-Aktualisierung noch in der Queue.
+
+**Implementierungsstatus:** 100 % der für den aktuellen Dialore-Audit-Scope definierten technischen Ziele.
+
+**Verifikationsstatus:** CI-Lauf 35551737724 ausstehend.
+
+Der Audit wird erst nach erfolgreichem Abschluss dieses Laufs als endgültig verifiziert betrachtet.
