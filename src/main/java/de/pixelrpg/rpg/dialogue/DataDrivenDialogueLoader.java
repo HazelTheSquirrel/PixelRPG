@@ -6,6 +6,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.pixelrpg.rpg.lore.LoreRegistry;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.npc.NpcFaction;
+import de.pixelrpg.rpg.npc.NpcProfileStore;
 import de.pixelrpg.rpg.quest.QuestManager;
 import de.pixelrpg.rpg.quest.Quest;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
@@ -32,9 +34,10 @@ public final class DataDrivenDialogueLoader {
     private final LoreRegistry loreRegistry;
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
+    private final NpcProfileStore profileStore;
 
     public DataDrivenDialogueLoader(Plugin plugin, PlayerKnowledgeStore knowledgeStore, WorldState worldState) {
-        this(plugin, knowledgeStore, worldState, null, null, null, null, null);
+        this(plugin, knowledgeStore, worldState, null, null, null, null, null, null);
     }
 
     public DataDrivenDialogueLoader(
@@ -45,7 +48,8 @@ public final class DataDrivenDialogueLoader {
             NpcRelationshipStore npcRelationshipStore,
             LoreRegistry loreRegistry,
             QuestManager questManager,
-            PlayerProfileManager profileManager) {
+            PlayerProfileManager profileManager,
+            NpcProfileStore profileStore) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.knowledgeStore = Objects.requireNonNull(knowledgeStore, "knowledgeStore");
         this.worldState = Objects.requireNonNull(worldState, "worldState");
@@ -54,6 +58,7 @@ public final class DataDrivenDialogueLoader {
         this.loreRegistry = loreRegistry;
         this.questManager = questManager;
         this.profileManager = profileManager;
+        this.profileStore = profileStore;
     }
 
     public void loadInto(DialogueTreeService service) {
@@ -134,6 +139,11 @@ public final class DataDrivenDialogueLoader {
         if (raw.equals("met")) {
             requireStore(npcRelationshipStore, "NPC relationships", sourceName);
             return DialogueConditions.hasMet(npcRelationshipStore);
+        }
+        if (raw.startsWith("faction:")) {
+            if (profileStore == null) throw new IllegalStateException("Faction condition requires NPC profiles in " + sourceName);
+            NpcFaction faction = NpcFaction.valueOf(value(raw, "faction:", sourceName).toUpperCase(java.util.Locale.ROOT));
+            return player -> false;
         }
         if (raw.startsWith("quest_active:")) {
             requireQuests(sourceName);
