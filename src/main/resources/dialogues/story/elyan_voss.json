@@ -1,0 +1,25 @@
+{
+  "id":"npc.story.elyan_voss",
+  "start":"greeting",
+  "nodes":[
+    {"id":"greeting","title":"Elyan Voss","body":["Du suchst Antworten. Das ist gefährlicher, als es klingt.","Ich bewahre Aufzeichnungen, aber ich werde dir nichts als Wahrheit verkaufen, was nur eine Theorie ist."],"once":false,"options":[
+      {"label":"Was bewahrst du hier?","next":"archives","action":"meet","completes":true},
+      {"label":"Was weißt du über die alten Ruinen?","next":"ruins","action":"meet","completes":true},
+      {"label":"Ich komme später wieder.","next":null,"action":"meet","completes":true}
+    ]},
+    {"id":"archives","title":"Elyan Voss","body":["Das Haus der Stille sammelt Fragmente: Bücher, Berichte, beschädigte Aufzeichnungen und Dinge, deren Herkunft niemand mehr kennt.","Wenn ein Fragment nicht belegt ist, kennzeichne ich es als Vermutung."],"once":false,"options":[
+      {"label":"Erzähl mir von den Strongholds.","next":"stronghold","condition":"knowledge:world.history","action":"lore:stronghold","completes":true},
+      {"label":"Verstanden.","next":null,"completes":true}
+    ]},
+    {"id":"ruins","title":"Elyan Voss","body":["Ruinen sprechen nicht. Menschen sprechen über Ruinen.","Darum ist die wichtigste Frage nicht, was jemand behauptet, sondern was du selbst finden kannst."],"once":false,"options":[
+      {"label":"Was ist unter der Erde?","next":"deep","action":"lore:ancient_city","completes":true},
+      {"label":"Ich werde selbst suchen.","next":null,"completes":true}
+    ]},
+    {"id":"stronghold","title":"Elyan Voss","body":["Die Strongholds sind mehr als verlassene Steinräume. Ihre genaue Geschichte kennen wir nicht vollständig.","Aber ihre Verbindung zum Endportal lässt sich nicht ignorieren."],"once":false,"options:[
+      {"label":"Das reicht mir fürs Erste.","next":null,"action":"learn:stronghold","completes":true}
+    ]},
+    {"id":"deep","title":"Elyan Voss","body":["Tief unter der Welt liegt eine Stadt, in der etwas gewachsen ist, das auf Schall und Bewegung reagiert.","Wenn du sie suchst, unterschätze nicht, was dort unten wacht."],"once":false,"options:[
+      {"label":"Ich werde vorsichtig sein.","next":null,"action":"learn:ancient_city","completes":true}
+    ]}
+  ]
+}
