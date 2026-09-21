@@ -56,9 +56,13 @@ public final class NpcProfileStore {
     }
 
     public NpcProfile getOrCreate(RPGNpc npc) {
-        NpcProfile profile = profiles.computeIfAbsent(npc.id(), ignored -> NpcProfile.resident(npc));
+        NpcProfile existing = profiles.get(npc.id());
+        if (existing != null) return existing;
+        NpcProfile created = NpcProfile.resident(npc);
+        NpcProfile previous = profiles.putIfAbsent(npc.id(), created);
+        if (previous != null) return previous;
         save();
-        return profile;
+        return created;
     }
 
     public void put(NpcProfile profile) {
