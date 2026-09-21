@@ -2,7 +2,6 @@ package de.pixelrpg.rpg.npc;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -31,7 +30,6 @@ public final class NpcDangerReactionListener implements Listener {
             for (int x = -radius; x <= radius; x++) {
                 for (int z = -radius; z <= radius; z++) {
                     if (Math.abs(x) != radius && Math.abs(z) != radius) continue;
-                    int baseY = origin.getBlockY();
                     for (int y = -1; y <= 1; y++) {
                         Location candidate = origin.clone().add(x, y, z);
                         Block feet = candidate.getBlock();
