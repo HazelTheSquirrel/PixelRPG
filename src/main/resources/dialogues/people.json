@@ -1,0 +1,13 @@
+{
+  "id":"npc.resident.people",
+  "start":"greeting",
+  "nodes":[
+    {"id":"greeting","title":"Bewohner","body":["Du siehst aus, als würdest du Fragen suchen.","Hier kennt niemand die ganze Geschichte. Jeder trägt nur einen Teil davon."],"once":false,"options":[
+      {"label":"Was weißt du?","next":"knowledge","action":"meet","completes":true},
+      {"label":"Bis später.","next":null,"action":"meet","completes":true}
+    ]},
+    {"id":"knowledge","title":"Bewohner","body":["Ich kenne das Dorf, die Wege und die Geschichten, die Reisende mitbringen.","Wenn du tiefer suchst, wirst du Menschen finden, die mehr über alte Orte wissen."],"once":false,"options":[
+      {"label":"Danke.","next":null,"action":"learn:world.history","completes":true}
+    ]}
+  ]
+}
