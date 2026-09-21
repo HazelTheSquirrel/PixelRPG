@@ -2,6 +2,8 @@ package de.pixelrpg.rpg.npc.behavior;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.DialogueContext;
+import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.gui.ShopGUI;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
@@ -20,11 +22,13 @@ public final class ShopBehavior implements NpcBehavior {
     private final ShopManager shopManager;
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
+    private final DialogueTreeService dialogueTreeService;
 
-    public ShopBehavior(ShopManager shopManager, PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
+    public ShopBehavior(ShopManager shopManager, PlayerProfileManager profileManager, DialogueEngine dialogueEngine, DialogueTreeService dialogueTreeService) {
         this.shopManager = shopManager;
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
+        this.dialogueTreeService = dialogueTreeService;
     }
 
     @Override public NpcType type() { return NpcType.SHOP; }
@@ -40,13 +44,13 @@ public final class ShopBehavior implements NpcBehavior {
                     "Shop NPC '" + npc.name() + "' (internal id: " + npc.id() + ") has no items configured. "
                             + "Run '/rpgadmin shop edit " + npc.id() + "' to stock it.");
         }
-        dialogueEngine.openMultiAction(
+        dialogueTreeService.open(player, DialogueContext.forNpc(player, npc), "npc.function.shop", () -> dialogueEngine.openMultiAction(
                 player,
                 Component.text("Händler", NamedTextColor.GOLD),
                 List.of(DialogBody.plainMessage(Component.text("Öffne den PixelRPG-Shop dieses Händlers."))),
                 List.of(dialogueEngine.actionButton(Component.text("Shop öffnen"), NamedTextColor.GREEN,
                         target -> new ShopGUI(target, npc.id(), shopManager, profileManager).open(target))),
                 1
-        );
+        ));
     }
 }
