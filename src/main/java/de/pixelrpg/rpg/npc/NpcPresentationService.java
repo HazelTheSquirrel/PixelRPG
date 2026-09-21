@@ -27,11 +27,9 @@ public final class NpcPresentationService {
     }
 
     public void refresh(RPGNpc npc) {
-        UUIDHolder holder = new UUIDHolder(npcManager.getSpawnedEntityUuids().stream()
-                .filter(uuid -> npcManager.getByEntity(uuid).map(n -> n.id().equals(npc.id())).orElse(false))
-                .findFirst().orElse(null));
-        if (holder.uuid() == null) return;
-        Entity entity = Bukkit.getEntity(holder.uuid());
+        java.util.UUID entityUuid = npcManager.getSpawnedEntityUuid(npc.id()).orElse(null);
+        if (entityUuid == null) return;
+        Entity entity = Bukkit.getEntity(entityUuid);
         if (entity instanceof Mannequin mannequin && entity.isValid()) {
             NpcProfile profile = profileStore.get(npc.id()).orElse(null);
             if (profile == null) return;
@@ -46,5 +44,4 @@ public final class NpcPresentationService {
         }
     }
 
-    private record UUIDHolder(java.util.UUID uuid) { }
 }
