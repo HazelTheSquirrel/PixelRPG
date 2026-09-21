@@ -4,10 +4,10 @@
   "nodes":[
     {"id":"greeting","title":"Fischer","body":["Das Wasser gibt nichts umsonst. Geduld ist beim Angeln die wichtigste Technik.","Passiv: Angeln, Fangmenge und Vanilla-Schätze"],"once":false,"options":[
       {"label":"Erzähl mir mehr.","next":"craft","action":"meet","completes":true},
-      {"label":"Ich bin bereit.","next":null,"action":"meet","completes":true}
+      {"label":"Ich bin bereit.","action":"meet","completes":true}
     ]},
     {"id":"craft","title":"Fischer","body":["Ein Beruf ist keine Menüfunktion. Er ist eine Fähigkeit, die du in der Welt anwenden musst.","Wenn du bereit bist, zeige ich dir, was ich anbieten kann."],"once":false,"options":[
-      {"label":"Zeig es mir.","next":null,"action":"meet","completes":true}
+      {"label":"Zeig es mir.","action":"meet","completes":true}
     ]}
   ]
 }
