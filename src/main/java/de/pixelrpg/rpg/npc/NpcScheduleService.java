@@ -54,11 +54,12 @@ public final class NpcScheduleService {
     }
 
     private Location scheduledLocation(Location home, String activity) {
+        Location target = home.clone();
         return switch (activity) {
-            case "work" -> home.clone().add(2.0D, 0.0D, 0.0D);
-            case "social" -> home.clone().add(-2.0D, 0.0D, 1.0D);
-            case "guard" -> home.clone().add(0.0D, 0.0D, 2.0D);
-            default -> home.clone();
+            case "work" -> target.add(2.0D, 0.0D, 0.0D);
+            case "social" -> target.add(-2.0D, 0.0D, 1.0D);
+            case "guard" -> target.add(0.0D, 0.0D, 2.0D);
+            default -> target;
         };
     }
 
