@@ -112,7 +112,53 @@ tasks.register('verifyPixelRpgShadedDependencies') {
     }
 }
 
+tasks.register('verifyPixelRpgDialogueData') {
+    group = 'verification'
+    description = 'Validates data-driven dialogue trees and cross-references before packaging.'
+    doLast {
+        def parser = new groovy.json.JsonSlurper()
+        def dialogueRoot = file('src/main/resources/dialogues')
+        def loreFile = file('src/main/resources/data/lore.json')
+        def loreEntries = parser.parse(loreFile)
+        def loreIds = loreEntries.collect { it.id as String }.toSet()
+        def trees = [:]
+        fileTree(dialogueRoot).matching { include '**/*.json' }.files.sort().each { sourceFile ->
+            def root = parser.parse(sourceFile)
+            if (!(root instanceof Map)) throw new GradleException('Dialogue root must be an object: ' + sourceFile)
+            def id = root.id as String
+            def start = root.start as String
+            def nodes = root.nodes
+            if (!id || !start || !(nodes instanceof List)) throw new GradleException('Invalid dialogue definition: ' + sourceFile)
+            if (trees.containsKey(id)) throw new GradleException('Duplicate dialogue tree id ' + id + ' in ' + sourceFile)
+            def nodeIds = nodes.collect { it.id as String }
+            if (nodeIds.any { !it }) throw new GradleException('Dialogue node without id: ' + sourceFile)
+            if (nodeIds.toSet().size() != nodeIds.size()) throw new GradleException('Duplicate dialogue node id in ' + sourceFile)
+            if (!nodeIds.contains(start)) throw new GradleException('Dialogue start node ' + start + ' does not exist in ' + sourceFile)
+            nodes.each { node ->
+                (node.options ?: []).each { option ->
+                    def next = option.next
+                    if (next != null && next.toString() && !nodeIds.contains(next.toString())) {
+                        throw new GradleException('Dialogue option in ' + sourceFile + ' points to missing node ' + next)
+                    }
+                    def action = (option.action ?: 'none').toString()
+                    action.split(';').collect { it.trim() }.findAll { it }.each { token ->
+                        if (token.startsWith('lore:')) {
+                            def loreId = token.substring('lore:'.length()).trim()
+                            if (!loreIds.contains(loreId)) throw new GradleException('Dialogue ' + sourceFile + ' references unknown lore ' + loreId)
+                        }
+                        if (token.startsWith('world:') && token.substring('world:'.length()).trim().isEmpty()) throw new GradleException('Empty world-state reference in ' + sourceFile)
+                        if (token.startsWith('quest:') && token.substring('quest:'.length()).trim().isEmpty()) throw new GradleException('Empty quest reference in ' + sourceFile)
+                    }
+                }
+            }
+            trees[id] = sourceFile
+        }
+        logger.lifecycle('Validated ' + trees.size() + ' dialogue trees and ' + loreIds.size() + ' lore ids.')
+    }
+}
+
 tasks.check {
+    dependsOn tasks.named('verifyPixelRpgDialogueData')
     dependsOn tasks.named('verifyPixelRpgSourceBoundaries')
     dependsOn tasks.named('verifyPixelRpgShadedDependencies')
 }
