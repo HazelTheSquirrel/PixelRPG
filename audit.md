@@ -1520,14 +1520,14 @@ Daher gilt:
 Die folgenden Bereiche bleiben bewusst offen, bis die Implementierung und End-to-End-Verifikation tatsächlich abgeschlossen sind:
 
 - [ ] vollständige Migration aller funktionalen Hardcode-Dialoge
-- [x] vollständige NPC-NPC-Beziehungen und Fraktionsbeziehungen
+- [ ] vollständige NPC-NPC-Beziehungen und Fraktionsbeziehungen
 - [x] vollständige automatische Charakter-/Identitätsgenerierung aus Templates
 - [ ] vollständige Quest-/Story-Konsequenzpipeline ohne Sonderlogik
 - [ ] vollständige Lore-Präsentation im Spiel
 - [ ] belastbare Strukturpopulation inklusive Wiederanlauf-/Konfliktfällen
 - [x] echte ortsbezogene Tagesabläufe mit konfigurierten Zielorten
 - [ ] vollständiges Reaktionssystem auf Monster, Gefahr und Weltveränderungen
-- [x] vollständige Skin-/Titel-/Darstellungsintegration
+- [ ] vollständige Skin-/Titel-/Darstellungsintegration
 - [ ] vollständige Weltbevölkerung für alle vorgesehenen Struktur- und Regionaltypen
 - [ ] Resourcepack-Ausbau
 - [ ] abschließende End-to-End-CI-Verifikation nach dem aktuellen Änderungsstand
