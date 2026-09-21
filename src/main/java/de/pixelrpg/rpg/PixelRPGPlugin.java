@@ -248,7 +248,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcIdentityService.synchronize();
         npcPresentationService = new NpcPresentationService(this, npcManager, npcProfileStore);
         npcPresentationService.refreshAll();
-        regionalNpcPopulationManager = new RegionalNpcPopulationManager(this, npcManager, npcProfileStore);
+        regionalNpcPopulationManager = new RegionalNpcPopulationManager(this, npcManager, npcProfileStore, npcIdentityService);
         regionalNpcPopulationManager.load();
         getServer().getPluginManager().registerEvents(regionalNpcPopulationManager, this);
         npcKnowledgeStore = new NpcKnowledgeStore(this);
