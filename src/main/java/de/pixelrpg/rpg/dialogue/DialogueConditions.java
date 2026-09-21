@@ -84,6 +84,11 @@ public final class DialogueConditions {
         };
     }
 
+    public static DialogueCondition playerFactionRelationship(PlayerFactionRelationshipStore store, NpcFaction faction, int minimum) {
+        Objects.requireNonNull(store, "store");
+        return context -> store.get(context.player().getUniqueId(), faction) >= minimum;
+    }
+
     public static DialogueCondition factionRelationship(FactionRelationshipStore store, NpcFaction first, NpcFaction second, int minimum) {
         Objects.requireNonNull(store, "store");
         return player -> store.get(first, second) >= minimum;
