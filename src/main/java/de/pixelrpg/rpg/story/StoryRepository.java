@@ -81,7 +81,7 @@ public final class StoryRepository implements AutoCloseable {
             }
 
             List<StoryChapter> result = new ArrayList<>(byId.values());
-            result.sort(Comparator.comparingInt(StoryChapter::order));
+            result.sort(Comparator.comparingInt(chapter -> chapter.order()));
             validateOrder(result);
             return List.copyOf(result);
         } catch (IOException | RuntimeException exception) {
