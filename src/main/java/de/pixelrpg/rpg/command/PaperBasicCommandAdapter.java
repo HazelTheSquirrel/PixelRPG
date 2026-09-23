@@ -28,7 +28,7 @@ public final class PaperBasicCommandAdapter implements BasicCommand {
                 return executor.onCommand(sender, this, commandLabel, args);
             }
         };
-        this.permission = "pixelrpg".equalsIgnoreCase(name) ? "rpg.member" : permission;
+        this.permission = "pixelrpg".equalsIgnoreCase(name) ? null : permission;
 
         List<String> aliases = legacyAliases(name);
         if (!aliases.isEmpty()) {
