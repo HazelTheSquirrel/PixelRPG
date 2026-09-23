@@ -41,7 +41,7 @@ public final class QuestProgressListener implements Listener {
         if (profile == null || !profile.isRegistered()) return;
         String target = entity.getType().name().toUpperCase(Locale.ROOT);
         boolean changed = false;
-        for (QuestDefinition quest : quests.repository().getAll()) {
+        for (QuestDefinition quest : quests.repository().all()) {
             if (quest.type() != QuestType.HUNT || !quest.targetKey().equalsIgnoreCase(target)) continue;
             if (profile.hasActiveQuest(quest.id())) {
                 changed |= quests.incrementProgress(profile, quest.id(), 1);
