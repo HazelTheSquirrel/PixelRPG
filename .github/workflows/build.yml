@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - test
+      - rebuild
       - development
       - refactor/central-content-pipeline-v3
   pull_request:
