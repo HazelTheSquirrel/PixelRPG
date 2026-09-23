@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.inventory.ItemStack;
 import java.util.*;
 /** Connects normal Minecraft activities with profession progression. */
@@ -20,8 +21,8 @@ public final class ProfessionActivityListener implements Listener{
  private static final int MAX_TREE_LOGS=64;
  private static final Set<Material> TREE_GROUND=Set.of(Material.GRASS_BLOCK,Material.DIRT,Material.COARSE_DIRT,Material.PODZOL,Material.MYCELIUM,Material.SAND,Material.RED_SAND,Material.MUD,Material.MOSS_BLOCK,Material.ROOTED_DIRT);
  private static final List<Material> FISHING_TREASURE=List.of(Material.BOW,Material.FISHING_ROD,Material.NAME_TAG,Material.NAUTILUS_SHELL,Material.SADDLE);
- private final ProfessionService service;private final Set<BlockPosition> automated=new HashSet<>();private final Random random=new Random();
- public ProfessionActivityListener(ProfessionService service){this.service=service;}
+ private final ProfessionService service;private final Plugin plugin;private final Set<BlockPosition> automated=new HashSet<>();private final Random random=new Random();
+ public ProfessionActivityListener(ProfessionService service, Plugin plugin){this.service=service;this.plugin=plugin;}
  // Vergibt Berufs-XP für Bergbau, Feldarbeit, Holzfällen, Steinabbau und pflanzliche Alchemie.
  @EventHandler public void onBlockBreak(BlockBreakEvent e){if(e.isCancelled())return;Player p=e.getPlayer();Material m=e.getBlock().getType();BlockPosition pos=BlockPosition.of(e.getBlock());boolean auto=automated.remove(pos);Profession prof=switch(m){
  case COAL_ORE,DEEPSLATE_COAL_ORE,IRON_ORE,DEEPSLATE_IRON_ORE,COPPER_ORE,DEEPSLATE_COPPER_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE,REDSTONE_ORE,DEEPSLATE_REDSTONE_ORE,LAPIS_ORE,DEEPSLATE_LAPIS_ORE,DIAMOND_ORE,DEEPSLATE_DIAMOND_ORE,EMERALD_ORE,DEEPSLATE_EMERALD_ORE,NETHER_GOLD_ORE,NETHER_QUARTZ_ORE,ANCIENT_DEBRIS,RAW_IRON_BLOCK,RAW_COPPER_BLOCK,RAW_GOLD_BLOCK,IRON_BLOCK,COPPER_BLOCK,GOLD_BLOCK->Profession.BLACKSMITH;
@@ -43,7 +44,7 @@ public final class ProfessionActivityListener implements Listener{
  // Vergibt Schmied-XP, wenn ein gültiges Ergebnis aus einem Amboss genommen wird.
  @EventHandler public void onAnvilResult(InventoryClickEvent e){if(e.getView().getTopInventory().getType()!=InventoryType.ANVIL||e.getRawSlot()!=2||e.getCurrentItem()==null||e.getCurrentItem().isEmpty()||!(e.getWhoClicked() instanceof Player p))return;service.addExperience(p,Profession.BLACKSMITH,15);}
  // Vergibt berufsbezogene XP für abgeschlossene Quests anhand stabiler Quest-ID-Präfixe.
- @EventHandler public void onQuestCompleted(QuestCompletedEvent e){Profession p=professionForQuest(e.getQuestId());if(p==null||p==Profession.WOODCUTTER||p==Profession.FISHERMAN)return;service.addExperience(e.getPlayer(),p,40);}
+ @EventHandler public void onQuestCompleted(QuestCompletedEvent e){Profession p=professionForQuest(e.questId());if(p==null||p==Profession.WOODCUTTER||p==Profession.FISHERMAN)return;Player player=plugin.getServer().getPlayer(e.playerId());if(player!=null)service.addExperience(player,p,40);}
  private long miningXp(Material m){return switch(m){case DIAMOND_ORE,DEEPSLATE_DIAMOND_ORE,EMERALD_ORE,DEEPSLATE_EMERALD_ORE,ANCIENT_DEBRIS->35;case GOLD_ORE,DEEPSLATE_GOLD_ORE,NETHER_GOLD_ORE,REDSTONE_ORE,DEEPSLATE_REDSTONE_ORE,LAPIS_ORE,DEEPSLATE_LAPIS_ORE->20;case IRON_ORE,DEEPSLATE_IRON_ORE,COPPER_ORE,DEEPSLATE_COPPER_ORE->12;default->8;};}
  private void fellSafeTree(Player p,org.bukkit.block.Block start){List<org.bukkit.block.Block> logs=collectTreeLogs(start);if(logs.size()<3||!looksLikeNaturalTree(start,logs))return;for(org.bukkit.block.Block log:logs){BlockPosition pos=BlockPosition.of(log);if(!pos.equals(BlockPosition.of(start)))automated.add(pos);}for(org.bukkit.block.Block log:logs){if(log.equals(start)||log.getType().isAir())continue;BlockPosition pos=BlockPosition.of(log);if(!automated.contains(pos))continue;if(p.breakBlock(log))automated.remove(pos);}}
  private List<org.bukkit.block.Block> collectTreeLogs(org.bukkit.block.Block start){ArrayDeque<org.bukkit.block.Block> q=new ArrayDeque<>();Set<BlockPosition> seen=new HashSet<>();List<org.bukkit.block.Block> logs=new ArrayList<>();q.add(start);seen.add(BlockPosition.of(start));while(!q.isEmpty()&&logs.size()<MAX_TREE_LOGS){var cur=q.removeFirst();if(!Tag.OVERWORLD_NATURAL_LOGS.isTagged(cur.getType()))continue;logs.add(cur);for(int dx=-1;dx<=1;dx++)for(int dy=-1;dy<=1;dy++)for(int dz=-1;dz<=1;dz++){if(dx==0&&dy==0&&dz==0)continue;var next=cur.getRelative(dx,dy,dz);if(seen.add(BlockPosition.of(next))&&Tag.OVERWORLD_NATURAL_LOGS.isTagged(next.getType()))q.addLast(next);}}return logs;}
