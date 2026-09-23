@@ -55,7 +55,7 @@ public final class EquipmentSetService {
             if (!usable(item, playerLevel) || !item.hasItemMeta()) continue;
             String setId = item.getItemMeta().getPersistentDataContainer()
                     .get(RPGKeys.Item.setId(), PersistentDataType.STRING);
-            if (setId != null && !setId.isBlank()) counts.merge(setId.toLowerCase(Locale.ROOT), 1, Integer::sum);
+            if (setId != null && !setId.isBlank()) counts.merge(setId.toLowerCase(Locale.ROOT), 1, (current, added) -> current + added);
         }
 
         Map<String, Double> result = new HashMap<>();
@@ -69,7 +69,7 @@ public final class EquipmentSetService {
                 JsonObject stats = bonus.getAsJsonObject("stats");
                 for (var stat : stats.entrySet()) {
                     if (stat.getValue().isJsonPrimitive() && stat.getValue().getAsJsonPrimitive().isNumber()) {
-                        result.merge(stat.getKey().toUpperCase(Locale.ROOT), Math.max(0.0D, stat.getValue().getAsDouble()), Double::sum);
+                        result.merge(stat.getKey().toUpperCase(Locale.ROOT), Math.max(0.0D, stat.getValue().getAsDouble()), (current, added) -> current + added);
                     }
                 }
             }
