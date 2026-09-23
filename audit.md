@@ -1257,3 +1257,41 @@ Diese Punkte dürfen nicht als "fertig" markiert werden. Sie bleiben offene Pari
 Es wurden keine alten 1.21.x-Dialogimplementierungen, CraftBukkit-Klassen, Legacy-NMS-Pakete oder `ChatColor`-Abhängigkeiten zurückgeführt.
 
 Der Rebuild bleibt die aktive Entwicklungsbasis. `main` und `test` bleiben unverändert Referenzzustand.
+
+## 19. Forensischer Paritäts-/Rebuild-Fortschritt — Abschlussrunde
+
+Status: **implementiert und CI-verifiziert**
+
+Die abschließende Gegenprüfung gegen den unveränderten `main`-Referenzstand wurde auf Dateibaum-, Domain-, Runtime-, Persistenz- und Integrationsniveau fortgeführt.
+
+Ergänzt bzw. geschlossen wurden insbesondere:
+
+- vollständiger fehlender Resourcepack-Bestand aus `main` wiederhergestellt, ohne die bereits modernisierten Rebuild-Dateien zu überschreiben;
+- Scoreboard- und Playtime-Funktion als neue, explizit verdrahtete Rebuild-Services wiederhergestellt;
+- Guild-Bank inklusive asynchroner YAML-Persistenz und Membership-Schutz wieder angebunden;
+- BANKER-NPC mit Gildenbank-Aktion verbunden;
+- Gildenkompass und Reise-Navigation auf die aktuelle `NpcRuntimeManager`-Architektur umgestellt;
+- Companion-Mount-Funktion auf die aktuelle `CompanionDefinition`-/Runtime-Struktur neu angebunden;
+- eventgetriebenes NPC-Look-Verhalten ergänzt;
+- gemeinsame asynchrone Dateipersistenz über `AsyncFileWriter` wieder als Core-Infrastruktur hergestellt;
+- mehrere zuvor nur dokumentierte, aber technisch nicht mehr verbundene APIs/Listener anhand des tatsächlichen Compiler-/Referenzstands korrigiert;
+- Quest-/Companion-/NPC-Integrationen auf die tatsächlichen Rebuild-Repository- und Runtime-APIs bereinigt;
+- die alte separate Guild-Command-Registrierung entfernt; Commands bleiben vollständig in der aktuellen Paper-Lifecycle-Composition-Root.
+
+### Verifikation
+
+GitHub Actions Workflow **35900296961** für Commit **24b14f4326ce910229b9c3a79893a95cba2addf2** lief vollständig mit **success** durch.
+
+Erfolgreich ausgeführt:
+
+- `gradle clean build --no-daemon --stacktrace`;
+- Source-API-Boundary-Prüfungen;
+- Plugin-Artefaktprüfung;
+- Third-Party-Relocations;
+- JDBC-Service-/ShadowJar-Prüfung.
+
+Der zuvor fehlgeschlagene Build wurde nicht übersprungen oder maskiert. Die konkreten Compilerfehler wurden anhand des GitHub-Actions-Logs korrigiert und anschließend erneut vollständig verifiziert.
+
+Die verbleibenden historischen Dateien aus `main`, die durch bewusst modernisierte Rebuild-Domänen ersetzt wurden, werden nicht blind zurückkopiert. Dazu gehören insbesondere die alte Inventory-GUI-Schicht, alte God-Manager und alte Legacy-Command-Strukturen. Ihre fachlichen Funktionen sind, soweit im Referenzbestand relevant, in den neuen Domain-/Dialog-/Service-Schichten abzubilden.
+
+`main` und `test` wurden in dieser Runde nicht verändert. Der aktive Neuaufbau bleibt ausschließlich auf `rebuild`.
