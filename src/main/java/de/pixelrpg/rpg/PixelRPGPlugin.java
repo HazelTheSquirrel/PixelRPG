@@ -254,6 +254,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
             companionSystem.register();
             getServer().getPluginManager().registerEvents(new QuestCompanionRewardListener(questService, companionSystem.service(), playerProfileManager), this);
             getServer().getPluginManager().registerEvents(new CompanionNpcListener(npcRuntime, new CompanionDialogService(companionSystem.service(), new DialogueEngine())), this);
+            getServer().getPluginManager().registerEvents(new de.pixelrpg.rpg.companion.CompanionMountListener(this, companionSystem.service()), this);
         })).exceptionally(failure -> { getLogger().log(java.util.logging.Level.SEVERE, "Failed to load companion definitions.", failure); return null; });
 
         ExecutorService storyIo = Executors.newSingleThreadExecutor(runnable -> {
