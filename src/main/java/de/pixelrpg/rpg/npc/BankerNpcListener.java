@@ -4,6 +4,7 @@ import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.guild.GuildBankService;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -22,11 +23,13 @@ public final class BankerNpcListener implements Listener {
     private final NpcRuntimeManager npcs;
     private final PlayerProfileManager profiles;
     private final DialogueEngine dialogs;
+    private final GuildBankService guildBank;
 
-    public BankerNpcListener(NpcRuntimeManager npcs, PlayerProfileManager profiles, DialogueEngine dialogs) {
+    public BankerNpcListener(NpcRuntimeManager npcs, PlayerProfileManager profiles, DialogueEngine dialogs, GuildBankService guildBank) {
         this.npcs = npcs;
         this.profiles = profiles;
         this.dialogs = dialogs;
+        this.guildBank = guildBank;
     }
 
     // Opens the account dialog for a main-hand interaction with a BANKER NPC.
@@ -46,6 +49,7 @@ public final class BankerNpcListener implements Listener {
             return;
         }
         List<io.papermc.paper.registry.data.dialog.ActionButton> actions = new ArrayList<>();
+        actions.add(dialogs.actionButton(Component.text("Gildenbank öffnen"), NamedTextColor.AQUA, guildBank::open));
         for (long amount : List.of(10L, 100L, 500L)) {
             actions.add(dialogs.actionButton(Component.text(amount + " Gold einzahlen"), NamedTextColor.GREEN,
                     target -> deposit(target, amount)));
