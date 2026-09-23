@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
-public final class NpcManager {
+public final class NpcManager implements AutoCloseable {
     private final Plugin plugin;
     private final File file;
     private final Map<String, RPGNpc> npcsById = new ConcurrentHashMap<>();
@@ -273,6 +273,11 @@ public final class NpcManager {
     public Optional<RPGNpc> getById(String id) { return Optional.ofNullable(npcsById.get(id)); }
     public Collection<RPGNpc> getAll() { return List.copyOf(npcsById.values()); }
     public Collection<UUID> getSpawnedEntityUuids() { return List.copyOf(spawnedEntityByNpcId.values()); }
+
+    @Override
+    public synchronized void close() {
+        shutdown();
+    }
 
     public synchronized void shutdown() {
         if (shuttingDown) return;
