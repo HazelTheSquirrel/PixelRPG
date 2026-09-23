@@ -92,6 +92,11 @@ public final class LootDropListener implements Listener {
         }
     }
 
+    private ItemStack safeCreate(Material material, ItemRarity rarity, int level) {
+        try { return itemBuilder.create(material, rarity, level); }
+        catch (IllegalArgumentException exception) { return null; }
+    }
+
     private ItemStack withFixedName(ItemStack item, Material material) {
         if (material != Material.FIRE_CHARGE) return item;
         ItemStack result = item.clone();
@@ -107,7 +112,7 @@ public final class LootDropListener implements Listener {
             if (vanilla == null || vanilla.isEmpty() || !isArmor(vanilla.getType()) || itemService.isRPGItem(vanilla)) continue;
             int itemLevel = rollLootLevel(playerLevel, random);
             ItemRarity rarity = ItemRarity.rollRandom();
-            ItemStack rpgArmor = itemBuilder.create(vanilla.getType(), rarity, itemLevel).orElse(null);
+            ItemStack rpgArmor = safeCreate(vanilla.getType(), rarity, itemLevel);
             if (rpgArmor == null) continue;
             applyRandomArmorAffixes(rpgArmor, itemLevel, rarity, random);
             rpgArmor.setAmount(vanilla.getAmount());
@@ -166,7 +171,7 @@ public final class LootDropListener implements Listener {
                 .orElse(null);
         if (definition != null) return itemService.createItem(definition.id());
         int itemLevel = Math.max(Level.MIN_LEVEL, Math.min(lootLevel, playerLevel));
-        return itemBuilder.create(material, ItemRarity.rollRandom(), itemLevel);
+        return java.util.Optional.ofNullable(safeCreate(material, ItemRarity.rollRandom(), itemLevel));
     }
 
     private int rollLootLevel(int playerLevel, ThreadLocalRandom random) {
