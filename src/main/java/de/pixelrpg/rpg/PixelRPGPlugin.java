@@ -90,6 +90,7 @@ import de.pixelrpg.rpg.trade.TradeDepotService;
 import de.pixelrpg.rpg.trade.TradeGoodsRepository;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.party.PartyManager;
+import de.pixelrpg.rpg.party.PartyDisconnectListener;
 import de.pixelrpg.rpg.guild.GuildManager;
 import org.bukkit.plugin.ServicePriority;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -179,6 +180,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         partyManager = lifecycle.register(new PartyManager(this));
         guildManager = lifecycle.register(new GuildManager(this, playerProfileManager));
         getServer().getServicesManager().register(PartyAPI.class, partyManager, this, ServicePriority.Normal);
+        getServer().getPluginManager().registerEvents(new PartyDisconnectListener(partyManager), this);
         GuildAPI guildApi = guildManager;
         BossRepository bossRepository = new BossRepository(this);
         bossRepository.load();
