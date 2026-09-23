@@ -29,7 +29,6 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class CombatDamageListener implements Listener {
     private static final double MAX_CRIT_CHANCE = 100.0D;
 
-    private final Plugin plugin;
     private final GuildAPI guildAPI;
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
@@ -37,7 +36,6 @@ public final class CombatDamageListener implements Listener {
     private final double bossMaxHitPercentOfMaxHp;
 
     public CombatDamageListener(Plugin plugin, GuildAPI guildAPI, PlayerProfileManager profileManager, StatEngine statEngine) {
-        this.plugin = plugin;
         this.guildAPI = guildAPI;
         this.profileManager = profileManager;
         this.statEngine = statEngine;
