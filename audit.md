@@ -725,7 +725,7 @@ Nächster abhängiger Bereich ist **Story/Lore**. Dabei müssen `StoryManager`, 
 
 ### Phase 11 — Story / Lore
 
-Status: **neu aufgebaut; CI-Verifikation ausstehend**
+Status: **neu aufgebaut; CI-verifiziert**
 
 Die Story-/Lore-Schicht wurde erneut gegen den tatsächlichen Referenzcode von main betrachtet. Die fachlich relevante Funktion des Referenzzustands bleibt erhalten:
 
@@ -785,13 +785,79 @@ Die fachliche Wahrheit bleibt bei StoryService und PlayerProfile; die Darstellun
 
 ### Verifikation
 
-Vor dem nächsten Audit-Schritt muss der vollständige GitHub-Actions-Build erneut erfolgreich durchlaufen:
+Die Revision wurde zusammen mit dem anschließenden Regionen-Rebuild im vollständigen GitHub-Actions-Lauf **35872994976** auf Commit **73fc9372ac65cc494c1d1bcc0ec5801c327f69b7** verifiziert.
 
-- `gradle clean build --no-daemon --stacktrace`
-- Verify source API boundaries
-- Verify plugin artifact
+Der Workflow meldete **success** für Build, Source-API-Grenzen und Plugin-Artefakt.
 
-Bis dieser Lauf erfolgreich ist, ist Phase 11 **nicht** als CI-verifiziert zu betrachten.
+Nächster abhängiger Bereich ist **Regionen**.
 
-Nächster abhängiger Bereich bleibt **Regionen**. Vor dessen Implementierung sind PixelRegion, RegionManager, RegionRepository, Flags, Spawn-/Transition-Logik und bestehende Region-Dialoge aus main forensisch gegen die vorhandene Player-/NPC-/Dialog-Grundlage zu erfassen.
 
+
+### Phase 12 — Regionen
+
+Status: **implementiert; CI-verifiziert**
+
+Die Regionen wurden vor der Implementierung gegen den tatsächlichen Referenzbestand von main forensisch erfasst. Der Referenzbereich besteht aus Polygon-Geometrie, globalen Weltregionen, Priorität, Y-Grenzen, Besitzern/Mitgliedern, Flags, Enter-/Leave-Nachrichten, Properties und expliziten Mob-Spawnpunkten.
+
+Neu auf rebuild aufgebaut wurden:
+
+- PixelRegion als Region-Domainobjekt mit normaler und globaler Region;
+- RegionGeometry mit Polygonvalidierung, Selbstüberschneidungsprüfung, Bounding-Box und Point-in-Polygon;
+- RegionPoint, RegionType, RegionFlag, RegionFlagCategory;
+- RegionSpawnPoint und validierter SpawnMobType;
+- asynchrones RegionRepository für regions.yml;
+- atomare YAML-Snapshots und getrennte Speicherung normaler/globaler Regionen;
+- RegionManager als Source of Truth für Runtime-Regionen und Chunk-/Spawnpunkt-Indizes;
+- asynchrone Region-Ladung mit Rückkehr auf den Serverthread für Runtime-Anwendung;
+- serialisierte Snapshot-Persistenz und deterministischer Shutdown-Flush;
+- RegionPolicyService für Gameplay-Regeln;
+- RegionTransitionService für Enter-/Leave-Zustand und Titel;
+- RegionListener als dünne Paper-Event-Grenze;
+- eventgetriebener RegionSpawnService ohne globalen Polling-Task;
+- RegionEditor mit temporären Admin-Sessions und Partikelvisualisierung;
+- nativer Paper-Dialog RegionFlagDialogService für kategorisierte Flag-Verwaltung.
+
+### Funktional erhaltene Regeln
+
+Der neue Regionskern bildet die im Referenzzustand vorhandenen zentralen Regeln ab:
+
+- Polygonregionen über X/Z-Konturen;
+- globale Standardregion pro Welt;
+- Prioritätsauflösung bei überlappenden Regionen;
+- Y-Grenzen;
+- Owner-/Member-Bypass für geschützte Aktionen;
+- PvP-, Mob-, Tier- und Fallschaden;
+- Blockabbau/-platzierung;
+- Entity-, Block- und Containerinteraktionen;
+- Item-Drop/-Pickup;
+- Feuer-, Wasser- und Lavafluss;
+- Explosionen, TNT, Creeper, Ghast und Enderman-Griefing;
+- Lightning, Crop-Growth und Leaf-Decay;
+- Respawn-Anker, Schlafen, Enderperlen und Chorusfrucht;
+- natürliche Heilung und Hunger;
+- Region Entry/Exit;
+- explizite Monster-Spawnpunkte mit Respawn-Verzögerung und Näheprüfung.
+
+### Bewusst nicht vorgezogen
+
+Die alte RegionSubCommand-Integration wird nicht in Phase 12 dupliziert. Die vorhandene Command-Infrastruktur gehört gemäß Audit-Reihenfolge in Phase 17 — Commands/UI/administrative Werkzeuge. Der Region-Editor ist deshalb technisch vorbereitet, aber seine /pixelrpg region ...-Befehlsverdrahtung wird erst zusammen mit der neuen Command-Schicht angeschlossen.
+
+Ebenso wurde kein alter WakeScheduler übernommen. Die wenigen benötigten Spawn-Wakeup-Timer werden direkt vom RegionSpawnService besessen und beim Shutdown deterministisch beendet.
+
+### Architekturentscheidungen
+
+Bewusst nicht übernommen wurden:
+
+- synchrone Region-Datei-I/O im Serverthread;
+- globale Bukkit-Manager als Dependency-Quelle;
+- die alte RegionManager-Implementierung als unveränderte Kopie;
+- die alte WakeScheduler-Abhängigkeit;
+- parallele Persistenzquellen für Regionszustand.
+
+Die Region-Persistenz bleibt ausschließlich in RegionRepository, der Runtime-State ausschließlich in RegionManager.
+
+### Verifikation
+
+GitHub Actions Workflow 35872994976 für Commit 73fc9372ac65cc494c1d1bcc0ec5801c327f69b7 lief vollständig mit success durch. Damit wurden gradle clean build --no-daemon --stacktrace, Source-API-Grenzprüfungen und Plugin-Artefaktprüfung erfolgreich bestätigt.
+
+Nächster abhängiger Bereich ist Berufe/Crafting.
