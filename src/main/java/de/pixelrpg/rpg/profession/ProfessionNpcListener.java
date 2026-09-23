@@ -1,7 +1,5 @@
 package de.pixelrpg.rpg.profession;
-import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.npc.NpcRuntimeManager;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
