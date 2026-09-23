@@ -4,11 +4,11 @@
     {
       "order": 0,
       "id": "prologue",
-      "title": "The Summoning",
-      "dialogue": [
-        "You awaken in a world that is not your own.",
-        "The Guild recognizes potential in you.",
-        "Register at the Reception to begin your journey."
+      "title-key": "story.prologue.title",
+      "dialogue-keys": [
+        "story.prologue.line.1",
+        "story.prologue.line.2",
+        "story.prologue.line.3"
       ],
       "exp-reward": 100
     }
