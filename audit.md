@@ -549,7 +549,7 @@ Nächster abhängiger Bereich ist **NPC Runtime + Persistence**. Vor dessen Impl
 
 ### Phase 7 — NPC Runtime + Persistence
 
-Status: **implementiert; abschließende CI-Verifikation für den aktuellen HEAD noch ausstehend**
+Status: **implementiert; ein CI-Kompilierfehler wurde anhand des Buildlogs korrigiert, erneute CI-Verifikation läuft**
 
 Forensisch gegen den NPC-Bestand von `main` aufgebaut und nicht als Blindkopie übernommen:
 
@@ -585,6 +585,6 @@ Der Referenzzustand speichert die aufgelöste Texture-Property inklusive Signatu
 - Keine statischen Live-`Player`/`Entity`/`World`-Referenzen wurden eingeführt.
 - Listener besitzen Zweckkommentare direkt über jedem `@EventHandler`.
 - Datei-I/O und externe HTTP-Auflösung liegen außerhalb des Serverthreads.
-- Die letzten automatischen GitHub-Actions-Läufe wurden durch unmittelbar aufeinanderfolgende Pushes auf `rebuild` abgebrochen. Daher wird der aktuelle HEAD **nicht** als CI-verifiziert markiert.
+- Der erste vollständige CI-Lauf des NPC-Stands erreichte `compileJava` und meldete genau einen Fehler in der Berufsermittlung (`String` statt `int` bei `substring`). Dieser Fehler wurde direkt anhand des Logs korrigiert. Der daraus resultierende Stand muss erneut vollständig durch `clean build`, Source-Boundary- und Artifact-Verifikation laufen.
 
 Nächster abhängiger Bereich ist **native Dialog-Grundlage**. NPC-Interaktion wird dort fachlich an die native Paper-Dialogschicht angebunden; Quest-/Story-Regeln bleiben in ihren späteren Domain-Schichten.
