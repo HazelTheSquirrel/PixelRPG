@@ -464,3 +464,44 @@ Bewusst noch nicht übernommen:
 - alte Persistenz- und Domainmodelle.
 
 Nächster Schritt ist die forensische Rekonstruktion der zentralen Persistenz-/Player-Abhängigkeiten aus `main`, bevor Player/Profile und weitere Fachmodule neu implementiert werden.
+
+
+---
+
+## 15. Rebuild-Fortschritt
+
+### Phase 2–5 — Core, Persistence und Player/Profile
+
+Status: **implementiert, Build-Verifikation ausstehend**
+
+Forensisch aus `main` geprüft und auf `rebuild` neu zusammengesetzt:
+
+- `LifecycleCoordinator` bleibt der zentrale Resource-Owner.
+- `DatabaseManager` bildet weiterhin Connection-Pooling und Schema-Migrationen ab.
+- Das bestehende Schema inklusive `persistence_revision`, aktiver Quests, Statistiken und Equipment wurde funktional erhalten.
+- `PlayerProfile` enthält weiterhin den vollständigen bisher persistierten Player-State: Registrierung, XP, Geld, Berufe, Rezepte, Wegpunkte, Story-Kapitel, Quests, Statistiken, Equipment, UI-Flags und Playtime.
+- YAML- und MySQL-Persistenz bleiben als getrennte konkrete Repositories bestehen.
+- Persistenz arbeitet mit Snapshots und asynchronem I/O.
+- Player-Profile werden weiterhin vor dem Join geladen und beim Quit/Shutdown gespeichert.
+- Die Profile-Revision bleibt Teil des Persistenzprotokolls; MySQL prüft Stale-Revisionen.
+- Fehler im MySQL-Initialisierungspfad behalten den bisherigen YAML-Fallback.
+- Player-Lifecycle und Profile-Persistenz sind von der Composition Root getrennt.
+- Guild-/Economy-Schnittstellen und die vorhandenen Player-Events wurden als fachliche API-Grenze übernommen.
+
+### Architekturentscheidungen
+
+Bewusst **nicht** übernommen wurden:
+
+- die alte zentrale `PixelRPGPlugin`-Verdrahtung;
+- globale Plugin-Singletons als Dependency-Quelle;
+- synchrone Player-Datei-I/O;
+- fachliche Systeme außerhalb des Player-/Persistence-Scope;
+- alte Feature-Manager, die erst in ihren jeweiligen Rebuild-Phasen untersucht werden.
+
+### Verifikation
+
+Die Quellstruktur enthält in diesem Schritt keine verbotenen Legacy-NMS-/CraftBukkit-/ChatColor-Referenzen und keine statischen Live-`Player`/`Entity`/`World`-Felder.
+
+Ein vollständiger `gradle clean build --no-daemon --stacktrace` konnte über die verfügbare GitHub-Actions-Schnittstelle für den aktuellen `rebuild`-HEAD noch nicht als abgeschlossenes Ergebnis festgestellt werden. Daher wird dieser Schritt **nicht** als build-verifiziert markiert.
+
+Nächster abhängiger Bereich ist **Items/Equipment/ökonomische Grundlagen**. Vor dessen Implementierung müssen die tatsächlichen Item-/Equipment-Abhängigkeiten aus `main` forensisch erfasst werden.
