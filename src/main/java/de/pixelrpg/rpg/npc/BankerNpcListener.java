@@ -71,7 +71,8 @@ public final class BankerNpcListener implements Listener {
             else item.setAmount(item.getAmount() - take);
         }
         if (removed > 0.0D) {
-            profile(player).ifPresent(p -> p.addMoney(removed));
+            double deposited = removed;
+            profile(player).ifPresent(p -> p.addMoney(deposited));
             profiles.saveProfileAsync(player.getUniqueId());
         }
         open(player);
