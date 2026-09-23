@@ -10,7 +10,6 @@ import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
-import com.destroystokyo.paper.profile.ProfileProperty;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
@@ -148,8 +147,9 @@ public final class NpcManager {
                 if (storedSkin != null) {
                     MannequinSkinResolver.applyStoredTexture(entity, storedSkin.value(), storedSkin.signature(), plugin);
                 } else {
-                    MannequinSkinResolver.apply(entity, npc.skinSource(), plugin.getLogger())
-                            .thenRun(() -> rememberResolvedSkin(npc.id(), entity.getUniqueId()));
+                    MannequinSkinResolver.applyAndCapture(entity, npc.skinSource(), plugin.getLogger())
+                            .thenAccept(texture -> rememberResolvedSkin(
+                                    npc.id(), texture.getValue(), texture.getSignature()));
                 }
             }
         });
@@ -196,8 +196,9 @@ public final class NpcManager {
         if (entityUuid != null) {
             Entity entity = Bukkit.getEntity(entityUuid);
             if (entity instanceof Mannequin mannequin) {
-                MannequinSkinResolver.apply(mannequin, newSkinSource, plugin.getLogger())
-                        .thenRun(() -> rememberResolvedSkin(npcId, mannequin.getUniqueId()));
+                MannequinSkinResolver.applyAndCapture(mannequin, newSkinSource, plugin.getLogger())
+                        .thenAccept(texture -> rememberResolvedSkin(
+                                npcId, texture.getValue(), texture.getSignature()));
             }
         }
         return true;
@@ -323,22 +324,16 @@ public final class NpcManager {
                                float yaw, float pitch, String skinSource, String profession, String skinValue,
                                String skinSignature) { }
 
-    private void rememberResolvedSkin(String npcId, UUID entityUuid) {
+    private void rememberResolvedSkin(String npcId, String value, String signature) {
         Bukkit.getScheduler().runTask(plugin, () -> {
-            RPGNpc npc = npcsById.get(npcId);
-            Entity entity = Bukkit.getEntity(entityUuid);
-            if (npc == null || !(entity instanceof Mannequin mannequin) || !mannequin.isValid()) return;
-            // The active resolver appends the newly resolved textures property.
-            // Keep the exact last resolved property so the persisted StoredSkin matches
-            // the skin that is currently accepted and displayed by the mannequin.
-            ProfileProperty texture = mannequin.getProfile().properties().stream()
-                    .filter(property -> "textures".equals(property.getName()))
-                    .reduce((first, last) -> last)
-                    .orElse(null);
-            if (texture == null || texture.getValue() == null || texture.getValue().isBlank()) return;
-            StoredSkin resolved = new StoredSkin(texture.getValue(), texture.getSignature());
-            resolvedSkinsByNpcId.put(npcId, resolved);
-            // Persist immediately from the exact resolved texture currently present on the mannequin.
+            if (shuttingDown || value == null || value.isBlank()) return;
+            if (!npcsById.containsKey(npcId)) return;
+
+            // Persist the exact texture property returned by the resolver.
+            // This follows the same principle as Citizens2: the resolved texture
+            // is stored at acquisition time instead of being reconstructed later
+            // from mutable mannequin state.
+            resolvedSkinsByNpcId.put(npcId, new StoredSkin(value, signature));
             saveAll();
         });
     }
