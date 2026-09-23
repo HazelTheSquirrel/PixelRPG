@@ -291,9 +291,21 @@ public final class CompanionService {
             // Keep this path independent from the generic NPC manager.
             CompanionDefinition definition = registry.require(selected.id());
             if (living instanceof Mannequin mannequin) {
-                String skinSource = definition.visual().skinSource();
-                if (skinSource != null && !skinSource.isBlank()) {
-                    MannequinSkinResolver.apply(mannequin, skinSource, plugin.getLogger());
+                CompanionService.StoredSkin storedSkin = getStoredSkin(player.getUniqueId(), selected.id());
+                if (storedSkin != null) {
+                    // A persisted resolved texture is authoritative after restart/reload.
+                    MannequinSkinResolver.applyStoredTexture(
+                            mannequin,
+                            storedSkin.value(),
+                            storedSkin.signature(),
+                            plugin
+                    );
+                } else {
+                    String skinSource = definition.visual().skinSource();
+                    if (skinSource != null && !skinSource.isBlank()) {
+                        // Keep the existing skin acquisition system unchanged for first resolution.
+                        MannequinSkinResolver.apply(mannequin, skinSource, plugin.getLogger());
+                    }
                 }
             }
 
