@@ -40,6 +40,14 @@ import de.pixelrpg.rpg.region.RegionTransitionService;
 import de.pixelrpg.rpg.story.StoryNpcInteractionListener;
 import de.pixelrpg.rpg.story.StoryRepository;
 import de.pixelrpg.rpg.story.StoryService;
+import de.pixelrpg.rpg.shop.ShopDialogService;
+import de.pixelrpg.rpg.shop.ShopNpcListener;
+import de.pixelrpg.rpg.shop.ShopRepository;
+import de.pixelrpg.rpg.shop.ShopService;
+import de.pixelrpg.rpg.trade.TradeDepotDialogService;
+import de.pixelrpg.rpg.trade.TradeDepotRepository;
+import de.pixelrpg.rpg.trade.TradeDepotService;
+import de.pixelrpg.rpg.trade.TradeGoodsRepository;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -55,6 +63,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ExecutorService questIo;
     private ExecutorService storyIo;
     private ExecutorService regionIo;
+    private ExecutorService shopIo;
+    private ExecutorService tradeIo;
     private ProfessionSystem professionSystem;
     private CompanionSystem companionSystem;
 
@@ -174,6 +184,51 @@ public final class PixelRPGPlugin extends JavaPlugin {
         });
 
         npcRuntime.loadAsync();
+        shopIo = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-ShopIO");
+            thread.setDaemon(true);
+            return thread;
+        });
+        ShopRepository shopRepository = lifecycle.register(new ShopRepository(
+                this, getDataFolder().toPath().resolve("shops.yml"), shopIo
+        ));
+        ShopService shopService = lifecycle.register(new ShopService(this, playerProfileManager, itemService, shopRepository));
+
+        tradeIo = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-TradeIO");
+            thread.setDaemon(true);
+            return thread;
+        });
+        TradeDepotRepository tradeDepotRepository = lifecycle.register(new TradeDepotRepository(
+                this, getDataFolder().toPath().resolve("trade-depot.yml"), tradeIo
+        ));
+        TradeGoodsRepository tradeGoodsRepository = lifecycle.register(new TradeGoodsRepository(
+                this, getDataFolder().toPath().resolve("trade-goods-storage.yml"), tradeIo
+        ));
+        TradeDepotService tradeDepotService = lifecycle.register(new TradeDepotService(
+                this, playerProfileManager, itemService, tradeDepotRepository, tradeGoodsRepository
+        ));
+        java.util.concurrent.CompletableFuture<Void> shopLoad = shopRepository.loadAsync()
+                .thenAccept(shopService::replace);
+        java.util.concurrent.CompletableFuture<Void> tradeLoad = tradeDepotRepository.loadAsync()
+                .thenAccept(tradeDepotService::replace)
+                .thenCombine(tradeGoodsRepository.loadAsync(), (ignored, goods) -> null);
+        java.util.concurrent.CompletableFuture.allOf(shopLoad, tradeLoad)
+                .thenRun(() -> getServer().getScheduler().runTask(this, () -> {
+                    if (!isEnabled()) return;
+                    TradeDepotDialogService tradeDialogs = new TradeDepotDialogService(
+                            tradeDepotService, playerProfileManager, new DialogueEngine()
+                    );
+                    ShopDialogService shopDialogs = new ShopDialogService(
+                            shopService, playerProfileManager, new DialogueEngine(), tradeDialogs
+                    );
+                    getServer().getPluginManager().registerEvents(new ShopNpcListener(npcRuntime, shopDialogs), this);
+                }))
+                .exceptionally(failure -> {
+                    getLogger().log(java.util.logging.Level.SEVERE, "Failed to load shop/trade data.", failure);
+                    return null;
+                });
+
 
         // Profession recipe loading completes independently; NPC listener registration is finalized below.
         professionSystem.loadAsync().thenRun(() -> getServer().getScheduler().runTask(this, () -> {
@@ -240,6 +295,14 @@ public final class PixelRPGPlugin extends JavaPlugin {
             if (regionIo != null) {
                 regionIo.shutdown();
                 regionIo = null;
+            }
+            if (shopIo != null) {
+                shopIo.shutdown();
+                shopIo = null;
+            }
+            if (tradeIo != null) {
+                tradeIo.shutdown();
+                tradeIo = null;
             }
             lifecycle = null;
             playerProfileManager = null;
