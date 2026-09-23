@@ -505,3 +505,41 @@ Die Quellstruktur enthält in diesem Schritt keine verbotenen Legacy-NMS-/CraftB
 Ein vollständiger `gradle clean build --no-daemon --stacktrace` konnte über die verfügbare GitHub-Actions-Schnittstelle für den aktuellen `rebuild`-HEAD noch nicht als abgeschlossenes Ergebnis festgestellt werden. Daher wird dieser Schritt **nicht** als build-verifiziert markiert.
 
 Nächster abhängiger Bereich ist **Items/Equipment/ökonomische Grundlagen**. Vor dessen Implementierung müssen die tatsächlichen Item-/Equipment-Abhängigkeiten aus `main` forensisch erfasst werden.
+
+
+## 16. Rebuild-Fortschritt
+
+### Phase 6 — Items / Equipment / ökonomische Grundlagen
+
+Status: **implementiert, CI-Verifikation ausstehend**
+
+Forensisch aus `main` geprüft und für `rebuild` neu strukturiert:
+
+- zentrale Item-API und Item-Domain mit stabilen Item-IDs, Kategorien, Raritäten und Item-Definitionen;
+- zentrale `RPGKeys`-Instanz statt globalem Plugin-Singleton für Item-PDC-Schlüssel;
+- JSON-Content als `data/`-Quelle für Itemdefinitionen, Food, Scaling, Equipment-Sets, Unique-State und Boss-Reward-Items;
+- aktuelle Paper-Data-Component-API für Food/Consumable-Konfiguration;
+- RPG-Item-Erzeugung mit PDC-Identität, Instanz-ID, Level, Gearscore und bestehenden Item-Statfeldern;
+- Economy-Safety-Prüfung für handelbare Items;
+- Unique-Item-State mit asynchroner Persistierung und eindeutigem Lifecycle-Besitzer;
+- Soulbound-Operation als fachlich isolierter Service;
+- persistentes Equipment bleibt im PlayerProfile und wird über einen separaten Equipment-Service beim Join/Respawn wiederhergestellt und beim Quit synchronisiert;
+- physisches Gilden-Gold bleibt über eine eigene Currency-Factory und einen isolierten Pickup-Listener von der Profile-/Economy-API getrennt;
+- bestehende Guild-/Economy-Services werden weiterhin über die PlayerProfile-Komponente bereitgestellt.
+
+### Bewusst nicht übernommen
+
+- alter `EquipmentService` mit direkter Abhängigkeit auf `StatEngine` und globalem `PixelRPGPlugin.getInstance()`;
+- alte `WakeScheduler`-Abhängigkeit für Equipment-Refreshes;
+- alte globale/static `RPGKeys.init(...)`-Initialisierung;
+- weitere Stats-/Combat-Logik, da diese gemäß Abhängigkeitsreihenfolge erst im Stats-/Combat-Rebuild behandelt wird.
+
+### Verifikation
+
+- Die neuen Item-/Equipment-/Economy-Klassen verwenden keine CraftBukkit- oder Legacy-NMS-Klassen.
+- Es werden keine statischen Live-`Player`/`Entity`/`World`-Referenzen eingeführt.
+- Listener besitzen Zweckkommentare direkt über jedem `@EventHandler`.
+- Paper-26.2-Data-Component-APIs werden für die Food-Konfiguration verwendet.
+- GitHub Actions hat für den aktuellen `rebuild`-Stand einen Build-Lauf gestartet; die abschließende CI-Verifikation war beim Audit-Update noch nicht abgeschlossen.
+
+Nächster abhängiger Bereich ist **NPC Runtime + Persistence**. Vor dessen Implementierung sind NPC-Domainzustand, Runtime-Entity-Lifecycle, Skin-Persistenz und Chunk-Lifecycle aus `main` forensisch zu erfassen.
