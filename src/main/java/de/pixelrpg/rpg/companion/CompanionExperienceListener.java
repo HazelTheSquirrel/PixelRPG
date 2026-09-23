@@ -8,7 +8,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
 import java.util.UUID;
@@ -33,7 +32,8 @@ public final class CompanionExperienceListener implements Listener {
     public void onDamage(EntityDamageEvent event){
         if(!(event.getEntity() instanceof LivingEntity living))return;
         if(service.getOwnerOfEntity(living.getUniqueId())==null)return;
-        if(service.definition(id(living)).rarity().isUnique())return;
+        String id=service.companionId(living);
+        if(id==null || service.definition(id).rarity().isUnique())return;
         event.setCancelled(true);
     }
 
@@ -43,5 +43,4 @@ public final class CompanionExperienceListener implements Listener {
         service.awardExperience(event.playerId(),service.registry().questXp());
     }
 
-    private static String id(Entity entity){return entity.getPersistentDataContainer().get(new de.pixelrpg.rpg.core.RPGKeys((Plugin)null).itemId(),PersistentDataType.STRING);}
 }
