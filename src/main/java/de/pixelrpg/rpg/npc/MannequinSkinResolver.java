@@ -75,7 +75,7 @@ public final class MannequinSkinResolver {
     }
 
     public static CompletableFuture<Void> apply(Mannequin mannequin, String skinSource, Logger logger) {
-        return applyAndCapture(mannequin, skinSource, logger).thenApply(ignored -> null);
+        return applyAndCapture(mannequin, skinSource, pluginFromLogger(logger), logger).thenApply(ignored -> null);
     }
 
     /**
@@ -84,15 +84,9 @@ public final class MannequinSkinResolver {
      * reading a mutable mannequin profile after the asynchronous operation.
      */
     public static CompletableFuture<ProfileProperty> applyAndCapture(
-            Mannequin mannequin, String skinSource, Logger logger) {
+            Mannequin mannequin, String skinSource, Plugin plugin, Logger logger) {
         if (mannequin == null || skinSource == null || skinSource.isBlank() || !mannequin.isValid()) {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Mannequin skin target is invalid"));
-        }
-
-        Plugin plugin = plugin;
-        if (plugin == null) {
-            logger.warning("Cannot resolve mannequin skin: PixelRPG plugin is not loaded.");
-            return CompletableFuture.failedFuture(new IllegalStateException("PixelRPG plugin is not loaded"));
         }
 
         String source = skinSource.trim();
