@@ -4,7 +4,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,15 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
 
 public final class YamlNpcRepository implements NpcRepository {
-    private final Plugin plugin;
     private final Path file;
     private final ExecutorService executor;
 
     public YamlNpcRepository(Plugin plugin, ExecutorService executor) {
-        this.plugin = plugin;
         this.file = plugin.getDataFolder().toPath().resolve("npcs.yml");
         this.executor = executor;
     }
