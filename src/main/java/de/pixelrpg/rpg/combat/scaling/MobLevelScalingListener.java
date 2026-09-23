@@ -35,7 +35,6 @@ public final class MobLevelScalingListener implements Listener {
     private static final long COMBAT_TIMEOUT_MILLIS = 5_000L;
     private static final long COMBAT_TIMEOUT_TICKS = 100L;
 
-    private final Plugin plugin;
     private final GuildAPI guildAPI;
     private final MobScalingConfig scalingConfig;
     private final Map<UUID, Map<UUID, Long>> activeParticipants = new ConcurrentHashMap<>();
@@ -45,7 +44,6 @@ public final class MobLevelScalingListener implements Listener {
     private final WakeScheduler<ParticipantKey> expiryScheduler;
 
     public MobLevelScalingListener(Plugin plugin, GuildAPI guildAPI, MobScalingConfig scalingConfig) {
-        this.plugin = plugin;
         this.guildAPI = guildAPI;
         this.scalingConfig = scalingConfig;
         this.expiryScheduler = new WakeScheduler<>(plugin);
