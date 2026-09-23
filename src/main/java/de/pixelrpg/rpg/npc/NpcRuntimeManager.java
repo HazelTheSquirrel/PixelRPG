@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public final class NpcRuntimeManager implements AutoCloseable {
     private final Plugin plugin;
@@ -29,6 +31,7 @@ public final class NpcRuntimeManager implements AutoCloseable {
     private final Map<NpcChunkKey, List<String>> chunkIndex = new ConcurrentHashMap<>();
     private final Map<String, SkinProperty> storedSkins = new ConcurrentHashMap<>();
     private volatile boolean shuttingDown;
+    private CompletableFuture<Void> persistenceChain = CompletableFuture.completedFuture(null);
     private int nextId = 1;
 
     public NpcRuntimeManager(Plugin plugin, RPGKeys keys, NpcRepository repository) {
@@ -213,7 +216,9 @@ public final class NpcRuntimeManager implements AutoCloseable {
                     skin == null ? null : skin.value(), skin == null ? null : skin.signature(),
                     npc.profession() == null ? null : npc.profession().name());
         }).toList();
-        repository.save(nextId, records).exceptionally(exception -> {
+        persistenceChain = persistenceChain.handle((ignored, previousFailure) -> null)
+                .thenCompose(ignored -> repository.save(nextId, records))
+                .exceptionally(exception -> {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to persist NPC state.", exception);
             return null;
         });
@@ -255,6 +260,11 @@ public final class NpcRuntimeManager implements AutoCloseable {
         if (shuttingDown) return;
         shuttingDown = true;
         persist();
+        try {
+            persistenceChain.get(10, TimeUnit.SECONDS);
+        } catch (Exception exception) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "NPC persistence did not flush cleanly on shutdown.", exception);
+        }
         for (UUID uuid : List.copyOf(spawnedByNpc.values())) {
             Entity entity = plugin.getServer().getEntity(uuid);
             if (entity != null) entity.remove();
