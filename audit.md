@@ -617,3 +617,35 @@ Forensisch gegen den bestehenden Dialog-Bestand von `main` geprüft und auf `reb
 Der Stand muss nach dem Dialog-Rebuild erneut vollständig über `gradle clean build --no-daemon --stacktrace`, Source-Boundary-Checks und Artifact-Verifikation laufen. Erst nach erfolgreichem CI-Lauf wird Phase 8 als build-verifiziert markiert.
 
 Nächster abhängiger Bereich ist **Content-/Text-Grundlage**. Dabei werden stabile Content-IDs und externe Text-/Dialogdefinitionen aufgebaut, bevor Quest-/Story-Logik darauf aufsetzt.
+
+
+### Phase 9 — Content-/Text-Grundlage
+
+Status: **implementiert; CI-Verifikation ausstehend**
+
+Forensisch gegen den tatsächlichen Content-Bestand von `main` geprüft. Dabei wurde festgestellt, dass insbesondere Quest-Content über mehrere JSON-Dateien verteilt ist und Story-Text im alten Stand teilweise direkt in Java/YAML verarbeitet wird. Es wurde deshalb **nicht** blind Content zusammenkopiert.
+
+Auf `rebuild` wurde stattdessen die technische Content-Grundlage geschaffen:
+
+- stabile `ContentId` mit validiertem, versionsunabhängigem ID-Format;
+- immutable `TextContent` als fachlicher Textdatensatz;
+- `ContentCatalog` als unveränderlicher Runtime-Snapshot;
+- asynchroner JSON-Loader für externen Text-Content;
+- `ContentCatalogService` als Lifecycle-besitzender Runtime-Zugriff;
+- separater `PixelRPG-ContentIO`-Executor;
+- Snapshot-Austausch über `AtomicReference`, sodass Runtime-Lookups keinen Datei-I/O benötigen;
+- initiale Content-Datei `data/content/texts.json` mit expliziter Schema-Version;
+- Content-Datei wird beim ersten Start in den Plugin-Datenordner kopiert;
+- fehlerhafte Content-Daten führen zu einem kontrollierten Ladefehler statt zu einem teilweise geladenen Katalog;
+- Content-I/O liegt vollständig außerhalb des Serverthreads;
+- Content-Service besitzt einen eindeutigen Shutdown-Pfad.
+
+Bewusst **nicht** übernommen wurden die sechs vorhandenen Quest-Dateien als vermeintlich bereits konsolidierte Textquelle. Vor Quest-Rebuild muss deren fachlicher Inhalt dedupliziert und auf stabile Content-IDs abgebildet werden. Ebenso werden Story-/NPC-Texte erst in der Content-Phase migriert, nachdem ihre tatsächliche Verwendung aus `main` vollständig erfasst ist.
+
+Damit ist die technische Grundlage vorhanden, ohne bereits fachliche Quest-/Story-Regeln vorwegzunehmen.
+
+### Verifikation
+
+Nach Phase 9 ist ein vollständiger `gradle clean build --no-daemon --stacktrace` inklusive bestehender Source-/Artifact-Verifikationen erforderlich. Die Phase wird erst nach erfolgreichem CI-Lauf als build-verifiziert markiert.
+
+Nächster abhängiger Bereich ist **Quest-Domain + Quest-Persistence**. Vor dessen Implementierung müssen die sechs vorhandenen Quest-JSON-Dateien hinsichtlich IDs, Duplikaten, Versionen, Voraussetzungen, Rewards und Content-Überschneidungen vollständig normalisiert werden.
