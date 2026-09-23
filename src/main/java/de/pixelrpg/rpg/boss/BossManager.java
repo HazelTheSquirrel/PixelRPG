@@ -263,7 +263,7 @@ public final class BossManager {
             plugin.getLogger().warning("Invalid boss loot reward: " + rewardId);
             return;
         }
-        itemService.createVanillaReward(material, rarity, level).ifPresent(item -> giveItem(player, item));
+        itemService.createItem(material, rarity, level).ifPresent(item -> giveItem(player, item));
     }
 
     private void giveItem(Player player, org.bukkit.inventory.ItemStack item) { player.getInventory().addItem(item).values().forEach(remainder -> player.getWorld().dropItemNaturally(player.getLocation(), remainder)); }
