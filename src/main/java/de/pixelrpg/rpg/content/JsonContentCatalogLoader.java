@@ -22,7 +22,6 @@ public final class JsonContentCatalogLoader implements AutoCloseable {
     private final Plugin plugin;
     private final Path file;
     private final ExecutorService executor;
-    private final Gson gson;
 
     public JsonContentCatalogLoader(Plugin plugin, Path file, ExecutorService executor) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
