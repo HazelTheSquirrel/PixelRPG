@@ -25,8 +25,9 @@ public final class RegionTransitionService {
         UUID oldId = currentRegions.get(playerId);
         UUID newId = regions.find(location).map(PixelRegion::id).orElse(null);
         if (Objects.equals(oldId, newId)) return;
-        if (oldId != null) regions.get(oldId).ifPresent(region -> showRegionTitle(player, region.name(), region.leaveMessage(), false));
-        if (newId != null) regions.get(newId).ifPresent(region -> showRegionTitle(player, region.name(), region.enterMessage(), true));
+        PixelRegion oldRegion = oldId == null ? null : regions.get(oldId).orElse(null);
+        PixelRegion newRegion = newId == null ? null : regions.get(newId).orElse(null);
+        showTransition(player, oldRegion, newRegion);
         if (newId == null) currentRegions.remove(playerId);
         else currentRegions.put(playerId, newId);
     }
@@ -39,9 +40,13 @@ public final class RegionTransitionService {
         currentRegions.clear();
     }
 
-    private static void showRegionTitle(Player player, String regionName, String message, boolean entering) {
-        String title = message == null || message.isBlank() ? (entering ? regionName : "Verlassen") : message;
-        String subtitle = message == null || message.isBlank() ? (entering ? "" : regionName) : regionName;
-        player.showTitle(Title.title(Component.text(title), Component.text(subtitle)));
+    private static void showTransition(Player player, PixelRegion oldRegion, PixelRegion newRegion) {
+        String leave = oldRegion == null ? "" : oldRegion.leaveMessage();
+        String enter = newRegion == null ? "" : newRegion.enterMessage();
+        if (leave.isBlank() && enter.isBlank()) return;
+
+        Component title = Component.text(enter.isBlank() ? leave : enter);
+        Component subtitle = enter.isBlank() || leave.isBlank() ? Component.empty() : Component.text(leave);
+        player.showTitle(Title.title(title, subtitle));
     }
 }
