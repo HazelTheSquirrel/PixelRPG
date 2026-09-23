@@ -89,7 +89,7 @@ public final class QuestProgressListener implements Listener {
     // Persists quest mutations produced by quest-domain completion events.
     @EventHandler
     public void onQuestCompleted(QuestCompletedEvent event) {
-        profiles.saveProfileAsync(event.getPlayer().getUniqueId());
+        profiles.saveProfileAsync(event.playerId());
     }
 
     private void refresh(Player player) {
