@@ -236,7 +236,7 @@ public final class CompanionService {
         }
         String source = definition.visual().get("skinSource") != null ? definition.visual().get("skinSource").getAsString() : "";
         if (source.isBlank()) return;
-        MannequinSkinResolver.applyAndCapture(mannequin, source, plugin.getLogger()).thenAccept(texture ->
+        MannequinSkinResolver.applyAndCapture(mannequin, source, plugin, plugin.getLogger()).thenAccept(texture ->
                 plugin.getServer().getScheduler().runTask(plugin, () -> storeSkin(player.getUniqueId(), state.id(), texture.getValue(), texture.getSignature())));
     }
 
