@@ -1,4 +1,9 @@
 {
   "version": 1,
-  "texts": {}
+  "texts": {
+    "story.prologue.title": "The Summoning",
+    "story.prologue.line.1": "You awaken in a world that is not your own.",
+    "story.prologue.line.2": "The Guild recognizes potential in you.",
+    "story.prologue.line.3": "Register at the Reception to begin your journey."
+  }
 }
