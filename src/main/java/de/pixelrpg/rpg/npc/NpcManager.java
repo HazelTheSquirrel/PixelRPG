@@ -336,7 +336,9 @@ public final class NpcManager {
                     .reduce((first, last) -> last)
                     .orElse(null);
             if (texture == null || texture.getValue() == null || texture.getValue().isBlank()) return;
-            resolvedSkinsByNpcId.put(npcId, new StoredSkin(texture.getValue(), texture.getSignature()));
+            StoredSkin resolved = new StoredSkin(texture.getValue(), texture.getSignature());
+            resolvedSkinsByNpcId.put(npcId, resolved);
+            // Persist immediately from the exact resolved texture currently present on the mannequin.
             saveAll();
         });
     }
