@@ -927,3 +927,60 @@ Damit wurden erfolgreich verifiziert:
 Ein vorheriger Lauf **35874911327** scheiterte ausschließlich an zwei konkret ermittelten Compile-Fehlern in der Quest-Integration des neuen ProfessionActivityListener: `QuestCompletedEvent` stellt `playerId()`/`questId()` bereit, nicht `getPlayer()`/`getQuestId()`. Die Integration wurde daraufhin auf die tatsächliche Event-API korrigiert und über Workflow 35875087550 erfolgreich verifiziert.
 
 Nächster abhängiger Bereich ist **Companions**.
+
+### Phase 14 — Companions
+
+Status: **implementiert; CI-verifiziert**
+
+Der Companion-Bereich wurde vor der Implementierung gegen den tatsächlichen Referenzbestand von main forensisch geprüft. Der Referenzzustand umfasst Companion-Definitionen, Spielerzustand, Progression, Equipment, Skin-Persistenz, Runtime-Follow, Wolf-Combat, Mounting, Boss-Unlocks und die Companion-Dialog-/Command-Schicht.
+
+Auf rebuild wurde der Bereich bewusst neu aufgebaut:
+
+- CompanionDefinition bildet statische Companion-Daten aus companions.json ab;
+- CompanionRegistry validiert und hält die immutable Definition-Quelle;
+- die kanonische Ressource data/companions.json wurde vollständig aus dem Referenzzustand übernommen;
+- Companion-Spielerzustand liegt jetzt ausschließlich in PlayerProfile über CompanionState;
+- Companion-Level, XP, Aktivstatus, Name, Equipment und aufgelöste Mannequin-Skin-Texture werden gemeinsam mit dem bestehenden PlayerProfile persistiert;
+- YAML-Persistenz schreibt den Companion-State in die vorhandene Player-Datei;
+- MySQL-Persistenz verwendet eine eigene pixelrpg_player_companions-Tabelle innerhalb derselben Profile-Transaktion;
+- Datenbankschema wurde auf Version 3 erweitert;
+- es existiert keine separate Companion-/Equipment-Persistenz mehr außerhalb des PlayerProfile;
+- CompanionService ist die fachliche Runtime-Grenze für Freischalten, Aktivieren, Deaktivieren, Umbenennen, Equipment, Skin-State und XP;
+- Companion-Definitionen werden über einen eigenen PixelRPG-CompanionIO-Executor außerhalb des Serverthreads geladen;
+- Companion-Runtime ist eventgetrieben: Join, Bewegung, Weltwechsel, Quit, Tod und gezielte Wake-Ups statt eines globalen permanenten Polling-Tasks;
+- aktive Companion-Entities werden ausschließlich über UUID-Indizes verfolgt;
+- Follow-/Teleport-Verhalten, skalierte Attribute und die spezielle tamed-Wolf-Kampfreaktion des Referenzzustands wurden in die neue Runtime-Schicht übernommen;
+- normale Companion-Entities sind gegen Vanilla-Schaden geschützt; Unique-Mannequin-Companions bleiben davon ausgenommen;
+- Mannequin-Skins verwenden weiterhin MannequinSkinResolver; bereits aufgelöste Texture-Properties werden im PlayerProfile gespeichert und nach Neustart zuerst wieder angewendet;
+- native Paper-26.2-Dialoge ersetzen die alte Companion-Inventar-/UI-Schicht für Besitz, Aktivierung, Progression und Umbenennung;
+- COMPANION wurde als eigener NPC-Typ/Funktionspunkt für die native NPC-Interaktion ergänzt;
+- Quest-Abschluss veröffentlicht jetzt das bestehende QuestCompletedEvent, wodurch aktive Companions ihre konfigurierte Quest-XP erhalten können;
+- Boss-Reward-Integration bleibt bewusst an die spätere Combat/Boss-Phase gekoppelt, da der vollständige Boss-Domainbereich gemäß Audit-Reihenfolge erst in Phase 16 aufgebaut wird. Die Companion-Definitionen besitzen die dafür notwendige datengetriebene Unlock-Information bereits.
+
+### Bewusst nicht übernommen
+
+Nicht als unveränderte Kopie übernommen wurden:
+
+- CompanionEquipmentStore als zweite Persistenzquelle;
+- der alte permanente Companion-Stats-Refresh-Task;
+- globale Bukkit-/PixelRPGPlugin.getInstance()-Dependency-Zugriffe;
+- die alte Inventar-Equipment-GUI;
+- die alte administrative Command-Implementierung. Commands/UI bleiben gemäß Audit-Reihenfolge Teil der Phase 17-Schicht;
+- die alte Boss-Listener-Kopplung, solange das Combat/Boss-System selbst noch nicht auf rebuild existiert.
+
+Damit bleibt Companion-State fachlich eindeutig im PlayerProfile, während statische Definitionen, Runtime-Entity-Verwaltung, Dialoge und Persistence sauber getrennt sind.
+
+### Verifikation
+
+GitHub Actions Workflow 35879395929 für den Companion-Stand lief vollständig mit **success** durch.
+
+Erfolgreich verifiziert wurden:
+
+- gradle clean build --no-daemon --stacktrace;
+- Source-API-Grenzen;
+- Plugin-Artefaktprüfung;
+- Third-Party-Relocations und JDBC-Service-Prüfung.
+
+Der erste Companion-Build 35879040919 scheiterte an konkret ermittelten Compile-Fehlern in den neu hinzugefügten Integrationen. Diese wurden anhand des CI-Logs korrigiert, insbesondere bei aktuellen NPC-/Skin-APIs, Quest-Event-Import, Companion-NPC-Funktion und Runtime-Typprüfungen. Der anschließend vollständig durchgelaufene Workflow 35879395929 bestätigt den korrigierten Stand.
+
+Nächster abhängiger Bereich ist Shops/Trading.
