@@ -85,6 +85,7 @@ public final class QuestService implements AutoCloseable {
         if (!isComplete(profile, questId)) return false;
         profile.removeActiveQuest(questId);
         profile.markQuestCompleted(questId);
+        plugin.getServer().getPluginManager().callEvent(new QuestCompletedEvent(profile.getUuid(), questId));
         return true;
     }
 
