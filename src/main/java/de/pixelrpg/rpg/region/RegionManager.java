@@ -48,7 +48,12 @@ public final class RegionManager {
         if (repository.consumeMigrationNeeded()) save();
     }
 
-    public Optional<PixelRegion> get(UUID id) { return Optional.ofNullable(regions.get(id)); }
+    public Optional<PixelRegion> get(UUID id) {
+        if (id == null) return Optional.empty();
+        PixelRegion normal = regions.get(id);
+        if (normal != null) return Optional.of(normal);
+        return globalRegions.values().stream().filter(region -> region.id().equals(id)).findFirst();
+    }
 
     public List<PixelRegion> all() {
         return regions.values().stream()
