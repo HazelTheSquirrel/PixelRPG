@@ -8,11 +8,12 @@ import de.pixelrpg.rpg.api.events.PlayerUnregistrationEvent;
 import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.storage.DatabaseManager;
 import de.pixelrpg.rpg.storage.StorageType;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.ServicePriority;
+import org.bukkit.plugin.ServicesManager;
 
 import java.io.File;
 import java.util.List;
@@ -30,6 +31,8 @@ import java.util.function.Supplier;
 
 public final class PlayerProfileManager implements GuildAPI, EconomyAPI, AutoCloseable {
     private final Plugin plugin;
+    private final PluginManager pluginManager;
+    private final ServicesManager servicesManager;
     private final Map<UUID, PlayerProfile> activeProfiles = new ConcurrentHashMap<>();
     private final Map<UUID, PlayerProfile> loadingCache = new ConcurrentHashMap<>();
     private final Map<UUID, CompletableFuture<Void>> saveChain = new ConcurrentHashMap<>();
@@ -45,7 +48,13 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, AutoClo
     private CompletableFuture<Void> storageReady = CompletableFuture.completedFuture(null);
 
     public PlayerProfileManager(Plugin plugin) {
+        this(plugin, plugin.getServer().getPluginManager(), plugin.getServer().getServicesManager());
+    }
+
+    public PlayerProfileManager(Plugin plugin, PluginManager pluginManager, ServicesManager servicesManager) {
         this.plugin = plugin;
+        this.pluginManager = pluginManager;
+        this.servicesManager = servicesManager;
     }
 
     public void initialize(FileConfiguration config) {
@@ -100,7 +109,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, AutoClo
                 }
             }, saveExecutor);
         }
-        Bukkit.getServicesManager().register(GuildAPI.class, this, plugin, ServicePriority.Normal);
+        servicesManager.register(GuildAPI.class, this, plugin, ServicePriority.Normal);
         Bukkit.getServicesManager().register(EconomyAPI.class, this, plugin, ServicePriority.Normal);
     }
 
@@ -211,7 +220,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, AutoClo
         if (profile.isRegistered()) return;
         profile.setRegistered(true);
         persistAsync(profile);
-        Bukkit.getPluginManager().callEvent(new PlayerRegistrationEvent(player));
+        pluginManager.callEvent(new PlayerRegistrationEvent(player));
     }
 
     public void unregisterPlayer(Player player) {
@@ -360,7 +369,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, AutoClo
         int after = profile.getLevel();
         persistAsync(profile);
         if (before != after) {
-            Player player = Bukkit.getPlayer(uuid);
+            Player player = plugin.getServer().getPlayer(uuid);
             if (player != null) Bukkit.getPluginManager().callEvent(new PlayerLevelUpEvent(player, before, after));
         }
     }
