@@ -38,7 +38,7 @@ public final class CompanionMountController {
         if (!definition.mount().enabled() || !mount.getPassengers().contains(owner)) return;
         Input input = owner.getCurrentInput();
         Vector direction = movementDirection(owner, input);
-        double speed = definition.mount().movementSpeed();
+        double speed = definition.mount().speed();
         switch (definition.mount().type()) {
             case FLYING, UNDERWATER -> {
                 double vertical = input.isJump() ? speed * 0.75D : input.isSprint() ? -speed * 0.75D : 0.0D;
