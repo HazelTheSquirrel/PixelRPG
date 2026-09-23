@@ -2,6 +2,8 @@ package de.pixelrpg.rpg;
 
 import de.pixelrpg.rpg.api.ItemAPI;
 import de.pixelrpg.rpg.config.JsonDataManager;
+import de.pixelrpg.rpg.content.ContentCatalogService;
+import de.pixelrpg.rpg.content.JsonContentCatalogLoader;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.DialogueProgressStore;
 import de.pixelrpg.rpg.dialogue.DialogueTreeService;
@@ -29,14 +31,31 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private LifecycleCoordinator lifecycle;
     private PlayerProfileManager playerProfileManager;
     private ExecutorService dialogueIo;
+    private ExecutorService contentIo;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        saveResource("data/content/texts.json", false);
         lifecycle = new LifecycleCoordinator(getLogger());
 
         new JsonDataManager(this).initialize();
         RPGKeys keys = new RPGKeys(this);
+
+        contentIo = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-ContentIO");
+            thread.setDaemon(true);
+            return thread;
+        });
+        ContentCatalogService contentCatalog = lifecycle.register(new ContentCatalogService(
+                this,
+                new JsonContentCatalogLoader(this, getDataFolder().toPath().resolve("data/content/texts.json"), contentIo)
+        ));
+        contentCatalog.loadAsync().whenComplete((ignored, failure) -> {
+            if (failure != null) {
+                getLogger().log(java.util.logging.Level.SEVERE, "Failed to load content catalog.", failure);
+            }
+        });
 
         playerProfileManager = lifecycle.register(new PlayerProfileManager(this));
         playerProfileManager.initialize(getConfig());
@@ -95,6 +114,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
             if (dialogueIo != null) {
                 dialogueIo.shutdown();
                 dialogueIo = null;
+            }
+            if (contentIo != null) {
+                contentIo.shutdown();
+                contentIo = null;
             }
             lifecycle = null;
             playerProfileManager = null;
