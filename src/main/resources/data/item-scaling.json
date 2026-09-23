@@ -1,0 +1,14 @@
+{
+  "growthMultiplier": 2.0,
+  "baseStats": {
+    "weaponDamage": 3.0,
+    "weaponCritChance": 0.5,
+    "weaponCritDamage": 0.05,
+    "weaponReach": 0.10,
+    "weaponLifesteal": 0.25,
+    "armor": 0.7,
+    "health": 1.2,
+    "movementSpeed": 0.001,
+    "toolEfficiency": 1.0
+  }
+}
