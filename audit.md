@@ -1295,3 +1295,11 @@ Der zuvor fehlgeschlagene Build wurde nicht übersprungen oder maskiert. Die kon
 Die verbleibenden historischen Dateien aus `main`, die durch bewusst modernisierte Rebuild-Domänen ersetzt wurden, werden nicht blind zurückkopiert. Dazu gehören insbesondere die alte Inventory-GUI-Schicht, alte God-Manager und alte Legacy-Command-Strukturen. Ihre fachlichen Funktionen sind, soweit im Referenzbestand relevant, in den neuen Domain-/Dialog-/Service-Schichten abzubilden.
 
 `main` und `test` wurden in dieser Runde nicht verändert. Der aktive Neuaufbau bleibt ausschließlich auf `rebuild`.
+
+## 20. Clean-Rebuild-Recovery — 2026-09-23
+
+Der aktuell aktive `rebuild`-Stand wurde auf den letzten forensisch aufgebauten und vollständig CI-verifizierten Paritätsstand `ebcc8ea07a8c5ce225b47bbfee77260bc246a540` zurückgesetzt. Dieser Stand basiert auf dem unveränderten `main`-Referenzcommit `b02747a21cde6d1308c59a7f027cda80877cfe50` und enthält die bewusst neu strukturierten Rebuild-Domänen statt eines blinden `src/main`-Kopierens.
+
+Forensisch bestätigt: 203 Java-Dateien im Rebuild gegenüber 247 im Referenzzustand. Die entfernten Dateien sind Bestandteil der dokumentierten Architekturentscheidungen; insbesondere alte Inventory-GUIs, Legacy-Command-Schichten, doppelte Runtime-/Persistence-Modelle und ersetzte God-Manager wurden nicht wiederhergestellt.
+
+Dieser Stand ist damit die technische Clean-Rebuild-Basis. Die abschließende Verifikation läuft erneut über GitHub Actions auf dem aktuellen `rebuild`-HEAD.
