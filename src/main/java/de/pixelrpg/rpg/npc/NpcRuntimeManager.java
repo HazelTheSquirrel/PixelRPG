@@ -3,7 +3,6 @@ package de.pixelrpg.rpg.npc;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.profession.Profession;
 import org.bukkit.Chunk;
-import org.bukkit.EntityEffect;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
