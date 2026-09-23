@@ -721,3 +721,67 @@ Die kanonische Quelle wurde vor Commit programmatisch auf **163 eindeutige IDs u
 Der vollständige `gradle clean build --no-daemon --stacktrace` lief auf Commit `b3a464b0b517edac084214910367435ed65850f2` erfolgreich durch. Zusätzlich waren die bestehenden Source-API-Grenzprüfungen und die Plugin-Artefaktprüfung erfolgreich. Ein vorheriger Lauf scheiterte ausschließlich an konkret festgestellten Compile-Fehlern (`QuestType` fehlte, `QuestRepository` war nicht `AutoCloseable`, bestehender `NpcRuntimeManager`-Substring-Aufruf war syntaktisch falsch); diese wurden gezielt korrigiert und anschließend erfolgreich verifiziert.
 
 Nächster abhängiger Bereich ist **Story/Lore**. Dabei müssen `StoryManager`, `StoryChapter`, `StoryBookFactory` und `StoryNpcDialogue` gegen die neue Content-/Dialog-Grundlage forensisch aufgelöst werden, ohne Quest-Regeln in die Dialogschicht zu verschieben.
+
+
+### Phase 11 — Story / Lore
+
+Status: **implementiert; CI-verifiziert**
+
+Die Story-/Lore-Schicht wurde vor der Implementierung gegen den tatsächlichen Referenzcode von main forensisch aufgelöst:
+
+- StoryManager lädt im Referenzzustand eine externe story.yml, erzeugt bei fehlender Datei genau ein Default-Kapitel und verwaltet den persistenten storyChapterIndex aus PlayerProfile.
+- StoryChapter besteht funktional aus Reihenfolge, ID, Titel, Textzeilen und XP-Belohnung.
+- StoryBookFactory erzeugt aus dem Kapitel ein geschriebenes Buch mit konfigurierbarer Zeilen-/Seitenaufteilung.
+- StoryBehavior öffnet für einen registrierten Spieler einen nativen Dialog, bietet das nächste Kapitel zum Lesen an, öffnet das Story-Buch und schaltet das Kapitel anschließend inklusive XP frei.
+- StoryNpcDialogue zeigt nach dem letzten Kapitel den bestehenden Zustand ohne neues Kapitel.
+
+Für rebuild wurde diese Funktionalität nicht als Blindkopie übernommen.
+
+Neu aufgebaut wurden:
+
+- immutable StoryChapter als reine Story-Domain;
+- asynchrones StoryRepository für data/story/definitions.json;
+- StoryService als fachliche Story-State-Grenze auf Basis des bestehenden PlayerProfile;
+- instanzgebundene StoryBookFactory ohne statischen Zustand;
+- StoryNpcDialogue als native Paper-Dialog-Integration;
+- StoryNpcInteractionListener als getrennte NPC-Interaktionsgrenze;
+- Story-Definitionen werden über stabile Content-IDs mit dem bestehenden ContentCatalogService verbunden;
+- der bisherige Default-Prolog wurde fachlich erhalten und in die neue Content-Struktur überführt:
+  - story.prologue.title
+  - story.prologue.line.1
+  - story.prologue.line.2
+  - story.prologue.line.3
+- Story-I/O läuft über einen eigenen PixelRPG-StoryIO-Executor;
+- StoryRepository und Executor besitzen einen eindeutigen Lifecycle-/Shutdown-Pfad;
+- die Story-Interaktion verwendet ausschließlich die bereits etablierte native Paper-Dialog-Engine;
+- Quest-Regeln bleiben vollständig außerhalb der Story-/Dialogschicht;
+- der bestehende PlayerProfile.storyChapterIndex bleibt die einzige autoritative Quelle für den Spieler-Storyfortschritt;
+- XP wird weiterhin beim erfolgreichen Kapitelabschluss über PlayerProfileManager vergeben.
+
+### Bewusst nicht übernommen
+
+Nicht übernommen wurden:
+
+- der alte StoryManager;
+- direkte Runtime-Erzeugung und Persistierung einer story.yml;
+- statische StoryBookFactory-Konfiguration;
+- die alte globale PixelRPGPlugin.getInstance()-Abhängigkeit aus StoryNpcDialogue;
+- die alte StoryBehavior-God-Integration mit direkter Kopplung an Story, Dialog und NPC-Behavior-Registry.
+
+Die fachliche Funktion bleibt erhalten, während Story-Definitionen, Text-Content, Story-State, Buchdarstellung und NPC-Interaktion getrennt sind.
+
+### Verifikation
+
+- Story-/Lore-Code verwendet keine Legacy-NMS-, CraftBukkit- oder ChatColor-APIs.
+- Listener besitzt den vorgeschriebenen Zweckkommentar direkt über @EventHandler.
+- Story-Datei-I/O läuft ausschließlich asynchron.
+- PlayerProfile bleibt Source of Truth für den Storyfortschritt.
+- Die kanonische Prolog-Definition verweist ausschließlich auf stabile Content-IDs.
+- Vollständiger GitHub-Actions-Lauf 35869281978 auf Commit 292f0ce3f909706d131400db32a4f4ba2c99106f erfolgreich:
+  - Build PixelRPG: success
+  - Verify source API boundaries: success
+  - Verify plugin artifact: success
+
+Der Buildlauf enthielt zuvor konkrete Compile-Fehler aus der Zwischenrevision (StoryService/StoryRepository/StoryBookFactory/StoryNpcInteractionListener nicht importiert sowie storyIo-Feld fehlte). Diese wurden gezielt anhand des CI-Logs korrigiert und anschließend im vollständigen Lauf erfolgreich verifiziert.
+
+Nächster abhängiger Bereich ist Regionen. Vor dessen Implementierung sind PixelRegion, RegionManager, RegionRepository, Flags, Spawn-/Transition-Logik und die bestehenden Region-Dialoge aus main forensisch gegen die bereits vorhandene Player-/NPC-/Dialog-Grundlage zu erfassen.
