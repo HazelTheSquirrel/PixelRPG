@@ -10,7 +10,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.Optional;
+import java.util.UUID;
+
 
 public final class CompanionMountListener implements Listener, AutoCloseable {
     private final Plugin plugin;
@@ -29,15 +30,15 @@ public final class CompanionMountListener implements Listener, AutoCloseable {
     @EventHandler
     public void onInteract(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
-        Optional<Entity> active = companions.getActiveEntity(player.getUniqueId()).map(entity -> (Entity) entity);
-        if (active.isEmpty() || !active.get().getUniqueId().equals(event.getRightClicked().getUniqueId())) return;
-        String id = companions.state(player.getUniqueId(), companions.getActive(player.getUniqueId()).id()).id();
-        companions.definition(id).ifPresent(definition -> {
-            if (controller.tryMount(player, (LivingEntity) event.getRightClicked(), definition)) {
-                controller.prepare((LivingEntity) event.getRightClicked(), definition, player);
-                event.setCancelled(true);
-            }
-        });
+        UUID activeId = companions.getActiveEntity(player.getUniqueId());
+        if (activeId == null || !activeId.equals(event.getRightClicked().getUniqueId())) return;
+        Companion active = companions.getActive(player.getUniqueId());
+        if (active == null) return;
+        CompanionDefinition definition = companions.definition(active.id());
+        if (controller.tryMount(player, (LivingEntity) event.getRightClicked(), definition)) {
+            controller.prepare((LivingEntity) event.getRightClicked(), definition, player);
+            event.setCancelled(true);
+        }
     }
 
     // Beendet die Mount-Steuerung beim Verlassen des Servers.
@@ -50,13 +51,11 @@ public final class CompanionMountListener implements Listener, AutoCloseable {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             Entity vehicle = player.getVehicle();
             if (!(vehicle instanceof LivingEntity living)) continue;
-            companions.getOwnerOfEntity(vehicle.getUniqueId());
-            companions.getActiveEntity(player.getUniqueId()).ifPresent(active -> {
-                if (!active.getUniqueId().equals(vehicle.getUniqueId())) return;
-                Companion companion = companions.getActive(player.getUniqueId());
-                if (companion == null) return;
-                companions.definition(companion.id()).ifPresent(definition -> controller.tick(player, living, definition));
-            });
+            UUID activeId = companions.getActiveEntity(player.getUniqueId());
+            if (activeId == null || !activeId.equals(vehicle.getUniqueId())) continue;
+            Companion companion = companions.getActive(player.getUniqueId());
+            if (companion == null) continue;
+            controller.tick(player, living, companions.definition(companion.id()));
         }
     }
 
