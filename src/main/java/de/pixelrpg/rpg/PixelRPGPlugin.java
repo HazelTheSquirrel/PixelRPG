@@ -105,6 +105,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         saveDefaultConfig();
         saveResource("data/content/texts.json", false);
         saveResource("data/quests/definitions.json", false);
+        saveResource("data/story/definitions.json", false);
         saveResource("data/recipes/crafting-recipes.json", false);
         lifecycle = new LifecycleCoordinator(getLogger());
 
