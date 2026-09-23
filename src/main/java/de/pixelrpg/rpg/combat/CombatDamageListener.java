@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.combat;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.player.PlayerProfile;
@@ -29,18 +28,20 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class CombatDamageListener implements Listener {
     private static final double MAX_CRIT_CHANCE = 100.0D;
 
+    private final Plugin plugin;
     private final GuildAPI guildAPI;
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
     private final CombatStateService combatStateService;
     private final double bossMaxHitPercentOfMaxHp;
 
-    public CombatDamageListener(GuildAPI guildAPI, PlayerProfileManager profileManager, StatEngine statEngine) {
+    public CombatDamageListener(Plugin plugin, GuildAPI guildAPI, PlayerProfileManager profileManager, StatEngine statEngine) {
+        this.plugin = plugin;
         this.guildAPI = guildAPI;
         this.profileManager = profileManager;
         this.statEngine = statEngine;
-        this.combatStateService = new CombatStateService(PixelRPGPlugin.getInstance(), guildAPI);
-        this.bossMaxHitPercentOfMaxHp = PixelRPGPlugin.getInstance().getConfig()
+        this.combatStateService = new CombatStateService(plugin, guildAPI);
+        this.bossMaxHitPercentOfMaxHp = plugin.getConfig()
                 .getDouble("combat.boss-max-hit-percent-of-max-hp", 0.12D);
     }
 
