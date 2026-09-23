@@ -176,6 +176,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
         PartyManager partyManager = lifecycle.register(new PartyManager(this));
         GuildManager guildManager = lifecycle.register(new GuildManager(this, playerProfileManager));
+        getServer().getServicesManager().register(PartyAPI.class, partyManager, this, ServicePriority.Normal);
         GuildAPI guildApi = guildManager;
         BossRepository bossRepository = new BossRepository(this);
         bossRepository.load();
