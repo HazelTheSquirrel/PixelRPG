@@ -25,7 +25,7 @@ public final class CompanionDialogService {
             CompanionDefinition definition=service.definition(companion.id());
             actions.add(dialogs.actionButton(Component.text(companion.name()+" · Level "+companion.level()),NamedTextColor.YELLOW,target->openDetails(target,companion,definition)));
         }
-        actions.add(dialogs.actionButton(Component.text("Schließen"),NamedTextColor.WHITE,Player::closeDialog));
+        actions.add(dialogs.actionButton(Component.text("Schließen"),NamedTextColor.WHITE,player -> player.closeDialog()));
         dialogs.openMultiAction(player,Component.text("PixelRPG – Begleiter",NamedTextColor.GOLD),List.of(),actions,2);
     }
 
