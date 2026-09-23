@@ -653,7 +653,7 @@ Nächster abhängiger Bereich ist **Quest-Domain + Quest-Persistence**. Vor dess
 
 ### Phase 10 — Quest-Domain + Quest-Persistence
 
-Status: **implementiert; CI-Verifikation ausstehend**
+Status: **implementiert; CI-verifiziert**
 
 Die Quest-Struktur von `main` wurde vor der Übernahme forensisch ausgewertet. Der tatsächlich aktive alte Loader verwendet vier Dateien:
 
@@ -718,6 +718,6 @@ Diese Teile sind abhängige Integrationsschritte. Die fachliche Quest-Wahrheit l
 
 Die kanonische Quelle wurde vor Commit programmatisch auf **163 eindeutige IDs und keine fehlenden Prerequisite-/Follow-up-Referenzen** geprüft.
 
-Ein vollständiger `gradle clean build --no-daemon --stacktrace` muss nach dem letzten Quest-Commit noch durch CI bestätigt werden. Die Phase wird deshalb derzeit **nicht** als CI-verifiziert markiert.
+Der vollständige `gradle clean build --no-daemon --stacktrace` lief auf Commit `b3a464b0b517edac084214910367435ed65850f2` erfolgreich durch. Zusätzlich waren die bestehenden Source-API-Grenzprüfungen und die Plugin-Artefaktprüfung erfolgreich. Ein vorheriger Lauf scheiterte ausschließlich an konkret festgestellten Compile-Fehlern (`QuestType` fehlte, `QuestRepository` war nicht `AutoCloseable`, bestehender `NpcRuntimeManager`-Substring-Aufruf war syntaktisch falsch); diese wurden gezielt korrigiert und anschließend erfolgreich verifiziert.
 
 Nächster abhängiger Bereich ist **Story/Lore**. Dabei müssen `StoryManager`, `StoryChapter`, `StoryBookFactory` und `StoryNpcDialogue` gegen die neue Content-/Dialog-Grundlage forensisch aufgelöst werden, ohne Quest-Regeln in die Dialogschicht zu verschieben.
