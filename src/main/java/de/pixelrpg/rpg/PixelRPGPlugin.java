@@ -89,6 +89,8 @@ import de.pixelrpg.rpg.trade.TradeDepotDialogService;
 import de.pixelrpg.rpg.trade.TradeDepotRepository;
 import de.pixelrpg.rpg.trade.TradeDepotService;
 import de.pixelrpg.rpg.trade.TradeGoodsRepository;
+import de.pixelrpg.rpg.scoreboard.ScoreboardService;
+import de.pixelrpg.rpg.scoreboard.PlaytimeTracker;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.party.PartyDisconnectListener;
@@ -120,6 +122,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private BiomeBossSpawnTask biomeBossSpawnTask;
     private PartyManager partyManager;
     private GuildManager guildManager;
+    private ScoreboardService scoreboardService;
+    private PlaytimeTracker playtimeTracker;
 
     @Override
     public void onEnable() {
@@ -182,6 +186,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
         guildManager = lifecycle.register(new GuildManager(this, playerProfileManager));
         getServer().getServicesManager().register(PartyAPI.class, partyManager, this, ServicePriority.Normal);
         getServer().getPluginManager().registerEvents(new PartyDisconnectListener(partyManager), this);
+        scoreboardService = lifecycle.register(new ScoreboardService(this, playerProfileManager, guildManager, partyManager));
+        playtimeTracker = lifecycle.register(new PlaytimeTracker(this, playerProfileManager));
+        getServer().getPluginManager().registerEvents(scoreboardService, this);
+        getServer().getPluginManager().registerEvents(playtimeTracker, this);
         GuildAPI guildApi = guildManager;
         BossRepository bossRepository = new BossRepository(this);
         bossRepository.load();
@@ -410,6 +418,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     public StatEngine getStatEngine() { return statEngine; }
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
+    public PartyManager getPartyManager() { return partyManager; }
     public CompanionSystem getCompanionSystem() { return companionSystem; }
     public CompanionSystem getCompanionService() { return companionSystem; }
 
@@ -434,6 +443,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (lifecycle != null) {
             if (biomeBossSpawnTask != null) { biomeBossSpawnTask.stop(); biomeBossSpawnTask = null; }
             if (bossManager != null) { bossManager.shutdownAll(); bossManager = null; }
+            if (playtimeTracker != null) { playtimeTracker.flushAll(); playtimeTracker = null; }
+            if (scoreboardService != null) { scoreboardService.close(); scoreboardService = null; }
             getServer().getServicesManager().unregister(ItemAPI.class);
             lifecycle.close();
             if (dialogueIo != null) {
