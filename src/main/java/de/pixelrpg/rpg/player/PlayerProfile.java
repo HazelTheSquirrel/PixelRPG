@@ -75,7 +75,7 @@ public final class PlayerProfile {
     public void learnProfession(Profession profession){if(profession!=null)mutateIfChanged(()->learnedProfessions.add(profession));}
     public synchronized Set<Profession> getLearnedProfessions(){return Collections.unmodifiableSet(new HashSet<>(learnedProfessions));}
     public synchronized boolean hasUnlockedRecipe(String recipeId){return recipeId!=null&&unlockedRecipes.contains(recipeId.toLowerCase(Locale.ROOT));}
-    public void unlockRecipe(String recipeId){if(recipeId!=null)mutateIfChanged(()->unlockedRecipes.add(recipeId.toLowerCase()));}
+    public void unlockRecipe(String recipeId){if(recipeId!=null)mutateIfChanged(()->unlockedRecipes.add(recipeId.toLowerCase(Locale.ROOT)));}
     public synchronized Set<String> getUnlockedRecipes(){return Collections.unmodifiableSet(new HashSet<>(unlockedRecipes));}
     public void setUnlockedRecipes(Set<String> recipeIds){mutate(()->{unlockedRecipes.clear();if(recipeIds!=null)recipeIds.stream().filter(java.util.Objects::nonNull).map(value -> value.toLowerCase(Locale.ROOT)).forEach(unlockedRecipes::add);});}
     public synchronized Set<String> getUnlockedWaypoints(){return Collections.unmodifiableSet(new HashSet<>(unlockedWaypoints));}
