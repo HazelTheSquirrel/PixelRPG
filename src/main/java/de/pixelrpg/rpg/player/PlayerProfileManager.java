@@ -110,7 +110,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, AutoClo
             }, saveExecutor);
         }
         servicesManager.register(GuildAPI.class, this, plugin, ServicePriority.Normal);
-        Bukkit.getServicesManager().register(EconomyAPI.class, this, plugin, ServicePriority.Normal);
+        servicesManager.register(EconomyAPI.class, this, plugin, ServicePriority.Normal);
     }
 
     public void addProfileChangeListener(Consumer<UUID> listener) {
@@ -166,8 +166,8 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, AutoClo
         }
         repository = null;
         databaseManager = null;
-        Bukkit.getServicesManager().unregister(GuildAPI.class, this);
-        Bukkit.getServicesManager().unregister(EconomyAPI.class, this);
+        servicesManager.unregister(GuildAPI.class, this);
+        servicesManager.unregister(EconomyAPI.class, this);
     }
 
     public enum LoadOutcome { SUCCESS, FAILED }
@@ -228,7 +228,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, AutoClo
         if (profile == null || !profile.isRegistered()) return;
         profile.resetProgress();
         persistAsync(profile);
-        Bukkit.getPluginManager().callEvent(new PlayerUnregistrationEvent(player));
+        pluginManager.callEvent(new PlayerUnregistrationEvent(player));
     }
 
     public void unlockWaypoint(UUID uuid, String waypointId) {
@@ -370,7 +370,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, AutoClo
         persistAsync(profile);
         if (before != after) {
             Player player = plugin.getServer().getPlayer(uuid);
-            if (player != null) Bukkit.getPluginManager().callEvent(new PlayerLevelUpEvent(player, before, after));
+            if (player != null) pluginManager.callEvent(new PlayerLevelUpEvent(player, before, after));
         }
     }
 
