@@ -32,6 +32,7 @@ public final class CompanionRuntimeListener implements Listener {
     private static final long WAKE_TICKS = 2L;
     private final Plugin plugin;
     private final CompanionService service;
+    private final RPGKeys keys;
     private final Set<UUID> scheduled = new HashSet<>();
     private final Map<UUID, Long> lastAttack = new HashMap<>();
 
@@ -156,7 +157,7 @@ public final class CompanionRuntimeListener implements Listener {
     }
 
     private static void slow(LivingEntity entity){Vector v=entity.getVelocity();entity.setVelocity(new Vector(v.getX()*.35,v.getY(),v.getZ()*.35));}
-    private static String id(Entity entity){return entity.getPersistentDataContainer().get(RPGKeys.Companion.id(),PersistentDataType.STRING);}
+    private static String id(Entity entity){return entity.getPersistentDataContainer().get(keys.companionId(),PersistentDataType.STRING);}
 
     private static void applyStats(CompanionDefinition definition, Companion companion, LivingEntity entity) {
         int level=Math.max(1,companion.level()); CompanionDefinition.Progression p=definition.progression(); double rarity=definition.rarity().statMultiplier();
