@@ -33,7 +33,7 @@ public final class RegionListener implements Listener {
     // Applies entity-interaction policy.
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true) public void onEntityInteract(PlayerInteractAtEntityEvent e){if(!policy.allowsEntityInteraction(e.getPlayer(),e.getRightClicked()))e.setCancelled(true);}
     // Applies block-use policy.
-    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true) public void onBlockUse(PlayerInteractEvent e){Block b=e.getClickedBlock();if(b!=null&&!policy.allowsUse(e.getPlayer(),b))e.setCancelled(true);if(b!=null&&b.getType()==Material.RESPAWN_ANCHOR&&!policy.allows(e.getPlayer(),b.getLocation(),RegionFlag.RESPAWN_ANCHORS))e.setCancelled(true);}
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true) public void onBlockUse(PlayerInteractEvent e){Block b=e.getClickedBlock();if(b!=null&&!policy.allowsUse(e.getPlayer(),b))e.setCancelled(true);if(b!=null&&b.getType()==Material.RESPAWN_ANCHOR&&!policy.allowsRespawnAnchor(e.getPlayer(),b.getLocation()))e.setCancelled(true);}
     // Applies container-access policy.
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true) public void onInventoryOpen(InventoryOpenEvent e){if(e.getPlayer() instanceof Player p&&e.getInventory().getHolder() instanceof org.bukkit.inventory.BlockInventoryHolder h&&!policy.allowsContainerAccess(p,h.getBlock()))e.setCancelled(true);}
     // Applies item-drop policy.
