@@ -56,7 +56,6 @@ import de.pixelrpg.rpg.profession.ProfessionSystem;
 import de.pixelrpg.rpg.quest.QuestRepository;
 import de.pixelrpg.rpg.quest.QuestService;
 import de.pixelrpg.rpg.region.RegionEditor;
-import de.pixelrpg.rpg.region.RegionFlagDialogService;
 import de.pixelrpg.rpg.region.RegionListener;
 import de.pixelrpg.rpg.region.RegionManager;
 import de.pixelrpg.rpg.region.RegionPolicyService;
@@ -368,15 +367,15 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private static final class GuildApiAdapter implements GuildAPI {
         private final PlayerProfileManager profiles;
         private GuildApiAdapter(PlayerProfileManager profiles) { this.profiles = profiles; }
-        public boolean isRegistered(java.util.UUID id) { return profiles.getProfile(id).map(de.pixelrpg.rpg.player.PlayerProfile::isRegistered).orElse(false); }
-        public int getLevel(java.util.UUID id) { return profiles.getProfile(id).map(de.pixelrpg.rpg.player.PlayerProfile::getLevel).orElse(1); }
-        public long getExperience(java.util.UUID id) { return profiles.getProfile(id).map(de.pixelrpg.rpg.player.PlayerProfile::getExperience).orElse(0L); }
+        public boolean isRegistered(java.util.UUID id) { return profiles.getProfile(id).map(de.pixelrpg.rpg.player.profile -> profile.isRegistered()).orElse(false); }
+        public int getLevel(java.util.UUID id) { return profiles.getProfile(id).map(de.pixelrpg.rpg.player.profile -> profile.getLevel()).orElse(1); }
+        public long getExperience(java.util.UUID id) { return profiles.getProfile(id).map(de.pixelrpg.rpg.player.profile -> profile.getExperience()).orElse(0L); }
         public void addExperience(java.util.UUID id, long amount) { profiles.getProfile(id).ifPresent(profile -> { profile.addExperience(amount); profiles.saveProfileAsync(id); }); }
     }
     private static final class EconomyApiAdapter implements EconomyAPI {
         private final PlayerProfileManager profiles;
         private EconomyApiAdapter(PlayerProfileManager profiles) { this.profiles = profiles; }
-        public double getBalance(java.util.UUID id) { return profiles.getProfile(id).map(de.pixelrpg.rpg.player.PlayerProfile::getMoney).orElse(0.0D); }
+        public double getBalance(java.util.UUID id) { return profiles.getProfile(id).map(de.pixelrpg.rpg.player.profile -> profile.getMoney()).orElse(0.0D); }
         public void deposit(java.util.UUID id, double amount) { profiles.getProfile(id).ifPresent(profile -> { profile.addMoney(amount); profiles.saveProfileAsync(id); }); }
         public boolean withdraw(java.util.UUID id, double amount) { var profile=profiles.getProfile(id).orElse(null); if(profile==null)return false; boolean result=profile.removeMoney(amount); if(result)profiles.saveProfileAsync(id); return result; }
     }
