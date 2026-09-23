@@ -19,7 +19,7 @@ public final class QuestBossStatisticListener implements Listener {
     // Zuständig für das Hochzählen der QUESTS_COMPLETED-Statistik bei Quest-Abschluss.
     @EventHandler
     public void onQuestCompleted(QuestCompletedEvent event) {
-        statisticsAPI.recordStatistic(event.getPlayer().getUniqueId(), StatisticType.QUESTS_COMPLETED, 1L);
+        statisticsAPI.recordStatistic(event.playerId(), StatisticType.QUESTS_COMPLETED, 1L);
     }
 
     // Zuständig für das Hochzählen der BOSSES_DEFEATED-Statistik aller Teilnehmer bei Boss-Kill.
