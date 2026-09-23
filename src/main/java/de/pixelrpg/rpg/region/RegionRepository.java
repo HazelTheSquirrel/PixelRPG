@@ -56,7 +56,7 @@ public final class RegionRepository implements AutoCloseable {
         YamlConfiguration yaml=YamlConfiguration.loadConfiguration(file);yaml.set("format-version",FORMAT_VERSION);yaml.set("regions",null);
         for(PixelRegion r:snapshot.regions()){String b="regions."+r.id();yaml.set(b+".world",r.worldName());yaml.set(b+".name",r.name());yaml.set(b+".type",r.type().name());yaml.set(b+".description",r.description());
             yaml.set(b+".min-y",r.minY());yaml.set(b+".max-y",r.maxY());yaml.set(b+".priority",r.priority());if(r.ownerId()!=null)yaml.set(b+".owner",r.ownerId().toString());
-            yaml.set(b+".members",r.members().stream().map(UUID::toString).sorted().toList());yaml.set(b+".points",r.geometry().points().stream().map(p->Map.of("x",p.x(),"z",p.z())).toList());
+            yaml.set(b+".members",r.members() .stream().map(uuid -> uuid.toString()).sorted().toList());yaml.set(b+".points",r.geometry().points().stream().map(p->Map.of("x",p.x(),"z",p.z())).toList());
             yaml.set(b+".flags",null);for(var e:r.flags().entrySet())yaml.set(b+".flags."+e.getKey().name(),e.getValue());yaml.set(b+".properties",null);for(var e:r.properties().entrySet())yaml.set(b+".properties."+e.getKey(),e.getValue());
             yaml.set(b+".spawn-points",r.spawnPoints().stream().map(p->Map.<String,Object>of("mob",p.mobType(),"x",p.x(),"y",p.y(),"z",p.z())).toList());yaml.set(b+".enter-message",r.enterMessage());yaml.set(b+".leave-message",r.leaveMessage());}
         yaml.set("global-regions",null);for(var e:snapshot.globalRegions().entrySet()){PixelRegion g=e.getValue();String b="global-regions."+e.getKey();yaml.set(b+".name",g.name());yaml.set(b+".type",g.type().name());
