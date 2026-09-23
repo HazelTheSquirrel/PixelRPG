@@ -36,6 +36,7 @@ public final class CompanionService {
     private final Map<UUID, List<Companion>> companions = new ConcurrentHashMap<>();
     private final Map<UUID, UUID> activeEntities = new ConcurrentHashMap<>();
     private final Map<UUID, Map<String, CompanionEquipment>> equipment = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, StoredSkin>> storedSkins = new ConcurrentHashMap<>();
     private final CompanionEquipmentStore equipmentStore;
     private final CompanionEquipmentListener equipmentListener;
     private final CompanionMountController mountController = new CompanionMountController();
@@ -209,6 +210,20 @@ public final class CompanionService {
         wakeRuntime(playerId);
     }
 
+    /** Returns the resolved mannequin skin texture persisted for one companion, if available. */
+    public StoredSkin getStoredSkin(UUID playerId, String companionId) {
+        load(playerId);
+        return storedSkins.getOrDefault(playerId, Map.of()).get(companionId);
+    }
+
+    /** Persists only the already-resolved mannequin texture; skin acquisition remains unchanged. */
+    public void storeSkin(UUID playerId, String companionId, String value, String signature) {
+        if (value == null || value.isBlank() || companionId == null || companionId.isBlank()) return;
+        storedSkins.computeIfAbsent(playerId, ignored -> new ConcurrentHashMap<>())
+                .put(companionId, new StoredSkin(value, signature));
+        save(playerId, companions.getOrDefault(playerId, List.of()));
+    }
+
     public void applyEquipmentToEntity(UUID playerId, String companionId, LivingEntity entity) {
         CompanionEquipment value = getEquipment(playerId, companionId);
         var target = entity.getEquipment(); if (target == null) return;
@@ -255,6 +270,7 @@ public final class CompanionService {
         for (Map.Entry<UUID, List<Companion>> entry : companions.entrySet()) save(entry.getKey(), entry.getValue());
         companions.clear();
         equipment.clear();
+        storedSkins.clear();
         ioExecutor.shutdown();
         try {
             if (!ioExecutor.awaitTermination(10, TimeUnit.SECONDS)) { plugin.getLogger().warning("Companion I/O did not finish within 10 seconds; forcing shutdown."); ioExecutor.shutdownNow(); }
@@ -319,6 +335,16 @@ public final class CompanionService {
         }
         companions.put(playerId, loaded);
         equipment.put(playerId, new ConcurrentHashMap<>(equipmentStore.loadPlayer(playerId)));
+        Map<String, StoredSkin> loadedSkins = new ConcurrentHashMap<>();
+        for (String key : config.getKeys(false)) {
+            ConfigurationSection section = config.getConfigurationSection(key);
+            if (section == null) continue;
+            String value = section.getString("skin.value", "");
+            if (value.isBlank()) continue;
+            String signature = section.getString("skin.signature");
+            loadedSkins.put(key, new StoredSkin(value, signature));
+        }
+        storedSkins.put(playerId, loadedSkins);
     }
 
     private void save(UUID playerId, List<Companion> values) {
@@ -331,6 +357,11 @@ public final class CompanionService {
             section.set("level", companion.level());
             section.set("experience", companion.experience());
             section.set("active", companion.active());
+            StoredSkin skin = storedSkins.getOrDefault(playerId, Map.of()).get(companion.id());
+            if (skin != null) {
+                section.set("skin.value", skin.value());
+                if (skin.signature() != null && !skin.signature().isBlank()) section.set("skin.signature", skin.signature());
+            }
         }
         ioExecutor.execute(() -> {
             try {
@@ -339,5 +370,8 @@ public final class CompanionService {
                 plugin.getLogger().warning("Unable to save companions for " + playerId + ": " + exception.getMessage());
             }
         });
+    }
+    /** Cached resolved mannequin texture persisted independently of the configured skin source. */
+    public record StoredSkin(String value, String signature) {
     }
 }
