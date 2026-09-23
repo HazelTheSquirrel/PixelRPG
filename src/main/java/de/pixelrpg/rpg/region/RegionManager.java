@@ -43,7 +43,7 @@ public final class RegionManager {
         index.clear();
         spawnPointIndex.clear();
         repository.load().forEach(this::registerLoaded);
-        repository.loadGlobalFlags().forEach((world, flags) -> globalRegions.put(world, PixelRegion.global(world, flags)));
+        repository.loadGlobalRegions().forEach((world, region) -> globalRegions.put(world, region));
         Bukkit.getWorlds().forEach(world -> globalRegion(world.getName()));
         if (repository.consumeMigrationNeeded()) save();
     }
@@ -99,14 +99,20 @@ public final class RegionManager {
         enqueuePersistence(() -> repository.save(snapshot));
     }
 
-    /** Captures global region flags before persisting them on the dedicated region I/O executor. */
+    /** Persists a complete global region definition after an in-memory metadata change. */
+    public synchronized void saveGlobalRegion(PixelRegion global) {
+        if (shuttingDown || global == null || !global.isGlobal()) return;
+        Map<String, PixelRegion> snapshot = globalRegions.entrySet().stream()
+                .collect(java.util.stream.Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
+        enqueuePersistence(() -> repository.saveGlobalRegions(snapshot));
+    }
+
+    /** Changes a global region flag and persists the complete global region definition. */
     public synchronized void setGlobalFlag(String worldName, RegionFlag flag, boolean enabled) {
         if (shuttingDown || worldName == null || worldName.isBlank() || flag == null) return;
-        PixelRegion global = globalRegions.computeIfAbsent(worldName, world -> PixelRegion.global(world, defaultGlobalFlags()));
+        PixelRegion global = globalRegion(worldName);
         global.setFlag(flag, enabled);
-        Map<String, Map<RegionFlag, Boolean>> snapshot = globalRegions.entrySet().stream()
-                .collect(java.util.stream.Collectors.toUnmodifiableMap(Map.Entry::getKey, entry -> entry.getValue().flags()));
-        enqueuePersistence(() -> repository.saveGlobalFlags(snapshot));
+        saveGlobalRegion(global);
     }
 
     /** Changes the owner of a normal region and persists the updated ownership metadata. */
