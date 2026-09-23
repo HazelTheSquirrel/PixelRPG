@@ -1,9 +1,6 @@
 package de.pixelrpg.rpg.stats;
 
 import de.pixelrpg.rpg.api.CharacterStatType;
-import de.pixelrpg.rpg.companion.CompanionDefinition;
-import de.pixelrpg.rpg.companion.CompanionRarity;
-import de.pixelrpg.rpg.companion.CompanionService;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -42,12 +39,10 @@ public final class StatEngine {
     }
 
     private final PlayerProfileManager profiles;
-    private final CompanionService companions;
     private final Map<UUID, CachedStats> cache = new ConcurrentHashMap<>();
 
-    public StatEngine(PlayerProfileManager profiles, CompanionService companions) {
+    public StatEngine(PlayerProfileManager profiles) {
         this.profiles = profiles;
-        this.companions = companions;
     }
 
     public CachedStats getCachedStats(UUID uuid) { return cache.getOrDefault(uuid, CachedStats.EMPTY); }
@@ -57,17 +52,15 @@ public final class StatEngine {
         if (profile == null || !profile.isRegistered()) { clear(player); return; }
 
         ItemTotals items = sumEquippedItemStats(player, Math.clamp(profile.getLevel(), 1, 99));
-        CompanionTotals companion = passiveCompanionStats(player.getUniqueId());
-
-        double maxHealth = clamp(BASE_HP + items.health + companion.health, BASE_HP, MAX_HP);
-        double armor = clamp(items.armor + companion.armor, 0.0D, MAX_ARMOR);
-        double movement = clamp((items.movement + companion.movement) * 100.0D, 0.0D, MAX_MOVEMENT_SPEED_PERCENT);
-        double reach = clamp(items.reach + companion.reach, 0.0D, MAX_REACH);
-        double crit = clamp(items.crit + companion.crit, 0.0D, MAX_CRIT_CHANCE);
-        double critDamage = clamp(BASE_CRIT_DAMAGE_MULTIPLIER + items.critDamage + companion.critDamage,
+        double maxHealth = clamp(BASE_HP + items.health, BASE_HP, MAX_HP);
+        double armor = clamp(items.armor, 0.0D, MAX_ARMOR);
+        double movement = clamp(items.movement * 100.0D, 0.0D, MAX_MOVEMENT_SPEED_PERCENT);
+        double reach = clamp(items.reach, 0.0D, MAX_REACH);
+        double crit = clamp(items.crit, 0.0D, MAX_CRIT_CHANCE);
+        double critDamage = clamp(BASE_CRIT_DAMAGE_MULTIPLIER + items.critDamage,
                 BASE_CRIT_DAMAGE_MULTIPLIER, MAX_CRIT_DAMAGE_MULTIPLIER);
-        double lifesteal = clamp(items.lifesteal + companion.lifesteal, 0.0D, MAX_LIFESTEAL);
-        double attack = clamp(items.attack + companion.attack, 0.0D, MAX_ATTACK_POWER);
+        double lifesteal = clamp(items.lifesteal, 0.0D, MAX_LIFESTEAL);
+        double attack = clamp(items.attack, 0.0D, MAX_ATTACK_POWER);
 
         CachedStats stats = new CachedStats(maxHealth, armor, movement, reach, reach, crit, critDamage, lifesteal, attack);
         cache.put(player.getUniqueId(), stats);
@@ -109,23 +102,6 @@ public final class StatEngine {
             case LIFESTEAL -> stats.lifestealBonus();
             case ATTACK_POWER -> stats.attackPower();
         };
-    }
-
-    private CompanionTotals passiveCompanionStats(UUID playerId) {
-        var active = companions.getActive(playerId);
-        if (active == null) return CompanionTotals.EMPTY;
-        CompanionDefinition definition = companions.definition(active.id());
-        if (!definition.passive() || definition.rarity() == CompanionRarity.UNIQUE) return CompanionTotals.EMPTY;
-        double tier = switch (definition.rarity()) {
-            case COMMON -> 1.0D;
-            case UNCOMMON -> 2.0D;
-            case RARE -> 3.5D;
-            case EPIC -> 5.0D;
-            case LEGENDARY -> 7.5D;
-            case UNIQUE -> 0.0D;
-        };
-        return new CompanionTotals(tier * 2.0D, tier, definition.progression().speedPerLevel(),
-                tier * 0.5D, tier * 0.02D, tier * 0.25D, tier);
     }
 
     private ItemTotals sumEquippedItemStats(Player player, int level) {
