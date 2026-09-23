@@ -256,7 +256,9 @@ public final class ExternalSkinService {
                 ResolvableProfile.Builder builder = ResolvableProfile.resolvableProfile()
                         .name(current.name())
                         .uuid(current.uuid())
-                        .addProperties(current.properties())
+                        .addProperties(current.properties().stream()
+                                .filter(existing -> !existing.getName().equals(property.getName()))
+                                .toList())
                         .addProperty(property)
                         .skinPatch(current.skinPatch());
                 mannequin.setProfile(builder.build());
