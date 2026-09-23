@@ -253,7 +253,7 @@ public final class CompanionFollowTask implements Listener {
         moveTowards(companion, target, follow.movementSpeed());
     }
 
-    private static void moveTowards(LivingEntity entity, Location target, double speed) {
+    static void moveTowards(LivingEntity entity, Location target, double speed) {
         Location current = entity.getLocation();
         Vector delta = target.toVector().subtract(current.toVector());
         delta.setY(Math.max(-0.35D, Math.min(0.35D, delta.getY())));
