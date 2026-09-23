@@ -66,6 +66,18 @@ public final class CompanionService {
         return null;
     }
 
+    public java.util.Optional<org.bukkit.entity.LivingEntity> getActiveEntity(UUID playerId) {
+        UUID entityId = activeEntities.get(playerId);
+        if (entityId == null) return java.util.Optional.empty();
+        org.bukkit.entity.Entity entity = plugin.getServer().getEntity(entityId);
+        return entity instanceof org.bukkit.entity.LivingEntity living && living.isValid()
+                ? java.util.Optional.of(living) : java.util.Optional.empty();
+    }
+
+    public java.util.Optional<CompanionDefinition> definition(String id) {
+        return registry.find(id);
+    }
+
     public boolean adminGrant(UUID playerId, String id) {
         CompanionDefinition definition = registry.find(id).orElse(null);
         return definition != null && grant(playerId, definition);
