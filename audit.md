@@ -1117,3 +1117,53 @@ Erfolgreich verifiziert wurden:
 - JDBC-Service-/ShadowJar-Prüfung.
 
 Nächster Audit-Schritt: **Phase 17 — Commands / Administration / finale UI- und Integrationsschicht**.
+
+
+### Phase 17 — Commands / Administration / finale Integrationsschicht
+
+Status: **implementiert; CI-verifiziert**
+
+Die finale Command-/Administrationsschicht wurde gegen den tatsächlichen `main`-Stand und die bereits auf `rebuild` vorhandenen Domain-Services aufgebaut. Die alten Bukkit-Command-/Inventory-GUI-Implementierungen wurden nicht als technische Grundlage übernommen. Stattdessen verwendet `rebuild` die aktuelle Paper-26.2-Command-Lifecycle-API und die bereits vorhandenen nativen Dialog-/Service-Schichten.
+
+Neu integriert:
+
+- `PixelRPGCommand` als zentrale Paper-`BasicCommand`;
+- Registrierung über `getLifecycleManager()` und `LifecycleEvents.COMMANDS`;
+- `/pixelrpg` und `/rpgadmin` als aktuelle Command-Einstiegspunkte;
+- Permission-Grenze über `rpg.member` und `rpg.admin`;
+- Tab-Completion für Spieler, Companions, Bosses und Berufe;
+- Questlog-Grundfunktion auf Basis des bestehenden `PlayerProfile`;
+- Companion-Administration über den bestehenden `CompanionService`;
+- NPC-Erstellung, Erzeugung mit expliziter ID, Entfernung, Umbenennung, Skin-Änderung und Auflistung über `NpcRuntimeManager`;
+- Region-Editor-Steuerung über den bestehenden `RegionEditor` und Region-Verwaltung über `RegionManager`;
+- Boss-Auflistung, Reload und World-Boss-Start über `BossRepository` und `BossManager`;
+- Item-Auflistung und Admin-Vergabe über den bestehenden `ItemService`;
+- Player-Administration für Info, Level, XP, Gold, Beruf und Reset über den bestehenden `PlayerProfile`;
+- Shop-Inspektion über den bestehenden `ShopService`.
+
+### Bewusst nicht unverändert übernommen
+
+Nicht portiert wurden:
+
+- alte `AbstractGUI`-/Inventory-GUI-Schicht;
+- alte `ShopGUI`, `TradeDepotGUI`, `CraftingGUI`, `QuestLogGUI` und `PartyGUI`;
+- alte Bukkit-`CommandExecutor`-/`TabCompleter`-Registrierung;
+- alte globale `PixelRPGPlugin.getInstance()`-Command-Abhängigkeiten;
+- nicht rekonstruierte Party-Domain. Die Command-Schicht behauptet keine Party-Funktionalität, solange die Party-Domain nicht separat aufgebaut wurde.
+
+Die bereits auf `rebuild` vorhandenen nativen Dialoge bleiben die UI-Schicht für Shops, Trading, Berufe, Companions, Regionen und NPC-Dialoge; Commands dienen der Administration und den explizit erforderlichen textbasierten Einstiegsfunktionen.
+
+### Verifikation
+
+Der erste CI-Lauf **35885558248** schlug an einem konkreten Paper-26.2-API-Fehler in `PixelRPGCommand` fehl: `Player#rayTraceEntities` erwartet in der verwendeten aktuellen API einen ganzzahligen Radius. Der Fehler wurde anhand des Compiler-Logs auf `8` korrigiert.
+
+Der anschließende Lauf **35885711518** für Commit **a1188ef79bcd28925205e1162bf643e4f1c83c07** verifizierte erfolgreich:
+
+- `gradle clean build --no-daemon --stacktrace`;
+- Source-API-Grenzprüfungen;
+- statische Live-Server-Referenzprüfung;
+- Plugin-Artefaktprüfung;
+- Third-Party-Relocations;
+- JDBC-Service-/ShadowJar-Prüfung.
+
+Damit ist die im Audit definierte Phase 17 technisch integriert und CI-verifiziert.
