@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.companion;
 
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.npc.MannequinSkinResolver;
+import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Player;
@@ -16,10 +17,12 @@ import java.util.UUID;
 public final class MannequinCompanionController {
     private final Plugin plugin;
     private final CompanionRegistry registry;
+    private final CompanionService companionService;
     private final Map<UUID, String> appliedSkins = new HashMap<>();
 
-    public MannequinCompanionController(Plugin plugin, CompanionService ignoredCompanionService, CompanionRegistry registry) {
+    public MannequinCompanionController(Plugin plugin, CompanionService companionService, CompanionRegistry registry) {
         this.plugin = plugin;
+        this.companionService = companionService;
         this.registry = registry;
     }
 
@@ -41,9 +44,25 @@ public final class MannequinCompanionController {
 
         String skin = definition.visual().skinSource();
         UUID mannequinId = mannequin.getUniqueId();
-        if (!skin.isBlank() && !skin.equals(appliedSkins.get(mannequinId))) {
+        CompanionService.StoredSkin stored = companionService.getStoredSkin(owner.getUniqueId(), id);
+        if (stored != null) {
+            String storedKey = stored.value() + "|" + String.valueOf(stored.signature());
+            if (!storedKey.equals(appliedSkins.get(mannequinId))) {
+                MannequinSkinResolver.applyStoredTexture(mannequin, stored.value(), stored.signature(), plugin)
+                        .thenRun(() -> appliedSkins.put(mannequinId, storedKey));
+            }
+        } else if (!skin.isBlank() && !skin.equals(appliedSkins.get(mannequinId))) {
             MannequinSkinResolver.apply(mannequin, skin, plugin.getLogger())
-                    .thenRun(() -> appliedSkins.put(mannequinId, skin));
+                    .thenRun(() -> Bukkit.getScheduler().runTask(plugin, () -> {
+                        if (!mannequin.isValid()) return;
+                        mannequin.getProfile().properties().stream()
+                                .filter(property -> "textures".equals(property.getName()))
+                                .findFirst()
+                                .ifPresent(property -> {
+                                    companionService.storeSkin(owner.getUniqueId(), id, property.getValue(), property.getSignature());
+                                    appliedSkins.put(mannequinId, property.getValue() + "|" + String.valueOf(property.getSignature()));
+                                });
+                    }));
         }
 
         mannequin.setImmovable(false);
