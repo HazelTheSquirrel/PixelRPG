@@ -588,3 +588,32 @@ Der Referenzzustand speichert die aufgelöste Texture-Property inklusive Signatu
 - Der erste vollständige CI-Lauf des NPC-Stands erreichte `compileJava` und meldete genau einen Fehler in der Berufsermittlung (`String` statt `int` bei `substring`). Dieser Fehler wurde direkt anhand des Logs korrigiert. Der daraus resultierende Stand muss erneut vollständig durch `clean build`, Source-Boundary- und Artifact-Verifikation laufen.
 
 Nächster abhängiger Bereich ist **native Dialog-Grundlage**. NPC-Interaktion wird dort fachlich an die native Paper-Dialogschicht angebunden; Quest-/Story-Regeln bleiben in ihren späteren Domain-Schichten.
+
+
+## 18. Rebuild-Fortschritt
+
+### Phase 8 — Native Dialog-Grundlage
+
+Status: **implementiert; CI-Verifikation läuft**
+
+Forensisch gegen den bestehenden Dialog-Bestand von `main` geprüft und auf `rebuild` als eigenständige technische Grundlage neu aufgebaut:
+
+- native Paper-Dialog-Erzeugung über `io.papermc.paper.dialog.Dialog`, `DialogBase`, `DialogType`, `ActionButton`, `DialogAction` und `Player.showDialog(...)`;
+- keine Legacy-1.21.x-Dialogmechanik und keine eigene Nachbildung des Minecraft-Dialogprotokolls;
+- technische Dialogausführung in `DialogueEngine` gekapselt;
+- fachliche Dialogstruktur über `DialogueTree`, `DialogueNode`, `DialogueOption` und `DialogueCondition` getrennt;
+- Dialogoptionen können Bedingungen, fachliche Aktionen und Folge-Nodes besitzen, ohne Quest-/Story-Regeln im Dialogsystem zu duplizieren;
+- native Dialoge unterstützen Notice-, Multi-Action-, Confirmation- und Input-Aktionen;
+- per-Spieler Dialogfortschritt für gesehen/abgeschlossen wird separat persistiert;
+- Dialogfortschritt wird asynchron geladen und gespeichert;
+- Persistenz verwendet Snapshot-then-I/O sowie temporäre Datei mit atomarem Replace-Fallback;
+- Shutdown wartet auf laufenden Dialog-I/O;
+- NPC-Interaktion ist über einen eigenen Listener an registrierte Dialogbäume angebunden: `npc:<npc-id>`;
+- NPC-Runtime und Dialogsystem bleiben getrennt; der Dialoglistener kennt nur NPC-Laufzeitauflösung und Dialogservice;
+- noch nicht vorhandene Content-Dialoge werden nicht künstlich erzeugt. Dadurch bleiben Quest-, Story-, Berufs-, Shop- und Reise-Regeln bis zu ihren jeweiligen Rebuild-Phasen außerhalb der technischen Dialoggrundlage.
+
+### Verifikation
+
+Der Stand muss nach dem Dialog-Rebuild erneut vollständig über `gradle clean build --no-daemon --stacktrace`, Source-Boundary-Checks und Artifact-Verifikation laufen. Erst nach erfolgreichem CI-Lauf wird Phase 8 als build-verifiziert markiert.
+
+Nächster abhängiger Bereich ist **Content-/Text-Grundlage**. Dabei werden stabile Content-IDs und externe Text-/Dialogdefinitionen aufgebaut, bevor Quest-/Story-Logik darauf aufsetzt.
