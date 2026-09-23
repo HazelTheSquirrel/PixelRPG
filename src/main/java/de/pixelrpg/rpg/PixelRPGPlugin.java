@@ -76,6 +76,8 @@ import de.pixelrpg.rpg.trade.TradeDepotService;
 import de.pixelrpg.rpg.trade.TradeGoodsRepository;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.plugin.ServicePriority;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
+import de.pixelrpg.rpg.command.PixelRPGCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.concurrent.ExecutorService;
@@ -341,6 +343,22 @@ public final class PixelRPGPlugin extends JavaPlugin {
                 new GuildCurrencyPickupListener(playerProfileManager, playerProfileManager, currencyFactory), this);
         getServer().getPluginManager().registerEvents(new NpcChunkListener(this, npcRuntime), this);
         getServer().getPluginManager().registerEvents(new NpcProtectionListener(npcRuntime), this);
+
+        PixelRPGCommand pixelRPGCommand = new PixelRPGCommand(
+                playerProfileManager,
+                itemService,
+                companionSystem.service(),
+                npcRuntime,
+                regionManager,
+                regionEditor,
+                shopService,
+                bossRepository,
+                bossManager
+        );
+        getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
+            event.registrar().register("pixelrpg", pixelRPGCommand);
+            event.registrar().register("rpgadmin", pixelRPGCommand);
+        });
     }
 
     public StatEngine getStatEngine() { return statEngine; }
