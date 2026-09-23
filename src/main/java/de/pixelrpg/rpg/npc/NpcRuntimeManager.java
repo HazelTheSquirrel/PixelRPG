@@ -192,7 +192,7 @@ public final class NpcRuntimeManager implements AutoCloseable {
             return;
         }
         if (!npc.hasCustomSkin()) return;
-        MannequinSkinResolver.applyAndCapture(mannequin, npc.skinSource(), plugin.getLogger())
+        MannequinSkinResolver.applyAndCapture(mannequin, npc.skinSource(), plugin, plugin.getLogger())
                 .thenAccept(property -> rememberSkin(npc.id(), property.getValue(), property.getSignature()))
                 .exceptionally(exception -> { plugin.getLogger().warning("Failed to resolve NPC skin for " + npc.id() + ": " + exception.getMessage()); return null; });
     }
