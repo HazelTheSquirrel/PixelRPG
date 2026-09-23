@@ -89,6 +89,8 @@ import de.pixelrpg.rpg.trade.TradeDepotRepository;
 import de.pixelrpg.rpg.trade.TradeDepotService;
 import de.pixelrpg.rpg.trade.TradeGoodsRepository;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.party.PartyManager;
+import de.pixelrpg.rpg.guild.GuildManager;
 import org.bukkit.plugin.ServicePriority;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import de.pixelrpg.rpg.command.PixelRPGCommand;
@@ -172,7 +174,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         statEngine = new StatEngine(playerProfileManager);
         StatisticsService statisticsService = new StatisticsService(playerProfileManager, statEngine);
         getServer().getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
-        GuildAPI guildApi = new GuildApiAdapter(playerProfileManager);
+        PartyManager partyManager = lifecycle.register(new PartyManager(this));
+        GuildManager guildManager = lifecycle.register(new GuildManager(this, playerProfileManager));
+        GuildAPI guildApi = guildManager;
         BossRepository bossRepository = new BossRepository(this);
         bossRepository.load();
         BossAttackPatternRegistry bossPatterns = new BossAttackPatternRegistry();
@@ -180,8 +184,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         bossPatterns.register(new de.pixelrpg.rpg.boss.patterns.ProjectileVolleyPattern());
         bossPatterns.register(new de.pixelrpg.rpg.boss.patterns.SlamAttackPattern());
         bossPatterns.register(new de.pixelrpg.rpg.boss.patterns.SummonAddsPattern());
-        bossManager = new BossManager(this, bossPatterns, new GuildApiAdapter(playerProfileManager),
-                new PartyApiAdapter(), new EconomyApiAdapter(playerProfileManager), itemService, mobScalingConfig,
+        bossManager = new BossManager(this, bossPatterns, guildManager,
+                partyManager, new EconomyApiAdapter(playerProfileManager), itemService, mobScalingConfig,
                 getConfig().getDouble("bosses.bar-radius", 60.0D),
                 getConfig().getInt("bosses.bar-update-interval-ticks", 20),
                 getConfig().getInt("bosses.phase-check-interval-ticks", 10));
@@ -400,14 +404,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public CompanionSystem getCompanionSystem() { return companionSystem; }
     public CompanionSystem getCompanionService() { return companionSystem; }
 
-    private static final class GuildApiAdapter implements GuildAPI {
-        private final PlayerProfileManager profiles;
-        private GuildApiAdapter(PlayerProfileManager profiles) { this.profiles = profiles; }
-        public boolean isRegistered(java.util.UUID id) { return profiles.getProfile(id).map(profile -> profile.isRegistered()).orElse(false); }
-        public int getLevel(java.util.UUID id) { return profiles.getProfile(id).map(profile -> profile.getLevel()).orElse(1); }
-        public long getExperience(java.util.UUID id) { return profiles.getProfile(id).map(profile -> profile.getExperience()).orElse(0L); }
-        public void addExperience(java.util.UUID id, long amount) { profiles.getProfile(id).ifPresent(profile -> { profile.addExperience(amount); profiles.saveProfileAsync(id); }); }
-    }
     private static final class EconomyApiAdapter implements EconomyAPI {
         private final PlayerProfileManager profiles;
         private EconomyApiAdapter(PlayerProfileManager profiles) { this.profiles = profiles; }
