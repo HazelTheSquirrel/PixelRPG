@@ -435,3 +435,32 @@ Vor jeder Änderung auf `rebuild`:
 **Keine Ratespiele. Keine erfundenen APIs. Keine Legacy-Lösungen. Keine blinden Kopien aus `main`.**
 
 Der Rebuild soll ein bewusst neu entworfenes System werden, dessen Verhalten aus dem Referenzzustand abgeleitet und dessen Architektur für die kommende Content-Entwicklung optimiert wird.
+
+
+---
+
+## 14. Rebuild-Fortschritt
+
+### Phase 1 — Build-/Projektgrundlage
+
+Status: **abgeschlossen**
+
+Auf rebuild vorhanden und geprüft:
+
+- verbindliche Gradle-/Paper-/Java-25-Basis;
+- bestehende Shadow-Relocations und Build-Verifikationen;
+- `paper-plugin.yml`;
+- vollständige Runtime-Konfigurationsgrundlage aus dem Referenzzustand;
+- zentraler `LifecycleCoordinator` als einziger Runtime-Resource-Owner der neuen Composition Root;
+- minimale `PixelRPGPlugin`-Composition-Root ohne Übernahme der alten God-Manager-Verdrahtung;
+- Paper-Bootstrap als separater Bootstrap-Einstiegspunkt;
+- CI prüft rebuild zusätzlich zu den bestehenden Branches.
+
+Bewusst noch nicht übernommen:
+
+- fachliche Feature-Module;
+- alte `PixelRPGPlugin`-Verdrahtung;
+- alte statische/globalen Zugriffe;
+- alte Persistenz- und Domainmodelle.
+
+Nächster Schritt ist die forensische Rekonstruktion der zentralen Persistenz-/Player-Abhängigkeiten aus `main`, bevor Player/Profile und weitere Fachmodule neu implementiert werden.
