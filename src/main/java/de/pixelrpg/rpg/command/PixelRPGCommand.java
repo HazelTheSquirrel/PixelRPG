@@ -16,6 +16,8 @@ import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.region.RegionEditor;
 import de.pixelrpg.rpg.region.RegionManager;
+import de.pixelrpg.rpg.party.PartyManager;
+import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.shop.ShopService;
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -42,10 +44,12 @@ public final class PixelRPGCommand implements BasicCommand {
     private final ShopService shops;
     private final BossRepository bosses;
     private final BossManager bossManager;
+    private final PartyManager parties;
+    private final GuildManager guilds;
 
     public PixelRPGCommand(PlayerProfileManager profiles, ItemService items, CompanionService companions,
                            NpcRuntimeManager npcs, RegionManager regions, RegionEditor regionEditor,
-                           ShopService shops, BossRepository bosses, BossManager bossManager) {
+                           ShopService shops, BossRepository bosses, BossManager bossManager, PartyManager parties, GuildManager guilds) {
         this.profiles = profiles;
         this.items = items;
         this.companions = companions;
@@ -55,6 +59,8 @@ public final class PixelRPGCommand implements BasicCommand {
         this.shops = shops;
         this.bosses = bosses;
         this.bossManager = bossManager;
+        this.parties = parties;
+        this.guilds = guilds;
     }
 
     @Override
@@ -66,6 +72,8 @@ public final class PixelRPGCommand implements BasicCommand {
         }
         String root = args[0].toLowerCase(Locale.ROOT);
         if (root.equals("questlog")) { questLog(source.getSender(), player); return; }
+        if (root.equals("party")) { party(source.getSender(), player, Arrays.copyOfRange(args, 1, args.length)); return; }
+        if (root.equals("guild")) { guild(source.getSender(), player, Arrays.copyOfRange(args, 1, args.length)); return; }
         if (root.equals("companion") || root.equals("npc") || root.equals("region") || root.equals("boss") || root.equals("item") || root.equals("player") || root.equals("shop")) {
             if (!source.getSender().hasPermission("rpg.admin")) {
                 source.getSender().sendMessage(Component.text("Keine Berechtigung.", NamedTextColor.RED));
@@ -73,7 +81,9 @@ public final class PixelRPGCommand implements BasicCommand {
             }
             String[] rest = Arrays.copyOfRange(args, 1, args.length);
             switch (root) {
-                case "companion" -> companion(source.getSender(), rest);
+                case "party" -> args.length == 2 ? prefix(List.of("create","invite","accept","leave","kick","info"), args[1]) : args.length == 3 && args[1].equalsIgnoreCase("invite") ? onlinePlayers(args[2]) : args.length == 3 && args[1].equalsIgnoreCase("kick") ? onlinePlayers(args[2]) : List.of();
+            case "guild" -> args.length == 2 ? prefix(List.of("create","invite","accept","leave","disband","info"), args[1]) : args.length == 3 && args[1].equalsIgnoreCase("invite") ? onlinePlayers(args[2]) : List.of();
+            case "companion" -> companion(source.getSender(), rest);
                 case "npc" -> npc(source.getSender(), player, rest);
                 case "region" -> region(source.getSender(), player, rest);
                 case "boss" -> boss(source.getSender(), player, rest);
@@ -119,6 +129,53 @@ public final class PixelRPGCommand implements BasicCommand {
             sender.sendMessage(Component.text("/pixelrpg item <list|give> ...", NamedTextColor.YELLOW));
             sender.sendMessage(Component.text("/pixelrpg player <info|set-level|set-xp|set-gold|set-profession|reset> ...", NamedTextColor.YELLOW));
             sender.sendMessage(Component.text("/pixelrpg shop list <npc-id>", NamedTextColor.YELLOW));
+        }
+    }
+
+    private void party(org.bukkit.command.CommandSender sender, Player player, String[] args) {
+        if (player == null) { sender.sendMessage(Component.text("Nur Spieler.", NamedTextColor.RED)); return; }
+        if (args.length == 0) { sender.sendMessage(Component.text("Usage: /pixelrpg party <create|invite|accept|leave|kick|info>", NamedTextColor.RED)); return; }
+        switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "create" -> { parties.createParty(player.getUniqueId()); sender.sendMessage(Component.text("Party erstellt.", NamedTextColor.GREEN)); }
+            case "invite" -> {
+                if (args.length != 2) return;
+                Player target = Bukkit.getPlayerExact(args[1]);
+                if (target == null || !parties.addInvite(target.getUniqueId(), player.getUniqueId())) sender.sendMessage(Component.text("Einladung konnte nicht gesendet werden.", NamedTextColor.RED));
+                else sender.sendMessage(Component.text("Einladung gesendet.", NamedTextColor.GREEN));
+            }
+            case "accept" -> { boolean accepted = parties.acceptInvite(player); sender.sendMessage(Component.text(accepted ? "Einladung angenommen." : "Keine gültige Einladung.", accepted ? NamedTextColor.GREEN : NamedTextColor.RED)); }
+            case "leave" -> { parties.leaveParty(player); sender.sendMessage(Component.text("Party verlassen.", NamedTextColor.GREEN)); }
+            case "kick" -> {
+                if (args.length != 2) return;
+                Player target = Bukkit.getPlayerExact(args[1]);
+                if (target == null || !parties.kick(player, target.getUniqueId())) sender.sendMessage(Component.text("Spieler konnte nicht entfernt werden.", NamedTextColor.RED));
+                else sender.sendMessage(Component.text("Spieler entfernt.", NamedTextColor.GREEN));
+            }
+            case "info" -> parties.getParty(player.getUniqueId()).ifPresentOrElse(p -> sender.sendMessage(Component.text("Party: " + p.getMembers().size() + "/" + PartyManager.MAX_MEMBERS + " Leader " + p.getLeader(), NamedTextColor.YELLOW)), () -> sender.sendMessage(Component.text("Keine Party.", NamedTextColor.GRAY)));
+            default -> sender.sendMessage(Component.text("Unbekannte Party-Aktion.", NamedTextColor.RED));
+        }
+    }
+
+    private void guild(org.bukkit.command.CommandSender sender, Player player, String[] args) {
+        if (player == null) { sender.sendMessage(Component.text("Nur Spieler.", NamedTextColor.RED)); return; }
+        if (args.length == 0) { sender.sendMessage(Component.text("Usage: /pixelrpg guild <create|invite|accept|leave|disband|info>", NamedTextColor.RED)); return; }
+        switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "create" -> {
+                if (args.length < 2) return;
+                GuildManager.Result result = guilds.createGuild(player, String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
+                sender.sendMessage(Component.text("Gilde: " + result.name(), result == GuildManager.Result.SUCCESS ? NamedTextColor.GREEN : NamedTextColor.RED));
+            }
+            case "invite" -> {
+                if (args.length != 2) return;
+                Player target = Bukkit.getPlayerExact(args[1]);
+                GuildManager.Result result = target == null ? GuildManager.Result.TARGET_ALREADY_IN_GUILD : guilds.invite(player, target);
+                sender.sendMessage(Component.text("Gilde: " + result.name(), result == GuildManager.Result.SUCCESS ? NamedTextColor.GREEN : NamedTextColor.RED));
+            }
+            case "accept" -> { GuildManager.Result result = guilds.acceptInvitation(player); sender.sendMessage(Component.text("Gilde: " + result.name(), result == GuildManager.Result.SUCCESS ? NamedTextColor.GREEN : NamedTextColor.RED)); }
+            case "leave" -> { GuildManager.Result result = guilds.leave(player); sender.sendMessage(Component.text("Gilde: " + result.name(), result == GuildManager.Result.SUCCESS ? NamedTextColor.GREEN : NamedTextColor.RED)); }
+            case "disband" -> { GuildManager.Result result = guilds.disband(player); sender.sendMessage(Component.text("Gilde: " + result.name(), result == GuildManager.Result.SUCCESS ? NamedTextColor.GREEN : NamedTextColor.RED)); }
+            case "info" -> guilds.getGuild(player.getUniqueId()).ifPresentOrElse(g -> sender.sendMessage(Component.text("Gilde: " + g.name() + " (" + g.memberCount() + "/" + GuildManager.MAX_MEMBERS + ")", NamedTextColor.GOLD)), () -> sender.sendMessage(Component.text("Keine Gilde.", NamedTextColor.GRAY)));
+            default -> sender.sendMessage(Component.text("Unbekannte Gilden-Aktion.", NamedTextColor.RED));
         }
     }
 
