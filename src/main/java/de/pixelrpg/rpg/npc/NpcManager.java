@@ -324,16 +324,21 @@ public final class NpcManager {
                                float yaw, float pitch, String skinSource, String profession, String skinValue,
                                String skinSignature) { }
 
-    private synchronized void rememberResolvedSkin(String npcId, String value, String signature) {
-        if (shuttingDown || value == null || value.isBlank()) return;
-        if (!npcsById.containsKey(npcId)) return;
+    private void rememberResolvedSkin(String npcId, String value, String signature) {
+        if (value == null || value.isBlank()) return;
 
-        // Persist the exact texture property returned by the resolver.
-        // This follows the same principle as Citizens2: the resolved texture
-        // is stored at acquisition time instead of being reconstructed later
-        // from mutable mannequin state.
-        resolvedSkinsByNpcId.put(npcId, new StoredSkin(value, signature));
-        saveAll();
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            synchronized (this) {
+                if (shuttingDown || !npcsById.containsKey(npcId)) return;
+
+                // Persist the exact texture property returned by the resolver.
+                // This mirrors the Citizens2 approach: the resolved texture is
+                // stored at acquisition time instead of being reconstructed
+                // from mutable mannequin state after a restart.
+                resolvedSkinsByNpcId.put(npcId, new StoredSkin(value, signature));
+                saveAll();
+            }
+        });
     }
 
     private record StoredSkin(String value, String signature) { }
