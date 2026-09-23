@@ -1,7 +1,5 @@
 package de.pixelrpg.rpg.dialogue;
 
-import de.pixelrpg.rpg.content.ContentCatalogService;
-import de.pixelrpg.rpg.npc.NpcRuntimeManager;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryChapter;
@@ -12,24 +10,22 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public final class StoryNpcDialogue {
     private final StoryService storyService;
-    private final NpcRuntimeManager npcRuntime;
     private final DialogueEngine dialogueEngine;
     private final StoryBookFactory bookFactory;
 
     public StoryNpcDialogue(
             StoryService storyService,
-            NpcRuntimeManager npcRuntime,
             DialogueEngine dialogueEngine,
             StoryBookFactory bookFactory
     ) {
-        this.storyService = storyService;
-        this.npcRuntime = npcRuntime;
-        this.dialogueEngine = dialogueEngine;
-        this.bookFactory = bookFactory;
+        this.storyService = Objects.requireNonNull(storyService, "storyService");
+        this.dialogueEngine = Objects.requireNonNull(dialogueEngine, "dialogueEngine");
+        this.bookFactory = Objects.requireNonNull(bookFactory, "bookFactory");
     }
 
     public void open(Player player, RPGNpc npc) {
