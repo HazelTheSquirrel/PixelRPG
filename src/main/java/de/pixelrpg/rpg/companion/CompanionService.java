@@ -181,6 +181,9 @@ public final class CompanionService {
         profiles.saveProfileAsync(playerId);
     }
 
+    public String companionId(Entity entity) { return entity == null ? null : entity.getPersistentDataContainer().get(new RPGKeys(plugin).npcId(), PersistentDataType.STRING); }
+    public boolean isCompanionEntity(Entity entity) { String id = companionId(entity); return id != null && registry.find(id).isPresent(); }
+
     public CompanionState state(UUID playerId, String companionId) {
         PlayerProfile profile = profiles.getProfile(playerId).orElse(null);
         return profile == null ? null : profile.getCompanion(companionId);
