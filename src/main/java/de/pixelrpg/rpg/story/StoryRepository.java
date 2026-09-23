@@ -1,10 +1,11 @@
 package de.pixelrpg.rpg.story;
 
+import de.pixelrpg.rpg.content.ContentCatalogService;
+import org.bukkit.plugin.Plugin;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.bukkit.plugin.Plugin;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -25,11 +26,13 @@ public final class StoryRepository implements AutoCloseable {
     private final Plugin plugin;
     private final Path file;
     private final ExecutorService executor;
+    private final ContentCatalogService contentCatalog;
 
-    public StoryRepository(Plugin plugin, Path file, ExecutorService executor) {
+    public StoryRepository(Plugin plugin, Path file, ExecutorService executor, ContentCatalogService contentCatalog) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.file = Objects.requireNonNull(file, "file");
         this.executor = Objects.requireNonNull(executor, "executor");
+        this.contentCatalog = Objects.requireNonNull(contentCatalog, "contentCatalog");
     }
 
     public CompletableFuture<List<StoryChapter>> loadAsync() {
@@ -52,16 +55,24 @@ public final class StoryRepository implements AutoCloseable {
                 JsonObject chapter = element.getAsJsonObject();
                 String id = requiredString(chapter, "id");
                 int order = requiredInt(chapter, "order");
-                String title = requiredString(chapter, "title");
+                String titleKey = requiredString(chapter, "title-key");
                 long expReward = chapter.has("exp-reward") ? chapter.get("exp-reward").getAsLong() : 0L;
 
-                JsonArray lines = chapter.has("dialogue") && chapter.get("dialogue").isJsonArray()
-                        ? chapter.getAsJsonArray("dialogue")
+                JsonArray dialogueKeys = chapter.has("dialogue-keys") && chapter.get("dialogue-keys").isJsonArray()
+                        ? chapter.getAsJsonArray("dialogue-keys")
                         : new JsonArray();
+
                 List<String> dialogueLines = new ArrayList<>();
-                for (JsonElement line : lines) {
-                    dialogueLines.add(line.getAsString());
+                for (JsonElement key : dialogueKeys) {
+                    String contentKey = key.getAsString();
+                    dialogueLines.add(contentCatalog.text(contentKey)
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "Missing story text content: " + contentKey)));
                 }
+
+                String title = contentCatalog.text(titleKey)
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Missing story title content: " + titleKey));
 
                 StoryChapter parsed = new StoryChapter(order, id, title, dialogueLines, expReward);
                 if (byId.putIfAbsent(id, parsed) != null) {
@@ -83,7 +94,8 @@ public final class StoryRepository implements AutoCloseable {
         int expected = 0;
         for (StoryChapter chapter : chapters) {
             if (chapter.order() != expected++) {
-                throw new IllegalArgumentException("Story chapter order must be contiguous from 0; found " + chapter.order());
+                throw new IllegalArgumentException(
+                        "Story chapter order must be contiguous from 0; found " + chapter.order());
             }
         }
     }
