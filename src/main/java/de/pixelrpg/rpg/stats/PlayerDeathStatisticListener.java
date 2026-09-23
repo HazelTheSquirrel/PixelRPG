@@ -18,11 +18,8 @@ public final class PlayerDeathStatisticListener implements Listener {
     private final PlayerProfileManager profileManager;
     private final StatisticsAPI statisticsAPI;
 
-    public PlayerDeathStatisticListener(GuildAPI guildAPI, StatisticsAPI statisticsAPI) {
-        if (!(guildAPI instanceof PlayerProfileManager manager)) {
-            throw new IllegalArgumentException("PlayerDeathStatisticListener requires PlayerProfileManager");
-        }
-        this.profileManager = manager;
+    public PlayerDeathStatisticListener(PlayerProfileManager profileManager, StatisticsAPI statisticsAPI) {
+        this.profileManager = profileManager;
         this.statisticsAPI = statisticsAPI;
     }
 
