@@ -57,6 +57,7 @@ import de.pixelrpg.rpg.npc.NpcProtectionListener;
 import de.pixelrpg.rpg.npc.ReceptionNpcListener;
 import de.pixelrpg.rpg.npc.TravelNpcListener;
 import de.pixelrpg.rpg.npc.BankerNpcListener;
+import de.pixelrpg.rpg.npc.FillerNpcListener;
 import de.pixelrpg.rpg.npc.NpcRepository;
 import de.pixelrpg.rpg.npc.NpcRuntimeManager;
 import de.pixelrpg.rpg.npc.YamlNpcRepository;
@@ -229,6 +230,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ReceptionNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs), this);
         getServer().getPluginManager().registerEvents(new TravelNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs), this);
         getServer().getPluginManager().registerEvents(new BankerNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs), this);
+        getServer().getPluginManager().registerEvents(new FillerNpcListener(npcRuntime, playerProfileManager, questService, npcInteractionDialogs), this);
         companionSystem.loadAsync().thenRun(() -> getServer().getScheduler().runTask(this, () -> {
             if (!isEnabled()) return;
             companionSystem.register();
