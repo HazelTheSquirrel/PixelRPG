@@ -250,7 +250,7 @@ public final class CompanionFollowTask implements Listener {
         if (direction.lengthSquared() < 0.001D) direction.setZ(1.0D);
         direction.normalize().multiply(-Math.max(1.0D, follow.stopDistance()));
         Location target = playerLocation.clone().add(direction);
-        moveTowards(companion, target, follow.movementSpeed(), companion instanceof Mannequin);
+        moveTowards(companion, target, follow.movementSpeed(), true);
     }
 
     private static void moveTowards(LivingEntity entity, Location target, double speed, boolean allowOneBlockDescend) {
@@ -260,7 +260,7 @@ public final class CompanionFollowTask implements Listener {
         if (delta.lengthSquared() < 0.04D) { slow(entity); return; }
         Vector horizontal = delta.clone().setY(0.0D);
         boolean stepUp = shouldStepUp(entity, horizontal);
-        boolean stepDown = allowOneBlockDescend && shouldStepDown(entity, horizontal, delta.getY());
+        boolean stepDown = shouldStepDown(entity, horizontal, delta.getY());
         boolean fallingBehind = target.getY() > current.getY() + 0.35D;
         boolean falling = entity.getVelocity().getY() < -0.08D;
         if (stepUp && entity.isOnGround()) delta.setY(JUMP_VELOCITY);
