@@ -23,7 +23,7 @@ public final class CompanionSystem implements AutoCloseable {
     public CompanionSystem(Plugin plugin, PlayerProfileManager profiles, NpcRuntimeManager npcs) {
         this.plugin = Objects.requireNonNull(plugin);
         this.profiles = Objects.requireNonNull(profiles);
-        Objects.requireNonNull(npcs);
+        Objects.requireNonNull(npcs, "npcs");
     }
 
     public CompletableFuture<CompanionService> loadAsync() {
