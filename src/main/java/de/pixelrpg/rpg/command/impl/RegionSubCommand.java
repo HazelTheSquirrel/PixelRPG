@@ -246,11 +246,28 @@ public final class RegionSubCommand implements SubCommand {
         boolean owner = sender instanceof Player player && region.isOwner(player.getUniqueId());
 
         if (region.isGlobal()) {
-            if (!admin || !field.equals("flag")) {
-                sender.sendMessage(Component.text("Die globale Region kann nur von Administratoren über Flags geändert werden.", NamedTextColor.RED));
+            if (!admin) {
+                sender.sendMessage(Component.text("Die globale Region kann nur von Administratoren geändert werden.", NamedTextColor.RED));
                 return true;
             }
-            return editFlag(sender, region, value);
+            switch (field) {
+                case "name" -> region.setName(value);
+                case "type" -> region.setType(RegionType.parse(value));
+                case "description" -> region.setDescription(value);
+                case "priority" -> region.setPriority(parseInt(value, region.priority()));
+                case "enter" -> region.setEnterMessage(value);
+                case "leave" -> region.setLeaveMessage(value);
+                case "flag" -> { return editFlag(sender, region, value); }
+                case "property" -> {
+                    String[] parts = value.split("\\s+", 2);
+                    if (parts.length != 2) return false;
+                    region.setProperty(parts[0], parts[1]);
+                }
+                default -> { return false; }
+            }
+            regions.saveGlobalRegion(region);
+            sender.sendMessage(Component.text("Globale Region in Welt „" + region.worldName() + "“ geändert.", NamedTextColor.GREEN));
+            return true;
         }
 
         if (!admin && !owner) {
@@ -361,7 +378,7 @@ public final class RegionSubCommand implements SubCommand {
     }
 
     private boolean isAdmin(CommandSender sender) {
-        return sender.hasPermission("rpg.admin");
+        return sender.hasPermission("rpg.admin") || (sender instanceof org.bukkit.command.ConsoleCommandSender) || (sender instanceof org.bukkit.entity.Player player && player.isOp());
     }
 
     private static boolean adminOnly(CommandSender sender, String[] args, java.util.function.BiFunction<CommandSender, String[], Boolean> action) {
