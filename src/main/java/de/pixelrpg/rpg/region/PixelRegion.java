@@ -79,9 +79,17 @@ public final class PixelRegion {
     }
 
     public static PixelRegion global(String worldName, Map<RegionFlag, Boolean> flags) {
+        return global(worldName, flags, "Wildnis", RegionType.OTHER, "Globale Standardregion", "", "", 0, Map.of());
+    }
+
+    public static PixelRegion global(String worldName, Map<RegionFlag, Boolean> flags, String name,
+                                    RegionType type, String description, String enterMessage,
+                                    String leaveMessage, int priority, Map<String, String> properties) {
         return new PixelRegion(UUID.nameUUIDFromBytes(("pixelrpg:global:" + worldName).getBytes(StandardCharsets.UTF_8)),
-                worldName, null, true, Integer.MIN_VALUE, Integer.MAX_VALUE, "Wildnis", RegionType.OTHER,
-                "Globale Standardregion", null, Set.of(), "", "", 0, flags, Map.of(), List.of());
+                worldName, null, true, Integer.MIN_VALUE, Integer.MAX_VALUE,
+                name == null || name.isBlank() ? "Wildnis" : name,
+                type == null ? RegionType.OTHER : type,
+                description, null, Set.of(), enterMessage, leaveMessage, priority, flags, properties, List.of());
     }
 
     public UUID id() { return id; }
