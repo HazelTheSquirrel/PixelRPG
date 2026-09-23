@@ -1,0 +1,3100 @@
+{
+  "version": 1,
+  "sources": [
+    "quests_v2.json",
+    "quests_additional.json",
+    "quests_world_expansion.json",
+    "quests_expansion_02.json"
+  ],
+  "definitions": [
+    {
+      "id": "intro_first_delivery",
+      "title": "Die erste Lieferung",
+      "description": "Sammle Holz für den Versorger des Dorfes und bringe die Lieferung zurück.",
+      "type": "COLLECT",
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "targetKey": "OAK_LOG",
+      "requiredAmount": 8,
+      "reward": {
+        "money": 15,
+        "experience": 60,
+        "items": [
+          "BREAD"
+        ]
+      },
+      "followUpQuestIds": [
+        "intro_zombie_watch"
+      ]
+    },
+    {
+      "id": "intro_zombie_watch",
+      "title": "Die Wache braucht Hilfe",
+      "description": "Besiege Zombies an den Außenbezirken und hilf der Wache, das Dorf zu sichern.",
+      "type": "HUNT",
+      "recommendedLevel": 3,
+      "categoryLevel": 1,
+      "targetKey": "ZOMBIE",
+      "requiredAmount": 5,
+      "prerequisites": [
+        "intro_first_delivery"
+      ],
+      "reward": {
+        "money": 25,
+        "experience": 90,
+        "items": []
+      },
+      "followUpQuestIds": [
+        "bee_nest"
+      ]
+    },
+    {
+      "id": "bee_nest",
+      "title": "Das Bienennest",
+      "description": "Hilf einem Imker, sein beschädigtes Nest zu retten und die Bienen zu schützen.",
+      "type": "COLLECT",
+      "recommendedLevel": 7,
+      "categoryLevel": 5,
+      "targetKey": "HONEYCOMB",
+      "requiredAmount": 6,
+      "prerequisites": [
+        "intro_zombie_watch"
+      ],
+      "reward": {
+        "money": 35,
+        "experience": 140,
+        "items": [],
+        "companionId": "rare-bee-queen"
+      }
+    },
+    {
+      "id": "regional_copper_supply",
+      "title": "Erz für Eisenfels",
+      "description": "Sammle Kupfererz für die Werkstätten der nächsten Region.",
+      "type": "COLLECT",
+      "recommendedLevel": 25,
+      "categoryLevel": 20,
+      "targetKey": "COPPER_ORE",
+      "requiredAmount": 16,
+      "reward": {
+        "money": 120,
+        "experience": 400,
+        "items": []
+      }
+    },
+    {
+      "id": "regional_spider_threat",
+      "title": "Netze im Pass",
+      "description": "Räume den Pass von Spinnen und schaffe eine sichere Handelsroute.",
+      "type": "HUNT",
+      "recommendedLevel": 30,
+      "categoryLevel": 25,
+      "targetKey": "SPIDER",
+      "requiredAmount": 15,
+      "prerequisites": [
+        "regional_copper_supply"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 500,
+        "items": []
+      }
+    },
+    {
+      "id": "regional_witch_hunt",
+      "title": "Der verseuchte Hain",
+      "description": "Hexen haben den Hain verdorben. Vertreibe sie und sichere den Weg.",
+      "type": "HUNT",
+      "recommendedLevel": 40,
+      "categoryLevel": 35,
+      "targetKey": "WITCH",
+      "requiredAmount": 12,
+      "prerequisites": [
+        "regional_spider_threat"
+      ],
+      "reward": {
+        "money": 220,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "trade_route",
+      "title": "Die Handelsroute",
+      "description": "Sichere die Handelsroute und beschaffe die gestohlenen Waren.",
+      "type": "COLLECT",
+      "recommendedLevel": 50,
+      "categoryLevel": 45,
+      "targetKey": "GOLD_INGOT",
+      "requiredAmount": 8,
+      "reward": {
+        "money": 350,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "nether_supply",
+      "title": "Feuer aus der Tiefe",
+      "description": "Sammle Lohenruten für die Forschung der Gelehrten.",
+      "type": "COLLECT",
+      "recommendedLevel": 55,
+      "categoryLevel": 50,
+      "targetKey": "BLAZE_ROD",
+      "requiredAmount": 12,
+      "prerequisites": [
+        "trade_route"
+      ],
+      "reward": {
+        "money": 420,
+        "experience": 1450,
+        "items": []
+      }
+    },
+    {
+      "id": "end_pearl_request",
+      "title": "Bitte des Gelehrten",
+      "description": "Sammle Enderperlen für ein Ritual der Rückkehr.",
+      "type": "COLLECT",
+      "recommendedLevel": 70,
+      "categoryLevel": 65,
+      "targetKey": "ENDER_PEARL",
+      "requiredAmount": 20,
+      "prerequisites": [
+        "nether_supply"
+      ],
+      "reward": {
+        "money": 500,
+        "experience": 2200,
+        "items": []
+      }
+    },
+    {
+      "id": "end_chorus_collection",
+      "title": "Früchte des Endes",
+      "description": "Sammle Chorusfrüchte für die letzte Expedition.",
+      "type": "COLLECT",
+      "recommendedLevel": 80,
+      "categoryLevel": 75,
+      "targetKey": "CHORUS_FRUIT",
+      "requiredAmount": 24,
+      "prerequisites": [
+        "end_pearl_request"
+      ],
+      "reward": {
+        "money": 800,
+        "experience": 3200,
+        "items": []
+      }
+    },
+    {
+      "id": "global_wither_event",
+      "title": "Kalamität: Wither-Ausbruch",
+      "description": "Der Server muss den Wither besiegen, bevor er die Handelsroute zerstört.",
+      "type": "GLOBAL_EVENT",
+      "recommendedLevel": 35,
+      "categoryLevel": 30,
+      "targetKey": "WITHER",
+      "requiredAmount": 1,
+      "reward": {
+        "money": 300,
+        "experience": 800,
+        "items": []
+      }
+    },
+    {
+      "id": "companion_chicken",
+      "title": "Die verlorene Herde",
+      "description": "Hilf dem Bauern, die verstreuten Hühner wieder zusammenzutreiben.",
+      "type": "HUNT",
+      "recommendedLevel": 5,
+      "categoryLevel": 5,
+      "targetKey": "CHICKEN",
+      "requiredAmount": 5,
+      "reward": {
+        "money": 0,
+        "experience": 200,
+        "items": [],
+        "companionId": "common-chicken"
+      }
+    },
+    {
+      "id": "companion_cow",
+      "title": "Die Weide in Gefahr",
+      "description": "Sichere die Weide vor der Bedrohung und hilf dem Viehhirten.",
+      "type": "HUNT",
+      "recommendedLevel": 8,
+      "categoryLevel": 8,
+      "targetKey": "COW",
+      "requiredAmount": 5,
+      "reward": {
+        "money": 0,
+        "experience": 320,
+        "items": [],
+        "companionId": "common-cow"
+      }
+    },
+    {
+      "id": "companion_sheep",
+      "title": "Wolle für den Winter",
+      "description": "Beschaffe Wolle und sichere die Vorräte des Dorfes.",
+      "type": "HUNT",
+      "recommendedLevel": 10,
+      "categoryLevel": 10,
+      "targetKey": "SHEEP",
+      "requiredAmount": 8,
+      "reward": {
+        "money": 0,
+        "experience": 400,
+        "items": [],
+        "companionId": "common-sheep"
+      }
+    },
+    {
+      "id": "companion_rabbit",
+      "title": "Spuren im Feld",
+      "description": "Vertreibe die Plage aus den Feldern und folge den Spuren.",
+      "type": "HUNT",
+      "recommendedLevel": 12,
+      "categoryLevel": 12,
+      "targetKey": "RABBIT",
+      "requiredAmount": 8,
+      "reward": {
+        "money": 0,
+        "experience": 480,
+        "items": [],
+        "companionId": "common-rabbit"
+      }
+    },
+    {
+      "id": "companion_bat",
+      "title": "Die Höhlenwacht",
+      "description": "Erkunde die Höhlen und vertreibe die Fledermäuse aus dem Stollen.",
+      "type": "HUNT",
+      "recommendedLevel": 15,
+      "categoryLevel": 15,
+      "targetKey": "BAT",
+      "requiredAmount": 12,
+      "reward": {
+        "money": 0,
+        "experience": 600,
+        "items": [],
+        "companionId": "common-bat"
+      }
+    },
+    {
+      "id": "companion_cat",
+      "title": "Die Nachtwache",
+      "description": "Sichere die Lagerhäuser vor den nächtlichen Plagegeistern.",
+      "type": "HUNT",
+      "recommendedLevel": 20,
+      "categoryLevel": 20,
+      "targetKey": "SPIDER",
+      "requiredAmount": 10,
+      "reward": {
+        "money": 0,
+        "experience": 800,
+        "items": [],
+        "companionId": "uncommon-cat"
+      }
+    },
+    {
+      "id": "companion_fox",
+      "title": "Der rote Fuchs",
+      "description": "Finde die Fährte des seltenen Fuchses im Wald und beweise dich.",
+      "type": "HUNT",
+      "recommendedLevel": 25,
+      "categoryLevel": 25,
+      "targetKey": "FOX",
+      "requiredAmount": 3,
+      "reward": {
+        "money": 0,
+        "experience": 1000,
+        "items": [],
+        "companionId": "uncommon-fox"
+      }
+    },
+    {
+      "id": "companion_goat",
+      "title": "Ziegen am Abgrund",
+      "description": "Sichere die Bergpfade und bringe die verlorenen Ziegen zurück.",
+      "type": "HUNT",
+      "recommendedLevel": 30,
+      "categoryLevel": 30,
+      "targetKey": "GOAT",
+      "requiredAmount": 6,
+      "reward": {
+        "money": 0,
+        "experience": 1200,
+        "items": [],
+        "companionId": "uncommon-goat"
+      }
+    },
+    {
+      "id": "companion_parrot",
+      "title": "Stimmen des Dschungels",
+      "description": "Finde die verlorenen Papageien im Dschungel und sichere ihre Rückkehr.",
+      "type": "HUNT",
+      "recommendedLevel": 40,
+      "categoryLevel": 40,
+      "targetKey": "PARROT",
+      "requiredAmount": 4,
+      "reward": {
+        "money": 0,
+        "experience": 1600,
+        "items": [],
+        "companionId": "uncommon-parrot"
+      }
+    },
+    {
+      "id": "companion_armadillo",
+      "title": "Die Panzerroute",
+      "description": "Säubere die Route durch das trockene Land und beschütze die Tiere.",
+      "type": "HUNT",
+      "recommendedLevel": 45,
+      "categoryLevel": 45,
+      "targetKey": "ARMADILLO",
+      "requiredAmount": 5,
+      "reward": {
+        "money": 0,
+        "experience": 1800,
+        "items": [],
+        "companionId": "uncommon-armadillo"
+      }
+    },
+    {
+      "id": "companion_panda",
+      "title": "Bambus und Ruhe",
+      "description": "Beschaffe Bambus und sichere das Gebiet der Pandas.",
+      "type": "COLLECT",
+      "recommendedLevel": 50,
+      "categoryLevel": 50,
+      "targetKey": "BAMBOO",
+      "requiredAmount": 32,
+      "reward": {
+        "money": 0,
+        "experience": 2000,
+        "items": [],
+        "companionId": "uncommon-panda"
+      }
+    },
+    {
+      "id": "companion_bogged",
+      "title": "Der verseuchte Sumpf",
+      "description": "Säubere den Sumpf von den untoten Bogged und sichere den Weg.",
+      "type": "HUNT",
+      "recommendedLevel": 55,
+      "categoryLevel": 55,
+      "targetKey": "BOGGED",
+      "requiredAmount": 15,
+      "reward": {
+        "money": 0,
+        "experience": 2200,
+        "items": [],
+        "companionId": "rare-bogged"
+      }
+    },
+    {
+      "id": "companion_spider",
+      "title": "Netze im Dunkel",
+      "description": "Räume einen alten Stollen von Spinnen und sichere die Handelsroute.",
+      "type": "HUNT",
+      "recommendedLevel": 65,
+      "categoryLevel": 65,
+      "targetKey": "SPIDER",
+      "requiredAmount": 25,
+      "reward": {
+        "money": 0,
+        "experience": 2600,
+        "items": [],
+        "companionId": "rare-spider"
+      }
+    },
+    {
+      "id": "companion_creeper",
+      "title": "Die grüne Gefahr",
+      "description": "Entschärfe die Creeper-Bedrohung rund um die Siedlung.",
+      "type": "HUNT",
+      "recommendedLevel": 70,
+      "categoryLevel": 70,
+      "targetKey": "CREEPER",
+      "requiredAmount": 20,
+      "reward": {
+        "money": 0,
+        "experience": 2800,
+        "items": [],
+        "companionId": "rare-creeper"
+      }
+    },
+    {
+      "id": "companion_camel",
+      "title": "Karawane durch die Wüste",
+      "description": "Begleite die Karawane sicher durch die Wüste.",
+      "type": "HUNT",
+      "recommendedLevel": 75,
+      "categoryLevel": 75,
+      "targetKey": "HUSK",
+      "requiredAmount": 25,
+      "reward": {
+        "money": 0,
+        "experience": 3000,
+        "items": [],
+        "companionId": "epic-camel"
+      }
+    },
+    {
+      "id": "companion_nautilus",
+      "title": "Tiefen des Ozeans",
+      "description": "Stelle dich den Gefahren der Küste und sichere die seltenen Nautilus-Schätze.",
+      "type": "HUNT",
+      "recommendedLevel": 78,
+      "categoryLevel": 78,
+      "targetKey": "DROWNED",
+      "requiredAmount": 20,
+      "reward": {
+        "money": 0,
+        "experience": 3120,
+        "items": [],
+        "companionId": "epic-nautilus"
+      }
+    },
+    {
+      "id": "companion_creaking",
+      "title": "Flüstern im Pale Garden",
+      "description": "Überstehe die Nacht im Pale Garden und stelle dich dem Creaking.",
+      "type": "HUNT",
+      "recommendedLevel": 82,
+      "categoryLevel": 82,
+      "targetKey": "CREAKING",
+      "requiredAmount": 5,
+      "reward": {
+        "money": 0,
+        "experience": 3280,
+        "items": [],
+        "companionId": "epic-creaking"
+      }
+    },
+    {
+      "id": "companion_happy_ghast",
+      "title": "Ein Himmel voller Wolken",
+      "description": "Sichere die seltene Kreatur und bringe ihre Spur zurück zu den Gelehrten.",
+      "type": "HUNT",
+      "recommendedLevel": 86,
+      "categoryLevel": 86,
+      "targetKey": "GHAST",
+      "requiredAmount": 10,
+      "reward": {
+        "money": 0,
+        "experience": 3440,
+        "items": [],
+        "companionId": "epic-happy-ghast"
+      }
+    },
+    {
+      "id": "companion_iron_golem",
+      "title": "Der eiserne Wächter",
+      "description": "Beweise dich als Beschützer der Siedlungen und bezwinge ihre schwersten Angreifer.",
+      "type": "HUNT",
+      "recommendedLevel": 92,
+      "categoryLevel": 92,
+      "targetKey": "RAVAGER",
+      "requiredAmount": 5,
+      "reward": {
+        "money": 0,
+        "experience": 3680,
+        "items": [],
+        "companionId": "legendary-iron-golem"
+      }
+    },
+    {
+      "id": "companion_sulfur_cube",
+      "title": "Schwefel aus der Tiefe",
+      "description": "Stelle dich den Gefahren der Tiefe und besiege Magmawürfel.",
+      "type": "HUNT",
+      "recommendedLevel": 95,
+      "categoryLevel": 95,
+      "targetKey": "MAGMA_CUBE",
+      "requiredAmount": 20,
+      "reward": {
+        "money": 0,
+        "experience": 3800,
+        "items": [],
+        "companionId": "legendary-sulfur-cube"
+      }
+    },
+    {
+      "id": "blacksmith_01",
+      "title": "Die ersten Nägel",
+      "description": "Sammle Eisen für die Schmiede und hilf beim Auffüllen des Metalllagers.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 1,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "targetKey": "IRON_INGOT",
+      "requiredAmount": 12,
+      "reward": {
+        "money": 8,
+        "experience": 35,
+        "items": [
+          "BREAD"
+        ]
+      }
+    },
+    {
+      "id": "blacksmith_02",
+      "title": "Glut für die Esse",
+      "description": "Beschaffe Kohle für die Esse des Schmieds.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 10,
+      "recommendedLevel": 10,
+      "categoryLevel": 10,
+      "targetKey": "COAL",
+      "requiredAmount": 24,
+      "prerequisites": [
+        "blacksmith_01"
+      ],
+      "reward": {
+        "money": 80,
+        "experience": 350,
+        "items": [
+          "IRON_INGOT"
+        ]
+      }
+    },
+    {
+      "id": "blacksmith_03",
+      "title": "Kupfer für die Werkstatt",
+      "description": "Sammle Kupfererz für die Metallverarbeitung.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 20,
+      "recommendedLevel": 20,
+      "categoryLevel": 20,
+      "targetKey": "COPPER_ORE",
+      "requiredAmount": 32,
+      "prerequisites": [
+        "blacksmith_02"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": [
+          "IRON_INGOT"
+        ]
+      }
+    },
+    {
+      "id": "blacksmith_04",
+      "title": "Stahl für die Wachen",
+      "description": "Beschaffe Gold für hochwertige Ausrüstung der Wachen.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 35,
+      "recommendedLevel": 35,
+      "categoryLevel": 35,
+      "targetKey": "GOLD_INGOT",
+      "requiredAmount": 10,
+      "prerequisites": [
+        "blacksmith_03"
+      ],
+      "reward": {
+        "money": 280,
+        "experience": 1225,
+        "items": [
+          "IRON_INGOT"
+        ]
+      }
+    },
+    {
+      "id": "blacksmith_05",
+      "title": "Diamanten für die Klinge",
+      "description": "Sammle Diamanten für eine Meisterklinge.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 55,
+      "recommendedLevel": 55,
+      "categoryLevel": 55,
+      "targetKey": "DIAMOND",
+      "requiredAmount": 12,
+      "prerequisites": [
+        "blacksmith_04"
+      ],
+      "reward": {
+        "money": 440,
+        "experience": 1925,
+        "items": [
+          "GOLD_INGOT"
+        ]
+      }
+    },
+    {
+      "id": "blacksmith_06",
+      "title": "Restbestände der Alten",
+      "description": "Beschaffe Netherite-Schrott für die höchste Metallverarbeitung.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 75,
+      "recommendedLevel": 75,
+      "categoryLevel": 75,
+      "targetKey": "NETHERITE_SCRAP",
+      "requiredAmount": 8,
+      "prerequisites": [
+        "blacksmith_05"
+      ],
+      "reward": {
+        "money": 600,
+        "experience": 2625,
+        "items": [
+          "DIAMOND"
+        ]
+      }
+    },
+    {
+      "id": "provisioner_01",
+      "title": "Brot für das Dorf",
+      "description": "Sammle Weizen für die Dorfküche.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 1,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "targetKey": "WHEAT",
+      "requiredAmount": 24,
+      "reward": {
+        "money": 8,
+        "experience": 35,
+        "items": [
+          "BREAD"
+        ]
+      }
+    },
+    {
+      "id": "provisioner_02",
+      "title": "Fleisch für den Markt",
+      "description": "Beschaffe Rindfleisch für die Vorratskammer.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 10,
+      "recommendedLevel": 10,
+      "categoryLevel": 10,
+      "targetKey": "BEEF",
+      "requiredAmount": 20,
+      "prerequisites": [
+        "provisioner_01"
+      ],
+      "reward": {
+        "money": 80,
+        "experience": 350,
+        "items": [
+          "BREAD"
+        ]
+      }
+    },
+    {
+      "id": "provisioner_03",
+      "title": "Fässer voller Fisch",
+      "description": "Sammle Kabeljau für den Wochenmarkt.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 20,
+      "recommendedLevel": 20,
+      "categoryLevel": 20,
+      "targetKey": "COD",
+      "requiredAmount": 24,
+      "prerequisites": [
+        "provisioner_02"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": [
+          "COOKED_BEEF"
+        ]
+      }
+    },
+    {
+      "id": "provisioner_04",
+      "title": "Süße Vorräte",
+      "description": "Beschaffe Zucker für die Backstube.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 35,
+      "recommendedLevel": 35,
+      "categoryLevel": 35,
+      "targetKey": "SUGAR",
+      "requiredAmount": 32,
+      "prerequisites": [
+        "provisioner_03"
+      ],
+      "reward": {
+        "money": 280,
+        "experience": 1225,
+        "items": [
+          "BREAD"
+        ]
+      }
+    },
+    {
+      "id": "provisioner_05",
+      "title": "Honig und Gewürze",
+      "description": "Sammle Honigwaben für die feinen Speisen der Stadt.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 55,
+      "recommendedLevel": 55,
+      "categoryLevel": 55,
+      "targetKey": "HONEYCOMB",
+      "requiredAmount": 24,
+      "prerequisites": [
+        "provisioner_04"
+      ],
+      "reward": {
+        "money": 440,
+        "experience": 1925,
+        "items": [
+          "GOLDEN_APPLE"
+        ]
+      }
+    },
+    {
+      "id": "provisioner_06",
+      "title": "Vorräte für das Fest",
+      "description": "Sammle Äpfel für das große Erntefest.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 75,
+      "recommendedLevel": 75,
+      "categoryLevel": 75,
+      "targetKey": "APPLE",
+      "requiredAmount": 48,
+      "prerequisites": [
+        "provisioner_05"
+      ],
+      "reward": {
+        "money": 600,
+        "experience": 2625,
+        "items": [
+          "CAKE"
+        ]
+      }
+    },
+    {
+      "id": "alchemist_01",
+      "title": "Kräuter für den Mörser",
+      "description": "Sammle Löwenzahn für einfache Reagenzien.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 1,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "targetKey": "DANDELION",
+      "requiredAmount": 20,
+      "reward": {
+        "money": 8,
+        "experience": 35,
+        "items": [
+          "GLASS_BOTTLE"
+        ]
+      }
+    },
+    {
+      "id": "alchemist_02",
+      "title": "Rote Essenz",
+      "description": "Beschaffe roten Farbstoff für die Alchemie.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 10,
+      "recommendedLevel": 10,
+      "categoryLevel": 10,
+      "targetKey": "RED_DYE",
+      "requiredAmount": 24,
+      "prerequisites": [
+        "alchemist_01"
+      ],
+      "reward": {
+        "money": 80,
+        "experience": 350,
+        "items": [
+          "GLASS_BOTTLE"
+        ]
+      }
+    },
+    {
+      "id": "alchemist_03",
+      "title": "Leuchtende Reagenzien",
+      "description": "Sammle Leuchtbeeren für konzentrierte Mixturen.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 20,
+      "recommendedLevel": 20,
+      "categoryLevel": 20,
+      "targetKey": "GLOW_BERRIES",
+      "requiredAmount": 32,
+      "prerequisites": [
+        "alchemist_02"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": [
+          "GLOWSTONE_DUST"
+        ]
+      }
+    },
+    {
+      "id": "alchemist_04",
+      "title": "Spinnenblut",
+      "description": "Beschaffe Spinnenaugen für starke Tränke.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 35,
+      "recommendedLevel": 35,
+      "categoryLevel": 35,
+      "targetKey": "SPIDER_EYE",
+      "requiredAmount": 20,
+      "prerequisites": [
+        "alchemist_03"
+      ],
+      "reward": {
+        "money": 280,
+        "experience": 1225,
+        "items": [
+          "GLASS_BOTTLE"
+        ]
+      }
+    },
+    {
+      "id": "alchemist_05",
+      "title": "Feueressenz",
+      "description": "Sammle Lohenruten für fortgeschrittene Alchemie.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 55,
+      "recommendedLevel": 55,
+      "categoryLevel": 55,
+      "targetKey": "BLAZE_ROD",
+      "requiredAmount": 16,
+      "prerequisites": [
+        "alchemist_04"
+      ],
+      "reward": {
+        "money": 440,
+        "experience": 1925,
+        "items": [
+          "GLASS_BOTTLE"
+        ]
+      }
+    },
+    {
+      "id": "alchemist_06",
+      "title": "Das Herz der Nacht",
+      "description": "Beschaffe Ghasttränen für eine seltene Mixtur.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 75,
+      "recommendedLevel": 75,
+      "categoryLevel": 75,
+      "targetKey": "GHAST_TEAR",
+      "requiredAmount": 10,
+      "prerequisites": [
+        "alchemist_05"
+      ],
+      "reward": {
+        "money": 600,
+        "experience": 2625,
+        "items": [
+          "GLASS_BOTTLE"
+        ]
+      }
+    },
+    {
+      "id": "scholar_01",
+      "title": "Papier für die Archive",
+      "description": "Sammle Papier für die Chronisten.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 1,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "targetKey": "PAPER",
+      "requiredAmount": 32,
+      "reward": {
+        "money": 8,
+        "experience": 35,
+        "items": [
+          "BOOK"
+        ]
+      }
+    },
+    {
+      "id": "scholar_02",
+      "title": "Tinte und Pergament",
+      "description": "Beschaffe Tintenbeutel für die Bibliothek.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 10,
+      "recommendedLevel": 10,
+      "categoryLevel": 10,
+      "targetKey": "INK_SAC",
+      "requiredAmount": 20,
+      "prerequisites": [
+        "scholar_01"
+      ],
+      "reward": {
+        "money": 80,
+        "experience": 350,
+        "items": [
+          "BOOK"
+        ]
+      }
+    },
+    {
+      "id": "scholar_03",
+      "title": "Bücher der Grenzlande",
+      "description": "Sammle Bücher für das Archiv der Gelehrten.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 20,
+      "recommendedLevel": 20,
+      "categoryLevel": 20,
+      "targetKey": "BOOK",
+      "requiredAmount": 16,
+      "prerequisites": [
+        "scholar_02"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": [
+          "BOOK"
+        ]
+      }
+    },
+    {
+      "id": "scholar_04",
+      "title": "Enderwissen",
+      "description": "Beschaffe Enderperlen für die Forschung.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 35,
+      "recommendedLevel": 35,
+      "categoryLevel": 35,
+      "targetKey": "ENDER_PEARL",
+      "requiredAmount": 12,
+      "prerequisites": [
+        "scholar_03"
+      ],
+      "reward": {
+        "money": 280,
+        "experience": 1225,
+        "items": [
+          "BOOK"
+        ]
+      }
+    },
+    {
+      "id": "scholar_05",
+      "title": "Obsidianplatten",
+      "description": "Sammle Obsidian für ein Forschungsportal.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 55,
+      "recommendedLevel": 55,
+      "categoryLevel": 55,
+      "targetKey": "OBSIDIAN",
+      "requiredAmount": 24,
+      "prerequisites": [
+        "scholar_04"
+      ],
+      "reward": {
+        "money": 440,
+        "experience": 1925,
+        "items": [
+          "BOOK"
+        ]
+      }
+    },
+    {
+      "id": "scholar_06",
+      "title": "Die letzte Chronik",
+      "description": "Beschaffe Bücher für die große Chronik.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 75,
+      "recommendedLevel": 75,
+      "categoryLevel": 75,
+      "targetKey": "BOOK",
+      "requiredAmount": 32,
+      "prerequisites": [
+        "scholar_05"
+      ],
+      "reward": {
+        "money": 600,
+        "experience": 2625,
+        "items": [
+          "ENCHANTED_BOOK"
+        ]
+      }
+    },
+    {
+      "id": "crafting_scholar_book",
+      "title": "Archivauftrag: Erstes Lehrbuch",
+      "description": "Stelle Erstes Lehrbuch her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 1,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "targetKey": "pixelrpg:scholar:book",
+      "requiredAmount": 1,
+      "reward": {
+        "money": 25,
+        "experience": 100,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_inked_book",
+      "title": "Archivauftrag: Beschriebenes Lehrbuch",
+      "description": "Stelle Beschriebenes Lehrbuch her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 7,
+      "recommendedLevel": 7,
+      "categoryLevel": 7,
+      "targetKey": "pixelrpg:scholar/inked_book",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_book"
+      ],
+      "reward": {
+        "money": 25,
+        "experience": 100,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_research_notes",
+      "title": "Archivauftrag: Forschungsnotizen",
+      "description": "Stelle Forschungsnotizen her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 14,
+      "recommendedLevel": 14,
+      "categoryLevel": 14,
+      "targetKey": "pixelrpg:scholar/research_notes",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_inked_book"
+      ],
+      "reward": {
+        "money": 50,
+        "experience": 220,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_arcane_tome",
+      "title": "Archivauftrag: Arkaner Foliant",
+      "description": "Stelle Arkaner Foliant her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 22,
+      "recommendedLevel": 22,
+      "categoryLevel": 22,
+      "targetKey": "pixelrpg:scholar/arcane_tome",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_research_notes"
+      ],
+      "reward": {
+        "money": 50,
+        "experience": 220,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_knowledge_scroll",
+      "title": "Archivauftrag: Schriftrolle des Wissens",
+      "description": "Stelle Schriftrolle des Wissens her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 30,
+      "recommendedLevel": 30,
+      "categoryLevel": 30,
+      "targetKey": "pixelrpg:scholar/knowledge_scroll",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_arcane_tome"
+      ],
+      "reward": {
+        "money": 90,
+        "experience": 400,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_enchanted_page",
+      "title": "Archivauftrag: Verzauberte Seite",
+      "description": "Stelle Verzauberte Seite her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 38,
+      "recommendedLevel": 38,
+      "categoryLevel": 38,
+      "targetKey": "pixelrpg:scholar/enchanted_page",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_knowledge_scroll"
+      ],
+      "reward": {
+        "money": 90,
+        "experience": 400,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_efficiency_v",
+      "title": "Archivauftrag: Lehrbuch der Effizienz V",
+      "description": "Stelle Lehrbuch der Effizienz V her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 46,
+      "recommendedLevel": 46,
+      "categoryLevel": 46,
+      "targetKey": "pixelrpg:scholar:efficiency_v",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_enchanted_page"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_protection_iv",
+      "title": "Archivauftrag: Lehrbuch des Schutzes IV",
+      "description": "Stelle Lehrbuch des Schutzes IV her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 55,
+      "recommendedLevel": 55,
+      "categoryLevel": 55,
+      "targetKey": "pixelrpg:scholar:protection_iv",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_efficiency_v"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_sharpness_v",
+      "title": "Archivauftrag: Lehrbuch der Schärfe V",
+      "description": "Stelle Lehrbuch der Schärfe V her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 64,
+      "recommendedLevel": 64,
+      "categoryLevel": 64,
+      "targetKey": "pixelrpg:scholar:sharpness_v",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_protection_iv"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_unbreaking_iii",
+      "title": "Archivauftrag: Lehrbuch der Haltbarkeit III",
+      "description": "Stelle Lehrbuch der Haltbarkeit III her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 72,
+      "recommendedLevel": 72,
+      "categoryLevel": 72,
+      "targetKey": "pixelrpg:scholar:unbreaking_iii",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_sharpness_v"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_fortune_iii",
+      "title": "Archivauftrag: Lehrbuch des Glücks III",
+      "description": "Stelle Lehrbuch des Glücks III her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 80,
+      "recommendedLevel": 80,
+      "categoryLevel": 80,
+      "targetKey": "pixelrpg:scholar:fortune_iii",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_unbreaking_iii"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_mending",
+      "title": "Archivauftrag: Meisterschrift der Reparatur",
+      "description": "Stelle Meisterschrift der Reparatur her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 88,
+      "recommendedLevel": 88,
+      "categoryLevel": 88,
+      "targetKey": "pixelrpg:scholar:mending",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_fortune_iii"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_ancient_archive",
+      "title": "Archivauftrag: Altes Archiv",
+      "description": "Stelle Altes Archiv her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 94,
+      "recommendedLevel": 94,
+      "categoryLevel": 94,
+      "targetKey": "pixelrpg:scholar/ancient_archive",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_mending"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_world_record",
+      "title": "Archivauftrag: Weltchronik",
+      "description": "Stelle Weltchronik her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 98,
+      "recommendedLevel": 98,
+      "categoryLevel": 98,
+      "targetKey": "pixelrpg:scholar/world_record",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_ancient_archive"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_scholar_mob_spawner",
+      "title": "Archivauftrag: Archiv der Bestien",
+      "description": "Stelle Archiv der Bestien her und liefere das fertige Werk beim Gelehrten ab.",
+      "type": "COLLECT",
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 100,
+      "recommendedLevel": 100,
+      "categoryLevel": 100,
+      "targetKey": "pixelrpg:scholar/mob_spawner",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_scholar_world_record"
+      ],
+      "reward": {
+        "money": 500,
+        "experience": 2200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_copper_core",
+      "title": "Schmiedeauftrag: Kupferkern",
+      "description": "Stelle Kupferkern her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 1,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "targetKey": "pixelrpg:blacksmith/copper_core",
+      "requiredAmount": 1,
+      "reward": {
+        "money": 25,
+        "experience": 100,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_copper_blade",
+      "title": "Schmiedeauftrag: Kupferklinge",
+      "description": "Stelle Kupferklinge her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 7,
+      "recommendedLevel": 7,
+      "categoryLevel": 7,
+      "targetKey": "pixelrpg:blacksmith/copper_blade",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_copper_core"
+      ],
+      "reward": {
+        "money": 25,
+        "experience": 100,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_copper_plate",
+      "title": "Schmiedeauftrag: Kupferplatte",
+      "description": "Stelle Kupferplatte her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 14,
+      "recommendedLevel": 14,
+      "categoryLevel": 14,
+      "targetKey": "pixelrpg:blacksmith/copper_plate",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_copper_blade"
+      ],
+      "reward": {
+        "money": 50,
+        "experience": 220,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_chainmail_frame",
+      "title": "Schmiedeauftrag: Kettenrahmen",
+      "description": "Stelle Kettenrahmen her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 22,
+      "recommendedLevel": 22,
+      "categoryLevel": 22,
+      "targetKey": "pixelrpg:blacksmith/chainmail_frame",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_copper_plate"
+      ],
+      "reward": {
+        "money": 50,
+        "experience": 220,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_iron_reinforcement",
+      "title": "Schmiedeauftrag: Eisenverstärkung",
+      "description": "Stelle Eisenverstärkung her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 30,
+      "recommendedLevel": 30,
+      "categoryLevel": 30,
+      "targetKey": "pixelrpg:blacksmith/iron_reinforcement",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_chainmail_frame"
+      ],
+      "reward": {
+        "money": 90,
+        "experience": 400,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_forged_pickaxe",
+      "title": "Schmiedeauftrag: Geschmiedete Spitzhacke",
+      "description": "Stelle Geschmiedete Spitzhacke her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 38,
+      "recommendedLevel": 38,
+      "categoryLevel": 38,
+      "targetKey": "pixelrpg:blacksmith/forged_pickaxe",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_iron_reinforcement"
+      ],
+      "reward": {
+        "money": 90,
+        "experience": 400,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_forged_sword",
+      "title": "Schmiedeauftrag: Geschmiedetes Schwert",
+      "description": "Stelle Geschmiedetes Schwert her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 46,
+      "recommendedLevel": 46,
+      "categoryLevel": 46,
+      "targetKey": "pixelrpg:blacksmith/forged_sword",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_forged_pickaxe"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_copper_shield",
+      "title": "Schmiedeauftrag: Kupferschild",
+      "description": "Stelle Kupferschild her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 55,
+      "recommendedLevel": 55,
+      "categoryLevel": 55,
+      "targetKey": "pixelrpg:blacksmith/copper_shield",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_forged_sword"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_gold_core",
+      "title": "Schmiedeauftrag: Goldkern",
+      "description": "Stelle Goldkern her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 64,
+      "recommendedLevel": 64,
+      "categoryLevel": 64,
+      "targetKey": "pixelrpg:blacksmith/gold_core",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_copper_shield"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_diamond_frame",
+      "title": "Schmiedeauftrag: Diamantrahmen",
+      "description": "Stelle Diamantrahmen her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 72,
+      "recommendedLevel": 72,
+      "categoryLevel": 72,
+      "targetKey": "pixelrpg:blacksmith/diamond_frame",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_gold_core"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_diamond_sword",
+      "title": "Schmiedeauftrag: Kristallschneide",
+      "description": "Stelle Kristallschneide her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 80,
+      "recommendedLevel": 80,
+      "categoryLevel": 80,
+      "targetKey": "pixelrpg:blacksmith/diamond_sword",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_diamond_frame"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_diamond_chestplate",
+      "title": "Schmiedeauftrag: Kristallpanzer",
+      "description": "Stelle Kristallpanzer her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 88,
+      "recommendedLevel": 88,
+      "categoryLevel": 88,
+      "targetKey": "pixelrpg:blacksmith/diamond_chestplate",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_diamond_sword"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_netherite_component",
+      "title": "Schmiedeauftrag: Netheritkomponente",
+      "description": "Stelle Netheritkomponente her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 94,
+      "recommendedLevel": 94,
+      "categoryLevel": 94,
+      "targetKey": "pixelrpg:blacksmith/netherite_component",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_diamond_chestplate"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_legendary_blade",
+      "title": "Schmiedeauftrag: Klinge des Meisters",
+      "description": "Stelle Klinge des Meisters her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 98,
+      "recommendedLevel": 98,
+      "categoryLevel": 98,
+      "targetKey": "pixelrpg:blacksmith/legendary_blade",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_netherite_component"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_blacksmith_master_armor",
+      "title": "Schmiedeauftrag: Rüstung des Schmiedemeisters",
+      "description": "Stelle Rüstung des Schmiedemeisters her und liefere das fertige Werk beim Schmiedemeister ab.",
+      "type": "COLLECT",
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 100,
+      "recommendedLevel": 100,
+      "categoryLevel": 100,
+      "targetKey": "pixelrpg:blacksmith/master_armor",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_blacksmith_legendary_blade"
+      ],
+      "reward": {
+        "money": 500,
+        "experience": 2200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_water_flask",
+      "title": "Alchemieauftrag: Wasserflasche des Labors",
+      "description": "Stelle Wasserflasche des Labors her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 1,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "targetKey": "pixelrpg:alchemist/water_flask",
+      "requiredAmount": 1,
+      "reward": {
+        "money": 25,
+        "experience": 100,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_honey_extract",
+      "title": "Alchemieauftrag: Honigextrakt",
+      "description": "Stelle Honigextrakt her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 7,
+      "recommendedLevel": 7,
+      "categoryLevel": 7,
+      "targetKey": "pixelrpg:alchemist/honey_extract",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_water_flask"
+      ],
+      "reward": {
+        "money": 25,
+        "experience": 100,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_melon_tonic",
+      "title": "Alchemieauftrag: Melonen-Tonikum",
+      "description": "Stelle Melonen-Tonikum her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 14,
+      "recommendedLevel": 14,
+      "categoryLevel": 14,
+      "targetKey": "pixelrpg:alchemist/melon_tonic",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_honey_extract"
+      ],
+      "reward": {
+        "money": 50,
+        "experience": 220,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_healing_elixir",
+      "title": "Alchemieauftrag: Heilelixier",
+      "description": "Stelle Heilelixier her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 22,
+      "recommendedLevel": 22,
+      "categoryLevel": 22,
+      "targetKey": "pixelrpg:alchemist:healing",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_melon_tonic"
+      ],
+      "reward": {
+        "money": 50,
+        "experience": 220,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_strength_elixir",
+      "title": "Alchemieauftrag: Stärkelixier",
+      "description": "Stelle Stärkelixier her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 30,
+      "recommendedLevel": 30,
+      "categoryLevel": 30,
+      "targetKey": "pixelrpg:alchemist:strength",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_healing_elixir"
+      ],
+      "reward": {
+        "money": 90,
+        "experience": 400,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_strong_healing",
+      "title": "Alchemieauftrag: Starkes Heilelixier",
+      "description": "Stelle Starkes Heilelixier her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 38,
+      "recommendedLevel": 38,
+      "categoryLevel": 38,
+      "targetKey": "pixelrpg:alchemist:strong_healing",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_strength_elixir"
+      ],
+      "reward": {
+        "money": 90,
+        "experience": 400,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_long_strength",
+      "title": "Alchemieauftrag: Langanhaltendes Stärkelixier",
+      "description": "Stelle Langanhaltendes Stärkelixier her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 46,
+      "recommendedLevel": 46,
+      "categoryLevel": 46,
+      "targetKey": "pixelrpg:alchemist/long_strength",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_strong_healing"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_splash_healing",
+      "title": "Alchemieauftrag: Wurf-Heilelixier",
+      "description": "Stelle Wurf-Heilelixier her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 55,
+      "recommendedLevel": 55,
+      "categoryLevel": 55,
+      "targetKey": "pixelrpg:alchemist:splash_strong_healing",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_long_strength"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_lingering_strength",
+      "title": "Alchemieauftrag: Verweilendes Stärkelixier",
+      "description": "Stelle Verweilendes Stärkelixier her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 64,
+      "recommendedLevel": 64,
+      "categoryLevel": 64,
+      "targetKey": "pixelrpg:alchemist/lingering_strength",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_splash_healing"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_arcane_catalyst",
+      "title": "Alchemieauftrag: Arkaner Katalysator",
+      "description": "Stelle Arkaner Katalysator her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 72,
+      "recommendedLevel": 72,
+      "categoryLevel": 72,
+      "targetKey": "pixelrpg:alchemist/arcane_catalyst",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_lingering_strength"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_invisibility_elixir",
+      "title": "Alchemieauftrag: Elixier der Unsichtbarkeit",
+      "description": "Stelle Elixier der Unsichtbarkeit her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 80,
+      "recommendedLevel": 80,
+      "categoryLevel": 80,
+      "targetKey": "pixelrpg:alchemist/invisibility_elixir",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_arcane_catalyst"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_heroic_elixir",
+      "title": "Alchemieauftrag: Heldenelixier",
+      "description": "Stelle Heldenelixier her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 88,
+      "recommendedLevel": 88,
+      "categoryLevel": 88,
+      "targetKey": "pixelrpg:alchemist/heroic_elixir",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_invisibility_elixir"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_master_elixir",
+      "title": "Alchemieauftrag: Meisterelixier",
+      "description": "Stelle Meisterelixier her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 94,
+      "recommendedLevel": 94,
+      "categoryLevel": 94,
+      "targetKey": "pixelrpg:alchemist/master_elixir",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_heroic_elixir"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_philosophers_draught",
+      "title": "Alchemieauftrag: Trank der Meisterschaft",
+      "description": "Stelle Trank der Meisterschaft her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 98,
+      "recommendedLevel": 98,
+      "categoryLevel": 98,
+      "targetKey": "pixelrpg:alchemist/philosophers_draught",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_master_elixir"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_alchemist_grand_elixir",
+      "title": "Alchemieauftrag: Großes Meisterelixier",
+      "description": "Stelle Großes Meisterelixier her und liefere das fertige Elixier beim Alchemisten ab.",
+      "type": "COLLECT",
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 100,
+      "recommendedLevel": 100,
+      "categoryLevel": 100,
+      "targetKey": "pixelrpg:alchemist/grand_elixir",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_alchemist_philosophers_draught"
+      ],
+      "reward": {
+        "money": 500,
+        "experience": 2200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_dough",
+      "title": "Versorgungsauftrag: Grundteig",
+      "description": "Stelle Grundteig her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 1,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "targetKey": "pixelrpg:provisioner/dough",
+      "requiredAmount": 1,
+      "reward": {
+        "money": 25,
+        "experience": 100,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_bread",
+      "title": "Versorgungsauftrag: Brot des Lehrlings",
+      "description": "Stelle Brot des Lehrlings her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 7,
+      "recommendedLevel": 7,
+      "categoryLevel": 7,
+      "targetKey": "pixelrpg:provisioner:bread",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_dough"
+      ],
+      "reward": {
+        "money": 25,
+        "experience": 100,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_sweet_roll",
+      "title": "Versorgungsauftrag: Süßes Gebäck",
+      "description": "Stelle Süßes Gebäck her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 14,
+      "recommendedLevel": 14,
+      "categoryLevel": 14,
+      "targetKey": "pixelrpg:provisioner/sweet_roll",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_bread"
+      ],
+      "reward": {
+        "money": 50,
+        "experience": 220,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_hearty_meal",
+      "title": "Versorgungsauftrag: Herzhafte Mahlzeit",
+      "description": "Stelle Herzhafte Mahlzeit her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 22,
+      "recommendedLevel": 22,
+      "categoryLevel": 22,
+      "targetKey": "pixelrpg:provisioner/hearty_meal",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_sweet_roll"
+      ],
+      "reward": {
+        "money": 50,
+        "experience": 220,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_traveler_stew",
+      "title": "Versorgungsauftrag: Reiseeintopf",
+      "description": "Stelle Reiseeintopf her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 30,
+      "recommendedLevel": 30,
+      "categoryLevel": 30,
+      "targetKey": "pixelrpg:provisioner/traveler_stew",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_hearty_meal"
+      ],
+      "reward": {
+        "money": 90,
+        "experience": 400,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_herb_stew",
+      "title": "Versorgungsauftrag: Kräutereintopf",
+      "description": "Stelle Kräutereintopf her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 38,
+      "recommendedLevel": 38,
+      "categoryLevel": 38,
+      "targetKey": "pixelrpg:provisioner/herb_stew",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_traveler_stew"
+      ],
+      "reward": {
+        "money": 90,
+        "experience": 400,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_healing_soup",
+      "title": "Versorgungsauftrag: Heilsuppe",
+      "description": "Stelle Heilsuppe her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 46,
+      "recommendedLevel": 46,
+      "categoryLevel": 46,
+      "targetKey": "pixelrpg:provisioner/healing_soup",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_herb_stew"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_golden_carrot",
+      "title": "Versorgungsauftrag: Goldene Karotte – Meisterproviant",
+      "description": "Stelle Goldene Karotte – Meisterproviant her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 55,
+      "recommendedLevel": 55,
+      "categoryLevel": 55,
+      "targetKey": "pixelrpg:provisioner:golden_carrot",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_healing_soup"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_glow_berry_tart",
+      "title": "Versorgungsauftrag: Leuchtbeeren-Törtchen",
+      "description": "Stelle Leuchtbeeren-Törtchen her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 64,
+      "recommendedLevel": 64,
+      "categoryLevel": 64,
+      "targetKey": "pixelrpg:provisioner/glow_berry_tart",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_golden_carrot"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_beef_feast",
+      "title": "Versorgungsauftrag: Rinderfestmahl",
+      "description": "Stelle Rinderfestmahl her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 72,
+      "recommendedLevel": 72,
+      "categoryLevel": 72,
+      "targetKey": "pixelrpg:provisioner/beef_feast",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_glow_berry_tart"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_hero_feast",
+      "title": "Versorgungsauftrag: Heldenmahl",
+      "description": "Stelle Heldenmahl her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 80,
+      "recommendedLevel": 80,
+      "categoryLevel": 80,
+      "targetKey": "pixelrpg:provisioner:golden_apple",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_beef_feast"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_enchanted_feast",
+      "title": "Versorgungsauftrag: Verzaubertes Festmahl",
+      "description": "Stelle Verzaubertes Festmahl her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 88,
+      "recommendedLevel": 88,
+      "categoryLevel": 88,
+      "targetKey": "pixelrpg:provisioner/enchanted_feast",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_hero_feast"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_champion_feast",
+      "title": "Versorgungsauftrag: Festmahl des Champions",
+      "description": "Stelle Festmahl des Champions her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 94,
+      "recommendedLevel": 94,
+      "categoryLevel": 94,
+      "targetKey": "pixelrpg:provisioner/champion_feast",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_enchanted_feast"
+      ],
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_survival_ration",
+      "title": "Versorgungsauftrag: Unverwüstliche Reiseration",
+      "description": "Stelle Unverwüstliche Reiseration her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 98,
+      "recommendedLevel": 98,
+      "categoryLevel": 98,
+      "targetKey": "pixelrpg:provisioner/survival_ration",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_champion_feast"
+      ],
+      "reward": {
+        "money": 500,
+        "experience": 2200,
+        "items": []
+      }
+    },
+    {
+      "id": "crafting_provisioner_legendary_feast",
+      "title": "Versorgungsauftrag: Festmahl der Legenden",
+      "description": "Stelle Festmahl der Legenden her und liefere das fertige Erzeugnis beim Versorger ab.",
+      "type": "COLLECT",
+      "profession": "PROVISIONER",
+      "requiredProfessionLevel": 100,
+      "recommendedLevel": 100,
+      "categoryLevel": 100,
+      "targetKey": "pixelrpg:provisioner/legendary_feast",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "crafting_provisioner_survival_ration"
+      ],
+      "reward": {
+        "money": 500,
+        "experience": 2200,
+        "items": []
+      }
+    },
+    {
+      "id": "village_woodcutting",
+      "title": "Holz für den Wiederaufbau",
+      "description": "Sammle Holz für die Handwerker, die die beschädigten Häuser des Dorfes reparieren.",
+      "type": "COLLECT",
+      "recommendedLevel": 2,
+      "categoryLevel": 1,
+      "targetKey": "OAK_LOG",
+      "requiredAmount": 16,
+      "reward": {
+        "money": 30,
+        "experience": 100,
+        "items": [
+          "BREAD"
+        ]
+      }
+    },
+    {
+      "id": "village_graveyard",
+      "title": "Unruhe auf dem Friedhof",
+      "description": "Die Totenruhe ist gestört. Besiege die Zombies auf dem alten Friedhof.",
+      "type": "HUNT",
+      "recommendedLevel": 4,
+      "categoryLevel": 1,
+      "targetKey": "ZOMBIE",
+      "requiredAmount": 8,
+      "prerequisites": [
+        "village_woodcutting"
+      ],
+      "reward": {
+        "money": 45,
+        "experience": 140,
+        "items": [
+          "IRON_INGOT"
+        ]
+      }
+    },
+    {
+      "id": "village_archers",
+      "title": "Pfeile im Nebel",
+      "description": "Skelette bedrohen die Felder. Räume die Wege von ihren Schützen.",
+      "type": "HUNT",
+      "recommendedLevel": 7,
+      "categoryLevel": 5,
+      "targetKey": "SKELETON",
+      "requiredAmount": 10,
+      "prerequisites": [
+        "village_graveyard"
+      ],
+      "reward": {
+        "money": 60,
+        "experience": 190,
+        "items": [
+          "ARROW"
+        ]
+      }
+    },
+    {
+      "id": "forest_spiders",
+      "title": "Netze am Waldrand",
+      "description": "Beseitige die Spinnen, bevor der Waldweg unpassierbar wird.",
+      "type": "HUNT",
+      "recommendedLevel": 10,
+      "categoryLevel": 10,
+      "targetKey": "SPIDER",
+      "requiredAmount": 12,
+      "prerequisites": [
+        "village_archers"
+      ],
+      "reward": {
+        "money": 75,
+        "experience": 240,
+        "items": [
+          "STRING"
+        ]
+      }
+    },
+    {
+      "id": "forest_creepers",
+      "title": "Grüne Gefahr",
+      "description": "Creeper haben sich zwischen den Bäumen eingenistet. Sichere den Waldweg.",
+      "type": "HUNT",
+      "recommendedLevel": 13,
+      "categoryLevel": 10,
+      "targetKey": "CREEPER",
+      "requiredAmount": 8,
+      "prerequisites": [
+        "forest_spiders"
+      ],
+      "reward": {
+        "money": 90,
+        "experience": 300,
+        "items": [
+          "GUNPOWDER"
+        ]
+      }
+    },
+    {
+      "id": "mine_coal",
+      "title": "Kohle für die Mine",
+      "description": "Fülle die Vorräte der Mine mit Kohle für Fackeln und Schmelzöfen.",
+      "type": "COLLECT",
+      "recommendedLevel": 16,
+      "categoryLevel": 15,
+      "targetKey": "COAL",
+      "requiredAmount": 40,
+      "prerequisites": [
+        "forest_creepers"
+      ],
+      "reward": {
+        "money": 110,
+        "experience": 360,
+        "items": [
+          "TORCH"
+        ]
+      }
+    },
+    {
+      "id": "mine_iron",
+      "title": "Eisenmangel",
+      "description": "Die Werkstätten brauchen dringend Eisen. Beschaffe einen neuen Vorrat.",
+      "type": "COLLECT",
+      "recommendedLevel": 19,
+      "categoryLevel": 15,
+      "targetKey": "IRON_INGOT",
+      "requiredAmount": 24,
+      "prerequisites": [
+        "mine_coal"
+      ],
+      "reward": {
+        "money": 135,
+        "experience": 430,
+        "items": [
+          "IRON_PICKAXE"
+        ]
+      }
+    },
+    {
+      "id": "caves_slimes",
+      "title": "Schleim in den Stollen",
+      "description": "Schleime blockieren die tieferen Stollen. Räume sie aus dem Weg.",
+      "type": "HUNT",
+      "recommendedLevel": 22,
+      "categoryLevel": 20,
+      "targetKey": "SLIME",
+      "requiredAmount": 15,
+      "prerequisites": [
+        "mine_iron"
+      ],
+      "reward": {
+        "money": 155,
+        "experience": 500,
+        "items": [
+          "SLIME_BALL"
+        ]
+      }
+    },
+    {
+      "id": "pass_endermen",
+      "title": "Die Wanderer des Passes",
+      "description": "Endermen tauchen am Pass auf. Vertreibe sie und sichere die Händlerroute.",
+      "type": "HUNT",
+      "recommendedLevel": 26,
+      "categoryLevel": 25,
+      "targetKey": "ENDERMAN",
+      "requiredAmount": 8,
+      "prerequisites": [
+        "caves_slimes"
+      ],
+      "reward": {
+        "money": 190,
+        "experience": 620,
+        "items": [
+          "ENDER_PEARL"
+        ]
+      }
+    },
+    {
+      "id": "marsh_witches",
+      "title": "Hexen im Sumpf",
+      "description": "Die Hexenhütten vergiften den Sumpf. Besiege die Hexen in der Umgebung.",
+      "type": "HUNT",
+      "recommendedLevel": 30,
+      "categoryLevel": 30,
+      "targetKey": "WITCH",
+      "requiredAmount": 10,
+      "prerequisites": [
+        "pass_endermen"
+      ],
+      "reward": {
+        "money": 230,
+        "experience": 760,
+        "items": [
+          "GLASS_BOTTLE"
+        ]
+      }
+    },
+    {
+      "id": "marsh_slime_supply",
+      "title": "Schleimige Zutaten",
+      "description": "Sammle Schleimbälle für die Alchemisten des Sumpfpostens.",
+      "type": "COLLECT",
+      "recommendedLevel": 33,
+      "categoryLevel": 30,
+      "targetKey": "SLIME_BALL",
+      "requiredAmount": 24,
+      "prerequisites": [
+        "marsh_witches"
+      ],
+      "reward": {
+        "money": 250,
+        "experience": 820,
+        "items": [
+          "GLASS_BOTTLE"
+        ]
+      }
+    },
+    {
+      "id": "badlands_gold",
+      "title": "Gold aus dem Ödland",
+      "description": "Beschaffe Gold für die Händler, die ihre Karawanen neu ausrüsten müssen.",
+      "type": "COLLECT",
+      "recommendedLevel": 36,
+      "categoryLevel": 35,
+      "targetKey": "GOLD_INGOT",
+      "requiredAmount": 12,
+      "prerequisites": [
+        "marsh_slime_supply"
+      ],
+      "reward": {
+        "money": 280,
+        "experience": 900,
+        "items": [
+          "GOLD_INGOT"
+        ]
+      }
+    },
+    {
+      "id": "badlands_husks",
+      "title": "Staub und Klingen",
+      "description": "Husks überfallen die Handelswege des Ödlands. Säubere die Route.",
+      "type": "HUNT",
+      "recommendedLevel": 40,
+      "categoryLevel": 40,
+      "targetKey": "HUSK",
+      "requiredAmount": 18,
+      "prerequisites": [
+        "badlands_gold"
+      ],
+      "reward": {
+        "money": 320,
+        "experience": 1050,
+        "items": [
+          "IRON_SWORD"
+        ]
+      }
+    },
+    {
+      "id": "mountain_goats",
+      "title": "Gefahr am Bergpfad",
+      "description": "Aggressive Kreaturen treiben Wanderer von den Bergwegen. Sichere die Umgebung.",
+      "type": "HUNT",
+      "recommendedLevel": 43,
+      "categoryLevel": 40,
+      "targetKey": "GOAT",
+      "requiredAmount": 12,
+      "prerequisites": [
+        "badlands_husks"
+      ],
+      "reward": {
+        "money": 350,
+        "experience": 1150,
+        "items": [
+          "COOKED_BEEF"
+        ]
+      }
+    },
+    {
+      "id": "deep_copper",
+      "title": "Kupfer für die Festung",
+      "description": "Sammle Kupfererz für die Leitungen und Werkstätten der Bergfestung.",
+      "type": "COLLECT",
+      "recommendedLevel": 46,
+      "categoryLevel": 45,
+      "targetKey": "COPPER_ORE",
+      "requiredAmount": 48,
+      "prerequisites": [
+        "mountain_goats"
+      ],
+      "reward": {
+        "money": 390,
+        "experience": 1300,
+        "items": [
+          "COPPER_INGOT"
+        ]
+      }
+    },
+    {
+      "id": "nether_blazes",
+      "title": "Feuer der Netherfestung",
+      "description": "Die Gelehrten benötigen Lohenruten aus einer gefährlichen Festung.",
+      "type": "HUNT",
+      "recommendedLevel": 50,
+      "categoryLevel": 50,
+      "targetKey": "BLAZE",
+      "requiredAmount": 16,
+      "prerequisites": [
+        "deep_copper"
+      ],
+      "reward": {
+        "money": 450,
+        "experience": 1500,
+        "items": [
+          "BLAZE_ROD"
+        ]
+      }
+    },
+    {
+      "id": "nether_piglins",
+      "title": "Feindliche Goldwächter",
+      "description": "Piglins blockieren den Zugang zu einem alten Lager. Besiege sie und sichere den Weg.",
+      "type": "HUNT",
+      "recommendedLevel": 54,
+      "categoryLevel": 50,
+      "targetKey": "PIGLIN",
+      "requiredAmount": 20,
+      "prerequisites": [
+        "nether_blazes"
+      ],
+      "reward": {
+        "money": 500,
+        "experience": 1700,
+        "items": [
+          "GOLD_INGOT"
+        ]
+      }
+    },
+    {
+      "id": "nether_magma",
+      "title": "Kern der Glut",
+      "description": "Sammle Magmacreme für die hitzebeständigen Vorräte der Expedition.",
+      "type": "COLLECT",
+      "recommendedLevel": 58,
+      "categoryLevel": 55,
+      "targetKey": "MAGMA_CREAM",
+      "requiredAmount": 18,
+      "prerequisites": [
+        "nether_piglins"
+      ],
+      "reward": {
+        "money": 560,
+        "experience": 1900,
+        "items": [
+          "FIRE_CHARGE"
+        ]
+      }
+    },
+    {
+      "id": "nether_ghasts",
+      "title": "Schreie über der Festung",
+      "description": "Ghasts machen die Rückkehr der Expedition unmöglich. Vertreibe die fliegenden Schrecken.",
+      "type": "HUNT",
+      "recommendedLevel": 62,
+      "categoryLevel": 60,
+      "targetKey": "GHAST",
+      "requiredAmount": 10,
+      "prerequisites": [
+        "nether_magma"
+      ],
+      "reward": {
+        "money": 620,
+        "experience": 2150,
+        "items": [
+          "GHAST_TEAR"
+        ]
+      }
+    },
+    {
+      "id": "nether_hoglins",
+      "title": "Bestien der Basaltdeltas",
+      "description": "Hoglins haben die Versorgungsroute übernommen. Säubere den Zugang.",
+      "type": "HUNT",
+      "recommendedLevel": 66,
+      "categoryLevel": 65,
+      "targetKey": "HOGLIN",
+      "requiredAmount": 20,
+      "prerequisites": [
+        "nether_ghasts"
+      ],
+      "reward": {
+        "money": 680,
+        "experience": 2400,
+        "items": [
+          "COOKED_PORKCHOP"
+        ]
+      }
+    },
+    {
+      "id": "end_pearls",
+      "title": "Die letzten Koordinaten",
+      "description": "Sammle Enderperlen für die Berechnung des Weges zum Endportal.",
+      "type": "COLLECT",
+      "recommendedLevel": 70,
+      "categoryLevel": 70,
+      "targetKey": "ENDER_PEARL",
+      "requiredAmount": 24,
+      "prerequisites": [
+        "nether_hoglins"
+      ],
+      "reward": {
+        "money": 750,
+        "experience": 2700,
+        "items": [
+          "EYE_OF_ENDER"
+        ]
+      }
+    },
+    {
+      "id": "endermen_hunt",
+      "title": "Schatten zwischen den Inseln",
+      "description": "Endermen bewachen die Ruinen. Besiege sie, damit die Expedition weiterziehen kann.",
+      "type": "HUNT",
+      "recommendedLevel": 73,
+      "categoryLevel": 70,
+      "targetKey": "ENDERMAN",
+      "requiredAmount": 25,
+      "prerequisites": [
+        "end_pearls"
+      ],
+      "reward": {
+        "money": 820,
+        "experience": 3000,
+        "items": [
+          "ENDER_PEARL"
+        ]
+      }
+    },
+    {
+      "id": "end_chorus",
+      "title": "Früchte der Fremde",
+      "description": "Sammle Chorusfrüchte für die Vorräte der Endexpedition.",
+      "type": "COLLECT",
+      "recommendedLevel": 77,
+      "categoryLevel": 75,
+      "targetKey": "CHORUS_FRUIT",
+      "requiredAmount": 48,
+      "prerequisites": [
+        "endermen_hunt"
+      ],
+      "reward": {
+        "money": 900,
+        "experience": 3400,
+        "items": [
+          "CHORUS_FRUIT"
+        ]
+      }
+    },
+    {
+      "id": "end_shulkers",
+      "title": "Wächter der Endstadt",
+      "description": "Shulker verteidigen die Endstadt. Besiege sie und öffne den Weg zum Archiv.",
+      "type": "HUNT",
+      "recommendedLevel": 80,
+      "categoryLevel": 80,
+      "targetKey": "SHULKER",
+      "requiredAmount": 14,
+      "prerequisites": [
+        "end_chorus"
+      ],
+      "reward": {
+        "money": 1000,
+        "experience": 3800,
+        "items": [
+          "SHULKER_SHELL"
+        ]
+      }
+    },
+    {
+      "id": "ocean_guardians",
+      "title": "Belagerung des Monumentes",
+      "description": "Guardian patrouillieren vor dem Monument. Reduziere ihre Zahl für die Expedition.",
+      "type": "HUNT",
+      "recommendedLevel": 84,
+      "categoryLevel": 85,
+      "targetKey": "GUARDIAN",
+      "requiredAmount": 30,
+      "prerequisites": [
+        "end_shulkers"
+      ],
+      "reward": {
+        "money": 1100,
+        "experience": 4300,
+        "items": [
+          "PRISMARINE_SHARD"
+        ]
+      }
+    },
+    {
+      "id": "ocean_elder",
+      "title": "Der Wächter der Tiefe",
+      "description": "Stelle dich einem Elder Guardian und beweise, dass die Expedition bereit ist.",
+      "type": "HUNT",
+      "recommendedLevel": 88,
+      "categoryLevel": 85,
+      "targetKey": "ELDER_GUARDIAN",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "ocean_guardians"
+      ],
+      "reward": {
+        "money": 1300,
+        "experience": 5200,
+        "items": [
+          "PRISMARINE_CRYSTALS"
+        ]
+      }
+    },
+    {
+      "id": "night_phantoms",
+      "title": "Jäger der Nacht",
+      "description": "Phantome terrorisieren die Lager. Besiege sie und sichere die Nächte der Expedition.",
+      "type": "HUNT",
+      "recommendedLevel": 91,
+      "categoryLevel": 90,
+      "targetKey": "PHANTOM",
+      "requiredAmount": 18,
+      "prerequisites": [
+        "ocean_elder"
+      ],
+      "reward": {
+        "money": 1450,
+        "experience": 5800,
+        "items": [
+          "PHANTOM_MEMBRANE"
+        ]
+      }
+    },
+    {
+      "id": "ancient_diamonds",
+      "title": "Schätze unter dem Gestein",
+      "description": "Beschaffe Diamanten für die letzte Ausrüstung der Expedition.",
+      "type": "COLLECT",
+      "recommendedLevel": 95,
+      "categoryLevel": 95,
+      "targetKey": "DIAMOND",
+      "requiredAmount": 24,
+      "prerequisites": [
+        "night_phantoms"
+      ],
+      "reward": {
+        "money": 1650,
+        "experience": 6600,
+        "items": [
+          "DIAMOND"
+        ]
+      }
+    },
+    {
+      "id": "final_wither_guard",
+      "title": "Vor der letzten Schlacht",
+      "description": "Sammle Seelenand und bereite die letzte Ausrüstung für den Kampf gegen die großen Gefahren vor.",
+      "type": "COLLECT",
+      "recommendedLevel": 99,
+      "categoryLevel": 99,
+      "targetKey": "SOUL_SAND",
+      "requiredAmount": 64,
+      "prerequisites": [
+        "ancient_diamonds"
+      ],
+      "reward": {
+        "money": 2000,
+        "experience": 8000,
+        "items": [
+          "NETHER_STAR"
+        ]
+      }
+    },
+    {
+      "id": "expansion_02_zombie_watch",
+      "title": "Nachtwache",
+      "description": "Halte die Straßen frei und besiege 12 Zombies.",
+      "type": "HUNT",
+      "targetKey": "ZOMBIE",
+      "requiredAmount": 12,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "reward": {
+        "money": 75,
+        "experience": 90
+      }
+    },
+    {
+      "id": "expansion_02_iron_supply",
+      "title": "Eisennachschub",
+      "description": "Sammle 24 Eisenbarren für die örtlichen Handwerker.",
+      "type": "COLLECT",
+      "targetKey": "IRON_INGOT",
+      "requiredAmount": 24,
+      "recommendedLevel": 5,
+      "categoryLevel": 5,
+      "reward": {
+        "money": 110,
+        "experience": 120
+      }
+    },
+    {
+      "id": "expansion_02_skeleton_patrol",
+      "title": "Knochenpatrouille",
+      "description": "Besiege 18 Skelette in der Umgebung.",
+      "type": "HUNT",
+      "targetKey": "SKELETON",
+      "requiredAmount": 18,
+      "recommendedLevel": 10,
+      "categoryLevel": 10,
+      "prerequisites": [
+        "expansion_02_zombie_watch"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 180
+      }
+    },
+    {
+      "id": "expansion_02_coal_reserve",
+      "title": "Kohlereserve",
+      "description": "Bringe 32 Stück Kohle aus den Minen zurück.",
+      "type": "COLLECT",
+      "targetKey": "COAL",
+      "requiredAmount": 32,
+      "recommendedLevel": 12,
+      "categoryLevel": 12,
+      "reward": {
+        "money": 175,
+        "experience": 190
+      }
+    },
+    {
+      "id": "expansion_02_spider_hunt",
+      "title": "Netzjäger",
+      "description": "Reduziere die Spinnenpopulation um 20 Exemplare.",
+      "type": "HUNT",
+      "targetKey": "SPIDER",
+      "requiredAmount": 20,
+      "recommendedLevel": 15,
+      "categoryLevel": 15,
+      "prerequisites": [
+        "expansion_02_skeleton_patrol"
+      ],
+      "reward": {
+        "money": 220,
+        "experience": 240
+      }
+    },
+    {
+      "id": "expansion_02_redstone_delivery",
+      "title": "Roter Strom",
+      "description": "Liefere 48 Redstone-Staub für einen technischen Auftrag.",
+      "type": "COLLECT",
+      "targetKey": "REDSTONE",
+      "requiredAmount": 48,
+      "recommendedLevel": 20,
+      "categoryLevel": 20,
+      "reward": {
+        "money": 300,
+        "experience": 320
+      }
+    },
+    {
+      "id": "expansion_02_creeper_control",
+      "title": "Creeper-Kontrolle",
+      "description": "Besiege 15 Creeper, bevor sie weitere Schäden anrichten.",
+      "type": "HUNT",
+      "targetKey": "CREEPER",
+      "requiredAmount": 15,
+      "recommendedLevel": 22,
+      "categoryLevel": 22,
+      "prerequisites": [
+        "expansion_02_spider_hunt"
+      ],
+      "reward": {
+        "money": 360,
+        "experience": 380
+      }
+    },
+    {
+      "id": "expansion_02_lapis_research",
+      "title": "Lapis für die Forschung",
+      "description": "Sammle 40 Lapislazuli für die nächste Forschungsstufe.",
+      "type": "COLLECT",
+      "targetKey": "LAPIS_LAZULI",
+      "requiredAmount": 40,
+      "recommendedLevel": 25,
+      "categoryLevel": 25,
+      "reward": {
+        "money": 420,
+        "experience": 440
+      }
+    },
+    {
+      "id": "expansion_02_drowned_depths",
+      "title": "Gefahr aus der Tiefe",
+      "description": "Besiege 16 Ertrunkene an den Gewässern.",
+      "type": "HUNT",
+      "targetKey": "DROWNED",
+      "requiredAmount": 16,
+      "recommendedLevel": 30,
+      "categoryLevel": 30,
+      "prerequisites": [
+        "expansion_02_creeper_control"
+      ],
+      "reward": {
+        "money": 500,
+        "experience": 520
+      }
+    },
+    {
+      "id": "expansion_02_diamond_contract",
+      "title": "Diamantenvertrag",
+      "description": "Beschaffe 12 Diamanten für einen wertvollen Auftrag.",
+      "type": "COLLECT",
+      "targetKey": "DIAMOND",
+      "requiredAmount": 12,
+      "recommendedLevel": 35,
+      "categoryLevel": 35,
+      "reward": {
+        "money": 700,
+        "experience": 700
+      }
+    },
+    {
+      "id": "expansion_02_witch_hunt",
+      "title": "Hexenjagd",
+      "description": "Besiege 10 Hexen und sichere die Umgebung.",
+      "type": "HUNT",
+      "targetKey": "WITCH",
+      "requiredAmount": 10,
+      "recommendedLevel": 40,
+      "categoryLevel": 40,
+      "prerequisites": [
+        "expansion_02_drowned_depths"
+      ],
+      "reward": {
+        "money": 850,
+        "experience": 820
+      }
+    },
+    {
+      "id": "expansion_02_emerald_trade",
+      "title": "Grüner Handel",
+      "description": "Sammle 20 Smaragde für eine Handelslieferung.",
+      "type": "COLLECT",
+      "targetKey": "EMERALD",
+      "requiredAmount": 20,
+      "recommendedLevel": 45,
+      "categoryLevel": 45,
+      "reward": {
+        "money": 900,
+        "experience": 900
+      }
+    },
+    {
+      "id": "expansion_02_enderman_trace",
+      "title": "Spuren der Endermen",
+      "description": "Besiege 12 Endermen und sichere ihre seltenen Spuren.",
+      "type": "HUNT",
+      "targetKey": "ENDERMAN",
+      "requiredAmount": 12,
+      "recommendedLevel": 50,
+      "categoryLevel": 50,
+      "prerequisites": [
+        "expansion_02_witch_hunt"
+      ],
+      "reward": {
+        "money": 1100,
+        "experience": 1050
+      }
+    },
+    {
+      "id": "expansion_02_quartz_reserve",
+      "title": "Netherquarz-Reserve",
+      "description": "Sichere 48 Netherquarz für die Handwerkslager.",
+      "type": "COLLECT",
+      "targetKey": "QUARTZ",
+      "requiredAmount": 48,
+      "recommendedLevel": 55,
+      "categoryLevel": 55,
+      "reward": {
+        "money": 1200,
+        "experience": 1150
+      }
+    },
+    {
+      "id": "expansion_02_blaze_breaker",
+      "title": "Flammenbrecher",
+      "description": "Besiege 14 Lohen in den Nethergebieten.",
+      "type": "HUNT",
+      "targetKey": "BLAZE",
+      "requiredAmount": 14,
+      "recommendedLevel": 60,
+      "categoryLevel": 60,
+      "prerequisites": [
+        "expansion_02_enderman_trace"
+      ],
+      "reward": {
+        "money": 1450,
+        "experience": 1350
+      }
+    },
+    {
+      "id": "expansion_02_prismarine_stock",
+      "title": "Prismarinvorrat",
+      "description": "Sammle 64 Prismarinscherben für ein Großprojekt.",
+      "type": "COLLECT",
+      "targetKey": "PRISMARINE_SHARD",
+      "requiredAmount": 64,
+      "recommendedLevel": 65,
+      "categoryLevel": 65,
+      "reward": {
+        "money": 1600,
+        "experience": 1500
+      }
+    },
+    {
+      "id": "expansion_02_ghast_silence",
+      "title": "Stille im Nether",
+      "description": "Besiege 8 Ghasts und sichere die Handelsroute.",
+      "type": "HUNT",
+      "targetKey": "GHAST",
+      "requiredAmount": 8,
+      "recommendedLevel": 70,
+      "categoryLevel": 70,
+      "prerequisites": [
+        "expansion_02_blaze_breaker"
+      ],
+      "reward": {
+        "money": 1900,
+        "experience": 1750
+      }
+    },
+    {
+      "id": "expansion_02_ocean_treasure",
+      "title": "Schatz der Tiefe",
+      "description": "Sammle 3 Nautilusschalen für eine seltene Expedition.",
+      "type": "COLLECT",
+      "targetKey": "NAUTILUS_SHELL",
+      "requiredAmount": 3,
+      "recommendedLevel": 80,
+      "categoryLevel": 80,
+      "reward": {
+        "money": 2500,
+        "experience": 2200
+      }
+    },
+    {
+      "id": "expansion_02_heart_of_the_sea",
+      "title": "Herz des Meeres",
+      "description": "Beschaffe ein Herz des Meeres als Abschluss des Expeditionsauftrags.",
+      "type": "COLLECT",
+      "targetKey": "HEART_OF_THE_SEA",
+      "requiredAmount": 1,
+      "recommendedLevel": 90,
+      "categoryLevel": 90,
+      "prerequisites": [
+        "expansion_02_ocean_treasure"
+      ],
+      "reward": {
+        "money": 5000,
+        "experience": 4500
+      }
+    }
+  ]
+}
