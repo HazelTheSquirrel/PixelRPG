@@ -181,7 +181,7 @@ public final class CompanionService {
         profiles.saveProfileAsync(playerId);
     }
 
-    public String companionId(Entity entity) { return entity == null ? null : entity.getPersistentDataContainer().get(new RPGKeys(plugin).npcId(), PersistentDataType.STRING); }
+    public String companionId(Entity entity) { return entity == null ? null : entity.getPersistentDataContainer().get(new RPGKeys(plugin).companionId(), PersistentDataType.STRING); }
     public boolean isCompanionEntity(Entity entity) { String id = companionId(entity); return id != null && registry.find(id).isPresent(); }
 
     public CompanionState state(UUID playerId, String companionId) {
@@ -214,9 +214,9 @@ public final class CompanionService {
         try {
             Entity entity = player.getWorld().spawnEntity(player.getLocation().clone().add(1, 0, 1), definition.entityType());
             if (!(entity instanceof LivingEntity living)) { entity.remove(); return; }
-            living.getPersistentDataContainer().set(RPGKeys.Companion.id(), PersistentDataType.STRING, definition.id());
-            living.getPersistentDataContainer().set(RPGKeys.Companion.level(), PersistentDataType.INTEGER, state.level());
-            living.getPersistentDataContainer().set(RPGKeys.Companion.rarity(), PersistentDataType.STRING, definition.rarity().name());
+            living.getPersistentDataContainer().set(new RPGKeys(plugin).companionId(), PersistentDataType.STRING, definition.id());
+            living.getPersistentDataContainer().set(new RPGKeys(plugin).companionLevel(), PersistentDataType.INTEGER, state.level());
+            living.getPersistentDataContainer().set(new RPGKeys(plugin).companionRarity(), PersistentDataType.STRING, definition.rarity().name());
             living.customName(Component.text(state.name())); living.setCustomNameVisible(true);
             living.setInvulnerable(!definition.rarity().isUnique());
             if (living instanceof Mob mob) { mob.setAware(true); mob.setTarget(null); }
