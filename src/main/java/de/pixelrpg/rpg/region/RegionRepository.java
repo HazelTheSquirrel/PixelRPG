@@ -117,69 +117,71 @@ public final class RegionRepository {
         return true;
     }
 
-    /** Loads world-wide defaults from the global region section. */
-    public Map<String, Map<RegionFlag, Boolean>> loadGlobalFlags() {
+    /** Loads complete world-wide region definitions, including legacy flag-only global regions. */
+    public Map<String, PixelRegion> loadGlobalRegions() {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection worlds = yaml.getConfigurationSection("global-regions");
         if (worlds == null) return Map.of();
-        Map<String, Map<RegionFlag, Boolean>> result = new HashMap<>();
+
+        Map<String, PixelRegion> result = new HashMap<>();
         for (String world : worlds.getKeys(false)) {
-            ConfigurationSection flags = worlds.getConfigurationSection(world + ".flags");
-            EnumMap<RegionFlag, Boolean> values = defaultGlobalFlags();
-            if (flags != null) {
-                for (String key : flags.getKeys(false)) {
-                    try { values.put(RegionFlag.valueOf(key), flags.getBoolean(key)); }
-                    catch (IllegalArgumentException ignored) { }
+            ConfigurationSection section = yaml.getConfigurationSection("global-regions." + world);
+            EnumMap<RegionFlag, Boolean> flags = defaultGlobalFlags();
+            if (section != null) {
+                ConfigurationSection flagSection = section.getConfigurationSection("flags");
+                if (flagSection != null) {
+                    for (String key : flagSection.getKeys(false)) {
+                        try { flags.put(RegionFlag.valueOf(key), flagSection.getBoolean(key)); }
+                        catch (IllegalArgumentException ignored) { }
+                    }
                 }
             }
-            migrateLegacyFlags(values);
-            result.put(world, Map.copyOf(values));
+            migrateLegacyFlags(flags);
+            result.put(world, PixelRegion.global(
+                    world,
+                    Map.copyOf(flags),
+                    section == null ? "Wildnis" : section.getString("name", "Wildnis"),
+                    section == null ? RegionType.OTHER : RegionType.parse(section.getString("type", "OTHER")),
+                    section == null ? "Globale Standardregion" : section.getString("description", "Globale Standardregion"),
+                    section == null ? "" : section.getString("enter-message", ""),
+                    section == null ? "" : section.getString("leave-message", ""),
+                    section == null ? 0 : section.getInt("priority", 0),
+                    section == null ? Map.of() : readProperties(section)
+            ));
         }
         return Map.copyOf(result);
     }
 
-    public synchronized void saveGlobalFlags(Map<String, Map<RegionFlag, Boolean>> globalFlags) {
+    /** Persists complete global region definitions without disturbing normal regions. */
+    public synchronized void saveGlobalRegions(Map<String, PixelRegion> globalRegions) {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         yaml.set("format-version", CURRENT_FORMAT_VERSION);
         yaml.set("global-regions", null);
-        for (Map.Entry<String, Map<RegionFlag, Boolean>> world : globalFlags.entrySet()) {
-            for (Map.Entry<RegionFlag, Boolean> flag : world.getValue().entrySet()) {
-                yaml.set("global-regions." + world.getKey() + ".flags." + flag.getKey().name(), flag.getValue());
-            }
-        }
-        writeAtomically(yaml);
-    }
-
-    public synchronized void save(Iterable<PixelRegion> regions) {
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-        yaml.set("format-version", CURRENT_FORMAT_VERSION);
-        yaml.set("regions", null);
-
-        for (PixelRegion region : regions) {
-            String base = "regions." + region.id();
-            yaml.set(base + ".world", region.worldName());
+        for (Map.Entry<String, PixelRegion> entry : globalRegions.entrySet()) {
+            PixelRegion region = entry.getValue();
+            String base = "global-regions." + entry.getKey();
             yaml.set(base + ".name", region.name());
             yaml.set(base + ".type", region.type().name());
             yaml.set(base + ".description", region.description());
-            yaml.set(base + ".min-y", region.minY());
-            yaml.set(base + ".max-y", region.maxY());
             yaml.set(base + ".priority", region.priority());
-            if (region.ownerId() != null) yaml.set(base + ".owner", region.ownerId().toString());
-            yaml.set(base + ".members", region.members().stream().map(UUID::toString).sorted().toList());
-            yaml.set(base + ".points", region.geometry().points().stream()
-                    .map(point -> Map.of("x", point.x(), "z", point.z())).toList());
+            yaml.set(base + ".enter-message", region.enterMessage());
+            yaml.set(base + ".leave-message", region.leaveMessage());
             for (Map.Entry<RegionFlag, Boolean> flag : region.flags().entrySet()) {
                 yaml.set(base + ".flags." + flag.getKey().name(), flag.getValue());
             }
             for (Map.Entry<String, String> property : region.properties().entrySet()) {
                 yaml.set(base + ".properties." + property.getKey(), property.getValue());
             }
-            yaml.set(base + ".spawn-points", region.spawnPoints().stream()
-                    .map(point -> Map.<String, Object>of("mob", point.mobType(), "x", point.x(), "y", point.y(), "z", point.z())).toList());
-            yaml.set(base + ".enter-message", region.enterMessage());
-            yaml.set(base + ".leave-message", region.leaveMessage());
         }
         writeAtomically(yaml);
+    }
+
+    private static Map<String, String> readProperties(ConfigurationSection section) {
+        ConfigurationSection properties = section.getConfigurationSection("properties");
+        if (properties == null) return Map.of();
+        Map<String, String> result = new HashMap<>();
+        for (String key : properties.getKeys(false)) result.put(key, properties.getString(key, ""));
+        return Map.copyOf(result);
     }
 
     private void migrateFormatIfNeeded(int formatVersion) {
