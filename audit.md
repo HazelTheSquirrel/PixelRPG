@@ -1042,3 +1042,78 @@ Erfolgreich verifiziert wurden:
 - Third-Party-Relocations/JDBC-Service-Prüfung.
 
 Nächster abhängiger Bereich ist Combat / Bosse / Stats.
+
+
+### Phase 16 — Combat / Bosse / Stats
+
+Status: **implementiert; CI-verifiziert**
+
+Der Combat-/Boss-/Stats-Bereich wurde vor der Umsetzung gegen den tatsächlichen Referenzbestand von `main` geprüft. Übernommen wurden die fachlichen Kernbereiche für Character Stats, RPG-Schadensberechnung, Combat-State, aktive Mob-Skalierung, Loot/XP, Weapon-Abilities, Boss-Definitionen, Boss-Phasen, Attack-Patterns, Boss-Teilnahme und Boss-Rewards. Die technische Einbindung wurde an die bereits auf `rebuild` vorhandenen PlayerProfile-, Item-, Companion- und Lifecycle-Strukturen angepasst.
+
+Neu auf `rebuild` integriert:
+
+- `CharacterStatType` und `StatisticsAPI` als öffentliche Stat-Schnittstelle;
+- zentrale `StatEngine` mit gecachten Charakterwerten für HP, Armor, Bewegung, Reichweite, Crit, Crit-Damage, Lifesteal und Attack-Power;
+- Stat-Aggregation aus tatsächlich ausgerüsteten PixelRPG-Items über die bestehende PDC-/Itemstruktur;
+- serverseitige Attribute-Modifikatoren für aktuelle Paper-26.2-Attribute;
+- `RPGStatsListener` zur Neuberechnung bei Join, Registrierung, Level-Up und Equipmentänderungen;
+- `StatisticsService` als Zugriffsschicht auf den bereits in `PlayerProfile` persistierten Statistik-State;
+- `CombatDamageCalculator` für Raw-Damage, Armor-Mitigation, Crit, Lifesteal und Mob-/Boss-Skalierung;
+- `CombatDamageListener` für zentrale Spieler-/Mob-Schadensverarbeitung, RPG-Zielschutz und Boss-Hit-Cap;
+- `CombatStateService` mit zeitlich begrenztem Combat-State und Combat-Enter-/Exit-Events;
+- `MobScalingConfig` mit kanonischer `data/mob-scaling.json`-Quelle;
+- eventgetriebene `MobLevelScalingListener`-Skalierung mit WakeScheduler statt globalem permanenterem Mob-Polling;
+- RPG-Mob-Nameplates mit per-Viewer TextDisplay und begrenzter Laufzeit;
+- Monster-XP-Verteilung und Loot-Drops über die vorhandene PlayerProfile-/Item-/Guild-Currency-Struktur;
+- Soulbound-Todesschutz über den bestehenden `SoulboundService`;
+- Weapon-Ability-Engine, Input-Listener und Feuerball-Ability;
+- Boss-Domain mit `BossDefinition`, `BossPhase`, `ActiveBoss`, Loot-Konfiguration und Attack-Pattern-Registry;
+- vier bestehende Boss-Attack-Patterns: Enrage, Projectile Volley, Slam und Summon Adds;
+- `BossManager` für Spawn, Base-Stats, Bossbar, Phasen, Attack-Timer, Damage-Contribution, Rewards und Cleanup;
+- `BossRepository` mit bestehender YAML-Definitionsstruktur einschließlich Biome- und World-Boss-Daten;
+- `BiomeBossSpawnTask` für seltene, begrenzte Biome-Boss-Begegnungen;
+- Boss-Damage-Contribution und `BossDefeatedEvent`;
+- Boss-Reward-Verteilung über bestehende Economy-/Guild- und Item-Services;
+- Companion-Boss-Unlock kann jetzt über das vorhandene `BossDefeatedEvent`-System angebunden werden;
+- aktuelle Boss-/Combat-PDC-Keys in `RPGKeys`, ohne statische Live-Server-Referenz;
+- öffentliche `GuildAPI`, `EconomyAPI` und `PartyAPI`-Grenzen für den Combat-/Boss-Bereich. Die aktuelle Rebuild-Party-Implementierung bleibt bewusst eine No-Party-Basis, bis die allgemeine Party-Domain in ihrer Audit-Reihenfolge aufgebaut wird.
+
+### Architekturentscheidungen
+
+- Keine zweite Geldquelle: Economy-Adapter arbeiten direkt auf `PlayerProfile`.
+- Keine zweite Spieler-Statpersistenz: Character-Statistics bleiben im bestehenden `PlayerProfile`.
+- Keine zweite Item-/Loot-Persistenz: Drops verwenden den bestehenden `ItemService` und `GuildCurrencyItemFactory`.
+- Kein globaler Plugin-Singleton wurde für die neue Combat-Integration eingeführt.
+- Die auf `main` vorhandenen Legacy-Singleton-/GUI-Abhängigkeiten wurden nicht als technische Grundlage für `rebuild` übernommen.
+- Native Adventure Components bleiben die Chat-/Actionbar-Darstellung.
+- Die alte Inventory-/Command-Schicht bleibt weiterhin Phase 17.
+- Boss-Rewards verwenden den bestehenden PlayerProfile-/Economy-/Item-Domain-State.
+- Combat-Runtime bleibt eventgetrieben; aktive Skalierung verwendet begrenzte Wake-Ups statt eines globalen Dauer-Pollers.
+
+### Bewusst nicht unverändert übernommen
+
+Nicht als unveränderte Kopie übernommen wurden:
+
+- alte globale `PixelRPGPlugin.getInstance()`-Abhängigkeiten;
+- alte Inventory-GUIs und Combat-/Boss-Commands;
+- eine zweite Party-Persistenz bzw. ein erfundenes Party-System;
+- alte statische Bukkit-Live-Objekt-Halter;
+- die alte Companion-Stat-Doppelstruktur. Die Rebuild-StatEngine verwendet die bereits vorhandenen Rebuild-Itemdaten als autoritative Ausrüstungswerte;
+- nicht benötigte Legacy-Kompatibilitätsverdrahtung.
+
+### Verifikation
+
+Die CI-Verifikation wurde mehrfach forensisch korrigiert. Die aufgetretenen Fehler waren konkrete API-/Architekturabweichungen zwischen `main` und dem bereits neu aufgebauten `rebuild`-Stand und wurden anhand der tatsächlichen Compiler-Logs korrigiert.
+
+Der abschließende GitHub-Actions-Workflow **35884651456** für Commit **2bbe2de0a17cfbade6841d1ba12ebbd56d4acb40** lief vollständig mit **success** durch.
+
+Erfolgreich verifiziert wurden:
+
+- `gradle clean build --no-daemon --stacktrace`;
+- Source-API-Grenzprüfungen;
+- statische Live-Bukkit-Referenzprüfung;
+- Plugin-Artefaktprüfung;
+- Third-Party-Relocations;
+- JDBC-Service-/ShadowJar-Prüfung.
+
+Nächster Audit-Schritt: **Phase 17 — Commands / Administration / finale UI- und Integrationsschicht**.
