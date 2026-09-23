@@ -212,6 +212,7 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
 
     private void wireProfile(PlayerProfile profile) {
         profile.setDirtyCallback(() -> {
+            if (shuttingDown) return;
             UUID uuid = profile.getUuid();
             for (Consumer<UUID> listener : profileChangeListeners) listener.accept(uuid);
         });
