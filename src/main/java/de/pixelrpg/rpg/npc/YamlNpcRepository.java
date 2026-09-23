@@ -64,6 +64,11 @@ public final class YamlNpcRepository implements NpcRepository {
     }
 
     @Override
+    public void close() {
+        executor.shutdown();
+    }
+
+    @Override
     public CompletableFuture<Void> save(int nextId, List<NpcRecord> records) {
         List<NpcRecord> snapshot = List.copyOf(records);
         return CompletableFuture.runAsync(() -> {
