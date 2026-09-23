@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +50,25 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         ConfigurationSection equipmentSection = yaml.getConfigurationSection("equipment");
         if (equipmentSection != null) for (EquipmentSlot slot : EquipmentSlot.values()) { ItemStack item = equipmentSection.getItemStack(slot.name().toLowerCase()); if (item != null && !item.isEmpty()) equipment.put(slot, item); }
         profile.setEquipment(equipment);
+        ConfigurationSection companionsSection = yaml.getConfigurationSection("companions");
+        if (companionsSection != null) {
+            Map<String, CompanionState> companions = new LinkedHashMap<>();
+            for (String id : companionsSection.getKeys(false)) {
+                ConfigurationSection section = companionsSection.getConfigurationSection(id);
+                if (section == null) continue;
+                Map<String, ItemStack> items = new LinkedHashMap<>();
+                ConfigurationSection equipmentSection2 = section.getConfigurationSection("equipment");
+                if (equipmentSection2 != null) for (String slot : equipmentSection2.getKeys(false)) {
+                    ItemStack item = equipmentSection2.getItemStack(slot);
+                    if (item != null && !item.isEmpty()) items.put(slot, item);
+                }
+                companions.put(id, new CompanionState(id, section.getString("name", id),
+                        Math.max(1, section.getInt("level", 1)), Math.max(0L, section.getLong("experience", 0L)),
+                        section.getBoolean("unlocked", true), section.getBoolean("active", false), items,
+                        section.getString("skin.value", ""), section.getString("skin.signature", "")));
+            }
+            profile.setCompanions(companions);
+        }
         profile.setScoreboardEnabled(yaml.getBoolean("scoreboard-enabled", true));
         profile.setPartyHudEnabled(yaml.getBoolean("party-hud-enabled", false));
         profile.setQuestTrackerEnabled(yaml.getBoolean("quest-tracker-enabled", false));
@@ -97,6 +117,17 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         for (QuestProgress progress : profile.getActiveQuests().values()) { String path = "active-quests." + progress.getQuestId(); yaml.set(path + ".amount", progress.getCurrentAmount()); yaml.set(path + ".expiry", progress.getExpiryTimestampMillis()); }
         for (var entry : profile.getAllStatistics().entrySet()) yaml.set("statistics." + entry.getKey(), entry.getValue());
         for (var entry : profile.getEquipment().entrySet()) yaml.set("equipment." + entry.getKey().name().toLowerCase(), entry.getValue());
+        for (CompanionState companion : profile.getCompanions().values()) {
+            String path = "companions." + companion.id();
+            yaml.set(path + ".name", companion.name());
+            yaml.set(path + ".level", companion.level());
+            yaml.set(path + ".experience", companion.experience());
+            yaml.set(path + ".unlocked", companion.unlocked());
+            yaml.set(path + ".active", companion.active());
+            yaml.set(path + ".skin.value", companion.skinValue());
+            yaml.set(path + ".skin.signature", companion.skinSignature());
+            for (var item : companion.equipment().entrySet()) yaml.set(path + ".equipment." + item.getKey(), item.getValue());
+        }
         yaml.set("scoreboard-enabled", profile.isScoreboardEnabled()); yaml.set("party-hud-enabled", profile.isPartyHudEnabled()); yaml.set("quest-tracker-enabled", profile.isQuestTrackerEnabled()); yaml.set("playtime-millis", profile.getPlaytimeMillis());
         long nextRevision = profile.getPersistenceRevision() + 1L; yaml.set("persistence-revision", nextRevision);
         if (!playersFolder.exists()) playersFolder.mkdirs();
