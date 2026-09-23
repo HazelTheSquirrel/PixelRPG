@@ -1,8 +1,6 @@
 package de.pixelrpg.rpg.combat.loot;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.GuildAPI;
-import de.pixelrpg.rpg.combat.skill.FireballWeaponListener;
 import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
@@ -54,20 +52,21 @@ public final class LootDropListener implements Listener {
     private final GuildAPI guildAPI;
     private final ItemEconomyConfig economyConfig;
     private final ItemService itemService;
+    private final RPGItemBuilder itemBuilder;
+    private final GuildCurrencyItemFactory currencyFactory;
     private final Map<Material, List<ItemDefinition>> definedItemsByMaterial;
 
-    public LootDropListener(GuildAPI guildAPI, ItemEconomyConfig economyConfig) {
+    public LootDropListener(GuildAPI guildAPI, ItemEconomyConfig economyConfig, ItemService itemService, RPGItemBuilder itemBuilder, GuildCurrencyItemFactory currencyFactory) {
         this.guildAPI = guildAPI;
         this.economyConfig = economyConfig;
-        PixelRPGPlugin plugin = PixelRPGPlugin.getInstance();
-        this.itemService = plugin.getItemService();
+        this.itemService = itemService;
+        this.itemBuilder = itemBuilder;
+        this.currencyFactory = currencyFactory;
         this.definedItemsByMaterial = itemService.definitions().stream()
                 .filter(definition -> !definition.adminOnly())
                 .filter(definition -> !definition.unique())
                 .filter(definition -> definition.material() != Material.CLOCK)
                 .collect(Collectors.groupingBy(ItemDefinition::material, Collectors.toList()));
-        Bukkit.getPluginManager().registerEvents(new FireballWeaponListener(
-                plugin.getPlayerProfileManager(), plugin.getStatEngine()), plugin);
     }
 
     // Zuständig für PixelRPG-Loot und Gildengold; Vanilla-Spieler bleiben vollständig beim Vanilla-Loot.
@@ -89,7 +88,7 @@ public final class LootDropListener implements Listener {
             long min = economyConfig.getCurrencyDropMinAmount();
             long max = Math.max(min, economyConfig.getCurrencyDropMaxAmount());
             long amount = min == max ? min : random.nextLong(min, max + 1);
-            event.getDrops().addAll(GuildCurrencyItemFactory.createStacks(amount));
+            event.getDrops().addAll(currencyFactory.createStacks(amount));
         }
     }
 
@@ -108,7 +107,7 @@ public final class LootDropListener implements Listener {
             if (vanilla == null || vanilla.isEmpty() || !isArmor(vanilla.getType()) || itemService.isRPGItem(vanilla)) continue;
             int itemLevel = rollLootLevel(playerLevel, random);
             ItemRarity rarity = ItemRarity.rollRandom();
-            ItemStack rpgArmor = RPGItemBuilder.createItem(vanilla.getType(), rarity, itemLevel).orElse(null);
+            ItemStack rpgArmor = itemBuilder.create(vanilla.getType(), rarity, itemLevel).orElse(null);
             if (rpgArmor == null) continue;
             applyRandomArmorAffixes(rpgArmor, itemLevel, rarity, random);
             rpgArmor.setAmount(vanilla.getAmount());
@@ -167,7 +166,7 @@ public final class LootDropListener implements Listener {
                 .orElse(null);
         if (definition != null) return itemService.createItem(definition.id());
         int itemLevel = Math.max(Level.MIN_LEVEL, Math.min(lootLevel, playerLevel));
-        return RPGItemBuilder.createItem(material, ItemRarity.rollRandom(), itemLevel);
+        return itemBuilder.create(material, ItemRarity.rollRandom(), itemLevel);
     }
 
     private int rollLootLevel(int playerLevel, ThreadLocalRandom random) {
