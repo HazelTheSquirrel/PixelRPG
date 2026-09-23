@@ -543,3 +543,48 @@ Forensisch aus `main` geprüft und für `rebuild` neu strukturiert:
 - GitHub Actions Build Run `35865272470` für den vollständigen Code-Stand `29f3e3fc4e171a46182313ef33d576f80239afcc` wurde erfolgreich abgeschlossen. `Build PixelRPG`, `Verify source API boundaries` und `Verify plugin artifact` meldeten jeweils `success`. Der anschließende reine Audit-Dokumentations-Commit `49665081859ed36755c23368c6e8311f1159e19c` wurde zweimal gegen GitHub Actions geprüft; beide Läufe scheiterten bereits in `paperweightUserdevSetup`, weil `io.papermc.codebook:codebook-cli:2.0.1-SNAPSHOT` vom Paper-Maven-Repository mit HTTP 502/503 nicht abrufbar war. Das ist ein externer Repository-/Infrastrukturfehler und kein im Buildlog erkennbarer Quellcodefehler.
 
 Nächster abhängiger Bereich ist **NPC Runtime + Persistence**. Vor dessen Implementierung sind NPC-Domainzustand, Runtime-Entity-Lifecycle, Skin-Persistenz und Chunk-Lifecycle aus `main` forensisch zu erfassen.
+
+
+## 17. Rebuild-Fortschritt
+
+### Phase 7 — NPC Runtime + Persistence
+
+Status: **implementiert; abschließende CI-Verifikation für den aktuellen HEAD noch ausstehend**
+
+Forensisch gegen den NPC-Bestand von `main` aufgebaut und nicht als Blindkopie übernommen:
+
+- NPC-Domainzustand mit stabiler ID, Typ, Name, Position, Skin-Quelle und optionalem Beruf;
+- getrennte Persistence-Abstraktion mit YAML-Repository;
+- NPC-YAML-Lesen vollständig außerhalb des Serverthreads;
+- Snapshot-basierte, asynchrone NPC-Persistierung mit temporärer Datei und atomarem Replace;
+- deterministische Persistence-Kette und Shutdown-Flush;
+- Runtime-Entity-Tracking über NPC-ID <-> Entity-UUID;
+- Chunk-Index für gezieltes Spawn/Despawn-Verhalten;
+- NPC-Mannequins werden nur als Runtime-Entities geführt und nicht als persistente Minecraft-Entities gespeichert;
+- aktuelle Paper-Mannequin-/ResolvableProfile-basierte Skin-Anwendung;
+- aufgelöste Texture-Property inklusive Signatur wird exakt persistiert und nach Neustart wiederverwendet;
+- Player-Skin-Auflösung und externe Skin-Quellen bleiben asynchron;
+- externe Skin-URLs besitzen Größen-, Redirect- und Private-Network-Schutz;
+- NPC-PDC-Identität verwendet die neue instanzgebundene `RPGKeys`-Quelle;
+- Chunk-Load/Unload und Player-Join sind über einen eigenen Listener vom Runtime-Manager getrennt;
+- NPC-Schadensschutz ist als eigener Listener isoliert;
+- globale `PixelRPGPlugin.getInstance()`-/Plugin-Manager-Rückgriffe wurden im neuen NPC-Core nicht übernommen;
+- NPC-Ressourcen besitzen einen eindeutigen Lifecycle-Besitzer über `LifecycleCoordinator`.
+
+### Bewusst noch nicht übernommen
+
+Die alten NPC-Behaviors, Quest-/Shop-/Story-/Travel-Interaktionen und die alte Look-/Nameplate-Speziallogik wurden nicht vorgezogen. Sie hängen fachlich von späteren Rebuild-Phasen ab und werden erst zusammen mit ihrer tatsächlichen Domain-/Dialogabhängigkeit neu aufgebaut. Dadurch wird keine unfertige Quest-/Dialogarchitektur in den NPC-Core eingebaut.
+
+### Skin-Persistenz — funktionale Zielerhaltung
+
+Der Referenzzustand speichert die aufgelöste Texture-Property inklusive Signatur in `npcs.yml`. Der Rebuild übernimmt genau diesen Persistenzvertrag: Die Property wird unmittelbar nach erfolgreicher Auflösung aus dem Resolver übernommen und nicht nachträglich aus einem veränderlichen Runtime-Profil rekonstruiert. Beim Neustart wird die gespeicherte Property vor einer erneuten externen Auflösung verwendet.
+
+### Verifikation
+
+- Neue NPC-Klassen verwenden keine Legacy-NMS- oder CraftBukkit-Pakete.
+- Keine statischen Live-`Player`/`Entity`/`World`-Referenzen wurden eingeführt.
+- Listener besitzen Zweckkommentare direkt über jedem `@EventHandler`.
+- Datei-I/O und externe HTTP-Auflösung liegen außerhalb des Serverthreads.
+- Die letzten automatischen GitHub-Actions-Läufe wurden durch unmittelbar aufeinanderfolgende Pushes auf `rebuild` abgebrochen. Daher wird der aktuelle HEAD **nicht** als CI-verifiziert markiert.
+
+Nächster abhängiger Bereich ist **native Dialog-Grundlage**. NPC-Interaktion wird dort fachlich an die native Paper-Dialogschicht angebunden; Quest-/Story-Regeln bleiben in ihren späteren Domain-Schichten.
