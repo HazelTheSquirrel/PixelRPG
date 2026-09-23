@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "chapters": [
+    {
+      "order": 0,
+      "id": "prologue",
+      "title": "The Summoning",
+      "dialogue": [
+        "You awaken in a world that is not your own.",
+        "The Guild recognizes potential in you.",
+        "Register at the Reception to begin your journey."
+      ],
+      "exp-reward": 100
+    }
+  ]
+}
