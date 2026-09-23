@@ -6,6 +6,7 @@ import de.pixelrpg.rpg.api.PartyAPI;
 import de.pixelrpg.rpg.api.StatisticsAPI;
 import de.pixelrpg.rpg.stats.StatEngine;
 import de.pixelrpg.rpg.stats.StatisticsService;
+import de.pixelrpg.rpg.stats.RPGStatsListener;
 import de.pixelrpg.rpg.combat.CombatDamageListener;
 import de.pixelrpg.rpg.combat.MobExperienceListener;
 import de.pixelrpg.rpg.combat.SoulboundDeathListener;
@@ -95,6 +96,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ItemService itemService;
     private StatEngine statEngine;
     private BossManager bossManager;
+    private BiomeBossSpawnTask biomeBossSpawnTask;
 
     @Override
     public void onEnable() {
@@ -162,6 +164,13 @@ public final class PixelRPGPlugin extends JavaPlugin {
                 getConfig().getDouble("bosses.bar-radius", 60.0D),
                 getConfig().getInt("bosses.bar-update-interval-ticks", 20),
                 getConfig().getInt("bosses.phase-check-interval-ticks", 10)));
+        biomeBossSpawnTask = new BiomeBossSpawnTask(this, bossRepository, bossManager,
+                getConfig().getDouble("bosses.biome-spawn.spawn-radius", 80.0D),
+                getConfig().getInt("bosses.biome-spawn.check-interval-seconds", 60),
+                getConfig().getInt("bosses.biome-spawn.max-concurrent", 4));
+        biomeBossSpawnTask.start();
+        getServer().getPluginManager().registerEvents(new RPGStatsListener(statEngine, playerProfileManager), this);
+
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this, new GuildApiAdapter(playerProfileManager), playerProfileManager, statEngine), this);
         getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, new GuildApiAdapter(playerProfileManager)), this);
         getServer().getPluginManager().registerEvents(new BossDeathListener(bossManager), this);
@@ -339,6 +348,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         if (lifecycle != null) {
+            if (biomeBossSpawnTask != null) { biomeBossSpawnTask.stop(); biomeBossSpawnTask = null; }
             getServer().getServicesManager().unregister(ItemAPI.class);
             lifecycle.close();
             if (dialogueIo != null) {
