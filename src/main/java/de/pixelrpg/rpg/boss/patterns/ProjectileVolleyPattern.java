@@ -23,7 +23,7 @@ public final class ProjectileVolleyPattern implements BossAttackPattern {
         boss.getWorld().playSound(eye, Sound.ENTITY_GHAST_SHOOT, 1.5f, 0.8f);
 
         Player nearestTarget = targets.stream()
-                .filter(Player::isOnline)
+                .filter(player -> player.isOnline())
                 .filter(player -> player.getWorld() == boss.getWorld())
                 .filter(player -> player.getLocation().distanceSquared(boss.getLocation()) <= 900.0)
                 .min((a, b) -> Double.compare(
