@@ -33,7 +33,7 @@ public final class NpcLookListener implements Listener {
         if (center == null || center.getWorld() == null) return;
         for (Entity entity : center.getNearbyEntities(5.0D, 5.0D, 5.0D)) {
             if (!(entity instanceof LivingEntity living)) continue;
-            String npcId = living.getPersistentDataContainer().get(new RPGKeys(plugin).Npc.npcId(), PersistentDataType.STRING);
+            String npcId = living.getPersistentDataContainer().get(new RPGKeys(plugin).npcId(), PersistentDataType.STRING);
             if (npcId == null || npcs.getById(npcId).isEmpty()) continue;
             Player nearest = null;
             double distance = RADIUS_SQUARED;
