@@ -649,3 +649,75 @@ Damit ist die technische Grundlage vorhanden, ohne bereits fachliche Quest-/Stor
 Nach Phase 9 ist ein vollständiger `gradle clean build --no-daemon --stacktrace` inklusive bestehender Source-/Artifact-Verifikationen erforderlich. Die Phase wird erst nach erfolgreichem CI-Lauf als build-verifiziert markiert.
 
 Nächster abhängiger Bereich ist **Quest-Domain + Quest-Persistence**. Vor dessen Implementierung müssen die sechs vorhandenen Quest-JSON-Dateien hinsichtlich IDs, Duplikaten, Versionen, Voraussetzungen, Rewards und Content-Überschneidungen vollständig normalisiert werden.
+
+
+### Phase 10 — Quest-Domain + Quest-Persistence
+
+Status: **implementiert; CI-Verifikation ausstehend**
+
+Die Quest-Struktur von `main` wurde vor der Übernahme forensisch ausgewertet. Der tatsächlich aktive alte Loader verwendet vier Dateien:
+
+- `quests_v2.json`
+- `quests_additional.json`
+- `quests_world_expansion.json`
+- `quests_expansion_02.json`
+
+Diese enthalten zusammen **163 eindeutige Quest-Definitionen**:
+
+- 113 `COLLECT`
+- 49 `HUNT`
+- 1 `GLOBAL_EVENT`
+
+Zusätzlich existieren im Referenzzustand `quests_crafting_orders.json` mit 60 `craft_order_*`-Definitionen und `quests_content_expansion_01.json` mit 46 Definitionen. Beide wurden bewusst **nicht** in die aktive Quelle übernommen, weil der alte Runtime-Loader sie ebenfalls nicht als reguläre Questquelle verwendet. Insbesondere die Crafting-Orders waren im alten Code explizit als veralteter/entfernter Recipe-Datenbestand ausgeschlossen.
+
+Die vier tatsächlich geladenen Quellen wurden zu einer eindeutigen kanonischen Runtime-Quelle normalisiert:
+
+- `data/quests/definitions.json`
+- 163 eindeutige IDs
+- keine doppelten IDs
+- keine fehlenden referenzierten Prerequisites
+- keine fehlenden Follow-up-Quest-IDs
+- Prerequisite-Zyklen werden beim Laden abgelehnt.
+
+Neu aufgebaut wurden:
+
+- `QuestDefinition` als immutable fachliche Definition;
+- `QuestReward` für Geld, Erfahrung, Item-Rewards und Companion-Rewards;
+- `QuestNavigation` für Struktur-/Biome-Navigation;
+- asynchron ladendes `QuestRepository`;
+- `QuestService` als fachliche Runtime-Grenze für Start, Abbruch, Progress und Abschluss;
+- `QuestCompletedEvent` als entkoppelte Integrationsschnittstelle;
+- bestehender persistenter Quest-State in `PlayerProfile`/Profile-Persistenz bleibt die Source of Truth.
+
+Das Quest-Repository führt **keine eigene zweite Persistenz des Spieler-Quest-States** ein. Aktive Quests, Fortschritt, Ablaufzeit und abgeschlossene Quests bleiben Teil des bestehenden PlayerProfile-Snapshots und damit Teil der bereits vorhandenen YAML-/MySQL-Persistenz.
+
+Quest-Datei-I/O erfolgt ausschließlich über einen eigenen `PixelRPG-QuestIO`-Executor. Die Definitionsdatei wird beim ersten Start aus den Plugin-Ressourcen in den Datenordner kopiert.
+
+Der neue Service erzwingt bereits:
+
+- maximal 5 aktive Quests;
+- Level-Voraussetzungen;
+- abgeschlossene Voraussetzungen;
+- Berufszugehörigkeit und Berufslevel;
+- keine bereits aktiven/abgeschlossenen Quests;
+- Ablaufzeit bei zeitlich begrenzten Quests;
+- Fortschrittsbegrenzung auf das Quest-Ziel;
+- atomaren Wechsel von aktiv zu abgeschlossen auf dem PlayerProfile.
+
+Bewusst noch **nicht** aus `main` übernommen:
+
+- alte Quest-GUIs;
+- alte Polling-/Passive-Check-Tasks;
+- alte Event-Listener für Mob-Kills/Inventar/Navigation;
+- Reward-Ausführung für konkrete Item-/Companion-Systeme;
+- NPC-/Dialog-Integration.
+
+Diese Teile sind abhängige Integrationsschritte. Die fachliche Quest-Wahrheit liegt jetzt bereits getrennt von UI, NPC Runtime und Dialogtechnik.
+
+### Verifikation
+
+Die kanonische Quelle wurde vor Commit programmatisch auf **163 eindeutige IDs und keine fehlenden Prerequisite-/Follow-up-Referenzen** geprüft.
+
+Ein vollständiger `gradle clean build --no-daemon --stacktrace` muss nach dem letzten Quest-Commit noch durch CI bestätigt werden. Die Phase wird deshalb derzeit **nicht** als CI-verifiziert markiert.
+
+Nächster abhängiger Bereich ist **Story/Lore**. Dabei müssen `StoryManager`, `StoryChapter`, `StoryBookFactory` und `StoryNpcDialogue` gegen die neue Content-/Dialog-Grundlage forensisch aufgelöst werden, ohne Quest-Regeln in die Dialogschicht zu verschieben.
