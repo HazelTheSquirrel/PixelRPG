@@ -162,15 +162,13 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MobLevelScalingListener(this, mobScalingConfig, new GuildApiAdapter(playerProfileManager)), this);
         getServer().getPluginManager().registerEvents(new MobNameplateListener(new MobNameplateService(this, mobScalingConfig, new GuildApiAdapter(playerProfileManager))), this);
         getServer().getPluginManager().registerEvents(new MobExperienceListener(new GuildApiAdapter(playerProfileManager), mobScalingConfig), this);
-        getServer().getPluginManager().registerEvents(new LootDropListener(new GuildApiAdapter(playerProfileManager), itemEconomyConfig, itemService, new RPGItemBuilder(keys)), this);
+        getServer().getPluginManager().registerEvents(new LootDropListener(new GuildApiAdapter(playerProfileManager), itemEconomyConfig, itemService, new RPGItemBuilder(keys), currencyFactory), this);
         getServer().getPluginManager().registerEvents(new SoulboundDeathListener(new GuildApiAdapter(playerProfileManager)), this);
         WeaponAbilityEngine abilityEngine = new WeaponAbilityEngine(playerProfileManager, statEngine);
         getServer().getPluginManager().registerEvents(new SkillInputListener(abilityEngine), this);
         getServer().getPluginManager().registerEvents(new FireballWeaponListener(playerProfileManager, statEngine), this);
         getServer().getServicesManager().register(ItemAPI.class, itemService, this, ServicePriority.Normal);
 
-        GuildCurrencyItemFactory currencyFactory = new GuildCurrencyItemFactory(keys);
-        currencyFactory.configureMaxStackSize(getConfig().getInt("economy.currency.max-stack-size", 64));
 
         ExecutorService npcIo = Executors.newSingleThreadExecutor(runnable -> {
             Thread thread = new Thread(runnable, "PixelRPG-NpcIO");
