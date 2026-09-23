@@ -8,7 +8,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class ContentCatalogService implements AutoCloseable {
-    private final Plugin plugin;
     private final JsonContentCatalogLoader loader;
     private final AtomicReference<ContentCatalog> catalog = new AtomicReference<>(new ContentCatalog(java.util.Map.of()));
 
@@ -24,7 +23,7 @@ public final class ContentCatalogService implements AutoCloseable {
     public Optional<String> text(String id) {
         return catalog.get()
                 .text(new ContentId(id))
-                .map(TextContent::value);
+                .map(content -> content.value);
     }
 
     public ContentCatalog snapshot() {
