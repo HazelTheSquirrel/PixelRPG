@@ -54,6 +54,9 @@ import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import de.pixelrpg.rpg.item.RPGItemBuilder;
 import de.pixelrpg.rpg.npc.NpcChunkListener;
 import de.pixelrpg.rpg.npc.NpcProtectionListener;
+import de.pixelrpg.rpg.npc.ReceptionNpcListener;
+import de.pixelrpg.rpg.npc.TravelNpcListener;
+import de.pixelrpg.rpg.npc.BankerNpcListener;
 import de.pixelrpg.rpg.npc.NpcRepository;
 import de.pixelrpg.rpg.npc.NpcRuntimeManager;
 import de.pixelrpg.rpg.npc.YamlNpcRepository;
@@ -222,6 +225,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
         QuestNpcDialogService questNpcDialogs = new QuestNpcDialogService(questService, playerProfileManager, new DialogueEngine());
         getServer().getPluginManager().registerEvents(new QuestNpcListener(npcRuntime, questNpcDialogs), this);
         getServer().getPluginManager().registerEvents(new QuestProgressListener(questService, playerProfileManager, itemService), this);
+        DialogueEngine npcInteractionDialogs = new DialogueEngine();
+        getServer().getPluginManager().registerEvents(new ReceptionNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs), this);
+        getServer().getPluginManager().registerEvents(new TravelNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs), this);
+        getServer().getPluginManager().registerEvents(new BankerNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs), this);
         companionSystem.loadAsync().thenRun(() -> getServer().getScheduler().runTask(this, () -> {
             if (!isEnabled()) return;
             companionSystem.register();
