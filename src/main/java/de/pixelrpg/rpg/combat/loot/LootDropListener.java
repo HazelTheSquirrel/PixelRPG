@@ -12,7 +12,6 @@ import de.pixelrpg.rpg.item.RPGItemBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
@@ -66,7 +65,7 @@ public final class LootDropListener implements Listener {
                 .filter(definition -> !definition.adminOnly())
                 .filter(definition -> !definition.unique())
                 .filter(definition -> definition.material() != Material.CLOCK)
-                .collect(Collectors.groupingBy(ItemDefinition::material, Collectors.toList()));
+                .collect(Collectors.groupingBy(definition -> definition.material(), Collectors.toList()));
     }
 
     // Zuständig für PixelRPG-Loot und Gildengold; Vanilla-Spieler bleiben vollständig beim Vanilla-Loot.
