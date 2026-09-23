@@ -64,10 +64,21 @@ public final class ExternalSkinService {
     }
 
     public CompletableFuture<Void> apply(Mannequin mannequin, String skinSource) {
-        if (mannequin == null || !mannequin.isValid()) return CompletableFuture.completedFuture(null);
+        return applyAndGetProperty(mannequin, skinSource).thenApply(ignored -> null);
+    }
+
+    /**
+     * Resolves and applies the external skin while returning the exact texture
+     * property that was accepted. This lets persistence store the resolved
+     * texture directly instead of re-reading mutable mannequin state later.
+     */
+    public CompletableFuture<ProfileProperty> applyAndGetProperty(Mannequin mannequin, String skinSource) {
+        if (mannequin == null || !mannequin.isValid()) return CompletableFuture.failedFuture(
+                new IllegalArgumentException("Mannequin is not valid"));
         String source = normalizeUrl(skinSource);
         if (source == null) return CompletableFuture.failedFuture(new IllegalArgumentException("Invalid skin URL"));
-        return resolveProperty(source).thenCompose(property -> applyProperty(mannequin, property, source));
+        return resolveProperty(source).thenCompose(property ->
+                applyProperty(mannequin, property, source).thenApply(ignored -> property));
     }
 
     private CompletableFuture<ProfileProperty> resolveProperty(String source) {
