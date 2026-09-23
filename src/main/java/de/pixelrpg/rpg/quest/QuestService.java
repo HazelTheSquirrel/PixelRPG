@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.profession.Profession;
 import org.bukkit.plugin.Plugin;
 
 import java.util.Objects;
@@ -28,6 +29,15 @@ public final class QuestService implements AutoCloseable {
         if (quest == null || profile.hasActiveQuest(questId) || profile.hasCompletedQuest(questId)) return false;
         if (profile.getActiveQuests().size() >= repository.maxActiveQuests()) return false;
         if (profile.getLevel() < quest.requiredLevel()) return false;
+        if (quest.isProfessionQuest()) {
+            Profession profession;
+            try {
+                profession = Profession.valueOf(quest.profession());
+            } catch (IllegalArgumentException exception) {
+                return false;
+            }
+            if (!profile.hasLearnedProfession(profession) || profile.getProfessionLevel(profession) < quest.requiredProfessionLevel()) return false;
+        }
         for (String prerequisite : quest.prerequisites()) {
             if (!profile.hasCompletedQuest(prerequisite)) return false;
         }
