@@ -511,7 +511,7 @@ Nächster abhängiger Bereich ist **Items/Equipment/ökonomische Grundlagen**. V
 
 ### Phase 6 — Items / Equipment / ökonomische Grundlagen
 
-Status: **implementiert und CI-verifiziert**
+Status: **implementiert; Code-Stand CI-verifiziert, Audit-Only-Commit durch externe Paper-Maven-Störung nicht erneut verifizierbar**
 
 Forensisch aus `main` geprüft und für `rebuild` neu strukturiert:
 
@@ -540,6 +540,6 @@ Forensisch aus `main` geprüft und für `rebuild` neu strukturiert:
 - Es werden keine statischen Live-`Player`/`Entity`/`World`-Referenzen eingeführt.
 - Listener besitzen Zweckkommentare direkt über jedem `@EventHandler`.
 - Paper-26.2-Data-Component-APIs werden für die Food-Konfiguration verwendet.
-- GitHub Actions Build Run `35865272470` für Commit `29f3e3fc4e171a46182313ef33d576f80239afcc` wurde erfolgreich abgeschlossen. Die Schritte `Build PixelRPG`, `Verify source API boundaries` und `Verify plugin artifact` meldeten jeweils `success`.
+- GitHub Actions Build Run `35865272470` für den vollständigen Code-Stand `29f3e3fc4e171a46182313ef33d576f80239afcc` wurde erfolgreich abgeschlossen. `Build PixelRPG`, `Verify source API boundaries` und `Verify plugin artifact` meldeten jeweils `success`. Der anschließende reine Audit-Dokumentations-Commit `49665081859ed36755c23368c6e8311f1159e19c` wurde zweimal gegen GitHub Actions geprüft; beide Läufe scheiterten bereits in `paperweightUserdevSetup`, weil `io.papermc.codebook:codebook-cli:2.0.1-SNAPSHOT` vom Paper-Maven-Repository mit HTTP 502/503 nicht abrufbar war. Das ist ein externer Repository-/Infrastrukturfehler und kein im Buildlog erkennbarer Quellcodefehler.
 
 Nächster abhängiger Bereich ist **NPC Runtime + Persistence**. Vor dessen Implementierung sind NPC-Domainzustand, Runtime-Entity-Lifecycle, Skin-Persistenz und Chunk-Lifecycle aus `main` forensisch zu erfassen.
