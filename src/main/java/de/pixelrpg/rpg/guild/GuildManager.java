@@ -51,7 +51,6 @@ public final class GuildManager implements GuildAPI, AutoCloseable {
         });
         load();
         Bukkit.getServicesManager().register(GuildAPI.class, this, plugin, ServicePriority.Normal);
-        registerCommands();
         instance = this;
     }
 
