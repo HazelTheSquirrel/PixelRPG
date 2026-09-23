@@ -125,6 +125,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ScoreboardService scoreboardService;
     private PlaytimeTracker playtimeTracker;
     private de.pixelrpg.rpg.companion.CompanionMountListener companionMountListener;
+    private de.pixelrpg.rpg.guild.GuildBankService guildBankService;
 
     @Override
     public void onEnable() {
@@ -191,6 +192,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         playtimeTracker = lifecycle.register(new PlaytimeTracker(this, playerProfileManager));
         getServer().getPluginManager().registerEvents(scoreboardService, this);
         getServer().getPluginManager().registerEvents(playtimeTracker, this);
+        guildBankService = lifecycle.register(new de.pixelrpg.rpg.guild.GuildBankService(this, guildManager));
         GuildAPI guildApi = guildManager;
         BossRepository bossRepository = new BossRepository(this);
         bossRepository.load();
@@ -248,7 +250,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         DialogueEngine npcInteractionDialogs = new DialogueEngine();
         getServer().getPluginManager().registerEvents(new ReceptionNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs), this);
         getServer().getPluginManager().registerEvents(new TravelNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs), this);
-        getServer().getPluginManager().registerEvents(new BankerNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs), this);
+        getServer().getPluginManager().registerEvents(new BankerNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs, guildBankService), this);
         getServer().getPluginManager().registerEvents(new FillerNpcListener(npcRuntime, playerProfileManager, questService, npcInteractionDialogs), this);
         companionSystem.loadAsync().thenRun(() -> getServer().getScheduler().runTask(this, () -> {
             if (!isEnabled()) return;
