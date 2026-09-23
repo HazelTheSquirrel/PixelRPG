@@ -250,17 +250,17 @@ public final class CompanionFollowTask implements Listener {
         if (direction.lengthSquared() < 0.001D) direction.setZ(1.0D);
         direction.normalize().multiply(-Math.max(1.0D, follow.stopDistance()));
         Location target = playerLocation.clone().add(direction);
-        moveTowards(companion, target, follow.movementSpeed(), true);
+        moveTowards(companion, target, follow.movementSpeed());
     }
 
-    private static void moveTowards(LivingEntity entity, Location target, double speed, boolean allowOneBlockDescend) {
+    private static void moveTowards(LivingEntity entity, Location target, double speed) {
         Location current = entity.getLocation();
         Vector delta = target.toVector().subtract(current.toVector());
         delta.setY(Math.max(-0.35D, Math.min(0.35D, delta.getY())));
         if (delta.lengthSquared() < 0.04D) { slow(entity); return; }
         Vector horizontal = delta.clone().setY(0.0D);
         boolean stepUp = shouldStepUp(entity, horizontal);
-        boolean stepDown = shouldStepDown(entity, horizontal, delta.getY());
+        boolean stepDown = shouldStepDown(entity, horizontal);
         boolean fallingBehind = target.getY() > current.getY() + 0.35D;
         boolean falling = entity.getVelocity().getY() < -0.08D;
         if (stepUp && entity.isOnGround()) delta.setY(JUMP_VELOCITY);
@@ -282,8 +282,8 @@ public final class CompanionFollowTask implements Listener {
         return isSolid(feet) && !isSolid(head) && !isSolid(landing);
     }
 
-    private static boolean shouldStepDown(LivingEntity entity, Vector horizontal, double targetDeltaY) {
-        if (horizontal.lengthSquared() < 0.01D || targetDeltaY > -0.20D) return false;
+    private static boolean shouldStepDown(LivingEntity entity, Vector horizontal) {
+        if (horizontal.lengthSquared() < 0.01D) return false;
         Vector direction = horizontal.clone().normalize(); Location current = entity.getLocation();
         Location ahead = current.clone().add(direction.getX() * 0.65D, 0.0D, direction.getZ() * 0.65D); Location below = ahead.clone().add(0.0D, -1.0D, 0.0D);
         return !isSolid(ahead) && isSolid(below);
