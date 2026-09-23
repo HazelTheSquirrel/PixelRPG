@@ -8,7 +8,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +45,7 @@ public final class TradeDepotService implements AutoCloseable {
 
     public List<TradeDepotListing> listings() {
         return listings.values().stream()
-                .sorted(Comparator.comparingLong(TradeDepotListing::expiresAtMillis))
+                .sorted(Comparator.comparingLong(listing -> listing.expiresAtMillis()))
                 .map(listing -> new TradeDepotListing(listing.id(), listing.sellerId(), listing.itemCopy(), listing.price(), listing.expiresAtMillis()))
                 .toList();
     }
@@ -71,7 +70,7 @@ public final class TradeDepotService implements AutoCloseable {
             seller.addMoney(payout);
             profiles.saveProfileAsync(seller.getUuid());
         } else {
-            pendingPayouts.merge(listing.sellerId(), payout, Double::sum);
+            pendingPayouts.merge(listing.sellerId(), payout, (current, added) -> current + added);
         }
         addGoods(buyer.getUniqueId(), listing.itemCopy());
         profiles.saveProfileAsync(buyer.getUniqueId());
@@ -209,7 +208,7 @@ public final class TradeDepotService implements AutoCloseable {
 
     @Override
     public void close() {
-        expiryTasks.values().forEach(BukkitTask::cancel);
+        expiryTasks.values().forEach(task -> task.cancel());
         expiryTasks.clear();
         repository.close();
         goodsRepository.close();
