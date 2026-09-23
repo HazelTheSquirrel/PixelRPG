@@ -62,6 +62,9 @@ import de.pixelrpg.rpg.profession.ProfessionDialogService;
 import de.pixelrpg.rpg.profession.ProfessionNpcListener;
 import de.pixelrpg.rpg.profession.ProfessionSystem;
 import de.pixelrpg.rpg.quest.QuestRepository;
+import de.pixelrpg.rpg.quest.QuestNpcDialogService;
+import de.pixelrpg.rpg.quest.QuestNpcListener;
+import de.pixelrpg.rpg.quest.QuestProgressListener;
 import de.pixelrpg.rpg.quest.QuestService;
 import de.pixelrpg.rpg.region.RegionEditor;
 import de.pixelrpg.rpg.region.RegionListener;
@@ -147,15 +150,15 @@ public final class PixelRPGPlugin extends JavaPlugin {
             return thread;
         });
         this.questIo = questIo;
+        itemService = lifecycle.register(new ItemService(this, keys));
         QuestRepository questRepository = new QuestRepository(this, getDataFolder().toPath().resolve("data/quests/definitions.json"), questIo);
-        QuestService questService = lifecycle.register(new QuestService(this, playerProfileManager, questRepository));
+        QuestService questService = lifecycle.register(new QuestService(this, playerProfileManager, questRepository, itemService));
         questRepository.loadAsync().whenComplete((ignored, failure) -> {
             if (failure != null) {
                 getLogger().log(java.util.logging.Level.SEVERE, "Failed to load quest definitions.", failure);
             }
         });
 
-        itemService = lifecycle.register(new ItemService(this, keys));
         MobScalingConfig mobScalingConfig = new MobScalingConfig();
         mobScalingConfig.load(new JsonDataManager(this));
         ItemEconomyConfig itemEconomyConfig = new ItemEconomyConfig();
@@ -216,6 +219,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         QuickActionsDialogService quickActions = new QuickActionsDialogService(
                 playerProfileManager, statEngine, questService, companionSystem, professionSystem);
         getServer().getPluginManager().registerEvents(new QuickActionsDialogListener(quickActions), this);
+        QuestNpcDialogService questNpcDialogs = new QuestNpcDialogService(questService, playerProfileManager, new DialogueEngine());
+        getServer().getPluginManager().registerEvents(new QuestNpcListener(npcRuntime, questNpcDialogs), this);
+        getServer().getPluginManager().registerEvents(new QuestProgressListener(questService, playerProfileManager, itemService), this);
         companionSystem.loadAsync().thenRun(() -> getServer().getScheduler().runTask(this, () -> {
             if (!isEnabled()) return;
             companionSystem.register();
