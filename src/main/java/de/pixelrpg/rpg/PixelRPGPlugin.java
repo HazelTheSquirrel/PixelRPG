@@ -56,7 +56,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
                 this,
                 new JsonContentCatalogLoader(this, getDataFolder().toPath().resolve("data/content/texts.json"), contentIo)
         ));
-        contentCatalog.loadAsync().whenComplete((ignored, failure) -> {
+        java.util.concurrent.CompletableFuture<Void> contentLoad = contentCatalog.loadAsync();
+        contentLoad.whenComplete((ignored, failure) -> {
             if (failure != null) {
                 getLogger().log(java.util.logging.Level.SEVERE, "Failed to load content catalog.", failure);
             }
@@ -117,7 +118,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         );
         getServer().getPluginManager().registerEvents(
                 new StoryNpcInteractionListener(npcRuntime, storyNpcDialogue), this);
-        contentCatalog.loadAsync()
+        contentLoad
                 .thenCompose(ignored -> storyRepository.loadAsync())
                 .thenAccept(storyService::replace)
                 .exceptionally(failure -> {
