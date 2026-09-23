@@ -69,6 +69,7 @@ import de.pixelrpg.rpg.quest.QuestRepository;
 import de.pixelrpg.rpg.quest.QuestNpcDialogService;
 import de.pixelrpg.rpg.quest.QuestNpcListener;
 import de.pixelrpg.rpg.quest.QuestProgressListener;
+import de.pixelrpg.rpg.quest.QuestCompanionRewardListener;
 import de.pixelrpg.rpg.quest.QuestService;
 import de.pixelrpg.rpg.region.RegionEditor;
 import de.pixelrpg.rpg.region.RegionListener;
@@ -243,6 +244,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         companionSystem.loadAsync().thenRun(() -> getServer().getScheduler().runTask(this, () -> {
             if (!isEnabled()) return;
             companionSystem.register();
+            getServer().getPluginManager().registerEvents(new QuestCompanionRewardListener(questService, companionSystem.service(), playerProfileManager), this);
             getServer().getPluginManager().registerEvents(new CompanionNpcListener(npcRuntime, new CompanionDialogService(companionSystem.service(), new DialogueEngine())), this);
         })).exceptionally(failure -> { getLogger().log(java.util.logging.Level.SEVERE, "Failed to load companion definitions.", failure); return null; });
 
