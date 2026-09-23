@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
 import de.pixelrpg.rpg.profession.Profession;
 import org.bukkit.plugin.Plugin;
 
