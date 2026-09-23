@@ -152,6 +152,39 @@ public final class RegionRepository {
         return Map.copyOf(result);
     }
 
+    /** Persists all normal region definitions while preserving the separate global-region section. */
+    public synchronized void save(Iterable<PixelRegion> regions) {
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        yaml.set("format-version", CURRENT_FORMAT_VERSION);
+        yaml.set("regions", null);
+
+        for (PixelRegion region : regions) {
+            String base = "regions." + region.id();
+            yaml.set(base + ".world", region.worldName());
+            yaml.set(base + ".name", region.name());
+            yaml.set(base + ".type", region.type().name());
+            yaml.set(base + ".description", region.description());
+            yaml.set(base + ".min-y", region.minY());
+            yaml.set(base + ".max-y", region.maxY());
+            yaml.set(base + ".priority", region.priority());
+            if (region.ownerId() != null) yaml.set(base + ".owner", region.ownerId().toString());
+            yaml.set(base + ".members", region.members().stream().map(UUID::toString).sorted().toList());
+            yaml.set(base + ".points", region.geometry().points().stream()
+                    .map(point -> Map.of("x", point.x(), "z", point.z())).toList());
+            for (Map.Entry<RegionFlag, Boolean> flag : region.flags().entrySet()) {
+                yaml.set(base + ".flags." + flag.getKey().name(), flag.getValue());
+            }
+            for (Map.Entry<String, String> property : region.properties().entrySet()) {
+                yaml.set(base + ".properties." + property.getKey(), property.getValue());
+            }
+            yaml.set(base + ".spawn-points", region.spawnPoints().stream()
+                    .map(point -> Map.<String, Object>of("mob", point.mobType(), "x", point.x(), "y", point.y(), "z", point.z())).toList());
+            yaml.set(base + ".enter-message", region.enterMessage());
+            yaml.set(base + ".leave-message", region.leaveMessage());
+        }
+        writeAtomically(yaml);
+    }
+
     /** Persists complete global region definitions without disturbing normal regions. */
     public synchronized void saveGlobalRegions(Map<String, PixelRegion> globalRegions) {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
