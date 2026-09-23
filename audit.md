@@ -1177,3 +1177,83 @@ Der anschließende Lauf **35885711518** für Commit **a1188ef79bcd28925205e1162b
 - JDBC-Service-/ShadowJar-Prüfung.
 
 Damit ist die im Audit definierte Phase 17 technisch integriert und CI-verifiziert.
+
+
+---
+
+## 18. Forensische Connectivity-Prüfung — NPC / Quest / Party / Guild
+
+Status: **Connectivity-Batch abgeschlossen; Release-Parität weiterhin nicht freigegeben**
+
+Die Prüfung wurde nicht anhand von Dateinamen, sondern entlang der Runtime-Kette durchgeführt:
+
+`Definition/ID -> Repository -> Runtime -> Entity -> Listener -> Service -> Dialog/Action -> Persistence`
+
+### NPC-Typen
+
+Aktueller `NpcType`-Bestand:
+
+- `RECEPTION` -> `ReceptionNpcListener`
+- `PROFESSION_*` -> `ProfessionNpcListener`
+- `QUEST` -> `QuestNpcListener` + `QuestNpcDialogService`
+- `SHOP` -> `ShopNpcListener`
+- `TRAVEL` -> `TravelNpcListener`
+- `FILLER` -> `FillerNpcListener`
+- `STORY` -> `StoryNpcInteractionListener`
+- `BANKER` -> `BankerNpcListener`
+- `COMPANION` -> `CompanionNpcListener`
+
+Damit besitzt jeder aktuell definierte NPC-Typ eine konkrete Interaktionsroute. `FILLER` bleibt bewusst fachlich leichtgewichtig und dient als `TALK_TO_NPC`-Questziel.
+
+### NPC-Persistenz
+
+Die Kette ist vollständig:
+
+`YamlNpcRepository -> NpcRuntimeManager -> NpcRecord -> spawned Mannequin -> npcId/npcType PDC -> Listener lookup`
+
+Die aufgelöste Skin-Texture inklusive Signatur bleibt persistent und wird beim erneuten Spawn wieder angewendet.
+
+### Quest-Runtime
+
+Folgende bislang im Rebuild fehlende Laufzeitverbindungen wurden wiederhergestellt:
+
+- `QUEST` NPC -> natives Quest-Dialogsystem;
+- `HUNT` -> `EntityDeathEvent`;
+- `COLLECT` -> Inventory/Pickup/Drop/Consume-Refresh;
+- `TALK_TO_NPC` -> FILLER-NPC-Interaktion;
+- Questabschluss -> Persistenz;
+- Questbelohnungen -> Geld, XP und Items;
+- Companion-Belohnungen -> Companion-Domain.
+
+Die kanonische Questdatei enthält nach Abgleich mit `main` jetzt **209 Definitionen**. Die 46 Definitionen aus `quests_content_expansion_01.json`, die im Rebuild fehlten, wurden fachlich in `data/quests/definitions.json` integriert. Die alte Crafting-Order-Datei bleibt bewusst ausgeschlossen, da sie auf das entfernte Legacy-Rezeptmodell verweist.
+
+### Party / Guild
+
+Die zuvor vollständig entfernten Party-/Guild-Domänen wurden nicht als Fake-Adapter belassen:
+
+- persistente `PartyManager`-Domain wiederhergestellt;
+- `PartyAPI` tatsächlich registriert;
+- Party-Disconnect-Lifecycle wieder verbunden;
+- persistente `GuildManager`-Domain wiederhergestellt;
+- `GuildAPI` verwendet jetzt die reale Guild-Domain statt des bisherigen falschen "registriert = Gilde"-Adapters;
+- Party-/Guild-Kommandos sind wieder direkt über `/pixelrpg party ...` und `/pixelrpg guild ...` erreichbar;
+- Quick-Actions-Guild-Eintrag zeigt nicht mehr künstlich "Gildensystem deaktiviert", sondern die reale Guild-Domain.
+
+### Verbleibende bewusst dokumentierte Paritätslücken
+
+Folgende historische Komponenten sind im Rebuild weiterhin durch neue Architektur ersetzt oder noch nicht vollständig rekonstruiert:
+
+- alte Bukkit-GUI-Schicht;
+- alter Guild-Bank-Speicher;
+- alter Trade-/Shop-Manager;
+- altes Scoreboard-/Playtime-Modul;
+- alte Companion-Mount-/Equipment-GUI-Schicht;
+- vollständiger Resourcepack-Bestand ist noch nicht vollständig in `rebuild` zurückgeführt.
+
+Diese Punkte dürfen nicht als "fertig" markiert werden. Sie bleiben offene Paritätsarbeiten und sind vor einer Release-Freigabe erneut gegen `main` zu prüfen.
+
+### Technische Integritätsregel
+
+Es wurden keine alten 1.21.x-Dialogimplementierungen, CraftBukkit-Klassen, Legacy-NMS-Pakete oder `ChatColor`-Abhängigkeiten zurückgeführt.
+
+Der Rebuild bleibt die aktive Entwicklungsbasis. `main` und `test` bleiben unverändert Referenzzustand.
