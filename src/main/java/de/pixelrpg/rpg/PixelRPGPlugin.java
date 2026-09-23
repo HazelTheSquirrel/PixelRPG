@@ -90,6 +90,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ExecutorService tradeGoodsIo;
     private ProfessionSystem professionSystem;
     private CompanionSystem companionSystem;
+    private ItemService itemService;
     private StatEngine statEngine;
     private BossManager bossManager;
 
@@ -139,7 +140,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
             }
         });
 
-        ItemService itemService = lifecycle.register(new ItemService(this, keys));
+        itemService = lifecycle.register(new ItemService(this, keys));
         MobScalingConfig mobScalingConfig = new MobScalingConfig(this);
         statEngine = lifecycle.register(new StatEngine(playerProfileManager));
         getServer().getServicesManager().register(StatisticsAPI.class, new StatisticsService(playerProfileManager, statEngine), this, ServicePriority.Normal);
