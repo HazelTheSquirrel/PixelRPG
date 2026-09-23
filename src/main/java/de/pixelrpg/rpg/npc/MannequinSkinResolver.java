@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.npc;
 
-import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import org.bukkit.entity.Entity;
@@ -10,7 +9,6 @@ import org.bukkit.plugin.Plugin;
 import java.net.URI;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import java.util.Locale;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
