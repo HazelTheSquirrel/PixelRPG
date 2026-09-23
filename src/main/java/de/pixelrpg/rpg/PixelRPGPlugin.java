@@ -20,6 +20,8 @@ import de.pixelrpg.rpg.npc.NpcRepository;
 import de.pixelrpg.rpg.npc.NpcRuntimeManager;
 import de.pixelrpg.rpg.npc.YamlNpcRepository;
 import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
+import de.pixelrpg.rpg.quest.QuestRepository;
+import de.pixelrpg.rpg.quest.QuestService;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -32,11 +34,13 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private PlayerProfileManager playerProfileManager;
     private ExecutorService dialogueIo;
     private ExecutorService contentIo;
+    private ExecutorService questIo;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         saveResource("data/content/texts.json", false);
+        saveResource("data/quests/definitions.json", false);
         lifecycle = new LifecycleCoordinator(getLogger());
 
         new JsonDataManager(this).initialize();
@@ -59,6 +63,20 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
         playerProfileManager = lifecycle.register(new PlayerProfileManager(this));
         playerProfileManager.initialize(getConfig());
+
+        ExecutorService questIo = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-QuestIO");
+            thread.setDaemon(true);
+            return thread;
+        });
+        this.questIo = questIo;
+        QuestRepository questRepository = new QuestRepository(this, getDataFolder().toPath().resolve("data/quests/definitions.json"), questIo);
+        QuestService questService = lifecycle.register(new QuestService(this, playerProfileManager, questRepository));
+        questRepository.loadAsync().whenComplete((ignored, failure) -> {
+            if (failure != null) {
+                getLogger().log(java.util.logging.Level.SEVERE, "Failed to load quest definitions.", failure);
+            }
+        });
 
         ItemService itemService = lifecycle.register(new ItemService(this, keys));
         getServer().getServicesManager().register(ItemAPI.class, itemService, this, ServicePriority.Normal);
@@ -118,6 +136,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
             if (contentIo != null) {
                 contentIo.shutdown();
                 contentIo = null;
+            }
+            if (questIo != null) {
+                questIo.shutdown();
+                questIo = null;
             }
             lifecycle = null;
             playerProfileManager = null;
