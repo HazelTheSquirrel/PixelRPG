@@ -396,6 +396,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     }
 
     public StatEngine getStatEngine() { return statEngine; }
+    public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
     public CompanionSystem getCompanionSystem() { return companionSystem; }
     public CompanionSystem getCompanionService() { return companionSystem; }
 
