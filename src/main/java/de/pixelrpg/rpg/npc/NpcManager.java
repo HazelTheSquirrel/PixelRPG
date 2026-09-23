@@ -87,6 +87,11 @@ public final class NpcManager {
             String skinSignature = section.getString("skin-signature", null);
             if (skinValue != null && !skinValue.isBlank()) {
                 resolvedSkinsByNpcId.put(id, new StoredSkin(skinValue, skinSignature));
+                plugin.getLogger().info("NPC skin loaded from disk: npc=" + id
+                        + ", signature=" + (skinSignature == null || skinSignature.isBlank() ? "none" : "present"));
+            } else if (skinSource != null && !skinSource.isBlank()) {
+                plugin.getLogger().info("NPC skin has no persisted texture yet: npc=" + id
+                        + ", source=" + skinSource);
             }
             Profession profession = parseProfession(section.getString("profession"));
             if (profession == null) profession = professionFor(type);
@@ -145,11 +150,30 @@ public final class NpcManager {
             if (npc.hasCustomSkin()) {
                 StoredSkin storedSkin = resolvedSkinsByNpcId.get(npc.id());
                 if (storedSkin != null) {
-                    MannequinSkinResolver.applyStoredTexture(entity, storedSkin.value(), storedSkin.signature(), plugin);
+                    plugin.getLogger().info("Applying persisted NPC skin: npc=" + npc.id());
+                    MannequinSkinResolver.applyStoredTexture(entity, storedSkin.value(), storedSkin.signature(), plugin)
+                            .whenComplete((ignored, exception) -> {
+                                if (exception != null) {
+                                    plugin.getLogger().warning("Failed to apply persisted NPC skin: npc="
+                                            + npc.id() + ": " + exception.getMessage());
+                                } else {
+                                    plugin.getLogger().info("Persisted NPC skin applied: npc=" + npc.id());
+                                }
+                            });
                 } else {
+                    plugin.getLogger().info("Resolving NPC skin: npc=" + npc.id()
+                            + ", source=" + npc.skinSource());
                     MannequinSkinResolver.applyAndCapture(entity, npc.skinSource(), plugin.getLogger())
-                            .thenAccept(texture -> rememberResolvedSkin(
-                                    npc.id(), texture.getValue(), texture.getSignature()));
+                            .thenAccept(texture -> {
+                                plugin.getLogger().info("NPC skin resolved: npc=" + npc.id()
+                                        + ", texture=" + abbreviateTexture(texture.getValue()));
+                                rememberResolvedSkin(npc.id(), texture.getValue(), texture.getSignature());
+                            })
+                            .exceptionally(exception -> {
+                                plugin.getLogger().warning("NPC skin resolution failed: npc=" + npc.id()
+                                        + ": " + exception.getMessage());
+                                return null;
+                            });
                 }
             }
         });
@@ -336,12 +360,19 @@ public final class NpcManager {
                 // stored at acquisition time instead of being reconstructed
                 // from mutable mannequin state after a restart.
                 resolvedSkinsByNpcId.put(npcId, new StoredSkin(value, signature));
+                plugin.getLogger().info("NPC skin persisted in memory: npc=" + npcId
+                        + ", texture=" + abbreviateTexture(value));
                 saveAll();
             }
         });
     }
 
     private record StoredSkin(String value, String signature) { }
+
+    private static String abbreviateTexture(String value) {
+        if (value == null || value.isBlank()) return "empty";
+        return value.length() <= 16 ? value : value.substring(0, 16) + "...";
+    }
 
     private void addToChunkIndex(RPGNpc npc) {
         Location location = npc.location();
