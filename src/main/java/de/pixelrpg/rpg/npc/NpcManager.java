@@ -147,34 +147,32 @@ public final class NpcManager {
             entity.setCustomNameVisible(false);
             entity.getPersistentDataContainer().set(RPGKeys.Npc.npcType(), PersistentDataType.STRING, npc.type().name());
             entity.getPersistentDataContainer().set(RPGKeys.Npc.npcId(), PersistentDataType.STRING, npc.id());
-            if (npc.hasCustomSkin()) {
-                StoredSkin storedSkin = resolvedSkinsByNpcId.get(npc.id());
-                if (storedSkin != null) {
-                    plugin.getLogger().info("Applying persisted NPC skin: npc=" + npc.id());
-                    MannequinSkinResolver.applyStoredTexture(entity, storedSkin.value(), storedSkin.signature(), plugin)
-                            .whenComplete((ignored, exception) -> {
-                                if (exception != null) {
-                                    plugin.getLogger().warning("Failed to apply persisted NPC skin: npc="
-                                            + npc.id() + ": " + exception.getMessage());
-                                } else {
-                                    plugin.getLogger().info("Persisted NPC skin applied: npc=" + npc.id());
-                                }
-                            });
-                } else {
-                    plugin.getLogger().info("Resolving NPC skin: npc=" + npc.id()
-                            + ", source=" + npc.skinSource());
-                    MannequinSkinResolver.applyAndCapture(entity, npc.skinSource(), plugin.getLogger())
-                            .thenAccept(texture -> {
-                                plugin.getLogger().info("NPC skin resolved: npc=" + npc.id()
-                                        + ", texture=" + abbreviateTexture(texture.getValue()));
-                                rememberResolvedSkin(npc.id(), texture.getValue(), texture.getSignature());
-                            })
-                            .exceptionally(exception -> {
-                                plugin.getLogger().warning("NPC skin resolution failed: npc=" + npc.id()
-                                        + ": " + exception.getMessage());
-                                return null;
-                            });
-                }
+            StoredSkin storedSkin = resolvedSkinsByNpcId.get(npc.id());
+            if (storedSkin != null) {
+                plugin.getLogger().info("Applying persisted NPC skin: npc=" + npc.id());
+                MannequinSkinResolver.applyStoredTexture(entity, storedSkin.value(), storedSkin.signature(), plugin)
+                        .whenComplete((ignored, exception) -> {
+                            if (exception != null) {
+                                plugin.getLogger().warning("Failed to apply persisted NPC skin: npc="
+                                        + npc.id() + ": " + exception.getMessage());
+                            } else {
+                                plugin.getLogger().info("Persisted NPC skin applied: npc=" + npc.id());
+                            }
+                        });
+            } else if (npc.hasCustomSkin()) {
+                plugin.getLogger().info("Resolving NPC skin: npc=" + npc.id()
+                        + ", source=" + npc.skinSource());
+                MannequinSkinResolver.applyAndCapture(entity, npc.skinSource(), plugin.getLogger())
+                        .thenAccept(texture -> {
+                            plugin.getLogger().info("NPC skin resolved: npc=" + npc.id()
+                                    + ", texture=" + abbreviateTexture(texture.getValue()));
+                            rememberResolvedSkin(npc.id(), texture.getValue(), texture.getSignature());
+                        })
+                        .exceptionally(exception -> {
+                            plugin.getLogger().warning("NPC skin resolution failed: npc=" + npc.id()
+                                    + ": " + exception.getMessage());
+                            return null;
+                        });
             }
         });
 
@@ -281,12 +279,14 @@ public final class NpcManager {
         shuttingDown = true;
         saveAll();
         persistenceExecutor.shutdown();
+        plugin.getLogger().info("NPC manager shutdown: flushing npc persistence.");
         try {
             if (!persistenceExecutor.awaitTermination(10, TimeUnit.SECONDS)) persistenceExecutor.shutdownNow();
         } catch (InterruptedException exception) {
             persistenceExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }
+        plugin.getLogger().info("NPC manager shutdown: persistence executor terminated.");
         despawnAllTracked();
         npcsById.clear();
         npcChunkIndex.clear();
