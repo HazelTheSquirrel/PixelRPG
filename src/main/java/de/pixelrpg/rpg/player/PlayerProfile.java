@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Locale;
+import java.util.LinkedHashMap;
 
 public final class PlayerProfile {
     private final UUID uuid;
@@ -31,6 +32,7 @@ public final class PlayerProfile {
     private final Set<String> completedQuests = new HashSet<>();
     private final Map<String, Long> statistics = new HashMap<>();
     private final Map<EquipmentSlot, ItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
+    private final Map<String, CompanionState> companions = new LinkedHashMap<>();
     private boolean scoreboardEnabled;
     private boolean partyHudEnabled;
     private boolean questTrackerEnabled;
@@ -98,6 +100,11 @@ public final class PlayerProfile {
     public synchronized Map<String,Long> getAllStatistics(){return Collections.unmodifiableMap(new HashMap<>(statistics));}
     public synchronized Map<EquipmentSlot,ItemStack> getEquipment(){Map<EquipmentSlot,ItemStack> copy=new EnumMap<>(EquipmentSlot.class);equipment.forEach((slot,item)->copy.put(slot,item.clone()));return Collections.unmodifiableMap(copy);}
     public void setEquipment(Map<EquipmentSlot,ItemStack> values){mutate(()->{equipment.clear();if(values!=null)values.forEach((slot,item)->{if(slot!=null&&item!=null&&!item.isEmpty())equipment.put(slot,item.clone());});});}
+    public synchronized Map<String, CompanionState> getCompanions(){return Collections.unmodifiableMap(new LinkedHashMap<>(companions));}
+    public synchronized CompanionState getCompanion(String id){return id==null?null:companions.get(id);}
+    public void setCompanion(CompanionState state){if(state!=null)mutate(()->companions.put(state.id(),state));}
+    public void removeCompanion(String id){if(id!=null)mutateIfChanged(()->companions.remove(id)!=null);}
+    public void setCompanions(Map<String,CompanionState> values){mutate(()->{companions.clear();if(values!=null)companions.putAll(values);});}
     public synchronized boolean isScoreboardEnabled(){return scoreboardEnabled;}
     public void setScoreboardEnabled(boolean value){mutate(()->scoreboardEnabled=value);}
     public synchronized boolean isPartyHudEnabled(){return partyHudEnabled;}
@@ -109,12 +116,12 @@ public final class PlayerProfile {
     public void setPlaytimeMillis(long value){mutate(()->playtimeMillis=Math.max(0L,value));}
     public synchronized boolean isDirty(){return dirty;}
 
-    public synchronized PlayerProfile snapshotForSave(){if(!dirty)return null;PlayerProfile snapshot=new PlayerProfile(uuid);snapshot.registered=registered;snapshot.experience=experience;snapshot.moneyMinorUnits=moneyMinorUnits;snapshot.professionLevels.clear();snapshot.professionLevels.putAll(professionLevels);snapshot.professionExperience.clear();snapshot.professionExperience.putAll(professionExperience);snapshot.learnedProfessions.addAll(learnedProfessions);snapshot.unlockedRecipes.addAll(unlockedRecipes);snapshot.unlockedWaypoints.addAll(unlockedWaypoints);snapshot.storyChapterIndex=storyChapterIndex;for(QuestProgress progress:activeQuests.values())snapshot.activeQuests.put(progress.getQuestId(),new QuestProgress(progress.getQuestId(),progress.getCurrentAmount(),progress.getExpiryTimestampMillis()));snapshot.completedQuests.addAll(completedQuests);snapshot.statistics.putAll(statistics);equipment.forEach((slot,item)->snapshot.equipment.put(slot,item.clone()));snapshot.scoreboardEnabled=scoreboardEnabled;snapshot.partyHudEnabled=partyHudEnabled;snapshot.questTrackerEnabled=questTrackerEnabled;snapshot.playtimeMillis=playtimeMillis;snapshot.persistenceRevision=persistenceRevision;snapshot.mutationRevision=mutationRevision;snapshot.dirty=false;return snapshot;}
+    public synchronized PlayerProfile snapshotForSave(){if(!dirty)return null;PlayerProfile snapshot=new PlayerProfile(uuid);snapshot.registered=registered;snapshot.experience=experience;snapshot.moneyMinorUnits=moneyMinorUnits;snapshot.professionLevels.clear();snapshot.professionLevels.putAll(professionLevels);snapshot.professionExperience.clear();snapshot.professionExperience.putAll(professionExperience);snapshot.learnedProfessions.addAll(learnedProfessions);snapshot.unlockedRecipes.addAll(unlockedRecipes);snapshot.unlockedWaypoints.addAll(unlockedWaypoints);snapshot.storyChapterIndex=storyChapterIndex;for(QuestProgress progress:activeQuests.values())snapshot.activeQuests.put(progress.getQuestId(),new QuestProgress(progress.getQuestId(),progress.getCurrentAmount(),progress.getExpiryTimestampMillis()));snapshot.completedQuests.addAll(completedQuests);snapshot.statistics.putAll(statistics);equipment.forEach((slot,item)->snapshot.equipment.put(slot,item.clone()));snapshot.companions.putAll(companions);snapshot.scoreboardEnabled=scoreboardEnabled;snapshot.partyHudEnabled=partyHudEnabled;snapshot.questTrackerEnabled=questTrackerEnabled;snapshot.playtimeMillis=playtimeMillis;snapshot.persistenceRevision=persistenceRevision;snapshot.mutationRevision=mutationRevision;snapshot.dirty=false;return snapshot;}
     public synchronized void setDirtyCallback(Runnable callback){dirtyCallback=callback;}
     public void markDirty(){synchronized(this){dirty=true;}notifyDirty();}
     public synchronized void markClean(){dirty=false;}
     public synchronized void markCleanIfRevision(long expectedRevision){if(mutationRevision==expectedRevision)dirty=false;}
-    public void resetProgress(){synchronized(this){registered=false;experience=0L;moneyMinorUnits=0L;storyChapterIndex=-1;scoreboardEnabled=true;partyHudEnabled=false;questTrackerEnabled=false;learnedProfessions.clear();unlockedRecipes.clear();unlockedWaypoints.clear();activeQuests.clear();completedQuests.clear();equipment.clear();for(Profession profession:Profession.values()){professionLevels.put(profession,Profession.MIN_LEVEL);professionExperience.put(profession,0L);}}notifyDirty();}
+    public void resetProgress(){synchronized(this){registered=false;experience=0L;moneyMinorUnits=0L;storyChapterIndex=-1;scoreboardEnabled=true;partyHudEnabled=false;questTrackerEnabled=false;learnedProfessions.clear();unlockedRecipes.clear();unlockedWaypoints.clear();activeQuests.clear();completedQuests.clear();equipment.clear();companions.clear();for(Profession profession:Profession.values()){professionLevels.put(profession,Profession.MIN_LEVEL);professionExperience.put(profession,0L);}}notifyDirty();}
     private void mutate(Runnable mutation){synchronized(this){mutation.run();dirty=true;}notifyDirty();}
     private void mutateIfChanged(java.util.function.BooleanSupplier mutation){boolean changed;synchronized(this){changed=mutation.getAsBoolean();if(changed)dirty=true;}if(changed)notifyDirty();}
     private void notifyDirty(){Runnable callback;synchronized(this){mutationRevision++;callback=dirtyCallback;}if(callback!=null)callback.run();}
