@@ -12,7 +12,6 @@ public final class ContentCatalogService implements AutoCloseable {
     private final AtomicReference<ContentCatalog> catalog = new AtomicReference<>(new ContentCatalog(java.util.Map.of()));
 
     public ContentCatalogService(Plugin plugin, JsonContentCatalogLoader loader) {
-        this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.loader = Objects.requireNonNull(loader, "loader");
     }
 
@@ -23,7 +22,7 @@ public final class ContentCatalogService implements AutoCloseable {
     public Optional<String> text(String id) {
         return catalog.get()
                 .text(new ContentId(id))
-                .map(content -> content.value);
+                .map(TextContent::value);
     }
 
     public ContentCatalog snapshot() {
