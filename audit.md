@@ -1090,6 +1090,10 @@ Neu auf `rebuild` integriert:
 - Boss-Rewards verwenden den bestehenden PlayerProfile-/Economy-/Item-Domain-State.
 - Combat-Runtime bleibt eventgetrieben; aktive Skalierung verwendet begrenzte Wake-Ups statt eines globalen Dauer-Pollers.
 
+### Korrekturverifikation
+
+Workflow **35887659198** für Commit **cf5fc52ac36a304edaa24aa136882e9719926366**: **success**. Der Build inklusive Source-API-Boundaries und Plugin-Artefaktprüfung ist erfolgreich.
+
 ### Bewusst nicht unverändert übernommen
 
 Nicht als unveränderte Kopie übernommen wurden:
@@ -1121,7 +1125,7 @@ Nächster Audit-Schritt: **Phase 17 — Commands / Administration / finale UI- u
 
 ### Phase 17 — Commands / Administration / finale Integrationsschicht
 
-Status: **erneut forensisch geprüft; Korrekturen implementiert; CI-Verifikation für den neuen Commit ausstehend**
+Status: **erneut forensisch geprüft; Korrekturen implementiert; CI-verifiziert**
 
 Die Phase 17 wurde nach der ersten Freigabe nochmals vollständig gegen den tatsächlichen main-Referenzbestand und den aktuellen rebuild-Code geprüft. Dabei wurde nicht nur der erfolgreiche Build der ursprünglichen Phase 17 akzeptiert, sondern die tatsächliche Laufzeit-/Verhaltensabdeckung der neuen Command-Schicht erneut mit den Referenzbefehlen verglichen.
 
@@ -1141,11 +1145,11 @@ Bewusst weiterhin nicht übernommen wurden fachliche Bereiche, deren Rebuild-Dom
 
 ### Verifikation
 
-Der Korrekturstand wurde auf rebuild als Commit 251b04a1b62f4baa0750bbfe6b4bc39d0aa8f80b geschrieben. Die GitHub-Actions-Verifikation dieses neuen Commits ist vor Abschluss dieses Audits noch abzuwarten.
+Der Korrekturstand wurde auf rebuild als Commit 251b04a1b62f4baa0750bbfe6b4bc39d0aa8f80b geschrieben. Der anschließende Build des Audit-Commits schlug zunächst an einem konkreten Java-25-Lambda-Compilefehler in der Mengenvalidierung von `PixelRPGCommand` fehl. Die Ursache wurde anhand des CI-Compilerlogs auf die nicht effektiv finale lokale Variable `amount` innerhalb des `ifPresentOrElse`-Lambdas zurückgeführt. Dies wurde im Commit `cf5fc52ac36a304edaa24aa136882e9719926366` durch eine finale `requestedAmount`-Variable korrigiert.
 
 Die ursprüngliche Phase-17-Verifikation bleibt dokumentiert: Workflow 35885711518 bestätigte für Commit a1188ef79bcd28925205e1162bf643e4f1c83c07 den vollständigen Build inklusive Source-Grenzprüfungen, Live-Server-Referenzprüfung, Artefaktprüfung, Third-Party-Relocations und JDBC-Service-Prüfung.
 
-Die erneute Prüfung hat damit einen realen Verhaltensfehler in der ersten Phase-17-Fassung gefunden und auf der aktuellen Paper-26.2-/Java-25-Basis korrigiert.
+Die erneute Prüfung hat damit reale Verhaltensfehler in der ersten Phase-17-Fassung gefunden und auf der aktuellen Paper-26.2-/Java-25-Basis korrigiert. Der korrigierte Stand `cf5fc52ac36a304edaa24aa136882e9719926366` wurde durch GitHub Actions Workflow `35887659198` vollständig verifiziert: `gradle clean build --no-daemon --stacktrace`, Source-API-Grenzprüfungen und Plugin-Artefaktprüfung liefen erfolgreich.
 
 ### Bewusst nicht unverändert übernommen
 
