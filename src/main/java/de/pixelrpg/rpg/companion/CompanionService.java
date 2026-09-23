@@ -303,8 +303,14 @@ public final class CompanionService {
                 } else {
                     String skinSource = definition.visual().skinSource();
                     if (skinSource != null && !skinSource.isBlank()) {
-                        // Keep the existing skin acquisition system unchanged for first resolution.
-                        MannequinSkinResolver.apply(mannequin, skinSource, plugin.getLogger());
+                        // Capture the resolved texture property immediately so the
+                        // exact skin can be restored without resolving it again after restart.
+                        MannequinSkinResolver.applyAndCapture(mannequin, skinSource, plugin.getLogger())
+                                .thenAccept(texture -> storeSkin(
+                                        player.getUniqueId(),
+                                        selected.id(),
+                                        texture.getValue(),
+                                        texture.getSignature()));
                     }
                 }
             }
