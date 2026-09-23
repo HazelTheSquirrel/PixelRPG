@@ -13,23 +13,49 @@ import java.util.concurrent.Executors;
 public final class CompanionSystem implements AutoCloseable {
     private final Plugin plugin;
     private final PlayerProfileManager profiles;
-    private final ExecutorService io=Executors.newSingleThreadExecutor(r->{Thread t=new Thread(r,"PixelRPG-CompanionIO");t.setDaemon(true);return t;});
+    private final ExecutorService io = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "PixelRPG-CompanionIO");
+        t.setDaemon(true);
+        return t;
+    });
     private CompanionService service;
 
-    public CompanionSystem(Plugin plugin,PlayerProfileManager profiles,NpcRuntimeManager npcs){this.plugin=Objects.requireNonNull(plugin);this.profiles=Objects.requireNonNull(profiles);this.npcs=Objects.requireNonNull(npcs);}
+    public CompanionSystem(Plugin plugin, PlayerProfileManager profiles, NpcRuntimeManager npcs) {
+        this.plugin = Objects.requireNonNull(plugin);
+        this.profiles = Objects.requireNonNull(profiles);
+        Objects.requireNonNull(npcs);
+    }
 
-    public CompletableFuture<CompanionService> loadAsync(){
-        return CompletableFuture.supplyAsync(()->new CompanionRegistryLoader().load(),io).thenApply(registry->{
-            service=new CompanionService(plugin,profiles,registry);
+    public CompletableFuture<CompanionService> loadAsync() {
+        return CompletableFuture.supplyAsync(() -> new CompanionRegistryLoader().load(), io).thenApply(registry -> {
+            service = new CompanionService(plugin, profiles, registry);
             return service;
         });
     }
 
-    public CompanionService service(){if(service==null)throw new IllegalStateException("Companion system not loaded");return service;}
-    public void register(){plugin.getServer().getPluginManager().registerEvents(service().runtimeListener(),plugin);plugin.getServer().getPluginManager().registerEvents(new CompanionExperienceListener(plugin,service()),plugin);}
-    @Override public void close(){if(service!=null)service.shutdown();io.shutdown();}
+    public CompanionService service() {
+        if (service == null) {
+            throw new IllegalStateException("Companion system not loaded");
+        }
+        return service;
+    }
+
+    public void register() {
+        plugin.getServer().getPluginManager().registerEvents(service().runtimeListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new CompanionExperienceListener(plugin, service()), plugin);
+    }
+
+    @Override
+    public void close() {
+        if (service != null) {
+            service.shutdown();
+        }
+        io.shutdown();
+    }
 
     private final class CompanionRegistryLoader {
-        CompanionRegistry load(){return CompanionRegistry.load(plugin);}
+        CompanionRegistry load() {
+            return CompanionRegistry.load(plugin);
+        }
     }
 }
