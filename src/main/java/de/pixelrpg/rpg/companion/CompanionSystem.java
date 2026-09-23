@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.companion;
 
-import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.npc.NpcRuntimeManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.plugin.Plugin;
@@ -14,7 +13,6 @@ import java.util.concurrent.Executors;
 public final class CompanionSystem implements AutoCloseable {
     private final Plugin plugin;
     private final PlayerProfileManager profiles;
-    private final NpcRuntimeManager npcs;
     private final ExecutorService io=Executors.newSingleThreadExecutor(r->{Thread t=new Thread(r,"PixelRPG-CompanionIO");t.setDaemon(true);return t;});
     private CompanionService service;
 
