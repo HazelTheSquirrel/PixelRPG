@@ -37,7 +37,7 @@ public final class RegionManager implements AutoCloseable {
     public synchronized Optional<PixelRegion> find(World world,double x,int y,double z){
         if(world==null)return Optional.empty();List<UUID> candidates=index.getOrDefault(new ChunkKey(world.getName(),chunk(x),chunk(z)),List.of());
         Optional<PixelRegion> match=candidates.stream().map(regions::get).filter(Objects::nonNull).filter(r->r.contains(x,y,z))
-                .max(Comparator.comparingInt(r -> r.priority()).thenComparing(r -> r.id()));
+                .max(Comparator.comparingInt(PixelRegion::priority).thenComparing(PixelRegion::id));
         return match.isPresent()?match:Optional.of(globalRegion(world.getName()));
     }
     public synchronized PixelRegion globalRegion(String world){return globals.computeIfAbsent(world,w->PixelRegion.global(w,defaultFlags()));}
