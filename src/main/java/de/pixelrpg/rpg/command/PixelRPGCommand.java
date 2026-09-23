@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.UUID;
 
 public final class PixelRPGCommand implements BasicCommand {
@@ -99,10 +98,10 @@ public final class PixelRPGCommand implements BasicCommand {
         if (args.length == 1) return prefix(roots, args[0]);
         return switch (args[0].toLowerCase(Locale.ROOT)) {
             case "companion" -> args.length == 2 ? prefix(List.of("grant","list"), args[1]) : args.length == 3 ? onlinePlayers(args[2]) : args.length == 4 ? prefix(companions.definitionIds(), args[3]) : List.of();
-            case "boss" -> args.length == 2 ? prefix(List.of("event","list","reload"), args[1]) : args.length == 3 && args[1].equalsIgnoreCase("event") ? prefix(bosses.getWorldBosses().stream().map(BossDefinition::getId).toList(), args[2]) : List.of();
+            case "boss" -> args.length == 2 ? prefix(List.of("event","list","reload"), args[1]) : args.length == 3 && args[1].equalsIgnoreCase("event") ? prefix(bosses.getWorldBosses().stream().map(b -> b.getId()).toList(), args[2]) : List.of();
             case "item" -> args.length == 2 ? prefix(List.of("list","give"), args[1]) : args.length == 3 && args[1].equalsIgnoreCase("give") ? onlinePlayers(args[2]) : List.of();
-            case "player" -> args.length == 2 ? prefix(List.of("info","set-level","set-xp","set-gold","set-profession","reset"), args[1]) : args.length == 3 ? onlinePlayers(args[2]) : args.length == 4 && args[1].equalsIgnoreCase("set-profession") ? prefix(Arrays.stream(Profession.values()).map(Enum::name).toList(), args[3]) : List.of();
-            case "npc" -> args.length == 2 ? prefix(List.of("create","create-id","filler","remove","rename","skin","list"), args[1]) : args.length == 3 && args[1].equalsIgnoreCase("create") ? prefix(Arrays.stream(NpcType.values()).map(Enum::name).toList(), args[2]) : args.length == 4 && args[1].equalsIgnoreCase("create-id") ? prefix(Arrays.stream(NpcType.values()).map(Enum::name).toList(), args[3]) : List.of();
+            case "player" -> args.length == 2 ? prefix(List.of("info","set-level","set-xp","set-gold","set-profession","reset"), args[1]) : args.length == 3 ? onlinePlayers(args[2]) : args.length == 4 && args[1].equalsIgnoreCase("set-profession") ? prefix(Arrays.stream(Profession.values()).map(p -> p.name()).toList(), args[3]) : List.of();
+            case "npc" -> args.length == 2 ? prefix(List.of("create","create-id","filler","remove","rename","skin","list"), args[1]) : args.length == 3 && args[1].equalsIgnoreCase("create") ? prefix(Arrays.stream(NpcType.values()).map(n -> n.name()).toList(), args[2]) : args.length == 4 && args[1].equalsIgnoreCase("create-id") ? prefix(Arrays.stream(NpcType.values()).map(Enum::name).toList(), args[3]) : List.of();
             case "region" -> args.length == 2 ? prefix(List.of("create","finish","confirm","cancel","delete","list"), args[1]) : List.of();
             case "shop" -> args.length == 2 ? prefix(List.of("list"), args[1]) : List.of();
             default -> List.of();
@@ -179,7 +178,7 @@ public final class PixelRPGCommand implements BasicCommand {
 
     private void item(org.bukkit.command.CommandSender sender, String[] args) {
         if(args.length==0){sender.sendMessage(Component.text("Usage: /pixelrpg item <list|give>",NamedTextColor.RED));return;}
-        if(args[0].equalsIgnoreCase("list")){items.definitions().stream().map(ItemDefinition::id).sorted().forEach(id->sender.sendMessage(Component.text(id,NamedTextColor.YELLOW)));return;}
+        if(args[0].equalsIgnoreCase("list")){items.definitions().stream().map(d -> d.id()).sorted().forEach(id->sender.sendMessage(Component.text(id,NamedTextColor.YELLOW)));return;}
         if(args.length<3||!args[0].equalsIgnoreCase("give")){sender.sendMessage(Component.text("Usage: /pixelrpg item give <player> <item-id> [amount]",NamedTextColor.RED));return;}
         Player target=Bukkit.getPlayerExact(args[1]);if(target==null){sender.sendMessage(Component.text("Spieler ist nicht online.",NamedTextColor.RED));return;}
         ItemDefinition d=items.definitions().stream().filter(x->x.id().equalsIgnoreCase(args[2])||x.id().equalsIgnoreCase("pixelrpg:"+args[2])).findFirst().orElse(null);
@@ -215,6 +214,6 @@ public final class PixelRPGCommand implements BasicCommand {
         return entity==null?null:npcs.getByEntity(entity.getUniqueId()).orElse(null);
     }
 
-    private static List<String> onlinePlayers(String prefix){return prefix(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(),prefix);}
+    private static List<String> onlinePlayers(String prefix){return prefix(Bukkit.getOnlinePlayers().stream().map(p -> p.getName()).toList(),prefix);}
     private static List<String> prefix(List<String> values,String prefix){String p=prefix==null?"":prefix.toLowerCase(Locale.ROOT);return values.stream().filter(v->v.toLowerCase(Locale.ROOT).startsWith(p)).sorted().toList();}
 }
