@@ -48,7 +48,7 @@ public final class CompanionService {
         PlayerProfile profile = profiles.getProfile(playerId).orElse(null);
         if (profile == null) return java.util.List.of();
         return profile.getCompanions().values().stream()
-                .filter(CompanionState::unlocked)
+                .filter(state -> state.unlocked())
                 .map(state -> view(state, registry.find(state.id()).orElse(null)))
                 .filter(Objects::nonNull).toList();
     }
@@ -56,7 +56,7 @@ public final class CompanionService {
     public Companion getActive(UUID playerId) {
         PlayerProfile profile = profiles.getProfile(playerId).orElse(null);
         if (profile == null) return null;
-        return profile.getCompanions().values().stream().filter(CompanionState::active).findFirst()
+        return profile.getCompanions().values().stream().filter(state -> state.active()).findFirst()
                 .map(state -> view(state, registry.find(state.id()).orElse(null))).orElse(null);
     }
 
@@ -166,7 +166,7 @@ public final class CompanionService {
     public void setEquipment(UUID playerId, String companionId, Map<String, ItemStack> equipment) {
         PlayerProfile profile = profiles.getProfile(playerId).orElse(null);
         CompanionState state = profile == null ? null : profile.getCompanion(companionId);
-        if (state == null) return;
+        if (profile == null || state == null) return;
         profile.setCompanion(state.withEquipment(equipment));
         profiles.saveProfileAsync(playerId);
         runtime.wake(playerId);
@@ -176,7 +176,7 @@ public final class CompanionService {
         if (value == null || value.isBlank()) return;
         PlayerProfile profile = profiles.getProfile(playerId).orElse(null);
         CompanionState state = profile == null ? null : profile.getCompanion(companionId);
-        if (state == null) return;
+        if (profile == null || state == null) return;
         profile.setCompanion(state.withSkin(value, signature));
         profiles.saveProfileAsync(playerId);
     }
