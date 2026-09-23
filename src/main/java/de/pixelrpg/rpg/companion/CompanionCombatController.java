@@ -44,7 +44,7 @@ public final class CompanionCombatController {
 
         double range = Math.max(1.0D, combat.attackRange());
         if (companion.getLocation().distanceSquared(target.getLocation()) > range * range) {
-            moveTowards(companion, target, definition.follow().movementSpeed());
+            CompanionFollowTask.moveTowards(companion, target.getLocation(), definition.follow().movementSpeed());
             return target;
         }
 
