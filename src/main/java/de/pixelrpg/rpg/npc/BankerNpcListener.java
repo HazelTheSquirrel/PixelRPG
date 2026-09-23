@@ -24,12 +24,14 @@ public final class BankerNpcListener implements Listener {
     private final PlayerProfileManager profiles;
     private final DialogueEngine dialogs;
     private final GuildBankService guildBank;
+    private final GuildCurrencyItemFactory currency;
 
-    public BankerNpcListener(NpcRuntimeManager npcs, PlayerProfileManager profiles, DialogueEngine dialogs, GuildBankService guildBank) {
+    public BankerNpcListener(NpcRuntimeManager npcs, PlayerProfileManager profiles, DialogueEngine dialogs, GuildBankService guildBank, GuildCurrencyItemFactory currency) {
         this.npcs = npcs;
         this.profiles = profiles;
         this.dialogs = dialogs;
         this.guildBank = guildBank;
+        this.currency = currency;
     }
 
     // Opens the account dialog for a main-hand interaction with a BANKER NPC.
@@ -66,8 +68,8 @@ public final class BankerNpcListener implements Listener {
         double removed = 0.0D;
         for (int slot = 0; slot < player.getInventory().getSize() && removed < amount; slot++) {
             ItemStack item = player.getInventory().getItem(slot);
-            if (!GuildCurrencyItemFactory.isCurrency(item)) continue;
-            double unit = GuildCurrencyItemFactory.readAmount(item);
+            if (!currency.isCurrency(item)) continue;
+            double unit = currency.readAmount(item);
             if (unit <= 0.0D) continue;
             int take = Math.min(item.getAmount(), Math.max(1, (int) Math.ceil((amount - removed) / unit)));
             removed += unit * take;
@@ -88,7 +90,7 @@ public final class BankerNpcListener implements Listener {
             dialogs.openUnavailable(player, "Bank", "Nicht genügend Gold auf dem Konto.");
             return;
         }
-        for (ItemStack stack : GuildCurrencyItemFactory.createStacks(amount)) {
+        for (ItemStack stack : currency.createStacks((long) amount)) {
             player.getInventory().addItem(stack);
         }
         profiles.saveProfileAsync(player.getUniqueId());
