@@ -116,6 +116,9 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, AutoClo
         } catch (Exception exception) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Not all player profiles could be flushed cleanly on shutdown.", exception);
         }
+        try { storageReady.get(10, TimeUnit.SECONDS); } catch (Exception exception) {
+            plugin.getLogger().log(java.util.logging.Level.WARNING, "Player profile storage initialization did not complete before shutdown.", exception);
+        }
         if (saveExecutor != null) {
             saveExecutor.shutdown();
             try {
@@ -125,7 +128,6 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, AutoClo
                 Thread.currentThread().interrupt();
             }
         }
-        try { storageReady.get(10, TimeUnit.SECONDS); } catch (Exception ignored) { }
         saveChain.clear();
         pendingSaves.clear();
         loadingCache.clear();
