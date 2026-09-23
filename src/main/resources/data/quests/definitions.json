@@ -1,11 +1,12 @@
 {
   "version": 1,
-  "sources": [
-    "quests_v2.json",
-    "quests_additional.json",
-    "quests_world_expansion.json",
-    "quests_expansion_02.json"
-  ],
+  "sources": {
+    "0": "quests_v2.json",
+    "1": "quests_additional.json",
+    "2": "quests_world_expansion.json",
+    "3": "quests_expansion_02.json",
+    "contentExpansion01": "main:src/main/resources/data/quests_content_expansion_01.json"
+  },
   "definitions": [
     {
       "id": "intro_first_delivery",
@@ -3094,6 +3095,702 @@
       "reward": {
         "money": 5000,
         "experience": 4500
+      }
+    },
+    {
+      "id": "content_wood_for_winter",
+      "title": "Holz für den Winter",
+      "description": "Der Winter naht. Hilf den Bewohnern, genügend Holz für die Öfen einzulagern.",
+      "type": "COLLECT",
+      "recommendedLevel": 2,
+      "categoryLevel": 1,
+      "targetKey": "OAK_LOG",
+      "requiredAmount": 16,
+      "reward": {
+        "money": 20,
+        "experience": 80,
+        "items": []
+      }
+    },
+    {
+      "id": "content_slime_trouble",
+      "title": "Schleimige Plage",
+      "description": "Schleime haben sich am Rand der Siedlung ausgebreitet. Beseitige die Plage.",
+      "type": "HUNT",
+      "recommendedLevel": 4,
+      "categoryLevel": 3,
+      "targetKey": "SLIME",
+      "requiredAmount": 8,
+      "reward": {
+        "money": 30,
+        "experience": 120,
+        "items": []
+      }
+    },
+    {
+      "id": "content_wheat_reserve",
+      "title": "Vorrat für das Dorf",
+      "description": "Fülle die Getreidereserven des Dorfes für die kommende Woche.",
+      "type": "COLLECT",
+      "recommendedLevel": 5,
+      "categoryLevel": 4,
+      "targetKey": "WHEAT",
+      "requiredAmount": 24,
+      "reward": {
+        "money": 35,
+        "experience": 140,
+        "items": []
+      }
+    },
+    {
+      "id": "content_skeleton_watch",
+      "title": "Knochen im Wald",
+      "description": "Skelette treiben sich nachts im Wald herum. Sorge für sichere Wege.",
+      "type": "HUNT",
+      "recommendedLevel": 7,
+      "categoryLevel": 6,
+      "targetKey": "SKELETON",
+      "requiredAmount": 8,
+      "reward": {
+        "money": 45,
+        "experience": 180,
+        "items": []
+      },
+      "prerequisites": [
+        "content_slime_trouble"
+      ]
+    },
+    {
+      "id": "content_stone_for_masons",
+      "title": "Stein für die Maurer",
+      "description": "Die Maurer benötigen Material für die Reparatur der Dorfmauer.",
+      "type": "COLLECT",
+      "recommendedLevel": 8,
+      "categoryLevel": 7,
+      "targetKey": "COBBLESTONE",
+      "requiredAmount": 48,
+      "reward": {
+        "money": 55,
+        "experience": 220,
+        "items": []
+      }
+    },
+    {
+      "id": "content_creeper_problem",
+      "title": "Grüne Sprengmeister",
+      "description": "Creeper bedrohen die Felder und Wege. Halte sie von der Siedlung fern.",
+      "type": "HUNT",
+      "recommendedLevel": 10,
+      "categoryLevel": 9,
+      "targetKey": "CREEPER",
+      "requiredAmount": 10,
+      "reward": {
+        "money": 70,
+        "experience": 280,
+        "items": []
+      },
+      "prerequisites": [
+        "content_skeleton_watch"
+      ]
+    },
+    {
+      "id": "content_coal_delivery",
+      "title": "Kohle für die Schmiede",
+      "description": "Die Schmiede braucht Kohle, damit die Öfen nicht stillstehen.",
+      "type": "COLLECT",
+      "recommendedLevel": 12,
+      "categoryLevel": 11,
+      "targetKey": "COAL",
+      "requiredAmount": 32,
+      "reward": {
+        "money": 85,
+        "experience": 340,
+        "items": []
+      }
+    },
+    {
+      "id": "content_spider_cellar",
+      "title": "Spinnen im Keller",
+      "description": "Ein alter Vorratskeller ist von Spinnen befallen. Räume ihn aus.",
+      "type": "HUNT",
+      "recommendedLevel": 14,
+      "categoryLevel": 13,
+      "targetKey": "SPIDER",
+      "requiredAmount": 12,
+      "reward": {
+        "money": 100,
+        "experience": 400,
+        "items": []
+      }
+    },
+    {
+      "id": "content_iron_for_guard",
+      "title": "Eisen für die Wache",
+      "description": "Die Wache benötigt Eisen für Reparaturen an ihrer Ausrüstung.",
+      "type": "COLLECT",
+      "recommendedLevel": 16,
+      "categoryLevel": 15,
+      "targetKey": "IRON_INGOT",
+      "requiredAmount": 12,
+      "reward": {
+        "money": 120,
+        "experience": 480,
+        "items": []
+      }
+    },
+    {
+      "id": "content_drowned_river",
+      "title": "Gefahr aus dem Fluss",
+      "description": "Ertrunkene haben den Flussübergang unsicher gemacht. Säubere das Ufer.",
+      "type": "HUNT",
+      "recommendedLevel": 18,
+      "categoryLevel": 17,
+      "targetKey": "DROWNED",
+      "requiredAmount": 12,
+      "reward": {
+        "money": 135,
+        "experience": 540,
+        "items": []
+      }
+    },
+    {
+      "id": "content_gold_for_merchant",
+      "title": "Gold für den Händler",
+      "description": "Ein Händler benötigt Gold, um seine nächste Lieferung zu finanzieren.",
+      "type": "COLLECT",
+      "recommendedLevel": 20,
+      "categoryLevel": 19,
+      "targetKey": "GOLD_INGOT",
+      "requiredAmount": 6,
+      "reward": {
+        "money": 180,
+        "experience": 700,
+        "items": []
+      }
+    },
+    {
+      "id": "content_husk_caravan",
+      "title": "Die Karawane in Gefahr",
+      "description": "Husks greifen Reisende an. Schütze die Handelswege.",
+      "type": "HUNT",
+      "recommendedLevel": 22,
+      "categoryLevel": 21,
+      "targetKey": "HUSK",
+      "requiredAmount": 14,
+      "reward": {
+        "money": 200,
+        "experience": 800,
+        "items": []
+      }
+    },
+    {
+      "id": "content_redstone_engineer",
+      "title": "Material für die Ingenieure",
+      "description": "Die Ingenieure benötigen Redstone für ihre neuen Maschinen.",
+      "type": "COLLECT",
+      "recommendedLevel": 24,
+      "categoryLevel": 23,
+      "targetKey": "REDSTONE",
+      "requiredAmount": 48,
+      "reward": {
+        "money": 220,
+        "experience": 880,
+        "items": []
+      }
+    },
+    {
+      "id": "content_enderman_sightings",
+      "title": "Fremde Schatten",
+      "description": "Endermen wurden in der Umgebung gesichtet. Halte ihre Zahl unter Kontrolle.",
+      "type": "HUNT",
+      "recommendedLevel": 27,
+      "categoryLevel": 26,
+      "targetKey": "ENDERMAN",
+      "requiredAmount": 8,
+      "reward": {
+        "money": 260,
+        "experience": 1000,
+        "items": []
+      }
+    },
+    {
+      "id": "content_lapis_research",
+      "title": "Blaues Wissen",
+      "description": "Ein Gelehrter benötigt Lapislazuli für seine Forschungen.",
+      "type": "COLLECT",
+      "recommendedLevel": 29,
+      "categoryLevel": 28,
+      "targetKey": "LAPIS_LAZULI",
+      "requiredAmount": 32,
+      "reward": {
+        "money": 250,
+        "experience": 1050,
+        "items": []
+      }
+    },
+    {
+      "id": "content_witch_hut",
+      "title": "Hexen im Moor",
+      "description": "Hexen haben einen alten Handelsweg übernommen. Vertreibe sie.",
+      "type": "HUNT",
+      "recommendedLevel": 32,
+      "categoryLevel": 31,
+      "targetKey": "WITCH",
+      "requiredAmount": 10,
+      "reward": {
+        "money": 300,
+        "experience": 1200,
+        "items": []
+      }
+    },
+    {
+      "id": "content_diamond_request",
+      "title": "Ein seltener Auftrag",
+      "description": "Für einen wichtigen Auftrag werden einige Diamanten benötigt.",
+      "type": "COLLECT",
+      "recommendedLevel": 35,
+      "categoryLevel": 34,
+      "targetKey": "DIAMOND",
+      "requiredAmount": 5,
+      "reward": {
+        "money": 420,
+        "experience": 1500,
+        "items": []
+      }
+    },
+    {
+      "id": "content_blaze_hunt",
+      "title": "Feuerläufer",
+      "description": "Lohen bedrohen die Expeditionen in der Tiefe. Verringere ihre Zahl.",
+      "type": "HUNT",
+      "recommendedLevel": 38,
+      "categoryLevel": 37,
+      "targetKey": "BLAZE",
+      "requiredAmount": 15,
+      "reward": {
+        "money": 450,
+        "experience": 1700,
+        "items": []
+      }
+    },
+    {
+      "id": "content_quartz_for_architects",
+      "title": "Weißer Stein",
+      "description": "Architekten benötigen Netherquarz für ein prestigeträchtiges Bauwerk.",
+      "type": "COLLECT",
+      "recommendedLevel": 40,
+      "categoryLevel": 39,
+      "targetKey": "QUARTZ",
+      "requiredAmount": 48,
+      "reward": {
+        "money": 480,
+        "experience": 1800,
+        "items": []
+      }
+    },
+    {
+      "id": "content_ghast_threat",
+      "title": "Schreie aus der Tiefe",
+      "description": "Ghasts machen die Route durch den Nether gefährlich. Schalte sie aus.",
+      "type": "HUNT",
+      "recommendedLevel": 43,
+      "categoryLevel": 42,
+      "targetKey": "GHAST",
+      "requiredAmount": 8,
+      "reward": {
+        "money": 550,
+        "experience": 2100,
+        "items": []
+      }
+    },
+    {
+      "id": "content_obsidian_stock",
+      "title": "Schwarzes Glas",
+      "description": "Für ein Schutzprojekt wird eine große Menge Obsidian benötigt.",
+      "type": "COLLECT",
+      "recommendedLevel": 45,
+      "categoryLevel": 44,
+      "targetKey": "OBSIDIAN",
+      "requiredAmount": 16,
+      "reward": {
+        "money": 600,
+        "experience": 2300,
+        "items": []
+      }
+    },
+    {
+      "id": "content_magma_cleanup",
+      "title": "Magmaspuren",
+      "description": "Magmawürfel versperren einen wichtigen Weg. Räume ihn frei.",
+      "type": "HUNT",
+      "recommendedLevel": 48,
+      "categoryLevel": 47,
+      "targetKey": "MAGMA_CUBE",
+      "requiredAmount": 18,
+      "reward": {
+        "money": 650,
+        "experience": 2500,
+        "items": []
+      }
+    },
+    {
+      "id": "content_ancient_debris",
+      "title": "Relikte der Tiefe",
+      "description": "Ein Forscher sucht nach seltenen Relikten aus den Tiefen des Nethers.",
+      "type": "COLLECT",
+      "recommendedLevel": 50,
+      "categoryLevel": 49,
+      "targetKey": "ANCIENT_DEBRIS",
+      "requiredAmount": 4,
+      "reward": {
+        "money": 800,
+        "experience": 3000,
+        "items": []
+      }
+    },
+    {
+      "id": "content_piglin_raiders",
+      "title": "Plünderer des Nethers",
+      "description": "Piglins greifen Versorgungstrupps an. Stoppe ihre Überfälle.",
+      "type": "HUNT",
+      "recommendedLevel": 53,
+      "categoryLevel": 52,
+      "targetKey": "PIGLIN",
+      "requiredAmount": 20,
+      "reward": {
+        "money": 750,
+        "experience": 2900,
+        "items": []
+      }
+    },
+    {
+      "id": "content_glowstone_supply",
+      "title": "Licht aus der Tiefe",
+      "description": "Die Alchemisten benötigen Leuchtsteinstaub für ihre Experimente.",
+      "type": "COLLECT",
+      "recommendedLevel": 55,
+      "categoryLevel": 54,
+      "targetKey": "GLOWSTONE_DUST",
+      "requiredAmount": 64,
+      "reward": {
+        "money": 700,
+        "experience": 2800,
+        "items": []
+      }
+    },
+    {
+      "id": "content_wither_skeletons",
+      "title": "Schwarze Knochen",
+      "description": "Witherskelette bewachen einen alten Zugang. Öffne den Weg.",
+      "type": "HUNT",
+      "recommendedLevel": 58,
+      "categoryLevel": 57,
+      "targetKey": "WITHER_SKELETON",
+      "requiredAmount": 15,
+      "reward": {
+        "money": 900,
+        "experience": 3500,
+        "items": []
+      }
+    },
+    {
+      "id": "content_prismarine_request",
+      "title": "Schätze der See",
+      "description": "Ein Baumeister benötigt Prismarin für ein Unterwasserprojekt.",
+      "type": "COLLECT",
+      "recommendedLevel": 60,
+      "categoryLevel": 59,
+      "targetKey": "PRISMARINE_SHARD",
+      "requiredAmount": 48,
+      "reward": {
+        "money": 850,
+        "experience": 3300,
+        "items": []
+      }
+    },
+    {
+      "id": "content_guardian_hunt",
+      "title": "Wächter der Tiefe",
+      "description": "Ein Monument wird von Wächtern geschützt. Verringere die Bedrohung.",
+      "type": "HUNT",
+      "recommendedLevel": 63,
+      "categoryLevel": 62,
+      "targetKey": "GUARDIAN",
+      "requiredAmount": 18,
+      "reward": {
+        "money": 1000,
+        "experience": 3900,
+        "items": []
+      }
+    },
+    {
+      "id": "content_ender_pearl_stock",
+      "title": "Perlen für das Ritual",
+      "description": "Ein Ritual benötigt eine große Menge Enderperlen.",
+      "type": "COLLECT",
+      "recommendedLevel": 65,
+      "categoryLevel": 64,
+      "targetKey": "ENDER_PEARL",
+      "requiredAmount": 24,
+      "reward": {
+        "money": 950,
+        "experience": 3800,
+        "items": []
+      }
+    },
+    {
+      "id": "content_shulker_threat",
+      "title": "Wächter der Endstadt",
+      "description": "Shulker machen die Expedition in der Endstadt gefährlich. Beseitige sie.",
+      "type": "HUNT",
+      "recommendedLevel": 68,
+      "categoryLevel": 67,
+      "targetKey": "SHULKER",
+      "requiredAmount": 16,
+      "reward": {
+        "money": 1200,
+        "experience": 4600,
+        "items": []
+      }
+    },
+    {
+      "id": "content_chorus_supply",
+      "title": "Früchte des Endes",
+      "description": "Beschaffe Chorusfrüchte für die nächste Expedition.",
+      "type": "COLLECT",
+      "recommendedLevel": 70,
+      "categoryLevel": 69,
+      "targetKey": "CHORUS_FRUIT",
+      "requiredAmount": 48,
+      "reward": {
+        "money": 1100,
+        "experience": 4300,
+        "items": []
+      }
+    },
+    {
+      "id": "content_enderman_purge",
+      "title": "Schattenjäger",
+      "description": "Eine große Gruppe Endermen hat sich nahe der Rückkehrroute gesammelt.",
+      "type": "HUNT",
+      "recommendedLevel": 72,
+      "categoryLevel": 71,
+      "targetKey": "ENDERMAN",
+      "requiredAmount": 25,
+      "reward": {
+        "money": 1300,
+        "experience": 5000,
+        "items": []
+      }
+    },
+    {
+      "id": "content_soul_sand_supply",
+      "title": "Boden der Seelen",
+      "description": "Für ein gefährliches Ritual wird Seelensand benötigt.",
+      "type": "COLLECT",
+      "recommendedLevel": 74,
+      "categoryLevel": 73,
+      "targetKey": "SOUL_SAND",
+      "requiredAmount": 64,
+      "reward": {
+        "money": 1150,
+        "experience": 4500,
+        "items": []
+      }
+    },
+    {
+      "id": "content_piglin_brute",
+      "title": "Die brutalen Wächter",
+      "description": "Piglin-Brutes bewachen eine wichtige Versorgungsroute.",
+      "type": "HUNT",
+      "recommendedLevel": 76,
+      "categoryLevel": 75,
+      "targetKey": "PIGLIN_BRUTE",
+      "requiredAmount": 12,
+      "reward": {
+        "money": 1450,
+        "experience": 5400,
+        "items": []
+      }
+    },
+    {
+      "id": "content_emerald_contract",
+      "title": "Vertrag der Händler",
+      "description": "Ein Handelsbund benötigt Smaragde für einen großen Vertrag.",
+      "type": "COLLECT",
+      "recommendedLevel": 78,
+      "categoryLevel": 77,
+      "targetKey": "EMERALD",
+      "requiredAmount": 20,
+      "reward": {
+        "money": 1600,
+        "experience": 5800,
+        "items": []
+      }
+    },
+    {
+      "id": "content_evoker_hunt",
+      "title": "Der Ruf der Magier",
+      "description": "Beschütze die Grenzgebiete vor gefährlichen Magiern.",
+      "type": "HUNT",
+      "recommendedLevel": 80,
+      "categoryLevel": 79,
+      "targetKey": "EVOKER",
+      "requiredAmount": 10,
+      "reward": {
+        "money": 1700,
+        "experience": 6200,
+        "items": []
+      }
+    },
+    {
+      "id": "content_ender_eye_stock",
+      "title": "Augen für die Expedition",
+      "description": "Die Forscher benötigen Enderaugen für ihre letzten Vorbereitungen.",
+      "type": "COLLECT",
+      "recommendedLevel": 82,
+      "categoryLevel": 81,
+      "targetKey": "ENDER_EYE",
+      "requiredAmount": 12,
+      "reward": {
+        "money": 1800,
+        "experience": 6500,
+        "items": []
+      }
+    },
+    {
+      "id": "content_vindicator_hunt",
+      "title": "Axtträger",
+      "description": "Räuberbanden haben sich verstärkt. Schalte ihre gefährlichsten Kämpfer aus.",
+      "type": "HUNT",
+      "recommendedLevel": 84,
+      "categoryLevel": 83,
+      "targetKey": "VINDICATOR",
+      "requiredAmount": 16,
+      "reward": {
+        "money": 1850,
+        "experience": 6800,
+        "items": []
+      }
+    },
+    {
+      "id": "content_netherite_upgrade",
+      "title": "Material für die Meisterrüstung",
+      "description": "Ein Meisterschmied benötigt Netherite-Barren für eine außergewöhnliche Rüstung.",
+      "type": "COLLECT",
+      "recommendedLevel": 86,
+      "categoryLevel": 85,
+      "targetKey": "NETHERITE_INGOT",
+      "requiredAmount": 3,
+      "reward": {
+        "money": 2200,
+        "experience": 7500,
+        "items": []
+      }
+    },
+    {
+      "id": "content_ravager_breaker",
+      "title": "Brecher der Schlacht",
+      "description": "Ravager bedrohen eine befestigte Siedlung. Stoppe den Angriff.",
+      "type": "HUNT",
+      "recommendedLevel": 88,
+      "categoryLevel": 87,
+      "targetKey": "RAVAGER",
+      "requiredAmount": 8,
+      "reward": {
+        "money": 2400,
+        "experience": 8200,
+        "items": []
+      }
+    },
+    {
+      "id": "content_dragon_breath",
+      "title": "Atem des Drachen",
+      "description": "Die Alchemisten benötigen Drachenatem für ein legendäres Elixier.",
+      "type": "COLLECT",
+      "recommendedLevel": 90,
+      "categoryLevel": 89,
+      "targetKey": "DRAGON_BREATH",
+      "requiredAmount": 8,
+      "reward": {
+        "money": 2600,
+        "experience": 9000,
+        "items": []
+      }
+    },
+    {
+      "id": "content_warden_survivors",
+      "title": "Die Wächter der Tiefe",
+      "description": "Ein Expeditionsteam wurde von einem Warden überrascht. Hilf, die Bedrohung einzudämmen.",
+      "type": "HUNT",
+      "recommendedLevel": 92,
+      "categoryLevel": 91,
+      "targetKey": "WARDEN",
+      "requiredAmount": 1,
+      "reward": {
+        "money": 3500,
+        "experience": 12000,
+        "items": []
+      }
+    },
+    {
+      "id": "content_amethyst_research",
+      "title": "Kristalle der Stille",
+      "description": "Ein Gelehrter erforscht seltene Amethystkristalle und benötigt Nachschub.",
+      "type": "COLLECT",
+      "recommendedLevel": 93,
+      "categoryLevel": 92,
+      "targetKey": "AMETHYST_SHARD",
+      "requiredAmount": 64,
+      "reward": {
+        "money": 2800,
+        "experience": 9500,
+        "items": []
+      }
+    },
+    {
+      "id": "content_elder_guardian",
+      "title": "Herrscher des Monuments",
+      "description": "Ein Elder Guardian versperrt den Zugang zu einem uralten Schatz.",
+      "type": "HUNT",
+      "recommendedLevel": 95,
+      "categoryLevel": 94,
+      "targetKey": "ELDER_GUARDIAN",
+      "requiredAmount": 3,
+      "reward": {
+        "money": 3200,
+        "experience": 11000,
+        "items": []
+      }
+    },
+    {
+      "id": "content_beacon_material",
+      "title": "Das Licht des Sieges",
+      "description": "Beschaffe seltene Materialien für einen Beacon, der als Symbol des Sieges dienen soll.",
+      "type": "COLLECT",
+      "recommendedLevel": 97,
+      "categoryLevel": 96,
+      "targetKey": "NETHER_STAR",
+      "requiredAmount": 1,
+      "reward": {
+        "money": 5000,
+        "experience": 15000,
+        "items": []
+      }
+    },
+    {
+      "id": "content_final_wither_hunt",
+      "title": "Der letzte Sturm",
+      "description": "Ein weiterer Wither bedroht die Region. Stelle dich der Gefahr und beende den Sturm.",
+      "type": "HUNT",
+      "recommendedLevel": 99,
+      "categoryLevel": 98,
+      "targetKey": "WITHER",
+      "requiredAmount": 2,
+      "reward": {
+        "money": 6000,
+        "experience": 18000,
+        "items": []
       }
     }
   ]
