@@ -10,6 +10,7 @@ import de.pixelrpg.rpg.profession.ProfessionSystem;
 import de.pixelrpg.rpg.quest.QuestDefinition;
 import de.pixelrpg.rpg.quest.QuestService;
 import de.pixelrpg.rpg.stats.StatEngine;
+import de.pixelrpg.rpg.guild.GuildManager;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
@@ -36,15 +37,17 @@ public final class QuickActionsDialogService {
     private final QuestService quests;
     private final CompanionSystem companions;
     private final ProfessionSystem professions;
+    private final GuildManager guilds;
     private final DialogueEngine dialogue = new DialogueEngine();
 
     public QuickActionsDialogService(PlayerProfileManager profiles, StatEngine stats, QuestService quests,
-                                     CompanionSystem companions, ProfessionSystem professions) {
+                                     CompanionSystem companions, ProfessionSystem professions, GuildManager guilds) {
         this.profiles = Objects.requireNonNull(profiles);
         this.stats = Objects.requireNonNull(stats);
         this.quests = Objects.requireNonNull(quests);
         this.companions = Objects.requireNonNull(companions);
         this.professions = Objects.requireNonNull(professions);
+        this.guilds = Objects.requireNonNull(guilds);
     }
 
     public boolean isAvailable(Player player) {
@@ -123,6 +126,27 @@ public final class QuickActionsDialogService {
         }
         actions.add(action("Zurück", NamedTextColor.WHITE, this::openQuickActions));
         openActions(player, Component.text("PixelRPG – Berufe", NamedTextColor.GOLD), List.of(), actions);
+    }
+
+    public void openGuild(Player player) {
+        var guild = guilds.getGuild(player.getUniqueId()).orElse(null);
+        if (guild == null) {
+            openActions(player, Component.text("PixelRPG – Gilde", NamedTextColor.GOLD),
+                    List.of(DialogBody.plainMessage(Component.text("Du bist aktuell in keiner Gilde.")),
+                            DialogBody.plainMessage(Component.text("Gilden können über /pixelrpg guild create <name> erstellt werden."))),
+                    List.of(action("Zurück", NamedTextColor.WHITE, this::openQuickActions)));
+            return;
+        }
+        openActions(player, Component.text("PixelRPG – Gilde", NamedTextColor.GOLD),
+                List.of(DialogBody.plainMessage(Component.text("Name: " + guild.name(), NamedTextColor.GOLD)),
+                        DialogBody.plainMessage(Component.text("Mitglieder: " + guild.memberCount() + "/" + GuildManager.MAX_MEMBERS, NamedTextColor.WHITE)),
+                        DialogBody.plainMessage(Component.text("Leader: " + guild.leaderId(), NamedTextColor.GRAY))),
+                List.of(
+                        action("Gilde verlassen", NamedTextColor.RED, target -> {
+                            guilds.leave(target);
+                            openQuickActions(target);
+                        }),
+                        action("Zurück", NamedTextColor.WHITE, this::openQuickActions)));
     }
 
     public void openUnavailable(Player player, String message) {
