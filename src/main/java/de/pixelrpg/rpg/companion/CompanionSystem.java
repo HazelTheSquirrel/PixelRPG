@@ -28,7 +28,7 @@ public final class CompanionSystem implements AutoCloseable {
     }
 
     public CompanionService service(){if(service==null)throw new IllegalStateException("Companion system not loaded");return service;}
-    public void register(){plugin.getServer().getPluginManager().registerEvents(service().runtimeListener(),plugin);plugin.getServer().getPluginManager().registerEvents(new CompanionExperienceListener(plugin,service()),plugin);plugin.getServer().getPluginManager().registerEvents(new CompanionBossRewardListener(plugin,service()),plugin);}
+    public void register(){plugin.getServer().getPluginManager().registerEvents(service().runtimeListener(),plugin);plugin.getServer().getPluginManager().registerEvents(new CompanionExperienceListener(plugin,service()),plugin);}
     @Override public void close(){if(service!=null)service.shutdown();io.shutdown();}
 
     private final class CompanionRegistryLoader {
