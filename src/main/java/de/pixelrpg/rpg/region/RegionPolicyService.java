@@ -33,6 +33,7 @@ public final class RegionPolicyService {
     public boolean allowsEnderman(Entity e,Location l){return !(e instanceof Enderman)||regions.hasFlag(l,RegionFlag.ENDERMAN_GRIEF);}
     public boolean allowsLightning(Location l){return regions.hasFlag(l,RegionFlag.LIGHTNING);} public boolean allowsCrop(Location l){return regions.hasFlag(l,RegionFlag.CROP_GROWTH);}
     public boolean allowsLeaf(Location l){return regions.hasFlag(l,RegionFlag.LEAF_DECAY);} public boolean allowsTrampling(Location l){return regions.hasFlag(l,RegionFlag.BLOCK_TRAMPLING);}
+    public boolean allowsRespawnAnchor(Player p,Location l){return allows(p,l,RegionFlag.RESPAWN_ANCHORS);}
     public boolean allowsSleep(Player p,Location l){return allows(p,l,RegionFlag.SLEEP);} public boolean allowsPearl(Player p,Location l){return allows(p,l,RegionFlag.ENDERPEARL);}
     public boolean allowsChorus(Player p){return allows(p,p.getLocation(),RegionFlag.CHORUS_FRUIT_TELEPORT);}
     public boolean allowsRegen(EntityRegainHealthEvent e){boolean natural=e.getRegainReason()==EntityRegainHealthEvent.RegainReason.REGEN||e.getRegainReason()==EntityRegainHealthEvent.RegainReason.SATIATED;return !natural||regions.hasFlag(e.getEntity().getLocation(),RegionFlag.NATURAL_HEALTH_REGEN)||memberOrOwner(e.getEntity());}
