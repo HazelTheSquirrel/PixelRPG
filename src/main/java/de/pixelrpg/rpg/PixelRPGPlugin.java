@@ -197,6 +197,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         NpcRepository npcRepository = new YamlNpcRepository(this, npcIo);
         NpcRuntimeManager npcRuntime = lifecycle.register(new NpcRuntimeManager(this, keys, npcRepository));
         companionSystem = lifecycle.register(new CompanionSystem(this, playerProfileManager, npcRuntime));
+        QuickActionsDialogService quickActions = new QuickActionsDialogService(
+                playerProfileManager, statEngine, questService, companionSystem, professionSystem);
+        getServer().getPluginManager().registerEvents(new QuickActionsDialogListener(quickActions), this);
         companionSystem.loadAsync().thenRun(() -> getServer().getScheduler().runTask(this, () -> {
             if (!isEnabled()) return;
             companionSystem.register();
