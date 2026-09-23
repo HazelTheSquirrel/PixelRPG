@@ -21,6 +21,9 @@ import de.pixelrpg.rpg.npc.NpcRepository;
 import de.pixelrpg.rpg.npc.NpcRuntimeManager;
 import de.pixelrpg.rpg.npc.YamlNpcRepository;
 import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
+import de.pixelrpg.rpg.profession.ProfessionDialogService;
+import de.pixelrpg.rpg.profession.ProfessionNpcListener;
+import de.pixelrpg.rpg.profession.ProfessionSystem;
 import de.pixelrpg.rpg.quest.QuestRepository;
 import de.pixelrpg.rpg.quest.QuestService;
 import de.pixelrpg.rpg.region.RegionEditor;
@@ -49,12 +52,14 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ExecutorService questIo;
     private ExecutorService storyIo;
     private ExecutorService regionIo;
+    private ProfessionSystem professionSystem;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         saveResource("data/content/texts.json", false);
         saveResource("data/quests/definitions.json", false);
+        saveResource("data/recipes/crafting-recipes.json", false);
         lifecycle = new LifecycleCoordinator(getLogger());
 
         new JsonDataManager(this).initialize();
@@ -78,6 +83,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
         playerProfileManager = lifecycle.register(new PlayerProfileManager(this));
         playerProfileManager.initialize(getConfig());
+
+        professionSystem = lifecycle.register(new ProfessionSystem(this, playerProfileManager));
 
         ExecutorService questIo = Executors.newSingleThreadExecutor(runnable -> {
             Thread thread = new Thread(runnable, "PixelRPG-QuestIO");
@@ -157,6 +164,19 @@ public final class PixelRPGPlugin extends JavaPlugin {
         });
 
         npcRuntime.loadAsync();
+
+        // Profession recipe loading completes independently; NPC listener registration is finalized below.
+        professionSystem.loadAsync().thenRun(() -> getServer().getScheduler().runTask(this, () -> {
+            if (!isEnabled()) return;
+            professionSystem.register();
+            ProfessionDialogService professionDialogs = new ProfessionDialogService(
+                    playerProfileManager,
+                    professionSystem.professionService(),
+                    professionSystem.craftingService(),
+                    new DialogueEngine()
+            );
+            getServer().getPluginManager().registerEvents(new ProfessionNpcListener(npcRuntime, professionDialogs), this);
+        })).exceptionally(failure -> { getLogger().log(java.util.logging.Level.SEVERE, "Failed to load profession recipes.", failure); return null; });
 
         regionIo = Executors.newSingleThreadExecutor(runnable -> {
             Thread thread = new Thread(runnable, "PixelRPG-RegionIO");
