@@ -48,7 +48,7 @@ public final class DialogueEngine {
             safeActions.add(actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
         }
 
-        ActionButton close = actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog);
+        ActionButton close = actionButton(Component.text("Schließen"), NamedTextColor.GRAY, player -> player.closeDialog());
         if (safeActions.isEmpty()) {
             safeActions.add(close);
             close = null;
