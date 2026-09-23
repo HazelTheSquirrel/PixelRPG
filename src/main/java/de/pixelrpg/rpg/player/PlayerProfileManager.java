@@ -72,7 +72,22 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI, AutoClo
                 } catch (Exception exception) {
                     throw new java.util.concurrent.CompletionException(exception);
                 }
-            }, saveExecutor);
+            }, saveExecutor).handle((ignored, failure) -> {
+                if (failure == null) return null;
+                if (storageType != StorageType.MYSQL) {
+                    throw new java.util.concurrent.CompletionException(failure);
+                }
+                plugin.getLogger().log(java.util.logging.Level.SEVERE, "MySQL profile storage initialization failed; falling back to YAML.", failure);
+                if (databaseManager != null) databaseManager.shutdown();
+                storageType = StorageType.YAML;
+                repository = new YamlPlayerProfileRepository(plugin.getDataFolder());
+                try {
+                    repository.init();
+                    return null;
+                } catch (Exception fallbackFailure) {
+                    throw new java.util.concurrent.CompletionException(fallbackFailure);
+                }
+            });
         } catch (Exception exception) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to initialize storage, falling back to YAML.", exception);
             storageType = StorageType.YAML;
