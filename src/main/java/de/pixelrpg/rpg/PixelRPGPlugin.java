@@ -116,6 +116,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private StatEngine statEngine;
     private BossManager bossManager;
     private BiomeBossSpawnTask biomeBossSpawnTask;
+    private PartyManager partyManager;
+    private GuildManager guildManager;
 
     @Override
     public void onEnable() {
@@ -174,8 +176,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         statEngine = new StatEngine(playerProfileManager);
         StatisticsService statisticsService = new StatisticsService(playerProfileManager, statEngine);
         getServer().getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
-        PartyManager partyManager = lifecycle.register(new PartyManager(this));
-        GuildManager guildManager = lifecycle.register(new GuildManager(this, playerProfileManager));
+        partyManager = lifecycle.register(new PartyManager(this));
+        guildManager = lifecycle.register(new GuildManager(this, playerProfileManager));
         getServer().getServicesManager().register(PartyAPI.class, partyManager, this, ServicePriority.Normal);
         GuildAPI guildApi = guildManager;
         BossRepository bossRepository = new BossRepository(this);
