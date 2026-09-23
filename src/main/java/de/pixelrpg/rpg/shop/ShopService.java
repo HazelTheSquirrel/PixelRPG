@@ -13,14 +13,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class ShopService implements AutoCloseable {
-    private final Plugin plugin;
     private final PlayerProfileManager profiles;
     private final ItemService items;
     private final ShopRepository repository;
     private final Map<String, List<ShopEntry>> shops = new ConcurrentHashMap<>();
 
     public ShopService(Plugin plugin, PlayerProfileManager profiles, ItemService items, ShopRepository repository) {
-        this.plugin = plugin;
         this.profiles = profiles;
         this.items = items;
         this.repository = repository;
