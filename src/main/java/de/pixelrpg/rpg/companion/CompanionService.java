@@ -221,6 +221,8 @@ public final class CompanionService {
         if (value == null || value.isBlank() || companionId == null || companionId.isBlank()) return;
         storedSkins.computeIfAbsent(playerId, ignored -> new ConcurrentHashMap<>())
                 .put(companionId, new StoredSkin(value, signature));
+        plugin.getLogger().info("Companion skin persisted in memory: player=" + playerId
+                + ", companion=" + companionId);
         save(playerId, companions.getOrDefault(playerId, List.of()));
     }
 
@@ -293,6 +295,8 @@ public final class CompanionService {
             if (living instanceof Mannequin mannequin) {
                 CompanionService.StoredSkin storedSkin = getStoredSkin(player.getUniqueId(), selected.id());
                 if (storedSkin != null) {
+                    plugin.getLogger().info("Applying persisted companion skin: player=" + player.getUniqueId()
+                            + ", companion=" + selected.id());
                     // A persisted resolved texture is authoritative after restart/reload.
                     MannequinSkinResolver.applyStoredTexture(
                             mannequin,
@@ -303,6 +307,8 @@ public final class CompanionService {
                 } else {
                     String skinSource = definition.visual().skinSource();
                     if (skinSource != null && !skinSource.isBlank()) {
+                        plugin.getLogger().info("Resolving companion skin: player=" + player.getUniqueId()
+                                + ", companion=" + selected.id() + ", source=" + skinSource);
                         // Capture the resolved texture property immediately so the
                         // exact skin can be restored without resolving it again after restart.
                         MannequinSkinResolver.applyAndCapture(mannequin, skinSource, plugin.getLogger())
