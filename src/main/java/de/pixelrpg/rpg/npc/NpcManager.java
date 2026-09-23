@@ -328,9 +328,12 @@ public final class NpcManager {
             RPGNpc npc = npcsById.get(npcId);
             Entity entity = Bukkit.getEntity(entityUuid);
             if (npc == null || !(entity instanceof Mannequin mannequin) || !mannequin.isValid()) return;
+            // The active resolver appends the newly resolved textures property.
+            // Keep the exact last resolved property so the persisted StoredSkin matches
+            // the skin that is currently accepted and displayed by the mannequin.
             ProfileProperty texture = mannequin.getProfile().properties().stream()
                     .filter(property -> "textures".equals(property.getName()))
-                    .findFirst()
+                    .reduce((first, last) -> last)
                     .orElse(null);
             if (texture == null || texture.getValue() == null || texture.getValue().isBlank()) return;
             resolvedSkinsByNpcId.put(npcId, new StoredSkin(texture.getValue(), texture.getSignature()));
