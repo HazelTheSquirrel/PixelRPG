@@ -17,7 +17,7 @@ public final class CompanionNpcListener implements Listener {
     @EventHandler
     public void onInteract(PlayerInteractEntityEvent event){
         if(!(event.getPlayer() instanceof Player player))return;
-        RPGNpc npc=npcs.resolve(event.getRightClicked().getUniqueId());
+        RPGNpc npc=npcs.getByEntity(event.getRightClicked().getUniqueId()).orElse(null);
         if(npc==null || npc.type().name().equalsIgnoreCase("COMPANION"))return;
         event.setCancelled(true); dialogs.open(player);
     }
