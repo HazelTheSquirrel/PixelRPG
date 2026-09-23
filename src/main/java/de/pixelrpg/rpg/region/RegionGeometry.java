@@ -13,9 +13,9 @@ public final class RegionGeometry {
     private RegionGeometry(List<RegionPoint> points) {
         this.points = List.copyOf(points);
         this.area = Math.abs(signedArea(points));
-        this.minX = points.stream().mapToDouble(RegionPoint::x).min().orElseThrow();
+        this.minX = points.stream().mapToDouble(point -> point.x()).min().orElseThrow();
         this.maxX = points.stream().mapToDouble(RegionPoint::x).max().orElseThrow();
-        this.minZ = points.stream().mapToDouble(RegionPoint::z).min().orElseThrow();
+        this.minZ = points.stream().mapToDouble(point -> point.z()).min().orElseThrow();
         this.maxZ = points.stream().mapToDouble(RegionPoint::z).max().orElseThrow();
     }
 
