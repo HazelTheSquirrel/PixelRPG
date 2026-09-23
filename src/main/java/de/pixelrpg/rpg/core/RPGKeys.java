@@ -45,6 +45,9 @@ public final class RPGKeys {
     public NamespacedKey instanceId() { return key("item_instance_id"); }
     public NamespacedKey guildGold() { return key("economy_guild_gold"); }
 
+    public NamespacedKey companionId() { return key("companion_id"); }
+    public NamespacedKey companionLevel() { return key("companion_level"); }
+    public NamespacedKey companionRarity() { return key("companion_rarity"); }
     public NamespacedKey npcId() { return key("npc_id"); }
     public NamespacedKey npcType() { return key("npc_type"); }
 }
