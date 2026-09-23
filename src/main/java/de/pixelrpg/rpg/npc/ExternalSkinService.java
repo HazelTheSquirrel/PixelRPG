@@ -4,7 +4,6 @@ import com.destroystokyo.paper.profile.ProfileProperty;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Player;
@@ -258,7 +257,7 @@ public final class ExternalSkinService {
 
     private CompletableFuture<Void> applyProperty(Mannequin mannequin, ProfileProperty property, String source) {
         CompletableFuture<Void> result = new CompletableFuture<>();
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
             try {
                 if (!mannequin.isValid()) { result.complete(null); return; }
                 ResolvableProfile current = mannequin.getProfile();
