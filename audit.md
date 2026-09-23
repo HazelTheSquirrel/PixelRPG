@@ -861,3 +861,69 @@ Die Region-Persistenz bleibt ausschließlich in RegionRepository, der Runtime-St
 GitHub Actions Workflow 35872994976 für Commit 73fc9372ac65cc494c1d1bcc0ec5801c327f69b7 lief vollständig mit success durch. Damit wurden gradle clean build --no-daemon --stacktrace, Source-API-Grenzprüfungen und Plugin-Artefaktprüfung erfolgreich bestätigt.
 
 Nächster abhängiger Bereich ist Berufe/Crafting.
+
+
+### Phase 13 — Berufe / Crafting
+
+Status: **implementiert; CI-verifiziert**
+
+Der Berufs-/Crafting-Bereich wurde vor der Implementierung gegen den tatsächlichen Referenzbestand von `main` geprüft. Die bestehende `PlayerProfile`-Persistenz enthielt bereits die fachlich benötigten Quellen für Berufslevel, Berufserfahrung, erlernte Berufe und freigeschaltete Rezepte. Diese Datenstruktur wurde deshalb nicht dupliziert.
+
+Neu aufgebaut wurden:
+
+- `Profession` als zentrale Berufsdefinition mit den neun Referenzberufen und Levelbereich 1–100;
+- immutable `CraftRecipe`-Domainmodell;
+- `CraftingCategory` als fachliche Rezeptkategorie;
+- `CraftingRarityRoller` mit der bestehenden Raritätsverteilung;
+- `CraftingRecipeRegistry` als validierte Runtime-Quelle der Rezeptdefinitionen;
+- kanonische Rezeptressource `data/recipes/crafting-recipes.json` mit **300** Rezepten:
+  - 61 BLACKSMITH
+  - 25 FARMER
+  - 23 COOK
+  - 26 TAILOR
+  - 39 ALCHEMIST
+  - 58 MASON
+  - 68 SCHOLAR
+- Material-/Alias-Auflösung und Validierung von Tränken und Verzauberungen;
+- `ProfessionService` für Berufserlernen, Berufs-XP, Levelberechnung und Rezeptfreischaltung;
+- `CraftingService` für serverseitiges Herstellen, Materialprüfung/-verbrauch, Vanilla-Potion- und Enchanted-Book-Erzeugung sowie Berufs-XP;
+- `ProfessionActivityListener` für die im Referenzzustand vorhandenen XP-/Passivmechaniken:
+  - Bergbau/Metallurgie
+  - Landwirtschaft
+  - Holzfällen inklusive sicherem Baumfällen ab dem vorgesehenen Level
+  - Steinmetz
+  - Alchemisten-Pflanzen
+  - Gelehrten-XP
+  - Fischer-XP, Fangmengen- und Schatzchance
+  - Koch-/Schneider-XP durch Tierdrops
+  - Verzauberungs-XP
+  - Amboss-XP
+  - Berufs-XP bei passenden Quest-ID-Präfixen
+- `ProfessionSystem` als Lifecycle-Besitzer mit eigenem asynchronen `PixelRPG-ProfessionIO`-Executor;
+- `ProfessionDialogService` als native Paper-26.2-Dialogoberfläche für Berufslehrer, Kategorien, Rezeptdetails, Freischaltung und Herstellung;
+- `ProfessionNpcListener` als getrennte NPC-/Berufs-Interaktionsgrenze.
+
+### Architekturentscheidungen
+
+Bewusst nicht übernommen wurden:
+
+- die alte `ProfessionSystem`-Verdrahtung mit direktem Plugin-Singleton;
+- `CraftingGUI`/Inventar-GUI. Die neue Rebuild-Architektur verwendet für die aktuelle Berufsinteraktion native Paper-Dialoge; die allgemeine Command-/UI-Schicht bleibt gemäß Audit-Reihenfolge Phase 17;
+- eine zweite Persistenzquelle für Berufsstate oder Rezeptfreischaltungen;
+- synchrones Laden der umfangreichen Rezeptdatei im Plugin-Hauptpfad.
+
+Berufsstate bleibt ausschließlich im `PlayerProfile`. Rezeptdefinitionen sind statischer Content und werden über das eigene Profession-I/O außerhalb des Serverthreads geladen. Crafting und World-/Inventory-Operationen bleiben auf dem Serverthread.
+
+### Verifikation
+
+GitHub Actions Workflow **35875087550** für Commit **b64d8359656d28a9b55d7430e388f41e8e1b46ac** lief vollständig mit **success** durch.
+
+Damit wurden erfolgreich verifiziert:
+
+- `gradle clean build --no-daemon --stacktrace`;
+- bestehende Source-API-Grenzprüfungen;
+- bestehende Plugin-Artefaktprüfung inklusive Third-Party-Relocations/JDBC-Service.
+
+Ein vorheriger Lauf **35874911327** scheiterte ausschließlich an zwei konkret ermittelten Compile-Fehlern in der Quest-Integration des neuen ProfessionActivityListener: `QuestCompletedEvent` stellt `playerId()`/`questId()` bereit, nicht `getPlayer()`/`getQuestId()`. Die Integration wurde daraufhin auf die tatsächliche Event-API korrigiert und über Workflow 35875087550 erfolgreich verifiziert.
+
+Nächster abhängiger Bereich ist **Companions**.
