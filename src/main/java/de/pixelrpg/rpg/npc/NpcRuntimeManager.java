@@ -258,8 +258,8 @@ public final class NpcRuntimeManager implements AutoCloseable {
     }
     @Override public synchronized void close() {
         if (shuttingDown) return;
-        shuttingDown = true;
         persist();
+        shuttingDown = true;
         try {
             persistenceChain.get(10, TimeUnit.SECONDS);
         } catch (Exception exception) {
