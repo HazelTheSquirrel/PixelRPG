@@ -23,7 +23,6 @@ import de.pixelrpg.rpg.npc.YamlNpcRepository;
 import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
 import de.pixelrpg.rpg.quest.QuestRepository;
 import de.pixelrpg.rpg.quest.QuestService;
-import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryNpcInteractionListener;
 import de.pixelrpg.rpg.story.StoryRepository;
 import de.pixelrpg.rpg.story.StoryService;
@@ -112,14 +111,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
                 storyIo,
                 contentCatalog
         ));
-        StoryBookFactory storyBookFactory = new StoryBookFactory(
-                getConfig().getInt("story.chars-per-line", 18),
-                getConfig().getInt("story.lines-per-page", 13)
-        );
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(
                 storyService,
-                new DialogueEngine(),
-                storyBookFactory
+                new DialogueEngine()
         );
         getServer().getPluginManager().registerEvents(
                 new StoryNpcInteractionListener(npcRuntime, storyNpcDialogue), this);
