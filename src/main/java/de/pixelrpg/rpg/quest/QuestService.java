@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.quest;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.item.ItemService;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
 import de.pixelrpg.rpg.profession.Profession;
@@ -90,6 +91,19 @@ public final class QuestService implements AutoCloseable {
         if (!isComplete(profile, questId)) return false;
         profile.removeActiveQuest(questId);
         profile.markQuestCompleted(questId);
+        QuestDefinition quest = repository.get(questId);
+        if (quest.reward().money() > 0.0D) profile.addMoney(quest.reward().money());
+        if (quest.reward().experience() > 0L) profile.addExperience(quest.reward().experience());
+        Player player = plugin.getServer().getPlayer(profile.getUuid());
+        if (player != null) {
+            for (String itemId : quest.reward().items()) {
+                var item = itemService.createAdminItem(itemId).orElseGet(() -> {
+                    Material material = Material.matchMaterial(itemId);
+                    return material == null ? null : org.bukkit.inventory.ItemStack.of(material);
+                });
+                if (item != null) player.getInventory().addItem(item);
+            }
+        }
         plugin.getServer().getPluginManager().callEvent(new QuestCompletedEvent(profile.getUuid(), questId));
         return true;
     }
