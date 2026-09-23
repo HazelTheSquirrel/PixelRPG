@@ -44,7 +44,7 @@ public final class FillerNpcListener implements Listener {
             return;
         }
         boolean changed = false;
-        for (QuestDefinition quest : quests.repository().getAll()) {
+        for (QuestDefinition quest : quests.repository().all()) {
             if (quest.type() != QuestType.TALK_TO_NPC || !quest.targetKey().equals(npc.id())) continue;
             if (profile.hasActiveQuest(quest.id())) changed |= quests.incrementProgress(profile, quest.id(), 1);
         }
