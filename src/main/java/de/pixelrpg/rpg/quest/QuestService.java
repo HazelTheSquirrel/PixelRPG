@@ -97,7 +97,7 @@ public final class QuestService implements AutoCloseable {
         Player player = plugin.getServer().getPlayer(profile.getUuid());
         if (player != null) {
             for (String itemId : quest.reward().items()) {
-                var item = itemService.createAdminItem(itemId).orElseGet(() -> {
+                var item = itemService.createItem(itemId).orElseGet(() -> {
                     Material material = Material.matchMaterial(itemId);
                     return material == null ? null : org.bukkit.inventory.ItemStack.of(material);
                 });
