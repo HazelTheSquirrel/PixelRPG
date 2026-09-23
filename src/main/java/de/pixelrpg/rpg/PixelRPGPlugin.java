@@ -64,7 +64,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ExecutorService storyIo;
     private ExecutorService regionIo;
     private ExecutorService shopIo;
-    private ExecutorService tradeIo;
+    private ExecutorService tradeDepotIo;
+    private ExecutorService tradeGoodsIo;
     private ProfessionSystem professionSystem;
     private CompanionSystem companionSystem;
 
@@ -194,16 +195,21 @@ public final class PixelRPGPlugin extends JavaPlugin {
         ));
         ShopService shopService = lifecycle.register(new ShopService(this, playerProfileManager, itemService, shopRepository));
 
-        tradeIo = Executors.newSingleThreadExecutor(runnable -> {
-            Thread thread = new Thread(runnable, "PixelRPG-TradeIO");
+        tradeDepotIo = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-TradeDepotIO");
+            thread.setDaemon(true);
+            return thread;
+        });
+        tradeGoodsIo = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-TradeGoodsIO");
             thread.setDaemon(true);
             return thread;
         });
         TradeDepotRepository tradeDepotRepository = lifecycle.register(new TradeDepotRepository(
-                this, getDataFolder().toPath().resolve("trade-depot.yml"), tradeIo
+                this, getDataFolder().toPath().resolve("trade-depot.yml"), tradeDepotIo
         ));
         TradeGoodsRepository tradeGoodsRepository = lifecycle.register(new TradeGoodsRepository(
-                this, getDataFolder().toPath().resolve("trade-goods-storage.yml"), tradeIo
+                this, getDataFolder().toPath().resolve("trade-goods-storage.yml"), tradeGoodsIo
         ));
         TradeDepotService tradeDepotService = lifecycle.register(new TradeDepotService(
                 this, playerProfileManager, itemService, tradeDepotRepository, tradeGoodsRepository
@@ -211,8 +217,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         java.util.concurrent.CompletableFuture<Void> shopLoad = shopRepository.loadAsync()
                 .thenAccept(shopService::replace);
         java.util.concurrent.CompletableFuture<Void> tradeLoad = tradeDepotRepository.loadAsync()
-                .thenAccept(tradeDepotService::replace)
-                .thenCombine(tradeGoodsRepository.loadAsync(), (ignored, goods) -> null);
+                .thenCombine(tradeGoodsRepository.loadAsync(), (snapshot, goods) -> snapshot)
+                .thenAccept(tradeDepotService::replace);
         java.util.concurrent.CompletableFuture.allOf(shopLoad, tradeLoad)
                 .thenRun(() -> getServer().getScheduler().runTask(this, () -> {
                     if (!isEnabled()) return;
@@ -300,9 +306,13 @@ public final class PixelRPGPlugin extends JavaPlugin {
                 shopIo.shutdown();
                 shopIo = null;
             }
-            if (tradeIo != null) {
-                tradeIo.shutdown();
-                tradeIo = null;
+            if (tradeDepotIo != null) {
+                tradeDepotIo.shutdown();
+                tradeDepotIo = null;
+            }
+            if (tradeGoodsIo != null) {
+                tradeGoodsIo.shutdown();
+                tradeGoodsIo = null;
             }
             lifecycle = null;
             playerProfileManager = null;
