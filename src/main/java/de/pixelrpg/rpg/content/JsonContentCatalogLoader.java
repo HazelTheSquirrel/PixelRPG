@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.content;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -27,7 +26,6 @@ public final class JsonContentCatalogLoader implements AutoCloseable {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.file = Objects.requireNonNull(file, "file");
         this.executor = Objects.requireNonNull(executor, "executor");
-        this.gson = new Gson();
     }
 
     public CompletableFuture<ContentCatalog> loadAsync() {
