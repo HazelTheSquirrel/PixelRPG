@@ -66,8 +66,15 @@ public final class PixelRPGPlugin extends JavaPlugin {
         );
         dialogueProgressStore.loadAsync().whenComplete((ignored, failure) -> {
             if (failure != null) {
-                getLogger().log(java.util.logging.Level.SEVERE, "Failed to load dialogue progress.", failure);
+                getLogger().log(java.util.logging.Level.SEVERE, "Failed to load dialogue progress; NPC dialogue interaction remains disabled.", failure);
+                return;
             }
+            getServer().getScheduler().runTask(this, () -> {
+                if (isEnabled()) {
+                    getServer().getPluginManager().registerEvents(
+                            new NpcDialogueListener(npcRuntime, dialogueTreeService), this);
+                }
+            });
         });
 
         npcRuntime.loadAsync();
@@ -78,7 +85,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
                 new GuildCurrencyPickupListener(playerProfileManager, playerProfileManager, currencyFactory), this);
         getServer().getPluginManager().registerEvents(new NpcChunkListener(this, npcRuntime), this);
         getServer().getPluginManager().registerEvents(new NpcProtectionListener(npcRuntime), this);
-        getServer().getPluginManager().registerEvents(new NpcDialogueListener(npcRuntime, dialogueTreeService), this);
     }
 
     @Override
