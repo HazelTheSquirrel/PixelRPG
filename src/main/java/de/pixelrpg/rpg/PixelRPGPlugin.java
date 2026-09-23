@@ -373,6 +373,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public void onDisable() {
         if (lifecycle != null) {
             if (biomeBossSpawnTask != null) { biomeBossSpawnTask.stop(); biomeBossSpawnTask = null; }
+            if (bossManager != null) { bossManager.shutdownAll(); bossManager = null; }
             getServer().getServicesManager().unregister(ItemAPI.class);
             lifecycle.close();
             if (dialogueIo != null) {
