@@ -74,10 +74,6 @@ public final class MannequinSkinResolver {
         return result;
     }
 
-    public static CompletableFuture<Void> apply(Mannequin mannequin, String skinSource, Logger logger) {
-        return applyAndCapture(mannequin, skinSource, pluginFromLogger(logger), logger).thenApply(ignored -> null);
-    }
-
     /**
      * Resolves and applies a skin while returning the exact texture property
      * accepted by the resolver. Persistence must use this value rather than
