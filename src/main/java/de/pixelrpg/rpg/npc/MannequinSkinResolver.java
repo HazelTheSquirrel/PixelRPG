@@ -3,7 +3,6 @@ package de.pixelrpg.rpg.npc;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Player;
@@ -44,7 +43,7 @@ public final class MannequinSkinResolver {
         CompletableFuture<Void> result = new CompletableFuture<>();
 
         plugin.getLogger().info("Applying persisted mannequin skin: entity=" + mannequin.getUniqueId());
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
             try {
                 if (!mannequin.isValid()) {
                     plugin.getLogger().warning("Persisted mannequin skin target became invalid: entity="
@@ -90,7 +89,7 @@ public final class MannequinSkinResolver {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Mannequin skin target is invalid"));
         }
 
-        Plugin plugin = Bukkit.getPluginManager().getPlugin("PixelRPG");
+        Plugin plugin = plugin;
         if (plugin == null) {
             logger.warning("Cannot resolve mannequin skin: PixelRPG plugin is not loaded.");
             return CompletableFuture.failedFuture(new IllegalStateException("PixelRPG plugin is not loaded"));
@@ -139,11 +138,11 @@ public final class MannequinSkinResolver {
                     "Invalid Minecraft player skin name"));
         }
 
-        PlayerProfile bukkitProfile = Bukkit.createProfile(playerName);
+        PlayerProfile bukkitProfile = plugin.getServer().createProfile(playerName);
 
         // Set the name-backed profile immediately. This keeps the mannequin usable
         // even if the Mojang session server is temporarily slow.
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
             if (!mannequin.isValid()) return;
             mannequin.setProfile(ResolvableProfile.resolvableProfile(bukkitProfile));
             refreshForNearbyPlayers(mannequin, plugin);
@@ -161,7 +160,7 @@ public final class MannequinSkinResolver {
             mannequin.setProfile(profile);
             refreshForNearbyPlayers(mannequin, plugin);
             return findTextureProperty(profile);
-        }, runnable -> Bukkit.getScheduler().runTask(plugin, runnable)).whenComplete((ignored, exception) -> {
+        }, runnable -> plugin.getServer().getScheduler().runTask(plugin, runnable)).whenComplete((ignored, exception) -> {
             if (exception == null) return;
             PLAYER_PROFILE_CACHE.remove(normalizedName, profileFuture);
             Throwable cause = unwrap(exception);
