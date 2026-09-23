@@ -53,7 +53,9 @@ public final class MannequinSkinResolver {
                 ResolvableProfile.Builder builder = ResolvableProfile.resolvableProfile()
                         .name(current.name())
                         .uuid(current.uuid())
-                        .addProperties(current.properties())
+                        .addProperties(current.properties().stream()
+                                .filter(existing -> !"textures".equals(existing.getName()))
+                                .toList())
                         .addProperty(property)
                         .skinPatch(current.skinPatch());
                 mannequin.setProfile(builder.build());
