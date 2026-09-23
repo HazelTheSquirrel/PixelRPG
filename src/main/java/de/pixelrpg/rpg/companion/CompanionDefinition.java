@@ -3,7 +3,6 @@ package de.pixelrpg.rpg.companion;
 import com.google.gson.JsonObject;
 import org.bukkit.entity.EntityType;
 
-import java.util.Map;
 import java.util.Objects;
 
 /** Immutable static companion definition loaded from companions.json. */
