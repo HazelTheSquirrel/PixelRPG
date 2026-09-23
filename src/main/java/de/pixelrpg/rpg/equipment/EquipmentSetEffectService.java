@@ -53,7 +53,7 @@ public final class EquipmentSetEffectService {
             Integer required = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
             if (required != null && playerLevel < required) continue;
             String setId = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.setId(), PersistentDataType.STRING);
-            if (setId != null && !setId.isBlank()) counts.merge(setId.toLowerCase(Locale.ROOT), 1, Integer::sum);
+            if (setId != null && !setId.isBlank()) counts.merge(setId.toLowerCase(Locale.ROOT), 1, (current, added) -> current + added);
         }
         return counts;
     }
