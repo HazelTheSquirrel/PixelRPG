@@ -7,14 +7,9 @@ public enum StorageType {
     MYSQL;
 
     public static StorageType fromString(String value) {
-        if (value == null || value.isBlank()) {
-            return YAML;
-        }
-
+        if (value == null || value.isBlank()) return YAML;
         try {
-            return value.trim().toUpperCase(Locale.ROOT) instanceof String normalized
-                    ? StorageType.valueOf(normalized)
-                    : YAML;
+            return valueOf(value.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException exception) {
             return YAML;
         }
