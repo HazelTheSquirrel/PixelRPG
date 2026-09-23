@@ -27,7 +27,7 @@ public final class StoryService {
         PlayerProfile profile = profileManager.getProfile(uuid).orElse(null);
         if (profile == null) return Optional.empty();
 
-        int nextOrder = profile.getStoryChapterIndex() == 0 ? 0 : profile.getStoryChapterIndex() + 1;
+        int nextOrder = profile.getStoryChapterIndex() + 1;
         return chapters.get().stream()
                 .filter(chapter -> chapter.order() == nextOrder)
                 .findFirst();
@@ -46,6 +46,7 @@ public final class StoryService {
         if (chapter.expReward() > 0L) {
             profileManager.addExperience(uuid, chapter.expReward());
         }
+        profileManager.saveProfileAsync(uuid);
         return true;
     }
 
