@@ -146,6 +146,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
         itemService = lifecycle.register(new ItemService(this, keys));
         MobScalingConfig mobScalingConfig = new MobScalingConfig();
+        mobScalingConfig.load(new JsonDataManager(this));
         ItemEconomyConfig itemEconomyConfig = new ItemEconomyConfig();
         itemEconomyConfig.load(getConfig());
         GuildCurrencyItemFactory currencyFactory = new GuildCurrencyItemFactory(keys);
