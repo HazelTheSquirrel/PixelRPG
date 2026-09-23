@@ -8,8 +8,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.*;
-import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.*;
 import java.util.Objects;
 
 /** Pure region-policy adapter: all decisions resolve the current region and its effective flag. */
