@@ -2,6 +2,7 @@ package de.pixelrpg.rpg;
 
 import de.pixelrpg.rpg.api.ItemAPI;
 import de.pixelrpg.rpg.api.GuildAPI;
+import de.pixelrpg.rpg.api.EconomyAPI;
 import de.pixelrpg.rpg.api.PartyAPI;
 import de.pixelrpg.rpg.api.StatisticsAPI;
 import de.pixelrpg.rpg.stats.StatEngine;
@@ -151,7 +152,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         itemEconomyConfig.load(getConfig());
         GuildCurrencyItemFactory currencyFactory = new GuildCurrencyItemFactory(keys);
         currencyFactory.configureMaxStackSize(getConfig().getInt("economy.currency.max-stack-size", 64));
-        statEngine = lifecycle.register(new StatEngine(playerProfileManager));
+        statEngine = new StatEngine(playerProfileManager);
         getServer().getServicesManager().register(StatisticsAPI.class, new StatisticsService(playerProfileManager, statEngine), this, ServicePriority.Normal);
         BossRepository bossRepository = new BossRepository(this);
         bossRepository.load();
@@ -175,7 +176,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CombatDamageListener(this, new GuildApiAdapter(playerProfileManager), playerProfileManager, statEngine), this);
         getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, new GuildApiAdapter(playerProfileManager)), this);
         getServer().getPluginManager().registerEvents(new BossDeathListener(bossManager), this);
-        getServer().getPluginManager().registerEvents(new MobLevelScalingListener(this, mobScalingConfig, new GuildApiAdapter(playerProfileManager)), this);
+        getServer().getPluginManager().registerEvents(new MobLevelScalingListener(this, new GuildApiAdapter(playerProfileManager), mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(new MobNameplateListener(this, new MobNameplateService(this, mobScalingConfig), new GuildApiAdapter(playerProfileManager)), this);
         getServer().getPluginManager().registerEvents(new MobExperienceListener(new GuildApiAdapter(playerProfileManager), mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(new LootDropListener(new GuildApiAdapter(playerProfileManager), itemEconomyConfig, itemService, new RPGItemBuilder(keys), currencyFactory), this);
