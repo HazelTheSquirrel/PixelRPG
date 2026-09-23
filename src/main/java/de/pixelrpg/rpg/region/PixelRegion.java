@@ -69,7 +69,7 @@ public final class PixelRegion {
         if (this.ownerId != null) this.members.remove(this.ownerId);
         this.enterMessage = enterMessage == null ? "" : enterMessage;
         this.leaveMessage = leaveMessage == null ? "" : leaveMessage;
-        this.priority = global ? 0 : priority;
+        this.priority = priority;
         this.flags = new EnumMap<>(RegionFlag.class);
         if (flags != null) this.flags.putAll(flags);
         this.properties = new java.util.HashMap<>();
@@ -138,7 +138,7 @@ public final class PixelRegion {
     public boolean removeMember(UUID playerId) { return playerId != null && members.remove(playerId); }
     public void setEnterMessage(String value) { enterMessage = value == null ? "" : value; }
     public void setLeaveMessage(String value) { leaveMessage = value == null ? "" : value; }
-    public void setPriority(int value) { priority = global ? 0 : value; }
+    public void setPriority(int value) { priority = value; }
     public void setProperty(String key, String value) { properties.put(key, value); }
     public void removeProperty(String key) { properties.remove(key); }
     public void addSpawnPoint(RegionSpawnPoint point) { spawnPoints.add(point); }
