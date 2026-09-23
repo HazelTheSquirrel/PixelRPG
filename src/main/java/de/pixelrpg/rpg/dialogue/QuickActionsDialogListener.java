@@ -45,10 +45,10 @@ public final class QuickActionsDialogListener implements Listener {
         handle(event, PROFESSIONS_ACTION, service::openProfessions);
     }
 
-    // Handles the guild action while the guild domain is not yet part of the rebuild.
+    // Handles the guild action from the native quick-actions dialog.
     @EventHandler
     public void onGuild(PlayerCustomClickEvent event) {
-        handle(event, GUILD_ACTION, player -> service.openUnavailable(player, "Das Gildensystem ist im Rebuild noch nicht aktiviert."));
+        handle(event, GUILD_ACTION, service::openGuild);
     }
 
     // Handles closing the native quick-actions dialog.
