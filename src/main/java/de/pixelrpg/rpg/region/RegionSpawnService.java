@@ -23,7 +23,6 @@ public final class RegionSpawnService implements Listener, AutoCloseable {
     public void start(){if(started)return;started=true;plugin.getServer().getPluginManager().registerEvents(this,plugin);long ready=plugin.getServer().getCurrentTick()+INITIAL_DELAY;for(var p:allPoints())nextReady.putIfAbsent(key(p),ready);for(Player p:plugin.getServer().getOnlinePlayers())evaluateAround(p.getLocation());}
     public boolean isManagedSpawn(Entity entity){return entity!=null&&entity.getPersistentDataContainer().has(markerKey,PersistentDataType.STRING);}
     private void evaluateAround(Location center){if(!started||center==null||center.getWorld()==null)return;for(var ref:regions.spawnPointsNear(center,RANGE_CHUNKS)){Location l=ref.point().location(center.getWorld());if(l!=null&&l.distanceSquared(center)<=RANGE*RANGE)evaluate(ref,key(ref),center,l);}}
-    private void evaluate(var ref,String pointKey,Location center,Location location){}
     private void evaluate(RegionManager.SpawnPointRef ref,String pointKey,Location center,Location location){
         long now=plugin.getServer().getCurrentTick(),ready=nextReady.getOrDefault(pointKey,now);if(now<ready){schedule(pointKey,ready-now);return;}
         if(center!=null&&location.distanceSquared(center)>RANGE*RANGE)return;if(center==null&&!hasNearbyPlayer(location))return;if(hasManagedMob(location,pointKey))return;
