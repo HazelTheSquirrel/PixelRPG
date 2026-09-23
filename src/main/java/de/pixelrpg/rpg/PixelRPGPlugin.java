@@ -23,6 +23,14 @@ import de.pixelrpg.rpg.npc.YamlNpcRepository;
 import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
 import de.pixelrpg.rpg.quest.QuestRepository;
 import de.pixelrpg.rpg.quest.QuestService;
+import de.pixelrpg.rpg.region.RegionEditor;
+import de.pixelrpg.rpg.region.RegionFlagDialogService;
+import de.pixelrpg.rpg.region.RegionListener;
+import de.pixelrpg.rpg.region.RegionManager;
+import de.pixelrpg.rpg.region.RegionPolicyService;
+import de.pixelrpg.rpg.region.RegionRepository;
+import de.pixelrpg.rpg.region.RegionSpawnService;
+import de.pixelrpg.rpg.region.RegionTransitionService;
 import de.pixelrpg.rpg.story.StoryNpcInteractionListener;
 import de.pixelrpg.rpg.story.StoryRepository;
 import de.pixelrpg.rpg.story.StoryService;
@@ -40,6 +48,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ExecutorService contentIo;
     private ExecutorService questIo;
     private ExecutorService storyIo;
+    private ExecutorService regionIo;
 
     @Override
     public void onEnable() {
@@ -149,6 +158,26 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
         npcRuntime.loadAsync();
 
+        regionIo = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-RegionIO");
+            thread.setDaemon(true);
+            return thread;
+        });
+        RegionRepository regionRepository = new RegionRepository(getDataFolder(), getLogger(), regionIo);
+        RegionManager regionManager = lifecycle.register(new RegionManager(this, regionRepository));
+        RegionSpawnService regionSpawnService = lifecycle.register(new RegionSpawnService(this, regionManager));
+        RegionEditor regionEditor = lifecycle.register(new RegionEditor(this, regionManager));
+        RegionPolicyService regionPolicyService = new RegionPolicyService(regionManager, regionSpawnService);
+        RegionTransitionService regionTransitionService = new RegionTransitionService(regionManager);
+        getServer().getPluginManager().registerEvents(
+                new RegionListener(regionManager, regionPolicyService, regionTransitionService), this);
+        regionEditor.start();
+        regionManager.loadAsync().thenRun(() -> getServer().getScheduler().runTask(this, regionSpawnService::start))
+                .exceptionally(failure -> {
+                    getLogger().log(java.util.logging.Level.SEVERE, "Failed to load regions.", failure);
+                    return null;
+                });
+
         getServer().getPluginManager().registerEvents(new PlayerProfileLifecycleListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new EquipmentService(this, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(
@@ -177,6 +206,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
             if (storyIo != null) {
                 storyIo.shutdown();
                 storyIo = null;
+            }
+            if (regionIo != null) {
+                regionIo.shutdown();
+                regionIo = null;
             }
             lifecycle = null;
             playerProfileManager = null;
