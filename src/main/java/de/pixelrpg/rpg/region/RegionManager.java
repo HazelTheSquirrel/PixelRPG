@@ -24,7 +24,7 @@ public final class RegionManager implements AutoCloseable {
         if(repository.consumeMigrationNeeded())save();
     }
     public synchronized Optional<PixelRegion> get(UUID id){if(id==null)return Optional.empty();PixelRegion r=regions.get(id);if(r!=null)return Optional.of(r);return globals.values().stream().filter(g->g.id().equals(id)).findFirst();}
-    public synchronized List<PixelRegion> all(){return regions.values().stream().sorted(Comparator.comparing(PixelRegion::name,String.CASE_INSENSITIVE_ORDER)).toList();}
+    public synchronized List<PixelRegion> all(){return regions.values().stream().sorted(Comparator.comparing(r -> r.name(),String.CASE_INSENSITIVE_ORDER)).toList();}
     public synchronized RegionGeometry.ValidationResult create(UUID id,String world,List<RegionPoint> points,int minY,int maxY,String name,RegionType type,List<RegionSpawnPoint> spawns){
         if(closing||regions.containsKey(id))return RegionGeometry.ValidationResult.invalid("Eine Region mit dieser ID existiert bereits.");
         if(world==null||world.isBlank()||minY>maxY)return RegionGeometry.ValidationResult.invalid("Ungültige Regionseckdaten.");
@@ -37,7 +37,7 @@ public final class RegionManager implements AutoCloseable {
     public synchronized Optional<PixelRegion> find(World world,double x,int y,double z){
         if(world==null)return Optional.empty();List<UUID> candidates=index.getOrDefault(new ChunkKey(world.getName(),chunk(x),chunk(z)),List.of());
         Optional<PixelRegion> match=candidates.stream().map(regions::get).filter(Objects::nonNull).filter(r->r.contains(x,y,z))
-                .max(Comparator.comparingInt(PixelRegion::priority).thenComparing(PixelRegion::id));
+                .max(Comparator.comparingInt(r -> r.priority()).thenComparing(r -> r.id()));
         return match.isPresent()?match:Optional.of(globalRegion(world.getName()));
     }
     public synchronized PixelRegion globalRegion(String world){return globals.computeIfAbsent(world,w->PixelRegion.global(w,defaultFlags()));}
@@ -45,7 +45,7 @@ public final class RegionManager implements AutoCloseable {
     public synchronized boolean isExplicitSpawnPoint(Location location,String mobType){
         if(location==null||location.getWorld()==null||mobType==null)return false;String n=SpawnMobType.normalize(mobType);
         return spawnIndex.getOrDefault(new ChunkKey(location.getWorld().getName(),chunk(location.getX()),chunk(location.getZ())),List.of()).stream()
-                .map(SpawnPointRef::point).filter(p->p.mobType().equals(n)).anyMatch(p->Math.abs(p.x()-location.getX())<.01&&Math.abs(p.y()-location.getY())<.01&&Math.abs(p.z()-location.getZ())<.01);
+                .map(ref -> ref.point()).filter(p->p.mobType().equals(n)).anyMatch(p->Math.abs(p.x()-location.getX())<.01&&Math.abs(p.y()-location.getY())<.01&&Math.abs(p.z()-location.getZ())<.01);
     }
     public synchronized List<SpawnPointRef> spawnPointsNear(Location location,int radiusChunks){
         if(location==null||location.getWorld()==null||radiusChunks<0)return List.of();int cx=chunk(location.getX()),cz=chunk(location.getZ());List<SpawnPointRef> out=new ArrayList<>();
@@ -58,7 +58,7 @@ public final class RegionManager implements AutoCloseable {
     public synchronized void save(){if(closing)return;enqueue(snapshot());}
     public synchronized void saveGlobals(){if(closing)return;enqueue(new RegionRepository.Snapshot(List.copyOf(regions.values()),Map.copyOf(globals)));}
     private void enqueue(RegionRepository.Snapshot snapshot){persistence=persistence.handle((v,e)->null).thenCompose(v->repository.saveAsync(snapshot)).exceptionally(e->{plugin.getLogger().log(Level.SEVERE,"Region persistence failed",e);return null;});}
-    private RegionRepository.Snapshot snapshot(){List<PixelRegion> normal=regions.values().stream().map(RegionManager::copy).toList();Map<String,PixelRegion> global=globals.entrySet().stream().collect(java.util.stream.Collectors.toUnmodifiableMap(Map.Entry::getKey,e->copy(e.getValue())));return new RegionRepository.Snapshot(normal,global);}
+    private RegionRepository.Snapshot snapshot(){List<PixelRegion> normal=regions.values().stream().map(RegionManager::copy).toList();Map<String,PixelRegion> global=globals.entrySet().stream().collect(java.util.stream.Collectors.toUnmodifiableMap(entry -> entry.getKey(),e->copy(e.getValue())));return new RegionRepository.Snapshot(normal,global);}
     private Optional<PixelRegion> findLocal(Location l){List<UUID> ids=index.getOrDefault(new ChunkKey(l.getWorld().getName(),chunk(l.getX()),chunk(l.getZ())),List.of());return ids.stream().map(regions::get).filter(Objects::nonNull).filter(r->r.contains(l.getX(),l.getBlockY(),l.getZ())).max(Comparator.comparingInt(PixelRegion::priority).thenComparing(PixelRegion::id));}
     private void register(PixelRegion r){regions.put(r.id(),r);addIndex(r);addSpawnIndex(r);}
     private void addIndex(PixelRegion r){for(int x=chunk(r.geometry().minX());x<=chunk(r.geometry().maxX());x++)for(int z=chunk(r.geometry().minZ());z<=chunk(r.geometry().maxZ());z++){ChunkKey k=new ChunkKey(r.worldName(),x,z);List<UUID> u=new ArrayList<>(index.getOrDefault(k,List.of()));u.add(r.id());index.put(k,List.copyOf(u));}}
