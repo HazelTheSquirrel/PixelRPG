@@ -1121,25 +1121,31 @@ Nächster Audit-Schritt: **Phase 17 — Commands / Administration / finale UI- u
 
 ### Phase 17 — Commands / Administration / finale Integrationsschicht
 
-Status: **implementiert; CI-verifiziert**
+Status: **erneut forensisch geprüft; Korrekturen implementiert; CI-Verifikation für den neuen Commit ausstehend**
 
-Die finale Command-/Administrationsschicht wurde gegen den tatsächlichen `main`-Stand und die bereits auf `rebuild` vorhandenen Domain-Services aufgebaut. Die alten Bukkit-Command-/Inventory-GUI-Implementierungen wurden nicht als technische Grundlage übernommen. Stattdessen verwendet `rebuild` die aktuelle Paper-26.2-Command-Lifecycle-API und die bereits vorhandenen nativen Dialog-/Service-Schichten.
+Die Phase 17 wurde nach der ersten Freigabe nochmals vollständig gegen den tatsächlichen main-Referenzbestand und den aktuellen rebuild-Code geprüft. Dabei wurde nicht nur der erfolgreiche Build der ursprünglichen Phase 17 akzeptiert, sondern die tatsächliche Laufzeit-/Verhaltensabdeckung der neuen Command-Schicht erneut mit den Referenzbefehlen verglichen.
 
-Neu integriert:
+Dabei wurden folgende konkrete Abweichungen gefunden und behoben:
 
-- `PixelRPGCommand` als zentrale Paper-`BasicCommand`;
-- Registrierung über `getLifecycleManager()` und `LifecycleEvents.COMMANDS`;
-- `/pixelrpg` und `/rpgadmin` als aktuelle Command-Einstiegspunkte;
-- Permission-Grenze über `rpg.member` und `rpg.admin`;
-- Tab-Completion für Spieler, Companions, Bosses und Berufe;
-- Questlog-Grundfunktion auf Basis des bestehenden `PlayerProfile`;
-- Companion-Administration über den bestehenden `CompanionService`;
-- NPC-Erstellung, Erzeugung mit expliziter ID, Entfernung, Umbenennung, Skin-Änderung und Auflistung über `NpcRuntimeManager`;
-- Region-Editor-Steuerung über den bestehenden `RegionEditor` und Region-Verwaltung über `RegionManager`;
-- Boss-Auflistung, Reload und World-Boss-Start über `BossRepository` und `BossManager`;
-- Item-Auflistung und Admin-Vergabe über den bestehenden `ItemService`;
-- Player-Administration für Info, Level, XP, Gold, Beruf und Reset über den bestehenden `PlayerProfile`;
-- Shop-Inspektion über den bestehenden `ShopService`.
+- NPC-create und create-id akzeptieren jetzt wieder die im Referenzsystem vorhandene optionale Skin-Quelle, statt sie fälschlich als Teil des NPC-Namens zu behandeln;
+- die Referenzfunktion für Filler-NPCs ist wieder als expliziter npc-filler-Pfad vorhanden;
+- NPC-Tab-Completion kennt die gültigen NpcType-Werte für die Erstellungsbefehle;
+- /pixelrpg item give validiert die Mengenangabe jetzt vor dem Parsen/Erzeugen und liefert bei ungültigen Zahlen eine kontrollierte Fehlermeldung statt einer ungefangenen NumberFormatException;
+- Item-Mengen werden strikt auf den zulässigen Bereich 1–64 begrenzt; UNIQUE-Items bleiben auf Menge 1 beschränkt;
+- /pixelrpg boss event prüft vor dem Spawn, ob derselbe World-Boss bereits aktiv ist, entsprechend dem Referenzverhalten;
+- die native Paper-26.2-BasicCommand-/Lifecycle-Registrierung bleibt unverändert;
+- die neue Command-Schicht verwendet weiterhin ausschließlich Adventure Components und aktuelle Paper-26.2-Command-APIs;
+- keine Legacy-CommandExecutor-/TabCompleter-Registrierung wurde wieder eingeführt.
+
+Bewusst weiterhin nicht übernommen wurden fachliche Bereiche, deren Rebuild-Domain gemäß Audit noch nicht vollständig vorhanden ist, insbesondere Party-/Guild-Kommandos als eigenständige alte Implementierungen. Es wird kein Schein-Command für ein nicht vorhandenes Domain-System bereitgestellt.
+
+### Verifikation
+
+Der Korrekturstand wurde auf rebuild als Commit 251b04a1b62f4baa0750bbfe6b4bc39d0aa8f80b geschrieben. Die GitHub-Actions-Verifikation dieses neuen Commits ist vor Abschluss dieses Audits noch abzuwarten.
+
+Die ursprüngliche Phase-17-Verifikation bleibt dokumentiert: Workflow 35885711518 bestätigte für Commit a1188ef79bcd28925205e1162bf643e4f1c83c07 den vollständigen Build inklusive Source-Grenzprüfungen, Live-Server-Referenzprüfung, Artefaktprüfung, Third-Party-Relocations und JDBC-Service-Prüfung.
+
+Die erneute Prüfung hat damit einen realen Verhaltensfehler in der ersten Phase-17-Fassung gefunden und auf der aktuellen Paper-26.2-/Java-25-Basis korrigiert.
 
 ### Bewusst nicht unverändert übernommen
 
