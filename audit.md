@@ -511,7 +511,7 @@ Nächster abhängiger Bereich ist **Items/Equipment/ökonomische Grundlagen**. V
 
 ### Phase 6 — Items / Equipment / ökonomische Grundlagen
 
-Status: **implementiert, CI-Verifikation ausstehend**
+Status: **implementiert und CI-verifiziert**
 
 Forensisch aus `main` geprüft und für `rebuild` neu strukturiert:
 
@@ -540,6 +540,6 @@ Forensisch aus `main` geprüft und für `rebuild` neu strukturiert:
 - Es werden keine statischen Live-`Player`/`Entity`/`World`-Referenzen eingeführt.
 - Listener besitzen Zweckkommentare direkt über jedem `@EventHandler`.
 - Paper-26.2-Data-Component-APIs werden für die Food-Konfiguration verwendet.
-- GitHub Actions hat für den aktuellen `rebuild`-Stand einen Build-Lauf gestartet; die abschließende CI-Verifikation war beim Audit-Update noch nicht abgeschlossen.
+- GitHub Actions Build Run `35865272470` für Commit `29f3e3fc4e171a46182313ef33d576f80239afcc` wurde erfolgreich abgeschlossen. Die Schritte `Build PixelRPG`, `Verify source API boundaries` und `Verify plugin artifact` meldeten jeweils `success`.
 
 Nächster abhängiger Bereich ist **NPC Runtime + Persistence**. Vor dessen Implementierung sind NPC-Domainzustand, Runtime-Entity-Lifecycle, Skin-Persistenz und Chunk-Lifecycle aus `main` forensisch zu erfassen.
