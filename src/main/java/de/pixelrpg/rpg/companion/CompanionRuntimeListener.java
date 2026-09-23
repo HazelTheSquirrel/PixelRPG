@@ -78,11 +78,14 @@ public final class CompanionRuntimeListener implements Listener {
     // Lets the configured tamed wolf react to its owner's direct combat target.
     @EventHandler
     public void onOwnerCombat(EntityDamageByEntityEvent event) {
-        if (!(event.getEntity() instanceof LivingEntity target) || target instanceof Player) return;
         Player owner = null;
-        if (event.getDamager() instanceof Player player) owner=player;
-        else if (event.getEntity() instanceof Player player) owner=player;
-        if (owner == null) return;
+        LivingEntity target = null;
+        if (event.getDamager() instanceof Player player && event.getEntity() instanceof LivingEntity living && !(living instanceof Player)) {
+            owner = player; target = living;
+        } else if (event.getEntity() instanceof Player player && event.getDamager() instanceof LivingEntity living) {
+            owner = player; target = living;
+        }
+        if (owner == null || target == null || target instanceof Player) return;
         UUID entityId=service.getActiveEntity(owner.getUniqueId());
         Entity entity=entityId==null?null:plugin.getServer().getEntity(entityId);
         if (!(entity instanceof Wolf wolf) || !"uncommon-wolf".equalsIgnoreCase(id(wolf))) return;
