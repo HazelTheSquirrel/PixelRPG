@@ -35,6 +35,8 @@ import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.DialogueProgressStore;
 import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.dialogue.NpcDialogueListener;
+import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
+import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.core.LifecycleCoordinator;
 import de.pixelrpg.rpg.core.RPGKeys;
