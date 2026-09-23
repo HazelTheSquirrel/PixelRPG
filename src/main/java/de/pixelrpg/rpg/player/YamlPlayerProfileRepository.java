@@ -1,7 +1,6 @@
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.equipment.EquipmentSlot;
-import de.pixelrpg.rpg.economy.Money;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.quest.QuestProgress;
 import org.bukkit.configuration.ConfigurationSection;
