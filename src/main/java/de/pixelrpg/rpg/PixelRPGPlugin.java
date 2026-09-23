@@ -2,6 +2,10 @@ package de.pixelrpg.rpg;
 
 import de.pixelrpg.rpg.api.ItemAPI;
 import de.pixelrpg.rpg.config.JsonDataManager;
+import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.DialogueProgressStore;
+import de.pixelrpg.rpg.dialogue.DialogueTreeService;
+import de.pixelrpg.rpg.dialogue.NpcDialogueListener;
 import de.pixelrpg.rpg.core.LifecycleCoordinator;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
@@ -24,6 +28,7 @@ import java.util.concurrent.Executors;
 public final class PixelRPGPlugin extends JavaPlugin {
     private LifecycleCoordinator lifecycle;
     private PlayerProfileManager playerProfileManager;
+    private ExecutorService dialogueIo;
 
     @Override
     public void onEnable() {
@@ -49,6 +54,22 @@ public final class PixelRPGPlugin extends JavaPlugin {
         });
         NpcRepository npcRepository = new YamlNpcRepository(this, npcIo);
         NpcRuntimeManager npcRuntime = lifecycle.register(new NpcRuntimeManager(this, keys, npcRepository));
+
+        dialogueIo = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-DialogueIO");
+            thread.setDaemon(true);
+            return thread;
+        });
+        DialogueProgressStore dialogueProgressStore = new DialogueProgressStore(this, dialogueIo);
+        DialogueTreeService dialogueTreeService = lifecycle.register(
+                new DialogueTreeService(new DialogueEngine(), dialogueProgressStore)
+        );
+        dialogueProgressStore.loadAsync().whenComplete((ignored, failure) -> {
+            if (failure != null) {
+                getLogger().log(java.util.logging.Level.SEVERE, "Failed to load dialogue progress.", failure);
+            }
+        });
+
         npcRuntime.loadAsync();
 
         getServer().getPluginManager().registerEvents(new PlayerProfileLifecycleListener(playerProfileManager), this);
@@ -57,6 +78,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
                 new GuildCurrencyPickupListener(playerProfileManager, playerProfileManager, currencyFactory), this);
         getServer().getPluginManager().registerEvents(new NpcChunkListener(this, npcRuntime), this);
         getServer().getPluginManager().registerEvents(new NpcProtectionListener(npcRuntime), this);
+        getServer().getPluginManager().registerEvents(new NpcDialogueListener(npcRuntime, dialogueTreeService), this);
     }
 
     @Override
@@ -64,6 +86,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (lifecycle != null) {
             getServer().getServicesManager().unregister(ItemAPI.class);
             lifecycle.close();
+            if (dialogueIo != null) {
+                dialogueIo.shutdown();
+                dialogueIo = null;
+            }
             lifecycle = null;
             playerProfileManager = null;
         }
