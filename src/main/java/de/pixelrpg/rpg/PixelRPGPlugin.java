@@ -203,7 +203,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         scoreboardService.startTask();
         playtimeTracker = new PlaytimeTracker(this, playerProfileManager);
         playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
-        npcManager = new NpcManager(this);
+        npcManager = lifecycle.register(new NpcManager(this));
         npcManager.loadAll();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0), getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
