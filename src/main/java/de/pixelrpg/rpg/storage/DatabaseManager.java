@@ -12,7 +12,7 @@ import java.util.Locale;
 import javax.sql.DataSource;
 
 public final class DatabaseManager {
-    private static final int CURRENT_SCHEMA_VERSION = 2;
+    private static final int CURRENT_SCHEMA_VERSION = 3;
     private HikariDataSource dataSource;
 
     public void connect(FileConfiguration config) {
@@ -73,6 +73,7 @@ public final class DatabaseManager {
         String activeQuestsSql = "CREATE TABLE IF NOT EXISTS pixelrpg_active_quests (uuid CHAR(36) NOT NULL, quest_id VARCHAR(64) NOT NULL, amount INT NOT NULL DEFAULT 0, expiry BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (uuid, quest_id))";
         String statsSql = "CREATE TABLE IF NOT EXISTS pixelrpg_player_stats (uuid CHAR(36) NOT NULL, stat_key VARCHAR(64) NOT NULL, value BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (uuid, stat_key))";
         String equipmentSql = "CREATE TABLE IF NOT EXISTS pixelrpg_player_equipment (uuid CHAR(36) NOT NULL, slot VARCHAR(16) NOT NULL, item_yaml TEXT NOT NULL, PRIMARY KEY (uuid, slot))";
+        String companionsSql = "CREATE TABLE IF NOT EXISTS pixelrpg_player_companions (uuid CHAR(36) NOT NULL, companion_id VARCHAR(64) NOT NULL, name VARCHAR(64) NOT NULL, level INT NOT NULL DEFAULT 1, experience BIGINT NOT NULL DEFAULT 0, unlocked BOOLEAN NOT NULL DEFAULT TRUE, active BOOLEAN NOT NULL DEFAULT FALSE, skin_value TEXT, skin_signature TEXT, helmet_yaml TEXT, chestplate_yaml TEXT, leggings_yaml TEXT, boots_yaml TEXT, main_hand_yaml TEXT, off_hand_yaml TEXT, PRIMARY KEY (uuid, companion_id))";
 
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
             statement.executeUpdate(schemaSql);
@@ -81,6 +82,7 @@ public final class DatabaseManager {
             statement.executeUpdate(activeQuestsSql);
             statement.executeUpdate(statsSql);
             statement.executeUpdate(equipmentSql);
+            statement.executeUpdate(companionsSql);
         }
     }
 
@@ -96,6 +98,10 @@ public final class DatabaseManager {
             migrateMoneyToMinorUnits(connection);
             writeSchemaVersion(connection, 2);
             version = 2;
+        }
+        if (version < 3) {
+            writeSchemaVersion(connection, 3);
+            version = 3;
         }
         if (version != CURRENT_SCHEMA_VERSION) {
             throw new SQLException("Unsupported PixelRPG schema version: " + version + ", expected " + CURRENT_SCHEMA_VERSION);
