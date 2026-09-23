@@ -23,6 +23,7 @@ public final class DialogueProgressStore implements AutoCloseable {
     private final Set<String> seen = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private final Set<String> completed = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private final AtomicBoolean closed = new AtomicBoolean();
+    private CompletableFuture<Void> loadFuture = CompletableFuture.completedFuture(null);
     private CompletableFuture<Void> saveChain = CompletableFuture.completedFuture(null);
 
     public DialogueProgressStore(Plugin plugin, ExecutorService ioExecutor) {
@@ -33,7 +34,8 @@ public final class DialogueProgressStore implements AutoCloseable {
 
     public CompletableFuture<Void> loadAsync() {
         if (closed.get()) return CompletableFuture.failedFuture(new IllegalStateException("Dialogue progress store is closed"));
-        return CompletableFuture.runAsync(this::loadSnapshot, ioExecutor);
+        loadFuture = CompletableFuture.runAsync(this::loadSnapshot, ioExecutor);
+        return loadFuture;
     }
 
     public boolean hasSeen(UUID player, String nodeId) {
@@ -65,7 +67,7 @@ public final class DialogueProgressStore implements AutoCloseable {
     public void close() {
         if (!closed.compareAndSet(false, true)) return;
         try {
-            saveChain.get(10, java.util.concurrent.TimeUnit.SECONDS);
+            CompletableFuture.allOf(loadFuture, saveChain).get(10, java.util.concurrent.TimeUnit.SECONDS);
         } catch (Exception exception) {
             plugin.getLogger().log(Level.SEVERE, "Failed to flush dialogue progress.", exception);
         }
