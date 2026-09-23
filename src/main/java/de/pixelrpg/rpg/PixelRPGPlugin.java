@@ -1,6 +1,28 @@
 package de.pixelrpg.rpg;
 
 import de.pixelrpg.rpg.api.ItemAPI;
+import de.pixelrpg.rpg.api.GuildAPI;
+import de.pixelrpg.rpg.api.PartyAPI;
+import de.pixelrpg.rpg.api.StatisticsAPI;
+import de.pixelrpg.rpg.stats.StatEngine;
+import de.pixelrpg.rpg.stats.StatisticsService;
+import de.pixelrpg.rpg.combat.CombatDamageListener;
+import de.pixelrpg.rpg.combat.MobExperienceListener;
+import de.pixelrpg.rpg.combat.SoulboundDeathListener;
+import de.pixelrpg.rpg.combat.loot.LootDropListener;
+import de.pixelrpg.rpg.combat.scaling.MobLevelScalingListener;
+import de.pixelrpg.rpg.combat.scaling.MobNameplateListener;
+import de.pixelrpg.rpg.combat.scaling.MobNameplateService;
+import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
+import de.pixelrpg.rpg.combat.skill.FireballWeaponListener;
+import de.pixelrpg.rpg.combat.skill.SkillInputListener;
+import de.pixelrpg.rpg.combat.skill.WeaponAbilityEngine;
+import de.pixelrpg.rpg.boss.BossAttackPatternRegistry;
+import de.pixelrpg.rpg.boss.BossManager;
+import de.pixelrpg.rpg.boss.BossRepository;
+import de.pixelrpg.rpg.boss.BiomeBossSpawnTask;
+import de.pixelrpg.rpg.boss.BossDamageContributionListener;
+import de.pixelrpg.rpg.boss.BossDeathListener;
 import de.pixelrpg.rpg.config.JsonDataManager;
 import de.pixelrpg.rpg.companion.CompanionDialogService;
 import de.pixelrpg.rpg.companion.CompanionNpcListener;
@@ -68,6 +90,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ExecutorService tradeGoodsIo;
     private ProfessionSystem professionSystem;
     private CompanionSystem companionSystem;
+    private StatEngine statEngine;
+    private BossManager bossManager;
 
     @Override
     public void onEnable() {
@@ -116,6 +140,29 @@ public final class PixelRPGPlugin extends JavaPlugin {
         });
 
         ItemService itemService = lifecycle.register(new ItemService(this, keys));
+        MobScalingConfig mobScalingConfig = new MobScalingConfig(this);
+        statEngine = lifecycle.register(new StatEngine(playerProfileManager));
+        getServer().getServicesManager().register(StatisticsAPI.class, new StatisticsService(playerProfileManager, statEngine), this, ServicePriority.Normal);
+        BossRepository bossRepository = new BossRepository(this);
+        bossRepository.load();
+        BossAttackPatternRegistry bossPatterns = new BossAttackPatternRegistry();
+        bossPatterns.registerDefaults();
+        bossManager = lifecycle.register(new BossManager(this, bossPatterns, new GuildApiAdapter(playerProfileManager),
+                new PartyApiAdapter(), new EconomyApiAdapter(playerProfileManager), itemService, mobScalingConfig,
+                getConfig().getDouble("bosses.bar-radius", 60.0D),
+                getConfig().getInt("bosses.bar-update-interval-ticks", 20),
+                getConfig().getInt("bosses.phase-check-interval-ticks", 10)));
+        getServer().getPluginManager().registerEvents(new CombatDamageListener(new GuildApiAdapter(playerProfileManager), playerProfileManager, statEngine), this);
+        getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, new GuildApiAdapter(playerProfileManager)), this);
+        getServer().getPluginManager().registerEvents(new BossDeathListener(bossManager), this);
+        getServer().getPluginManager().registerEvents(new MobLevelScalingListener(this, mobScalingConfig, new GuildApiAdapter(playerProfileManager)), this);
+        getServer().getPluginManager().registerEvents(new MobNameplateListener(new MobNameplateService(this, mobScalingConfig, new GuildApiAdapter(playerProfileManager))), this);
+        getServer().getPluginManager().registerEvents(new MobExperienceListener(this, playerProfileManager, new GuildApiAdapter(playerProfileManager)), this);
+        getServer().getPluginManager().registerEvents(new LootDropListener(this, new GuildApiAdapter(playerProfileManager)), this);
+        getServer().getPluginManager().registerEvents(new SoulboundDeathListener(this, playerProfileManager, new GuildApiAdapter(playerProfileManager)), this);
+        WeaponAbilityEngine abilityEngine = new WeaponAbilityEngine(this, keys, playerProfileManager, statEngine);
+        getServer().getPluginManager().registerEvents(new SkillInputListener(abilityEngine), this);
+        getServer().getPluginManager().registerEvents(new FireballWeaponListener(abilityEngine), this);
         getServer().getServicesManager().register(ItemAPI.class, itemService, this, ServicePriority.Normal);
 
         GuildCurrencyItemFactory currencyFactory = new GuildCurrencyItemFactory(keys);
@@ -276,6 +323,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new NpcChunkListener(this, npcRuntime), this);
         getServer().getPluginManager().registerEvents(new NpcProtectionListener(npcRuntime), this);
     }
+
+    public StatEngine getStatEngine() { return statEngine; }
+    public CompanionSystem getCompanionSystem() { return companionSystem; }
+    public CompanionSystem getCompanionService() { return companionSystem; }
 
     @Override
     public void onDisable() {
