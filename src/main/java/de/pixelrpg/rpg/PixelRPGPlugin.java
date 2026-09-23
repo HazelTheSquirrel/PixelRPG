@@ -401,6 +401,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
                 new GuildCurrencyPickupListener(playerProfileManager, playerProfileManager, currencyFactory), this);
         getServer().getPluginManager().registerEvents(new NpcChunkListener(this, npcRuntime), this);
         getServer().getPluginManager().registerEvents(new NpcProtectionListener(npcRuntime), this);
+        getServer().getPluginManager().registerEvents(new de.pixelrpg.rpg.npc.NpcLookListener(this, npcRuntime), this);
 
         PixelRPGCommand pixelRPGCommand = new PixelRPGCommand(
                 playerProfileManager,
