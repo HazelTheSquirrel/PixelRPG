@@ -25,6 +25,10 @@ public final class DialogueTreeService implements AutoCloseable {
         trees.put(tree.id(), tree);
     }
 
+    public boolean hasTree(String treeId) {
+        return treeId != null && trees.containsKey(treeId);
+    }
+
     public void open(Player player, String treeId) {
         DialogueTree tree = trees.get(treeId);
         if (tree == null) {
