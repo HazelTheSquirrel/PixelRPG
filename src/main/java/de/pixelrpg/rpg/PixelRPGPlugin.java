@@ -250,7 +250,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         DialogueEngine npcInteractionDialogs = new DialogueEngine();
         getServer().getPluginManager().registerEvents(new ReceptionNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs), this);
         getServer().getPluginManager().registerEvents(new TravelNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs), this);
-        getServer().getPluginManager().registerEvents(new BankerNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs, guildBankService), this);
+        getServer().getPluginManager().registerEvents(new BankerNpcListener(npcRuntime, playerProfileManager, npcInteractionDialogs, guildBankService, currencyFactory), this);
         getServer().getPluginManager().registerEvents(new FillerNpcListener(npcRuntime, playerProfileManager, questService, npcInteractionDialogs), this);
         companionSystem.loadAsync().thenRun(() -> getServer().getScheduler().runTask(this, () -> {
             if (!isEnabled()) return;
