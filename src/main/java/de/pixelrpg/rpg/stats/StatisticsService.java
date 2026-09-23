@@ -1,7 +1,6 @@
 // src/main/java/de/pixelrpg/rpg/stats/StatisticsService.java
 package de.pixelrpg.rpg.stats;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.api.CharacterStatType;
 import de.pixelrpg.rpg.api.StatisticsAPI;
 import de.pixelrpg.rpg.core.StatisticType;
@@ -16,8 +15,7 @@ public final class StatisticsService implements StatisticsAPI {
 
     public StatisticsService(PlayerProfileManager profileManager) {
         this.profileManager = profileManager;
-        PixelRPGPlugin plugin = PixelRPGPlugin.getInstance();
-        this.statEngine = plugin == null ? null : plugin.getStatEngine();
+        this.statEngine = null;
     }
 
     public StatisticsService(PlayerProfileManager profileManager, StatEngine statEngine) {
