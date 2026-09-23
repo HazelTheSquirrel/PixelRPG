@@ -157,7 +157,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         GuildCurrencyItemFactory currencyFactory = new GuildCurrencyItemFactory(keys);
         currencyFactory.configureMaxStackSize(getConfig().getInt("economy.currency.max-stack-size", 64));
         statEngine = new StatEngine(playerProfileManager);
-        getServer().getServicesManager().register(StatisticsAPI.class, new StatisticsService(playerProfileManager, statEngine), this, ServicePriority.Normal);
+        StatisticsService statisticsService = new StatisticsService(playerProfileManager, statEngine);
+        getServer().getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
+        GuildAPI guildApi = new GuildApiAdapter(playerProfileManager);
         BossRepository bossRepository = new BossRepository(this);
         bossRepository.load();
         BossAttackPatternRegistry bossPatterns = new BossAttackPatternRegistry();
@@ -177,14 +179,20 @@ public final class PixelRPGPlugin extends JavaPlugin {
         biomeBossSpawnTask.start();
         getServer().getPluginManager().registerEvents(new RPGStatsListener(statEngine, playerProfileManager), this);
 
-        getServer().getPluginManager().registerEvents(new CombatDamageListener(this, new GuildApiAdapter(playerProfileManager), playerProfileManager, statEngine), this);
-        getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, new GuildApiAdapter(playerProfileManager)), this);
+        getServer().getPluginManager().registerEvents(new CombatDamageListener(this, guildApi, playerProfileManager, statEngine), this);
+        getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, guildApi), this);
         getServer().getPluginManager().registerEvents(new BossDeathListener(bossManager), this);
-        getServer().getPluginManager().registerEvents(new MobLevelScalingListener(this, new GuildApiAdapter(playerProfileManager), mobScalingConfig), this);
-        getServer().getPluginManager().registerEvents(new MobNameplateListener(this, new MobNameplateService(this, mobScalingConfig), new GuildApiAdapter(playerProfileManager)), this);
-        getServer().getPluginManager().registerEvents(new MobExperienceListener(new GuildApiAdapter(playerProfileManager), mobScalingConfig), this);
-        getServer().getPluginManager().registerEvents(new LootDropListener(new GuildApiAdapter(playerProfileManager), itemEconomyConfig, itemService, new RPGItemBuilder(keys), currencyFactory), this);
-        getServer().getPluginManager().registerEvents(new SoulboundDeathListener(new GuildApiAdapter(playerProfileManager), keys), this);
+        getServer().getPluginManager().registerEvents(new BossCombustListener(), this);
+        getServer().getPluginManager().registerEvents(new BossRewardItemListener(guildApi), this);
+        getServer().getPluginManager().registerEvents(new WorldBossProtectionListener(guildApi), this);
+        getServer().getPluginManager().registerEvents(new MobKillStatisticListener(guildApi, statisticsService), this);
+        getServer().getPluginManager().registerEvents(new PlayerDeathStatisticListener(playerProfileManager, statisticsService), this);
+        getServer().getPluginManager().registerEvents(new QuestBossStatisticListener(statisticsService), this);
+        getServer().getPluginManager().registerEvents(new MobLevelScalingListener(this, guildApi, mobScalingConfig), this);
+        getServer().getPluginManager().registerEvents(new MobNameplateListener(this, new MobNameplateService(this, mobScalingConfig), guildApi), this);
+        getServer().getPluginManager().registerEvents(new MobExperienceListener(guildApi, mobScalingConfig), this);
+        getServer().getPluginManager().registerEvents(new LootDropListener(guildApi, itemEconomyConfig, itemService, new RPGItemBuilder(keys), currencyFactory), this);
+        getServer().getPluginManager().registerEvents(new SoulboundDeathListener(guildApi, keys), this);
         WeaponAbilityEngine abilityEngine = new WeaponAbilityEngine(playerProfileManager, statEngine);
         getServer().getPluginManager().registerEvents(new SkillInputListener(abilityEngine), this);
         getServer().getPluginManager().registerEvents(new FireballWeaponListener(playerProfileManager, statEngine), this);
