@@ -44,4 +44,7 @@ public final class RPGKeys {
     public NamespacedKey shopSellPriceTag() { return key("item_shop_sell_price_tag"); }
     public NamespacedKey instanceId() { return key("item_instance_id"); }
     public NamespacedKey guildGold() { return key("economy_guild_gold"); }
+
+    public NamespacedKey npcId() { return key("npc_id"); }
+    public NamespacedKey npcType() { return key("npc_type"); }
 }
