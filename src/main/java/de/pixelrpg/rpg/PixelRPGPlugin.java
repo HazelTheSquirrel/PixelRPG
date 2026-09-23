@@ -2,6 +2,9 @@ package de.pixelrpg.rpg;
 
 import de.pixelrpg.rpg.api.ItemAPI;
 import de.pixelrpg.rpg.config.JsonDataManager;
+import de.pixelrpg.rpg.companion.CompanionDialogService;
+import de.pixelrpg.rpg.companion.CompanionNpcListener;
+import de.pixelrpg.rpg.companion.CompanionSystem;
 import de.pixelrpg.rpg.content.ContentCatalogService;
 import de.pixelrpg.rpg.content.JsonContentCatalogLoader;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
@@ -53,6 +56,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ExecutorService storyIo;
     private ExecutorService regionIo;
     private ProfessionSystem professionSystem;
+    private CompanionSystem companionSystem;
 
     @Override
     public void onEnable() {
@@ -113,6 +117,12 @@ public final class PixelRPGPlugin extends JavaPlugin {
         });
         NpcRepository npcRepository = new YamlNpcRepository(this, npcIo);
         NpcRuntimeManager npcRuntime = lifecycle.register(new NpcRuntimeManager(this, keys, npcRepository));
+        companionSystem = lifecycle.register(new CompanionSystem(this, playerProfileManager, npcRuntime));
+        companionSystem.loadAsync().thenRun(() -> getServer().getScheduler().runTask(this, () -> {
+            if (!isEnabled()) return;
+            companionSystem.register();
+            getServer().getPluginManager().registerEvents(new CompanionNpcListener(npcRuntime, new CompanionDialogService(companionSystem.service(), new DialogueEngine())), this);
+        })).exceptionally(failure -> { getLogger().log(java.util.logging.Level.SEVERE, "Failed to load companion definitions.", failure); return null; });
 
         ExecutorService storyIo = Executors.newSingleThreadExecutor(runnable -> {
             Thread thread = new Thread(runnable, "PixelRPG-StoryIO");
