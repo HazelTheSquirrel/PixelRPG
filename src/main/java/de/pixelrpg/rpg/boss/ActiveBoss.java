@@ -38,7 +38,7 @@ public final class ActiveBoss {
     public BossBar getBossBar() { return bossBar; }
     public Set<UUID> getViewers() { return viewers; }
     public List<String> getBiomeAttackPatternIds() { return biomeAttackPatternIds; }
-    public void recordDamage(UUID playerUuid, double damage) { if (damage > 0.0) damageContribution.merge(playerUuid, damage, Double::sum); }
+    public void recordDamage(UUID playerUuid, double damage) { if (damage > 0.0) damageContribution.merge(playerUuid, damage, (current, added) -> current + added); }
     public Map<UUID, Double> getDamageContribution() { return Map.copyOf(damageContribution); }
     public int getCurrentPhaseIndex() { return currentPhaseIndex; }
     public void setCurrentPhaseIndex(int currentPhaseIndex) { this.currentPhaseIndex = currentPhaseIndex; }
