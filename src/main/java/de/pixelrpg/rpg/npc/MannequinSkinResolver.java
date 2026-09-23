@@ -43,9 +43,12 @@ public final class MannequinSkinResolver {
                 new com.destroystokyo.paper.profile.ProfileProperty("textures", value, signature);
         CompletableFuture<Void> result = new CompletableFuture<>();
 
+        plugin.getLogger().info("Applying persisted mannequin skin: entity=" + mannequin.getUniqueId());
         Bukkit.getScheduler().runTask(plugin, () -> {
             try {
                 if (!mannequin.isValid()) {
+                    plugin.getLogger().warning("Persisted mannequin skin target became invalid: entity="
+                            + mannequin.getUniqueId());
                     result.complete(null);
                     return;
                 }
@@ -61,6 +64,8 @@ public final class MannequinSkinResolver {
                         .skinPatch(current.skinPatch());
                 mannequin.setProfile(builder.build());
                 refreshForNearbyPlayers(mannequin, plugin);
+                plugin.getLogger().info("Persisted mannequin skin applied successfully: entity="
+                        + mannequin.getUniqueId());
                 result.complete(null);
             } catch (RuntimeException exception) {
                 result.completeExceptionally(exception);
@@ -92,6 +97,8 @@ public final class MannequinSkinResolver {
         }
 
         String source = skinSource.trim();
+        logger.info("Starting mannequin skin resolution: entity=" + mannequin.getUniqueId()
+                + ", source=" + source);
         try {
             if (isUrl(source)) {
                 return new ExternalSkinService(plugin).applyAndGetProperty(mannequin, source)
@@ -146,6 +153,8 @@ public final class MannequinSkinResolver {
                 normalizedName, ignored -> resolvePlayerProfile(bukkitProfile));
 
         return profileFuture.thenApplyAsync(profile -> {
+            logger.info("Minecraft player skin profile resolved: entity=" + mannequin.getUniqueId()
+                    + ", player=" + playerName);
             if (!mannequin.isValid()) {
                 throw new IllegalStateException("Mannequin became invalid while resolving skin");
             }
