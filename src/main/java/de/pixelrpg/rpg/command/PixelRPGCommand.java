@@ -102,7 +102,7 @@ public final class PixelRPGCommand implements BasicCommand {
             case "boss" -> args.length == 2 ? prefix(List.of("event","list","reload"), args[1]) : args.length == 3 && args[1].equalsIgnoreCase("event") ? prefix(bosses.getWorldBosses().stream().map(BossDefinition::getId).toList(), args[2]) : List.of();
             case "item" -> args.length == 2 ? prefix(List.of("list","give"), args[1]) : args.length == 3 && args[1].equalsIgnoreCase("give") ? onlinePlayers(args[2]) : List.of();
             case "player" -> args.length == 2 ? prefix(List.of("info","set-level","set-xp","set-gold","set-profession","reset"), args[1]) : args.length == 3 ? onlinePlayers(args[2]) : args.length == 4 && args[1].equalsIgnoreCase("set-profession") ? prefix(Arrays.stream(Profession.values()).map(Enum::name).toList(), args[3]) : List.of();
-            case "npc" -> args.length == 2 ? prefix(List.of("create","create-id","remove","rename","skin","list"), args[1]) : List.of();
+            case "npc" -> args.length == 2 ? prefix(List.of("create","create-id","filler","remove","rename","skin","list"), args[1]) : args.length == 3 && args[1].equalsIgnoreCase("create") ? prefix(Arrays.stream(NpcType.values()).map(Enum::name).toList(), args[2]) : args.length == 4 && args[1].equalsIgnoreCase("create-id") ? prefix(Arrays.stream(NpcType.values()).map(Enum::name).toList(), args[3]) : List.of();
             case "region" -> args.length == 2 ? prefix(List.of("create","finish","confirm","cancel","delete","list"), args[1]) : List.of();
             case "shop" -> args.length == 2 ? prefix(List.of("list"), args[1]) : List.of();
             default -> List.of();
@@ -114,7 +114,7 @@ public final class PixelRPGCommand implements BasicCommand {
         sender.sendMessage(Component.text("/pixelrpg questlog", NamedTextColor.YELLOW));
         if (sender.hasPermission("rpg.admin")) {
             sender.sendMessage(Component.text("/pixelrpg companion <grant|list> ...", NamedTextColor.YELLOW));
-            sender.sendMessage(Component.text("/pixelrpg npc <create|create-id|remove|rename|skin|list> ...", NamedTextColor.YELLOW));
+            sender.sendMessage(Component.text("/pixelrpg npc <create|create-id|filler|remove|rename|skin|list> ...", NamedTextColor.YELLOW));
             sender.sendMessage(Component.text("/pixelrpg region <create|finish|confirm|cancel|delete|list> ...", NamedTextColor.YELLOW));
             sender.sendMessage(Component.text("/pixelrpg boss <event|list|reload> ...", NamedTextColor.YELLOW));
             sender.sendMessage(Component.text("/pixelrpg item <list|give> ...", NamedTextColor.YELLOW));
@@ -141,11 +141,12 @@ public final class PixelRPGCommand implements BasicCommand {
     }
 
     private void npc(org.bukkit.command.CommandSender sender, Player player, String[] args) {
-        if (args.length==0) { sender.sendMessage(Component.text("Usage: /pixelrpg npc <create|create-id|remove|rename|skin|list>", NamedTextColor.RED)); return; }
+        if (args.length==0) { sender.sendMessage(Component.text("Usage: /pixelrpg npc <create|create-id|filler|remove|rename|skin|list>", NamedTextColor.RED)); return; }
         switch(args[0].toLowerCase(Locale.ROOT)) {
             case "list" -> npcs.getAll().forEach(n -> sender.sendMessage(Component.text(n.id()+" "+n.type()+" "+n.name(), NamedTextColor.YELLOW)));
-            case "create" -> { if(player==null||args.length<3){sender.sendMessage(Component.text("Usage: /pixelrpg npc create <type> <name> [skin]",NamedTextColor.RED));return;} try{NpcType type=NpcType.valueOf(args[1].toUpperCase(Locale.ROOT));String name=String.join(" ",Arrays.copyOfRange(args,2,args.length));RPGNpc n=npcs.create(type,name,player.getLocation(),null,null);sender.sendMessage(Component.text("NPC erstellt: "+n.id(),NamedTextColor.GREEN));}catch(IllegalArgumentException e){sender.sendMessage(Component.text(e.getMessage(),NamedTextColor.RED));} }
-            case "create-id" -> { if(player==null||args.length<4){sender.sendMessage(Component.text("Usage: /pixelrpg npc create-id <id> <type> <name>",NamedTextColor.RED));return;} try{NpcType type=NpcType.valueOf(args[2].toUpperCase(Locale.ROOT));RPGNpc n=npcs.createWithId(args[1],type,String.join(" ",Arrays.copyOfRange(args,3,args.length)),player.getLocation(),null,null);sender.sendMessage(Component.text("NPC erstellt: "+n.id(),NamedTextColor.GREEN));}catch(IllegalArgumentException e){sender.sendMessage(Component.text(e.getMessage(),NamedTextColor.RED));} }
+            case "create" -> { if(player==null||args.length<3||args.length>4){sender.sendMessage(Component.text("Usage: /pixelrpg npc create <type> <name> [skin]",NamedTextColor.RED));return;} try{NpcType type=NpcType.valueOf(args[1].toUpperCase(Locale.ROOT));String name=args[2];String skin=args.length==4?args[3]:null;RPGNpc n=npcs.create(type,name,player.getLocation(),skin,null);sender.sendMessage(Component.text("NPC erstellt: "+n.id(),NamedTextColor.GREEN));}catch(IllegalArgumentException e){sender.sendMessage(Component.text(e.getMessage(),NamedTextColor.RED));} }
+            case "create-id" -> { if(player==null||args.length<4||args.length>5){sender.sendMessage(Component.text("Usage: /pixelrpg npc create-id <id> <type> <name> [skin]",NamedTextColor.RED));return;} try{NpcType type=NpcType.valueOf(args[2].toUpperCase(Locale.ROOT));String skin=args.length==5?args[4]:null;RPGNpc n=npcs.createWithId(args[1],type,args[3],player.getLocation(),skin,null);sender.sendMessage(Component.text("NPC erstellt: "+n.id(),NamedTextColor.GREEN));}catch(IllegalArgumentException e){sender.sendMessage(Component.text(e.getMessage(),NamedTextColor.RED));} }
+            case "filler" -> { if(player==null||args.length<3||args.length>4){sender.sendMessage(Component.text("Usage: /pixelrpg npc filler <id> <name> [skin]",NamedTextColor.RED));return;} try{String skin=args.length==4?args[3]:null;RPGNpc n=npcs.createWithId(args[1],NpcType.FILLER,args[2],player.getLocation(),skin,null);sender.sendMessage(Component.text("Filler-NPC erstellt: "+n.id(),NamedTextColor.GREEN));}catch(IllegalArgumentException e){sender.sendMessage(Component.text(e.getMessage(),NamedTextColor.RED));} }
             case "remove" -> { RPGNpc n=lookNpc(player); if(n==null){sender.sendMessage(Component.text("Schaue einen PixelRPG-NPC an.",NamedTextColor.RED));return;} npcs.removeById(n.id()); sender.sendMessage(Component.text("NPC entfernt: "+n.id(),NamedTextColor.GREEN)); }
             case "rename" -> { if(player==null||args.length<2)return; RPGNpc n=lookNpc(player); if(n!=null&&npcs.rename(n.id(),String.join(" ",Arrays.copyOfRange(args,1,args.length)))) sender.sendMessage(Component.text("NPC umbenannt.",NamedTextColor.GREEN)); }
             case "skin" -> { if(player==null||args.length!=2)return; RPGNpc n=lookNpc(player); if(n!=null&&npcs.updateSkin(n.id(),args[1])) sender.sendMessage(Component.text("NPC-Skin aktualisiert.",NamedTextColor.GREEN)); }
@@ -171,7 +172,7 @@ public final class PixelRPGCommand implements BasicCommand {
         switch(args[0].toLowerCase(Locale.ROOT)){
             case "list" -> bosses.getAll().forEach(b->sender.sendMessage(Component.text(b.getId()+" "+b.getDisplayName(),NamedTextColor.YELLOW)));
             case "reload" -> {bosses.load();sender.sendMessage(Component.text("Boss-Definitionen neu geladen.",NamedTextColor.GREEN));}
-            case "event" -> {if(player==null||args.length!=2)return;BossDefinition b=bosses.get(args[1]);if(b==null||b.getKind()!=BossKind.WORLD_EVENT){sender.sendMessage(Component.text("World-Boss nicht gefunden.",NamedTextColor.RED));return;}bossManager.spawnWorldBoss(b,player.getLocation());sender.sendMessage(Component.text("World-Boss gestartet.",NamedTextColor.GREEN));}
+            case "event" -> {if(player==null||args.length!=2)return;BossDefinition b=bosses.get(args[1]);if(b==null||b.getKind()!=BossKind.WORLD_EVENT){sender.sendMessage(Component.text("World-Boss nicht gefunden.",NamedTextColor.RED));return;}if(bossManager.hasActiveBossOfType(b.getId())){sender.sendMessage(Component.text("Dieser World-Boss ist bereits aktiv.",NamedTextColor.RED));return;}bossManager.spawnWorldBoss(b,player.getLocation());sender.sendMessage(Component.text("World-Boss gestartet.",NamedTextColor.GREEN));}
             default -> sender.sendMessage(Component.text("Unbekannte Boss-Aktion.",NamedTextColor.RED));
         }
     }
@@ -183,8 +184,7 @@ public final class PixelRPGCommand implements BasicCommand {
         Player target=Bukkit.getPlayerExact(args[1]);if(target==null){sender.sendMessage(Component.text("Spieler ist nicht online.",NamedTextColor.RED));return;}
         ItemDefinition d=items.definitions().stream().filter(x->x.id().equalsIgnoreCase(args[2])||x.id().equalsIgnoreCase("pixelrpg:"+args[2])).findFirst().orElse(null);
         if(d==null){sender.sendMessage(Component.text("Unbekannte Item-ID.",NamedTextColor.RED));return;}
-        if(d.unique()&&args.length>3&&Integer.parseInt(args[3])>1){sender.sendMessage(Component.text("UNIQUE-Items können nur einzeln vergeben werden.",NamedTextColor.RED));return;}
-        items.createAdminItem(d.id()).ifPresentOrElse(stack->{if(args.length>3)stack.setAmount(Math.max(1,Math.min(64,Integer.parseInt(args[3]))));target.getInventory().addItem(stack).values().forEach(x->target.getWorld().dropItemNaturally(target.getLocation(),x));sender.sendMessage(Component.text("Item vergeben.",NamedTextColor.GREEN));},()->sender.sendMessage(Component.text("Item konnte nicht erstellt werden.",NamedTextColor.RED)));
+        int amount=1;if(args.length>3){try{amount=Integer.parseInt(args[3]);}catch(NumberFormatException e){sender.sendMessage(Component.text("Ungültige Anzahl.",NamedTextColor.RED));return;}if(amount<1||amount>64){sender.sendMessage(Component.text("Anzahl muss zwischen 1 und 64 liegen.",NamedTextColor.RED));return;}}if(d.unique()&&amount>1){sender.sendMessage(Component.text("UNIQUE-Items können nur einzeln vergeben werden.",NamedTextColor.RED));return;} items.createAdminItem(d.id()).ifPresentOrElse(stack->{stack.setAmount(amount);target.getInventory().addItem(stack).values().forEach(x->target.getWorld().dropItemNaturally(target.getLocation(),x));sender.sendMessage(Component.text("Item vergeben.",NamedTextColor.GREEN));},()->sender.sendMessage(Component.text("Item konnte nicht erstellt werden.",NamedTextColor.RED)));
     }
 
     private void player(org.bukkit.command.CommandSender sender, String[] args) {
