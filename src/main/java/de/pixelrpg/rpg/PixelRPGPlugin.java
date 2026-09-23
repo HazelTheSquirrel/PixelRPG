@@ -40,6 +40,8 @@ import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.economy.GuildCurrencyPickupListener;
 import de.pixelrpg.rpg.equipment.EquipmentService;
 import de.pixelrpg.rpg.item.ItemService;
+import de.pixelrpg.rpg.item.ItemEconomyConfig;
+import de.pixelrpg.rpg.item.RPGItemBuilder;
 import de.pixelrpg.rpg.npc.NpcChunkListener;
 import de.pixelrpg.rpg.npc.NpcProtectionListener;
 import de.pixelrpg.rpg.npc.NpcRepository;
@@ -142,6 +144,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
         itemService = lifecycle.register(new ItemService(this, keys));
         MobScalingConfig mobScalingConfig = new MobScalingConfig(this);
+        ItemEconomyConfig itemEconomyConfig = new ItemEconomyConfig();
+        itemEconomyConfig.load(getConfig());
+        GuildCurrencyItemFactory currencyFactory = new GuildCurrencyItemFactory(keys);
+        currencyFactory.configureMaxStackSize(getConfig().getInt("economy.currency.max-stack-size", 64));
         statEngine = lifecycle.register(new StatEngine(playerProfileManager));
         getServer().getServicesManager().register(StatisticsAPI.class, new StatisticsService(playerProfileManager, statEngine), this, ServicePriority.Normal);
         BossRepository bossRepository = new BossRepository(this);
