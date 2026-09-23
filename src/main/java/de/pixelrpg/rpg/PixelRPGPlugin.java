@@ -230,7 +230,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         NpcRuntimeManager npcRuntime = lifecycle.register(new NpcRuntimeManager(this, keys, npcRepository));
         companionSystem = lifecycle.register(new CompanionSystem(this, playerProfileManager, npcRuntime));
         QuickActionsDialogService quickActions = new QuickActionsDialogService(
-                playerProfileManager, statEngine, questService, companionSystem, professionSystem);
+                playerProfileManager, statEngine, questService, companionSystem, professionSystem, guildManager);
         getServer().getPluginManager().registerEvents(new QuickActionsDialogListener(quickActions), this);
         QuestNpcDialogService questNpcDialogs = new QuestNpcDialogService(questService, playerProfileManager, new DialogueEngine());
         getServer().getPluginManager().registerEvents(new QuestNpcListener(npcRuntime, questNpcDialogs), this);
