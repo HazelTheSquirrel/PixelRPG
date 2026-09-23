@@ -209,7 +209,7 @@ public final class PixelRPGCommand implements BasicCommand {
 
     private RPGNpc lookNpc(Player player) {
         if(player==null)return null;
-        RayTraceResult hit=player.rayTraceEntities(8.0);
+        RayTraceResult hit=player.rayTraceEntities(8);
         if(hit==null)return null;
         Entity entity=hit.getHitEntity();
         return entity==null?null:npcs.getByEntity(entity.getUniqueId()).orElse(null);
