@@ -8,6 +8,7 @@ import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.DialogueProgressStore;
 import de.pixelrpg.rpg.dialogue.DialogueTreeService;
 import de.pixelrpg.rpg.dialogue.NpcDialogueListener;
+import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.core.LifecycleCoordinator;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
@@ -92,6 +93,38 @@ public final class PixelRPGPlugin extends JavaPlugin {
         NpcRepository npcRepository = new YamlNpcRepository(this, npcIo);
         NpcRuntimeManager npcRuntime = lifecycle.register(new NpcRuntimeManager(this, keys, npcRepository));
 
+        ExecutorService storyIo = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "PixelRPG-StoryIO");
+            thread.setDaemon(true);
+            return thread;
+        });
+        this.storyIo = storyIo;
+        StoryService storyService = new StoryService(playerProfileManager);
+        StoryRepository storyRepository = lifecycle.register(new StoryRepository(
+                this,
+                getDataFolder().toPath().resolve("data/story/definitions.json"),
+                storyIo,
+                contentCatalog
+        ));
+        StoryBookFactory storyBookFactory = new StoryBookFactory(
+                getConfig().getInt("story.chars-per-line", 18),
+                getConfig().getInt("story.lines-per-page", 13)
+        );
+        StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(
+                storyService,
+                new DialogueEngine(),
+                storyBookFactory
+        );
+        getServer().getPluginManager().registerEvents(
+                new StoryNpcInteractionListener(npcRuntime, storyNpcDialogue), this);
+        contentCatalog.loadAsync()
+                .thenCompose(ignored -> storyRepository.loadAsync())
+                .thenAccept(storyService::replace)
+                .exceptionally(failure -> {
+                    getLogger().log(java.util.logging.Level.SEVERE, "Failed to load story definitions.", failure);
+                    return null;
+                });
+
         dialogueIo = Executors.newSingleThreadExecutor(runnable -> {
             Thread thread = new Thread(runnable, "PixelRPG-DialogueIO");
             thread.setDaemon(true);
@@ -140,6 +173,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
             if (questIo != null) {
                 questIo.shutdown();
                 questIo = null;
+            }
+            if (storyIo != null) {
+                storyIo.shutdown();
+                storyIo = null;
             }
             lifecycle = null;
             playerProfileManager = null;
