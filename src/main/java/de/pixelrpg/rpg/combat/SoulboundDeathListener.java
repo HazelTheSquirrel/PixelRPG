@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.combat;
 
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.item.SoulboundService;
+import de.pixelrpg.rpg.core.RPGKeys;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -14,9 +15,11 @@ import java.util.List;
 
 public final class SoulboundDeathListener implements Listener {
     private final GuildAPI guildAPI;
+    private final SoulboundService soulbound;
 
-    public SoulboundDeathListener(GuildAPI guildAPI) {
+    public SoulboundDeathListener(GuildAPI guildAPI, RPGKeys keys) {
         this.guildAPI = guildAPI;
+        this.soulbound = new SoulboundService(keys);
     }
 
     // Zuständig dafür, dass Soulbound-Items beim Tod sofort im Inventar des Spielers verbleiben.
@@ -28,7 +31,7 @@ public final class SoulboundDeathListener implements Listener {
         List<ItemStack> drops = event.getDrops();
         List<ItemStack> keep = event.getItemsToKeep();
         for (ItemStack item : new ArrayList<>(drops)) {
-            if (!SoulboundService.isSoulbound(item)) continue;
+            if (!soulbound.isSoulbound(item)) continue;
             drops.remove(item);
             keep.add(item.clone());
         }
