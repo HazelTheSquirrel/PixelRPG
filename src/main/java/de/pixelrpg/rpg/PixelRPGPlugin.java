@@ -23,6 +23,10 @@ import de.pixelrpg.rpg.npc.YamlNpcRepository;
 import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
 import de.pixelrpg.rpg.quest.QuestRepository;
 import de.pixelrpg.rpg.quest.QuestService;
+import de.pixelrpg.rpg.story.StoryBookFactory;
+import de.pixelrpg.rpg.story.StoryNpcInteractionListener;
+import de.pixelrpg.rpg.story.StoryRepository;
+import de.pixelrpg.rpg.story.StoryService;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -36,6 +40,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ExecutorService dialogueIo;
     private ExecutorService contentIo;
     private ExecutorService questIo;
+    private ExecutorService storyIo;
 
     @Override
     public void onEnable() {
