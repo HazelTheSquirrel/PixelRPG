@@ -21,7 +21,8 @@ public enum NpcType {
     TRAVEL(NamedTextColor.LIGHT_PURPLE, NpcFunction.TRAVEL),
     FILLER(NamedTextColor.WHITE),
     STORY(NamedTextColor.GOLD, NpcFunction.STORY),
-    BANKER(NamedTextColor.DARK_GREEN, NpcFunction.BANK);
+    BANKER(NamedTextColor.DARK_GREEN, NpcFunction.BANK),
+    COMPANION(NamedTextColor.LIGHT_PURPLE, NpcFunction.COMPANION);
 
     private final NamedTextColor color;
     private final Set<NpcFunction> functions;
