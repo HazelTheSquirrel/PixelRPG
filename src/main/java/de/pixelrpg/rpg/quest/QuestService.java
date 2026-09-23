@@ -1,6 +1,8 @@
 package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.player.PlayerProfile;
+import de.pixelrpg.rpg.item.ItemService;
+import org.bukkit.Material;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
 import de.pixelrpg.rpg.profession.Profession;
@@ -14,11 +16,13 @@ public final class QuestService implements AutoCloseable {
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
     private final QuestRepository repository;
+    private final ItemService itemService;
 
-    public QuestService(Plugin plugin, PlayerProfileManager profileManager, QuestRepository repository) {
+    public QuestService(Plugin plugin, PlayerProfileManager profileManager, QuestRepository repository, ItemService itemService) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.profileManager = Objects.requireNonNull(profileManager, "profileManager");
         this.repository = Objects.requireNonNull(repository, "repository");
+        this.itemService = Objects.requireNonNull(itemService, "itemService");
     }
 
     public Optional<QuestDefinition> find(String id) {
