@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
+public final class PlayerProfileManager implements GuildAPI, EconomyAPI, AutoCloseable {
     private final Plugin plugin;
     private final Map<UUID, PlayerProfile> activeProfiles = new ConcurrentHashMap<>();
     private final Map<UUID, PlayerProfile> loadingCache = new ConcurrentHashMap<>();
@@ -101,6 +101,9 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
         if (uuid == null || !activeProfiles.containsKey(uuid)) return;
         for (Consumer<UUID> listener : profileChangeListeners) listener.accept(uuid);
     }
+
+    @Override
+    public void close() { shutdown(); }
 
     public void shutdown() {
         if (shuttingDown) return;
