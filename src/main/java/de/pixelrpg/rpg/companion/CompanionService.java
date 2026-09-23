@@ -314,9 +314,9 @@ public final class CompanionService {
     private void load(UUID playerId) {
         if (companions.containsKey(playerId)) return;
         File file = new File(storageFolder, playerId + ".yml");
+        YamlConfiguration config = file.exists() ? YamlConfiguration.loadConfiguration(file) : new YamlConfiguration();
         List<Companion> loaded = new ArrayList<>();
         if (file.exists()) {
-            YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
             for (String key : config.getKeys(false)) {
                 ConfigurationSection section = config.getConfigurationSection(key);
                 if (section == null) continue;
