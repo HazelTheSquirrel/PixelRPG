@@ -253,7 +253,7 @@ public final class NpcRuntimeManager implements AutoCloseable {
     private Profession professionFor(NpcType type) {
         String name = type.name();
         if (!name.startsWith("PROFESSION_")) return null;
-        try { return Profession.valueOf(name.substring("PROFESSION_".length).toUpperCase(java.util.Locale.ROOT)); }
+        try { return Profession.valueOf(name.substring("PROFESSION_".length()).toUpperCase(java.util.Locale.ROOT)); }
         catch (IllegalArgumentException ignored) { return null; }
     }
     @Override public synchronized void close() {
