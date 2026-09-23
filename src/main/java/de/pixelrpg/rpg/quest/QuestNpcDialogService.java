@@ -33,7 +33,7 @@ public final class QuestNpcDialogService {
                     Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
-        List<QuestDefinition> available = quests.repository().getAll().stream()
+        List<QuestDefinition> available = quests.repository().all().stream()
                 .filter(q -> q.type() != QuestType.GLOBAL_EVENT)
                 .sorted(Comparator.comparingInt(QuestDefinition::requiredLevel).thenComparing(QuestDefinition::title))
                 .toList();
