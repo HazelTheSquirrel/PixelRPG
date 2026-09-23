@@ -145,7 +145,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         });
 
         itemService = lifecycle.register(new ItemService(this, keys));
-        MobScalingConfig mobScalingConfig = new MobScalingConfig(this);
+        MobScalingConfig mobScalingConfig = new MobScalingConfig();
         ItemEconomyConfig itemEconomyConfig = new ItemEconomyConfig();
         itemEconomyConfig.load(getConfig());
         GuildCurrencyItemFactory currencyFactory = new GuildCurrencyItemFactory(keys);
@@ -159,7 +159,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         bossPatterns.register(new de.pixelrpg.rpg.boss.patterns.ProjectileVolleyPattern());
         bossPatterns.register(new de.pixelrpg.rpg.boss.patterns.SlamAttackPattern());
         bossPatterns.register(new de.pixelrpg.rpg.boss.patterns.SummonAddsPattern());
-        bossManager = lifecycle.register(new BossManager(this, bossPatterns, new GuildApiAdapter(playerProfileManager),
+        bossManager = new BossManager(this, bossPatterns, new GuildApiAdapter(playerProfileManager),
                 new PartyApiAdapter(), new EconomyApiAdapter(playerProfileManager), itemService, mobScalingConfig,
                 getConfig().getDouble("bosses.bar-radius", 60.0D),
                 getConfig().getInt("bosses.bar-update-interval-ticks", 20),
@@ -178,7 +178,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MobNameplateListener(this, new MobNameplateService(this, mobScalingConfig), new GuildApiAdapter(playerProfileManager)), this);
         getServer().getPluginManager().registerEvents(new MobExperienceListener(new GuildApiAdapter(playerProfileManager), mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(new LootDropListener(new GuildApiAdapter(playerProfileManager), itemEconomyConfig, itemService, new RPGItemBuilder(keys), currencyFactory), this);
-        getServer().getPluginManager().registerEvents(new SoulboundDeathListener(new GuildApiAdapter(playerProfileManager)), this);
+        getServer().getPluginManager().registerEvents(new SoulboundDeathListener(new GuildApiAdapter(playerProfileManager), keys), this);
         WeaponAbilityEngine abilityEngine = new WeaponAbilityEngine(playerProfileManager, statEngine);
         getServer().getPluginManager().registerEvents(new SkillInputListener(abilityEngine), this);
         getServer().getPluginManager().registerEvents(new FireballWeaponListener(playerProfileManager, statEngine), this);
@@ -344,6 +344,30 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public StatEngine getStatEngine() { return statEngine; }
     public CompanionSystem getCompanionSystem() { return companionSystem; }
     public CompanionSystem getCompanionService() { return companionSystem; }
+
+    private static final class GuildApiAdapter implements GuildAPI {
+        private final PlayerProfileManager profiles;
+        private GuildApiAdapter(PlayerProfileManager profiles) { this.profiles = profiles; }
+        public boolean isRegistered(java.util.UUID id) { return profiles.getProfile(id).map(de.pixelrpg.rpg.player.PlayerProfile::isRegistered).orElse(false); }
+        public int getLevel(java.util.UUID id) { return profiles.getProfile(id).map(de.pixelrpg.rpg.player.PlayerProfile::getLevel).orElse(1); }
+        public long getExperience(java.util.UUID id) { return profiles.getProfile(id).map(de.pixelrpg.rpg.player.PlayerProfile::getExperience).orElse(0L); }
+        public void addExperience(java.util.UUID id, long amount) { profiles.getProfile(id).ifPresent(profile -> { profile.addExperience(amount); profiles.saveProfileAsync(id); }); }
+    }
+    private static final class EconomyApiAdapter implements EconomyAPI {
+        private final PlayerProfileManager profiles;
+        private EconomyApiAdapter(PlayerProfileManager profiles) { this.profiles = profiles; }
+        public double getBalance(java.util.UUID id) { return profiles.getProfile(id).map(de.pixelrpg.rpg.player.PlayerProfile::getMoney).orElse(0.0D); }
+        public void deposit(java.util.UUID id, double amount) { profiles.getProfile(id).ifPresent(profile -> { profile.addMoney(amount); profiles.saveProfileAsync(id); }); }
+        public boolean withdraw(java.util.UUID id, double amount) { var profile=profiles.getProfile(id).orElse(null); if(profile==null)return false; boolean result=profile.removeMoney(amount); if(result)profiles.saveProfileAsync(id); return result; }
+    }
+    private static final class PartyApiAdapter implements PartyAPI {
+        public boolean isInParty(java.util.UUID id) { return false; }
+        public java.util.Set<java.util.UUID> getPartyMembers(java.util.UUID id) { return java.util.Set.of(id); }
+        public java.util.UUID getPartyLeader(java.util.UUID id) { return id; }
+        public boolean isLeader(java.util.UUID id) { return true; }
+        public boolean isWithinShareRange(java.util.UUID source, java.util.UUID target) { return source.equals(target); }
+        public double getShareRange() { return 0.0D; }
+    }
 
     @Override
     public void onDisable() {
