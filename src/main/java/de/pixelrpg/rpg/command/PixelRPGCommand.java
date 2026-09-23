@@ -81,8 +81,6 @@ public final class PixelRPGCommand implements BasicCommand {
             }
             String[] rest = Arrays.copyOfRange(args, 1, args.length);
             switch (root) {
-                case "party" -> args.length == 2 ? prefix(List.of("create","invite","accept","leave","kick","info"), args[1]) : args.length == 3 && args[1].equalsIgnoreCase("invite") ? onlinePlayers(args[2]) : args.length == 3 && args[1].equalsIgnoreCase("kick") ? onlinePlayers(args[2]) : List.of();
-            case "guild" -> args.length == 2 ? prefix(List.of("create","invite","accept","leave","disband","info"), args[1]) : args.length == 3 && args[1].equalsIgnoreCase("invite") ? onlinePlayers(args[2]) : List.of();
             case "companion" -> companion(source.getSender(), rest);
                 case "npc" -> npc(source.getSender(), player, rest);
                 case "region" -> region(source.getSender(), player, rest);
