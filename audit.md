@@ -984,3 +984,61 @@ Erfolgreich verifiziert wurden:
 Der erste Companion-Build 35879040919 scheiterte an konkret ermittelten Compile-Fehlern in den neu hinzugefügten Integrationen. Diese wurden anhand des CI-Logs korrigiert, insbesondere bei aktuellen NPC-/Skin-APIs, Quest-Event-Import, Companion-NPC-Funktion und Runtime-Typprüfungen. Der anschließend vollständig durchgelaufene Workflow 35879395929 bestätigt den korrigierten Stand.
 
 Nächster abhängiger Bereich ist Shops/Trading.
+
+### Phase 15 — Shops / Trading
+
+Status: **implementiert; CI-verifiziert**
+
+Der Shop-/Trading-Bereich wurde vor der Implementierung gegen den tatsächlichen Referenzbestand von main geprüft. Der Referenzzustand bestand aus ShopEntry, ShopManager, ShopGUI, ShopEditorGUI, ShopBehavior sowie dem TradeDepotListing-/TradeDepotManager-Bereich mit separater Handelswaren-Persistenz und nativer Texteingabe für Verkaufspreise.
+
+Auf rebuild wurde der Bereich fachlich getrennt neu aufgebaut:
+
+- ShopEntry bleibt das immutable Angebot mit unabhängigem Kauf- und Verkaufspreis;
+- ShopRepository übernimmt die shops.yml-Persistenz asynchron und atomar;
+- alte Shopdaten mit dem historischen price-Feld werden beim Laden weiterhin verstanden und auf getrennte Kauf-/Verkaufspreise normalisiert;
+- ShopService ist die fachliche Shop-Grenze für Kaufen, Verkaufen, Tradeability und Admin-Bestandsänderungen;
+- Käufe und Verkäufe verwenden weiterhin den bestehenden PlayerProfile als autoritative Geldquelle;
+- handelbare Items werden über den bestehenden ItemService.isEconomySafeItem(...) geprüft;
+- Käufe prüfen den freien Inventarplatz vor dem Geldabzug;
+- Verkäufe entfernen weiterhin genau einen passenden Itemstapel-Eintrag in der bestehenden Referenzsemantik;
+- ShopDialogService ersetzt die alte Inventar-Shop-GUI durch native Paper-26.2-Dialoge;
+- ShopNpcListener bindet NpcType.SHOP direkt an die neue native Interaktion;
+- TradeDepotListing bildet weiterhin ID, Verkäufer, Item, Preis und 7-Tage-Ablaufzeit ab;
+- TradeDepotRepository persistiert Listings und ausstehende Verkäuferauszahlungen asynchron;
+- TradeGoodsRepository bildet das separate 54-Slot-Handelsfach des Referenzzustands als eigene Persistenzquelle ab;
+- TradeDepotService übernimmt Kauf, Rücknahme, Ablauf, 5-%-Verkaufsgebühr, ausstehende Auszahlungen und Handelswaren;
+- abgelaufene oder zurückgenommene Ware landet weiterhin im Handelsfach statt direkt im Inventar;
+- gekaufte Ware landet weiterhin im Handelsfach;
+- TradeDepotDialogService ersetzt die alte Trade-Depot-Inventar-GUI durch native Dialoge;
+- das Einstellen einer Handelsware erfolgt ohne alte Inventar-GUI über native Texteingabe für Inventarslot und Verkaufspreis;
+- Shop-Dialog und Handelsdepot sind über die bestehende SHOP-NPC-Interaktion erreichbar;
+- Shop-, Trade-Depot- und Trade-Goods-I/O besitzen getrennte Executor und deterministische Shutdown-Pfade.
+
+### Bewusst nicht übernommen
+
+Nicht als unveränderte Kopie übernommen wurden:
+
+- ShopGUI;
+- ShopEditorGUI;
+- TradeDepotGUI;
+- TradeDepotSellGUI;
+- die alte ShopBehavior-God-Integration;
+- die alte ShopSubCommand-Verdrahtung. Commands und administrative Werkzeuge bleiben gemäß Audit-Reihenfolge Phase 17;
+- die vollständige alte BankStorageService-GUI/Persistenz. Für Phase 15 wurde nur der für das Handelsdepot fachlich benötigte separate Handelswaren-Speicher neu aufgebaut. Eine allgemeine Bank-Funktion bleibt ein späteres abhängiges UI-/Command-Thema.
+
+Damit besitzt Shop-/Trading-State jeweils eine eindeutige fachliche Source of Truth, während die Darstellung vollständig auf native Paper-Dialoge umgestellt ist.
+
+### Verifikation
+
+Der erste CI-Lauf 35881240481 schlug an einem konkreten Compile-Fehler in TradeDepotDialogService fehl: der verwendete UUID-Typ war nicht importiert. Dieser Fehler wurde direkt anhand des CI-Logs korrigiert.
+
+Der anschließende vollständige GitHub-Actions-Lauf 35881419581 für Commit 220c40fad3d439e9480dc5abef7401164cfc06e7 lief mit success durch.
+
+Erfolgreich verifiziert wurden:
+
+- gradle clean build --no-daemon --stacktrace;
+- Source-API-Grenzprüfungen;
+- Plugin-Artefaktprüfung;
+- Third-Party-Relocations/JDBC-Service-Prüfung.
+
+Nächster abhängiger Bereich ist Combat / Bosse / Stats.
