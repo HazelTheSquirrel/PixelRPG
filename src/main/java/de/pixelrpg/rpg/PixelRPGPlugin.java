@@ -394,7 +394,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
                 regionEditor,
                 shopService,
                 bossRepository,
-                bossManager
+                bossManager,
+                partyManager,
+                guildManager
         );
         getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, event -> {
             event.registrar().register("pixelrpg", pixelRPGCommand);
