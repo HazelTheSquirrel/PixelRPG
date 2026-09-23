@@ -1,7 +1,6 @@
 package de.pixelrpg.rpg.companion;
 
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -10,13 +9,11 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.plugin.Plugin;
 
-import java.util.UUID;
 
 /** Awards companion progression and protects active companion runtime entities from vanilla damage. */
 public final class CompanionExperienceListener implements Listener {
-    private final Plugin plugin;
     private final CompanionService service;
-    public CompanionExperienceListener(Plugin plugin,CompanionService service){this.plugin=plugin;this.service=service;}
+    public CompanionExperienceListener(Plugin plugin,CompanionService service){this.service=service;}
 
     // Awards the configured mob-kill experience to the active companion of the killer.
     @EventHandler
