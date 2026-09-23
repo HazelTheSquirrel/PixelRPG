@@ -27,6 +27,6 @@ public final class EnrageBuffPattern implements BossAttackPattern {
         boss.getWorld().playSound(boss.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.5f, 0.7f);
 
         Component message = Component.text("The boss enters a rage!", NamedTextColor.DARK_RED);
-        targets.stream().filter(Player::isOnline).forEach(player -> player.sendMessage(message));
+        targets.stream().filter(player -> player.isOnline()).forEach(player -> player.sendMessage(message));
     }
 }
