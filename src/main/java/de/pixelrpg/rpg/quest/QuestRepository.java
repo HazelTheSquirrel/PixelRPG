@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 
-public final class QuestRepository {
+public final class QuestRepository implements AutoCloseable {
     private static final int MAX_ACTIVE_QUESTS = 5;
 
     private final Plugin plugin;
