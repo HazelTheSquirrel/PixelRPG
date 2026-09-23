@@ -124,6 +124,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private GuildManager guildManager;
     private ScoreboardService scoreboardService;
     private PlaytimeTracker playtimeTracker;
+    private de.pixelrpg.rpg.companion.CompanionMountListener companionMountListener;
 
     @Override
     public void onEnable() {
@@ -254,7 +255,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
             companionSystem.register();
             getServer().getPluginManager().registerEvents(new QuestCompanionRewardListener(questService, companionSystem.service(), playerProfileManager), this);
             getServer().getPluginManager().registerEvents(new CompanionNpcListener(npcRuntime, new CompanionDialogService(companionSystem.service(), new DialogueEngine())), this);
-            getServer().getPluginManager().registerEvents(new de.pixelrpg.rpg.companion.CompanionMountListener(this, companionSystem.service()), this);
+            companionMountListener = new de.pixelrpg.rpg.companion.CompanionMountListener(this, companionSystem.service());
+            getServer().getPluginManager().registerEvents(companionMountListener, this);
         })).exceptionally(failure -> { getLogger().log(java.util.logging.Level.SEVERE, "Failed to load companion definitions.", failure); return null; });
 
         ExecutorService storyIo = Executors.newSingleThreadExecutor(runnable -> {
@@ -446,6 +448,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
             if (bossManager != null) { bossManager.shutdownAll(); bossManager = null; }
             if (playtimeTracker != null) { playtimeTracker.flushAll(); playtimeTracker = null; }
             if (scoreboardService != null) { scoreboardService.close(); scoreboardService = null; }
+            if (companionMountListener != null) { companionMountListener.close(); companionMountListener = null; }
             getServer().getServicesManager().unregister(ItemAPI.class);
             lifecycle.close();
             if (dialogueIo != null) {
