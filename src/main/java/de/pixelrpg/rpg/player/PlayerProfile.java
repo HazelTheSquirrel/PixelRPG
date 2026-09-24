@@ -1,6 +1,8 @@
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.core.Level;
+import de.pixelrpg.rpg.equipment.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.quest.QuestProgress;
 
@@ -24,6 +26,7 @@ public final class PlayerProfile {
     private final Set<String> unlockedWaypoints = new HashSet<>();
     private final Set<String> completedQuests = new HashSet<>();
     private final Map<String, QuestProgress> activeQuests = new HashMap<>();
+    private final EnumMap<EquipmentSlot, ItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
     private long persistenceRevision;
     private long mutationRevision;
     private boolean dirty;
@@ -198,6 +201,21 @@ public final class PlayerProfile {
         return questId != null && activeQuests.containsKey(questId);
     }
 
+    public synchronized Map<EquipmentSlot, ItemStack> getEquipment() {
+        Map<EquipmentSlot, ItemStack> copy = new EnumMap<>(EquipmentSlot.class);
+        equipment.forEach((slot, item) -> copy.put(slot, item.clone()));
+        return Map.copyOf(copy);
+    }
+
+    public void setEquipment(Map<EquipmentSlot, ItemStack> values) {
+        mutate(() -> {
+            equipment.clear();
+            if (values != null) values.forEach((slot, item) -> {
+                if (slot != null && item != null && !item.isEmpty()) equipment.put(slot, item.clone());
+            });
+        });
+    }
+
     public synchronized Map<String, QuestProgress> getActiveQuests() {
         return Map.copyOf(activeQuests);
     }
@@ -254,6 +272,7 @@ public final class PlayerProfile {
         snapshot.unlockedRecipes.addAll(unlockedRecipes);
         snapshot.unlockedWaypoints.addAll(unlockedWaypoints);
         snapshot.completedQuests.addAll(completedQuests);
+        equipment.forEach((slot, item) -> snapshot.equipment.put(slot, item.clone()));
         for (QuestProgress progress : activeQuests.values()) {
             QuestProgress copy = new QuestProgress(progress.getQuestId(), progress.getCurrentAmount(), progress.getExpiryTimestampMillis());
             snapshot.activeQuests.put(copy.getQuestId(), copy);
@@ -275,6 +294,7 @@ public final class PlayerProfile {
             unlockedWaypoints.clear();
             completedQuests.clear();
             activeQuests.clear();
+            equipment.clear();
             for (Profession profession : Profession.values()) {
                 professionLevels.put(profession, Profession.MIN_LEVEL);
                 professionExperience.put(profession, 0L);
