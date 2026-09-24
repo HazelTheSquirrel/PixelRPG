@@ -64,11 +64,14 @@ public final class TravelDialog {
         );
 
         if (destinations.isEmpty()) {
-            dialogueEngine.openNotice(
+            dialogueEngine.openMultiAction(
                     player,
                     Component.text("Reisen", NamedTextColor.GOLD),
-                    Component.text("Du hast noch keinen weiteren Reisepunkt freigeschaltet.", NamedTextColor.WHITE),
-                    Component.text("Schließen", NamedTextColor.GRAY));
+                    List.of(DialogBody.plainMessage(Component.text(
+                            "Du hast noch keinen weiteren Reisepunkt freigeschaltet.",
+                            NamedTextColor.WHITE))),
+                    List.of(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction)),
+                    1);
             return;
         }
 
