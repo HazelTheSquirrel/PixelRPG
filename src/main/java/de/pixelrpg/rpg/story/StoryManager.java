@@ -149,7 +149,7 @@ public final class StoryManager {
                 List.of("Der Enderdrache bewacht das Zentrum des Endes.",
                         "End Cities und Endschiffe liegen jenseits der zentralen Inseln."), 1800L);
 
-        chapter(yaml, 9, "after_the_end", "Was hinter dem Ende bleibt", 91, "", "the_archivist",
+        chapter(yaml, 9, "after_the_end", "Was hinter dem Ende bleibt", 91, "minecraft:end_city", "the_archivist",
                 List.of("story_after_the_end"),
                 List.of("Sculk, Nether, Strongholds und das End bilden ein Muster.",
                         "Das Muster ist real; die vollständige Erklärung ist es noch nicht."), 2500L);
