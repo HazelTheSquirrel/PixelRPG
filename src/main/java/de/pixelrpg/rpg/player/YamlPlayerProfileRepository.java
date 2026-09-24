@@ -53,6 +53,12 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
                 for (String recipe : yaml.getStringList("unlocked-recipes")) profile.unlockRecipe(recipe);
                 for (String waypoint : yaml.getStringList("unlocked-waypoints")) profile.unlockWaypoint(waypoint);
                 for (String quest : yaml.getStringList("completed-quests")) profile.markQuestCompleted(quest);
+                var active = yaml.getConfigurationSection("active-quests");
+                if (active != null) for (String questId : active.getKeys(false)) {
+                    profile.startQuest(new de.pixelrpg.rpg.quest.QuestProgress(questId,
+                            yaml.getInt("active-quests." + questId + ".current", 0),
+                            yaml.getLong("active-quests." + questId + ".expiry", 0L)));
+                }
 
                 profile.revision(yaml.getLong("revision", 0L));
                 profile.markClean();
@@ -83,6 +89,10 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
                 yaml.set("unlocked-recipes", new ArrayList<>(profile.getUnlockedRecipes()));
                 yaml.set("unlocked-waypoints", new ArrayList<>(profile.getUnlockedWaypoints()));
                 yaml.set("completed-quests", new ArrayList<>(profile.getCompletedQuests()));
+                for (var entry : profile.getActiveQuests().entrySet()) {
+                    yaml.set("active-quests." + entry.getKey() + ".current", entry.getValue().getCurrentAmount());
+                    yaml.set("active-quests." + entry.getKey() + ".expiry", entry.getValue().getExpiryTimestampMillis());
+                }
                 yaml.set("revision", profile.revision());
 
                 Path target = directory.resolve(profile.uniqueId() + ".yml");
