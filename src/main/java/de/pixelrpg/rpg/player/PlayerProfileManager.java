@@ -163,6 +163,7 @@ public final class PlayerProfileManager implements EconomyAPI, GuildAPI, AutoClo
         if (waypointId == null || waypointId.isBlank()) return;
         PlayerProfile profile = activeProfiles.get(uuid);
         if (profile == null) return;
+        profile.unlockWaypoint(waypointId);
         persistAsync(profile);
     }
 
