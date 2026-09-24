@@ -9,7 +9,7 @@ import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.Player;\n\nimport java.util.function.Consumer;
 
 public final class TravelBehavior implements NpcBehavior {
     private final NpcManager npcManager;
@@ -46,6 +46,6 @@ public final class TravelBehavior implements NpcBehavior {
             );
             return;
         }
-        new TravelDialog(npcManager, profileManager, dialogueEngine).open(player, npc.id());
+        new TravelDialog(npcManager, profileManager, dialogueEngine).open(player, npc.id(), backAction);
     }
 }
