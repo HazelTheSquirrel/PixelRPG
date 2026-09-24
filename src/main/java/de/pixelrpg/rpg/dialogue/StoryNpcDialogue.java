@@ -378,7 +378,7 @@ public final class StoryNpcDialogue {
         dialogueEngine.openMultiAction(player, Component.text("Eine Theorie", NamedTextColor.GOLD), body,
                 List.of(
                         dialogueEngine.actionButton(Component.text("Zur Untersuchung"), NamedTextColor.AQUA, target -> openChapter(target, chapter, npc)),
-                        dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog)
+                        dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, target -> openArchaeologist(target, chapter, npc))
                 ), 1);
     }
 }
