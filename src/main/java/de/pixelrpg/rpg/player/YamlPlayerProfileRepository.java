@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.profession.Profession;
+import de.pixelrpg.rpg.equipment.EquipmentSlot;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.nio.file.Files;
