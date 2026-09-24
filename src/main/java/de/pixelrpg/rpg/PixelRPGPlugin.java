@@ -57,7 +57,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         partyManager = new PartyManager(this);
         getServer().getPluginManager().registerEvents(new PartyDisconnectListener(partyManager), this);
         statEngine = new de.pixelrpg.rpg.stats.StatEngine(profiles);
-        equipmentService = new EquipmentService(profiles, statEngine);
+        equipmentService = new EquipmentService(this, profiles, statEngine);
         statisticsService = new StatisticsService(statEngine);
         foodService = new FoodService(this);
         itemService = new ItemService(this, foodService);
