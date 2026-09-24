@@ -13,7 +13,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.List;\nimport java.util.function.Consumer;
 
 /** Native reception dialog used to register a player and expose guild and party entries. */
 public final class ReceptionDialog {
@@ -21,14 +21,14 @@ public final class ReceptionDialog {
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
     private final PartyManager partyManager;
-    private final GuildManager guildManager;
+    private final GuildManager guildManager;\n    private final Consumer<Player> backAction;
 
     public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
-        this(player, profileManager, dialogueEngine, null, null);
+        this(player, profileManager, dialogueEngine, null, null, Player::closeDialog);
     }
 
     public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine, PartyManager partyManager) {
-        this(player, profileManager, dialogueEngine, partyManager, null);
+        this(player, profileManager, dialogueEngine, partyManager, null, Player::closeDialog);
     }
 
     public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine, PartyManager partyManager, GuildManager guildManager) {
@@ -75,7 +75,7 @@ public final class ReceptionDialog {
                     Component.text(profile.isScoreboardEnabled() ? "Scoreboard ausschalten" : "Scoreboard einschalten", NamedTextColor.GOLD),
                     NamedTextColor.GOLD, this::toggleScoreboard));
         }
-        dialogueEngine.openMultiAction(player, Component.text("RPG-Registrierung", NamedTextColor.GOLD), body, actions, 1);
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));\n        dialogueEngine.openMultiAction(player, Component.text("RPG-Registrierung", NamedTextColor.GOLD), body, actions, 1);
     }
 
     private void openStoryChapter(Player target, de.pixelrpg.rpg.story.StoryChapter chapter) {
