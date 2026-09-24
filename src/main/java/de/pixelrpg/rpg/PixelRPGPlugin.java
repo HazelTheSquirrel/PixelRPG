@@ -213,7 +213,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new StoryTriggerListener(storyLocationRegistry), this);
         StoryNpcVisibilityListener storyNpcVisibility = new StoryNpcVisibilityListener(this, playerProfileManager, questRepository, storyManager, npcManager);
         getServer().getPluginManager().registerEvents(storyNpcVisibility, this);
-        lifecycle.register(storyNpcVisibility::shutdown);
+        lifecycle.register(storyNpcVisibility);
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0), getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
         DialogueEngine dialogueEngine = new DialogueEngine();
