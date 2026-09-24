@@ -179,7 +179,7 @@ public final class ProfessionDialog {
                     Component.text(recipe.displayName() + state),
                     unlocked ? NamedTextColor.GREEN : NamedTextColor.YELLOW,
                     target -> openRecipeDetails(target, recipe, false,
-                            back -> openProfessionRecipeCategory(back, profession, category))
+                            back -> openProfessionRecipeCategory(back, profession, category, backAction))
             ));
         }
 
