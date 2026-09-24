@@ -15,12 +15,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Set;
 import java.util.logging.Level;
 
 /** Persistent, level-gated story campaign and validated lore registry. */
 public final class StoryManager {
     private static final int MAX_CHAPTERS = 64;
-    private static final int STORY_VERSION = 5;
+    private static final int STORY_VERSION = 6;
 
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
@@ -38,7 +39,7 @@ public final class StoryManager {
         if (!file.exists()) installBundledCampaign(false);
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
 
-        if (yaml.getInt("story-version", 1) < STORY_VERSION && isPreviousDefault(yaml)) {
+        if (yaml.getInt("story-version", 1) < STORY_VERSION && (isPreviousDefault(yaml) || isPreviousCampaignV5(yaml))) {
             installBundledCampaign(true);
             yaml = YamlConfiguration.loadConfiguration(file);
         }
@@ -131,6 +132,40 @@ public final class StoryManager {
         return ids.size() == known.size() && ids.containsAll(known);
     }
 
+    private boolean isPreviousCampaignV5(YamlConfiguration yaml) {
+        if (!"minecraft-lore-campaign".equalsIgnoreCase(yaml.getString("campaign-id", ""))) return false;
+        ConfigurationSection root = yaml.getConfigurationSection("chapters");
+        if (root == null) return false;
+        List<String> known = List.of(
+                "first_traces","campaign_village_plains","campaign_shipwreck","campaign_desert_pyramid","campaign_jungle_pyramid",
+                "campaign_swamp_hut","campaign_ocean_ruin_warm","campaign_ocean_ruin_cold","campaign_monument","campaign_buried_treasure",
+                "trail_ruins_archaeology","campaign_mineshaft","campaign_mineshaft_mesa","campaign_igloo","campaign_pillager_outpost",
+                "campaign_mansion","campaign_ruined_portal_desert","campaign_ruined_portal_jungle","campaign_ruined_portal_swamp",
+                "campaign_ruined_portal_mountain","campaign_ruined_portal_ocean","campaign_ruined_portal_nether","campaign_ruined_portal",
+                "under_the_stone","campaign_nether_fossil","campaign_fortress","campaign_bastion_remnant","campaign_trial_chambers",
+                "campaign_stronghold","campaign_end_city","campaign_shipwreck_beached","campaign_village_desert","campaign_village_savanna",
+                "campaign_village_snowy","campaign_village_taiga"
+        );
+        List<String> ids = root.getKeys(false).stream().toList();
+        return ids.size() == known.size() && ids.containsAll(known);
+    }
+
+    private static final Set<String> REMOVED_STORY_QUESTS = Set.of(
+            "story_campaign_ocean_ruin_cold","story_campaign_buried_treasure","story_campaign_mineshaft_mesa",
+            "story_campaign_igloo","story_campaign_ruined_portal_desert","story_campaign_ruined_portal_jungle",
+            "story_campaign_ruined_portal_swamp","story_campaign_ruined_portal_mountain","story_campaign_ruined_portal_ocean",
+            "story_campaign_ruined_portal_nether","story_campaign_nether_fossil","story_campaign_trial_chambers",
+            "story_campaign_shipwreck_beached","story_campaign_village_desert","story_campaign_village_savanna",
+            "story_campaign_village_snowy","story_campaign_village_taiga"
+    );
+
+    private void migrateLegacyStoryQuests(PlayerProfile profile) {
+        if (profile == null) return;
+        for (String questId : REMOVED_STORY_QUESTS) {
+            if (profile.hasActiveQuest(questId)) profile.removeActiveQuest(questId);
+        }
+    }
+
     private String clean(Object value) {
         if (value == null) return null;
         String result = String.valueOf(value).trim();
@@ -141,6 +176,7 @@ public final class StoryManager {
         if (uuid == null) return Optional.empty();
         PlayerProfile profile = profileManager.getProfile(uuid).orElse(null);
         if (profile == null) return Optional.empty();
+        migrateLegacyStoryQuests(profile);
         int nextOrder = profile.getStoryChapterIndex() + 1;
         return chapters.stream()
                 .filter(chapter -> chapter.order() == nextOrder && profile.getLevel() >= chapter.requiredLevel())
@@ -154,14 +190,18 @@ public final class StoryManager {
     public boolean isNextChapter(UUID uuid, StoryChapter chapter) {
         if (uuid == null || chapter == null) return false;
         PlayerProfile profile = profileManager.getProfile(uuid).orElse(null);
-        return profile != null && profile.getStoryChapterIndex() + 1 == chapter.order()
+        if (profile == null) return false;
+        migrateLegacyStoryQuests(profile);
+        return profile.getStoryChapterIndex() + 1 == chapter.order()
                 && profile.getLevel() >= chapter.requiredLevel();
     }
 
     public boolean completeChapter(Player player, StoryChapter chapter) {
         if (player == null || chapter == null) return false;
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || profile.getStoryChapterIndex() + 1 != chapter.order()
+        if (profile == null) return false;
+        migrateLegacyStoryQuests(profile);
+        if (profile.getStoryChapterIndex() + 1 != chapter.order()
                 || profile.getLevel() < chapter.requiredLevel()) return false;
         String completionQuest = chapter.completionQuestId();
         if (!completionQuest.isBlank() && !profile.hasCompletedQuest(completionQuest)) return false;
