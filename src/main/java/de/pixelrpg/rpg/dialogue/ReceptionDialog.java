@@ -63,11 +63,59 @@ public final class ReceptionDialog {
                 actions.add(dialogueEngine.actionButton(Component.text("Gilde", NamedTextColor.GOLD), NamedTextColor.GOLD,
                         target -> new GuildDialog(guildManager, profileManager, dialogueEngine).open(target)));
             }
+            PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
+            if (pixelRPG != null && pixelRPG.getStoryManager() != null && pixelRPG.getQuestManager() != null) {
+                pixelRPG.getStoryManager().getNextChapterFor(player.getUniqueId()).ifPresent(chapter ->
+                        actions.add(dialogueEngine.actionButton(
+                                Component.text("Story: " + chapter.title(), NamedTextColor.LIGHT_PURPLE),
+                                NamedTextColor.LIGHT_PURPLE,
+                                target -> openStoryChapter(target, chapter))));
+            }
             actions.add(dialogueEngine.actionButton(
                     Component.text(profile.isScoreboardEnabled() ? "Scoreboard ausschalten" : "Scoreboard einschalten", NamedTextColor.GOLD),
                     NamedTextColor.GOLD, this::toggleScoreboard));
         }
         dialogueEngine.openMultiAction(player, Component.text("RPG-Registrierung", NamedTextColor.GOLD), body, actions, 1);
+    }
+
+    private void openStoryChapter(Player target, de.pixelrpg.rpg.story.StoryChapter chapter) {
+        PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
+        if (pixelRPG == null || pixelRPG.getStoryManager() == null || pixelRPG.getQuestManager() == null) return;
+
+        String questId = chapter.startQuestId();
+        if (questId.isBlank()) {
+            new StoryNpcDialogue(profileManager, pixelRPG.getStoryManager(), dialogueEngine).openChapter(target, chapter);
+            return;
+        }
+
+        var quest = pixelRPG.getQuestManager().getRepository().getQuest(questId);
+        if (quest == null) return;
+        PlayerProfile profile = profileManager.getProfile(target.getUniqueId()).orElse(null);
+        if (profile == null) return;
+
+        boolean active = profile.hasActiveQuest(quest.id());
+        boolean completed = profile.hasCompletedQuest(quest.id());
+        List<DialogBody> body = List.of(
+                DialogBody.plainMessage(Component.text(chapter.title(), NamedTextColor.GOLD)),
+                DialogBody.plainMessage(Component.text(quest.description(), NamedTextColor.WHITE)),
+                DialogBody.plainMessage(Component.text("Freigeschaltet ab Level " + chapter.requiredLevel(), NamedTextColor.AQUA))
+        );
+        List<ActionButton> actions = new ArrayList<>();
+        if (!active && !completed) {
+            actions.add(dialogueEngine.actionButton(Component.text("Quest annehmen", NamedTextColor.GREEN), NamedTextColor.GREEN,
+                    next -> {
+                        PixelRPGPlugin current = PixelRPGPlugin.getInstance();
+                        if (current != null && current.getQuestManager() != null) current.getQuestManager().acceptQuest(next, quest);
+                        openStoryChapter(next, chapter);
+                    }));
+        } else if (active) {
+            actions.add(dialogueEngine.actionButton(Component.text("Quest bereits aktiv", NamedTextColor.YELLOW), NamedTextColor.YELLOW,
+                    next -> openStoryChapter(next, chapter)));
+        }
+        actions.add(dialogueEngine.actionButton(Component.text("Geschichte erfahren", NamedTextColor.LIGHT_PURPLE),
+                next -> new StoryNpcDialogue(profileManager, pixelRPG.getStoryManager(), dialogueEngine).openChapter(next, chapter)));
+        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
+        dialogueEngine.openMultiAction(target, Component.text("Story & Lore", NamedTextColor.GOLD), body, actions, 1);
     }
 
     private void toggleScoreboard(Player target) {
