@@ -76,12 +76,26 @@ public final class StoryNpcDialogue {
                 PlayerProfile current = profileManager.getProfile(target.getUniqueId()).orElse(null);
                 if (current == null || !current.isRegistered()) return;
                 if (questManager.completeQuestAtNpc(target, completionQuest.id(), npc.id())
-                        && storyManager.completeChapter(target, chapter)) target.closeDialog();
-                else openChapter(target, chapter, npc);
+                        && storyManager.completeChapter(target, chapter)) {
+                    advanceAfterEndCity(target, chapter);
+                    target.closeDialog();
+                } else {
+                    openChapter(target, chapter, npc);
+                }
             }));
         }
         actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
         dialogueEngine.openMultiAction(player, Component.text(chapter.title(), NamedTextColor.GOLD), body, actions, 1);
+    }
+
+    private void advanceAfterEndCity(Player player, StoryChapter chapter) {
+        if (!"campaign_end_city".equals(chapter.id()) || questManager == null) return;
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered()) return;
+        Quest epilogue = questManager.getRepository().getQuest("story_campaign_after_the_end");
+        if (epilogue == null || profile.hasActiveQuest(epilogue.id()) || profile.hasCompletedQuest(epilogue.id())) return;
+        if (profile.getLevel() < epilogue.requiredLevel()) return;
+        questManager.acceptQuest(player, epilogue);
     }
 
     private void openArchaeologist(Player player, StoryChapter chapter, RPGNpc npc) {
