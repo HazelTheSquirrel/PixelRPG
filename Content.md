@@ -2818,3 +2818,75 @@ Die verbleibende Hauptbaustelle ist nicht mehr das Framework.
 Damit ist die Liste wesentlich kleiner als bei der vorherigen Content-Prüfung.
 
 **Der größte Fehler wäre jetzt, erneut die bereits fertigen Systeme umzubauen. Ab diesem Stand sollte der Fokus fast vollständig auf Weltplatzierung, Storytexten und anschließendem Balancing liegen.**
+
+
+---
+
+# 36. Content-Audit Update — Story-Kampagne Level 1–99 abgeschlossen
+
+**Stand:** 24.09.2026  
+**Branch:** `test`
+
+Die zuvor offene P0/P1-Lücke der linearen Hauptkampagne wurde geschlossen.
+
+## Hauptkampagne
+
+Die Kampagne besitzt jetzt eine durchgängige `order`-Kette von **0 bis 19**:
+
+1. Die ersten Spuren
+2. Dorf der ersten Stimmen
+3. verlorene Flotte
+4. Wüstenpyramide
+5. Dschungeltempel
+6. Hexenhütte
+7. Ozeanruinen
+8. Ozeanmonument
+9. Trail Ruins
+10. Mineshaft
+11. Pillager Outpost
+12. Woodland Mansion
+13. Ruined Portal
+14. Ancient City
+15. Nether Fortress
+16. Bastion Remnant
+17. Stronghold
+18. Enderdrache
+19. End City / Archiv nach dem Ende
+
+Die zehn gewünschten Arcs sind über das YAML-Feld `arc` abgebildet.
+
+## Endgame
+
+### Level 81–90 — Der Drache
+
+- Stronghold
+- Endportal
+- Enderdrache
+- HUNT-Quest `story_campaign_dragon`
+- vorhandenes Quest-Mob-Kill-System
+- keine zusätzliche parallele Killpipeline
+
+### Level 91–99 — Was hinter dem Ende bleibt
+
+- End City / Endschiff
+- Elytra-/End-City-Lore
+- Endermen als ausdrücklich gekennzeichnete In-World-Hypothese
+- abschließendes Archiv
+- Level-99-Epilog
+- Quest `story_campaign_after_the_end`
+
+Der Epilog wird nach Abschluss der End-City-Kampagne automatisch als Folgequest aktiviert und bleibt bis Level 99 aktiv. Dadurch kann derselbe bereits gespawnte Story-NPC Silex weiterhin sichtbar bleiben, ohne einen zusätzlichen globalen NPC-Spawn zu benötigen.
+
+## Status
+
+**Story-Kampagne: 🟢 CONTENT-SEITIG VOLLSTÄNDIG**
+
+Noch offen sind ausschließlich Runtime-/Playtest-/Balancing-Fragen.
+
+Die bewusst pausierten Bereiche bleiben unverändert:
+- Food
+- globale NPC-Weltpopulation
+- Guild City
+- Regionen
+- Resourcepack-Ausbau
+- manuelle Shop-Befüllung
