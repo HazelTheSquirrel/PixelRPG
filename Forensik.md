@@ -1097,3 +1097,138 @@ Nicht durch diesen Audit nachgewiesen:
 - Laufzeitverhalten externer Skin-Server
 
 Diese Punkte benötigen reproduzierbare Runtime-/Integrationstests und werden nicht aus statischem Code allein als Fakt behauptet.
+
+
+---
+
+# 23. Post-Forensik Refactoring / Hardening Pass
+
+**Ausgangslage:** Das Plugin ist funktional bereits als SOLL-Zustand verifiziert. Deshalb wurden ausschließlich Änderungen vorgenommen, die die beobachtete Spielerfunktion nicht verändern sollen. Es wurden keine Features, Commands, Rezepte, Questdefinitionen, Dialoge, NPC-Daten, Rewards oder Spielregeln geändert.
+
+## 23.1 DebugSubCommand.java
+
+### Änderung
+Die Permission des Debug-Subcommands wurde von:
+
+pixelrpg.admin
+
+auf die im Projekt tatsächlich deklarierte und für die übrigen Admin-Kommandos verwendete Permission:
+
+rpg.admin
+
+vereinheitlicht.
+
+### Wirkung
+- Behebt die im ursprünglichen Audit festgestellte Permission-Inkonsistenz.
+- Keine Änderung an Debug-Ausgaben oder Command-Syntax.
+- Der Command erhält damit lediglich wieder die bereits vorgesehene Admin-Zugriffskontrolle.
+
+**Status: erledigt — P1.1**
+
+## 23.2 PlayerProfileManager.java
+
+### Änderung
+Beim Fehlerpfad der MySQL-Initialisierung wird ein bereits aufgebauter DatabaseManager vor dem YAML-Fallback explizit geschlossen.
+
+Zusätzlich wird die Referenz nach dem Cleanup auf null gesetzt. Das Schließen selbst ist erneut gegen Runtime-Fehler abgesichert und wird nur geloggt.
+
+### Wirkung
+- Verhindert, dass ein erfolgreich aufgebauter Hikari-Pool beim anschließenden YAML-Fallback offen bleibt.
+- Keine Änderung am erfolgreichen MySQL-Pfad.
+- Keine Änderung am YAML-Pfad.
+- Keine Änderung an Save-/Load-Timing oder Profilformat.
+
+**Status: erledigt — P1.2**
+
+## 23.3 NpcNameVisibilityService.java
+
+### Änderung
+Die vorhandene NMS-Reflection wurde nicht durch eine neue API ersetzt und ihre funktionale Packet-Logik wurde nicht verändert.
+
+Stattdessen werden die bereits verwendeten Reflection-Objekte nach erfolgreicher Auflösung gecacht:
+
+- DATA_CUSTOM_NAME_VISIBLE
+- DataValue.create(...)
+- ClientboundSetEntityDataPacket-Konstruktor
+- packetListener-Field für den tatsächlichen Connection-Typ
+- send(Packet)-Methode für den tatsächlich aufgelösten Listener-Typ
+
+Die ursprüngliche Runtime-Typauflösung für Connection und Packet Listener bleibt erhalten. Zusätzlich werden null-Argumente defensiv ignoriert.
+
+### Wirkung
+Vorher wurden die gleichen Klassen-/Feld-/Methoden-Reflectionen bei jedem sichtbarkeitsbezogenen Aufruf erneut aufgelöst. Jetzt erfolgt die teure Suche einmalig und wird anschließend wiederverwendet.
+
+Damit sinken:
+- Reflection-Lookups,
+- Klassenauflösungen,
+- Field-/Method-Scans,
+- unnötige temporäre Reflection-Objekte.
+
+Der tatsächlich gesendete Packet-Typ und dessen Werte bleiben unverändert.
+
+**Wichtig:** Die NMS-Abhängigkeit bleibt weiterhin versionssensitiv. Die Änderung reduziert den Laufzeit-Overhead, beseitigt aber nicht das grundsätzliche Upgrade-Risiko der internen NMS-Reflection.
+
+**Status: gehärtet — P1.3 teilweise umgesetzt**
+
+## 23.4 Bewusst nicht geändert: Quest-Locator
+
+Der ursprüngliche Audit hatte QuestManager.checkReachLocationQuests() als möglichen Performance-Hotspot identifiziert.
+
+Eine aggressive Verlagerung von Bukkit-World-Lookups in Async-Threads wurde hier nicht vorgenommen, weil World-/Location-Operationen auf dem Serverthread verbleiben müssen und eine unbedachte Asynchronisierung den funktionalen SOLL-Zustand gefährden könnte.
+
+Auch eine zusätzliche Completion-Cache-Schicht wurde nicht eingeführt, weil dadurch bei sich verändernden World-/Structure-/Biome-Zielen die bisherige exakte Completion-Semantik verändert werden könnte.
+
+**Ergebnis:** Kein riskantes Performance-Refactoring auf Kosten der funktionalen Identität.
+
+## 23.5 Bewusst nicht geändert: ExternalSkinService
+
+Der bestehende SSRF-Schutz, URL-/Host-Validierung, Response-Limitierung und asynchrone HTTP-Pfad waren bereits verhältnismäßig robust.
+
+Eine weitere Änderung hätte eine neue Netzwerksemantik eingeführt und wurde deshalb in diesem SOLL-erhaltenden Refactoring nicht erzwungen.
+
+## 23.6 Gesamtumfang der Änderungen
+
+Geändert wurden ausschließlich:
+
+- DebugSubCommand.java
+- PlayerProfileManager.java
+- NpcNameVisibilityService.java
+
+Nicht geändert wurden:
+
+- Commandsyntax
+- Gameplay
+- Quests
+- Rezepte
+- Items
+- NPC-Konfigurationen
+- Dialoge
+- Rewards
+- Datenformate
+- Economy-Regeln
+- Party-/Guild-Regeln
+- Bossmechaniken
+- Resourcepack-Inhalte
+
+## 23.7 Verifikation
+
+Der aktuelle Entwicklungsstand liegt weiterhin ausschließlich auf Branch test.
+
+Aktueller Head:
+
+e7271d6fe23b0ae8e1eb3763d2ba588173fcc7ce
+
+Der GitHub-Status dieses Commits liefert derzeit keine hinterlegten CI-Statusmeldungen. Ein vollständiger Paper-26.2-Runtime-Smoke-Test wurde in dieser Umgebung daher nicht behauptet.
+
+Für den finalen produktiven Einsatz gilt weiterhin: die neu gebaute JAR sollte nach dem Build einmal gegen denselben bereits erfolgreichen Server-/Gameplay-Testlauf geprüft werden.
+
+## 23.8 Aktualisierte Bewertung
+
+Der ursprüngliche statische Wert von **7,5/10** bleibt als konservative Basisbewertung bestehen, weil die Änderungen zwar konkrete P1-Risiken beheben bzw. entschärfen, aber keine zusätzliche Runtime-/Load-/Restart-Verifikation ersetzen.
+
+Der technische Zustand ist damit unter den geprüften statischen Kriterien verbessert, während die wesentlichen verbleibenden Risiken weiterhin sind:
+
+1. versionssensitives internes NMS im NPC-Name-Visibility-Pfad,
+2. World-Locator-Kosten bei sehr vielen aktiven REACH_LOCATION-Quests,
+3. externe Skin-Netzwerkgrenze,
+4. fehlende vollständige automatische Paper-26.2-Runtime-/Restart-Tests.
