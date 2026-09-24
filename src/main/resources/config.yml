@@ -26,7 +26,7 @@ economy:
   bank:
     quick-amount: 10.0
   currency:
-    max-stack-size: 64
+    max-stack-size: 99
 
 combat:
   boss-max-hit-percent-of-max-hp: 0.12
