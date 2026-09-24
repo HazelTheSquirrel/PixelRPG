@@ -16,6 +16,10 @@ import de.pixelrpg.rpg.npc.behavior.TravelBehavior;
 import de.pixelrpg.rpg.combat.CombatDamageListener;
 import de.pixelrpg.rpg.combat.MobExperienceListener;
 import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
+import de.pixelrpg.rpg.stats.MobKillStatisticListener;
+import de.pixelrpg.rpg.stats.PlayerDeathStatisticListener;
+import de.pixelrpg.rpg.stats.QuestBossStatisticListener;
+import de.pixelrpg.rpg.stats.RPGStatsListener;
 import de.pixelrpg.rpg.gui.ShopEditorGUI;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.equipment.EquipmentService;
@@ -109,7 +113,11 @@ public final class PixelRPGPlugin extends JavaPlugin {
         combatDamageListener = new CombatDamageListener(this, profiles, profiles, statEngine,
                 getConfig().getDouble("combat.boss-max-hit-percent-of-max-hp", 0.12D));
         getServer().getPluginManager().registerEvents(combatDamageListener, this);
+        getServer().getPluginManager().registerEvents(new RPGStatsListener(statEngine, profiles), this);
         getServer().getPluginManager().registerEvents(new MobExperienceListener(profiles, mobScalingConfig), this);
+        getServer().getPluginManager().registerEvents(new MobKillStatisticListener(profiles, statisticsService), this);
+        getServer().getPluginManager().registerEvents(new PlayerDeathStatisticListener(profiles, statisticsService), this);
+        getServer().getPluginManager().registerEvents(new QuestBossStatisticListener(statisticsService), this);
         getServer().getPluginManager().registerEvents(new QuestLifecycleListener(questService, profiles), this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(shopEditorGUI, this);
