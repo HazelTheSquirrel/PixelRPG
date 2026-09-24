@@ -1258,3 +1258,24 @@ Der Block ist **nicht VERIFIED**. Es fehlen insbesondere die vollständige Equip
 ### Aktueller Rebuild-Head
 
 `f397d97fe18ebe06e4524df2db977bb1b53c091f`
+
+
+## 32. Profession Runtime Integration — 2026-09-24
+
+**REBUILT / NOT VERIFIED**
+
+Die Profession-Foundation wurde bis zur Runtime-Anbindung erweitert:
+
+- ProfessionSystem ergänzt;
+- CraftingRecipeRegistry lädt die bestehende große Rezeptdefinition und validiert Kategorien, Materialien, Level, Tränke und Verzauberungen;
+- CraftingService führt freigeschaltete Rezepte aus und vergibt Berufs-XP;
+- ProfessionService verwaltet Lernen, Rezeptfreischaltung und XP/Level;
+- ProfessionActivityListener verbindet relevante Vanilla-Aktivitäten mit den neun Berufen;
+- PlayerProfile-Persistence enthält Berufslevel, Berufs-XP, erlernte Berufe, Rezepte und Waypoints;
+- Plugin-Lifecycle registriert den Profession-Runtime-Listener.
+
+Der Status bleibt **NOT VERIFIED**, da insbesondere die vollständige CraftingGUI, NPC-Einstiege, Quest-Verknüpfungen, sämtliche Rezept-Sonderfälle und End-to-End-Parität gegen main noch fehlen.
+
+### Aktueller Rebuild-Head
+
+`dac9162117a66634ce7b27174c3759943b770989`
