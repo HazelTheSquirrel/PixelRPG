@@ -1,10 +1,10 @@
 package de.pixelrpg.rpg.equipment;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatEngine;
 import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -20,10 +20,12 @@ import java.util.EnumMap;
 import java.util.Map;
 
 public final class EquipmentService implements Listener {
+    private final JavaPlugin plugin;
     private final PlayerProfileManager profiles;
     private final StatEngine stats;
 
-    public EquipmentService(PlayerProfileManager profiles, StatEngine stats) {
+    public EquipmentService(JavaPlugin plugin, PlayerProfileManager profiles, StatEngine stats) {
+        this.plugin = plugin;
         this.profiles = profiles;
         this.stats = stats;
     }
@@ -51,7 +53,7 @@ public final class EquipmentService implements Listener {
         int slot = event.getSlot();
         if ((slot >= 36 && slot <= 40)
                 || (slot >= 0 && slot <= 8 && player.getInventory().getHeldItemSlot() == slot)) {
-            player.getScheduler().runDelayed(PixelRPGPlugin.getInstance(), task -> refresh(player), null, 1L);
+            player.getScheduler().runDelayed(plugin, task -> refresh(player), null, 1L);
         }
     }
 
