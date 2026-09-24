@@ -57,7 +57,7 @@ public final class ReceptionDialog {
             actions.add(dialogueEngine.actionButton(Component.text("PixelRPG-Registrierung aufheben"), NamedTextColor.RED, this::openLeaveConfirmation));
             if (partyManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Party", NamedTextColor.AQUA), NamedTextColor.AQUA,
-                        target -> new PartyDialog(partyManager, profileManager, dialogueEngine, PixelRPGPlugin.getInstance().getInviteDialogService()).open(target)));
+                        target -> new PartyDialog(partyManager, profileManager, dialogueEngine, PixelRPGPlugin.getInstance().getInviteDialogService(), next -> new ReceptionDialog(next, profileManager, dialogueEngine, partyManager, guildManager).open()).open(target)));
             }
             if (guildManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Gilde", NamedTextColor.GOLD), NamedTextColor.GOLD,
@@ -114,7 +114,8 @@ public final class ReceptionDialog {
         }
         actions.add(dialogueEngine.actionButton(Component.text("Geschichte erfahren", NamedTextColor.LIGHT_PURPLE),
                 next -> new StoryNpcDialogue(profileManager, pixelRPG.getStoryManager(), dialogueEngine).openChapter(next, chapter)));
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE,
+                next -> new ReceptionDialog(next, profileManager, dialogueEngine, partyManager, guildManager).open()));
         dialogueEngine.openMultiAction(target, Component.text("Story & Lore", NamedTextColor.GOLD), body, actions, 1);
     }
 
