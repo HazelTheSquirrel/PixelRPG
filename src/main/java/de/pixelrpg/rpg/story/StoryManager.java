@@ -35,8 +35,8 @@ public final class StoryManager {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         for (Map<?, ?> map : yaml.getMapList("chapters")) {
             int order = number(map.get("order"));
-            String id = String.valueOf(map.getOrDefault("id", ""));
-            String title = String.valueOf(map.getOrDefault("title", ""));
+            String id = String.valueOf(map.get("id") == null ? "" : map.get("id"));
+            String title = String.valueOf(map.get("title") == null ? "" : map.get("title"));
             long exp = map.get("exp-reward") instanceof Number n ? n.longValue() : 0L;
             List<String> lines = new ArrayList<>();
             Object raw = map.get("dialogue");
