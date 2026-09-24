@@ -106,9 +106,7 @@ public final class NpcNameVisibilityService {
     private record ReflectionBridge(
             Object dataAccessor,
             Method dataValueFactory,
-            Constructor<?> packetConstructor,
-            Field packetListenerField,
-            Method sendMethod
+            Constructor<?> packetConstructor
     ) {
         private static ReflectionBridge create() throws ReflectiveOperationException {
             Class<?> entityClass = Class.forName(ENTITY_CLASS);
