@@ -15,9 +15,15 @@ import java.util.*;
 
 public final class ItemService implements ItemAPI {
     private final ItemDefinitionRegistry defs;
+    private final FoodService foodService;
 
     public ItemService(Plugin plugin) {
+        this(plugin, new FoodService(plugin));
+    }
+
+    public ItemService(Plugin plugin, FoodService foodService) {
         defs = new ItemDefinitionRegistry(plugin);
+        this.foodService = java.util.Objects.requireNonNull(foodService, "foodService");
     }
 
     @Override public Optional<ItemStack> createItem(Material material, ItemRarity rarity, int itemLevel) {
@@ -63,6 +69,9 @@ public final class ItemService implements ItemAPI {
         lore.add(Component.text("Ausrüstungswert " + format(pdc.get(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE)), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
+        if (definition.category() == ItemCategory.FOOD) {
+            foodService.configure(item, definition);
+        }
         return item;
     }
 
