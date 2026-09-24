@@ -15,6 +15,10 @@ public final class StatisticsService implements StatisticsAPI {
     private final Map<UUID, EnumMap<StatisticType, Long>> stats = new ConcurrentHashMap<>();
     private final Map<UUID, Map<String, Long>> customStats = new ConcurrentHashMap<>();
     private final Map<UUID, EnumMap<CharacterStatType, Double>> characterStats = new ConcurrentHashMap<>();
+    private final StatEngine statEngine;
+
+    public StatisticsService() { this(null); }
+    public StatisticsService(StatEngine statEngine) { this.statEngine = statEngine; }
 
     @Override
     public long getStatistic(UUID id, StatisticType type) {
@@ -52,6 +56,7 @@ public final class StatisticsService implements StatisticsAPI {
 
     @Override
     public double getCharacterStat(UUID id, CharacterStatType type) {
+        if (statEngine != null && id != null && type != null) return statEngine.getCharacterStat(id, type);
         if (id == null || type == null) {
             return 0.0D;
         }
