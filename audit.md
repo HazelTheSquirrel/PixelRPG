@@ -1300,3 +1300,16 @@ Dieser Block ist **NOT VERIFIED**. Navigation zu Strukturen/Biomen, NPC-Questgeb
 ### Aktueller Rebuild-Head
 
 `2ef8c093daee16667e2e1082a91603cd18c73b9b`
+
+
+## 34. MySQL Schema Initialization Correction — 2026-09-24
+
+**REBUILT / NOT VERIFIED**
+
+Der PlayerProfileManager initialisiert vor der ersten MySQL-Repository-Nutzung jetzt explizit das vorhandene Schema inklusive Migrationen. Damit ist die bestehende DatabaseManager-Schema-/Migrationslogik tatsächlich Bestandteil des Startup-Pfads und nicht nur tote Infrastruktur.
+
+Der Status bleibt **NOT VERIFIED**, bis der aktuelle Rebuild-Head die vollständige CI-Pipeline einschließlich Source-Boundary- und Artifact-Prüfungen erfolgreich durchlaufen hat.
+
+### Aktueller Rebuild-Head
+
+`b999e3080d1d209bd753bc6efa197d45441bb4b7`
