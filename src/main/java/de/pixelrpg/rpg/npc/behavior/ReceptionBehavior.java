@@ -8,7 +8,9 @@ import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import org.bukkit.entity.Player;\n\nimport java.util.function.Consumer;
+import org.bukkit.entity.Player;
+
+import java.util.function.Consumer;
 
 public final class ReceptionBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
