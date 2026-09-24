@@ -15,17 +15,16 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 /** Event-driven quest/navigation runtime; there is no permanent passive polling loop. */
 public final class QuestPassiveCheckTask implements Listener {
     private final Plugin plugin;
     private final QuestManager questManager;
     private final WakeScheduler<UUID> wakeScheduler;
-    private final Map<UUID, BlockPosition> lastBlockByPlayer = new ConcurrentHashMap<>();
+    private BukkitTask throttledTask;
     private QuestNavigationService navigationService;
     private QuestInventoryTracker inventoryTracker;
     private QuestNavigationLifecycleListener navigationLifecycleListener;
@@ -48,6 +47,7 @@ public final class QuestPassiveCheckTask implements Listener {
         plugin.getServer().getPluginManager().registerEvents(inventoryTracker, plugin);
         plugin.getServer().getPluginManager().registerEvents(navigationLifecycleListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        throttledTask = plugin.getServer().getScheduler().runTaskTimer(plugin, this::processOnlinePlayers, 20L, 20L);
         for (Player player : Bukkit.getOnlinePlayers()) wake(player);
     }
 
@@ -67,23 +67,18 @@ public final class QuestPassiveCheckTask implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         questManager.restoreTimers(event.getPlayer());
-        remember(event.getPlayer());
         wake(event.getPlayer());
     }
 
-    // Movement only wakes the location-sensitive quest path when the player crosses a block boundary.
+    // Story structure detection remains event-driven; navigation/progress updates are throttled to one pass per second.
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-        BlockPosition current = BlockPosition.of(event.getTo());
-        BlockPosition previous = lastBlockByPlayer.put(player.getUniqueId(), current);
-        if (previous == null || !previous.equals(current)) wake(player);
+        // Intentionally empty: StoryTriggerListener handles structure/chunk detection.
     }
 
     // A world change invalidates both location checks and navigation targets.
     @EventHandler
     public void onWorldChange(PlayerChangedWorldEvent event) {
-        remember(event.getPlayer());
         wake(event.getPlayer());
     }
 
@@ -110,7 +105,6 @@ public final class QuestPassiveCheckTask implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
         wakeScheduler.cancel(uuid);
-        lastBlockByPlayer.remove(uuid);
     }
 
     private void process(UUID uuid) {
@@ -121,19 +115,23 @@ public final class QuestPassiveCheckTask implements Listener {
         navigationService.refresh(player);
     }
 
-    private void remember(Player player) {
-        lastBlockByPlayer.put(player.getUniqueId(), BlockPosition.of(player.getLocation()));
+    private void processOnlinePlayers() {
+        if (!started || navigationService == null) return;
+        for (Player player : Bukkit.getOnlinePlayers()) process(player.getUniqueId());
     }
 
     public void clear(Player player) {
         if (navigationService != null) navigationService.clear(player);
-        lastBlockByPlayer.remove(player.getUniqueId());
         wakeScheduler.cancel(player.getUniqueId());
     }
 
     public void stop() {
         if (!started) return;
         wakeScheduler.clear();
+        if (throttledTask != null) {
+            throttledTask.cancel();
+            throttledTask = null;
+        }
         if (inventoryTracker != null) {
             inventoryTracker.shutdown();
             HandlerList.unregisterAll(inventoryTracker);
@@ -141,17 +139,10 @@ public final class QuestPassiveCheckTask implements Listener {
         if (navigationLifecycleListener != null) HandlerList.unregisterAll(navigationLifecycleListener);
         HandlerList.unregisterAll(this);
         if (navigationService != null) navigationService.clearAll();
-        lastBlockByPlayer.clear();
         inventoryTracker = null;
         navigationLifecycleListener = null;
         navigationService = null;
         questManager.setQuestStateChangeListener(null);
         started = false;
-    }
-
-    private record BlockPosition(UUID worldId, int x, int y, int z) {
-        private static BlockPosition of(org.bukkit.Location location) {
-            return location == null || location.getWorld() == null ? null : new BlockPosition(location.getWorld().getUID(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
-        }
     }
 }
