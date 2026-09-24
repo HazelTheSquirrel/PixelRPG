@@ -29,6 +29,10 @@ public final class PartyGUI extends AbstractGUI {
     private final PlayerProfileManager profileManager;
     private final InviteDialogService inviteDialogService;
 
+    public PartyGUI(Player viewer, PartyManager partyManager, PlayerProfileManager profileManager) {
+        this(viewer, partyManager, profileManager, null);
+    }
+
     public PartyGUI(Player viewer, PartyManager partyManager, PlayerProfileManager profileManager, InviteDialogService inviteDialogService) {
         super(54, Component.text("Party", NamedTextColor.GOLD));
         this.viewer = viewer;
@@ -57,7 +61,7 @@ public final class PartyGUI extends AbstractGUI {
             slot++;
         }
         if (party.isLeader(viewer.getUniqueId())) {
-            setItem(31, buildActionItem(Material.LIME_DYE, "Spieler einladen", NamedTextColor.GREEN), event -> inviteDialogService.openPartyInviteInput(viewer));
+            setItem(31, buildActionItem(Material.LIME_DYE, "Spieler einladen", NamedTextColor.GREEN), event -> { if (inviteDialogService != null) inviteDialogService.openPartyInviteInput(viewer); });
         }
         setItem(40, buildActionItem(Material.RED_DYE, party.isLeader(viewer.getUniqueId()) ? "Party auflösen" : "Party verlassen", NamedTextColor.RED), event -> {
             if (party.isLeader(viewer.getUniqueId())) partyManager.disbandParty(party);
@@ -71,7 +75,7 @@ public final class PartyGUI extends AbstractGUI {
         List<DialogBody> body = List.of(DialogBody.plainMessage(Component.text("Mitglied verwalten", NamedTextColor.WHITE)), DialogBody.plainMessage(Component.text(name(target), NamedTextColor.GRAY)));
         ActionButton transfer = engine.actionButton(Component.text("Anführer übertragen", NamedTextColor.GOLD), NamedTextColor.GOLD, player -> {
             partyManager.transferLeadership(player, target);
-            new PartyGUI(player, partyManager, profileManager).open(player);
+            new PartyGUI(player, partyManager, profileManager, inviteDialogService).open(player);
         });
         ActionButton kick = engine.actionButton(Component.text("Spieler entfernen", NamedTextColor.RED), NamedTextColor.RED, player -> {
             partyManager.kick(player, target);
