@@ -17,7 +17,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.List;\nimport java.util.function.Consumer;
+import java.util.List;
+import java.util.function.Consumer;
 
 /** Native profession trainer dialog for learning one profession and browsing all profession recipes. */
 public final class ProfessionTrainerBehavior implements NpcBehavior {
