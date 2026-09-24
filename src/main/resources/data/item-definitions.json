@@ -14,7 +14,7 @@
       "unique": false,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:weapons/iron_sword",
-      "gearscoreModifier": 1.0
+      "gearscoreModifier": 1
     },
     {
       "id": "pixelrpg:weapons/gold_sword/uncommon_25",
@@ -30,7 +30,7 @@
       "unique": false,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:weapons/gold_sword",
-      "gearscoreModifier": 1.0
+      "gearscoreModifier": 1
     },
     {
       "id": "pixelrpg:weapons/diamond_sword/rare_40",
@@ -46,7 +46,7 @@
       "unique": false,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:weapons/diamond_sword",
-      "gearscoreModifier": 1.0
+      "gearscoreModifier": 1
     },
     {
       "id": "pixelrpg:weapons/netherite_sword/legendary_90",
@@ -62,7 +62,7 @@
       "unique": false,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:weapons/netherite_sword",
-      "gearscoreModifier": 1.0
+      "gearscoreModifier": 1
     },
     {
       "id": "pixelrpg:armor/copper_helmet/donnerwacht_10",
@@ -73,7 +73,7 @@
       "itemLevel": 10,
       "requiredLevel": 10,
       "resourcepackId": "pixelrpg:armor/copper_helmet",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "HELMET",
       "setId": "donnerwacht"
     },
@@ -86,7 +86,7 @@
       "itemLevel": 10,
       "requiredLevel": 10,
       "resourcepackId": "pixelrpg:armor/copper_chestplate",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "CHEST",
       "setId": "donnerwacht"
     },
@@ -99,7 +99,7 @@
       "itemLevel": 10,
       "requiredLevel": 10,
       "resourcepackId": "pixelrpg:armor/copper_leggings",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "LEGS",
       "setId": "donnerwacht"
     },
@@ -112,7 +112,7 @@
       "itemLevel": 10,
       "requiredLevel": 10,
       "resourcepackId": "pixelrpg:armor/copper_boots",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "FEET",
       "setId": "donnerwacht"
     },
@@ -125,7 +125,7 @@
       "itemLevel": 20,
       "requiredLevel": 20,
       "resourcepackId": "pixelrpg:armor/chainmail_helmet",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "HELMET",
       "setId": "schattengeflecht"
     },
@@ -138,7 +138,7 @@
       "itemLevel": 20,
       "requiredLevel": 20,
       "resourcepackId": "pixelrpg:armor/chainmail_chestplate",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "CHEST",
       "setId": "schattengeflecht"
     },
@@ -151,7 +151,7 @@
       "itemLevel": 20,
       "requiredLevel": 20,
       "resourcepackId": "pixelrpg:armor/chainmail_leggings",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "LEGS",
       "setId": "schattengeflecht"
     },
@@ -164,7 +164,7 @@
       "itemLevel": 20,
       "requiredLevel": 20,
       "resourcepackId": "pixelrpg:armor/chainmail_boots",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "FEET",
       "setId": "schattengeflecht"
     },
@@ -177,7 +177,7 @@
       "itemLevel": 30,
       "requiredLevel": 30,
       "resourcepackId": "pixelrpg:armor/iron_helmet",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "HELMET",
       "setId": "stahlwall"
     },
@@ -190,7 +190,7 @@
       "itemLevel": 30,
       "requiredLevel": 30,
       "resourcepackId": "pixelrpg:armor/iron_chestplate",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "CHEST",
       "setId": "stahlwall"
     },
@@ -203,7 +203,7 @@
       "itemLevel": 30,
       "requiredLevel": 30,
       "resourcepackId": "pixelrpg:armor/iron_leggings",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "LEGS",
       "setId": "stahlwall"
     },
@@ -216,7 +216,7 @@
       "itemLevel": 30,
       "requiredLevel": 30,
       "resourcepackId": "pixelrpg:armor/iron_boots",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "FEET",
       "setId": "stahlwall"
     },
@@ -229,7 +229,7 @@
       "itemLevel": 45,
       "requiredLevel": 45,
       "resourcepackId": "pixelrpg:armor/gold_helmet",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "HELMET",
       "setId": "sonnengewand"
     },
@@ -242,7 +242,7 @@
       "itemLevel": 45,
       "requiredLevel": 45,
       "resourcepackId": "pixelrpg:armor/gold_chestplate",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "CHEST",
       "setId": "sonnengewand"
     },
@@ -255,7 +255,7 @@
       "itemLevel": 45,
       "requiredLevel": 45,
       "resourcepackId": "pixelrpg:armor/gold_leggings",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "LEGS",
       "setId": "sonnengewand"
     },
@@ -268,7 +268,7 @@
       "itemLevel": 45,
       "requiredLevel": 45,
       "resourcepackId": "pixelrpg:armor/gold_boots",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "FEET",
       "setId": "sonnengewand"
     },
@@ -281,7 +281,7 @@
       "itemLevel": 60,
       "requiredLevel": 60,
       "resourcepackId": "pixelrpg:armor/diamond_helmet",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "HELMET",
       "setId": "kristallwache"
     },
@@ -294,7 +294,7 @@
       "itemLevel": 60,
       "requiredLevel": 60,
       "resourcepackId": "pixelrpg:armor/diamond_chestplate",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "CHEST",
       "setId": "kristallwache"
     },
@@ -307,7 +307,7 @@
       "itemLevel": 60,
       "requiredLevel": 60,
       "resourcepackId": "pixelrpg:armor/diamond_leggings",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "LEGS",
       "setId": "kristallwache"
     },
@@ -320,7 +320,7 @@
       "itemLevel": 60,
       "requiredLevel": 60,
       "resourcepackId": "pixelrpg:armor/diamond_boots",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "FEET",
       "setId": "kristallwache"
     },
@@ -333,7 +333,7 @@
       "itemLevel": 80,
       "requiredLevel": 80,
       "resourcepackId": "pixelrpg:armor/netherite_helmet",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "HELMET",
       "setId": "hoellenschmiede"
     },
@@ -346,7 +346,7 @@
       "itemLevel": 80,
       "requiredLevel": 80,
       "resourcepackId": "pixelrpg:armor/netherite_chestplate",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "CHEST",
       "setId": "hoellenschmiede"
     },
@@ -359,7 +359,7 @@
       "itemLevel": 80,
       "requiredLevel": 80,
       "resourcepackId": "pixelrpg:armor/netherite_leggings",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "LEGS",
       "setId": "hoellenschmiede"
     },
@@ -372,7 +372,7 @@
       "itemLevel": 80,
       "requiredLevel": 80,
       "resourcepackId": "pixelrpg:armor/netherite_boots",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "equipmentSlot": "FEET",
       "setId": "hoellenschmiede"
     },
@@ -390,7 +390,23 @@
       "unique": true,
       "adminOnly": true,
       "resourcepackId": "pixelrpg:unique/admin_relic",
-      "gearscoreModifier": 2.0
+      "gearscoreModifier": 2
+    },
+    {
+      "id": "pixelrpg:weapons/fireball/alchemist_35",
+      "name": "Feuerball",
+      "material": "FIRE_CHARGE",
+      "rarity": "RARE",
+      "category": "RANGED_WEAPON",
+      "itemLevel": 35,
+      "requiredLevel": 35,
+      "weaponAbility": "FIREBALL",
+      "weaponAbilityCooldownMillis": 3000,
+      "soulbound": false,
+      "unique": false,
+      "adminOnly": false,
+      "resourcepackId": "pixelrpg:weapons/fireball",
+      "gearscoreModifier": 1
     }
   ]
 }
