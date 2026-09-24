@@ -16,6 +16,7 @@ import org.bukkit.event.server.PluginDisableEvent;
 public final class QuickActionsDialogListener implements Listener {
     private static final Key PROFILE_ACTION = Key.key("pixelrpg:character_card/profile");
     private static final Key ACTIVE_QUESTS_ACTION = Key.key("pixelrpg:character_card/active_quests");
+    private static final Key PARTY_ACTION = Key.key("pixelrpg:character_card/party");
     private static final Key COMPANIONS_ACTION = Key.key("pixelrpg:character_card/companions");
     private static final Key PROFESSIONS_ACTION = Key.key("pixelrpg:character_card/professions");
     private static final Key GUILD_ACTION = Key.key("pixelrpg:character_card/guild");
@@ -27,15 +28,17 @@ public final class QuickActionsDialogListener implements Listener {
     private final ProfessionDialog professionDialog;
     private final CharacterCardScoreboardService characterCardScoreboard;
     private final GuildManager guildManager;
+    private final InviteDialogService inviteDialogService;
 
-    public QuickActionsDialogListener(QuickActionsDialogService service, CompanionService companionService) {
+    public QuickActionsDialogListener(QuickActionsDialogService service, CompanionService companionService, InviteDialogService inviteDialogService) {
         this.plugin = PixelRPGPlugin.getInstance();
         this.service = service;
         this.companionService = companionService;
         this.guildManager = GuildManager.getInstance(plugin, service.profileManager());
+        this.inviteDialogService = inviteDialogService;
         DialogueEngine dialogueEngine = new DialogueEngine();
         this.companionDialog = new CompanionDialog(companionService, dialogueEngine, service);
-        this.professionDialog = new ProfessionDialog(service.profileManager(), dialogueEngine, service);
+        this.professionDialog = new ProfessionDialog(service.profileManager(), dialogueEngine, service, service.questManager());
         this.characterCardScoreboard = new CharacterCardScoreboardService(plugin, service.profileManager(), service.statEngine());
         this.characterCardScoreboard.start();
     }
@@ -50,6 +53,12 @@ public final class QuickActionsDialogListener implements Listener {
     @EventHandler
     public void onActiveQuestsAction(PlayerCustomClickEvent event) { handlePlayerAction(event, ACTIVE_QUESTS_ACTION, player -> service.openActiveQuests(player, companionDialog, professionDialog)); }
 
+    /** Handles the party action from the native G character card. */
+    @EventHandler
+    public void onPartyAction(PlayerCustomClickEvent event) {
+        handlePlayerAction(event, PARTY_ACTION, player -> new PartyDialog(servicePartyManager(), service.profileManager(), new DialogueEngine(), inviteDialogService, service::openQuickActions).open(player));
+    }
+
     /** Handles the companion action from the native G character card. */
     @EventHandler
     public void onCompanionAction(PlayerCustomClickEvent event) { handlePlayerAction(event, COMPANIONS_ACTION, companionDialog::open); }
@@ -61,7 +70,7 @@ public final class QuickActionsDialogListener implements Listener {
     /** Handles guild creation or guild management from the native G character card. */
     @EventHandler
     public void onGuildAction(PlayerCustomClickEvent event) {
-        handlePlayerAction(event, GUILD_ACTION, player -> new GuildDialog(guildManager, service.profileManager(), new DialogueEngine(), service).open(player));
+        handlePlayerAction(event, GUILD_ACTION, player -> new GuildDialog(guildManager, service.profileManager(), new DialogueEngine(), service, inviteDialogService).open(player));
     }
 
     /** Handles the validated companion equipment action from its native dialog. */
@@ -88,6 +97,10 @@ public final class QuickActionsDialogListener implements Listener {
         if (event.getPlugin() != plugin) return;
         characterCardScoreboard.stop();
         companionService.shutdown();
+    }
+
+    private de.pixelrpg.rpg.party.PartyManager servicePartyManager() {
+        return plugin.getPartyManager();
     }
 
     private void handlePlayerAction(PlayerCustomClickEvent event, Key identifier, java.util.function.Consumer<Player> action) {

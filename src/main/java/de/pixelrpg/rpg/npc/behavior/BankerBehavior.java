@@ -17,30 +17,41 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
+import java.util.function.Consumer;
+
 public final class BankerBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
     private final BankStorageService bankStorage;
     private final TradeDepotManager tradeDepot;
     private final GuildBankService guildBankService;
-    private final GuildBankAccessDialog guildBankAccess;
+    private final GuildManager guildManager;
+    private final BankDialog personalBank;
 
     public BankerBehavior(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.bankStorage = new BankStorageService(PixelRPGPlugin.getInstance());
-        PixelRPGPlugin.getInstance().getServer().getPluginManager().registerEvents(new BankInventoryListener(bankStorage), PixelRPGPlugin.getInstance());
+        PixelRPGPlugin.getInstance().getServer().getPluginManager().registerEvents(
+                new BankInventoryListener(bankStorage), PixelRPGPlugin.getInstance());
         this.tradeDepot = new TradeDepotManager(PixelRPGPlugin.getInstance(), profileManager, bankStorage, dialogueEngine);
-        GuildManager guildManager = GuildManager.getInstance(PixelRPGPlugin.getInstance(), profileManager);
+        this.guildManager = GuildManager.getInstance(PixelRPGPlugin.getInstance(), profileManager);
         this.guildBankService = new GuildBankService(PixelRPGPlugin.getInstance(), guildManager);
-        BankDialog personalBank = new BankDialog(profileManager, dialogueEngine, bankStorage, tradeDepot);
-        this.guildBankAccess = new GuildBankAccessDialog(guildManager, guildBankService, dialogueEngine, personalBank);
+        this.personalBank = new BankDialog(profileManager, dialogueEngine, bankStorage, tradeDepot);
     }
 
-    @Override public NpcType type() { return NpcType.BANKER; }
+    @Override
+    public NpcType type() {
+        return NpcType.BANKER;
+    }
 
     @Override
     public void onInteract(Player player, RPGNpc npc) {
+        onInteract(player, npc, Player::closeDialog);
+    }
+
+    @Override
+    public void onInteract(Player player, RPGNpc npc, Consumer<Player> backAction) {
         if (!profileManager.isRegistered(player.getUniqueId())) {
             dialogueEngine.openNotice(
                     player,
@@ -49,7 +60,7 @@ public final class BankerBehavior implements NpcBehavior {
                     Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
-        guildBankAccess.open(player);
+        new GuildBankAccessDialog(guildManager, guildBankService, dialogueEngine, personalBank, backAction).open(player);
     }
 
     public void shutdown() {

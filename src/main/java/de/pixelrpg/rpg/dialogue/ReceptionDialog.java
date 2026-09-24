@@ -5,7 +5,8 @@ import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import de.pixelrpg.rpg.gui.PartyGUI;
+import de.pixelrpg.rpg.quest.Quest;
+import de.pixelrpg.rpg.dialogue.PartyDialog;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
@@ -14,6 +15,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /** Native reception dialog used to register a player and expose guild and party entries. */
 public final class ReceptionDialog {
@@ -22,21 +24,28 @@ public final class ReceptionDialog {
     private final DialogueEngine dialogueEngine;
     private final PartyManager partyManager;
     private final GuildManager guildManager;
+    private final Consumer<Player> backAction;
 
     public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
-        this(player, profileManager, dialogueEngine, null, null);
+        this(player, profileManager, dialogueEngine, null, null, Player::closeDialog);
     }
 
     public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine, PartyManager partyManager) {
-        this(player, profileManager, dialogueEngine, partyManager, null);
+        this(player, profileManager, dialogueEngine, partyManager, null, Player::closeDialog);
     }
 
     public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine, PartyManager partyManager, GuildManager guildManager) {
+        this(player, profileManager, dialogueEngine, partyManager, guildManager, Player::closeDialog);
+    }
+
+    public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine,
+                           PartyManager partyManager, GuildManager guildManager, Consumer<Player> backAction) {
         this.player = player;
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.partyManager = partyManager;
         this.guildManager = guildManager;
+        this.backAction = backAction;
     }
 
     public void open() {
@@ -51,33 +60,179 @@ public final class ReceptionDialog {
         if (!registered) {
             actions.add(dialogueEngine.actionButton(Component.text("Registrieren"), NamedTextColor.GREEN, target -> {
                 profileManager.registerPlayer(target);
-                new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager).open();
+                new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager, backAction).open();
             }));
         } else {
             actions.add(dialogueEngine.actionButton(Component.text("PixelRPG-Registrierung aufheben"), NamedTextColor.RED, this::openLeaveConfirmation));
             if (partyManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Party", NamedTextColor.AQUA), NamedTextColor.AQUA,
-                        target -> new PartyGUI(target, partyManager, profileManager).open(target)));
+                        target -> new PartyDialog(partyManager, profileManager, dialogueEngine, PixelRPGPlugin.getInstance().getInviteDialogService(), next -> new ReceptionDialog(next, profileManager, dialogueEngine, partyManager, guildManager, backAction).open()).open(target)));
             }
             if (guildManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Gilde", NamedTextColor.GOLD), NamedTextColor.GOLD,
-                        target -> new GuildDialog(guildManager, profileManager, dialogueEngine).open(target)));
+                        target -> new GuildDialog(guildManager, profileManager, dialogueEngine, null, null, next -> new ReceptionDialog(next, profileManager, dialogueEngine, partyManager, guildManager, backAction).open()).open(target)));
+            }
+            PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
+            if (pixelRPG != null && pixelRPG.getStoryManager() != null && pixelRPG.getQuestManager() != null) {
+                pixelRPG.getStoryManager().getNextChapterFor(player.getUniqueId()).ifPresent(chapter -> {
+                    String storyQuestId = chapter.startQuestId();
+                    Quest storyQuest = storyQuestId.isBlank()
+                            ? null
+                            : pixelRPG.getQuestManager().getRepository().getQuest(storyQuestId);
+                    if (storyQuest != null
+                            && !profile.hasActiveQuest(storyQuest.id())
+                            && !profile.hasCompletedQuest(storyQuest.id())) {
+                        actions.add(dialogueEngine.actionButton(
+                                Component.text("Storyquest: " + storyQuest.title(), NamedTextColor.LIGHT_PURPLE),
+                                NamedTextColor.LIGHT_PURPLE,
+                                target -> openStoryChapter(target, chapter)));
+                    }
+                });
+                actions.add(dialogueEngine.actionButton(
+                        Component.text("Pixel-Archiv", NamedTextColor.AQUA),
+                        NamedTextColor.AQUA,
+                        this::openStoryArchive));
             }
             actions.add(dialogueEngine.actionButton(
                     Component.text(profile.isScoreboardEnabled() ? "Scoreboard ausschalten" : "Scoreboard einschalten", NamedTextColor.GOLD),
                     NamedTextColor.GOLD, this::toggleScoreboard));
         }
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
         dialogueEngine.openMultiAction(player, Component.text("RPG-Registrierung", NamedTextColor.GOLD), body, actions, 1);
+    }
+
+    /** Opens the persistent Pixel-Archiv containing every completed story chapter. */
+    private void openStoryArchive(Player target) {
+        PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
+        if (pixelRPG == null || pixelRPG.getStoryManager() == null) return;
+
+        PlayerProfile profile = profileManager.getProfile(target.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered()) return;
+
+        List<DialogBody> body = new ArrayList<>();
+        List<ActionButton> actions = new ArrayList<>();
+        body.add(DialogBody.plainMessage(Component.text(
+                "Hier kannst du die bereits erlebte Geschichte von PixelRPG nachlesen. Neue Kapitel werden erst nach ihrem Abschluss freigeschaltet.",
+                NamedTextColor.WHITE)));
+
+        pixelRPG.getStoryManager().getAllChapters().stream()
+                .sorted(java.util.Comparator.comparingInt(de.pixelrpg.rpg.story.StoryChapter::order))
+                .filter(chapter -> profile.getStoryChapterIndex() >= chapter.order())
+                .forEach(chapter -> actions.add(dialogueEngine.actionButton(
+                        Component.text("Kapitel " + chapter.order() + " • " + chapter.title(), NamedTextColor.AQUA),
+                        NamedTextColor.AQUA,
+                        next -> openArchivedStoryChapter(next, chapter))));
+
+        if (actions.isEmpty()) {
+            body.add(DialogBody.plainMessage(Component.text(
+                    "Deine Chronik ist noch leer. Schließe dein erstes Storykapitel ab, damit es hier erscheint.",
+                    NamedTextColor.GRAY)));
+        }
+
+        actions.add(dialogueEngine.actionButton(
+                Component.text("Zurück"),
+                NamedTextColor.WHITE,
+                next -> new ReceptionDialog(next, profileManager, dialogueEngine, partyManager, guildManager, backAction).open()));
+        dialogueEngine.openMultiAction(
+                target,
+                Component.text("Pixel-Archiv", NamedTextColor.GOLD),
+                body,
+                actions,
+                1
+        );
+    }
+
+    /** Opens one completed story chapter for reading without changing story progression. */
+    private void openArchivedStoryChapter(Player target, de.pixelrpg.rpg.story.StoryChapter chapter) {
+        PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
+        if (pixelRPG == null || pixelRPG.getStoryManager() == null) return;
+
+        PlayerProfile profile = profileManager.getProfile(target.getUniqueId()).orElse(null);
+        if (profile == null || profile.getStoryChapterIndex() < chapter.order()) {
+            openStoryArchive(target);
+            return;
+        }
+
+        List<DialogBody> body = new ArrayList<>();
+        body.add(DialogBody.plainMessage(Component.text(
+                "Kapitel " + chapter.order() + " • " + chapter.title(),
+                NamedTextColor.GOLD)));
+
+        if (chapter.dialogueLines().isEmpty()) {
+            body.add(DialogBody.plainMessage(Component.text(
+                    "Für dieses Kapitel ist derzeit kein Storytext hinterlegt.",
+                    NamedTextColor.GRAY)));
+        } else {
+            for (String line : chapter.dialogueLines()) {
+                body.add(DialogBody.plainMessage(Component.text(line, NamedTextColor.WHITE)));
+            }
+        }
+
+        body.add(DialogBody.plainMessage(Component.text(
+                "Abgeschlossen – dieses Kapitel ist dauerhaft im Pixel-Archiv verfügbar.",
+                NamedTextColor.GREEN)));
+
+        dialogueEngine.openMultiAction(
+                target,
+                Component.text("Archiv • " + chapter.title(), NamedTextColor.GOLD),
+                body,
+                List.of(dialogueEngine.actionButton(
+                        Component.text("Zurück"),
+                        NamedTextColor.WHITE,
+                        this::openStoryArchive)),
+                1
+        );
+    }
+
+    private void openStoryChapter(Player target, de.pixelrpg.rpg.story.StoryChapter chapter) {
+        PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
+        if (pixelRPG == null || pixelRPG.getStoryManager() == null || pixelRPG.getQuestManager() == null) return;
+
+        String questId = chapter.startQuestId();
+        if (questId.isBlank()) {
+            new StoryNpcDialogue(profileManager, pixelRPG.getStoryManager(), dialogueEngine).openChapter(target, chapter);
+            return;
+        }
+
+        var quest = pixelRPG.getQuestManager().getRepository().getQuest(questId);
+        if (quest == null) return;
+        PlayerProfile profile = profileManager.getProfile(target.getUniqueId()).orElse(null);
+        if (profile == null) return;
+
+        boolean active = profile.hasActiveQuest(quest.id());
+        boolean completed = profile.hasCompletedQuest(quest.id());
+        List<DialogBody> body = List.of(
+                DialogBody.plainMessage(Component.text(chapter.title(), NamedTextColor.GOLD)),
+                DialogBody.plainMessage(Component.text(quest.description(), NamedTextColor.WHITE)),
+                DialogBody.plainMessage(Component.text("Freigeschaltet ab Level " + chapter.requiredLevel(), NamedTextColor.AQUA))
+        );
+        List<ActionButton> actions = new ArrayList<>();
+        if (!active && !completed) {
+            actions.add(dialogueEngine.actionButton(Component.text("Quest annehmen", NamedTextColor.GREEN), NamedTextColor.GREEN,
+                    next -> {
+                        PixelRPGPlugin current = PixelRPGPlugin.getInstance();
+                        if (current != null && current.getQuestManager() != null) current.getQuestManager().acceptQuest(next, quest);
+                        openStoryChapter(next, chapter);
+                    }));
+        } else if (active) {
+            actions.add(dialogueEngine.actionButton(Component.text("Quest bereits aktiv", NamedTextColor.YELLOW), NamedTextColor.YELLOW,
+                    next -> openStoryChapter(next, chapter)));
+        }
+        actions.add(dialogueEngine.actionButton(Component.text("Geschichte erfahren", NamedTextColor.LIGHT_PURPLE),
+                next -> new StoryNpcDialogue(profileManager, pixelRPG.getStoryManager(), dialogueEngine).openChapter(next, chapter)));
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE,
+                next -> new ReceptionDialog(next, profileManager, dialogueEngine, partyManager, guildManager, backAction).open()));
+        dialogueEngine.openMultiAction(target, Component.text("Story & Lore", NamedTextColor.GOLD), body, actions, 1);
     }
 
     private void toggleScoreboard(Player target) {
         var scoreboardService = PixelRPGPlugin.getInstance().getScoreboardService();
         if (scoreboardService == null) {
-            new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager).open();
+            new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager, backAction).open();
             return;
         }
         scoreboardService.setEnabled(target, !scoreboardService.isEnabled(target));
-        new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager).open();
+        new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager, backAction).open();
     }
 
     private void openLeaveConfirmation(Player target) {
@@ -85,7 +240,7 @@ public final class ReceptionDialog {
             profileManager.unregisterPlayer(player);
             player.sendMessage(Component.text("Deine PixelRPG-Registrierung wurde aufgehoben. Dein Fortschritt wurde gelöscht.", NamedTextColor.GREEN));
         });
-        ActionButton no = dialogueEngine.actionButton(Component.text("Nein, abbrechen"), NamedTextColor.GREEN,
+        ActionButton no = dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE,
                 player -> new ReceptionDialog(player, profileManager, dialogueEngine, partyManager, guildManager).open());
         dialogueEngine.openConfirmation(target, Component.text("Registrierung aufheben?", NamedTextColor.GOLD),
                 List.of(DialogBody.plainMessage(Component.text("Warnung: Setzt deinen gesamten PixelRPG-Fortschritt zurück.", NamedTextColor.WHITE))), yes, no);

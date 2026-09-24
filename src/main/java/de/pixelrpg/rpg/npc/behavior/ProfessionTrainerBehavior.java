@@ -18,6 +18,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /** Native profession trainer dialog for learning one profession and browsing all profession recipes. */
 public final class ProfessionTrainerBehavior implements NpcBehavior {
@@ -38,7 +39,7 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
         this.profileManager = profileManager;
         this.professionService = professionService;
         this.dialogueEngine = dialogueEngine;
-        this.professionDialog = new ProfessionDialog(profileManager, dialogueEngine, quickActions);
+        this.professionDialog = new ProfessionDialog(profileManager, dialogueEngine, quickActions, quickActions.questManager());
     }
 
     @Override
@@ -46,6 +47,12 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
 
     @Override
     public void onInteract(Player player, RPGNpc npc) {
+        onInteract(player, npc, Player::closeDialog);
+    }
+
+    @Override
+    public void onInteract(Player player, RPGNpc npc, Consumer<Player> backAction) {
+
         if (!profileManager.isRegistered(player.getUniqueId())) {
             dialogueEngine.openUnavailable(player, profession.displayName(), "Du musst zuerst Rathausmitglied sein.");
             return;
@@ -53,7 +60,7 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
         if (profile.hasLearnedProfession(profession)) {
-            professionDialog.openProfession(player, profession);
+            professionDialog.openProfession(player, profession, backAction);
             return;
         }
 
@@ -64,10 +71,10 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
         actions.add(dialogueEngine.actionButton(Component.text(profession.displayName() + " erlernen"), NamedTextColor.GREEN,
                 target -> {
                     if (professionService.learn(target, profession)) {
-                        professionDialog.openTrainerRecipes(target, profession);
+                        professionDialog.openTrainerRecipes(target, profession, backAction);
                     }
                 }));
-        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
         dialogueEngine.openMultiAction(player, Component.text(profession.displayName(), NamedTextColor.GOLD), body, actions, 1);
     }
 }

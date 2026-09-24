@@ -1,0 +1,307 @@
+story-version: 7
+campaign-id: minecraft-lore-campaign
+max-chapters: 64
+
+# The ten arcs are represented by the 'arc' field.
+# Orders 0-19 are the linear main-campaign progression.
+# No structure locator is used here; StoryLocationRegistry only inspects already-loaded chunks.
+chapters:
+  first_traces:
+    order: 0
+    id: first_traces
+    title: "Die ersten Spuren"
+    arc: "Die ersten Spuren"
+    required-level: 1
+    structure-trigger: ""
+    npc-id: "the_archivist"
+    quests: []
+    dialogue:
+      - "Der Archivar zeigt dir Karten, Ruinenberichte und Fragmente alter Reiseaufzeichnungen."
+      - "Nichts davon beweist eine gemeinsame Zivilisation. Aber dieselben Fragen tauchen immer wieder auf."
+      - "Folge den Spuren, ohne Vermutungen mit Tatsachen zu verwechseln."
+    exp-reward: 100
+
+  campaign_village_plains:
+    order: 1
+    id: campaign_village_plains
+    title: "Das Dorf der ersten Stimmen"
+    arc: "Die ersten Spuren"
+    required-level: 3
+    structure-trigger: "minecraft:village_plains"
+    npc-id: "village_founder"
+    quests: ["story_campaign_village_plains"]
+    dialogue:
+      - "Dörfer zeigen, dass heutige Siedler ihre eigenen Wege und Bauformen entwickelt haben."
+      - "Der Archivar vermutet dennoch, dass manche Wege auf deutlich ältere Handels- und Siedlungsspuren zurückgehen."
+      - "Das ist eine Hypothese. Die erste Expedition soll zeigen, ob sich überhaupt ein Muster finden lässt."
+    exp-reward: 280
+
+  campaign_shipwreck:
+    order: 2
+    id: campaign_shipwreck
+    title: "Die verlorene Flotte"
+    arc: "Die ersten Spuren"
+    required-level: 5
+    structure-trigger: "minecraft:shipwreck"
+    npc-id: "shipwright"
+    quests: ["story_campaign_shipwreck"]
+    dialogue:
+      - "Schiffswracks bewahren Karten, Vorräte und Hinweise auf vergangene Reisen."
+      - "Eine alte Route scheint immer wieder auf Ruinen im Landesinneren zu verweisen."
+      - "Noch ist unklar, ob die Seefahrer dieselben Erbauer kannten wie die Kulturen der Ruinen."
+    exp-reward: 360
+
+  campaign_desert_pyramid:
+    order: 3
+    id: campaign_desert_pyramid
+    title: "Der Fluch unter dem Sand"
+    arc: "Die ersten Spuren"
+    required-level: 9
+    structure-trigger: "minecraft:desert_pyramid"
+    npc-id: "desert_sage"
+    quests: ["story_campaign_desert_pyramid"]
+    dialogue:
+      - "Die Pyramide ist voller Fallen, verborgener Kammern und alter Hinterlassenschaften."
+      - "Ihre Symbole liefern keinen Beweis für eine einzige Weltzivilisation."
+      - "Der Sage hält jedoch für möglich, dass Wissen absichtlich versiegelt wurde, als die alten Kulturen zu zerfallen begannen."
+    exp-reward: 440
+
+  campaign_jungle_pyramid:
+    order: 4
+    id: campaign_jungle_pyramid
+    title: "Die Sprache der Fallen"
+    arc: "Unter dem Stein"
+    required-level: 13
+    structure-trigger: "minecraft:jungle_pyramid"
+    npc-id: "jungle_scholar"
+    quests: ["story_campaign_jungle_pyramid"]
+    dialogue:
+      - "Jungle Temples bewahren eine andere Form alter Mechanik und verborgener Räume."
+      - "Die Markierungen wirken wie Prüfungen: Nicht jeder sollte Zugang zu jedem Wissen erhalten."
+      - "Der Gelehrte fragt sich, ob diese Geheimhaltung später zum Verhängnis wurde."
+    exp-reward: 520
+
+  campaign_swamp_hut:
+    order: 5
+    id: campaign_swamp_hut
+    title: "Das Haus der Hexen"
+    arc: "Unter dem Stein"
+    required-level: 17
+    structure-trigger: "minecraft:swamp_hut"
+    npc-id: "swamp_alchemist"
+    quests: ["story_campaign_swamp_hut"]
+    dialogue:
+      - "Hexenhütten erzählen keine Geschichte der alten Erbauer. Sie zeigen vielmehr, dass Wissen über Tränke und Verwandlung weitergegeben wurde."
+      - "Unsere Alchemisten glauben, dass manche frühen Forscher versucht haben, Erinnerungen und Wahrnehmung chemisch zu beeinflussen."
+      - "Ob diese Forschung etwas mit dem späteren Deep Dark zu tun hatte, bleibt offen."
+    exp-reward: 600
+
+  campaign_ocean_ruin_warm:
+    order: 6
+    id: campaign_ocean_ruin_warm
+    title: "Die versunkene Küste"
+    arc: "Unter dem Stein"
+    required-level: 21
+    structure-trigger: "minecraft:ocean_ruin_warm"
+    npc-id: "warm_ruin_keeper"
+    quests: ["story_campaign_ocean_ruin_warm"]
+    dialogue:
+      - "Ozeanruinen gehören zu den archäologischen Fundorten und bewahren Spuren alter Siedlungen."
+      - "Warme und kalte Ruinen werden als gemeinsamer archäologischer Befund behandelt."
+      - "Die Küstenlinie ist vielleicht ein Teil eines viel größeren Netzes von Handelswegen."
+    exp-reward: 680
+
+  campaign_monument:
+    order: 7
+    id: campaign_monument
+    title: "Die Wächter der Tiefe"
+    arc: "Die vergessenen Erbauer"
+    required-level: 26
+    structure-trigger: "minecraft:monument"
+    npc-id: "ocean_archivist"
+    quests: ["story_campaign_monument"]
+    dialogue:
+      - "Ocean Monuments werden von Guardians und Elder Guardians verteidigt."
+      - "Ihre prismarineartige Architektur ist ein reales Rätsel; der ursprüngliche Zweck ist nicht vollständig erklärt."
+      - "Unsere Eigenchronik vermutet ein altes Schutz- oder Energiezentrum, behauptet diese Deutung aber nicht als gesicherte Tatsache."
+    exp-reward: 840
+
+  trail_ruins_archaeology:
+    order: 8
+    id: trail_ruins_archaeology
+    title: "Die Spuren der Vorzeit"
+    arc: "Die vergessenen Erbauer"
+    required-level: 31
+    structure-trigger: "minecraft:trail_ruins"
+    npc-id: "archaeologist"
+    quests: ["story_trail_ruins_archaeology"]
+    dialogue:
+      - "Trail Ruins sind vergrabene Siedlungsreste und gehören zu den wichtigsten archäologischen Fundorten."
+      - "Suspicious Gravel kann Fragmente einer verlorenen Vergangenheit preisgeben."
+      - "Die Markierungen erinnern den Archäologen an andere Ruinen. Ob dahinter dieselben Menschen standen, bleibt eine Forschungsfrage."
+    exp-reward: 1000
+
+  campaign_mineshaft:
+    order: 9
+    id: campaign_mineshaft
+    title: "Die Schächte unter den Straßen"
+    arc: "Die vergessenen Erbauer"
+    required-level: 36
+    structure-trigger: "minecraft:mineshaft"
+    npc-id: "mineshaft_cartographer"
+    quests: ["story_campaign_mineshaft"]
+    dialogue:
+      - "Mineshafts zeigen, wie tief alte Rohstoffgewinnung in die Welt eingegriffen hat."
+      - "Einige Tunnel folgen Linien, die älter wirken als die sichtbaren Stützwerke."
+      - "Vielleicht waren Minen nur der letzte Zweck eines viel älteren unterirdischen Wegenetzes."
+    exp-reward: 1080
+
+  campaign_pillager_outpost:
+    order: 10
+    id: campaign_pillager_outpost
+    title: "Die Spaltung der Illager"
+    arc: "Die schwarze Flamme"
+    required-level: 42
+    structure-trigger: "minecraft:pillager_outpost"
+    npc-id: "outpost_scout"
+    quests: ["story_campaign_pillager_outpost"]
+    dialogue:
+      - "Pillager Outposts zeigen die militärische Organisation der Illager."
+      - "Die Eigenchronik erzählt von einem Streit über verbotene Magie und den Preis, den eine Gesellschaft für Macht zahlen kann."
+      - "Die Geschichte der Illager ist dabei eine eigene Entwicklung und kein Beweis für die Identität der alten Erbauer."
+    exp-reward: 1320
+
+  campaign_mansion:
+    order: 11
+    id: campaign_mansion
+    title: "Das Haus der verbotenen Kunst"
+    arc: "Die schwarze Flamme"
+    required-level: 48
+    structure-trigger: "minecraft:mansion"
+    npc-id: "mansion_magister"
+    quests: ["story_campaign_mansion"]
+    dialogue:
+      - "Woodland Mansions bewahren Bibliotheken, Werkstätten und die geheimnisvolle Kultur der Illager."
+      - "Totems der Unsterblichkeit zeigen, dass die Suche nach dem Überleben auch hier eine Rolle spielte."
+      - "Unsere Magisterin vermutet eine thematische Verbindung zur späteren Suche nach Leben aus toter Materie."
+    exp-reward: 1400
+
+  campaign_ruined_portal:
+    order: 12
+    id: campaign_ruined_portal
+    title: "Das Muster der Tore"
+    arc: "Die schwarze Flamme"
+    required-level: 54
+    structure-trigger: "minecraft:ruined_portal"
+    npc-id: "portal_watcher"
+    quests: ["story_campaign_ruined_portal"]
+    dialogue:
+      - "Ruined Portals sind die Überreste alter Portalverbindungen in Oberwelt und Nether."
+      - "Ihre verschiedenen Varianten werden in dieser Kampagne als ein gemeinsames Rätsel behandelt."
+      - "Die Eigenchronik vermutet, dass Dimensionsreisen lange vor der heutigen Generation verbreitet waren."
+    exp-reward: 1960
+
+  under_the_stone:
+    order: 13
+    id: under_the_stone
+    title: "Unter dem Stein"
+    arc: "Das Ende der Alten"
+    required-level: 61
+    structure-trigger: "minecraft:ancient_city"
+    npc-id: "eryn"
+    quests: ["story_under_the_stone"]
+    dialogue:
+      - "Ancient Cities liegen tief im Deep Dark. Sculk und der Warden machen sie zu einem der größten ungelösten Rätsel der Welt."
+      - "Gesichert ist: Die Städte existieren und enthalten Echo Shards. Nicht gesichert ist, warum ihre Bewohner verschwanden."
+      - "Eryn vermutet, dass die Erbauer mit einem zentralen Übergang experimentierten, als Sculk und Warden ihre Städte unbewohnbar machten."
+    exp-reward: 2040
+
+  campaign_fortress:
+    order: 14
+    id: campaign_fortress
+    title: "Die schwarze Flamme"
+    arc: "Jenseits der Welt"
+    required-level: 68
+    structure-trigger: "minecraft:fortress"
+    npc-id: "fortress_chronicler"
+    quests: ["story_campaign_fortress"]
+    dialogue:
+      - "Nether Fortresses verbinden Blaze, Wither Skeletons und die alten Wege des Nether."
+      - "Die Eigenchronik nennt 'schwarze Flamme' das Wissen, das aus Seelenenergie, Nether-Ressourcen und zerstörerischer Beschwörung entstand."
+      - "Die Erschaffung des Withers ist keine vollständig erklärte offizielle Geschichte; der Chronist präsentiert seine Rekonstruktion ausdrücklich als Theorie."
+    exp-reward: 2200
+
+  campaign_bastion_remnant:
+    order: 15
+    id: campaign_bastion_remnant
+    title: "Das Reich des Goldes"
+    arc: "Das Reich der Endermen"
+    required-level: 75
+    structure-trigger: "minecraft:bastion_remnant"
+    npc-id: "kael"
+    quests: ["story_campaign_bastion_remnant"]
+    dialogue:
+      - "Bastion Remnants sind Überreste großer Nether-Bauten und werden stark mit der Piglin-Zivilisation verbunden."
+      - "Gold, Netherite und alte Handels- und Besitzstrukturen erzählen von einer eigenständigen Gesellschaft."
+      - "Kael vermutet, dass Piglins Fragmente der alten Weltgeschichte bewahrt haben, ohne dieselben Begriffe dafür zu verwenden."
+    exp-reward: 2280
+
+  campaign_stronghold:
+    order: 16
+    id: campaign_stronghold
+    title: "Die Verzweiflungstat"
+    arc: "Der Drache"
+    required-level: 82
+    structure-trigger: "minecraft:stronghold"
+    npc-id: "oren"
+    quests: ["story_campaign_stronghold"]
+    dialogue:
+      - "Strongholds sind unterirdische Ruinen mit Bibliotheken, Korridoren und Endportalräumen."
+      - "Gesichert ist ihre Funktion als Zugang zum End. Warum ihre Erbauer diesen Zugang errichteten, bleibt unbekannt."
+      - "Oren vermutet, dass eine bedrohte Zivilisation den Dimensionswechsel als letzten Ausweg betrachtete."
+    exp-reward: 2440
+
+  campaign_dragon:
+    order: 17
+    id: campaign_dragon
+    title: "Der Drache"
+    arc: "Der Drache"
+    required-level: 90
+    structure-trigger: ""
+    npc-id: "oren"
+    quests: ["story_campaign_dragon"]
+    dialogue:
+      - "Das End ist erreicht. Der Enderdrache ist kein Archivtext, sondern die lebende Grenze zwischen dir und dem, was hinter dem Portal liegt."
+      - "Was der Drache bewacht, warum er dort lebt und welche Rolle die alten Reisenden spielten, ist nicht vollständig überliefert."
+      - "Besiege den Enderdrachen. Erst danach öffnet sich der Weg zu den äußeren Inseln."
+    exp-reward: 3000
+
+  campaign_end_city:
+    order: 18
+    id: campaign_end_city
+    title: "Was hinter dem Ende bleibt"
+    arc: "Was hinter dem Ende bleibt"
+    required-level: 94
+    structure-trigger: "minecraft:end_city"
+    npc-id: "silex"
+    quests: ["story_campaign_end_city"]
+    dialogue:
+      - "End Cities stehen auf den äußeren Inseln des Endes; Endschiffe können Elytren tragen."
+      - "Die Bauwerke beweisen, dass jemand oder etwas diese Orte errichtete. Sie beweisen nicht, wer diese Bewohner waren."
+      - "Silex verbindet Endermen, Chorus und die verlassenen Städte zu einer Theorie über Anpassung an das End – ausdrücklich eine Theorie, keine offizielle Erklärung."
+    exp-reward: 3200
+
+  after_the_end:
+    order: 19
+    id: after_the_end
+    title: "Das Archiv nach dem Ende"
+    arc: "Was hinter dem Ende bleibt"
+    required-level: 99
+    structure-trigger: "minecraft:end_city"
+    npc-id: "silex"
+    quests: ["story_campaign_after_the_end"]
+    dialogue:
+      - "Die letzte Chronik verbindet die Spuren: Ruinen, Deep Dark, Nether, Strongholds und End."
+      - "Einige Zusammenhänge sind beobachtbar. Andere bleiben Hypothesen, weil Minecraft selbst keine endgültige Antwort liefert."
+      - "Der Archivar schreibt den letzten Satz nicht als Lösung, sondern als Auftrag: Bewahre die Fragen, damit die nächste Generation weiterforschen kann."
+    exp-reward: 5000

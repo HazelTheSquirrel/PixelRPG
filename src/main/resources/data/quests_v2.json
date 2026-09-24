@@ -18,8 +18,16 @@
       "categoryLevel": 1,
       "targetKey": "OAK_LOG",
       "requiredAmount": 8,
-      "reward": { "money": 15.0, "experience": 60, "items": ["BREAD"] },
-      "followUpQuestIds": ["intro_zombie_watch"]
+      "reward": {
+        "money": 15,
+        "experience": 60,
+        "items": [
+          "BREAD"
+        ]
+      },
+      "followUpQuestIds": [
+        "intro_zombie_watch"
+      ]
     },
     {
       "id": "intro_zombie_watch",
@@ -30,9 +38,17 @@
       "categoryLevel": 1,
       "targetKey": "ZOMBIE",
       "requiredAmount": 5,
-      "prerequisites": ["intro_first_delivery"],
-      "reward": { "money": 25.0, "experience": 90, "items": [] },
-      "followUpQuestIds": ["bee_nest"]
+      "prerequisites": [
+        "intro_first_delivery"
+      ],
+      "reward": {
+        "money": 25,
+        "experience": 90,
+        "items": []
+      },
+      "followUpQuestIds": [
+        "bee_nest"
+      ]
     },
     {
       "id": "bee_nest",
@@ -43,8 +59,14 @@
       "categoryLevel": 5,
       "targetKey": "HONEYCOMB",
       "requiredAmount": 6,
-      "prerequisites": ["intro_zombie_watch"],
-      "reward": { "money": 35.0, "experience": 140, "items": [], "companionId": "rare-bee-queen" }
+      "prerequisites": [
+        "intro_zombie_watch"
+      ],
+      "reward": {
+        "money": 35,
+        "experience": 140,
+        "items": []
+      }
     },
     {
       "id": "regional_copper_supply",
@@ -55,7 +77,11 @@
       "categoryLevel": 20,
       "targetKey": "COPPER_ORE",
       "requiredAmount": 16,
-      "reward": { "money": 120.0, "experience": 400, "items": [] }
+      "reward": {
+        "money": 120,
+        "experience": 400,
+        "items": []
+      }
     },
     {
       "id": "regional_spider_threat",
@@ -66,8 +92,14 @@
       "categoryLevel": 25,
       "targetKey": "SPIDER",
       "requiredAmount": 15,
-      "prerequisites": ["regional_copper_supply"],
-      "reward": { "money": 160.0, "experience": 500, "items": [] }
+      "prerequisites": [
+        "regional_copper_supply"
+      ],
+      "reward": {
+        "money": 160,
+        "experience": 500,
+        "items": []
+      }
     },
     {
       "id": "regional_witch_hunt",
@@ -78,8 +110,14 @@
       "categoryLevel": 35,
       "targetKey": "WITCH",
       "requiredAmount": 12,
-      "prerequisites": ["regional_spider_threat"],
-      "reward": { "money": 220.0, "experience": 700, "items": [] }
+      "prerequisites": [
+        "regional_spider_threat"
+      ],
+      "reward": {
+        "money": 220,
+        "experience": 700,
+        "items": []
+      }
     },
     {
       "id": "trade_route",
@@ -90,7 +128,11 @@
       "categoryLevel": 45,
       "targetKey": "GOLD_INGOT",
       "requiredAmount": 8,
-      "reward": { "money": 350.0, "experience": 1200, "items": [] }
+      "reward": {
+        "money": 350,
+        "experience": 1200,
+        "items": []
+      }
     },
     {
       "id": "nether_supply",
@@ -101,8 +143,14 @@
       "categoryLevel": 50,
       "targetKey": "BLAZE_ROD",
       "requiredAmount": 12,
-      "prerequisites": ["trade_route"],
-      "reward": { "money": 420.0, "experience": 1450, "items": [] }
+      "prerequisites": [
+        "trade_route"
+      ],
+      "reward": {
+        "money": 420,
+        "experience": 1450,
+        "items": []
+      }
     },
     {
       "id": "end_pearl_request",
@@ -113,8 +161,14 @@
       "categoryLevel": 65,
       "targetKey": "ENDER_PEARL",
       "requiredAmount": 20,
-      "prerequisites": ["nether_supply"],
-      "reward": { "money": 500.0, "experience": 2200, "items": [] }
+      "prerequisites": [
+        "nether_supply"
+      ],
+      "reward": {
+        "money": 500,
+        "experience": 2200,
+        "items": []
+      }
     },
     {
       "id": "end_chorus_collection",
@@ -125,8 +179,14 @@
       "categoryLevel": 75,
       "targetKey": "CHORUS_FRUIT",
       "requiredAmount": 24,
-      "prerequisites": ["end_pearl_request"],
-      "reward": { "money": 800.0, "experience": 3200, "items": [] }
+      "prerequisites": [
+        "end_pearl_request"
+      ],
+      "reward": {
+        "money": 800,
+        "experience": 3200,
+        "items": []
+      }
     },
     {
       "id": "global_wither_event",
@@ -137,7 +197,11 @@
       "categoryLevel": 30,
       "targetKey": "WITHER",
       "requiredAmount": 1,
-      "reward": { "money": 300.0, "experience": 800, "items": [] }
+      "reward": {
+        "money": 300,
+        "experience": 800,
+        "items": []
+      }
     },
     {
       "id": "companion_chicken",
@@ -148,7 +212,12 @@
       "categoryLevel": 5,
       "targetKey": "CHICKEN",
       "requiredAmount": 5,
-      "reward": { "money": 0.0, "experience": 200, "items": [], "companionId": "common-chicken" }
+      "reward": {
+        "money": 0,
+        "experience": 200,
+        "items": [],
+        "companionId": "common-chicken"
+      }
     },
     {
       "id": "companion_cow",
@@ -159,7 +228,12 @@
       "categoryLevel": 8,
       "targetKey": "COW",
       "requiredAmount": 5,
-      "reward": { "money": 0.0, "experience": 320, "items": [], "companionId": "common-cow" }
+      "reward": {
+        "money": 0,
+        "experience": 320,
+        "items": [],
+        "companionId": "common-cow"
+      }
     },
     {
       "id": "companion_sheep",
@@ -170,7 +244,12 @@
       "categoryLevel": 10,
       "targetKey": "SHEEP",
       "requiredAmount": 8,
-      "reward": { "money": 0.0, "experience": 400, "items": [], "companionId": "common-sheep" }
+      "reward": {
+        "money": 0,
+        "experience": 400,
+        "items": [],
+        "companionId": "common-sheep"
+      }
     },
     {
       "id": "companion_rabbit",
@@ -181,7 +260,12 @@
       "categoryLevel": 12,
       "targetKey": "RABBIT",
       "requiredAmount": 8,
-      "reward": { "money": 0.0, "experience": 480, "items": [], "companionId": "common-rabbit" }
+      "reward": {
+        "money": 0,
+        "experience": 480,
+        "items": [],
+        "companionId": "common-rabbit"
+      }
     },
     {
       "id": "companion_bat",
@@ -192,7 +276,12 @@
       "categoryLevel": 15,
       "targetKey": "BAT",
       "requiredAmount": 12,
-      "reward": { "money": 0.0, "experience": 600, "items": [], "companionId": "common-bat" }
+      "reward": {
+        "money": 0,
+        "experience": 600,
+        "items": [],
+        "companionId": "common-bat"
+      }
     },
     {
       "id": "companion_cat",
@@ -203,7 +292,12 @@
       "categoryLevel": 20,
       "targetKey": "SPIDER",
       "requiredAmount": 10,
-      "reward": { "money": 0.0, "experience": 800, "items": [], "companionId": "uncommon-cat" }
+      "reward": {
+        "money": 0,
+        "experience": 800,
+        "items": [],
+        "companionId": "uncommon-cat"
+      }
     },
     {
       "id": "companion_fox",
@@ -214,7 +308,12 @@
       "categoryLevel": 25,
       "targetKey": "FOX",
       "requiredAmount": 3,
-      "reward": { "money": 0.0, "experience": 1000, "items": [], "companionId": "uncommon-fox" }
+      "reward": {
+        "money": 0,
+        "experience": 1000,
+        "items": [],
+        "companionId": "uncommon-fox"
+      }
     },
     {
       "id": "companion_goat",
@@ -225,7 +324,12 @@
       "categoryLevel": 30,
       "targetKey": "GOAT",
       "requiredAmount": 6,
-      "reward": { "money": 0.0, "experience": 1200, "items": [], "companionId": "uncommon-goat" }
+      "reward": {
+        "money": 0,
+        "experience": 1200,
+        "items": [],
+        "companionId": "uncommon-goat"
+      }
     },
     {
       "id": "companion_parrot",
@@ -236,7 +340,12 @@
       "categoryLevel": 40,
       "targetKey": "PARROT",
       "requiredAmount": 4,
-      "reward": { "money": 0.0, "experience": 1600, "items": [], "companionId": "uncommon-parrot" }
+      "reward": {
+        "money": 0,
+        "experience": 1600,
+        "items": [],
+        "companionId": "uncommon-parrot"
+      }
     },
     {
       "id": "companion_armadillo",
@@ -247,7 +356,12 @@
       "categoryLevel": 45,
       "targetKey": "ARMADILLO",
       "requiredAmount": 5,
-      "reward": { "money": 0.0, "experience": 1800, "items": [], "companionId": "uncommon-armadillo" }
+      "reward": {
+        "money": 0,
+        "experience": 1800,
+        "items": [],
+        "companionId": "uncommon-armadillo"
+      }
     },
     {
       "id": "companion_panda",
@@ -258,7 +372,12 @@
       "categoryLevel": 50,
       "targetKey": "BAMBOO",
       "requiredAmount": 32,
-      "reward": { "money": 0.0, "experience": 2000, "items": [], "companionId": "uncommon-panda" }
+      "reward": {
+        "money": 0,
+        "experience": 2000,
+        "items": [],
+        "companionId": "uncommon-panda"
+      }
     },
     {
       "id": "companion_bogged",
@@ -269,7 +388,12 @@
       "categoryLevel": 55,
       "targetKey": "BOGGED",
       "requiredAmount": 15,
-      "reward": { "money": 0.0, "experience": 2200, "items": [], "companionId": "rare-bogged" }
+      "reward": {
+        "money": 0,
+        "experience": 2200,
+        "items": [],
+        "companionId": "rare-bogged"
+      }
     },
     {
       "id": "companion_spider",
@@ -280,7 +404,12 @@
       "categoryLevel": 65,
       "targetKey": "SPIDER",
       "requiredAmount": 25,
-      "reward": { "money": 0.0, "experience": 2600, "items": [], "companionId": "rare-spider" }
+      "reward": {
+        "money": 0,
+        "experience": 2600,
+        "items": [],
+        "companionId": "rare-spider"
+      }
     },
     {
       "id": "companion_creeper",
@@ -291,7 +420,12 @@
       "categoryLevel": 70,
       "targetKey": "CREEPER",
       "requiredAmount": 20,
-      "reward": { "money": 0.0, "experience": 2800, "items": [], "companionId": "rare-creeper" }
+      "reward": {
+        "money": 0,
+        "experience": 2800,
+        "items": [],
+        "companionId": "rare-creeper"
+      }
     },
     {
       "id": "companion_camel",
@@ -302,7 +436,12 @@
       "categoryLevel": 75,
       "targetKey": "HUSK",
       "requiredAmount": 25,
-      "reward": { "money": 0.0, "experience": 3000, "items": [], "companionId": "epic-camel" }
+      "reward": {
+        "money": 0,
+        "experience": 3000,
+        "items": [],
+        "companionId": "epic-camel"
+      }
     },
     {
       "id": "companion_nautilus",
@@ -313,7 +452,12 @@
       "categoryLevel": 78,
       "targetKey": "DROWNED",
       "requiredAmount": 20,
-      "reward": { "money": 0.0, "experience": 3120, "items": [], "companionId": "epic-nautilus" }
+      "reward": {
+        "money": 0,
+        "experience": 3120,
+        "items": [],
+        "companionId": "epic-nautilus"
+      }
     },
     {
       "id": "companion_creaking",
@@ -324,7 +468,12 @@
       "categoryLevel": 82,
       "targetKey": "CREAKING",
       "requiredAmount": 5,
-      "reward": { "money": 0.0, "experience": 3280, "items": [], "companionId": "epic-creaking" }
+      "reward": {
+        "money": 0,
+        "experience": 3280,
+        "items": [],
+        "companionId": "epic-creaking"
+      }
     },
     {
       "id": "companion_happy_ghast",
@@ -335,7 +484,12 @@
       "categoryLevel": 86,
       "targetKey": "GHAST",
       "requiredAmount": 10,
-      "reward": { "money": 0.0, "experience": 3440, "items": [], "companionId": "epic-happy-ghast" }
+      "reward": {
+        "money": 0,
+        "experience": 3440,
+        "items": [],
+        "companionId": "epic-happy-ghast"
+      }
     },
     {
       "id": "companion_iron_golem",
@@ -346,7 +500,12 @@
       "categoryLevel": 92,
       "targetKey": "RAVAGER",
       "requiredAmount": 5,
-      "reward": { "money": 0.0, "experience": 3680, "items": [], "companionId": "legendary-iron-golem" }
+      "reward": {
+        "money": 0,
+        "experience": 3680,
+        "items": [],
+        "companionId": "legendary-iron-golem"
+      }
     },
     {
       "id": "companion_sulfur_cube",
@@ -357,7 +516,92 @@
       "categoryLevel": 95,
       "targetKey": "MAGMA_CUBE",
       "requiredAmount": 20,
-      "reward": { "money": 0.0, "experience": 3800, "items": [], "companionId": "legendary-sulfur-cube" }
+      "reward": {
+        "money": 0,
+        "experience": 3800,
+        "items": [],
+        "companionId": "legendary-sulfur-cube"
+      }
+    },
+    {
+      "id": "companion_copper_golem",
+      "title": "Der kleine Hüter",
+      "description": "Finde einen Kupfergolem und gewinne sein Vertrauen.",
+      "type": "HUNT",
+      "targetKey": "COPPER_GOLEM",
+      "requiredAmount": 1,
+      "recommendedLevel": 15,
+      "categoryLevel": 15,
+      "reward": {
+        "money": 180,
+        "experience": 320,
+        "items": [],
+        "companionId": "uncommon-copper-golem"
+      }
+    },
+    {
+      "id": "companion_pig",
+      "title": "Der Hofschreck",
+      "description": "Hilf dem Hof, ein widerspenstiges Schwein einzufangen.",
+      "type": "HUNT",
+      "targetKey": "PIG",
+      "requiredAmount": 1,
+      "recommendedLevel": 18,
+      "categoryLevel": 18,
+      "reward": {
+        "money": 220,
+        "experience": 380,
+        "items": [],
+        "companionId": "epic-pig"
+      }
+    },
+    {
+      "id": "companion_horse",
+      "title": "Sattel frei",
+      "description": "Sichere einen Sattel und bereite einen treuen Reitbegleiter vor.",
+      "type": "COLLECT",
+      "targetKey": "SADDLE",
+      "requiredAmount": 1,
+      "recommendedLevel": 35,
+      "categoryLevel": 35,
+      "reward": {
+        "money": 650,
+        "experience": 950,
+        "items": [],
+        "companionId": "epic-horse"
+      }
+    },
+    {
+      "id": "companion_zombie_horse",
+      "title": "Der verfluchte Reiter",
+      "description": "Besiege die untote Reiterbestie und löse ihren Fluch.",
+      "type": "HUNT",
+      "targetKey": "ZOMBIE_HORSE",
+      "requiredAmount": 1,
+      "recommendedLevel": 55,
+      "categoryLevel": 55,
+      "reward": {
+        "money": 1100,
+        "experience": 1500,
+        "items": [],
+        "companionId": "epic-zombie-horse"
+      }
+    },
+    {
+      "id": "companion_skeleton_horse",
+      "title": "Pferd aus Knochen",
+      "description": "Stelle dich einem Skelettpferd und sichere seine Freiheit.",
+      "type": "HUNT",
+      "targetKey": "SKELETON_HORSE",
+      "requiredAmount": 1,
+      "recommendedLevel": 65,
+      "categoryLevel": 65,
+      "reward": {
+        "money": 1500,
+        "experience": 2100,
+        "items": [],
+        "companionId": "epic-skeleton-horse"
+      }
     }
   ]
 }

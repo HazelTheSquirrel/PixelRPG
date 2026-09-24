@@ -11,6 +11,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
+import java.util.function.Consumer;
+
 public final class TravelBehavior implements NpcBehavior {
     private final NpcManager npcManager;
     private final PlayerProfileManager profileManager;
@@ -26,6 +28,12 @@ public final class TravelBehavior implements NpcBehavior {
 
     @Override
     public void onInteract(Player player, RPGNpc npc) {
+        onInteract(player, npc, Player::closeDialog);
+    }
+
+    @Override
+    public void onInteract(Player player, RPGNpc npc, Consumer<Player> backAction) {
+
         if (!profileManager.isRegistered(player.getUniqueId())) {
             dialogueEngine.openNotice(
                     player,
@@ -46,6 +54,6 @@ public final class TravelBehavior implements NpcBehavior {
             );
             return;
         }
-        new TravelDialog(npcManager, profileManager, dialogueEngine).open(player, npc.id());
+        new TravelDialog(npcManager, profileManager, dialogueEngine).open(player, npc.id(), backAction);
     }
 }

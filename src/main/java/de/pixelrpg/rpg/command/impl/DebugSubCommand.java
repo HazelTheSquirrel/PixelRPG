@@ -21,7 +21,7 @@ public final class DebugSubCommand implements SubCommand {
     public String name() { return "debug"; }
 
     @Override
-    public String permission() { return "pixelrpg.admin"; }
+    public String permission() { return "rpg.admin"; }
 
     @Override
     public boolean execute(CommandSender sender, String[] args) {

@@ -21,6 +21,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 
 /** Native travel dialog with safe NPC arrival-position resolution. */
 public final class TravelDialog {
@@ -39,6 +40,10 @@ public final class TravelDialog {
     }
 
     public void open(Player player, String currentNpcId) {
+        open(player, currentNpcId, Player::closeDialog);
+    }
+
+    public void open(Player player, String currentNpcId, Consumer<Player> backAction) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) {
             dialogueEngine.openUnavailable(player, "Reisen", "Dein Spielerprofil konnte nicht geladen werden.");
@@ -59,11 +64,14 @@ public final class TravelDialog {
         );
 
         if (destinations.isEmpty()) {
-            dialogueEngine.openNotice(
+            dialogueEngine.openMultiAction(
                     player,
                     Component.text("Reisen", NamedTextColor.GOLD),
-                    Component.text("Du hast noch keinen weiteren Reisepunkt freigeschaltet.", NamedTextColor.WHITE),
-                    Component.text("Schließen", NamedTextColor.GRAY));
+                    List.of(DialogBody.plainMessage(Component.text(
+                            "Du hast noch keinen weiteren Reisepunkt freigeschaltet.",
+                            NamedTextColor.WHITE))),
+                    List.of(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction)),
+                    1);
             return;
         }
 

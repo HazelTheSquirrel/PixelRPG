@@ -1,7 +1,9 @@
 package de.pixelrpg.rpg.command.impl;
 
 import de.pixelrpg.rpg.command.SubCommand;
-import de.pixelrpg.rpg.gui.PartyGUI;
+import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.PartyDialog;
+import de.pixelrpg.rpg.dialogue.InviteDialogService;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -24,10 +26,16 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
 
     private final PartyManager partyManager;
     private final PlayerProfileManager profileManager;
+    private final InviteDialogService inviteDialogService;
 
     public PartySubCommand(PartyManager partyManager, PlayerProfileManager profileManager) {
+        this(partyManager, profileManager, null);
+    }
+
+    public PartySubCommand(PartyManager partyManager, PlayerProfileManager profileManager, InviteDialogService inviteDialogService) {
         this.partyManager = partyManager;
         this.profileManager = profileManager;
+        this.inviteDialogService = inviteDialogService;
     }
 
     @Override public String name() { return "party"; }
@@ -46,7 +54,7 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
             return true;
         }
         if (args.length == 0) {
-            new PartyGUI(player, partyManager, profileManager).open(player);
+            new PartyDialog(partyManager, profileManager, new DialogueEngine(), inviteDialogService, Player::closeDialog).open(player);
             return true;
         }
         return switch (args[0].toLowerCase(Locale.ROOT)) {
@@ -56,7 +64,7 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
             case "kick" -> handleKick(player, args);
             case "transfer" -> handleTransfer(player, args);
             case "disband" -> handleDisband(player);
-            case "info" -> { new PartyGUI(player, partyManager, profileManager).open(player); yield true; }
+            case "info" -> { new PartyDialog(partyManager, profileManager, new DialogueEngine(), inviteDialogService).open(player); yield true; }
             default -> { player.sendMessage(Component.text("Verwendung: /pixelrpg party <invite|accept|leave|kick|transfer|disband|info>", NamedTextColor.YELLOW)); yield true; }
         };
     }

@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.economy;
 
 import de.pixelrpg.rpg.core.RPGKeys;
+import io.papermc.paper.datacomponent.DataComponentTypes;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -13,15 +14,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class GuildCurrencyItemFactory {
-    private static int maxStackSize = 64;
+    private static int maxStackSize = 99;
 
     private GuildCurrencyItemFactory() {}
 
-    public static void configureMaxStackSize(int value) { maxStackSize = Math.max(1, value); }
+    public static void configureMaxStackSize(int value) { maxStackSize = Math.clamp(value, 1, 99); }
 
     public static ItemStack createSingleStack(long amount) {
         int clamped = (int) Math.max(1, Math.min(maxStackSize, amount));
         ItemStack item = new ItemStack(Material.SUNFLOWER, clamped);
+        item.setData(DataComponentTypes.MAX_STACK_SIZE, maxStackSize);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(Component.text("Goldtaler", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(

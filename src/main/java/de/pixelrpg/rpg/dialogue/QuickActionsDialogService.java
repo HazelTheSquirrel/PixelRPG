@@ -1,6 +1,9 @@
 package de.pixelrpg.rpg.dialogue;
 
 import de.pixelrpg.rpg.item.ItemDefinition;
+import de.pixelrpg.rpg.party.PartyManager;
+import de.pixelrpg.rpg.guild.GuildManager;
+import de.pixelrpg.rpg.companion.CompanionService;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.SoulboundService;
 import de.pixelrpg.rpg.player.PlayerProfile;
@@ -31,6 +34,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /** Builds the player-specific PixelRPG character card opened from the G action. */
@@ -40,23 +44,54 @@ public final class QuickActionsDialogService {
     private final StatEngine statEngine;
     private final QuestManager questManager;
     private final ItemService itemService;
+    private final PartyManager partyManager;
+    private final InviteDialogService inviteDialogService;
+    private final CompanionService companionService;
 
-    public QuickActionsDialogService(PlayerProfileManager profiles, StatEngine statEngine, QuestManager questManager, ItemService itemService) {
+    public QuickActionsDialogService(PlayerProfileManager profiles, StatEngine statEngine, QuestManager questManager, ItemService itemService,
+                                     PartyManager partyManager, InviteDialogService inviteDialogService, CompanionService companionService) {
         this.profiles = profiles;
         this.statEngine = statEngine;
         this.questManager = questManager;
         this.itemService = itemService;
+        this.partyManager = Objects.requireNonNull(partyManager, "partyManager");
+        this.inviteDialogService = inviteDialogService;
+        this.companionService = companionService;
     }
 
     public PlayerProfileManager profileManager() { return profiles; }
     public StatEngine statEngine() { return statEngine; }
+    public QuestManager questManager() { return questManager; }
     public boolean isAvailable(Player player) { return profiles.isRegistered(player.getUniqueId()); }
 
-    /** Reopens the registered native G quick-actions dialog. */
+    /** Opens the native PixelRPG quick-actions dialog used from the Minecraft G action. */
     public void openQuickActions(Player player) {
         if (!isAvailable(player)) return;
-        Dialog dialog = RegistryAccess.registryAccess().getRegistry(RegistryKey.DIALOG).getOrThrow(DialogKeys.create(CHARACTER_CARD_DIALOG));
-        player.showDialog(dialog);
+        DialogueEngine engine = new DialogueEngine();
+        CompanionDialog companionDialog = new CompanionDialog(companionService, engine, this);
+        ProfessionDialog professionDialog = new ProfessionDialog(profiles, engine, this, questManager);
+        GuildDialog guildDialog = new GuildDialog(
+                GuildManager.getInstance(de.pixelrpg.rpg.PixelRPGPlugin.getInstance(), profiles),
+                profiles, engine, this, inviteDialogService);
+        PartyDialog partyDialog = new PartyDialog(partyManager, profiles, engine, inviteDialogService, this::openQuickActions);
+
+        List<ActionButton> actions = new ArrayList<>();
+        actions.add(quickActionButton(Component.text("Charakterprofil", NamedTextColor.AQUA), target -> openCharacterProfile(target, companionDialog, professionDialog)));
+        actions.add(quickActionSpacer());
+        actions.add(quickActionButton(Component.text("Aktive Quests", NamedTextColor.YELLOW), target -> openActiveQuests(target, companionDialog, professionDialog)));
+        actions.add(quickActionButton(Component.text("Begleiter", NamedTextColor.LIGHT_PURPLE), companionDialog::open));
+        actions.add(quickActionButton(Component.text("Berufe", NamedTextColor.GREEN), professionDialog::open));
+        actions.add(quickActionButton(Component.text("Party", NamedTextColor.AQUA), partyDialog::open));
+        actions.add(quickActionButton(Component.text("Gilde", NamedTextColor.GOLD), guildDialog::open));
+
+        player.showDialog(Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("PixelRPG – Schnellaktionen", NamedTextColor.GOLD))
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .build());
+            builder.type(DialogType.multiAction(actions, quickActionsCloseButton(), 1));
+        }));
     }
 
     /** Opens the character profile and exposes the explicit soulbind action for the held item. */
@@ -213,6 +248,28 @@ public final class QuickActionsDialogService {
             if (body instanceof io.papermc.paper.registry.data.dialog.body.PlainMessageDialogBody plain) return DialogBody.plainMessage(plain.contents().color(NamedTextColor.WHITE), plain.width());
             return body;
         }).toList();
+    }
+
+    private ActionButton quickActionButton(Component label, Consumer<Player> action) {
+        return ActionButton.builder(label)
+                .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
+                    if (audience instanceof Player target) action.accept(target);
+                }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
+                .width(220)
+                .build();
+    }
+
+    private ActionButton quickActionSpacer() {
+        return ActionButton.create(Component.text(" "), null, 220, null);
+    }
+
+    private ActionButton quickActionsCloseButton() {
+        return ActionButton.builder(Component.text("Schließen", NamedTextColor.GRAY))
+                .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
+                    if (audience instanceof Player target) target.closeDialog();
+                }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
+                .width(220)
+                .build();
     }
 
     private ActionButton actionButton(Component label, Consumer<Player> action) {

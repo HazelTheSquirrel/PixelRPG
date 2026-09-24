@@ -1,0 +1,478 @@
+{
+  "rules": {
+    "maxActive": 5,
+    "unlockEarlyLevels": 0,
+    "normalLevelMin": 1,
+    "normalLevelMax": 99
+  },
+  "definitions": [
+    {
+      "id": "story_campaign_village_plains",
+      "title": "Das Dorf der ersten Stimmen: Untersuchung",
+      "description": "Untersuche Das Dorf der ersten Stimmen und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 3,
+      "categoryLevel": 3,
+      "targetKey": "story_campaign_village_plains",
+      "requiredAmount": 1,
+      "prerequisites": [],
+      "reward": {
+        "money": 135,
+        "experience": 235,
+        "items": [
+          "pixelrpg:weapons/iron_sword/common_3|3"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:village_plains",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_shipwreck",
+      "title": "Die verlorene Flotte: Untersuchung",
+      "description": "Untersuche Die verlorene Flotte und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 5,
+      "categoryLevel": 5,
+      "targetKey": "story_campaign_shipwreck",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_village_plains"
+      ],
+      "reward": {
+        "money": 170,
+        "experience": 290,
+        "items": [
+          "pixelrpg:armor/copper_helmet/donnerwacht_10|10"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:shipwreck",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_desert_pyramid",
+      "title": "Der Fluch unter dem Sand: Untersuchung",
+      "description": "Untersuche Der Fluch unter dem Sand und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 9,
+      "categoryLevel": 9,
+      "targetKey": "story_campaign_desert_pyramid",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_shipwreck"
+      ],
+      "reward": {
+        "money": 205,
+        "experience": 345,
+        "items": [
+          "pixelrpg:armor/copper_chestplate/donnerwacht_10|10"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:desert_pyramid",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_jungle_pyramid",
+      "title": "Die Sprache der Fallen: Untersuchung",
+      "description": "Untersuche Die Sprache der Fallen und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 13,
+      "categoryLevel": 13,
+      "targetKey": "story_campaign_jungle_pyramid",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_desert_pyramid"
+      ],
+      "reward": {
+        "money": 240,
+        "experience": 400,
+        "items": [
+          "pixelrpg:armor/copper_leggings/donnerwacht_10|10"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:jungle_pyramid",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_swamp_hut",
+      "title": "Das Haus der Hexen: Untersuchung",
+      "description": "Untersuche Das Haus der Hexen und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 17,
+      "categoryLevel": 17,
+      "targetKey": "story_campaign_swamp_hut",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_jungle_pyramid"
+      ],
+      "reward": {
+        "money": 275,
+        "experience": 455,
+        "items": [
+          "pixelrpg:armor/copper_boots/donnerwacht_10|10"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:swamp_hut",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_ocean_ruin_warm",
+      "title": "Die versunkene Küste: Untersuchung",
+      "description": "Untersuche Die versunkene Küste und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 21,
+      "categoryLevel": 21,
+      "targetKey": "story_campaign_ocean_ruin_warm",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_swamp_hut"
+      ],
+      "reward": {
+        "money": 310,
+        "experience": 510,
+        "items": [
+          "pixelrpg:armor/chainmail_helmet/schattengeflecht_20|20"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:ocean_ruin_warm",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_monument",
+      "title": "Die Wächter der Tiefe: Untersuchung",
+      "description": "Untersuche Die Wächter der Tiefe und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 26,
+      "categoryLevel": 26,
+      "targetKey": "story_campaign_monument",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_ocean_ruin_warm"
+      ],
+      "reward": {
+        "money": 380,
+        "experience": 620,
+        "items": [
+          "pixelrpg:armor/chainmail_chestplate/schattengeflecht_20|20"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:monument",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_trail_ruins_archaeology",
+      "title": "Die Spuren der Vorzeit: Untersuchung",
+      "description": "Untersuche Die Spuren der Vorzeit und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 31,
+      "categoryLevel": 31,
+      "targetKey": "story_trail_ruins_archaeology",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_monument"
+      ],
+      "reward": {
+        "money": 450,
+        "experience": 730,
+        "items": [
+          "pixelrpg:armor/chainmail_leggings/schattengeflecht_20|20"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:trail_ruins",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_mineshaft",
+      "title": "Die Schächte unter den Straßen: Untersuchung",
+      "description": "Untersuche Die Schächte unter den Straßen und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 36,
+      "categoryLevel": 36,
+      "targetKey": "story_campaign_mineshaft",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_trail_ruins_archaeology"
+      ],
+      "reward": {
+        "money": 485,
+        "experience": 785,
+        "items": [
+          "pixelrpg:armor/chainmail_boots/schattengeflecht_20|20"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:mineshaft",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_pillager_outpost",
+      "title": "Die Spaltung der Illager: Untersuchung",
+      "description": "Untersuche Die Spaltung der Illager und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 42,
+      "categoryLevel": 42,
+      "targetKey": "story_campaign_pillager_outpost",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_mineshaft"
+      ],
+      "reward": {
+        "money": 590,
+        "experience": 950,
+        "items": [
+          "pixelrpg:weapons/gold_sword/uncommon_25|25"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:pillager_outpost",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_mansion",
+      "title": "Das Haus der verbotenen Kunst: Untersuchung",
+      "description": "Untersuche Das Haus der verbotenen Kunst und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 48,
+      "categoryLevel": 48,
+      "targetKey": "story_campaign_mansion",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_pillager_outpost"
+      ],
+      "reward": {
+        "money": 625,
+        "experience": 1005,
+        "items": [
+          "pixelrpg:armor/iron_helmet/stahlwall_30|30"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:mansion",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_ruined_portal",
+      "title": "Das Muster der Tore: Untersuchung",
+      "description": "Untersuche Das Muster der Tore und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 54,
+      "categoryLevel": 54,
+      "targetKey": "story_campaign_ruined_portal",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_mansion"
+      ],
+      "reward": {
+        "money": 870,
+        "experience": 1390,
+        "items": [
+          "pixelrpg:armor/iron_chestplate/stahlwall_30|30"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:ruined_portal",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_under_the_stone",
+      "title": "Unter dem Stein: Untersuchung",
+      "description": "Untersuche Unter dem Stein und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 61,
+      "categoryLevel": 61,
+      "targetKey": "story_under_the_stone",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_ruined_portal"
+      ],
+      "reward": {
+        "money": 905,
+        "experience": 1445,
+        "items": [
+          "pixelrpg:armor/iron_leggings/stahlwall_30|30"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:ancient_city",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_fortress",
+      "title": "Die schwarze Flamme: Untersuchung",
+      "description": "Untersuche Die schwarze Flamme und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 68,
+      "categoryLevel": 68,
+      "targetKey": "story_campaign_fortress",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_under_the_stone"
+      ],
+      "reward": {
+        "money": 975,
+        "experience": 1555,
+        "items": [
+          "pixelrpg:armor/iron_boots/stahlwall_30|30"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:fortress",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_bastion_remnant",
+      "title": "Das Reich des Goldes: Untersuchung",
+      "description": "Untersuche Das Reich des Goldes und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 75,
+      "categoryLevel": 75,
+      "targetKey": "story_campaign_bastion_remnant",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_fortress"
+      ],
+      "reward": {
+        "money": 1010,
+        "experience": 1610,
+        "items": [
+          "pixelrpg:armor/gold_chestplate/sonnengewand_45|45"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:bastion_remnant",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_stronghold",
+      "title": "Die Verzweiflungstat: Untersuchung",
+      "description": "Untersuche Die Verzweiflungstat und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 82,
+      "categoryLevel": 82,
+      "targetKey": "story_campaign_stronghold",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_bastion_remnant"
+      ],
+      "reward": {
+        "money": 1080,
+        "experience": 1720,
+        "items": [
+          "pixelrpg:weapons/diamond_sword/rare_40|40"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:stronghold",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_end_city",
+      "title": "Jenseits der Welt: Untersuchung",
+      "description": "Untersuche Jenseits der Welt und sichere die Spuren für das PixelRPG-Archiv.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 94,
+      "categoryLevel": 94,
+      "targetKey": "story_campaign_end_city",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_dragon"
+      ],
+      "reward": {
+        "money": 1600,
+        "experience": 2600,
+        "items": [
+          "pixelrpg:weapons/netherite_sword/legendary_90|90"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:end_city",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_dragon",
+      "title": "Der Drache: Bezwinge den Enderdrachen",
+      "description": "Besiege den Enderdrachen und sichere den Zugang zu den äußeren Inseln des Endes.",
+      "type": "HUNT",
+      "recommendedLevel": 90,
+      "categoryLevel": 90,
+      "targetKey": "ENDER_DRAGON",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_stronghold"
+      ],
+      "reward": {
+        "money": 1500,
+        "experience": 2500,
+        "items": [
+          "pixelrpg:weapons/netherite_sword/legendary_90|1"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:stronghold",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_after_the_end",
+      "title": "Was hinter dem Ende bleibt: Das letzte Archiv",
+      "description": "Kehre mit deinen Erkenntnissen zum Archiv zurück und vollende die Chronik.",
+      "type": "TALK_TO_NPC",
+      "recommendedLevel": 99,
+      "categoryLevel": 99,
+      "targetKey": "silex",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_end_city"
+      ],
+      "reward": {
+        "money": 2500,
+        "experience": 5000,
+        "items": [
+          "pixelrpg:weapons/netherite_sword/legendary_90|1"
+        ]
+      }
+    }
+  ]
+}

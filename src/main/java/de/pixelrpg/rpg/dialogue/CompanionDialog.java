@@ -112,7 +112,7 @@ public final class CompanionDialog {
         }, ClickCallback.Options.builder().uses(1).build());
 
         ActionButton confirm = ActionButton.builder(Component.text("Umbenennen", NamedTextColor.GREEN)).action(rename).width(220).build();
-        ActionButton cancel = dialogueEngine.actionButton(Component.text("Abbrechen"), NamedTextColor.RED, this::open);
+        ActionButton cancel = dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, this::open);
 
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();

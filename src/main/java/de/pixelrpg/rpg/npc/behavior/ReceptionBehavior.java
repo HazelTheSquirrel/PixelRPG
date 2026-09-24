@@ -10,6 +10,8 @@ import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.entity.Player;
 
+import java.util.function.Consumer;
+
 public final class ReceptionBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
     private final DialogueEngine dialogueEngine;
@@ -26,7 +28,13 @@ public final class ReceptionBehavior implements NpcBehavior {
 
     @Override
     public void onInteract(Player player, RPGNpc npc) {
+        onInteract(player, npc, Player::closeDialog);
+    }
+
+    @Override
+    public void onInteract(Player player, RPGNpc npc, Consumer<Player> backAction) {
+
         GuildManager guildManager = GuildManager.getInstance(de.pixelrpg.rpg.PixelRPGPlugin.getInstance(), profileManager);
-        new ReceptionDialog(player, profileManager, dialogueEngine, partyManager, guildManager).open();
+        new ReceptionDialog(player, profileManager, dialogueEngine, partyManager, guildManager, backAction).open();
     }
 }

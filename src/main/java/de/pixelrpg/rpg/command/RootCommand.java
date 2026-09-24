@@ -36,7 +36,7 @@ public final class RootCommand implements CommandExecutor, TabCompleter {
         register(new ItemSubCommand(itemService));
         register(new PlayerAdminSubCommand());
         register(new DebugSubCommand(plugin));
-        register(new PartySubCommand(plugin.getPartyManager(), plugin.getPlayerProfileManager()));
+        register(new PartySubCommand(plugin.getPartyManager(), plugin.getPlayerProfileManager(), plugin.getInviteDialogService()));
         register(new QuestLogCommand(plugin.getQuestManager(), plugin.getPlayerProfileManager()));
         register(new DialogueSubCommandAdapter(plugin.getPlayerProfileManager()));
         register(new GuildSubCommand(GuildManager.getInstance(plugin, plugin.getPlayerProfileManager())));

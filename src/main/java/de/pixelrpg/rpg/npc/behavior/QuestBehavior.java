@@ -19,7 +19,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.TreeSet;
+import java.util.function.Consumer;
 
 public final class QuestBehavior implements NpcBehavior {
     private static final int MAX_NORMAL_LEVEL = 99;
@@ -39,6 +39,11 @@ public final class QuestBehavior implements NpcBehavior {
 
     @Override
     public void onInteract(Player player, RPGNpc npc) {
+        onInteract(player, npc, Player::closeDialog);
+    }
+
+    @Override
+    public void onInteract(Player player, RPGNpc npc, Consumer<Player> backAction) {
         if (!profileManager.isRegistered(player.getUniqueId())) {
             dialogueEngine.openNotice(
                     player,
@@ -47,35 +52,34 @@ public final class QuestBehavior implements NpcBehavior {
                     Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
-        openQuestRanges(player);
+        openQuestRanges(player, backAction);
     }
 
     private int unlockBuffer() { return questManager.getRepository().unlockEarlyLevels(); }
 
     private boolean isWorldQuest(Quest quest) { return quest.profession() == null && quest.type() != QuestType.GLOBAL_EVENT; }
 
-    private void openQuestRanges(Player player) {
+    private void openQuestRanges(Player player, Consumer<Player> backAction) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
 
-        List<Integer> categoryLevels = new TreeSet<>(questManager.getRepository().getAllQuests().stream()
-                .filter(this::isWorldQuest).map(Quest::categoryLevel).toList()).stream().toList();
         List<DialogBody> body = List.of(
-                DialogBody.plainMessage(Component.text("Wähle zuerst deinen gewünschten Levelbereich. Danach siehst du die Quests dieses Bereichs.", NamedTextColor.WHITE)),
+                DialogBody.plainMessage(Component.text("Wähle deinen gewünschten Levelbereich. Die Questbereiche sind fest auf 1–10, 11–20 usw. bis 91–99 aufgeteilt.", NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text("Dein aktuelles Level: " + profile.getLevel(), NamedTextColor.AQUA))
         );
 
         List<ActionButton> actions = new ArrayList<>();
-        for (int index = 0; index < categoryLevels.size(); index++) {
-            int start = categoryLevels.get(index);
-            int end = index + 1 < categoryLevels.size() ? Math.min(MAX_NORMAL_LEVEL, categoryLevels.get(index + 1) - 1) : MAX_NORMAL_LEVEL;
-            boolean current = profile.getLevel() >= start && profile.getLevel() <= end;
-            boolean unlocked = profile.getLevel() >= Math.max(1, start - unlockBuffer());
-            actions.add(dialogueEngine.actionButton(Component.text("Level " + start + "–" + end),
+        for (int start = 1; start <= MAX_NORMAL_LEVEL; start += 10) {
+            final int rangeStart = start;
+            final int rangeEnd = Math.min(MAX_NORMAL_LEVEL, start + 9);
+            boolean current = profile.getLevel() >= rangeStart && profile.getLevel() <= rangeEnd;
+            boolean unlocked = profile.getLevel() >= Math.max(1, rangeStart - unlockBuffer());
+            actions.add(dialogueEngine.actionButton(Component.text("Level " + rangeStart + "–" + rangeEnd),
                     current ? NamedTextColor.GREEN : unlocked ? NamedTextColor.YELLOW : NamedTextColor.RED,
-                    target -> openQuestCategory(target, start, end)));
+                    target -> openQuestCategory(target, rangeStart, rangeEnd, backAction)));
         }
-        if (actions.isEmpty()) {
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
+        if (actions.size() == 1) {
             dialogueEngine.openNotice(player, Component.text("Questgeber", NamedTextColor.GOLD),
                     Component.text("Aktuell sind keine Questbereiche konfiguriert.", NamedTextColor.WHITE), Component.text("Schließen", NamedTextColor.GRAY));
             return;
@@ -83,12 +87,12 @@ public final class QuestBehavior implements NpcBehavior {
         dialogueEngine.openMultiAction(player, Component.text("Questgeber", NamedTextColor.GOLD), body, actions, 2);
     }
 
-    private void openQuestCategory(Player player, int start, int end) {
+    private void openQuestCategory(Player player, int start, int end, Consumer<Player> backAction) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
 
         List<Quest> quests = questManager.getRepository().getAllQuests().stream()
-                .filter(this::isWorldQuest).filter(quest -> quest.categoryLevel() == start)
+                .filter(this::isWorldQuest).filter(quest -> quest.categoryLevel() >= start && quest.categoryLevel() <= end)
                 .sorted(Comparator.comparingInt(Quest::requiredLevel).thenComparing(Quest::title)).toList();
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text("Questbereich Level " + start + "–" + end, NamedTextColor.AQUA)),
@@ -101,10 +105,10 @@ public final class QuestBehavior implements NpcBehavior {
             Component label = Component.text(status.prefix())
                     .append(QuestText.title(quest))
                     .append(Component.text(" • Level " + quest.requiredLevel(), NamedTextColor.GRAY));
-            actions.add(dialogueEngine.actionButton(label, status.color(), target -> openQuestDetails(target, quest, start, end)));
+            actions.add(dialogueEngine.actionButton(label, status.color(), target -> openQuestDetails(target, quest, start, end, backAction)));
         }
         if (actions.isEmpty()) body = List.of(DialogBody.plainMessage(Component.text("In diesem Bereich sind aktuell keine Quests verfügbar.", NamedTextColor.WHITE)));
-        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, this::openQuestRanges));
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
         dialogueEngine.openMultiAction(player, Component.text("Level " + start + "–" + end, NamedTextColor.GOLD), body, actions, 2);
     }
 
@@ -115,7 +119,7 @@ public final class QuestBehavior implements NpcBehavior {
         return QuestStatus.UNAVAILABLE;
     }
 
-    private void openQuestDetails(Player player, Quest quest, int start, int end) {
+    private void openQuestDetails(Player player, Quest quest, int start, int end, Consumer<Player> backAction) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
         QuestStatus status = status(profile, quest);
@@ -136,20 +140,20 @@ public final class QuestBehavior implements NpcBehavior {
         if (status == QuestStatus.AVAILABLE) {
             actions.add(dialogueEngine.actionButton(Component.text("Quest annehmen"), NamedTextColor.GREEN, target -> {
                 questManager.acceptQuest(target, quest);
-                openQuestCategory(target, start, end);
+                openQuestCategory(target, start, end, backAction);
             }));
         }
         if (status == QuestStatus.ACTIVE) {
             actions.add(dialogueEngine.actionButton(Component.text("Quest abgeben"), NamedTextColor.YELLOW, target -> {
                 questManager.completeQuest(target, quest.id());
-                openQuestCategory(target, start, end);
+                openQuestCategory(target, start, end, backAction);
             }));
             actions.add(dialogueEngine.actionButton(Component.text("Quest abbrechen"), NamedTextColor.RED, target -> {
                 questManager.abandonQuest(target, quest.id());
-                openQuestCategory(target, start, end);
+                openQuestCategory(target, start, end, backAction);
             }));
         }
-        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, target -> openQuestCategory(target, start, end)));
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, target -> openQuestRanges(target, backAction)));
         dialogueEngine.openMultiAction(player, QuestText.title(quest).color(NamedTextColor.GOLD), body, actions, 2);
     }
 

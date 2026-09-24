@@ -23,6 +23,7 @@ public final class PixelRPGBootstrap implements PluginBootstrap {
     private static final Key CHARACTER_CARD_DIALOG = Key.key("pixelrpg:character_card");
     private static final Key PROFILE_ACTION = Key.key("pixelrpg:character_card/profile");
     private static final Key ACTIVE_QUESTS_ACTION = Key.key("pixelrpg:character_card/active_quests");
+    private static final Key PARTY_ACTION = Key.key("pixelrpg:character_card/party");
     private static final Key COMPANIONS_ACTION = Key.key("pixelrpg:character_card/companions");
     private static final Key PROFESSIONS_ACTION = Key.key("pixelrpg:character_card/professions");
     private static final Key GUILD_ACTION = Key.key("pixelrpg:character_card/guild");
@@ -45,6 +46,7 @@ public final class PixelRPGBootstrap implements PluginBootstrap {
                                         ActionButton.create(Component.text("Aktive Quests", NamedTextColor.AQUA), Component.text("Deine aktuell laufenden Quests anzeigen", NamedTextColor.WHITE), 220, DialogAction.customClick(ACTIVE_QUESTS_ACTION, null)),
                                         ActionButton.create(Component.text("Begleiter", NamedTextColor.LIGHT_PURPLE), Component.text("Deine Begleiter verwalten", NamedTextColor.WHITE), 220, DialogAction.customClick(COMPANIONS_ACTION, null)),
                                         ActionButton.create(Component.text("Berufe", NamedTextColor.GREEN), Component.text("Berufe, Rezepte und Fortschritt verwalten", NamedTextColor.WHITE), 220, DialogAction.customClick(PROFESSIONS_ACTION, null)),
+                                        ActionButton.create(Component.text("Party", NamedTextColor.AQUA), Component.text("Deine Party verwalten", NamedTextColor.WHITE), 220, DialogAction.customClick(PARTY_ACTION, null)),
                                         ActionButton.create(Component.text("Gilde", NamedTextColor.GOLD), Component.text("Gilde gründen oder verwalten", NamedTextColor.WHITE), 220, DialogAction.customClick(GUILD_ACTION, null))
                                 ), ActionButton.create(Component.text("Schließen", NamedTextColor.GRAY), Component.text("Charaktermenü schließen", NamedTextColor.WHITE), 220, DialogAction.customClick(CLOSE_ACTION, null)), 1))
                 )));

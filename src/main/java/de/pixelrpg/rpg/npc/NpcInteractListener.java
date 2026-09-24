@@ -11,11 +11,14 @@ public final class NpcInteractListener implements Listener {
     private final NpcManager npcManager;
     private final NpcBehaviorRegistry behaviorRegistry;
     private final QuestManager questManager;
+    private final NpcDialogueService npcDialogueService;
 
-    public NpcInteractListener(NpcManager npcManager, NpcBehaviorRegistry behaviorRegistry, QuestManager questManager) {
+    public NpcInteractListener(NpcManager npcManager, NpcBehaviorRegistry behaviorRegistry,
+                               QuestManager questManager, NpcDialogueService npcDialogueService) {
         this.npcManager = npcManager;
         this.behaviorRegistry = behaviorRegistry;
         this.questManager = questManager;
+        this.npcDialogueService = npcDialogueService;
     }
 
     // Zuständig für die primäre Interaktion mit PixelRPG-NPC-Mannequins und NPC-bezogene Questfortschritte.
@@ -25,10 +28,18 @@ public final class NpcInteractListener implements Listener {
 
         npcManager.getByEntity(event.getRightClicked().getUniqueId()).ifPresent(npc -> {
             questManager.progressTalkToNpc(event.getPlayer(), npc.id());
-            behaviorRegistry.get(npc.type()).ifPresent(behavior -> {
-                event.setCancelled(true);
-                behavior.onInteract(event.getPlayer(), npc);
-            });
+            if (npc.type() == NpcType.FILLER) return;
+
+            event.setCancelled(true);
+
+            // Story-NPCs behalten ausschließlich ihre questgesteuerte Story-Dialoglogik.
+            if (npc.type() == NpcType.STORY) {
+                behaviorRegistry.get(npc.type()).ifPresent(behavior -> behavior.onInteract(event.getPlayer(), npc));
+                return;
+            }
+
+            if (npcDialogueService.open(event.getPlayer(), npc)) return;
+            behaviorRegistry.get(npc.type()).ifPresent(behavior -> behavior.onInteract(event.getPlayer(), npc));
         });
     }
 

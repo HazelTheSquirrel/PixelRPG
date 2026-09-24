@@ -155,6 +155,21 @@ public final class GuildManager implements GuildAPI {
         return data == null ? Optional.empty() : Optional.of(data.snapshot());
     }
 
+    public synchronized Optional<Guild> getInvitationGuild(UUID playerId) {
+        Invitation invitation = invitations.get(playerId);
+        if (invitation == null) return Optional.empty();
+        GuildData guild = guilds.get(invitation.guildId());
+        return guild == null ? Optional.empty() : Optional.of(guild.snapshot());
+    }
+
+    public synchronized boolean hasInvitation(UUID playerId) {
+        return getInvitationGuild(playerId).isPresent();
+    }
+
+    public synchronized void declineInvitation(UUID playerId) {
+        invitations.remove(playerId);
+    }
+
     public synchronized Optional<Guild> getGuildByName(String name) {
         return guilds.values().stream().filter(g -> g.name().equalsIgnoreCase(name)).findFirst().map(GuildData::snapshot);
     }

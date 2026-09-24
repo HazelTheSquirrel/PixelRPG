@@ -9,6 +9,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /** Adds the guild-bank entry to the existing Banker interaction without replacing personal banking. */
 public final class GuildBankAccessDialog {
@@ -16,12 +17,19 @@ public final class GuildBankAccessDialog {
     private final GuildBankService guildBank;
     private final DialogueEngine dialogue;
     private final BankDialog personalBank;
+    private final Consumer<Player> backAction;
 
     public GuildBankAccessDialog(GuildManager guilds, GuildBankService guildBank, DialogueEngine dialogue, BankDialog personalBank) {
+        this(guilds, guildBank, dialogue, personalBank, Player::closeDialog);
+    }
+
+    public GuildBankAccessDialog(GuildManager guilds, GuildBankService guildBank, DialogueEngine dialogue,
+                                 BankDialog personalBank, Consumer<Player> backAction) {
         this.guilds = guilds;
         this.guildBank = guildBank;
         this.dialogue = dialogue;
         this.personalBank = personalBank;
+        this.backAction = backAction;
     }
 
     public void open(Player player) {
@@ -34,7 +42,8 @@ public final class GuildBankAccessDialog {
                 List.of(DialogBody.plainMessage(Component.text("Persönliches Bankfach und gemeinsame Gildenbank.", NamedTextColor.WHITE))),
                 List.of(
                         dialogue.actionButton(Component.text("Persönliche Bank", NamedTextColor.AQUA), NamedTextColor.AQUA, personalBank::open),
-                        dialogue.actionButton(Component.text("Gildenbank", NamedTextColor.GOLD), NamedTextColor.GOLD, guildBank::open)
+                        dialogue.actionButton(Component.text("Gildenbank", NamedTextColor.GOLD), NamedTextColor.GOLD, guildBank::open),
+                        dialogue.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction)
                 ), 1);
     }
 }

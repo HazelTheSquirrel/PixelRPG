@@ -23,6 +23,7 @@ import de.pixelrpg.rpg.command.impl.QuestAdminSubCommand;
 import de.pixelrpg.rpg.command.impl.QuestLogCommand;
 import de.pixelrpg.rpg.command.impl.ShopSubCommand;
 import de.pixelrpg.rpg.combat.CombatDamageListener;
+import de.pixelrpg.rpg.combat.CombatStateService;
 import de.pixelrpg.rpg.combat.MobExperienceListener;
 import de.pixelrpg.rpg.combat.SoulboundDeathListener;
 import de.pixelrpg.rpg.combat.loot.LootDropListener;
@@ -37,6 +38,7 @@ import de.pixelrpg.rpg.companion.CompanionService;
 import de.pixelrpg.rpg.core.LifecycleCoordinator;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.dialogue.DialogueCommand;
+import de.pixelrpg.rpg.dialogue.InviteDialogService;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
@@ -57,6 +59,7 @@ import de.pixelrpg.rpg.npc.NpcChunkListener;
 import de.pixelrpg.rpg.npc.NpcInteractListener;
 import de.pixelrpg.rpg.npc.NpcLookTask;
 import de.pixelrpg.rpg.npc.NpcManager;
+import de.pixelrpg.rpg.npc.NpcDialogueService;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.behavior.BankerBehavior;
 import de.pixelrpg.rpg.npc.behavior.FillerBehavior;
@@ -88,6 +91,9 @@ import de.pixelrpg.rpg.stats.StatEngine;
 import de.pixelrpg.rpg.stats.StatisticsService;
 import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryManager;
+import de.pixelrpg.rpg.story.StoryLocationRegistry;
+import de.pixelrpg.rpg.story.StoryTriggerListener;
+import de.pixelrpg.rpg.story.StoryNpcVisibilityListener;
 import de.pixelrpg.rpg.travel.GuildCompassListener;
 import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.region.RegionEditor;
@@ -134,6 +140,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private PlaytimeTracker playtimeTracker;
     private CompanionService companionService;
     private CombatDamageListener combatDamageListener;
+    private CombatStateService combatStateService;
+    private InviteDialogService inviteDialogService;
     private RegionManager regionManager;
     private RegionEditor regionEditor;
     private RegionSpawnService regionSpawnService;
@@ -177,6 +185,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         globalEventState.load();
         questManager = new QuestManager(this, questRepository, playerProfileManager, playerProfileManager, globalEventState, partyManager.getShareRange());
         guildManager = GuildManager.getInstance(this, playerProfileManager);
+        combatStateService = new CombatStateService(this);
+        inviteDialogService = new InviteDialogService(this, guildManager, partyManager, playerProfileManager, combatStateService);
         RegionRepository regionRepository = new RegionRepository(getDataFolder(), getLogger());
         regionManager = new RegionManager(regionRepository);
         regionManager.load();
@@ -206,12 +216,17 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcManager = lifecycle.register(new NpcManager(this));
         npcManager.loadAll();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
+        StoryLocationRegistry storyLocationRegistry = new StoryLocationRegistry(this, storyManager, playerProfileManager, questRepository, questManager, npcManager);
+        getServer().getPluginManager().registerEvents(new StoryTriggerListener(storyLocationRegistry), this);
+        StoryNpcVisibilityListener storyNpcVisibility = new StoryNpcVisibilityListener(this, playerProfileManager, questRepository, storyManager, npcManager);
+        getServer().getPluginManager().registerEvents(storyNpcVisibility, this);
+        lifecycle.register(storyNpcVisibility);
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0), getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
         DialogueEngine dialogueEngine = new DialogueEngine();
-        StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, dialogueEngine);
-        QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager, itemService);
+        StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, storyManager, dialogueEngine);
         companionService = new CompanionService(this);
+        QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager, itemService, partyManager, inviteDialogService, companionService);
         npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine, partyManager));
         npcBehaviorRegistry.register(new QuestBehavior(questManager, playerProfileManager, dialogueEngine));
@@ -246,25 +261,26 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new BossCombustListener(), this);
         getServer().getPluginManager().registerEvents(new MobExperienceListener(playerProfileManager, mobScalingConfig), this);
-        getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry, questManager), this);
+        NpcDialogueService npcDialogueService = lifecycle.register(new NpcDialogueService(this, playerProfileManager, dialogueEngine, npcBehaviorRegistry));
+        getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry, questManager, npcDialogueService), this);
         getServer().getPluginManager().registerEvents(new QuestMobKillListener(questManager), this);
         getServer().getPluginManager().registerEvents(new PartyDisconnectListener(partyManager), this);
         getServer().getPluginManager().registerEvents(new BossDeathListener(bossManager), this);
         getServer().getPluginManager().registerEvents(new MobKillStatisticListener(playerProfileManager, statisticsService), this);
         getServer().getPluginManager().registerEvents(new PlayerDeathStatisticListener(playerProfileManager, statisticsService), this);
         getServer().getPluginManager().registerEvents(new QuestBossStatisticListener(statisticsService), this);
-        getServer().getPluginManager().registerEvents(new GuildCurrencyPickupListener(playerProfileManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new GuildCompassListener(npcManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new SoulboundDeathListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(scoreboardService, this);
         getServer().getPluginManager().registerEvents(playtimeTracker, this);
-        getServer().getPluginManager().registerEvents(new QuickActionsDialogListener(quickActions, companionService), this);
+        getServer().getPluginManager().registerEvents(new QuickActionsDialogListener(quickActions, companionService, inviteDialogService), this);
         getServer().getPluginManager().registerEvents(new CompanionExperienceListener(companionService), this);
         questPassiveCheckTask = new QuestPassiveCheckTask(this, questManager);
         questPassiveCheckTask.start();
         lifecycle.register(() -> playerProfileManager.shutdown());
         lifecycle.register(() -> companionService.shutdown());
         lifecycle.register(() -> partyManager.shutdown());
+        lifecycle.register(() -> combatStateService.shutdown());
         lifecycle.register(() -> guildManager.shutdown());
         lifecycle.register(() -> regionManager.shutdown());
         lifecycle.register(() -> npcManager.shutdown());
@@ -287,7 +303,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         rootCommand.register(new BossSubCommand(bossRepository, bossManager));
         rootCommand.register(new de.pixelrpg.rpg.command.impl.RegionSubCommand(regionManager, regionEditor, guildManager));
         rootCommand.register(new EditSubCommand(regionEditor));
-        PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager);
+        PartySubCommand partyCommand = new PartySubCommand(partyManager, playerProfileManager, inviteDialogService);
         PaperBasicCommandAdapter rpgCommand = new PaperBasicCommandAdapter("pixelrpg", rootCommand, rootCommand, "rpg.admin");
         PaperBasicCommandAdapter partyAdapter = new PaperBasicCommandAdapter("pixelrpgparty", partyCommand, partyCommand, "rpg.member");
         PaperBasicCommandAdapter questLogAdapter = new PaperBasicCommandAdapter("pixelrpgquestlog", new QuestLogCommand(questManager, playerProfileManager), null, "rpg.member");
@@ -327,6 +343,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public NpcManager getNpcManager() { return npcManager; }
     public ShopManager getShopManager() { return shopManager; }
     public StoryManager getStoryManager() { return storyManager; }
+    public InviteDialogService getInviteDialogService() {
+        return inviteDialogService;
+    }
+
     public PartyManager getPartyManager() { return partyManager; }
     public QuestRepository getQuestRepository() { return questRepository; }
     public QuestManager getQuestManager() { return questManager; }
