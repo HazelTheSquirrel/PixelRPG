@@ -307,10 +307,7 @@ public final class QuestManager {
     private String canonicalItemId(String key) {
         String normalized = key == null ? "" : key.trim().toLowerCase(Locale.ROOT);
         if (!normalized.startsWith("pixelrpg:")) return normalized;
-        String body = normalized.substring("pixelrpg:".length());
-        int slash = body.indexOf('/');
-        if (slash > 0) body = body.substring(0, slash) + ":" + body.substring(slash + 1);
-        return "pixelrpg:" + body;
+        return normalized;
     }
 
     public void checkReachLocationQuests(Player player) {
