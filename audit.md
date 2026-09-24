@@ -1303,3 +1303,739 @@ Der aktuell aktive `rebuild`-Stand wurde auf den letzten forensisch aufgebauten 
 Forensisch bestätigt: 203 Java-Dateien im Rebuild gegenüber 247 im Referenzzustand. Die entfernten Dateien sind Bestandteil der dokumentierten Architekturentscheidungen; insbesondere alte Inventory-GUIs, Legacy-Command-Schichten, doppelte Runtime-/Persistence-Modelle und ersetzte God-Manager wurden nicht wiederhergestellt.
 
 Dieser Stand ist damit die technische Clean-Rebuild-Basis. Die abschließende Verifikation läuft erneut über GitHub Actions auf dem aktuellen `rebuild`-HEAD.
+
+---
+
+## 21. Vollständige SOLL-Paritätsanalyse gegen `main` — 2026-09-24
+
+Status: **NEUE verbindliche offene Arbeitsliste — Release-Parität NICHT erreicht**
+
+Diese Sektion ergänzt und präzisiert die vorherigen Audit-Abschnitte. Sie hat Vorrang, wenn ältere Abschnitte einen Bereich bereits als abgeschlossen markieren, der hier durch die tatsächliche Gegenprüfung gegen `main` wieder als offen festgestellt wurde.
+
+### 21.1 Verbindlicher Maßstab
+
+Die Analyse wurde direkt gegen den eingefrorenen Referenzstand
+
+`main @ b02747a21cde6d1308c59a7f027cda80877cfe50`
+
+und gegen den tatsächlichen aktuellen Stand von `rebuild` durchgeführt.
+
+Wichtig:
+
+> **`main` ist nicht nur eine Feature-Liste. `main` definiert das SOLL für Verhalten, Bedienabläufe, Darstellung, Befehle, Menüs, Dialoge, NPC-Interaktionen, Navigation, Rückmeldungen und Datenflüsse.**
+
+Der Rebuild darf intern vollständig anders aufgebaut sein. Er darf aber keine fachliche oder sichtbare Funktion verlieren.
+
+Ein bloßes Ersetzen einer bestehenden `main`-GUI durch einen Dialog ist deshalb **keine automatische Parität**. Wenn `main` einen bestimmten Inventar-/Menü-Ablauf verwendet, muss dieser Ablauf im Rebuild funktional und visuell reproduziert werden. Die aktuelle Paper-26.2-Technik ist dabei zu verwenden; Legacy-Code wird nicht blind übernommen.
+
+### 21.2 Umfang der Dateiforensik
+
+Aktueller Tree-Vergleich:
+
+- `main`: 321 Dateien
+- `rebuild`: 272 Dateien
+- `main`: 247 Java-Dateien
+- `rebuild`: 203 Java-Dateien
+
+Der Unterschied von 49 Dateien ist **nicht automatisch ein Fehler**, weil mehrere alte Klassen bewusst in neue Services zusammengeführt wurden.
+
+Der Tree-Vergleich zeigt jedoch konkrete `main`-Komponenten, die im Rebuild **überhaupt keine direkte Entsprechung besitzen**. Diese wurden anschließend gegen die tatsächliche Runtime-Verdrahtung geprüft.
+
+---
+
+### 21.3 KRITISCH — Benutzeroberflächen / Präsentation
+
+Im Referenzzustand existiert eine vollständige GUI-Schicht:
+
+- `AbstractGUI`
+- `GUIHolder`
+- `GUIListener`
+- `PartyGUI`
+- `QuestLogGUI`
+- `QuestDetailGUI`
+- `CraftingGUI`
+- `ShopGUI`
+- `ShopEditorGUI`
+- `TradeDepotGUI`
+- `TradeDepotSellGUI`
+
+Im aktuellen `rebuild` existiert kein `rpg/gui`-Paket.
+
+Damit sind die folgenden SOLL-Darstellungen aktuell **nicht nachgewiesen und als offen zu behandeln**:
+
+1. Party-Hauptmenü
+2. Questlog-Hauptmenü
+3. Questdetail-/Questaktionsansicht
+4. Crafting-/Rezeptoberfläche
+5. Spieler-Shop
+6. Shop-Editor
+7. Handelsdepot
+8. Auswahl der Handelsware aus dem Spielerinventar
+9. gemeinsame GUI-Interaktions-/Holder-Logik.
+
+Das ist kein rein technischer Unterschied. Diese GUIs definieren konkrete Spielerabläufe, Slotbelegung, Texte, Klickaktionen, Navigation und Rückkehrverhalten.
+
+**Verbindliche Folgearbeit:**
+
+Die Präsentationsschicht aus `main` muss fachlich rekonstruiert werden. Die alte GUI-Implementierung darf nicht blind kopiert werden; die Darstellung und das Verhalten müssen jedoch erhalten bleiben.
+
+---
+
+### 21.4 KRITISCH — Command-Surface und Administration
+
+Der Referenzzustand besitzt neben dem Root-Command eine deutlich größere Command-Struktur, u. a.:
+
+- `debug`
+- `edit`
+- `quest` / Quest-Administration
+- `dialogue`
+- Party
+- Guild
+- Companion
+- NPC
+- Region
+- Boss
+- Item
+- Player-Administration
+- Shop-Administration.
+
+Im aktuellen `rebuild` wird alles über `PixelRPGCommand` zentralisiert. Der aktuelle Command-Code enthält jedoch **nicht die vollständige Referenzoberfläche**.
+
+Bereits konkret festgestellt:
+
+- `debug` fehlt;
+- `edit` fehlt;
+- Quest-Administration fehlt;
+- `dialogue` fehlt;
+- Party-Befehle sind gegenüber `main` reduziert;
+- Guild-Befehle sind gegenüber `main` reduziert;
+- Shop-Administration ist gegenüber `main` reduziert;
+- Item-Administration ist gegenüber `main` reduziert;
+- Tab-Completion ist nicht vollständig mit der Referenzoberfläche gleichgezogen;
+- `pixelrpg` und `rpgadmin` werden aktuell auf dieselbe Command-Implementierung gelegt, obwohl `main` unterschiedliche administrative Einstiege besitzt.
+
+Besonders relevant:
+
+#### Party
+
+In `main` öffnet
+
+`/pixelrpg party`
+
+ohne Unterbefehl das Party-Menü und `info` öffnet ebenfalls die Party-Oberfläche.
+
+Der aktuelle Rebuild-Command liefert hier überwiegend textbasierte Ausgabe.
+
+Damit ist **Verhaltens- und Präsentationsparität nicht erreicht**.
+
+Zusätzlich sind im Referenzzustand vorhanden:
+
+- invite
+- accept
+- leave
+- kick
+- transfer
+- disband
+- info
+- GUI-Navigation
+- Mitgliederdarstellung
+- Leader-/Invite-Zustände.
+
+Alle diese Pfade müssen gegen die aktuelle Party-Domain erneut abgeglichen werden.
+
+#### Guild
+
+Der Referenzzustand besitzt:
+
+- create
+- invite
+- accept
+- leave
+- info
+- disband
+- konkrete Result-/Fehlermeldungen
+- Mitglieder-/Leader-Darstellung.
+
+Der aktuelle Rebuild muss jeden dieser Pfade einschließlich Darstellung, Fehlermeldungen und Berechtigungen gegen `main` verifizieren.
+
+#### Item
+
+Die Referenzoberfläche besitzt u. a.:
+
+- list
+- give
+- create
+- inspect
+- set
+- Item-Stat-Bearbeitung
+- spezielle Admin-Item-Funktionen.
+
+Der aktuelle Rebuild deckt davon nicht nachweislich die vollständige Oberfläche ab.
+
+#### Shop
+
+`main` besitzt neben dem Spieler-Shop einen administrativen `ShopEditorGUI`.
+
+Eine reine `shop list`-Funktion ist **keine Parität**.
+
+---
+
+### 21.5 KRITISCH — Persönliche Bank / Handelsfach / Banker
+
+Der Referenzzustand besitzt beim BANKER-NPC eine vollständige Kette:
+
+`BANKER NPC -> BankDialog -> Einzahlen/Auszahlen -> Bankfach -> Handelsfach -> Handelsdepot`
+
+Zusätzlich existieren:
+
+- `BankDialog`
+- `BankInventoryHolder`
+- `BankInventoryListener`
+- `BankStorageService`
+- persönliche Bankpersistenz
+- separates Handelsfach
+- Migration alter Handelsfachdaten
+- asynchrones Schreiben
+- mehrere Bankseiten
+- Handelsdepot-Einstieg
+- Gildenbank-Einstieg.
+
+Der aktuelle `rebuild`-`BankerNpcListener` bietet dagegen nur:
+
+- Gildenbank öffnen;
+- feste Einzahlungsbeträge 10/100/500;
+- feste Auszahlungsbeträge 10/100/500.
+
+Die Referenzfunktionen
+
+- frei wählbarer Einzahlungsbetrag;
+- frei wählbarer Auszahlungsbetrag;
+- persönliches Bankfach;
+- Bankseiten;
+- separates Handelsfach;
+- persistente Bankinhalte;
+- Handelsfach-Navigation;
+- direkter Handelsdepot-Einstieg
+
+sind im aktuellen Rebuild **nicht vorhanden**.
+
+Dies ist eine bestätigte funktionale Paritätslücke und keine reine Architekturfrage.
+
+---
+
+### 21.6 KRITISCH — Companion-Ausrüstung
+
+Der Referenzzustand besitzt:
+
+- `CompanionEquipment`
+- `CompanionEquipmentHolder`
+- `CompanionEquipmentListener`
+- `CompanionEquipmentStore`
+- `CompanionCombatController`
+- `CompanionFollowTask`
+- `CompanionInstance`
+- `CompanionProgression`
+- `CompanionRuntimeRegistry`
+- `CompanionStatsCalculator`
+- `MannequinCompanionController`
+- `CompanionBossRewardListener`.
+
+Der aktuelle Rebuild besitzt zwar eine neue `CompanionSystem`-/Service-Struktur und Mount-/Runtime-Komponenten, aber die vollständige Referenz-Ausrüstungskette ist nicht vorhanden.
+
+Insbesondere fehlen im Rebuild:
+
+- Companion-Equipment-Inventar;
+- Equipment-Holder;
+- Equipment-Listener;
+- persistenter Companion-Equipment-Speicher;
+- die damit verbundene Spieleroberfläche.
+
+Der Referenz-Dialog bietet ausdrücklich:
+
+- Rufen/Wegschicken;
+- Umbenennen;
+- Ausrüstung öffnen.
+
+Die Ausrüstungsfunktion darf im Rebuild daher nicht als optionales Altfeature betrachtet werden.
+
+**Offen:** vollständige funktionale Rekonstruktion von Companion-Equipment inklusive Persistence, Slotregeln, Runtime-Anwendung und Darstellung.
+
+---
+
+### 21.7 Companion — weitere Parität ausdrücklich prüfen
+
+Die im Rebuild zusammengeführte Companion-Architektur darf nicht anhand gleicher Dateinamen als ausreichend betrachtet werden.
+
+Gegen `main` müssen explizit geprüft werden:
+
+- Follow-Verhalten;
+- Teleport-/Distanzregeln;
+- Combat-Targeting;
+- Attack-Timing;
+- Schaden;
+- Crit/Lifesteal/Ability-Daten;
+- Level-/XP-Progression;
+- Rarity-Multiplikatoren;
+- Unique-Mannequin-Verhalten;
+- Skin-Persistenz;
+- Boss-Unlocks;
+- Mount;
+- Rename;
+- Active/Inactive-State;
+- Equipment;
+- Quick-Actions-Einstieg;
+- Shutdown/Logout-Recovery.
+
+**Regel:** Zusammengeführte Klassen gelten erst dann als Paritätsersatz, wenn die oben genannten Verhaltenspfade im tatsächlichen Code nachgewiesen sind.
+
+---
+
+### 21.8 KRITISCH — Quest-System: Referenzlogik gegen Rebuild-Domain abgleichen
+
+Der Referenzzustand enthält zusätzlich:
+
+- `GlobalEventState`
+- `QuestInventoryTracker`
+- `QuestManager`
+- `QuestMobKillListener`
+- `QuestNavigationLifecycleListener`
+- `QuestNavigationService`
+- `QuestPassiveCheckTask`
+- `QuestText`
+- `Quest.java`.
+
+Der Rebuild besitzt ein bewusst anderes Modell mit:
+
+- `QuestDefinition`
+- `QuestService`
+- `QuestRepository`
+- `QuestProgressListener`
+- `QuestNpcDialogService`
+- `QuestNpcListener`
+- `QuestNavigation`
+- `QuestCompanionRewardListener`.
+
+Die neue Struktur ist architektonisch zulässig, aber folgende Referenzfunktionen müssen einzeln nachgewiesen werden:
+
+- HUNT-Progression;
+- COLLECT-Progression;
+- Inventory-/Pickup-/Drop-/Consume-Aktualisierung;
+- passive Questbedingungen;
+- zeitabhängige Questbedingungen;
+- globale Quest-/Eventzustände;
+- Quest-Navigation;
+- Navigation-Lifecycle;
+- Questzielanzeige;
+- Questtext-/Darstellung;
+- Questlog;
+- Questdetails;
+- Start-/Abbruch-/Abschlussabläufe;
+- Belohnungen;
+- Folgequests;
+- Voraussetzungen;
+- Zeitlimits;
+- Companion-Rewards.
+
+Die kanonische Definitiondatei ist bereits vereinheitlicht. **Das ersetzt nicht die Prüfung der gesamten Quest-Runtime.**
+
+---
+
+### 21.9 KRITISCH — NPC-Verhalten und Präsentation
+
+Der Referenzzustand verwendet:
+
+- `NpcManager`
+- `NpcBehaviorRegistry`
+- `NpcInteractListener`
+- `NpcLookTask`
+- `NpcNameVisibilityService`
+- konkrete Behaviors für:
+  - Banker
+  - Filler
+  - Profession Trainer
+  - Quest
+  - Reception
+  - Shop
+  - Story
+  - Travel.
+
+Der Rebuild verwendet stattdessen eine Runtime-/Listener-Architektur.
+
+Diese Architektur ist ausdrücklich gewollt, aber folgende SOLL-Verhalten müssen pro NPC-Typ geprüft werden:
+
+- Interaktionsradius / Interaktionsbedingungen;
+- Main-Hand-/Off-Hand-Verhalten;
+- Namensanzeige;
+- Blickverhalten;
+- Schutzverhalten;
+- Chunk Spawn/Despawn;
+- Skin-Auflösung;
+- Skin-Persistenz;
+- professionelle Zuordnung;
+- Quest-Dialog;
+- Story-Dialog;
+- Shop;
+- Banker;
+- Travel;
+- Filler;
+- Companion.
+
+Die bloße Existenz eines Listeners gilt nicht als Paritätsnachweis.
+
+---
+
+### 21.10 KRITISCH — Crafting / Berufe / Darstellung
+
+`main` besitzt `CraftingGUI` als sichtbare Crafting-Oberfläche.
+
+Der Rebuild besitzt bereits:
+
+- `ProfessionSystem`
+- `CraftingService`
+- `CraftingRecipeRegistry`
+- `ProfessionDialogService`
+- `ProfessionNpcListener`.
+
+Die fachliche Crafting-Domain ist damit vorhanden. Die Referenzdarstellung und der komplette Benutzerablauf müssen jedoch weiterhin gegen `CraftingGUI` geprüft werden.
+
+Zu vergleichen sind insbesondere:
+
+- Rezeptliste;
+- Kategorien;
+- Seltenheitsanzeige;
+- Zutaten;
+- Mengen;
+- Levelanforderung;
+- Freischaltung;
+- Craft-Aktion;
+- Fehlermeldungen;
+- Resultat;
+- Navigation;
+- NPC-Einstieg;
+- Quest-/Crafting-Integration.
+
+---
+
+### 21.11 KRITISCH — Shop / Trade Depot
+
+Der Rebuild besitzt neue Services/Dialoge:
+
+- `ShopService`
+- `ShopDialogService`
+- `TradeDepotService`
+- `TradeDepotDialogService`.
+
+Diese ersetzen jedoch die `main`-GUIs:
+
+- `ShopGUI`
+- `ShopEditorGUI`
+- `TradeDepotGUI`
+- `TradeDepotSellGUI`.
+
+Damit ist die fachliche Domain nicht automatisch gleich der Referenzdarstellung.
+
+Zu prüfen:
+
+- gleiche Itemanzeige;
+- Kauf;
+- Verkauf;
+- Preise;
+- Inventarplatzprüfung;
+- Fehlermeldungen;
+- Handelswaren-Auswahl;
+- Verkaufspreis-Eingabe;
+- Laufzeit;
+- Rücknahme;
+- Ablauf;
+- Handelsfach;
+- Auszahlungen;
+- Admin-Editor;
+- Navigation;
+- NPC-Einstieg.
+
+Insbesondere der administrative Shop-Editor ist aktuell als offene Funktion zu behandeln.
+
+---
+
+### 21.12 KRITISCH — öffentliche API / externe Integrationen
+
+Der Referenzzustand enthält:
+
+- `ApiVersion`
+- `PixelRPGProvider`
+- öffentliche API-Services.
+
+`PixelRPGProvider.java` ist im aktuellen Rebuild nicht vorhanden.
+
+Damit ist die externe Zugriffsschicht des Referenzzustands nicht vollständig reproduziert.
+
+Zu prüfen bzw. wiederherzustellen:
+
+- API-Version;
+- Provider;
+- ItemAPI;
+- EconomyAPI;
+- PartyAPI;
+- GuildAPI;
+- StatisticsAPI;
+- Service-Registrierung;
+- Fehlerverhalten bei fehlendem Service;
+- binäre/semantische Kompatibilität der öffentlichen Schnittstellen.
+
+Die interne Rebuild-Architektur darf dafür nicht wieder in globale God-Manager zurückfallen. Eine schlanke aktuelle Provider-Fassade ist ausreichend, sofern sie das Referenzverhalten reproduziert.
+
+---
+
+### 21.13 Quest-/Content-Ressourcen
+
+`main` besitzt mehrere historische Questdateien:
+
+- `quests_v2.json`
+- `quests_additional.json`
+- `quests_world_expansion.json`
+- `quests_expansion_02.json`
+- `quests_content_expansion_01.json`
+- `quests_crafting_orders.json`.
+
+Der Rebuild besitzt stattdessen die kanonische:
+
+`data/quests/definitions.json`
+
+Die Konsolidierung ist grundsätzlich richtig, aber jede entfernte Ressource muss gegen den tatsächlichen fachlichen Inhalt geprüft werden.
+
+Besonders:
+
+- keine Questdefinition darf durch Konsolidierung verloren gegangen sein;
+- IDs müssen stabil bleiben;
+- Folgequests müssen erhalten bleiben;
+- Voraussetzungen müssen erhalten bleiben;
+- Belohnungen müssen erhalten bleiben;
+- Story-/NPC-Verweise müssen erhalten bleiben;
+- Crafting-Quest-Verweise müssen gegen das neue Rezeptmodell geprüft werden.
+
+Die bereits dokumentierte Zahl von 209 Definitionen ist ein Content-Nachweis, aber kein vollständiger Runtime-Paritätsnachweis.
+
+---
+
+### 21.14 Scoreboard / Playtime
+
+Diese Systeme wurden im Rebuild bereits neu aufgebaut.
+
+Trotzdem ist die SOLL-Präsentation gegen `main` zu prüfen:
+
+- Inhalt;
+- Reihenfolge;
+- sichtbare Werte;
+- Update-Zeitpunkt;
+- Aktivierung/Deaktivierung;
+- Join/Quit;
+- Persistenz;
+- Charakterkarte;
+- Quick-Actions-/Reception-Verknüpfung.
+
+Die bloße Existenz von `ScoreboardService` und `PlaytimeTracker` reicht nicht als Freigabenachweis.
+
+---
+
+### 21.15 Guild / Party
+
+Die Domain-Klassen sind auf `rebuild` vorhanden.
+
+Zusätzlich zur Domain muss die Referenzoberfläche vollständig reproduziert werden:
+
+#### Party
+
+- create
+- invite
+- accept
+- leave
+- kick
+- transfer
+- disband
+- info
+- PartyGUI
+- Leader-Anzeige
+- Mitgliederliste
+- Invite-Status
+- Share-Range
+- Disconnect
+- Quick-Actions
+- Reception-Einstieg.
+
+#### Guild
+
+- create
+- invite
+- accept
+- leave
+- info
+- disband
+- GuildDialog
+- Leader-/Mitglied-Anzeige
+- Mitgliederzahl
+- Gildenbank
+- Guild Compass
+- Quick-Actions
+- Reception-Einstieg.
+
+Die aktuelle Domain-Existenz wird nicht als Abschluss akzeptiert, solange diese End-to-End-Flows nicht gegen `main` geprüft sind.
+
+---
+
+### 21.16 Region / Editor / World-Funktionen
+
+Der Referenzzustand besitzt:
+
+- RegionEditor;
+- RegionFlags;
+- RegionPolicy;
+- RegionSpawn;
+- RegionTransition;
+- RegionCommand;
+- Edit-Command.
+
+Der Rebuild besitzt große Teile der Region-Domain bereits.
+
+Offen ist insbesondere die **vollständige Bedienparität des Admin-Editors**, da `main` explizit `/pixelrpg edit spawn <living-entity>` besitzt und der aktuelle Rebuild-Command diese Referenzoberfläche nicht vollständig abbildet.
+
+Zu prüfen:
+
+- Spawn-Editor;
+- Entity-Typ-Auswahl;
+- Regionpunkte;
+- Flags;
+- Spawnregeln;
+- Übergänge;
+- Admin-Feedback;
+- Tab-Completion;
+- Persistenz.
+
+---
+
+### 21.17 Fehlende Listener / Verdrahtung — ausdrücklich prüfen
+
+Eine statische Gegenprüfung des aktuellen Rebuild-Listenerbestands hat fünf Klassen ergeben, deren direkte Registrierung in der Composition Root nicht nachgewiesen ist:
+
+- `CompanionExperienceListener`
+- `CompanionRuntimeListener`
+- `GuildBankListener`
+- `ProfessionActivityListener`
+- `GuildCompassListener`.
+
+Das ist zunächst ein **Audit-Alarm und noch kein Beweis für einen Fehler**, da eine indirekte Registrierung möglich ist.
+
+Vor Release muss für jede Klasse eindeutig dokumentiert sein:
+
+`Listener -> Registrierungsstelle -> auslösender Event -> fachlicher Service -> sichtbare Wirkung`
+
+Falls keine Registrierung existiert, ist die Funktion zu reparieren.
+
+---
+
+### 21.18 PartyAPI-Adapter — ausdrücklich prüfen
+
+Im aktuellen Rebuild existiert eine `PartyApiAdapter`, deren Methoden als statische Fallbackwerte implementiert sind:
+
+- `isInParty(...) -> false`
+- `getPartyMembers(...) -> Set.of(id)`
+- `getPartyLeader(...) -> id`
+- `isLeader(...) -> true`
+- `isWithinShareRange(...) -> source.equals(target)`
+- `getShareRange() -> 0.0`.
+
+Da gleichzeitig eine echte `PartyManager`-Domain vorhanden ist, muss vor Release eindeutig geklärt werden, ob dieser Adapter noch irgendwo verwendet wird.
+
+**Regel:**
+
+- Wenn unbenutzt: entfernen.
+- Wenn verwendet: durch die echte Party-Domain anbinden.
+- Kein Fake-/Fallback-Partyverhalten darf im produktiven Runtime-Pfad verbleiben.
+
+---
+
+### 21.19 Command- und UI-Parität ist ein eigener Abnahmetest
+
+Vor einer Release-Freigabe wird eine reine Build-Prüfung nicht mehr als ausreichend betrachtet.
+
+Es muss eine Paritätsmatrix abgearbeitet werden:
+
+| Bereich | main SOLL | rebuild IST | Status |
+|---|---|---|---|
+| Root-Commands | vollständig | reduziert/zentralisiert | OFFEN |
+| Admin-Commands | vollständig | nicht vollständig | OFFEN |
+| Party | Domain + GUI | Domain + reduzierte Ausgabe | OFFEN |
+| Guild | Domain + Dialog/Commands | Domain vorhanden | OFFEN |
+| Questlog | GUI + Details | keine GUI | OFFEN |
+| Crafting | GUI | Dialog-Service | OFFEN |
+| Shop | GUI + Editor | Dialog + Service | OFFEN |
+| Trade Depot | 2 GUIs | Dialog + Service | OFFEN |
+| Persönliche Bank | Bankdialog + Inventar | nicht vollständig | OFFEN |
+| Handelsfach | persistent + GUI | nicht vollständig | OFFEN |
+| Companion Equipment | GUI + Persistence | nicht vollständig | OFFEN |
+| Companion Runtime | vollständige Domain | neu strukturiert | PRÜFEN |
+| NPC | Behavior-System | Runtime/Listener | PRÜFEN |
+| Quest Runtime | Manager/Tracker/Navigation | Service/Listener | PRÜFEN |
+| Region Editor | Admin-Editor | teilweise vorhanden | OFFEN |
+| öffentliche API | Provider + Services | Provider fehlt | OFFEN |
+| Scoreboard | Darstellung + Persistenz | neu aufgebaut | PRÜFEN |
+| Playtime | Darstellung + Persistenz | neu aufgebaut | PRÜFEN |
+| Resourcepack | vollständig | vollständig laut Tree-Abgleich | PRÜFEN |
+| Build/CI | vollständige Verifikation | aktuelle HEAD-Verifikation ausstehend | OFFEN |
+
+---
+
+### 21.20 Was ausdrücklich NICHT gemacht werden darf
+
+Die folgenden Abkürzungen sind ab diesem Audit verboten:
+
+1. `main`-GUI löschen und behaupten, ein Dialog sei automatisch gleichwertig.
+2. Einen fehlenden Command als "Legacy" markieren, ohne seine fachliche Funktion nachzuweisen.
+3. Eine fehlende Funktion nur anhand eines neuen Service-Namens als vorhanden betrachten.
+4. Eine fehlende Listener-Registrierung mit "wird bestimmt indirekt registriert" abhaken.
+5. Einen Fake-API-Adapter als produktive Implementierung behalten.
+6. Nur den Build als Funktionsnachweis verwenden.
+7. Nur Dateianzahl vergleichen.
+8. Alte Dateien blind kopieren.
+9. Die Referenzdarstellung ohne ausdrücklichen Auftrag verändern.
+10. Release-Parität anhand einer Audit-Behauptung statt anhand des aktuellen Codes feststellen.
+
+---
+
+### 21.21 Verbindliche nächste Arbeitsreihenfolge
+
+Nach dieser Analyse wird nicht wieder pauschal "Phase 17 abgeschlossen" dokumentiert.
+
+Die weitere Arbeit erfolgt in dieser Reihenfolge:
+
+1. **Command-Parität vollständig herstellen**
+2. **Questlog / Party / Crafting / Shop / Trade-Depot UI gegen main rekonstruieren**
+3. **Bank + Handelsfach + Banker-End-to-End herstellen**
+4. **Companion-Equipment + Persistence + UI herstellen**
+5. **öffentliche API / Provider wiederherstellen**
+6. **alle Listener-Registrierungen forensisch schließen**
+7. **Quest-Navigation / passive / globale Questlogik gegen main verifizieren**
+8. **NPC-Verhalten und Präsentation pro NpcType verifizieren**
+9. **Region-/Admin-Editor-Parität herstellen**
+10. **Scoreboard / Playtime / Guild / Party End-to-End gegen main testen**
+11. **Resource-/Content-Parität final prüfen**
+12. **vollständige Build-/CI-Verifikation auf aktuellem rebuild-HEAD**
+13. **erst danach Release-Freigabe des Rebuilds**.
+
+### 21.22 Abschlusskriterium dieses Audits
+
+Der Rebuild darf erst als **SOLL erreicht** bezeichnet werden, wenn für jede relevante Funktion aus `main` eine der folgenden Aussagen nachweisbar ist:
+
+- **REBUILT:** Funktion vollständig neu implementiert und Verhalten/Darstellung geprüft.
+- **MERGED:** Funktion in einen neuen Service integriert und End-to-End geprüft.
+- **REPLACED:** bewusst technisch anders umgesetzt, aber gleiche sichtbare/fachliche Funktion nachgewiesen.
+- **REMOVED:** nur wenn nachweislich keine funktionale Bedeutung im Referenzzustand besteht.
+
+**"Datei existiert nicht mehr" ist kein Nachweis für "Funktion existiert nicht mehr".**
+
+Der aktuelle Stand wird daher ausdrücklich als:
+
+> **CLEAN REBUILD — TECHNISCH FORTGESCHRITTEN, ABER NOCH NICHT SOLL-/RELEASE-PARITÄT**
+
+geführt.
+
+Diese Sektion ist ab sofort Bestandteil der verbindlichen `audit.md`-Arbeitsanweisung und bei jeder weiteren Änderung auf `rebuild` zuerst zu berücksichtigen.
