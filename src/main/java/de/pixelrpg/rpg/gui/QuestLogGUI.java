@@ -49,7 +49,7 @@ public final class QuestLogGUI extends AbstractGUI {
             for (int slot = 0; slot < Math.min(45, definitions.size()); slot++) {
                 Quest quest = definitions.get(slot);
                 setItem(slot, questItem(profile, quest),
-                        event -> new QuestDetailGUI(viewer, quests, profiles, quest).open(viewer));
+                        event -> new QuestDetailGUI(viewer, quests, profiles, quest, itemService).open(viewer));
             }
         }
         setItem(49, named(Material.ARROW, "Schließen", NamedTextColor.RED), event -> viewer.closeInventory());
