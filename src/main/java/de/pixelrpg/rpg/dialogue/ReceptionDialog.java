@@ -5,7 +5,7 @@ import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import de.pixelrpg.rpg.gui.PartyGUI;
+import de.pixelrpg.rpg.dialogue.PartyDialog;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
@@ -57,7 +57,7 @@ public final class ReceptionDialog {
             actions.add(dialogueEngine.actionButton(Component.text("PixelRPG-Registrierung aufheben"), NamedTextColor.RED, this::openLeaveConfirmation));
             if (partyManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Party", NamedTextColor.AQUA), NamedTextColor.AQUA,
-                        target -> new PartyGUI(target, partyManager, profileManager, PixelRPGPlugin.getInstance().getInviteDialogService()).open(target)));
+                        target -> new PartyDialog(partyManager, profileManager, dialogueEngine, PixelRPGPlugin.getInstance().getInviteDialogService()).open(target)));
             }
             if (guildManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Gilde", NamedTextColor.GOLD), NamedTextColor.GOLD,
