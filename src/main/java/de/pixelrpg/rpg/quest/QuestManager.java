@@ -220,6 +220,47 @@ public final class QuestManager {
         }
     }
 
+    /** Marks a structure-based REACH_LOCATION quest as reached without performing a world locator search. */
+    public boolean markReachLocationReached(Player player, String questId, String structureKey) {
+        if (player == null || questId == null || structureKey == null || structureKey.isBlank()) return false;
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered() || !profile.hasActiveQuest(questId)) return false;
+
+        Quest quest = questRepository.getQuest(questId);
+        QuestProgress progress = profile.getActiveQuests().get(questId);
+        if (quest == null || progress == null || quest.type() != QuestType.REACH_LOCATION
+                || quest.targetStructureKey() == null
+                || !quest.targetStructureKey().equalsIgnoreCase(structureKey)
+                || progress.getCurrentAmount() >= quest.requiredAmount()) return false;
+
+        progress.setCurrentAmount(quest.requiredAmount());
+        player.sendMessage(Component.text("Ort erreicht: ")
+                .color(NamedTextColor.GREEN)
+                .append(Component.text(QuestText.titlePlain(player, quest), NamedTextColor.YELLOW)));
+        return true;
+    }
+
+    /** Completes a story quest at the persistent story NPC that owns the interaction. */
+    public boolean completeQuestAtNpc(Player player, String questId, String npcId) {
+        if (player == null || questId == null || npcId == null || npcId.isBlank()) return false;
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        Quest quest = questRepository.getQuest(questId);
+        if (profile == null || !profile.isRegistered() || quest == null || !profile.hasActiveQuest(questId)) return false;
+
+        QuestProgress progress = profile.getActiveQuests().get(questId);
+        if (progress == null || progress.isExpired() || progress.getCurrentAmount() < quest.requiredAmount()) return false;
+
+        var npc = PixelRPGPlugin.getInstance().getNpcManager().getById(npcId).orElse(null);
+        if (npc == null || npc.type() != NpcType.STORY || npc.location().getWorld() == null
+                || !player.getWorld().equals(npc.location().getWorld())
+                || player.getLocation().distanceSquared(npc.location()) > 36.0D) return false;
+
+        if (quest.questGiverNpcId() != null && !quest.questGiverNpcId().isBlank()
+                && !quest.questGiverNpcId().equalsIgnoreCase(npcId)) return false;
+
+        return grantCompletion(player, profile, quest);
+    }
+
     public void progressHuntQuests(Player killer, String mobTypeKey) {
         if (!isRegistered(killer.getUniqueId())) return;
         propagateToParty(killer, profile -> applyHuntProgress(profile, mobTypeKey), killer.getLocation());
