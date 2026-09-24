@@ -41,7 +41,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
 
     private PlayerProfile loadPlayer(Connection connection, UUID id) throws SQLException {
         try (var statement = connection.prepareStatement(
-                "SELECT registered, experience, money_minor_units, story_chapter, persistence_revision " +
+                "SELECT registered, experience, money_minor_units, waypoints, story_chapter, persistence_revision " +
                 "FROM pixelrpg_players WHERE uuid = ?")) {
             statement.setString(1, id.toString());
             try (var result = statement.executeQuery()) {
@@ -50,8 +50,10 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 profile.registered(result.getBoolean(1));
                 profile.experience(result.getLong(2));
                 profile.moneyMinorUnits(result.getLong(3));
-                profile.storyChapter(result.getInt(4));
-                profile.revision(result.getLong(5));
+                String waypoints = result.getString(4);
+                if (waypoints != null && !waypoints.isBlank()) for (String waypoint : waypoints.split(",")) profile.unlockWaypoint(waypoint);
+                profile.storyChapter(result.getInt(5));
+                profile.revision(result.getLong(6));
                 return profile;
             }
         }
@@ -122,8 +124,9 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
             statement.setBoolean(2, profile.registered());
             statement.setLong(3, profile.experience());
             statement.setLong(4, profile.moneyMinorUnits());
-            statement.setInt(5, profile.storyChapter());
-            statement.setLong(6, revision);
+            statement.setString(5, String.join(",", profile.getUnlockedWaypoints()));
+            statement.setInt(6, profile.storyChapter());
+            statement.setLong(7, revision);
             statement.executeUpdate();
         }
     }
