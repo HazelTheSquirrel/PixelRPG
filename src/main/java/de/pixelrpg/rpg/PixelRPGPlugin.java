@@ -260,7 +260,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BossDamageContributionListener(bossManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new BossCombustListener(), this);
         getServer().getPluginManager().registerEvents(new MobExperienceListener(playerProfileManager, mobScalingConfig), this);
-        getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry, questManager), this);
+        NpcDialogueService npcDialogueService = lifecycle.register(new NpcDialogueService(this, playerProfileManager, dialogueEngine, npcBehaviorRegistry));
+        getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry, questManager, npcDialogueService), this);
         getServer().getPluginManager().registerEvents(new QuestMobKillListener(questManager), this);
         getServer().getPluginManager().registerEvents(new PartyDisconnectListener(partyManager), this);
         getServer().getPluginManager().registerEvents(new BossDeathListener(bossManager), this);
