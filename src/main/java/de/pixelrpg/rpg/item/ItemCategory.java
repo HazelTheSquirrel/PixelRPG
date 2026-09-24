@@ -1,0 +1,1 @@
+package de.pixelrpg.rpg.item; public enum ItemCategory { MELEE_WEAPON,RANGED_WEAPON,HELMET,CHESTPLATE,LEGGINGS,BOOTS,FOOD,MATERIAL,MISC }

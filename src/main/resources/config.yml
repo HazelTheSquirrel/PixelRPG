@@ -1,0 +1,70 @@
+storage:
+  type: "YAML"
+  save-executor-threads: 4
+  load-timeout-seconds: 8
+  mysql:
+    host: "localhost"
+    port: 3306
+    database: "pixelrpg"
+    username: "root"
+    password: "CHANGE_ME"
+    pool-size: 20
+    connection-timeout-ms: 8000
+    ssl-mode: "REQUIRED"
+
+items:
+  soulbound:
+    cost: 200.0
+    min-level: 30
+  loot:
+    item-drop-chance: 0.60
+    currency-drop-chance: 0.20
+    currency-drop-min-amount: 1
+    currency-drop-max-amount: 8
+
+economy:
+  bank:
+    quick-amount: 10.0
+  currency:
+    max-stack-size: 64
+
+combat:
+  boss-max-hit-percent-of-max-hp: 0.12
+
+story:
+  chars-per-line: 18
+  lines-per-page: 13
+
+mob-scaling:
+  nameplate-duration-ticks: 120
+  xp-per-max-health: 4.0
+  damage-per-level: 0.15
+  hp-per-level: 2.5
+  player-parity-multiplier: 1.05
+  dimension:
+    overworld: { hp-multiplier: 1.0, damage-multiplier: 1.0, level-offset: 0, base-level: 1 }
+    nether: { hp-multiplier: 1.15, damage-multiplier: 1.10, level-offset: 0, base-level: 50 }
+    the-end: { hp-multiplier: 1.30, damage-multiplier: 1.20, level-offset: 0, base-level: 75 }
+
+npc:
+  look-radius: 5.0
+  nameplate-radius: 5.0
+  look-interval-ticks: 5
+
+quests:
+  party-share-range: 24.0
+
+bosses:
+  bar-radius: 60.0
+  bar-update-interval-ticks: 20
+  phase-check-interval-ticks: 10
+  biome-spawn:
+    spawn-radius: 80.0
+    check-interval-seconds: 60
+    max-concurrent: 4
+
+statistics:
+  autosave-interval-ticks: 6000
+
+scoreboard:
+  update-interval-ticks: 20
