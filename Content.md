@@ -90,11 +90,11 @@ Levelbereiche und Anforderungen werden bereits von Items, Rezepten, Quests, Boss
 
 ## Bestand
 
-`item-definitions.json`: **29 Definitionen**
+`item-definitions.json`: **30 Definitionen** – davon **29 normal spielerisch erreichbare Items** und **1 Admin-/Unique-Relikt**
 
 Kategorien:
 
-- 5 Waffen
+- 6 Waffen (inkl. Feuerball und Admin-Relikt)
 - 6 Helme
 - 6 Brustplatten
 - 6 Beinschützer
@@ -102,7 +102,7 @@ Kategorien:
 
 Davon:
 
-- 28 normale Spieler-Items
+- 29 normale Spieler-Items
 - 1 Unique/Admin-Relikt
 
 Normale Waffen:
@@ -111,6 +111,7 @@ Normale Waffen:
 - Goldklinge
 - Diamantklinge
 - Netheritklinge
+- Feuerball
 
 Zusätzlich existiert das Admin-Relikt.
 
@@ -1135,33 +1136,78 @@ Ein System darf künftig als **Content-fertig** markiert werden, wenn:
 
 ---
 
+# 30.1 Konkrete Progressionsmatrix – Erwerbswege der 29 Spieler-Items
+
+> **Abgrenzung:** Die Matrix umfasst die **29 normal spielerisch erreichbaren Custom-Items** aus `item-definitions.json`: 4 Waffen + 24 Rüstungsteile + Feuerball. Das **Admin-Relikt** ist als `adminOnly: true` bewusst nicht Bestandteil der Spielerprogression.
+
+| Level | Item | Quelle | NPC | Quest / Boss / Profession | Kosten | Dropchance |
+|---:|---|---|---|---|---|---|
+| 3 | Eisenschwert | Crafting + Story + Boss | Schmied-Trainer / Story-NPC | Schmied L3; Quest `story_campaign_village_plains` (L3); Boss **Der Plünderer** (L12) | 2× Eisenbarren + 1× Stock; Unlock 0 | Quest 100%; Boss 100% garantiert; Crafting kein Drop |
+| 10 | Donnerwacht-Helm | Crafting + Story | Schmied-Trainer / Story-NPC | Schmied L10; Quest `story_campaign_shipwreck` (L5) | 8× Kupferbarren; Unlock 250 | Quest 100%; Crafting kein Drop |
+| 10 | Donnerwacht-Brustplatte | Crafting + Story | Schmied-Trainer / Story-NPC | Schmied L10; Quest `story_campaign_desert_pyramid` (L9) | 8× Kupferbarren; Unlock 250 | Quest 100%; Crafting kein Drop |
+| 10 | Donnerwacht-Beinschutz | Crafting + Story | Schmied-Trainer / Story-NPC | Schmied L10; Quest `story_campaign_jungle_pyramid` (L13) | 8× Kupferbarren; Unlock 250 | Quest 100%; Crafting kein Drop |
+| 10 | Donnerwacht-Stiefel | Crafting + Story | Schmied-Trainer / Story-NPC | Schmied L10; Quest `story_campaign_swamp_hut` (L17) | 6× Kupferbarren; Unlock 250 | Quest 100%; Crafting kein Drop |
+| 20 | Schattengeflecht-Helm | Crafting + Story + Boss | Schneider-Trainer / Story-NPC | Schneider L20; Quest `story_campaign_ocean_ruin_warm` (L21); Boss **Die Hexe des Waldes** (L22) | 6× Eisenbarren + 2× Faden; Unlock 900 | Quest 100%; Boss 100% garantiert; Crafting kein Drop |
+| 20 | Schattengeflecht-Panzer | Crafting + Story | Schneider-Trainer / Story-NPC | Schneider L20; Quest `story_campaign_monument` (L26) | 8× Eisenbarren + 2× Faden; Unlock 900 | Quest 100%; Crafting kein Drop |
+| 20 | Schattengeflecht-Beinschutz | Crafting + Story | Schneider-Trainer / Story-NPC | Schneider L20; Quest `story_trail_ruins_archaeology` (L31) | 7× Eisenbarren + 2× Faden; Unlock 900 | Quest 100%; Crafting kein Drop |
+| 20 | Schattengeflecht-Stiefel | Crafting + Story | Schneider-Trainer / Story-NPC | Schneider L20; Quest `story_campaign_mineshaft` (L36) | 5× Eisenbarren + 2× Faden; Unlock 900 | Quest 100%; Crafting kein Drop |
+| 22 | Goldklinge | Crafting + Story + Boss | Schmied-Trainer / Story-NPC | Schmied L25; Quest `story_campaign_pillager_outpost` (L42); Boss **Der Sandstein-Koloss** (L40) | 4× Goldbarren + 1× Stock; Unlock 1600 | Quest 100%; Boss 100% garantiert; Crafting kein Drop |
+| 30 | Stahlwall-Helm | Crafting + Story | Schmied-Trainer / Story-NPC | Schmied L30; Quest `story_campaign_mansion` (L48) | 8× Eisenbarren; Unlock 2200 | Quest 100%; Crafting kein Drop |
+| 30 | Stahlwall-Brustplatte | Crafting + Story + Boss | Schmied-Trainer / Story-NPC | Schmied L30; Quest `story_campaign_ruined_portal` (L54); Boss **Der Ravager-Häuptling** (L38) | 8× Eisenbarren; Unlock 2200 | Quest 100%; Boss 100% garantiert; Crafting kein Drop |
+| 30 | Stahlwall-Beinschutz | Crafting + Story | Schmied-Trainer / Story-NPC | Schmied L30; Quest `story_under_the_stone` (L61) | 8× Eisenbarren; Unlock 2200 | Quest 100%; Crafting kein Drop |
+| 30 | Stahlwall-Stiefel | Crafting + Story | Schmied-Trainer / Story-NPC | Schmied L30; Quest `story_campaign_fortress` (L68) | 6× Eisenbarren; Unlock 2200 | Quest 100%; Crafting kein Drop |
+| 35 | Feuerball | Crafting | Alchemist-Trainer | Alchemist L35; Boss-Katalysator **Die Sumpfhexe** (L32) | 4× Lohenstaub + 2× Schwarzpulver + 1× Ghast-Träne + 1× Sumpftrank; Unlock 3500 | Katalysator-Boss 100% garantiert; Crafting kein Drop |
+| 40 | Diamantklinge | Crafting + Story | Schmied-Trainer / Story-NPC | Schmied L40; Quest `story_campaign_stronghold` (L82) | 3× Diamant + 1× Stock; Unlock 4500 | Quest 100%; Crafting kein Drop |
+| 45 | Sonnengewand-Helm | Crafting | Schneider-Trainer | Schneider L45; Boss-Katalysator **Der Sandstein-Koloss** (L40) | 7× Goldbarren + 2× Faden + 1× Goldenes Fossil; Unlock 5000 | Katalysator-Boss 100% garantiert; Crafting kein Drop |
+| 45 | Sonnengewand-Brustplatte | Crafting + Story + Boss | Schneider-Trainer / Story-NPC | Schneider L45; Quest `story_campaign_bastion_remnant` (L75); Boss **Der Tiefenwächter** (L58) | 8× Goldbarren + 2× Faden + 1× Goldenes Fossil; Unlock 5000 | Quest 100%; Boss 100% garantiert; Crafting kein Drop |
+| 45 | Sonnengewand-Beinschutz | Crafting | Schneider-Trainer | Schneider L45; Boss-Katalysator **Der Sandstein-Koloss** (L40) | 8× Goldbarren + 2× Faden + 1× Goldenes Fossil; Unlock 5000 | Katalysator-Boss 100% garantiert; Crafting kein Drop |
+| 45 | Sonnengewand-Stiefel | Crafting | Schneider-Trainer | Schneider L45; Boss-Katalysator **Der Sandstein-Koloss** (L40) | 6× Goldbarren + 2× Faden + 1× Goldenes Fossil; Unlock 5000 | Katalysator-Boss 100% garantiert; Crafting kein Drop |
+| 60 | Kristallwache-Helm | Crafting | Schmied-Trainer | Schmied L60; Boss-Katalysator **Der Uralte Wächter** (L65) | 7× Diamant + 1× Echoherz; Unlock 9000 | Katalysator-Boss 100% garantiert; Crafting kein Drop |
+| 60 | Kristallwache-Brustplatte | Crafting + Boss | Schmied-Trainer | Schmied L60; Boss **Der Uralte Wächter** (L65) | 8× Diamant + 1× Echoherz; Unlock 9000 | Boss 100% garantiert; Crafting kein Drop |
+| 60 | Kristallwache-Beinschutz | Crafting | Schmied-Trainer | Schmied L60; Boss-Katalysator **Der Uralte Wächter** (L65) | 8× Diamant + 1× Echoherz; Unlock 9000 | Katalysator-Boss 100% garantiert; Crafting kein Drop |
+| 60 | Kristallwache-Stiefel | Crafting | Schmied-Trainer | Schmied L60; Boss-Katalysator **Der Uralte Wächter** (L65) | 6× Diamant + 1× Echoherz; Unlock 9000 | Katalysator-Boss 100% garantiert; Crafting kein Drop |
+| 80 | Höllenschmiede-Helm | Crafting | Schmied-Trainer | Schmied L80; Boss-Katalysator **Der Netherfürst** (L68) | 7× Netheritbarren + 1× Netherkern; Unlock 18000 | Katalysator-Boss 100% garantiert; Crafting kein Drop |
+| 80 | Höllenschmiede-Brustplatte | Crafting | Schmied-Trainer | Schmied L80; Boss-Katalysator **Der Netherfürst** (L68) | 8× Netheritbarren + 1× Netherkern; Unlock 18000 | Katalysator-Boss 100% garantiert; Crafting kein Drop |
+| 80 | Höllenschmiede-Beinschutz | Crafting | Schmied-Trainer | Schmied L80; Boss-Katalysator **Der Netherfürst** (L68) | 8× Netheritbarren + 1× Netherkern; Unlock 18000 | Katalysator-Boss 100% garantiert; Crafting kein Drop |
+| 80 | Höllenschmiede-Stiefel | Crafting | Schmied-Trainer | Schmied L80; Boss-Katalysator **Der Netherfürst** (L68) | 6× Netheritbarren + 1× Netherkern; Unlock 18000 | Katalysator-Boss 100% garantiert; Crafting kein Drop |
+| 82 | Netheritklinge | Crafting + Story + Boss | Schmied-Trainer / Story-NPC | Schmied L90; Quest `story_campaign_end_city` (L89); Boss **Der Endkönig** (L78) direkt; zusätzlich Boss-Katalysator **Der Endbote** (L96) | 4× Netheritbarren + 1× Stock + 1× Endriss; Unlock 25000 | Endkönig 100% garantiert; Endbote-Katalysator 100% garantiert; Quest 100%; Crafting kein Drop |
+
+### Leseregeln der Matrix
+
+- **Level** = `requiredLevel` des Items, nicht zwingend das Level der Quest oder des Bosses.
+- **Unlock** = Preis für die Rezeptfreischaltung; er fällt zusätzlich zu den Materialkosten an.
+- **Crafting kein Drop** = das Rezept erzeugt das Item deterministisch, sobald Level, Berufslevel, Freischaltung und Kosten erfüllt sind.
+- **100% garantiert** gilt für die in `BossRepository.ensureCustomProgressionLoot(...)` hinterlegten garantierten Progressionsdrops sowie für die expliziten Story-Questbelohnungen.
+- **Admin-Relikt** ist absichtlich ausgeschlossen: `adminOnly: true`, daher kein normaler Spieler-Erwerbsweg.
+- Die **NPCs** für Crafting sind die vorhandenen Profession-Trainer-Typen; die Story-NPCs werden weiterhin dynamisch an den relevanten Story-Strukturen erzeugt.
+
 # 31. Aktuelle Gesamtmarkierung
 
 | Bereich | Technik | Content | Bewertung |
 |---|---|---|---|
 | Player/Progression | vorhanden | vorhanden | 🟢 |
 | Bank | vorhanden | ausreichend | 🟢 |
-| Physische Währung | vorhanden | Designänderung offen | 🟡 |
-| Items | vorhanden | Erwerbswege fehlen | 🟠 |
-| Equipment | vorhanden | 6 Sets vorhanden, Quellen fehlen | 🟡 |
-| Food | vorhanden | 23 Definitionen, Quellen/Anbindung offen | 🟠 |
+| Physische Währung | vorhanden | 99er Stack technisch umgesetzt | 🟢 |
+| Items | vorhanden | **29 Spieler-Items mit konkretem Erwerbsweg** | 🟢 |
+| Equipment | vorhanden | **6 Sets mit konkreten Crafting-/Katalysatorwegen** | 🟢 |
+| Food | vorhanden | Testbestand bewusst pausiert | ⚪ |
 | Crafting | vorhanden | 300 Rezepte | 🟢 |
-| Custom-Item-Crafting | teilweise | fehlt | 🟡 |
+| Custom-Item-Crafting | vorhanden | resultItemId + itemCosts + ItemService-Anbindung | 🟢 |
 | Professionen | vorhanden | 9 Berufe | 🟢 |
 | Quests | vorhanden | 269 + 17 Story | 🟢 |
-| Quest-Weltanbindung | vorhanden | NPC/Welt fehlt teilweise | 🟡 |
-| Story | vorhanden | Kampagnenstruktur vorhanden | 🟡 |
-| Companions | vorhanden | 28 | 🟢 |
+| Quest-Weltanbindung | vorhanden | Story-Strukturpfade vorhanden, weitere Weltanbindung offen | 🟡 |
+| Story | vorhanden | Kampagnenstruktur + Item-Rewards vorhanden | 🟡 |
+| Companions | vorhanden | 28, 25 Quest-Unlocks angebunden | 🟢 |
 | Bosses | vorhanden | 32 | 🟢 |
-| NPC-System | vorhanden | Weltpopulation fehlt | 🟡 |
-| Dialog-System | vorhanden | NPC-/Dialogpopulation offen | 🟡 |
-| Shops | vorhanden | Default-Sortimente fehlen | 🟡 |
+| NPC-System | vorhanden | Story-/Profession-Loop vorhanden, globale Population bewusst nicht vorgesehen | 🟢 |
+| Dialog-System | vorhanden | Story-/NPC-Dialogpopulation vorhanden | 🟢 |
+| Shops | vorhanden | manuelle Sortimente bewusst gepflegt | 🟢 |
 | Party | vorhanden | vorhanden | 🟢 |
 | Guild | vorhanden | Grundcontent vorhanden | 🟢 |
 | Guild City | vorhanden | Weltcontent pausiert | ⚪ |
 | Trade Depot | vorhanden | spielergetrieben | 🟢 |
 | Combat | vorhanden | ausreichend | 🟢 |
-| Weapon Progression | vorhanden | zu wenige erreichbare Custom-Waffen | 🟡 |
+| Weapon Progression | vorhanden | **5 normale Custom-Waffen mit Erwerbswegen** | 🟢 |
 | Economy | vorhanden | Balancing offen | 🟡 |
 | Regionen | vorhanden | bewusst pausiert | ⚪ |
 | Resourcepack | vorhanden | bewusst pausiert | ⚪ |
@@ -1169,7 +1215,17 @@ Ein System darf künftig als **Content-fertig** markiert werden, wenn:
 | Scoreboard | vorhanden | vorhanden | 🟢 |
 | API | vorhanden | vorhanden | 🟢 |
 
----
+### Ergebnis
+
+Die frühere P0/P1-Lücke **„Custom-Items existieren, sind aber nicht erwerbbar“** ist für die 29 normalen Spieler-Items geschlossen.
+
+Die Erwerbspipeline ist jetzt nachvollziehbar:
+
+**Spielerlevel → Rezeptfreischaltung → Profession → NPC/Profession-Loop → Vanilla-Materialien → ggf. Boss-Katalysator → Crafting → Custom-Item**
+
+Zusätzlich existieren bei einem Teil der Progressionsitems direkte **Story-Questbelohnungen** und bei ausgewählten Items **garantierte Boss-Rewards**.
+
+Die verbleibenden gelben/weißen Bereiche sind bewusstes Produkt-/Balancing-/World-Design und werden nicht als fehlende Erwerbswege der 29 Spieler-Items gewertet.
 
 # 32. Schlussfolgerung
 
