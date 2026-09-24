@@ -125,7 +125,7 @@ public final class QuestService {
 
         for (String reward : quest.rewardItemMaterials()) giveReward(player, reward, quest.requiredLevel());
         profiles.saveProfileAsync(player.getUniqueId());
-        expiryScheduler.cancel(player.getUniqueId());
+        expiryScheduler.cancel(new QuestTimerKey(player.getUniqueId(), quest.id()));
         Bukkit.getPluginManager().callEvent(new QuestCompletedEvent(player, quest.id()));
         return true;
     }
