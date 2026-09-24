@@ -1,0 +1,138 @@
+{
+  "rules": {
+    "maxActive": 5,
+    "unlockEarlyLevels": 0,
+    "normalLevelMin": 1,
+    "normalLevelMax": 99
+  },
+  "definitions": [
+    {
+      "id": "story_under_stone_expedition",
+      "title": "Erkunde die Ruinen unter dem Stein",
+      "description": "Finde eine Ancient City im Deep Dark und untersuche die verlassenen Anlagen.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 11,
+      "categoryLevel": 11,
+      "targetKey": "story_under_stone_expedition",
+      "requiredAmount": 1,
+      "reward": { "money": 80.0, "experience": 300, "items": [] },
+      "navigation": { "structure": "minecraft:ancient_city", "radius": 2048, "findUnexplored": false }
+    },
+    {
+      "id": "story_under_stone_echo_fragments",
+      "title": "Echos aus der Tiefe",
+      "description": "Sammle Echo Shards aus den Ancient Cities und bringe sie Eryn.",
+      "type": "COLLECT",
+      "recommendedLevel": 11,
+      "categoryLevel": 11,
+      "targetKey": "ECHO_SHARD",
+      "requiredAmount": 3,
+      "prerequisites": ["story_under_stone_expedition"],
+      "reward": { "money": 120.0, "experience": 450, "items": [] }
+    },
+    {
+      "id": "story_forgotten_builders",
+      "title": "Die vergessenen Erbauer",
+      "description": "Finde eine weitere Ancient City und untersuche ihre Bauweise.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 21,
+      "categoryLevel": 21,
+      "targetKey": "story_forgotten_builders",
+      "requiredAmount": 1,
+      "prerequisites": ["story_under_stone_echo_fragments"],
+      "reward": { "money": 150.0, "experience": 600, "items": [] },
+      "navigation": { "structure": "minecraft:ancient_city", "radius": 4096, "findUnexplored": false }
+    },
+    {
+      "id": "story_black_flame",
+      "title": "Spuren der schwarzen Flamme",
+      "description": "Untersuche eine Bastion und sichere Hinweise auf die Piglin-Zivilisation.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 31,
+      "categoryLevel": 31,
+      "targetKey": "story_black_flame",
+      "requiredAmount": 1,
+      "prerequisites": ["story_forgotten_builders"],
+      "reward": { "money": 220.0, "experience": 800, "items": [] },
+      "navigation": { "structure": "minecraft:bastion_remnant", "radius": 4096, "findUnexplored": false }
+    },
+    {
+      "id": "story_end_of_the_old",
+      "title": "Das Ende der Alten",
+      "description": "Untersuche ein verlassenes Portal und dokumentiere die Spuren eines alten Übergangs.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 41,
+      "categoryLevel": 41,
+      "targetKey": "story_end_of_the_old",
+      "requiredAmount": 1,
+      "prerequisites": ["story_black_flame"],
+      "reward": { "money": 260.0, "experience": 950, "items": [] },
+      "navigation": { "structure": "minecraft:ruined_portal", "radius": 4096, "findUnexplored": false }
+    },
+    {
+      "id": "story_beyond_the_world",
+      "title": "Jenseits der Welt",
+      "description": "Finde eine Stronghold und erreiche ihre Portalhalle.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 51,
+      "categoryLevel": 51,
+      "targetKey": "story_beyond_the_world",
+      "requiredAmount": 1,
+      "prerequisites": ["story_end_of_the_old"],
+      "reward": { "money": 350.0, "experience": 1200, "items": [] },
+      "navigation": { "structure": "minecraft:stronghold", "radius": 8192, "findUnexplored": false }
+    },
+    {
+      "id": "story_realm_of_endermen",
+      "title": "Das Reich der Endermen",
+      "description": "Erreiche eine End City und untersuche die Bauwerke jenseits des Hauptendportals.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 61,
+      "categoryLevel": 61,
+      "targetKey": "story_realm_of_endermen",
+      "requiredAmount": 1,
+      "prerequisites": ["story_beyond_the_world"],
+      "reward": { "money": 450.0, "experience": 1500, "items": [] },
+      "navigation": { "structure": "minecraft:end_city", "radius": 8192, "findUnexplored": false }
+    },
+    {
+      "id": "story_piglin_civilization",
+      "title": "Die Piglin-Zivilisation",
+      "description": "Kehre in eine Bastion zurück und untersuche ihre Spuren von Handel und Macht.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 71,
+      "categoryLevel": 71,
+      "targetKey": "story_piglin_civilization",
+      "requiredAmount": 1,
+      "prerequisites": ["story_realm_of_endermen"],
+      "reward": { "money": 500.0, "experience": 1700, "items": [] },
+      "navigation": { "structure": "minecraft:bastion_remnant", "radius": 8192, "findUnexplored": false }
+    },
+    {
+      "id": "story_the_dragon",
+      "title": "Der Drache",
+      "description": "Erreiche erneut die äußeren Endinseln und sichere die letzten Beobachtungen über das Reich des Drachen.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 81,
+      "categoryLevel": 81,
+      "targetKey": "story_the_dragon",
+      "requiredAmount": 1,
+      "prerequisites": ["story_piglin_civilization"],
+      "reward": { "money": 700.0, "experience": 2200, "items": [] },
+      "navigation": { "structure": "minecraft:end_city", "radius": 8192, "findUnexplored": false }
+    },
+    {
+      "id": "story_after_the_end",
+      "title": "Was hinter dem Ende bleibt",
+      "description": "Verbinde die Spuren aus Oberwelt, Deep Dark, Nether und End.",
+      "type": "REACH_LOCATION",
+      "recommendedLevel": 91,
+      "categoryLevel": 91,
+      "targetKey": "story_after_the_end",
+      "requiredAmount": 1,
+      "prerequisites": ["story_the_dragon"],
+      "reward": { "money": 1000.0, "experience": 3000, "items": [] },
+      "navigation": { "structure": "minecraft:end_city", "radius": 8192, "findUnexplored": false }
+    }
+  ]
+}
