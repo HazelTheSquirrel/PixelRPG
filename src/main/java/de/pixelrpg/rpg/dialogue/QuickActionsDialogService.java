@@ -71,7 +71,7 @@ public final class QuickActionsDialogService {
         GuildDialog guildDialog = new GuildDialog(
                 GuildManager.getInstance(de.pixelrpg.rpg.PixelRPGPlugin.getInstance(), profiles),
                 profiles, engine, this, inviteDialogService);
-        PartyDialog partyDialog = new PartyDialog(partyManager, profiles, engine, inviteDialogService);
+        PartyDialog partyDialog = new PartyDialog(partyManager, profiles, engine, inviteDialogService, this::openQuickActions);
 
         List<ActionButton> actions = new ArrayList<>();
         actions.add(actionButton(Component.text("Charakterprofil", NamedTextColor.AQUA), target -> openCharacterProfile(target, companionDialog, professionDialog)));
