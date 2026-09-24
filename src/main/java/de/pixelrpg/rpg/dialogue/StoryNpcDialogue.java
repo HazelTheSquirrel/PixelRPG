@@ -54,6 +54,12 @@ public final class StoryNpcDialogue {
 
         List<ActionButton> actions = new ArrayList<>();
         Quest quest = questManager == null || chapter.startQuestId().isBlank() ? null : questManager.getRepository().getQuest(chapter.startQuestId());
+        if (quest == null && chapter.completionQuestId().isBlank()) {
+            actions.add(dialogueEngine.actionButton(Component.text("Die Reise beginnen"), NamedTextColor.GREEN, target -> {
+                if (storyManager.completeChapter(target, chapter)) target.closeDialog();
+                else openChapter(target, chapter, npc);
+            }));
+        }
         if (quest != null && !profile.hasActiveQuest(quest.id()) && !profile.hasCompletedQuest(quest.id())) {
             actions.add(dialogueEngine.actionButton(Component.text("Quest annehmen"), NamedTextColor.GREEN, target -> {
                 PlayerProfile current = profileManager.getProfile(target.getUniqueId()).orElse(null);
