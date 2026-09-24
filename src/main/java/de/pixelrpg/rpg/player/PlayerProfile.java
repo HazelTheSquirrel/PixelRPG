@@ -33,6 +33,9 @@ public final class PlayerProfile {
     }
 
     public synchronized UUID uniqueId() { return uniqueId; }
+    public UUID getUuid() { return uniqueId(); }
+    public boolean isRegistered() { return registered(); }
+    public int getLevel() { return level(); }
     public synchronized boolean registered() { return registered; }
     public synchronized long experience() { return experience; }
     public synchronized long moneyMinorUnits() { return moneyMinorUnits; }
