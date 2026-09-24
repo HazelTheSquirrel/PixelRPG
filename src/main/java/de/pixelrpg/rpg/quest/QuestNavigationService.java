@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /** Maintains one native Minecraft locator-bar waypoint per active quest. */
@@ -156,7 +157,8 @@ public final class QuestNavigationService {
             stand.setSilent(true);
             stand.setPersistent(false);
             stand.setVisibleByDefault(false);
-            stand.getAttribute(Attribute.WAYPOINT_TRANSMIT_RANGE).setBaseValue(60_000_000.0D);
+            var transmitRange = stand.getAttribute(Attribute.WAYPOINT_TRANSMIT_RANGE);
+            if (transmitRange != null) transmitRange.setBaseValue(60_000_000.0D);
             stand.setWaypointColor(QUEST_COLORS.get(index));
             stand.setWaypointStyle(DEFAULT_WAYPOINT_STYLE);
             stand.getPersistentDataContainer().set(RPGKeys.Quest.navigationCompass(), PersistentDataType.BYTE, (byte) 1);
