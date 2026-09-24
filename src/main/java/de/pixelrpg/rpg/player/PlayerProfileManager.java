@@ -56,6 +56,7 @@ public final class PlayerProfileManager implements EconomyAPI, GuildAPI, AutoClo
             if (storageType == StorageType.MYSQL) {
                 database = new DatabaseManager();
                 database.connect(config);
+                database.createSchema();
                 repository = new MySQLPlayerProfileRepository(database.dataSource(), ioExecutor);
             } else {
                 repository = new YamlPlayerProfileRepository(
