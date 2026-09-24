@@ -10,6 +10,9 @@ import de.pixelrpg.rpg.item.FoodService;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.party.PartyDisconnectListener;
 import de.pixelrpg.rpg.profession.ProfessionSystem;
+import de.pixelrpg.rpg.quest.QuestLifecycleListener;
+import de.pixelrpg.rpg.quest.QuestRepository;
+import de.pixelrpg.rpg.quest.QuestService;
 import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatisticsService;
@@ -26,6 +29,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ItemService itemService;
     private FoodService foodService;
     private ProfessionSystem professionSystem;
+    private QuestRepository questRepository;
+    private QuestService questService;
 
     @Override
     public void onEnable() {
@@ -46,6 +51,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
         itemService = new ItemService(this, foodService);
         professionSystem = new ProfessionSystem(this, profiles);
         professionSystem.register();
+        questRepository = new QuestRepository(this);
+        questRepository.load();
+        questService = new QuestService(this, questRepository, profiles, itemService);
+        getServer().getPluginManager().registerEvents(new QuestLifecycleListener(questService, profiles), this);
         getServer().getPluginManager().registerEvents(foodService, this);
         getServer().getPluginManager().registerEvents(equipmentService, this);
 
@@ -62,6 +71,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (partyManager != null) partyManager.shutdown();
         unregister(StatisticsAPI.class, statisticsService);
         unregister(ItemAPI.class, itemService);
+        if (questService != null) questService.shutdown();
         if (profiles != null) {
             profiles.shutdown();
             profiles = null;
@@ -73,6 +83,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         itemService = null;
         foodService = null;
         professionSystem = null;
+        questService = null;
+        questRepository = null;
     }
 
     private <T> void register(Class<T> type, T service) {
@@ -103,5 +115,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     public ProfessionSystem getProfessionSystem() {
         return professionSystem;
+    }
+
+    public QuestService getQuestService() {
+        return questService;
     }
 }
