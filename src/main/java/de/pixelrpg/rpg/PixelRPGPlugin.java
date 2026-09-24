@@ -208,7 +208,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcManager = lifecycle.register(new NpcManager(this));
         npcManager.loadAll();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
-        StoryLocationRegistry storyLocationRegistry = new StoryLocationRegistry(this, storyManager, playerProfileManager, questRepository, npcManager);
+        StoryLocationRegistry storyLocationRegistry = new StoryLocationRegistry(this, storyManager, playerProfileManager, questRepository, questManager, npcManager);
         getServer().getPluginManager().registerEvents(new StoryTriggerListener(storyLocationRegistry), this);
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0), getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
