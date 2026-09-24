@@ -1,10 +1,161 @@
 package de.pixelrpg.rpg.player;
+
+import de.pixelrpg.rpg.profession.Profession;
+
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
+
 public final class MySQLPlayerProfileRepository implements PlayerProfileRepository {
- private final DataSource ds; private final Executor io; public MySQLPlayerProfileRepository(DataSource d,Executor e){ds=d;io=e;}
- public CompletableFuture<PlayerProfile> load(UUID id){return CompletableFuture.supplyAsync(()->{try(var c=ds.getConnection();var s=c.prepareStatement("SELECT registered,experience,money_minor_units,story_chapter,persistence_revision FROM pixelrpg_players WHERE uuid=?")){s.setString(1,id.toString());try(var r=s.executeQuery()){var p=new PlayerProfile(id);if(r.next()){p.registered(r.getBoolean(1));p.experience(r.getLong(2));p.moneyMinorUnits(r.getLong(3));p.storyChapter(r.getInt(4));p.revision(r.getLong(5));}return p;}}catch(SQLException e){throw new CompletionException(e);}},io);}
- public CompletableFuture<Void> save(PlayerProfile p){return CompletableFuture.runAsync(()->{try(var c=ds.getConnection();var s=c.prepareStatement("INSERT INTO pixelrpg_players(uuid,registered,experience,money_minor_units,story_chapter,persistence_revision) VALUES(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE registered=VALUES(registered),experience=VALUES(experience),money_minor_units=VALUES(money_minor_units),story_chapter=VALUES(story_chapter),persistence_revision=VALUES(persistence_revision)")){s.setString(1,p.uniqueId().toString());s.setBoolean(2,p.registered());s.setLong(3,p.experience());s.setLong(4,p.moneyMinorUnits());s.setInt(5,p.storyChapter());s.setLong(6,p.revision());s.executeUpdate();}catch(SQLException e){throw new CompletionException(e);}},io);}
+    private static final String LEVEL_PREFIX = "profession.level.";
+    private static final String XP_PREFIX = "profession.xp.";
+    private static final String LEARNED_PREFIX = "profession.learned.";
+    private static final String RECIPE_PREFIX = "recipe.unlocked.";
+
+    private final DataSource dataSource;
+    private final Executor io;
+
+    public MySQLPlayerProfileRepository(DataSource dataSource, Executor io) {
+        this.dataSource = dataSource;
+        this.io = io;
+    }
+
+    @Override
+    public CompletableFuture<PlayerProfile> load(UUID id) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (Connection connection = dataSource.getConnection()) {
+                PlayerProfile profile = loadPlayer(connection, id);
+                if (profile == null) return new PlayerProfile(id);
+                loadDomainState(connection, id, profile);
+                profile.markClean();
+                return profile;
+            } catch (SQLException exception) {
+                throw new CompletionException(exception);
+            }
+        }, io);
+    }
+
+    private PlayerProfile loadPlayer(Connection connection, UUID id) throws SQLException {
+        try (var statement = connection.prepareStatement(
+                "SELECT registered, experience, money_minor_units, story_chapter, persistence_revision " +
+                "FROM pixelrpg_players WHERE uuid = ?")) {
+            statement.setString(1, id.toString());
+            try (var result = statement.executeQuery()) {
+                if (!result.next()) return null;
+                PlayerProfile profile = new PlayerProfile(id);
+                profile.registered(result.getBoolean(1));
+                profile.experience(result.getLong(2));
+                profile.moneyMinorUnits(result.getLong(3));
+                profile.storyChapter(result.getInt(4));
+                profile.revision(result.getLong(5));
+                return profile;
+            }
+        }
+    }
+
+    private void loadDomainState(Connection connection, UUID id, PlayerProfile profile) throws SQLException {
+        try (var statement = connection.prepareStatement(
+                "SELECT stat_key, value FROM pixelrpg_player_stats WHERE uuid = ?")) {
+            statement.setString(1, id.toString());
+            try (var result = statement.executeQuery()) {
+                while (result.next()) {
+                    String key = result.getString(1);
+                    long value = result.getLong(2);
+                    if (key.startsWith(LEVEL_PREFIX)) {
+                        Profession profession = profession(key.substring(LEVEL_PREFIX.length()));
+                        if (profession != null) profile.setProfessionLevel(profession, (int) value);
+                    } else if (key.startsWith(XP_PREFIX)) {
+                        Profession profession = profession(key.substring(XP_PREFIX.length()));
+                        if (profession != null) profile.setProfessionExperience(profession, value);
+                    } else if (key.startsWith(LEARNED_PREFIX)) {
+                        Profession profession = profession(key.substring(LEARNED_PREFIX.length()));
+                        if (profession != null && value > 0L) profile.learnProfession(profession);
+                    } else if (key.startsWith(RECIPE_PREFIX) && value > 0L) {
+                        profile.unlockRecipe(key.substring(RECIPE_PREFIX.length()));
+                    }
+                }
+            }
+        }
+    }
+
+    private static Profession profession(String value) {
+        if (value == null || value.isBlank()) return null;
+        try { return Profession.valueOf(value.trim().toUpperCase(java.util.Locale.ROOT)); }
+        catch (IllegalArgumentException ignored) { return null; }
+    }
+
+    @Override
+    public CompletableFuture<Void> save(PlayerProfile profile) {
+        return CompletableFuture.runAsync(() -> {
+            long nextRevision = profile.revision();
+            try (Connection connection = dataSource.getConnection()) {
+                connection.setAutoCommit(false);
+                try {
+                    upsertPlayer(connection, profile, nextRevision);
+                    replaceDomainState(connection, profile);
+                    connection.commit();
+                } catch (SQLException exception) {
+                    connection.rollback();
+                    throw exception;
+                } finally {
+                    connection.setAutoCommit(true);
+                }
+            } catch (SQLException exception) {
+                throw new CompletionException(exception);
+            }
+        }, io);
+    }
+
+    private void upsertPlayer(Connection connection, PlayerProfile profile, long revision) throws SQLException {
+        try (var statement = connection.prepareStatement(
+                "INSERT INTO pixelrpg_players " +
+                "(uuid, registered, experience, money_minor_units, story_chapter, persistence_revision) " +
+                "VALUES (?, ?, ?, ?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE registered=VALUES(registered), experience=VALUES(experience), " +
+                "money_minor_units=VALUES(money_minor_units), story_chapter=VALUES(story_chapter), " +
+                "persistence_revision=VALUES(persistence_revision)")) {
+            statement.setString(1, profile.uniqueId().toString());
+            statement.setBoolean(2, profile.registered());
+            statement.setLong(3, profile.experience());
+            statement.setLong(4, profile.moneyMinorUnits());
+            statement.setInt(5, profile.storyChapter());
+            statement.setLong(6, revision);
+            statement.executeUpdate();
+        }
+    }
+
+    private void replaceDomainState(Connection connection, PlayerProfile profile) throws SQLException {
+        try (var delete = connection.prepareStatement("DELETE FROM pixelrpg_player_stats WHERE uuid = ?")) {
+            delete.setString(1, profile.uniqueId().toString());
+            delete.executeUpdate();
+        }
+
+        try (var insert = connection.prepareStatement(
+                "INSERT INTO pixelrpg_player_stats (uuid, stat_key, value) VALUES (?, ?, ?)")) {
+            for (Profession profession : Profession.values()) {
+                insert.setString(1, profile.uniqueId().toString());
+                insert.setString(2, LEVEL_PREFIX + profession.name().toLowerCase(java.util.Locale.ROOT));
+                insert.setLong(3, profile.getProfessionLevel(profession));
+                insert.addBatch();
+
+                insert.setString(2, XP_PREFIX + profession.name().toLowerCase(java.util.Locale.ROOT));
+                insert.setLong(3, profile.getProfessionExperience(profession));
+                insert.addBatch();
+
+                insert.setString(2, LEARNED_PREFIX + profession.name().toLowerCase(java.util.Locale.ROOT));
+                insert.setLong(3, profile.hasLearnedProfession(profession) ? 1L : 0L);
+                insert.addBatch();
+            }
+            for (String recipe : profile.getUnlockedRecipes()) {
+                insert.setString(2, RECIPE_PREFIX + recipe);
+                insert.setLong(3, 1L);
+                insert.addBatch();
+            }
+            insert.executeBatch();
+        }
+    }
 }
