@@ -8,9 +8,6 @@ import de.pixelrpg.rpg.profession.CraftingCategory;
 import de.pixelrpg.rpg.profession.CraftingService;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.profession.ProfessionService;
-import de.pixelrpg.rpg.quest.Quest;
-import de.pixelrpg.rpg.quest.QuestManager;
-import de.pixelrpg.rpg.quest.QuestText;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
 import net.kyori.adventure.text.Component;
@@ -31,13 +28,11 @@ public final class ProfessionDialog {
     private final CraftingService craftingService;
     private final DialogueEngine dialogueEngine;
     private final QuickActionsDialogService quickActions;
-    private final QuestManager questManager;
 
     public ProfessionDialog(PlayerProfileManager profileManager, DialogueEngine dialogueEngine, QuickActionsDialogService quickActions) {
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.quickActions = quickActions;
-        this.questManager = PixelRPGPlugin.getInstance().getQuestManager();
         var professionSystem = PixelRPGPlugin.getInstance().getProfessionSystem();
         this.professionService = professionSystem.professionService();
         this.craftingService = professionSystem.craftingService();
@@ -82,7 +77,6 @@ public final class ProfessionDialog {
         ));
 
         List<ActionButton> actions = new ArrayList<>();
-        List<Quest> professionQuests = professionQuests(profession);
         List<CraftRecipe> recipes = craftingService.recipes(profession);
 
         if (!recipes.isEmpty()) {
@@ -92,14 +86,6 @@ public final class ProfessionDialog {
                     target -> openProfessionRecipeCategories(target, profession)
             ));
         }
-        if (!professionQuests.isEmpty()) {
-            actions.add(dialogueEngine.actionButton(
-                    Component.text("Berufsquests (" + professionQuests.size() + ")"),
-                    NamedTextColor.YELLOW,
-                    target -> openProfessionQuests(target, profession)
-            ));
-        }
-
         if (actions.isEmpty()) {
             body.add(DialogBody.plainMessage(Component.text("Du hast noch keine Inhalte freigeschaltet.", NamedTextColor.WHITE)));
         }
@@ -213,84 +199,6 @@ public final class ProfessionDialog {
                 actions,
                 2
         );
-    }
-
-    private List<Quest> professionQuests(Profession profession) {
-        if (questManager == null) return List.of();
-        return questManager.getRepository().getAllQuests().stream()
-                .filter(Quest::isProfessionQuest)
-                .filter(quest -> quest.profession() == profession)
-                .sorted(Comparator.comparingInt(Quest::requiredProfessionLevel).thenComparing(Quest::title))
-                .toList();
-    }
-
-    private void openProfessionQuests(Player player, Profession profession) {
-        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegistered()) return;
-        int professionLevel = professionService.getLevel(player.getUniqueId(), profession);
-        List<Quest> quests = professionQuests(profession);
-        List<DialogBody> body = new ArrayList<>();
-        body.add(DialogBody.plainMessage(Component.text("Berufsquests für " + profession.displayName(), NamedTextColor.WHITE)));
-        body.add(DialogBody.plainMessage(Component.text("Dein Beruflevel: " + professionLevel + "/" + Profession.MAX_LEVEL, NamedTextColor.AQUA)));
-        List<ActionButton> actions = new ArrayList<>();
-        for (Quest quest : quests) {
-            boolean active = profile.hasActiveQuest(quest.id());
-            boolean completed = profile.hasCompletedQuest(quest.id());
-            boolean levelAvailable = professionLevel >= quest.requiredProfessionLevel() && profile.getLevel() >= quest.requiredLevel();
-            String state = completed ? " • abgeschlossen" : active ? " • aktiv" : levelAvailable ? " • verfügbar" : " • gesperrt";
-            actions.add(dialogueEngine.actionButton(QuestText.title(quest).append(Component.text(state)),
-                    completed ? NamedTextColor.GRAY : active ? NamedTextColor.YELLOW : levelAvailable ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
-                    target -> openProfessionQuestDetails(target, profession, quest)));
-        }
-        if (actions.isEmpty()) body.add(DialogBody.plainMessage(Component.text("Aktuell sind keine Berufsquests vorhanden.", NamedTextColor.WHITE)));
-        dialogueEngine.openMultiAction(player, Component.text(profession.displayName() + " – Berufsquests", NamedTextColor.GOLD), body, actions, 1,
-                target -> openProfession(target, profession));
-    }
-
-    private void openProfessionQuestDetails(Player player, Profession profession, Quest quest) {
-        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegistered()) return;
-        int professionLevel = professionService.getLevel(player.getUniqueId(), profession);
-        boolean active = profile.hasActiveQuest(quest.id());
-        boolean completed = profile.hasCompletedQuest(quest.id());
-        boolean levelAvailable = professionLevel >= quest.requiredProfessionLevel() && profile.getLevel() >= quest.requiredLevel();
-        List<DialogBody> body = new ArrayList<>();
-        body.add(DialogBody.plainMessage(QuestText.description(quest).color(NamedTextColor.WHITE)));
-        QuestProgressView progressView = new QuestProgressView(quest, active ? profile.getActiveQuests().get(quest.id()) : null);
-        body.add(DialogBody.plainMessage(progressView.component()));
-        body.add(DialogBody.plainMessage(Component.text("Beruf: " + profession.displayName() + " Level " + quest.requiredProfessionLevel()
-                + " • Charakterlevel " + quest.requiredLevel(), levelAvailable ? NamedTextColor.AQUA : NamedTextColor.RED)));
-        body.add(DialogBody.plainMessage(Component.text("Belohnung: " + quest.rewardExp() + " EP • " + quest.rewardMoney() + " Gold", NamedTextColor.GOLD)));
-        List<ActionButton> actions = new ArrayList<>();
-        if (!active && !completed && levelAvailable && questManager.canAccept(profile, quest)) {
-            actions.add(dialogueEngine.actionButton(Component.text("Quest annehmen"), NamedTextColor.GREEN, target -> {
-                questManager.acceptQuest(target, quest);
-                openProfessionQuestDetails(target, profession, quest);
-            }));
-        }
-        if (active) {
-            actions.add(dialogueEngine.actionButton(Component.text("Quest abgeben"), NamedTextColor.YELLOW, target -> {
-                questManager.completeQuest(target, quest.id());
-                openProfessionQuestDetails(target, profession, quest);
-            }));
-            actions.add(dialogueEngine.actionButton(Component.text("Quest abbrechen"), NamedTextColor.RED, target -> {
-                questManager.abandonQuest(target, quest.id());
-                openProfessionQuests(target, profession);
-            }));
-        }
-        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE,
-                target -> openProfessionQuests(target, profession)));
-        dialogueEngine.openMultiAction(player, QuestText.title(quest).color(NamedTextColor.GOLD), body, actions, 1);
-    }
-
-    private static final class QuestProgressView {
-        private final Component component;
-        private QuestProgressView(Quest quest, de.pixelrpg.rpg.quest.QuestProgress progress) {
-            this.component = progress == null
-                    ? QuestText.objective(quest).color(NamedTextColor.AQUA)
-                    : QuestText.objectiveWithProgress(quest, progress);
-        }
-        private Component component() { return component; }
     }
 
     /** Opens a complete recipe description before crafting or buying the recipe. */
