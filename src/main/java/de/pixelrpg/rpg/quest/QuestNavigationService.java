@@ -27,6 +27,7 @@ import java.util.UUID;
 /** Maintains one native Minecraft locator-bar waypoint per active quest. */
 public final class QuestNavigationService {
     private static final List<Color> QUEST_COLORS = List.of(Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, Color.FUCHSIA);
+    private static final Color STORY_QUEST_COLOR = Color.FUCHSIA;
     private static final NamespacedKey DEFAULT_WAYPOINT_STYLE = NamespacedKey.minecraft("default");
     private static final long TARGET_CACHE_TTL_MILLIS = 30_000L;
     private static final int MAX_TARGET_CACHE_ENTRIES = 2048;
@@ -83,7 +84,9 @@ public final class QuestNavigationService {
             Quest quest = questRepository.getQuest(progress.getQuestId());
             if (quest != null && isNavigationQuest(quest)) entries.add(new QuestProgressEntry(quest, progress));
         }
-        entries.sort(java.util.Comparator.comparing(entry -> entry.quest().id()));
+        entries.sort(java.util.Comparator
+                .comparing((QuestProgressEntry entry) -> !storyQuestIds.contains(entry.quest().id()))
+                .thenComparing(entry -> entry.quest().id()));
 
         Map<String, Integer> visibleQuestIndexes = new HashMap<>();
         for (int index = 0; index < entries.size() && index < 5; index++) visibleQuestIndexes.put(entries.get(index).quest().id(), index);
@@ -98,13 +101,15 @@ public final class QuestNavigationService {
 
             QuestMarker marker = currentMarkers.get(entry.quest().id());
             if (marker == null || !marker.entity().isValid()) {
-                marker = createMarker(player, index, target);
+                marker = createMarker(player, index, target, storyQuestIds.contains(entry.quest().id()));
                 if (marker == null) continue;
                 currentMarkers.put(entry.quest().id(), marker);
             } else if (!sameLocation(marker.entity().getLocation(), target)) {
                 marker.entity().teleport(target);
             }
-            marker.entity().setWaypointColor(QUEST_COLORS.get(index));
+            marker.entity().setWaypointColor(storyQuestIds.contains(entry.quest().id())
+                    ? STORY_QUEST_COLOR
+                    : QUEST_COLORS.get(index));
             marker.entity().setWaypointStyle(DEFAULT_WAYPOINT_STYLE);
         }
 
@@ -152,7 +157,7 @@ public final class QuestNavigationService {
         return quest.type() == QuestType.REACH_LOCATION || storyQuestIds.contains(quest.id());
     }
 
-    private QuestMarker createMarker(Player player, int index, Location target) {
+    private QuestMarker createMarker(Player player, int index, Location target, boolean storyQuest) {
         Mannequin marker = target.getWorld().spawn(target, Mannequin.class, mannequin -> {
             mannequin.setInvisible(true);
             mannequin.setNoPhysics(true);
@@ -165,7 +170,7 @@ public final class QuestNavigationService {
             mannequin.setVisibleByDefault(false);
             var transmitRange = mannequin.getAttribute(Attribute.WAYPOINT_TRANSMIT_RANGE);
             if (transmitRange != null) transmitRange.setBaseValue(60_000_000.0D);
-            mannequin.setWaypointColor(QUEST_COLORS.get(index));
+            mannequin.setWaypointColor(storyQuest ? STORY_QUEST_COLOR : QUEST_COLORS.get(index));
             mannequin.setWaypointStyle(DEFAULT_WAYPOINT_STYLE);
             mannequin.getPersistentDataContainer().set(RPGKeys.Quest.navigationCompass(), PersistentDataType.BYTE, (byte) 1);
         });
