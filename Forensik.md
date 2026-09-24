@@ -1466,3 +1466,30 @@ Weiterhin erforderlich:
 - kompletter Level-Gate-Test der zehn Kapitel
 
 Die statische Implementierung ersetzt keinen vollständigen Runtime-Smoke-Test.
+
+
+## 26. Finale Story-Kampagne & clientseitige Story-NPC-Sichtbarkeit
+
+- Der Test-Branch enthält nun die datengetriebene Kampagnenquelle `src/main/resources/data/story_campaign.yml` mit 35 Story-Schritten: Einstiegskapitel plus alle in Paper/Minecraft 26.2 als Worldgen-Strukturen geführten Struktur-IDs, einschließlich Varianten für Dörfer, Schiffswracks, Ozeanruinen und Ruined Portals.
+- Die Kampagne ist von Level 1 bis 99 gestaffelt und verkettet jede Struktur-Untersuchung über Quest-Prerequisites. Die bestehende Story-Profilprogression bleibt die einzige Quelle für den Kapitelindex.
+- Die Story-Questdaten werden über das bestehende `QuestRepository` geladen; es wurden keine neue Persistenzschicht und keine neue synchronisierte Dateischreiblogik eingeführt.
+- Story-NPCs werden beim Spawn mit `Entity#setVisibleByDefault(false)` angelegt. `StoryNpcVisibilityListener` verwendet die native Paper-Sichtbarkeits-API `Player#hideEntity/showEntity` und `PlayerTrackEntityEvent` als harte Tracking-Schranke.
+- Ein Story-NPC ist nur sichtbar, wenn ein registriertes PixelRPG-Profil existiert und mindestens die zur NPC-/Kapiteldefinition gehörige Quest aktiv ist. Vanilla-/unregistrierte Spieler erhalten keine Story-NPC-Entity.
+- Aktualisierung erfolgt ausschließlich über Join, Weltwechsel, Chunk-Wechsel, Profiländerungen und Entity-Tracking; es gibt keinen permanenten Tick-Scan und keine globale Weltiteration für die Sichtbarkeit.
+- Die Sichtbarkeitsauflösung arbeitet über den bestehenden NPC-Chunk-Index und hält nur pro Spieler die tatsächlich eingeblendeten Story-NPC-IDs vor. Damit bleibt die normale NPC-Sichtbarkeit unangetastet.
+- Die native Dialog-Anbindung bleibt über die vorhandene `DialogueEngine`. Der Trail-Ruins-Archäologe enthält einen konkreten Lore-Lückenfüller: offizielle Fakten über die verlorene Kultur und Suspicious Gravel werden von einer ausdrücklich als Theorie markierten PixelRPG-Eigeninterpretation überlagert.
+- Die offizielle Lore-Basis für Trail Ruins, Ocean Monuments, Strongholds, Ancient Cities, Echo Shards und Bastions wurde gegen aktuelle Minecraft-Quellen geprüft; Eigenstory wird im Dialog sprachlich als Vermutung/Theorie getrennt.
+- Die bisherige MySQL/YAML-Profilstruktur, Questpersistenz, NPC-Persistenz und bestehende NPC-Typen werden nicht ersetzt.
+
+### 26.1 Runtime-Verifikation offen
+
+Vor produktivem Einsatz bleiben Build-/Server-Smoke-Tests auf der verbindlichen Paper-26.2-Dev-Bundle-Basis erforderlich, insbesondere:
+
+1. Story-NPC spawn/respawn in geladenen Struktur-Chunks.
+2. Sichtbarkeit für registriertes Profil mit aktiver Quest.
+3. Unsichtbarkeit für registriertes Profil ohne aktive Quest.
+4. Unsichtbarkeit für unregistrierte/Vanilla-Spieler.
+5. Quest-Annahme und Quest-Abschluss während bereits geladener NPC-Chunks.
+6. Weltwechsel, Chunk-Wechsel und Reconnect.
+7. Migration eines bestehenden Story-Profils von der vorherigen Default-Kampagne auf Version 5.
+8. `check` inklusive aller bestehenden Forensik-/Relocation-Prüfungen.
