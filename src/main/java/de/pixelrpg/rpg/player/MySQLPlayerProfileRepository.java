@@ -1,10 +1,14 @@
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.profession.Profession;
+import de.pixelrpg.rpg.equipment.EquipmentSlot;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.io.StringReader;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -97,6 +101,27 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
             profile.startQuest(new de.pixelrpg.rpg.quest.QuestProgress(
                     questId, activeCurrent.getOrDefault(questId, 0), activeExpiry.getOrDefault(questId, 0L)));
         }
+        loadEquipment(connection, id, profile);
+    }
+
+    private void loadEquipment(Connection connection, UUID id, PlayerProfile profile) throws SQLException {
+        java.util.Map<EquipmentSlot, ItemStack> equipment = new java.util.EnumMap<>(EquipmentSlot.class);
+        try (var statement = connection.prepareStatement("SELECT slot, item_yaml FROM pixelrpg_player_equipment WHERE uuid = ?")) {
+            statement.setString(1, id.toString());
+            try (var result = statement.executeQuery()) {
+                while (result.next()) {
+                    try {
+                        EquipmentSlot slot = EquipmentSlot.valueOf(result.getString(1));
+                        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(new StringReader(result.getString(2)));
+                        ItemStack item = yaml.getItemStack("item");
+                        if (item != null && !item.isEmpty()) equipment.put(slot, item);
+                    } catch (IllegalArgumentException ignored) {
+                        // Ignore malformed historical equipment rows without aborting the profile load.
+                    }
+                }
+            }
+        }
+        profile.setEquipment(equipment);
     }
 
     private static Profession profession(String value) {
@@ -147,6 +172,24 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
     }
 
     private void replaceDomainState(Connection connection, PlayerProfile profile) throws SQLException {
+        try (var delete = connection.prepareStatement("DELETE FROM pixelrpg_player_equipment WHERE uuid = ?")) {
+            delete.setString(1, profile.uniqueId().toString());
+            delete.executeUpdate();
+        }
+        if (!profile.getEquipment().isEmpty()) {
+            try (var insert = connection.prepareStatement("INSERT INTO pixelrpg_player_equipment (uuid, slot, item_yaml) VALUES (?, ?, ?)")) {
+                for (var entry : profile.getEquipment().entrySet()) {
+                    YamlConfiguration yaml = new YamlConfiguration();
+                    yaml.set("item", entry.getValue());
+                    insert.setString(1, profile.uniqueId().toString());
+                    insert.setString(2, entry.getKey().name());
+                    insert.setString(3, yaml.saveToString());
+                    insert.addBatch();
+                }
+                insert.executeBatch();
+            }
+        }
+
         try (var delete = connection.prepareStatement("DELETE FROM pixelrpg_player_stats WHERE uuid = ?")) {
             delete.setString(1, profile.uniqueId().toString());
             delete.executeUpdate();
