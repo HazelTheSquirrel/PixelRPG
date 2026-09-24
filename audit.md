@@ -1279,3 +1279,24 @@ Der Status bleibt **NOT VERIFIED**, da insbesondere die vollständige CraftingGU
 ### Aktueller Rebuild-Head
 
 `dac9162117a66634ce7b27174c3759943b770989`
+
+
+## 33. Quest Persistence / Lifecycle Foundation — 2026-09-24
+
+**REBUILT / NOT VERIFIED**
+
+Der Quest-Kern wurde erweitert:
+
+- QuestType, Quest, QuestProgress und QuestRepository ergänzt;
+- bestehende Quest-JSON-Dateien werden über JsonDataManager geladen und referenziert die aktuelle Item-/Profession-Domain;
+- PlayerProfile enthält completed quests und aktive QuestProgress-Zustände;
+- YAML- und MySQL-Persistence speichern aktive und abgeschlossene Quests;
+- QuestService übernimmt Accept/Abandon/Progress/Complete, Party-Share und zeitgesteuerte Ablaufverwaltung;
+- QuestLifecycleListener stellt Timer nach Join wieder her und stößt Persistence beim Quit an;
+- QuestCompletedEvent wird beim Abschluss ausgelöst.
+
+Dieser Block ist **NOT VERIFIED**. Navigation zu Strukturen/Biomen, NPC-Questgeber, vollständige Quest-GUIs, globale Events, Companion-Rewards und vollständige Verhaltensparität zu main sind weiterhin offen.
+
+### Aktueller Rebuild-Head
+
+`2ef8c093daee16667e2e1082a91603cd18c73b9b`
