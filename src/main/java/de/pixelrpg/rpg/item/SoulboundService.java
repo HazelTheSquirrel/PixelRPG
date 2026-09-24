@@ -26,7 +26,7 @@ public final class SoulboundService {
         ItemMeta meta = item.getItemMeta();
         var pdc = meta.getPersistentDataContainer();
         if (!Boolean.TRUE.equals(pdc.get(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN))) return Result.NOT_IDENTIFIED;
-        if (Boolean.TRUE.equals(pdc.get(RPGKeys.Item.soulbound(), PersistentDataType.BOOLEAN))) return Result.ALREADY_SOULBOUND);
+        if (Boolean.TRUE.equals(pdc.get(RPGKeys.Item.soulbound(), PersistentDataType.BOOLEAN))) return Result.ALREADY_SOULBOUND;
         pdc.set(RPGKeys.Item.soulbound(), PersistentDataType.BOOLEAN, true);
         List<Component> lore = meta.lore();
         List<Component> newLore = new ArrayList<>();
