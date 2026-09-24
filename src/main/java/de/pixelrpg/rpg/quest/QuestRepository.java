@@ -40,6 +40,7 @@ public final class QuestRepository {
         loadDefinitionsFrom("quests_additional.json");
         loadDefinitionsFrom("quests_world_expansion.json");
         loadDefinitionsFrom("quests_expansion_02.json");
+        loadDefinitionsFrom("quests_story.json");
         // The old crafting-order dataset belongs to the removed legacy recipe set.
         // It is deliberately not loaded: its item IDs and prerequisite chains no longer
         // describe the current nine-profession recipe system.
