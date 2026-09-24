@@ -84,6 +84,11 @@ public final class ReceptionDialog {
                                 Component.text("Story starten: " + chapter.title(), NamedTextColor.LIGHT_PURPLE),
                                 NamedTextColor.LIGHT_PURPLE,
                                 target -> openStoryChapter(target, chapter)));
+                    } else if (storyQuest != null && profile.hasActiveQuest(storyQuest.id())) {
+                        actions.add(dialogueEngine.actionButton(
+                                Component.text("Storyquest aktiv: " + storyQuest.title(), NamedTextColor.YELLOW),
+                                NamedTextColor.YELLOW,
+                                target -> openStoryChapter(target, chapter)));
                     } else if (storyQuest != null
                             && !profile.hasActiveQuest(storyQuest.id())
                             && !profile.hasCompletedQuest(storyQuest.id())) {
