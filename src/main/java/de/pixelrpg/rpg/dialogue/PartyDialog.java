@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /** Native Paper dialog flow for party creation and party management. */
 public final class PartyDialog {
@@ -19,12 +20,18 @@ public final class PartyDialog {
     private final PlayerProfileManager profiles;
     private final DialogueEngine dialogue;
     private final InviteDialogService invites;
+    private final Consumer<Player> backAction;
 
     public PartyDialog(PartyManager parties, PlayerProfileManager profiles, DialogueEngine dialogue, InviteDialogService invites) {
+        this(parties, profiles, dialogue, invites, Player::closeDialog);
+    }
+
+    public PartyDialog(PartyManager parties, PlayerProfileManager profiles, DialogueEngine dialogue, InviteDialogService invites, Consumer<Player> backAction) {
         this.parties = parties;
         this.profiles = profiles;
         this.dialogue = dialogue;
         this.invites = invites;
+        this.backAction = backAction;
     }
 
     public void open(Player player) {
@@ -46,9 +53,7 @@ public final class PartyDialog {
                     parties.createParty(target.getUniqueId());
                     openOverview(target, parties.getParty(target.getUniqueId()).orElseThrow());
                 }),
-                dialogue.actionButton(Component.text("Zurück", NamedTextColor.WHITE), NamedTextColor.WHITE, target -> {
-                    target.closeDialog();
-                })
+                dialogue.actionButton(Component.text("Zurück", NamedTextColor.WHITE), NamedTextColor.WHITE, backAction)
         );
         dialogue.openMultiAction(player, Component.text("Party", NamedTextColor.GOLD),
                 List.of(DialogBodyFactory.message("Du bist aktuell in keiner Party.")),
@@ -81,7 +86,7 @@ public final class PartyDialog {
                     else parties.leaveParty(target);
                     target.closeDialog();
                 }));
-        actions.add(dialogue.actionButton(Component.text("Schließen", NamedTextColor.GRAY), NamedTextColor.GRAY, Player::closeDialog));
+        actions.add(dialogue.actionButton(Component.text("Zurück", NamedTextColor.WHITE), NamedTextColor.WHITE, backAction));
         dialogue.openMultiAction(player, Component.text("Party", NamedTextColor.GOLD), body, actions, 2);
     }
 
