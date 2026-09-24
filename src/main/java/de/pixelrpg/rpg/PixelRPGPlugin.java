@@ -6,6 +6,13 @@ import de.pixelrpg.rpg.trade.TradeDepotManager;
 import de.pixelrpg.rpg.shop.ShopManager;
 import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryManager;
+import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.npc.NpcBehaviorRegistry;
+import de.pixelrpg.rpg.npc.NpcInteractListener;
+import de.pixelrpg.rpg.npc.behavior.FillerBehavior;
+import de.pixelrpg.rpg.npc.behavior.ShopBehavior;
+import de.pixelrpg.rpg.npc.behavior.StoryBehavior;
+import de.pixelrpg.rpg.npc.behavior.TravelBehavior;
 import de.pixelrpg.rpg.gui.ShopEditorGUI;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.equipment.EquipmentService;
@@ -48,6 +55,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ShopManager shopManager;
     private ShopEditorGUI shopEditorGUI;
     private StoryManager storyManager;
+    private NpcBehaviorRegistry npcBehaviorRegistry;
 
     @Override
     public void onEnable() {
@@ -79,6 +87,13 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcManager = new NpcManager(this);
         npcManager.load();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
+        DialogueEngine dialogueEngine = new DialogueEngine();
+        npcBehaviorRegistry = new NpcBehaviorRegistry();
+        npcBehaviorRegistry.register(new ShopBehavior(shopManager, profiles, dialogueEngine));
+        npcBehaviorRegistry.register(new StoryBehavior(storyManager, profiles, dialogueEngine));
+        npcBehaviorRegistry.register(new TravelBehavior(npcManager, profiles, dialogueEngine));
+        npcBehaviorRegistry.register(new FillerBehavior(questService, profiles, dialogueEngine));
+        getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry, questService), this);
         professionSystem = new ProfessionSystem(this, profiles);
         professionSystem.register();
         questRepository = new QuestRepository(this);
@@ -131,6 +146,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         bankStorageService = null;
         tradeDepotManager = null;
         npcManager = null;
+        npcBehaviorRegistry = null;
         shopManager = null;
         storyManager = null;
         shopEditorGUI = null;
