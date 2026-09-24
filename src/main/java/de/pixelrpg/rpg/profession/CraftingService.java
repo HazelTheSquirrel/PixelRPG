@@ -16,7 +16,6 @@ import org.bukkit.potion.PotionType;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 
