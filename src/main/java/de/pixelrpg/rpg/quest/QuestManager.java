@@ -41,6 +41,7 @@ public final class QuestManager {
     private final double partyShareRange;
     private final ItemService itemService;
     private final Map<QuestTimerKey, BukkitTask> questExpiryTasks = new ConcurrentHashMap<>();
+    private Consumer<Player> questStateChangeListener = ignored -> { };
 
     public QuestManager(Plugin plugin, QuestRepository questRepository, PlayerProfileManager profileManager,
                         de.pixelrpg.rpg.api.GuildAPI guildAPI, GlobalEventState globalEventState, double partyShareRange) {
@@ -63,6 +64,10 @@ public final class QuestManager {
                 if (quest != null) scheduleExpiry(player.getUniqueId(), quest.id(), progress.getExpiryTimestampMillis());
             }
         }
+    }
+
+    public void setQuestStateChangeListener(Consumer<Player> listener) {
+        questStateChangeListener = listener == null ? ignored -> { } : listener;
     }
 
     public void shutdown() {
@@ -99,6 +104,7 @@ public final class QuestManager {
         }
         player.sendMessage(Component.text("Quest angenommen: ").color(NamedTextColor.GREEN)
                 .append(Component.text(QuestText.titlePlain(player, quest), NamedTextColor.YELLOW)));
+        questStateChangeListener.accept(player);
         return true;
     }
 
@@ -138,6 +144,7 @@ public final class QuestManager {
         profile.removeActiveQuest(questId);
         removeTimer(player.getUniqueId(), questId);
         player.sendMessage(Component.text("Quest abgebrochen.", NamedTextColor.YELLOW));
+        questStateChangeListener.accept(player);
         return true;
     }
 
