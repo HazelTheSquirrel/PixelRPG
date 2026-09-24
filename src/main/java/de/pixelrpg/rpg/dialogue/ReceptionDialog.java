@@ -152,7 +152,7 @@ public final class ReceptionDialog {
     private void openArchivedStoryQuest(Player target, de.pixelrpg.rpg.story.StoryChapter chapter, Quest quest) {
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text("Kapitel: " + chapter.title(), NamedTextColor.GOLD)),
-                DialogBody.plainMessage(Component.text(QuestText.title(quest), NamedTextColor.AQUA)),
+                DialogBody.plainMessage(QuestText.title(quest).color(NamedTextColor.AQUA)),
                 DialogBody.plainMessage(QuestText.description(quest).color(NamedTextColor.WHITE)),
                 DialogBody.plainMessage(QuestText.objective(quest).color(NamedTextColor.GRAY)),
                 DialogBody.plainMessage(Component.text("Abgeschlossen – dauerhaft im Pixel-Archiv.", NamedTextColor.GREEN))
