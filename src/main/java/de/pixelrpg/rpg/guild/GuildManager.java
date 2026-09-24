@@ -166,6 +166,10 @@ public final class GuildManager implements GuildAPI {
         return getInvitationGuild(playerId).isPresent();
     }
 
+    public synchronized void declineInvitation(UUID playerId) {
+        invitations.remove(playerId);
+    }
+
     public synchronized Optional<Guild> getGuildByName(String name) {
         return guilds.values().stream().filter(g -> g.name().equalsIgnoreCase(name)).findFirst().map(GuildData::snapshot);
     }
