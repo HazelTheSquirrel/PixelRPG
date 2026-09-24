@@ -94,7 +94,6 @@ public final class StoryNpcDialogue {
         if (profile == null || !profile.isRegistered()) return;
         Quest epilogue = questManager.getRepository().getQuest("story_campaign_after_the_end");
         if (epilogue == null || profile.hasActiveQuest(epilogue.id()) || profile.hasCompletedQuest(epilogue.id())) return;
-        if (profile.getLevel() < epilogue.requiredLevel()) return;
         questManager.acceptQuest(player, epilogue);
     }
 
