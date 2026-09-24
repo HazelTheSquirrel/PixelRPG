@@ -1232,3 +1232,149 @@ Der technische Zustand ist damit unter den geprüften statischen Kriterien verbe
 2. World-Locator-Kosten bei sehr vielen aktiven REACH_LOCATION-Quests,
 3. externe Skin-Netzwerkgrenze,
 4. fehlende vollständige automatische Paper-26.2-Runtime-/Restart-Tests.
+
+
+---
+
+# 24. Story / Lore / Native Dialog Erweiterung
+
+## 24.1 Umfang
+
+Auf Branch `test` wurde das bestehende native Paper-Dialog-System um eine persistente, verzweigte Lore-Kampagne erweitert.
+
+Neue bzw. geänderte Komponenten:
+
+- `StoryDialogueManager.java`
+- `StoryNpcDialogue.java`
+- `StoryBehavior.java`
+- `StoryManager.java`
+- `PixelRPGPlugin.java`
+
+Die vorhandene `DialogueEngine` wurde bewusst wiederverwendet. Es wurde kein separates Inventar-/Chat-GUI-System eingeführt.
+
+## 24.2 Native Dialog API
+
+Die Story verwendet:
+
+- `io.papermc.paper.dialog.Dialog`
+- `DialogBase`
+- `DialogBody`
+- `DialogType.multiAction(...)`
+- `ActionButton`
+- `DialogAction.customClick(...)`
+- Adventure `Component`
+
+Damit bleibt die Interaktion auf dem nativen Paper-26.2-Dialogpfad.
+
+Die Buttons verwenden Single-Use-Callbacks. Callback-Aktionen validieren den aktuellen Spielerstatus erneut, bevor Storyfortschritt geschrieben wird.
+
+## 24.3 Persistenter Story-Fortschritt
+
+Der Storyfortschritt wird weiterhin über `PlayerProfile.storyChapterIndex` gespeichert.
+
+Vorteile:
+
+- keine zusätzliche Player-Referenz
+- UUID-basierter Profilzustand
+- vorhandene Dirty-/Snapshot-/Async-Persistenz wird wiederverwendet
+- kein neuer synchroner Dateischreibpfad
+- kein zusätzlicher PDC-Datenbestand notwendig
+
+Ein Kapitel kann nur abgeschlossen werden, wenn der aktuelle Profilindex exakt auf das unmittelbar vorherige Kapitel zeigt.
+
+## 24.4 Validierung / Exploit-Schutz
+
+Der Storypfad prüft:
+
+- Player ist vorhanden und online
+- Player ist registriertes PixelRPG-Mitglied
+- NPC und Kapitel sind nicht null
+- Kapitel ist tatsächlich das nächste freigeschaltete Kapitel
+- Kapitel-IDs und Titel aus `story.yml` sind nicht leer
+- Kapitelreihenfolge muss monoton sein
+- maximal 32 Kapitel werden geladen
+- einzelne Dialogzeilen sind auf 1000 Zeichen begrenzt
+- XP-Belohnungen werden auf nichtnegative Werte begrenzt
+- ein bedingter Echo-Splitter-Dialog prüft das Inventar sowohl beim Anzeigen als auch beim Callback erneut
+
+Dadurch kann ein veralteter oder manipuliert ausgelöster Callback nicht einfach Storyfortschritt ohne aktuelle Bedingung erzeugen.
+
+## 24.5 Lore-Abdeckung
+
+Die erste Storykampagne besteht aus fünf Kapiteln:
+
+1. **Die Stimmen unter Stein**
+   - verschwundene/alte Erbauer
+   - Ruinen
+   - Ancient Cities
+   - Unterschied zwischen Beobachtung und Theorie
+
+2. **Die Stadt ohne Himmel**
+   - Sculk
+   - Warden
+   - Ancient-City-Mysterium
+   - bedingter Echo-Splitter-Dialog
+
+3. **Die schwarze Flamme**
+   - Piglin-Zivilisation und Bastions
+   - Wither-Erschaffung
+   - vorsichtige Trennung von gesicherter Information und Theorie
+
+4. **Das Tor jenseits der Sterne**
+   - Strongholds
+   - Endportal
+   - Enderdrache
+   - End Cities / Endschiffe
+   - Elytren
+   - offene Frage nach früheren Reisenden
+
+5. **Was hinter dem Ende bleibt**
+   - Zusammenführung der bekannten Spuren
+   - bewusst offene Lore-Fragen
+   - Abschluss als Forschungs-/Archivmotiv
+
+Wo Minecraft keine eindeutige kanonische Erklärung liefert, formuliert der Dialog dies ausdrücklich als offene Frage oder Theorie. Es werden keine Fan-Theorien als gesicherte offizielle Tatsachen ausgegeben.
+
+## 24.6 Bestehende Story-Daten
+
+Die alte automatisch erzeugte Ein-Kapitel-Default-Story (`prologue`) wird beim Laden erkannt und einmalig auf Story-Version 2 migriert.
+
+Individuell angelegte Story-Dateien mit mehreren Kapiteln werden nicht pauschal überschrieben.
+
+## 24.7 Performance
+
+Der Storypfad führt ausschließlich kleine In-Memory-Prüfungen auf dem Serverthread aus:
+
+- Profil-/UUID-Zugriff
+- Kapitelstatus
+- Inventarprüfung auf einen einzelnen Materialtyp
+- Erzeugung kleiner Dialogobjekte
+
+Es wurden keine World-Locator-, Chunk-Scan-, Datenbank- oder Dateisystemoperationen in Dialog-Callbacks verschoben.
+
+Der eigentliche Profil-Persistenzpfad bleibt der bestehende asynchrone PlayerProfileManager.
+
+## 24.8 Forensische Bewertung
+
+**Befund: sauberer Add-on-Pfad unter den bekannten statischen Kriterien.**
+
+Besonders positiv:
+
+- keine statischen `Player`-Referenzen im Storysystem
+- keine neue synchron persistierte Spielerdatenbank
+- keine NMS-/Reflection-Erweiterung
+- keine Kommandoausführung
+- keine externen Netzwerkzugriffe
+- native Paper-Dialoge statt eigener GUI-Protocol-Implementierung
+- Story-Callbacks sind single-use und statusgeprüft
+
+Weiterhin erforderlich:
+
+- tatsächlicher Paper-26.2-Build
+- Serverstart mit der neuen JAR
+- Clienttest der Dialoge
+- kompletter Durchlauf aller fünf Kapitel
+- Test mit und ohne Echo-Splitter
+- Stop/Start-Test für Storyfortschritt
+
+Die statische Forensik ersetzt diese Runtime-Tests nicht.
