@@ -1438,3 +1438,98 @@ Noch OPEN: externe Skin-Quellen/URL-Resolver, NPC-Interaktion, Behavior Registry
 ### Aktueller Rebuild-Head
 
 `dceeea4e6a7f350abfc8186572c8bb3a8636cc76`
+
+
+## 40. Forensischer Abgleich / Shop / Story / NPC-Interaktion / Combat — 2026-09-24
+
+**REBUILT / NOT VERIFIED**
+
+Nach erneutem Abgleich des eingefrorenen main-Referenzstands wurden weitere tatsächlich fehlende Runtime-Bereiche neu aufgebaut:
+
+### Technische Verifikation
+- Ressourceninventar gegen main erneut geprüft: **17/17 Resource-Dateien vorhanden**, keine fehlenden oder zusätzlichen Pfade.
+- Ein konkreter CI-Kompilierfehler im Quest-GUI-Abhängigkeitsgraphen wurde behoben.
+- Ein konkreter Java-25-Generics-Fehler im Story-YAML-Parser wurde behoben.
+- Fehlende PlayerProfile-Kompatibilitätszugriffe für Story/Economy wurden aus dem tatsächlichen Rebuild-Zustand ergänzt.
+- CI Run **35949742500** auf Rebuild-Head 20bc5cf267f83313b8ce0b4709c84fc7f82fefda erfolgreich:
+  - Gradle Build: SUCCESS
+  - Source API Boundary Verification: SUCCESS
+  - Plugin Artifact Verification: SUCCESS
+- Der Build-Erfolg ist ausschließlich ein technischer Nachweis und keine funktionale Paritätsabnahme.
+
+### Shop
+Neu aufgebaut:
+- ShopEntry
+- ShopManager
+- ShopGUI
+- ShopEditorGUI
+- getrennte Kauf-/Verkaufspreise
+- Legacy-Shopdaten-Migration
+- serialisierte Item-Daten
+- atomische asynchrone Shop-Persistence
+- Admin-Preiseditor
+- Kauf-/Verkaufslogik
+- Integration in die Composition Root
+
+### Story
+Neu aufgebaut:
+- StoryChapter
+- StoryManager
+- StoryBookFactory
+- Story-Content-Laden
+- Default-Story-Erzeugung
+- Kapitelprogression
+- XP-Belohnung
+- Buchdarstellung
+- Integration in den Plugin-Lifecycle
+
+### Native Dialog-/NPC-Grundlage
+Neu aufgebaut:
+- zentrale DialogueEngine auf der aktuellen Paper-26.2-Native-Dialog-API
+- NpcFunction
+- NpcBehavior
+- NpcBehaviorRegistry
+- NpcInteractListener
+- NPC-Typ-Funktionszuordnung
+- Filler-/Shop-/Story-/Travel-NPC-Verhaltenspfade
+- Travel-Dialog mit sicherer Ankunftspositionssuche
+- Quest-Talk-Fortschritt wird beim NPC-Interaktionspfad ausgelöst
+
+### Combat Foundation
+Neu aufgebaut:
+- CombatDamageContext
+- CombatDamageCalculator
+- CombatStateService
+- zentrale CombatDamageListener
+- MobExperienceListener
+- MobScalingConfig
+- registrierter RPG-Combat-Schutz für nicht registrierte Spieler
+- Crit/Lifesteal/Armor-Mitigation
+- Boss-Hit-Cap-Grundlage
+- Party-XP-Verteilung
+- Combat-Lifecycle-Events
+- Integration in die Composition Root
+
+### Weiterhin ausdrücklich OPEN
+Die oben genannten Systeme sind **nicht VERIFIED**, solange ihre vollständigen main-Abläufe nicht End-to-End reproduziert und geprüft wurden.
+
+Insbesondere weiterhin offen:
+- vollständige NPC-Behavior-Matrix einschließlich Banker und aller neun Profession-Trainer;
+- externe Skin-Quellen und vollständiger Skin-Resolver;
+- NPC Look-/Nameplate-Verhalten;
+- vollständiges natives Character-Card-/G-System einschließlich PlayerCustomClickEvent-Aktionen;
+- vollständige Dialoglandschaft;
+- Crafting-/Party-/Guild-/Bank-/Trade-Depot-/Shop-/Story-End-to-End-Verknüpfungen;
+- vollständige Combat-/Mob-Scaling-/Weapon-Skill-/Loot-/Soulbound-Parität;
+- Boss-System;
+- Companion-System;
+- Regionen/World Rules;
+- vollständige Commands/Administration;
+- vollständige Scoreboard-/Playtime-Parität;
+- Integrationstests, Laufzeitprüfung und finale main-Paritätsabnahme.
+
+### Aktueller Rebuild-Head
+20bc5cf267f83313b8ce0b4709c84fc7f82fefda
+
+### CI
+Run 35949742500 erfolgreich. Dies bestätigt Build, Source-Boundary-Checks und Artifact-Prüfung für diesen Head.
