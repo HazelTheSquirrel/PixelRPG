@@ -275,6 +275,8 @@ public final class ScoreboardService implements Listener {
     }
 
     private void updateExperienceBar(Player player, PlayerProfile profile) {
+        if (PixelRPGPlugin.getInstance().getQuestManager().hasActiveNavigationQuest(profile)) return;
+
         long totalExperience = profile.getExperience();
         int level = profile.getLevel();
         long currentLevelStart = Level.getExperienceForCurrentLevel(level);
