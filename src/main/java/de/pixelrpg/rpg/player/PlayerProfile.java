@@ -2,8 +2,10 @@ package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.profession.Profession;
+import de.pixelrpg.rpg.quest.QuestProgress;
 
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -20,6 +22,7 @@ public final class PlayerProfile {
     private final Set<String> unlockedRecipes = new HashSet<>();
     private final Set<String> unlockedWaypoints = new HashSet<>();
     private final Set<String> completedQuests = new HashSet<>();
+    private final Map<String, QuestProgress> activeQuests = new HashMap<>();
     private long persistenceRevision;
     private long mutationRevision;
     private boolean dirty;
@@ -190,6 +193,34 @@ public final class PlayerProfile {
         return Set.copyOf(completedQuests);
     }
 
+    public synchronized boolean hasActiveQuest(String questId) {
+        return questId != null && activeQuests.containsKey(questId);
+    }
+
+    public synchronized Map<String, QuestProgress> getActiveQuests() {
+        return Map.copyOf(activeQuests);
+    }
+
+    public void startQuest(QuestProgress progress) {
+        if (progress == null || progress.getQuestId() == null || progress.getQuestId().isBlank()) return;
+        synchronized (this) {
+            activeQuests.put(progress.getQuestId(), progress);
+            progress.setDirtyCallback(this::markDirty);
+            dirty = true;
+        }
+        notifyDirty();
+    }
+
+    public void removeActiveQuest(String questId) {
+        if (questId == null) return;
+        boolean changed;
+        synchronized (this) {
+            changed = activeQuests.remove(questId) != null;
+            if (changed) dirty = true;
+        }
+        if (changed) notifyDirty();
+    }
+
     public void setDirtyCallback(Runnable callback) {
         synchronized (this) { dirtyCallback = callback; }
     }
@@ -222,6 +253,10 @@ public final class PlayerProfile {
         snapshot.unlockedRecipes.addAll(unlockedRecipes);
         snapshot.unlockedWaypoints.addAll(unlockedWaypoints);
         snapshot.completedQuests.addAll(completedQuests);
+        for (QuestProgress progress : activeQuests.values()) {
+            QuestProgress copy = new QuestProgress(progress.getQuestId(), progress.getCurrentAmount(), progress.getExpiryTimestampMillis());
+            snapshot.activeQuests.put(copy.getQuestId(), copy);
+        }
         snapshot.persistenceRevision = persistenceRevision;
         snapshot.mutationRevision = mutationRevision;
         snapshot.dirty = false;
@@ -238,6 +273,7 @@ public final class PlayerProfile {
             unlockedRecipes.clear();
             unlockedWaypoints.clear();
             completedQuests.clear();
+            activeQuests.clear();
             for (Profession profession : Profession.values()) {
                 professionLevels.put(profession, Profession.MIN_LEVEL);
                 professionExperience.put(profession, 0L);
