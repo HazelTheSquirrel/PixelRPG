@@ -76,7 +76,7 @@ public final class QuestBehavior implements NpcBehavior {
             boolean unlocked = profile.getLevel() >= Math.max(1, rangeStart - unlockBuffer());
             actions.add(dialogueEngine.actionButton(Component.text("Level " + rangeStart + "–" + rangeEnd),
                     current ? NamedTextColor.GREEN : unlocked ? NamedTextColor.YELLOW : NamedTextColor.RED,
-                    target -> openQuestCategory(target, rangeStart, rangeEnd)));
+                    target -> openQuestCategory(target, rangeStart, rangeEnd, backAction)));
         }
         actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
         if (actions.size() == 1) {
@@ -87,7 +87,7 @@ public final class QuestBehavior implements NpcBehavior {
         dialogueEngine.openMultiAction(player, Component.text("Questgeber", NamedTextColor.GOLD), body, actions, 2);
     }
 
-    private void openQuestCategory(Player player, int start, int end) {
+    private void openQuestCategory(Player player, int start, int end, Consumer<Player> backAction) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
 
@@ -111,8 +111,6 @@ public final class QuestBehavior implements NpcBehavior {
         actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, target -> openQuestRanges(target, this::closeDialog)));
         dialogueEngine.openMultiAction(player, Component.text("Level " + start + "–" + end, NamedTextColor.GOLD), body, actions, 2);
     }
-
-    private void closeDialog(Player player) { Player.closeDialog(player); }
 
     private QuestStatus status(PlayerProfile profile, Quest quest) {
         if (profile.hasCompletedQuest(quest.id())) return QuestStatus.COMPLETED;
@@ -142,7 +140,7 @@ public final class QuestBehavior implements NpcBehavior {
         if (status == QuestStatus.AVAILABLE) {
             actions.add(dialogueEngine.actionButton(Component.text("Quest annehmen"), NamedTextColor.GREEN, target -> {
                 questManager.acceptQuest(target, quest);
-                openQuestCategory(target, start, end);
+                openQuestCategory(target, start, end, backAction);
             }));
         }
         if (status == QuestStatus.ACTIVE) {
@@ -155,7 +153,7 @@ public final class QuestBehavior implements NpcBehavior {
                 openQuestCategory(target, start, end);
             }));
         }
-        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, target -> openQuestCategory(target, start, end)));
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, target -> openQuestRanges(target, backAction)));
         dialogueEngine.openMultiAction(player, QuestText.title(quest).color(NamedTextColor.GOLD), body, actions, 2);
     }
 
