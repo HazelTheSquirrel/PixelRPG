@@ -13,6 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
@@ -140,10 +141,10 @@ public final class TradeDepotManager implements AutoCloseable {
 
     public void shutdown() {
         if (closed) return;
-        closed = true;
         expiryTasks.values().forEach(BukkitTask::cancel);
         expiryTasks.clear();
         save();
+        closed = true;
         ioExecutor.close();
     }
 
