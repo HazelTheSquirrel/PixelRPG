@@ -1,4 +1,4 @@
-story-version: 5
+story-version: 6
 campaign-id: minecraft-lore-campaign
 max-chapters: 64
 
@@ -18,6 +18,7 @@ chapters:
       - "Beginne mit Beobachtungen. Die Antworten liegen nicht dort, wo die Geschichten beginnen."
     exp-reward: 100
 
+
   campaign_village_plains:
     order: 1
     id: campaign_village_plains
@@ -32,6 +33,7 @@ chapters:
       - "Ein Dorf ist kein Beweis für ein gemeinsames Reich. Aber dieselben Bauprinzipien tauchen an vielen Orten auf."
       - "Der nächste Schritt verlangt Level 3 und die aktive Untersuchung dieses Ortes."
     exp-reward: 280
+
 
   campaign_shipwreck:
     order: 2
@@ -48,6 +50,7 @@ chapters:
       - "Der nächste Schritt verlangt Level 5 und die aktive Untersuchung dieses Ortes."
     exp-reward: 360
 
+
   campaign_desert_pyramid:
     order: 3
     id: campaign_desert_pyramid
@@ -62,6 +65,7 @@ chapters:
       - "Die Eigenstory verbindet die wiederkehrenden Symbole mit einer frühen Schutztradition gegen Wissen, das nicht in falsche Hände geraten sollte."
       - "Der nächste Schritt verlangt Level 8 und die aktive Untersuchung dieses Ortes."
     exp-reward: 440
+
 
   campaign_jungle_pyramid:
     order: 4
@@ -78,6 +82,7 @@ chapters:
       - "Der nächste Schritt verlangt Level 11 und die aktive Untersuchung dieses Ortes."
     exp-reward: 520
 
+
   campaign_swamp_hut:
     order: 5
     id: campaign_swamp_hut
@@ -92,6 +97,7 @@ chapters:
       - "Die Eigenstory: Hier wurden frühe Tränke entwickelt, die Erinnerungen an Orte über große Entfernungen konservieren sollten."
       - "Der nächste Schritt verlangt Level 14 und die aktive Untersuchung dieses Ortes."
     exp-reward: 600
+
 
   campaign_ocean_ruin_warm:
     order: 6
@@ -108,20 +114,21 @@ chapters:
       - "Der nächste Schritt verlangt Level 17 und die aktive Untersuchung dieses Ortes."
     exp-reward: 680
 
+
   campaign_ocean_ruin_cold:
-    order: 7
+    order: 0
     id: campaign_ocean_ruin_cold
-    title: "Steine unter dem Eis"
+    title: "Die kalte Ruine"
     arc: "Unter dem Stein"
-    required-level: 20
-    structure-trigger: "minecraft:ocean_ruin_cold"
-    npc-id: "cold_ruin_keeper"
-    quests: ["story_campaign_ocean_ruin_cold"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Kalte Ozeanruinen sind ein zweiter Typ der versunkenen Ruinen und enthalten Suspicious Gravel."
-      - "Die Eigenstory: Die nördlichen Ruinen waren Beobachtungsposten einer Kultur, die das Meer als Gedächtnis der Welt verstand."
-      - "Der nächste Schritt verlangt Level 20 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 760
+      - "Der Archivar erzählt: Auch kalte Ozeanruinen gehören zu den bekannten archäologischen Fundorten. Ihre Suspicious-Gravel-Funde werden gemeinsam mit den übrigen Fundorten ausgewertet."
+      - "Die Eigenstory vermutet, dass warme und kalte Fundorte Teile eines gemeinsamen Archivs sein könnten."
+      - "Diese Spur wird nicht als eigene Expedition verfolgt."
+    exp-reward: 0
 
   campaign_monument:
     order: 8
@@ -138,20 +145,21 @@ chapters:
       - "Der nächste Schritt verlangt Level 23 und die aktive Untersuchung dieses Ortes."
     exp-reward: 840
 
+
   campaign_buried_treasure:
-    order: 9
+    order: 0
     id: campaign_buried_treasure
     title: "Die Karte ohne Namen"
     arc: "Die vergessenen Erbauer"
-    required-level: 26
-    structure-trigger: "minecraft:buried_treasure"
-    npc-id: "treasure_seeker"
-    quests: ["story_campaign_buried_treasure"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Buried Treasure ist eine eigene Weltstruktur und wird über Schatzkarten gefunden."
-      - "Die Eigenstory: Einige Schatzkarten sind absichtlich unvollständig, weil die Erbauer verhindern wollten, dass ihre Archive an einem einzigen Ort gefunden werden."
-      - "Der nächste Schritt verlangt Level 26 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 920
+      - "Der Archivar erzählt: Schiffswracks können Karten enthalten, die zu vergrabenem Schatz führen. Deshalb behandeln wir Schatzkarten als Folge der Seefahrtsspur statt als eigene Struktur-Etappe."
+      - "Die Eigenstory vermutet, dass manche Karten absichtlich nur Bruchstücke eines größeren Weges zeigen."
+      - "Diese Spur wird nicht als eigene Strukturquest geführt."
+    exp-reward: 0
 
   trail_ruins_archaeology:
     order: 10
@@ -168,6 +176,7 @@ chapters:
       - "Der nächste Schritt verlangt Level 29 und die aktive Untersuchung dieses Ortes."
     exp-reward: 1000
 
+
   campaign_mineshaft:
     order: 11
     id: campaign_mineshaft
@@ -183,35 +192,36 @@ chapters:
       - "Der nächste Schritt verlangt Level 32 und die aktive Untersuchung dieses Ortes."
     exp-reward: 1080
 
+
   campaign_mineshaft_mesa:
-    order: 12
+    order: 0
     id: campaign_mineshaft_mesa
     title: "Rotes Gestein, alte Wege"
     arc: "Die vergessenen Erbauer"
-    required-level: 35
-    structure-trigger: "minecraft:mineshaft_mesa"
-    npc-id: "mesa_excavator"
-    quests: ["story_campaign_mineshaft_mesa"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Mineshafts besitzen in Badlands eine eigene Mesa-Variante."
-      - "Die Eigenstory: Die Mesa-Schächte bewahren Materialproben, die später für Experimente an Netherite und Sculk wichtig wurden."
-      - "Der nächste Schritt verlangt Level 35 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 1160
+      - "Der Archivar erzählt: Minenschächte treten auch in den Badlands in einer eigenen Variante auf. Für die Kampagne genügt die gemeinsame Untersuchung der Minenschächte."
+      - "Die Eigenstory sieht in den Badlands-Schächten zusätzliche Materialspuren, aber keinen eigenen Knoten des großen Rätsels."
+      - "Diese Spur bleibt Hintergrundwissen."
+    exp-reward: 0
 
   campaign_igloo:
-    order: 13
+    order: 0
     id: campaign_igloo
     title: "Die Kammer unter dem Eis"
     arc: "Die schwarze Flamme"
-    required-level: 37
-    structure-trigger: "minecraft:igloo"
-    npc-id: "ice_healer"
-    quests: ["story_campaign_igloo"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Igloos können eine geheime unterirdische Kammer mit einem Heilungsaufbau verbergen."
-      - "Die Eigenstory: Diese Kammer war ein frühes Experiment zur Heilung von Verwandlung und Flüchen."
-      - "Der nächste Schritt verlangt Level 37 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 1240
+      - "Der Archivar erzählt: Manche Iglus besitzen eine verborgene Kammer mit einem Braustand und Hinweisen auf Heilung und Verwandlung."
+      - "Die Eigenstory macht daraus keinen eigenen Hauptstrang. Ein Heiler kann die Geschichte später als Nebenbericht erzählen."
+      - "Diese Spur bleibt Hintergrundwissen."
+    exp-reward: 0
 
   campaign_pillager_outpost:
     order: 14
@@ -228,6 +238,7 @@ chapters:
       - "Der nächste Schritt verlangt Level 40 und die aktive Untersuchung dieses Ortes."
     exp-reward: 1320
 
+
   campaign_mansion:
     order: 15
     id: campaign_mansion
@@ -243,95 +254,96 @@ chapters:
       - "Der nächste Schritt verlangt Level 43 und die aktive Untersuchung dieses Ortes."
     exp-reward: 1400
 
+
   campaign_ruined_portal_desert:
-    order: 16
+    order: 0
     id: campaign_ruined_portal_desert
     title: "Das Tor im Sand"
     arc: "Die schwarze Flamme"
-    required-level: 46
-    structure-trigger: "minecraft:ruined_portal_desert"
-    npc-id: "portal_watcher_desert"
-    quests: ["story_campaign_ruined_portal_desert"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Ruined Portals sind sichtbare Reste einer Verbindung zwischen Dimensionen; diese Variante liegt in Wüsten."
-      - "Die Eigenstory: Die Varianten sind keine zufälligen Ruinen, sondern unterschiedliche gescheiterte Stabilisierungstechniken."
-      - "Der nächste Schritt verlangt Level 46 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 1480
+      - "Der Archivar erzählt: Ruined Portals gibt es in verschiedenen Oberwelt-Landschaften. Die Kampagne verfolgt die Portalspur deshalb über einen gemeinsamen Knoten."
+      - "Die Eigenstory deutet die Varianten als unterschiedliche Zustände derselben alten Übergangstechnologie."
+      - "Diese Spur wird nicht als eigene Strukturquest geführt."
+    exp-reward: 0
 
   campaign_ruined_portal_jungle:
-    order: 17
+    order: 0
     id: campaign_ruined_portal_jungle
     title: "Das überwucherte Tor"
     arc: "Das Ende der Alten"
-    required-level: 49
-    structure-trigger: "minecraft:ruined_portal_jungle"
-    npc-id: "portal_watcher_jungle"
-    quests: ["story_campaign_ruined_portal_jungle"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Eine Dschungelvariante des Ruined Portal zeigt, wie lange solche Übergänge ungeschützt bestehen können."
-      - "Die Eigenstory: Pflanzen haben die Portalenergie nicht zerstört, sondern in ihr Wachstum eingebaut."
-      - "Der nächste Schritt verlangt Level 49 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 1560
+      - "Der Archivar erzählt: Ein überwuchertes Ruined Portal zeigt, wie lange ein Dimensionsübergang ungenutzt bleiben kann."
+      - "Die Eigenstory vermutet, dass Vegetation und Portalenergie hier ungewöhnlich lange miteinander wechselwirkten."
+      - "Diese Spur wird nicht als eigene Strukturquest geführt."
+    exp-reward: 0
 
   campaign_ruined_portal_swamp:
-    order: 18
+    order: 0
     id: campaign_ruined_portal_swamp
     title: "Das Tor im Moor"
     arc: "Das Ende der Alten"
-    required-level: 52
-    structure-trigger: "minecraft:ruined_portal_swamp"
-    npc-id: "portal_watcher_swamp"
-    quests: ["story_campaign_ruined_portal_swamp"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Die Sumpfvariante des Ruined Portal trägt die Spuren eines alten Dimensionsversuchs."
-      - "Die Eigenstory: Der Versuch scheiterte, weil Wasser und Portalenergie auf eine Weise reagierten, die später vermieden wurde."
-      - "Der nächste Schritt verlangt Level 52 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 1640
+      - "Der Archivar erzählt: Auch Sümpfe bewahren Reste alter Ruined Portals."
+      - "Die Eigenstory vermutet, dass Wasser und Portalenergie einen besonderen Einfluss auf die Zerstörung hatten."
+      - "Diese Spur wird nicht als eigene Strukturquest geführt."
+    exp-reward: 0
 
   campaign_ruined_portal_mountain:
-    order: 19
+    order: 0
     id: campaign_ruined_portal_mountain
     title: "Der Riss im Stein"
     arc: "Das Ende der Alten"
-    required-level: 55
-    structure-trigger: "minecraft:ruined_portal_mountain"
-    npc-id: "portal_watcher_mountain"
-    quests: ["story_campaign_ruined_portal_mountain"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Ruined Portals erscheinen auch in bergigen Regionen."
-      - "Die Eigenstory: Die Bergvariante wurde gebaut, um einen Dimensionsübergang möglichst weit über dem Meeresspiegel zu stabilisieren."
-      - "Der nächste Schritt verlangt Level 55 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 1720
+      - "Der Archivar erzählt: Ruined Portals können auch in bergigen Regionen überdauern."
+      - "Die Eigenstory vermutet, dass Höhe und Umgebung bei frühen Stabilitätsversuchen eine Rolle spielten."
+      - "Diese Spur wird nicht als eigene Strukturquest geführt."
+    exp-reward: 0
 
   campaign_ruined_portal_ocean:
-    order: 20
+    order: 0
     id: campaign_ruined_portal_ocean
     title: "Das Tor unter der Flut"
     arc: "Das Ende der Alten"
-    required-level: 58
-    structure-trigger: "minecraft:ruined_portal_ocean"
-    npc-id: "portal_watcher_ocean"
-    quests: ["story_campaign_ruined_portal_ocean"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Eine ozeanische Portalvariante liegt unter Wasser und zeigt die Reichweite der alten Übergangsexperimente."
-      - "Die Eigenstory: Das Meer wurde als natürlicher Kühlkörper für eine überhitzende Portalstruktur verwendet."
-      - "Der nächste Schritt verlangt Level 58 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 1800
+      - "Der Archivar erzählt: Unter Wasser erhalten sich manche Reste alter Ruined Portals besonders ungewöhnlich."
+      - "Die Eigenstory vermutet, dass das Meer bei einzelnen Übergangsversuchen als Kühlung genutzt wurde."
+      - "Diese Spur wird nicht als eigene Strukturquest geführt."
+    exp-reward: 0
 
   campaign_ruined_portal_nether:
-    order: 21
+    order: 0
     id: campaign_ruined_portal_nether
     title: "Der Rückweg aus der Glut"
     arc: "Jenseits der Welt"
-    required-level: 61
-    structure-trigger: "minecraft:ruined_portal_nether"
-    npc-id: "portal_watcher_nether"
-    quests: ["story_campaign_ruined_portal_nether"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Ruined Portals existieren auch im Nether."
-      - "Die Eigenstory: Diese Ruinen markieren die Orte, an denen Reisende versuchten, einen sicheren Rückweg zu erzwingen."
-      - "Der nächste Schritt verlangt Level 61 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 1880
+      - "Der Archivar erzählt: Ruined Portals können auch im Nether vorkommen und zeigen, dass Dimensionsreisen nicht auf eine einzige Weltseite beschränkt waren."
+      - "Die Eigenstory vermutet, dass einige dieser Ruinen von Reisenden stammen, die einen sicheren Rückweg suchten."
+      - "Diese Spur wird nicht als eigene Strukturquest geführt."
+    exp-reward: 0
 
   campaign_ruined_portal:
     order: 22
@@ -348,6 +360,7 @@ chapters:
       - "Der nächste Schritt verlangt Level 64 und die aktive Untersuchung dieses Ortes."
     exp-reward: 1960
 
+
   under_the_stone:
     order: 23
     id: under_the_stone
@@ -363,20 +376,21 @@ chapters:
       - "Der nächste Schritt verlangt Level 67 und die aktive Untersuchung dieses Ortes."
     exp-reward: 2040
 
+
   campaign_nether_fossil:
-    order: 24
+    order: 0
     id: campaign_nether_fossil
     title: "Knochen im Nether"
     arc: "Das Reich der Endermen"
-    required-level: 69
-    structure-trigger: "minecraft:nether_fossil"
-    npc-id: "fossil_scribe"
-    quests: ["story_campaign_nether_fossil"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Nether Fossils sind Strukturen aus Knochenmaterial und zeigen, dass der Nether eine eigene tiefe Geschichte besitzt."
-      - "Die Eigenstory: Die Fossilien sind keine direkten Beweise für einen Krieg, aber sie werden zum Schlüssel für eine vergessene biologische Verbindung."
-      - "Der nächste Schritt verlangt Level 69 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 2120
+      - "Der Archivar erzählt: Nether Fossils sind ungewöhnliche Knochenstrukturen des Nether und zeigen, dass diese Dimension eine eigene tiefe Vergangenheit besitzt."
+      - "Die Eigenstory hält offen, ob ihre Entstehung mit einem längst vergangenen biologischen oder dimensionalen Ereignis zusammenhängt."
+      - "Diese Spur bleibt Hintergrundwissen."
+    exp-reward: 0
 
   campaign_fortress:
     order: 25
@@ -393,6 +407,7 @@ chapters:
       - "Der nächste Schritt verlangt Level 72 und die aktive Untersuchung dieses Ortes."
     exp-reward: 2200
 
+
   campaign_bastion_remnant:
     order: 26
     id: campaign_bastion_remnant
@@ -408,20 +423,21 @@ chapters:
       - "Der nächste Schritt verlangt Level 75 und die aktive Untersuchung dieses Ortes."
     exp-reward: 2280
 
+
   campaign_trial_chambers:
-    order: 27
+    order: 0
     id: campaign_trial_chambers
     title: "Die Prüfung unter der Welt"
     arc: "Das Reich der Endermen"
-    required-level: 78
-    structure-trigger: "minecraft:trial_chambers"
-    npc-id: "trial_master"
-    quests: ["story_campaign_trial_chambers"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Trial Chambers sind unterirdische Prüfungsanlagen mit Vaults und Trial Spawnern."
-      - "Die Eigenstory: Die Anlagen sind ein späteres Echo der alten Prüftradition – diesmal wurde Prüfung selbst zur Maschine."
-      - "Der nächste Schritt verlangt Level 78 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 2360
+      - "Der Archivar erzählt: Trial Chambers sind unterirdische Prüfungsanlagen mit Trial Spawnern und Vaults."
+      - "Die Eigenstory erkennt darin ein mögliches Echo alter Prüfungstraditionen, aber keinen notwendigen Knoten des Hauptgeheimnisses."
+      - "Diese Spur wird als Nebenwissen erzählt."
+    exp-reward: 0
 
   campaign_stronghold:
     order: 28
@@ -438,6 +454,7 @@ chapters:
       - "Der nächste Schritt verlangt Level 81 und die aktive Untersuchung dieses Ortes."
     exp-reward: 2440
 
+
   campaign_end_city:
     order: 29
     id: campaign_end_city
@@ -453,78 +470,79 @@ chapters:
       - "Der nächste Schritt verlangt Level 84 und die aktive Untersuchung dieses Ortes."
     exp-reward: 2520
 
+
   campaign_shipwreck_beached:
-    order: 30
+    order: 0
     id: campaign_shipwreck_beached
-    title: "Das Schiff, das nicht sinken durfte"
+    title: "Das Schiff am Ufer"
     arc: "Die Piglin-Zivilisation"
-    required-level: 87
-    structure-trigger: "minecraft:shipwreck_beached"
-    npc-id: "beached_shipwright"
-    quests: ["story_campaign_shipwreck_beached"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Beached Shipwrecks sind die gestrandete Variante der Schiffswracks."
-      - "Die Eigenstory: Ein Teil der Flotte wurde absichtlich an Land gesetzt, um Karten und Proben zu retten."
-      - "Der nächste Schritt verlangt Level 87 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 2600
+      - "Der Archivar erzählt: Schiffswracks können selten auch an Stränden liegen. Die Kampagne behandelt diese Form als Variante derselben Seefahrtsspur."
+      - "Die Eigenstory vermutet, dass manche Besatzungen ihre Ladung absichtlich retteten, bevor das Schiff endgültig verloren war."
+      - "Diese Spur wird nicht als eigene Strukturquest geführt."
+    exp-reward: 0
 
   campaign_village_desert:
-    order: 31
+    order: 0
     id: campaign_village_desert
     title: "Die Wüstenchronik"
     arc: "Die Piglin-Zivilisation"
-    required-level: 90
-    structure-trigger: "minecraft:village_desert"
-    npc-id: "desert_villager"
-    quests: ["story_campaign_village_desert"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Wüstendörfer zeigen eine eigene Form heutiger Dorfsiedlungen."
-      - "Die Eigenstory: Die Dorfbewohner erbten nur Bruchstücke einer viel älteren Infrastruktur."
-      - "Der nächste Schritt verlangt Level 90 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 2680
+      - "Der Archivar erzählt: Dörfer besitzen je nach Biom unterschiedliche Bauweisen. Die Kampagne verfolgt nur eine repräsentative Dorfspur."
+      - "Die Eigenstory vermutet, dass heutige Dörfer ältere Wege und Siedlungsmuster geerbt haben könnten."
+      - "Diese Spur bleibt Nebenwissen."
+    exp-reward: 0
 
   campaign_village_savanna:
-    order: 32
+    order: 0
     id: campaign_village_savanna
     title: "Die Sonnenstraße"
     arc: "Der Drache"
-    required-level: 93
-    structure-trigger: "minecraft:village_savanna"
-    npc-id: "savanna_villager"
-    quests: ["story_campaign_village_savanna"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Savannendörfer bewahren eine eigene regionale Bauweise."
-      - "Die Eigenstory: Ihre Handelswege kreuzen alte Linien, die bereits in den Trail Ruins auftauchten."
-      - "Der nächste Schritt verlangt Level 93 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 2760
+      - "Der Archivar erzählt: Savannendörfer besitzen ihre eigene regionale Bauweise."
+      - "Die Eigenstory vermutet, dass ihre Handelswege ältere Routen kreuzen könnten."
+      - "Diese Spur bleibt Nebenwissen."
+    exp-reward: 0
 
   campaign_village_snowy:
-    order: 33
+    order: 0
     id: campaign_village_snowy
     title: "Das Dorf im Schnee"
     arc: "Der Drache"
-    required-level: 96
-    structure-trigger: "minecraft:village_snowy"
-    npc-id: "snowy_villager"
-    quests: ["story_campaign_village_snowy"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Schneedorf-Architektur zeigt, wie sich heutige Siedlungen an extreme Regionen angepasst haben."
-      - "Die Eigenstory: Unter manchen Fundamenten liegen Markierungen, die auf eine viel ältere gemeinsame Herkunft hindeuten."
-      - "Der nächste Schritt verlangt Level 96 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 2840
+      - "Der Archivar erzählt: Schneedorf-Architektur zeigt, wie sich Siedlungen an extreme Regionen anpassen."
+      - "Die Eigenstory vermutet, dass manche Fundamente ältere gemeinsame Muster bewahren."
+      - "Diese Spur bleibt Nebenwissen."
+    exp-reward: 0
 
   campaign_village_taiga:
-    order: 34
+    order: 0
     id: campaign_village_taiga
     title: "Die letzte Spur der Siedler"
     arc: "Was hinter dem Ende bleibt"
-    required-level: 99
-    structure-trigger: "minecraft:village_taiga"
-    npc-id: "taiga_villager"
-    quests: ["story_campaign_village_taiga"]
+    required-level: 1
+    structure-trigger: ""
+    npc-id: ""
+    quests: []
     dialogue:
-      - "Taigadörfer schließen den Kreis der fünf klassischen Dorfvarianten."
-      - "Die Eigenstory: Der Archivar erkennt, dass die heutigen Siedlungen nicht die Erbauer der großen Ruinen gewesen sein müssen – aber sie könnten deren Nachfahren sein."
-      - "Der nächste Schritt verlangt Level 99 und die aktive Untersuchung dieses Ortes."
-    exp-reward: 2920
+      - "Der Archivar erzählt: Taigadörfer bilden eine weitere regionale Variante heutiger Siedlungen."
+      - "Die Eigenstory hält die Möglichkeit offen, dass heutige Siedler Fragmente viel älterer Wege übernommen haben."
+      - "Diese Spur bleibt Nebenwissen."
+    exp-reward: 0
 
