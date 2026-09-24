@@ -22,13 +22,15 @@ public final class QuestDetailGUI extends AbstractGUI {
     private final QuestService quests;
     private final PlayerProfileManager profiles;
     private final Quest quest;
+    private final ItemService itemService;
 
-    public QuestDetailGUI(Player viewer, QuestService quests, PlayerProfileManager profiles, Quest quest) {
+    public QuestDetailGUI(Player viewer, QuestService quests, PlayerProfileManager profiles, Quest quest, ItemService itemService) {
         super(54, Component.text(quest.title(), NamedTextColor.GOLD));
         this.viewer = viewer;
         this.quests = quests;
         this.profiles = profiles;
         this.quest = quest;
+        this.itemService = itemService;
     }
 
     @Override
@@ -88,7 +90,6 @@ public final class QuestDetailGUI extends AbstractGUI {
                 return new ItemStack(material, Math.min(quest.requiredAmount(), material.getMaxStackSize()));
             }
         } catch (IllegalArgumentException ignored) { }
-        ItemService itemService = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getItemService();
         if (itemService == null) return null;
         if (target.toLowerCase(Locale.ROOT).startsWith("pixelrpg:")) {
             return itemService.createItem(target).map(item -> {
