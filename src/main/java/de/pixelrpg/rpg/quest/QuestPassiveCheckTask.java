@@ -41,7 +41,8 @@ public final class QuestPassiveCheckTask implements Listener {
         if (started) return;
         started = true;
         PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
-        navigationService = new QuestNavigationService(plugin, questManager.getRepository(), pixelRPG.getPlayerProfileManager(), pixelRPG.getNpcManager());
+        navigationService = new QuestNavigationService(plugin, questManager.getRepository(), pixelRPG.getPlayerProfileManager(), pixelRPG.getNpcManager(), pixelRPG.getStoryManager());
+        questManager.setQuestStateChangeListener(this::wake);
         inventoryTracker = new QuestInventoryTracker(questManager);
         navigationLifecycleListener = new QuestNavigationLifecycleListener(navigationService);
         plugin.getServer().getPluginManager().registerEvents(inventoryTracker, plugin);
@@ -144,6 +145,7 @@ public final class QuestPassiveCheckTask implements Listener {
         inventoryTracker = null;
         navigationLifecycleListener = null;
         navigationService = null;
+        questManager.setQuestStateChangeListener(null);
         started = false;
     }
 
