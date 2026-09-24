@@ -19,6 +19,7 @@ public final class PlayerProfile {
     private final Set<Profession> learnedProfessions = new HashSet<>();
     private final Set<String> unlockedRecipes = new HashSet<>();
     private final Set<String> unlockedWaypoints = new HashSet<>();
+    private final Set<String> completedQuests = new HashSet<>();
     private long persistenceRevision;
     private long mutationRevision;
     private boolean dirty;
@@ -170,6 +171,25 @@ public final class PlayerProfile {
         return Set.copyOf(unlockedWaypoints);
     }
 
+    public synchronized boolean hasCompletedQuest(String questId) {
+        return questId != null && completedQuests.contains(questId.trim().toLowerCase(java.util.Locale.ROOT));
+    }
+
+    public void markQuestCompleted(String questId) {
+        if (questId == null || questId.isBlank()) return;
+        String normalized = questId.trim().toLowerCase(java.util.Locale.ROOT);
+        boolean changed;
+        synchronized (this) {
+            changed = completedQuests.add(normalized);
+            if (changed) dirty = true;
+        }
+        if (changed) notifyDirty();
+    }
+
+    public synchronized Set<String> getCompletedQuests() {
+        return Set.copyOf(completedQuests);
+    }
+
     public void setDirtyCallback(Runnable callback) {
         synchronized (this) { dirtyCallback = callback; }
     }
@@ -201,6 +221,7 @@ public final class PlayerProfile {
         snapshot.learnedProfessions.addAll(learnedProfessions);
         snapshot.unlockedRecipes.addAll(unlockedRecipes);
         snapshot.unlockedWaypoints.addAll(unlockedWaypoints);
+        snapshot.completedQuests.addAll(completedQuests);
         snapshot.persistenceRevision = persistenceRevision;
         snapshot.mutationRevision = mutationRevision;
         snapshot.dirty = false;
@@ -216,6 +237,7 @@ public final class PlayerProfile {
             learnedProfessions.clear();
             unlockedRecipes.clear();
             unlockedWaypoints.clear();
+            completedQuests.clear();
             for (Profession profession : Profession.values()) {
                 professionLevels.put(profession, Profession.MIN_LEVEL);
                 professionExperience.put(profession, 0L);
