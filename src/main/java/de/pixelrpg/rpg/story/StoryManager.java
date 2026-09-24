@@ -38,6 +38,12 @@ public final class StoryManager {
 
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         List<Map<?, ?>> rawChapters = yaml.getMapList("chapters");
+        int storyVersion = yaml.getInt("story-version", 1);
+        if (storyVersion < 2 && isLegacyDefaultStory(rawChapters)) {
+            createDefaultStory();
+            yaml = YamlConfiguration.loadConfiguration(file);
+            rawChapters = yaml.getMapList("chapters");
+        }
         int previousOrder = -1;
 
         for (Map<?, ?> map : rawChapters) {
@@ -115,6 +121,12 @@ public final class StoryManager {
         } catch (IOException exception) {
             plugin.getLogger().log(Level.SEVERE, "Failed to create default story.yml", exception);
         }
+    }
+
+    private boolean isLegacyDefaultStory(List<Map<?, ?>> rawChapters) {
+        if (rawChapters.size() != 1) return false;
+        Object id = rawChapters.getFirst().get("id");
+        return id != null && "prologue".equalsIgnoreCase(String.valueOf(id).trim());
     }
 
     private Map<String, Object> chapter(int order, String id, String title, List<String> dialogue, long expReward) {
