@@ -62,8 +62,10 @@ public final class PartyDialog {
         body.add(DialogBodyFactory.message("Anführer: " + name(party.getLeader())));
 
         List<io.papermc.paper.registry.data.dialog.ActionButton> actions = new ArrayList<>();
-        actions.add(dialogue.actionButton(Component.text("Spieler einladen", NamedTextColor.GREEN), NamedTextColor.GREEN,
-                target -> invites.openPartyInviteInput(target)));
+        if (leader) {
+            actions.add(dialogue.actionButton(Component.text("Spieler einladen", NamedTextColor.GREEN), NamedTextColor.GREEN,
+                    target -> invites.openPartyInviteInput(target)));
+        }
 
         for (UUID member : party.getMembers()) {
             if (member.equals(player.getUniqueId()) || !leader) continue;
