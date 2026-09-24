@@ -1378,3 +1378,91 @@ Weiterhin erforderlich:
 - Stop/Start-Test für Storyfortschritt
 
 Die statische Forensik ersetzt diese Runtime-Tests nicht.
+
+
+# 25. Story / Lore / Dynamic Structure NPC System
+
+## 25.1 Architektur
+
+Die Story-Kampagne verwendet jetzt zehn level-gated Arcs von Level 1 bis 99. Kapitel werden in `story.yml` über:
+
+- `id`
+- `required-level`
+- `structure-trigger`
+- `npc-id`
+- `quests`
+- `dialogue`
+- `exp-reward`
+
+definiert.
+
+Der Story-Fortschritt bleibt ausschließlich in `PlayerProfile.storyChapterIndex`.
+
+## 25.2 Struktur-Trigger
+
+`StoryTriggerListener` reagiert nur auf relevante Bewegungs-/Teleport-/Chunk-Ereignisse.
+
+`StoryLocationRegistry` verwendet `Chunk.getStructures()` und die bereits generierten `GeneratedStructure`-Instanzen. Es gibt keinen permanenten Scan und keinen neuen `locateNearestStructure`-Aufruf im Story-Triggerpfad.
+
+Ein Trigger wird nur geprüft, wenn:
+
+1. der Spieler registriert ist,
+2. das Kapitel level-seitig freigeschaltet ist,
+3. eine Quest des Kapitels aktiv ist,
+4. der aktuelle Chunk bereits geladen ist.
+
+## 25.3 Persistentes Story-NPC-Spawning
+
+Story-NPCs werden über den bestehenden `NpcManager` als `NpcType.STORY` erzeugt.
+
+Die ID wird aus Kapitel, Welt und Strukturposition stabil gebildet. Dadurch verhindert `NpcManager.createWithId` doppelte Spawn-Einträge und persistiert die NPC-Definition über den bestehenden asynchronen NPC-Speicherpfad.
+
+## 25.4 Quest-Fortschritt
+
+Für Structure-Reach-Quests existiert ein gezielter `QuestManager.markReachLocationReached(...)`-Pfad. Dadurch muss der Story-Trigger nicht die bestehende teure World-Locator-Logik verwenden.
+
+Story-Quest-Abgaben über einen Story-NPC laufen über `completeQuestAtNpc(...)` und prüfen erneut:
+
+- registriertes Profil,
+- aktive Quest,
+- Ablaufstatus,
+- erforderlichen Fortschritt,
+- existierenden Story-NPC,
+- NPC-Typ,
+- Distanz zum NPC.
+
+Die eigentliche Profilmutation nutzt weiterhin die bestehende Dirty-/Snapshot-/asynchrone Persistenz.
+
+## 25.5 Native Dialoge
+
+Eryn verwendet ausschließlich die vorhandene `DialogueEngine` mit Paper-26.2-Native-Dialogs und `DialogAction.customClick`.
+
+Alle Buttons sind Single-Use-Callbacks. Inventar-/Queststatus wird im Callback erneut aus dem aktuellen Profil geprüft.
+
+## 25.6 Lore
+
+Die Dialoge trennen beobachtbare Minecraft-Fakten von offenen In-World-Hypothesen. Ancient Cities, Sculk, Warden, Echo Shards, Bastions, Strongholds, End Cities und der Enderdrache bilden die dokumentierte Grundlage der Kampagne.
+
+Die konkrete Erklärung, wer die Ancient-City-Erbauer waren oder warum sie verschwanden, wird bewusst nicht als kanonische Tatsache behauptet.
+
+## 25.7 Beispielkapitel
+
+Der Arc `under_the_stone` (Level 11–20) verwendet die Struktur `minecraft:ancient_city` und den persistenten Story-NPC Eryn.
+
+Ablauf:
+
+Reception -> `story_under_stone_expedition` -> Ancient City -> Eryn -> Expeditionsabgabe -> `story_under_stone_echo_fragments` -> 3 Echo Shards -> Eryn -> Kapitelabschluss -> nächster Arc.
+
+## 25.8 Runtime-Verifikation
+
+Weiterhin erforderlich:
+
+- Paper-26.2-Build
+- Serverstart
+- Ancient-City-Trigger mit aktivem Quest
+- NPC-Deduplizierung nach Chunk-Unload/Load
+- Quest-Reboot-Persistenz
+- Echo-Shard-Callback mit verändertem Inventar
+- kompletter Level-Gate-Test der zehn Kapitel
+
+Die statische Implementierung ersetzt keinen vollständigen Runtime-Smoke-Test.
