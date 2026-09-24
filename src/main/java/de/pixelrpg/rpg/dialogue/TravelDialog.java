@@ -20,7 +20,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
+import java.util.List;\nimport java.util.function.Consumer;
 
 /** Native travel dialog with safe NPC arrival-position resolution. */
 public final class TravelDialog {
@@ -38,7 +38,7 @@ public final class TravelDialog {
         this.dialogueEngine = dialogueEngine;
     }
 
-    public void open(Player player, String currentNpcId) {
+    public void open(Player player, String currentNpcId) {\n        open(player, currentNpcId, Player::closeDialog);\n    }\n\n    public void open(Player player, String currentNpcId, Consumer<Player> backAction) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) {
             dialogueEngine.openUnavailable(player, "Reisen", "Dein Spielerprofil konnte nicht geladen werden.");
