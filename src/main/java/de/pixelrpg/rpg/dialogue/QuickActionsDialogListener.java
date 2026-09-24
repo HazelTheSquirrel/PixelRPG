@@ -16,6 +16,7 @@ import org.bukkit.event.server.PluginDisableEvent;
 public final class QuickActionsDialogListener implements Listener {
     private static final Key PROFILE_ACTION = Key.key("pixelrpg:character_card/profile");
     private static final Key ACTIVE_QUESTS_ACTION = Key.key("pixelrpg:character_card/active_quests");
+    private static final Key PARTY_ACTION = Key.key("pixelrpg:character_card/party");
     private static final Key COMPANIONS_ACTION = Key.key("pixelrpg:character_card/companions");
     private static final Key PROFESSIONS_ACTION = Key.key("pixelrpg:character_card/professions");
     private static final Key GUILD_ACTION = Key.key("pixelrpg:character_card/guild");
@@ -51,6 +52,12 @@ public final class QuickActionsDialogListener implements Listener {
     /** Handles the active-quests action from the native G character card. */
     @EventHandler
     public void onActiveQuestsAction(PlayerCustomClickEvent event) { handlePlayerAction(event, ACTIVE_QUESTS_ACTION, player -> service.openActiveQuests(player, companionDialog, professionDialog)); }
+
+    /** Handles the party action from the native G character card. */
+    @EventHandler
+    public void onPartyAction(PlayerCustomClickEvent event) {
+        handlePlayerAction(event, PARTY_ACTION, player -> new PartyDialog(servicePartyManager(), service.profileManager(), new DialogueEngine(), inviteDialogService, service::openQuickActions).open(player));
+    }
 
     /** Handles the companion action from the native G character card. */
     @EventHandler
@@ -90,6 +97,10 @@ public final class QuickActionsDialogListener implements Listener {
         if (event.getPlugin() != plugin) return;
         characterCardScoreboard.stop();
         companionService.shutdown();
+    }
+
+    private de.pixelrpg.rpg.party.PartyManager servicePartyManager() {
+        return plugin.getPartyManager();
     }
 
     private void handlePlayerAction(PlayerCustomClickEvent event, Key identifier, java.util.function.Consumer<Player> action) {
