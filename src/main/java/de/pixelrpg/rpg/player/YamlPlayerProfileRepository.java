@@ -51,6 +51,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
                     }
                 }
                 for (String recipe : yaml.getStringList("unlocked-recipes")) profile.unlockRecipe(recipe);
+                for (String waypoint : yaml.getStringList("unlocked-waypoints")) profile.unlockWaypoint(waypoint);
 
                 profile.revision(yaml.getLong("revision", 0L));
                 profile.markClean();
@@ -79,6 +80,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
                     yaml.set("professions." + key + ".learned", profile.hasLearnedProfession(profession));
                 }
                 yaml.set("unlocked-recipes", new ArrayList<>(profile.getUnlockedRecipes()));
+                yaml.set("unlocked-waypoints", new ArrayList<>(profile.getUnlockedWaypoints()));
                 yaml.set("revision", profile.revision());
 
                 Path target = directory.resolve(profile.uniqueId() + ".yml");
