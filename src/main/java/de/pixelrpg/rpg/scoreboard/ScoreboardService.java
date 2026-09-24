@@ -50,6 +50,7 @@ public final class ScoreboardService implements Listener {
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
     private final WakeScheduler<UUID> wakeScheduler;
+    private int experienceBarTaskId = -1;
     private final Map<UUID, PlayerScoreboardState> stateByPlayer = new ConcurrentHashMap<>();
     private final java.util.function.Consumer<UUID> profileChangeListener = this::markDirty;
 
@@ -95,6 +96,7 @@ public final class ScoreboardService implements Listener {
 
     public void startTask() {
         for (Player player : Bukkit.getOnlinePlayers()) markDirty(player.getUniqueId());
+        experienceBarTaskId = Bukkit.getScheduler().runTaskTimer(plugin, this::refreshExperienceBars, 0L, 80L).getTaskId();
     }
 
     public void setEnabled(Player player, boolean enabled) {
@@ -112,6 +114,8 @@ public final class ScoreboardService implements Listener {
     public void shutdown() {
         profileManager.removeProfileChangeListener(profileChangeListener);
         wakeScheduler.clear();
+        if (experienceBarTaskId != -1) Bukkit.getScheduler().cancelTask(experienceBarTaskId);
+        experienceBarTaskId = -1;
         for (Player player : Bukkit.getOnlinePlayers()) clearScoreboard(player);
         stateByPlayer.clear();
     }
@@ -259,6 +263,15 @@ public final class ScoreboardService implements Listener {
 
     private String guildTeamName(UUID guildId) {
         return "prg_" + guildId.toString().replace("-", "").substring(0, 11);
+    }
+
+    private void refreshExperienceBars() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+            if (profile == null || !profile.isRegistered()) continue;
+            if (PixelRPGPlugin.getInstance().getQuestManager().hasActiveNavigationQuest(profile)) continue;
+            updateExperienceBar(player, profile);
+        }
     }
 
     private void updateExperienceBar(Player player, PlayerProfile profile) {
