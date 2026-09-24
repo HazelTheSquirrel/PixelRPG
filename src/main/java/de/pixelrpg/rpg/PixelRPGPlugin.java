@@ -261,7 +261,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MobKillStatisticListener(playerProfileManager, statisticsService), this);
         getServer().getPluginManager().registerEvents(new PlayerDeathStatisticListener(playerProfileManager, statisticsService), this);
         getServer().getPluginManager().registerEvents(new QuestBossStatisticListener(statisticsService), this);
-        getServer().getPluginManager().registerEvents(new GuildCurrencyPickupListener(playerProfileManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new GuildCompassListener(npcManager, playerProfileManager), this);
         getServer().getPluginManager().registerEvents(new SoulboundDeathListener(playerProfileManager), this);
         getServer().getPluginManager().registerEvents(scoreboardService, this);
