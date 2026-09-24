@@ -91,7 +91,6 @@ public final class StoryNpcDialogue {
                 if (current == null || !current.isRegistered()) return;
                 if (questManager.completeQuestAtNpc(target, completionQuest.id(), npc.id())
                         && storyManager.isChapterArchived(target.getUniqueId(), chapter)) {
-                    advanceAfterEndCity(target, chapter);
                     target.closeDialog();
                 } else {
                     openChapter(target, chapter, npc);
@@ -100,13 +99,6 @@ public final class StoryNpcDialogue {
         }
         actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
         dialogueEngine.openMultiAction(player, Component.text(chapter.title(), NamedTextColor.GOLD), body, actions, 1);
-    }
-
-    private void advanceAfterEndCity(Player player, StoryChapter chapter) {
-        if (!"campaign_end_city".equals(chapter.id()) || questManager == null) return;
-        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-        if (profile == null || !profile.isRegistered()) return;
-        // The next story quest is deliberately not auto-accepted here; it must be offered by the reception.
     }
 
     private void openStronghold(Player player, StoryChapter chapter, RPGNpc npc) {
