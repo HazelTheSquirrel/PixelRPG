@@ -37,7 +37,7 @@ public final class QuickActionsDialogListener implements Listener {
         this.inviteDialogService = inviteDialogService;
         DialogueEngine dialogueEngine = new DialogueEngine();
         this.companionDialog = new CompanionDialog(companionService, dialogueEngine, service);
-        this.professionDialog = new ProfessionDialog(service.profileManager(), dialogueEngine, service);
+        this.professionDialog = new ProfessionDialog(service.profileManager(), dialogueEngine, service, service.questManager());
         this.characterCardScoreboard = new CharacterCardScoreboardService(plugin, service.profileManager(), service.statEngine());
         this.characterCardScoreboard.start();
     }
