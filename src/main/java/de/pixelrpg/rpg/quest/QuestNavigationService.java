@@ -18,7 +18,6 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,8 +28,6 @@ public final class QuestNavigationService {
     private static final List<Color> QUEST_COLORS = List.of(Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, Color.FUCHSIA);
     private static final Color STORY_QUEST_COLOR = Color.FUCHSIA;
     private static final NamespacedKey DEFAULT_WAYPOINT_STYLE = NamespacedKey.minecraft("default");
-    private static final long TARGET_CACHE_TTL_MILLIS = 30_000L;
-    private static final int MAX_TARGET_CACHE_ENTRIES = 2048;
 
     private final Plugin plugin;
     private final QuestRepository questRepository;
@@ -39,7 +36,6 @@ public final class QuestNavigationService {
     private final Set<String> storyQuestIds;
     private final Map<UUID, Map<String, QuestMarker>> markersByPlayer = new HashMap<>();
     private final Map<UUID, RefreshState> refreshStateByPlayer = new HashMap<>();
-    private final Map<NavigationCacheKey, CachedTarget> targetCache = new LinkedHashMap<>(64, 0.75F, true);
 
     public QuestNavigationService(Plugin plugin, QuestRepository questRepository,
                                   PlayerProfileManager profileManager, NpcManager npcManager, StoryManager storyManager) {
@@ -93,7 +89,7 @@ public final class QuestNavigationService {
 
         for (int index = 0; index < entries.size() && index < 5; index++) {
             QuestProgressEntry entry = entries.get(index);
-            Location target = resolveTarget(playerLocation, entry.quest(), entry.progress());
+            Location target = resolveTarget(playerLocation, profile, entry.quest(), entry.progress());
             if (target == null || target.getWorld() == null) {
                 removeMarker(currentMarkers, entry.quest().id());
                 continue;
@@ -135,7 +131,6 @@ public final class QuestNavigationService {
             refreshStateByPlayer.remove(uuid);
             return true;
         });
-        trimTargetCache();
     }
 
     /** Removes all quest markers and cached navigation targets for one player. */
@@ -150,7 +145,6 @@ public final class QuestNavigationService {
         for (Map<String, QuestMarker> markers : markersByPlayer.values()) markers.values().forEach(marker -> marker.entity().remove());
         markersByPlayer.clear();
         refreshStateByPlayer.clear();
-        targetCache.clear();
     }
 
     private boolean isNavigationQuest(Quest quest) {
@@ -178,11 +172,12 @@ public final class QuestNavigationService {
         return new QuestMarker(marker);
     }
 
-    private Location resolveTarget(Location origin, Quest quest, QuestProgress progress) {
+    private Location resolveTarget(Location origin, PlayerProfile profile, Quest quest, QuestProgress progress) {
         if (progress.getCurrentAmount() >= quest.requiredAmount()) return resolveQuestGiver(quest);
         return switch (quest.type()) {
             case TALK_TO_NPC -> resolveNpc(origin, quest.targetKey());
-            case HUNT, COLLECT, REACH_LOCATION -> resolveWorldTarget(origin, quest);
+            case HUNT, COLLECT -> null;
+            case REACH_LOCATION -> resolveWorldTarget(profile, quest);
             case GLOBAL_EVENT -> null;
         };
     }
@@ -209,69 +204,13 @@ public final class QuestNavigationService {
                 .orElse(null);
     }
 
-    private Location resolveWorldTarget(Location origin, Quest quest) {
-        // The dragon quest uses the Stronghold as the route into the End, then the End's center as the hunt target.
-        if ("ENDER_DRAGON".equalsIgnoreCase(quest.targetKey())
-                && origin.getWorld() != null
-                && origin.getWorld().getEnvironment() == org.bukkit.World.Environment.THE_END) {
-            return new Location(origin.getWorld(), 0.5D, 64.0D, 0.5D);
-        }
-        if (quest.targetStructureKey() == null && quest.targetBiomeKeys().isEmpty()) return quest.reachLocation();
-
-        NavigationCacheKey cacheKey = new NavigationCacheKey(
-                origin.getWorld().getUID(),
-                origin.getBlockX() >> 4,
-                origin.getBlockZ() >> 4,
-                quest.id());
-        long now = System.currentTimeMillis();
-        CachedTarget cached = targetCache.get(cacheKey);
-        if (cached != null && now - cached.createdAtMillis() <= TARGET_CACHE_TTL_MILLIS) return cached.location().clone();
-
-        Location target = findWorldTarget(origin, quest);
-        if (target != null) {
-            targetCache.put(cacheKey, new CachedTarget(target.clone(), now));
-            trimTargetCache();
-        }
-        return target;
-    }
-
-    private Location findWorldTarget(Location origin, Quest quest) {
-        if (quest.targetStructureKey() != null && !quest.targetStructureKey().isBlank()) {
-            var registry = io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(io.papermc.paper.registry.RegistryKey.STRUCTURE);
-            var key = NamespacedKey.fromString(quest.targetStructureKey());
-            if (key != null) {
-                var structure = registry.get(key);
-                if (structure != null) {
-                    var result = origin.getWorld().locateNearestStructure(origin, structure, quest.navigationRadius(), false);
-                    if (result != null) return result.getLocation();
-                }
-            }
-        }
-
-        if (!quest.targetBiomeKeys().isEmpty()) {
-            var registry = io.papermc.paper.registry.RegistryAccess.registryAccess().getRegistry(io.papermc.paper.registry.RegistryKey.BIOME);
-            var biomes = quest.targetBiomeKeys().stream()
-                    .map(NamespacedKey::fromString)
-                    .filter(java.util.Objects::nonNull)
-                    .map(registry::get)
-                    .filter(java.util.Objects::nonNull)
-                    .toArray(org.bukkit.block.Biome[]::new);
-            if (biomes.length > 0) {
-                var result = origin.getWorld().locateNearestBiome(origin, quest.navigationRadius(), biomes);
-                if (result != null) return result.getLocation();
-            }
-        }
-        return quest.reachLocation();
-    }
-
-    private void trimTargetCache() {
-        while (targetCache.size() > MAX_TARGET_CACHE_ENTRIES) {
-            var iterator = targetCache.entrySet().iterator();
-            if (iterator.hasNext()) {
-                iterator.next();
-                iterator.remove();
-            } else return;
-        }
+    private Location resolveWorldTarget(PlayerProfile profile, Quest quest) {
+        PlayerProfile.NavigationTarget cached = profile.getQuestNavigationTarget(quest.id());
+        if (cached == null) return quest.reachLocation();
+        if (cached.worldId() == null) return null;
+        org.bukkit.World world = Bukkit.getWorld(cached.worldId());
+        if (world == null) return null;
+        return new Location(world, cached.x(), cached.y(), cached.z());
     }
 
     private void removeMarker(Map<String, QuestMarker> markers, String questId) {
@@ -296,7 +235,5 @@ public final class QuestNavigationService {
 
     private record QuestMarker(Mannequin entity) { }
     private record QuestProgressEntry(Quest quest, QuestProgress progress) { }
-    private record NavigationCacheKey(UUID worldId, int chunkX, int chunkZ, String questId) { }
-    private record CachedTarget(Location location, long createdAtMillis) { }
     private record RefreshState(UUID worldId, int chunkX, int chunkZ, long mutationRevision) { }
 }
