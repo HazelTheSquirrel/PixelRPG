@@ -135,12 +135,12 @@ public final class StoryDialogueManager {
                 Component.text("Eryn – Letzte Hüterin", NamedTextColor.GOLD),
                 List.of(
                         DialogBody.plainMessage(Component.text(
-                                "Eryn sieht dich lange an. "Du bist nicht aus Neugier hierher gekommen. "
-                                        + "Du hast die Stadt gefunden. Das allein unterscheidet dich von den meisten."",
+                                "Eryn sieht dich lange an. „Du bist nicht aus Neugier hierher gekommen. "
+                                        + "Du hast die Stadt gefunden. Das allein unterscheidet dich von den meisten.“",
                                 NamedTextColor.WHITE)),
                         DialogBody.plainMessage(Component.text(
-                                ""Ich kenne keine sichere Geschichte über die Erbauer. Ich kenne nur die Spuren: "
-                                        + "Sculk, gewaltige Hallen, Echo Shards und eine Stadt, die ihre Bewohner verloren hat."",
+                                "„Ich kenne keine sichere Geschichte über die Erbauer. Ich kenne nur die Spuren: "
+                                        + "Sculk, gewaltige Hallen, Echo Shards und eine Stadt, die ihre Bewohner verloren hat.“",
                                 NamedTextColor.WHITE))
                 ),
                 List.of(
@@ -160,12 +160,12 @@ public final class StoryDialogueManager {
                 Component.text("Die Stadt ohne Himmel", NamedTextColor.GOLD),
                 List.of(
                         DialogBody.plainMessage(Component.text(
-                                ""Diese Anlagen liegen tief im Deep Dark. Die Stadt selbst ist real. "
-                                        + "Die Absicht ihrer Erbauer ist es nicht, zumindest nicht für uns."",
+                                "„Diese Anlagen liegen tief im Deep Dark. Die Stadt selbst ist real. "
+                                        + "Die Absicht ihrer Erbauer ist es nicht, zumindest nicht für uns.“",
                                 NamedTextColor.WHITE)),
                         DialogBody.plainMessage(Component.text(
-                                ""Der Warden ist keine Truhe mit Beinen und kein Wächter, den jemand vor einem Schatz abgestellt hat. "
-                                        + "Er reagiert auf die Welt über Vibrationen und Geruch."",
+                                "„Der Warden ist keine Truhe mit Beinen und kein Wächter, den jemand vor einem Schatz abgestellt hat. "
+                                        + "Er reagiert auf die Welt über Vibrationen und Geruch.“",
                                 NamedTextColor.WHITE))
                 ),
                 List.of(
@@ -181,8 +181,8 @@ public final class StoryDialogueManager {
                 player,
                 Component.text("Eryn", NamedTextColor.GOLD),
                 List.of(DialogBody.plainMessage(Component.text(
-                        ""Ich war Teil einer Expedition. Wir fanden eine Stadt, bevor wir verstanden, was wir gefunden hatten. "
-                                + "Die anderen wollten Antworten. Ich wollte, dass wenigstens jemand die Fragen überlebt."",
+                        "„Ich war Teil einer Expedition. Wir fanden eine Stadt, bevor wir verstanden, was wir gefunden hatten. "
+                                + "Die anderen wollten Antworten. Ich wollte, dass wenigstens jemand die Fragen überlebt.“",
                         NamedTextColor.WHITE))),
                 List.of(
                         dialogueEngine.actionButton(Component.text("Was hast du gelernt?"), NamedTextColor.YELLOW,
@@ -198,11 +198,11 @@ public final class StoryDialogueManager {
                 Component.text("Sculk und Echo", NamedTextColor.GOLD),
                 List.of(
                         DialogBody.plainMessage(Component.text(
-                                ""Sculk reagiert auf Aktivität. Das ist beobachtbar. Warum es hier entstanden ist, ist eine andere Frage."",
+                                "„Sculk reagiert auf Aktivität. Das ist beobachtbar. Warum es hier entstanden ist, ist eine andere Frage.“",
                                 NamedTextColor.WHITE)),
                         DialogBody.plainMessage(Component.text(
-                                ""Echo Shards findest du in den Truhen der Ancient Cities. Sie sind Teil der Welt, "
-                                        + "aber ihre Bedeutung für die verschwundene Kultur kennen wir nicht."",
+                                "„Echo Shards findest du in den Truhen der Ancient Cities. Sie sind Teil der Welt, "
+                                        + "aber ihre Bedeutung für die verschwundene Kultur kennen wir nicht.“",
                                 NamedTextColor.WHITE))
                 ),
                 List.of(
@@ -223,8 +223,8 @@ public final class StoryDialogueManager {
         boolean completed = profile.hasCompletedQuest(quest.id());
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text(
-                        ""Bring mir drei Echo Shards. Nicht als Trophäe. Ich will sehen, ob ihr Echo wirklich "
-                                + "etwas mit den Aufzeichnungen dieser Stadt verbindet."",
+                        "„Bring mir drei Echo Shards. Nicht als Trophäe. Ich will sehen, ob ihr Echo wirklich "
+                                + "etwas mit den Aufzeichnungen dieser Stadt verbindet.“",
                         NamedTextColor.WHITE)),
                 DialogBody.plainMessage(QuestText.objective(quest).color(NamedTextColor.AQUA))
         );
@@ -255,8 +255,8 @@ public final class StoryDialogueManager {
                 Component.text("Eryn – Die Stadt gefunden", NamedTextColor.GOLD),
                 List.of(
                         DialogBody.plainMessage(Component.text(
-                                ""Du hast sie gefunden. Jetzt weißt du, warum ich keine Legende erzählen wollte. "
-                                        + "Die Stadt muss man sehen, bevor man über sie spricht."",
+                                "„Du hast sie gefunden. Jetzt weißt du, warum ich keine Legende erzählen wollte. "
+                                        + "Die Stadt muss man sehen, bevor man über sie spricht.“",
                                 NamedTextColor.WHITE)),
                         DialogBody.plainMessage(Component.text(
                                 "Deine Expedition ist abgeschlossen. Eryn bietet dir nun an, Echo-Fragmente zu sichern.",
@@ -281,7 +281,7 @@ public final class StoryDialogueManager {
                 DialogBody.plainMessage(QuestText.objectiveWithProgress(quest, progress).color(NamedTextColor.AQUA)),
                 DialogBody.plainMessage(Component.text(
                         complete ? ""Du hast genug gesammelt. Bring die Fragmente zu mir."" :
-                                ""Drei Stück. Mehr brauche ich zunächst nicht."",
+                                "„Drei Stück. Mehr brauche ich zunächst nicht.“",
                         NamedTextColor.WHITE))
         );
         List<ActionButton> actions = new ArrayList<>();
