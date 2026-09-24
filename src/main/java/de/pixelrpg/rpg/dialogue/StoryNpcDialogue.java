@@ -1,45 +1,43 @@
 package de.pixelrpg.rpg.dialogue;
 
-import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.story.StoryManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
+import java.util.Objects;
+
+/** Entry point for story NPC interactions and the persistent lore campaign. */
 public final class StoryNpcDialogue {
     private final PlayerProfileManager profileManager;
-    private final DialogueEngine dialogueEngine;
-    private final DialogueProgressStore progressStore;
+    private final StoryDialogueManager storyDialogueManager;
 
-    public StoryNpcDialogue(PlayerProfileManager profileManager) {
-        this(profileManager, new DialogueEngine());
-    }
-
-    public StoryNpcDialogue(PlayerProfileManager profileManager, DialogueEngine dialogueEngine) {
-        this.profileManager = profileManager;
-        this.dialogueEngine = dialogueEngine;
-        this.progressStore = new DialogueProgressStore(PixelRPGPlugin.getInstance());
-        this.progressStore.load();
-    }
-
-    public StoryNpcDialogue(PlayerProfileManager profileManager, DialogueEngine dialogueEngine,
-                            DialogueProgressStore progressStore) {
-        this.profileManager = profileManager;
-        this.dialogueEngine = dialogueEngine;
-        this.progressStore = progressStore;
+    public StoryNpcDialogue(PlayerProfileManager profileManager,
+                            StoryManager storyManager,
+                            DialogueEngine dialogueEngine) {
+        this.profileManager = Objects.requireNonNull(profileManager, "profileManager");
+        this.storyDialogueManager = new StoryDialogueManager(
+                Objects.requireNonNull(storyManager, "storyManager"),
+                profileManager,
+                Objects.requireNonNull(dialogueEngine, "dialogueEngine"));
     }
 
     public void begin(Player player, RPGNpc npc) {
-        if (!profileManager.isRegistered(player.getUniqueId())) {
-            player.sendMessage(Component.text("Du bist noch nicht für PixelRPG registriert.", NamedTextColor.RED));
+        if (player == null || npc == null || !profileManager.isRegistered(player.getUniqueId())) {
+            if (player != null) {
+                player.sendMessage(Component.text(
+                        "Du musst registriertes Rathausmitglied sein.",
+                        NamedTextColor.RED));
+            }
             return;
         }
 
-        progressStore.markSeen(player.getUniqueId(), "story.npc." + npc.id());
-        dialogueEngine.openUnavailable(
-                player,
-                "Geschichte",
-                "Für dich gibt es momentan kein neues Kapitel. Kehre später zu diesem NPC zurück.");
+        storyDialogueManager.openEpilogue(player);
+    }
+
+    public void openChapter(Player player, de.pixelrpg.rpg.story.StoryChapter chapter) {
+        storyDialogueManager.openChapter(player, chapter);
     }
 }
