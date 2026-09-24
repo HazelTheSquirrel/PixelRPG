@@ -34,6 +34,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /** Builds the player-specific PixelRPG character card opened from the G action. */
@@ -53,7 +54,7 @@ public final class QuickActionsDialogService {
         this.statEngine = statEngine;
         this.questManager = questManager;
         this.itemService = itemService;
-        this.partyManager = partyManager;
+        this.partyManager = Objects.requireNonNull(partyManager, "partyManager");
         this.inviteDialogService = inviteDialogService;
         this.companionService = companionService;
     }
@@ -75,22 +76,20 @@ public final class QuickActionsDialogService {
         PartyDialog partyDialog = new PartyDialog(partyManager, profiles, engine, inviteDialogService, this::openQuickActions);
 
         List<ActionButton> actions = new ArrayList<>();
-        actions.add(actionButton(Component.text("Charakterprofil", NamedTextColor.AQUA), target -> openCharacterProfile(target, companionDialog, professionDialog)));
-        actions.add(actionButton(Component.text("Aktive Quests", NamedTextColor.YELLOW), target -> openActiveQuests(target, companionDialog, professionDialog)));
-        actions.add(actionButton(Component.text("Begleiter", NamedTextColor.LIGHT_PURPLE), companionDialog::open));
-        actions.add(actionButton(Component.text("Berufe", NamedTextColor.GREEN), professionDialog::open));
-        actions.add(actionButton(Component.text("Party", NamedTextColor.AQUA), partyDialog::open));
-        actions.add(actionButton(Component.text("Gilde", NamedTextColor.GOLD), guildDialog::open));
-        actions.add(actionButton(Component.text("Schließen", NamedTextColor.GRAY), Player::closeDialog));
+        actions.add(quickActionButton(Component.text("Charakterprofil", NamedTextColor.AQUA), target -> openCharacterProfile(target, companionDialog, professionDialog)));
+        actions.add(quickActionButton(Component.text("Aktive Quests", NamedTextColor.YELLOW), target -> openActiveQuests(target, companionDialog, professionDialog)));
+        actions.add(quickActionButton(Component.text("Begleiter", NamedTextColor.LIGHT_PURPLE), companionDialog::open));
+        actions.add(quickActionButton(Component.text("Berufe", NamedTextColor.GREEN), professionDialog::open));
+        actions.add(quickActionButton(Component.text("Party", NamedTextColor.AQUA), partyDialog::open));
+        actions.add(quickActionButton(Component.text("Gilde", NamedTextColor.GOLD), guildDialog::open));
 
         player.showDialog(Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(Component.text("PixelRPG – Schnellaktionen", NamedTextColor.GOLD))
-                    .body(List.of(DialogBody.plainMessage(Component.text("Wähle eine Funktion.", NamedTextColor.WHITE))))
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .build());
-            builder.type(DialogType.multiAction(actions, null, 1));
+            builder.type(DialogType.multiAction(actions, quickActionsCloseButton(), 1));
         }));
     }
 
@@ -248,6 +247,24 @@ public final class QuickActionsDialogService {
             if (body instanceof io.papermc.paper.registry.data.dialog.body.PlainMessageDialogBody plain) return DialogBody.plainMessage(plain.contents().color(NamedTextColor.WHITE), plain.width());
             return body;
         }).toList();
+    }
+
+    private ActionButton quickActionButton(Component label, Consumer<Player> action) {
+        return ActionButton.builder(label)
+                .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
+                    if (audience instanceof Player target) action.accept(target);
+                }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
+                .width(310)
+                .build();
+    }
+
+    private ActionButton quickActionsCloseButton() {
+        return ActionButton.builder(Component.text("Schließen", NamedTextColor.GRAY))
+                .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
+                    if (audience instanceof Player target) target.closeDialog();
+                }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
+                .width(200)
+                .build();
     }
 
     private ActionButton actionButton(Component label, Consumer<Player> action) {
