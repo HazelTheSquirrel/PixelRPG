@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg;
 
 import de.pixelrpg.rpg.api.ItemAPI;
+import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.api.PartyAPI;
 import de.pixelrpg.rpg.api.StatisticsAPI;
 import de.pixelrpg.rpg.item.ItemService;
@@ -21,6 +22,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        RPGKeys.init(this);
 
         profiles = new PlayerProfileManager(this);
         profiles.initialize(getConfig());
