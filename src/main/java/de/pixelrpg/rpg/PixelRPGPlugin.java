@@ -72,7 +72,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
         register(PartyAPI.class, partyManager);
         getLifecycleManager().registerEventHandler(io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents.COMMANDS,
-                event -> event.registrar().register("pixelrpgparty", new PartyCommand(partyManager, profiles)));
+                event -> {
+                    event.registrar().register("pixelrpgparty", new PartyCommand(partyManager, profiles));
+                    event.registrar().register("pixelrpgquestlog", new de.pixelrpg.rpg.quest.QuestLogCommand(questService, profiles));
+                });
         register(StatisticsAPI.class, statisticsService);
         register(ItemAPI.class, itemService);
 
