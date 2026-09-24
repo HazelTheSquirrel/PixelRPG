@@ -8,17 +8,13 @@ import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Biome;
 import org.bukkit.entity.Player;
-import org.bukkit.generator.structure.Structure;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -175,6 +171,7 @@ public final class QuestManager {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered() || !profile.hasActiveQuest(questId)) return false;
         profile.removeActiveQuest(questId);
+        profile.clearQuestNavigationTarget(questId);
         removeTimer(player.getUniqueId(), questId);
         player.sendMessage(Component.text("Quest abgebrochen.", NamedTextColor.YELLOW));
         questStateChangeListener.accept(player);
@@ -221,6 +218,7 @@ public final class QuestManager {
 
     private boolean grantCompletion(Player player, PlayerProfile profile, Quest quest) {
         profile.removeActiveQuest(quest.id());
+        profile.clearQuestNavigationTarget(quest.id());
         profile.markQuestCompleted(quest.id());
         removeTimer(player.getUniqueId(), quest.id());
         if (quest.rewardMoney() > 0.0D) profile.addMoney(quest.rewardMoney());
@@ -356,17 +354,31 @@ public final class QuestManager {
         return normalized;
     }
 
+    /**
+     * Completes cached structure objectives from the safe story target without invoking
+     * locateNearestStructure/locateNearestBiome during movement processing.
+     */
     public void checkReachLocationQuests(Player player) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) return;
+
         for (var entry : profile.getActiveQuests().entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
-            if (quest == null || quest.type() != QuestType.REACH_LOCATION || entry.getValue().getCurrentAmount() >= quest.requiredAmount()) continue;
-            Location target = resolveNavigationLocation(player.getLocation(), quest);
-            if (target == null || !player.getWorld().equals(target.getWorld())) continue;
-            if (player.getLocation().distanceSquared(target) <= 64.0D) {
-                entry.getValue().setCurrentAmount(quest.requiredAmount());
-                player.sendMessage(Component.text("Ort erreicht: ").color(NamedTextColor.GREEN).append(Component.text(QuestText.titlePlain(player, quest), NamedTextColor.YELLOW)));
+            QuestProgress progress = entry.getValue();
+            if (quest == null || quest.type() != QuestType.REACH_LOCATION
+                    || progress.getCurrentAmount() >= quest.requiredAmount()) continue;
+
+            PlayerProfile.NavigationTarget target = profile.getQuestNavigationTarget(quest.id());
+            if (target == null || target.worldId() == null || !player.getWorld().getUID().equals(target.worldId())) continue;
+
+            double dx = player.getLocation().getX() - target.x();
+            double dy = player.getLocation().getY() - target.y();
+            double dz = player.getLocation().getZ() - target.z();
+            if ((dx * dx) + (dy * dy) + (dz * dz) <= 400.0D) {
+                progress.setCurrentAmount(quest.requiredAmount());
+                player.sendMessage(Component.text("Ort erreicht: ")
+                        .color(NamedTextColor.GREEN)
+                        .append(Component.text(QuestText.titlePlain(player, quest), NamedTextColor.YELLOW)));
             }
         }
     }
