@@ -64,7 +64,7 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
             case "kick" -> handleKick(player, args);
             case "transfer" -> handleTransfer(player, args);
             case "disband" -> handleDisband(player);
-            case "info" -> { new PartyGUI(player, partyManager, profileManager, inviteDialogService).open(player); yield true; }
+            case "info" -> { new PartyDialog(partyManager, profileManager, new DialogueEngine(), inviteDialogService).open(player); yield true; }
             default -> { player.sendMessage(Component.text("Verwendung: /pixelrpg party <invite|accept|leave|kick|transfer|disband|info>", NamedTextColor.YELLOW)); yield true; }
         };
     }
