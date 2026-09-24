@@ -108,9 +108,11 @@ public final class QuestBehavior implements NpcBehavior {
             actions.add(dialogueEngine.actionButton(label, status.color(), target -> openQuestDetails(target, quest, start, end)));
         }
         if (actions.isEmpty()) body = List.of(DialogBody.plainMessage(Component.text("In diesem Bereich sind aktuell keine Quests verfügbar.", NamedTextColor.WHITE)));
-        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, this::openQuestRanges));
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, target -> openQuestRanges(target, this::closeDialog)));
         dialogueEngine.openMultiAction(player, Component.text("Level " + start + "–" + end, NamedTextColor.GOLD), body, actions, 2);
     }
+
+    private void closeDialog(Player player) { Player.closeDialog(player); }
 
     private QuestStatus status(PlayerProfile profile, Quest quest) {
         if (profile.hasCompletedQuest(quest.id())) return QuestStatus.COMPLETED;
