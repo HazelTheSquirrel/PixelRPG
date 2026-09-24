@@ -64,12 +64,13 @@ public final class QuestBehavior implements NpcBehavior {
 
         List<ActionButton> actions = new ArrayList<>();
         for (int start = 1; start <= MAX_NORMAL_LEVEL; start += 10) {
-            int end = Math.min(MAX_NORMAL_LEVEL, start + 9);
-            boolean current = profile.getLevel() >= start && profile.getLevel() <= end;
-            boolean unlocked = profile.getLevel() >= Math.max(1, start - unlockBuffer());
-            actions.add(dialogueEngine.actionButton(Component.text("Level " + start + "–" + end),
+            final int rangeStart = start;
+            final int rangeEnd = Math.min(MAX_NORMAL_LEVEL, start + 9);
+            boolean current = profile.getLevel() >= rangeStart && profile.getLevel() <= rangeEnd;
+            boolean unlocked = profile.getLevel() >= Math.max(1, rangeStart - unlockBuffer());
+            actions.add(dialogueEngine.actionButton(Component.text("Level " + rangeStart + "–" + rangeEnd),
                     current ? NamedTextColor.GREEN : unlocked ? NamedTextColor.YELLOW : NamedTextColor.RED,
-                    target -> openQuestCategory(target, start, end)));
+                    target -> openQuestCategory(target, rangeStart, rangeEnd)));
         }
         if (actions.isEmpty()) {
             dialogueEngine.openNotice(player, Component.text("Questgeber", NamedTextColor.GOLD),
