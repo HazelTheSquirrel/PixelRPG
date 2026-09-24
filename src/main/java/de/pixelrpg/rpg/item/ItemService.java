@@ -15,7 +15,6 @@ import java.util.*;
 
 public final class ItemService implements ItemAPI {
     private final ItemDefinitionRegistry defs;
-    private final ItemDefinitionRegistry defs;
 
     public ItemService(Plugin plugin) {
         defs = new ItemDefinitionRegistry(plugin);
