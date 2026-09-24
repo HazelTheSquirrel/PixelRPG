@@ -42,6 +42,6 @@ public final class StoryBehavior implements NpcBehavior {
             return;
         }
 
-        dialogue.openChapter(player, next.get());
+        dialogue.openChapter(player, next.get(), npc);
     }
 }
