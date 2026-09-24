@@ -1221,3 +1221,40 @@ Die Änderungen sind **noch nicht VERIFIED**. Insbesondere fehlen weiterhin die 
 ### CI
 
 Die technische CI-Prüfung muss nach diesem Stand erneut vollständig erfolgreich durchlaufen werden. Ein grüner Build gilt weiterhin nur als technischer Mindestnachweis und nicht als Rebuild-Abnahme.
+
+
+## 31. Item / Equipment / Profession Foundation — 2026-09-24
+
+**REBUILT / NOT VERIFIED**
+
+Der nächste abhängige Block wurde neu aufgebaut und mit dem vorhandenen main-Content abgeglichen:
+
+### Items / Equipment
+
+- zentrale `RPGKeys` für Item-PDC und Runtime-PDC eingeführt;
+- Item-Rarity mit den Referenz-Multiplikatoren und Drop-Gewichten nachgezogen;
+- Item-Builder für Level-/Rarity-Scaling und Item-Stat-Rolls ergänzt;
+- ItemService auf definierte Items, generierte Items, Unique-Claims und Economy-Sicherheitsprüfung ausgerichtet;
+- FoodDefinition/FoodDefinitionRegistry/FoodService ergänzt;
+- aktuelle Paper-Data-Components für Food verwendet;
+- Soulbound- und Unique-Item-Grundlage ergänzt;
+- EquipmentSlot, StatEngine und reaktive EquipmentService-Grundlage ergänzt;
+- CharacterStatType wird auf die Runtime-Statberechnung geführt.
+
+### Player / Professions
+
+- PlayerProfile um Berufslevel, Berufs-XP, erlernte Berufe, freigeschaltete Rezepte und Waypoints erweitert;
+- YAML- und MySQL-Persistence um diese Zustände erweitert;
+- Profession-Domain für alle neun Referenzberufe ergänzt;
+- CraftingCategory, CraftRecipe und CraftingRecipeRegistry ergänzt;
+- Crafting-Rezeptdaten werden aus dem bestehenden Content geladen und validiert;
+- ProfessionService und CraftingService ergänzt;
+- Recipe-Unlock und Profession-XP sind an die Profile-Persistence angebunden.
+
+### Noch offen
+
+Der Block ist **nicht VERIFIED**. Es fehlen insbesondere die vollständige Equipment-Persistence in der Profile-Domain, Set-Effekte, vollständige Food-/Unique-/Soulbound-Lifecycle-Integration, die vollständige Crafting-GUI/NPC-/Quest-Verknüpfung sowie die End-to-End-Paritätsprüfung gegen main.
+
+### Aktueller Rebuild-Head
+
+`f397d97fe18ebe06e4524df2db977bb1b53c091f`
