@@ -1388,3 +1388,182 @@ Die verbleibenden offenen Arbeiten sind jetzt überwiegend:
 4. spätere Food-/Resourcepack-/Regions-Erweiterungen.
 
 Die großen bisherigen „Definition liegt herum, ist aber nicht erreichbar“-Lücken bei Custom-Waffen, Rüstungssets und Companions sind damit geschlossen.
+
+
+---
+
+# 34. Finaler Umsetzungsstand – Content-Pipeline
+
+**Stand:** 24.09.2026  
+**Branch:** `test`
+
+Dieser Abschnitt ist der **maßgebliche aktuelle Status**. Frühere Auditabschnitte dokumentieren den damaligen Befund und werden nicht rückwirkend gelöscht.
+
+## Bewusst ausgeschlossen
+
+| Bereich | Status | Entscheidung |
+|---|---|---|
+| Food – 23 Definitionen | ⚪ pausiert | bleibt Testbestand |
+| globale NPC-Weltpopulation | ⚪ entfernt | keine globale Filler-/Default-Population; Story-NPCs entstehen quest-/strukturbezogen |
+| Shops | 🟢 fertig | Sortimente werden manuell über die vorhandene Shop-Administration gepflegt |
+| Guild City / konkrete Regionen | ⚪ pausiert | kein weiterer Welt-Ausbau |
+| Resourcepack-Ausbau | ⚪ pausiert | keine zusätzliche visuelle Content-Pipeline |
+
+## Abgeschlossen
+
+### Custom-Items
+
+Alle **29 normalen Spieler-Items** besitzen mindestens einen erreichbaren Erwerbsweg.
+
+Die zentrale Prüfung im aktuellen Repository ergibt:
+
+- 29 normale Custom-Items
+- 29 Custom-Crafting-Rezepte mit `resultItemId`
+- kein normales Custom-Item ohne Rezept-/Quest-Erwerbsweg
+- Admin-/Unique-Relikt bleibt absichtlich ausgeschlossen
+
+### Weapon Progression
+
+Die Waffenprogression ist vollständig angebunden:
+
+- Eisenschwert
+- Goldklinge
+- Diamantklinge
+- Netheritklinge
+- Feuerball
+
+Jede Waffe besitzt einen Level-/Profession-/Kostenpfad. Die vorhandenen Weapon Abilities bleiben unverändert.
+
+### Rüstungsprogression
+
+Alle sechs Sets sind als Spielerprogression angebunden:
+
+- Donnerwacht – L10
+- Schattengeflecht – L20
+- Stahlwall – L30
+- Sonnengewand – L45
+- Kristallwache – L60
+- Höllenschmiede – L80
+
+Jedes Set besitzt konkrete Crafting-Kosten; höhere Stufen verwenden zusätzlich vorhandene Boss-Katalysatoren.
+
+### Custom-Crafting
+
+Der Crafting-Loop unterstützt jetzt:
+
+- Vanilla-`result`
+- Custom-`resultItemId`
+- Vanilla-`costs`
+- Custom-`itemCosts`
+- zentrale ItemDefinition-Validierung
+- ItemService-Erzeugung
+- Rezept-Unlock über Berufslevel und Unlockpreis
+- Dependency-/Zyklusprüfung
+
+Damit ist Custom-Item-Crafting kein isolierter Definitionseintrag mehr.
+
+### Feuerball
+
+Der Feuerball ist als Alchemist-Progressionsitem integriert:
+
+- Level 35
+- Alchemist
+- Blaze Powder
+- Gunpowder
+- Ghast Tear
+- vorhandener Boss-Katalysator
+- bestehende Fireball-Ability
+
+### Companion-Content
+
+Alle **25 QUEST-Unlocks** besitzen inzwischen eine konkrete Questzuordnung.
+
+Zusätzlich bestehen:
+
+- 1 DEFAULT
+- 1 BOSS
+- 1 ADMIN
+
+Damit sind alle 28 Companion-Definitionen in einem gültigen Unlock-Modell.
+
+### Boss-Content
+
+Das Boss-System erzeugt bei fehlender Laufzeitdatei weiterhin automatisch:
+
+- 26 Biome-Bosse
+- 6 World-Bosse
+- insgesamt 32 Bosse
+
+Die Progressions-Loot-Migration bindet ausgewählte Custom-Waffen/-Rüstung additiv an vorhandene Bosse an.
+
+### Story
+
+Die Story-Struktur ist über die bestehende `StoryManager`-/`StoryLocationRegistry`-/`StoryTriggerListener`-Pipeline angebunden.
+
+- relevante Strukturen werden nur bei aktivem Story-/Questpfad geprüft
+- Story-NPCs entstehen dynamisch an der gefundenen Struktur
+- Story-NPCs sind `NpcType.STORY`
+- Sichtbarkeit ist quest- und profilabhängig
+- Fortschritt läuft über `PlayerProfile.storyChapterIndex`
+- Dialoge nutzen das native Paper-Dialog-System
+- bestehende Story-Questketten besitzen konkrete Progressionsbelohnungen
+
+Die globale NPC-Population wird dafür ausdrücklich **nicht** benötigt.
+
+### Physische Währung
+
+Der aktuelle Stand behandelt Currency physisch:
+
+- Pickup bleibt ein physischer Inventargegenstand
+- keine automatische Bankeinzahlung beim Pickup
+- Bank bleibt der explizite Ein-/Auszahlungspfad
+- Stackgröße ist auf den aktuellen Paper-26.2-kompatiblen Wert **99** begrenzt
+
+Eine 999er Stackgröße wird nicht über Legacy-NMS erzwungen.
+
+## Systeme, die jetzt als fertig gelten
+
+| System | Status |
+|---|---|
+| Player / Level / XP | 🟢 fertig |
+| Bank | 🟢 fertig |
+| Physische Currency | 🟢 fertig |
+| Custom Items | 🟢 fertig |
+| Weapon Progression | 🟢 fertig |
+| 6 Rüstungssets | 🟢 fertig |
+| Custom-Crafting | 🟢 fertig |
+| 9 Professionen | 🟢 fertig |
+| Quest-System | 🟢 fertig |
+| Story-System | 🟢 fertig |
+| Story-NPC-Spawning | 🟢 fertig |
+| Story-NPC-Sichtbarkeit | 🟢 fertig |
+| 28 Companions | 🟢 fertig |
+| 32 Bosse | 🟢 fertig |
+| Combat / Weapon Abilities | 🟢 fertig |
+| Shops / Shop-System | 🟢 fertig |
+| Party | 🟢 fertig |
+| Guild-Kernsystem | 🟢 fertig |
+| Trade Depot | 🟢 fertig |
+| Statistics / Scoreboard / Playtime | 🟢 fertig |
+
+## Kein weiterer Content-Blocker aus diesem Audit
+
+Damit verbleibt aus der ursprünglichen Content-Liste **kein nicht-pausierter P0/P1-Blocker**, der zwingend noch durch neue Contentdefinitionen geschlossen werden muss.
+
+Offen bleiben nur:
+
+- Balancing/Playtests
+- manuelle Shopbefüllung
+- spätere optionale Content-Erweiterungen
+- die ausdrücklich pausierten Bereiche
+
+### Definition of Done
+
+Ein Content-System wird ab diesem Stand als fertig behandelt, wenn es:
+
+1. technisch implementiert ist,
+2. einen vollständigen Spieler-Loop besitzt,
+3. ohne Admin-Eingriff erreichbar ist oder bewusst manuell gepflegt wird,
+4. seine benötigten Progressions-/Reward-Verbindungen besitzt,
+5. nicht nur als ungenutzte Definition existiert.
+
