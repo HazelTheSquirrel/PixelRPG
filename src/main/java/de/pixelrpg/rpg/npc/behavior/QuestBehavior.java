@@ -57,7 +57,11 @@ public final class QuestBehavior implements NpcBehavior {
 
     private int unlockBuffer() { return questManager.getRepository().unlockEarlyLevels(); }
 
-    private boolean isWorldQuest(Quest quest) { return quest.profession() == null && quest.type() != QuestType.GLOBAL_EVENT; }
+    private boolean isWorldQuest(Quest quest) {
+        return !questManager.isStoryQuest(quest)
+                && quest.profession() == null
+                && quest.type() != QuestType.GLOBAL_EVENT;
+    }
 
     private void openQuestRanges(Player player, Consumer<Player> backAction) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
