@@ -1,6 +1,8 @@
 package de.pixelrpg.rpg;
 
 import de.pixelrpg.rpg.api.ItemAPI;
+import de.pixelrpg.rpg.bank.BankStorageService;
+import de.pixelrpg.rpg.trade.TradeDepotManager;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.equipment.EquipmentService;
 import de.pixelrpg.rpg.api.PartyAPI;
@@ -32,6 +34,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private QuestRepository questRepository;
     private QuestService questService;
     private de.pixelrpg.rpg.guild.GuildManager guildManager;
+    private BankStorageService bankStorageService;
+    private TradeDepotManager tradeDepotManager;
 
     @Override
     public void onEnable() {
@@ -52,6 +56,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         statisticsService = new StatisticsService(statEngine);
         foodService = new FoodService(this);
         itemService = new ItemService(this, foodService);
+        bankStorageService = new BankStorageService(this);
+        tradeDepotManager = new TradeDepotManager(this, profiles, bankStorageService, itemService);
         professionSystem = new ProfessionSystem(this, profiles);
         professionSystem.register();
         questRepository = new QuestRepository(this);
@@ -71,6 +77,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         unregister(PartyAPI.class, partyManager);
+        if (tradeDepotManager != null) tradeDepotManager.shutdown();
+        if (bankStorageService != null) bankStorageService.close();
         if (guildManager != null) guildManager.shutdown();
         if (partyManager != null) partyManager.shutdown();
         unregister(StatisticsAPI.class, statisticsService);
@@ -90,6 +98,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         questService = null;
         questRepository = null;
         guildManager = null;
+        bankStorageService = null;
+        tradeDepotManager = null;
     }
 
     private <T> void register(Class<T> type, T service) {
@@ -128,5 +138,13 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     public de.pixelrpg.rpg.guild.GuildManager getGuildManager() {
         return guildManager;
+    }
+
+    public BankStorageService getBankStorageService() {
+        return bankStorageService;
+    }
+
+    public TradeDepotManager getTradeDepotManager() {
+        return tradeDepotManager;
     }
 }
