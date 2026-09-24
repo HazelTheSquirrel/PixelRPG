@@ -52,6 +52,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
                 }
                 for (String recipe : yaml.getStringList("unlocked-recipes")) profile.unlockRecipe(recipe);
                 for (String waypoint : yaml.getStringList("unlocked-waypoints")) profile.unlockWaypoint(waypoint);
+                for (String quest : yaml.getStringList("completed-quests")) profile.markQuestCompleted(quest);
 
                 profile.revision(yaml.getLong("revision", 0L));
                 profile.markClean();
@@ -81,6 +82,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
                 }
                 yaml.set("unlocked-recipes", new ArrayList<>(profile.getUnlockedRecipes()));
                 yaml.set("unlocked-waypoints", new ArrayList<>(profile.getUnlockedWaypoints()));
+                yaml.set("completed-quests", new ArrayList<>(profile.getCompletedQuests()));
                 yaml.set("revision", profile.revision());
 
                 Path target = directory.resolve(profile.uniqueId() + ".yml");
