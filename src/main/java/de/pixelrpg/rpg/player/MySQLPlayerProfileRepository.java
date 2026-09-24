@@ -15,6 +15,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
     private static final String XP_PREFIX = "profession.xp.";
     private static final String LEARNED_PREFIX = "profession.learned.";
     private static final String RECIPE_PREFIX = "recipe.unlocked.";
+    private static final String QUEST_PREFIX = "quest.completed.";
 
     private final DataSource dataSource;
     private final Executor io;
@@ -78,6 +79,8 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                         if (profession != null && value > 0L) profile.learnProfession(profession);
                     } else if (key.startsWith(RECIPE_PREFIX) && value > 0L) {
                         profile.unlockRecipe(key.substring(RECIPE_PREFIX.length()));
+                    } else if (key.startsWith(QUEST_PREFIX) && value > 0L) {
+                        profile.markQuestCompleted(key.substring(QUEST_PREFIX.length()));
                     }
                 }
             }
@@ -155,6 +158,11 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
             }
             for (String recipe : profile.getUnlockedRecipes()) {
                 insert.setString(2, RECIPE_PREFIX + recipe);
+                insert.setLong(3, 1L);
+                insert.addBatch();
+            }
+            for (String quest : profile.getCompletedQuests()) {
+                insert.setString(2, QUEST_PREFIX + quest);
                 insert.setLong(3, 1L);
                 insert.addBatch();
             }
