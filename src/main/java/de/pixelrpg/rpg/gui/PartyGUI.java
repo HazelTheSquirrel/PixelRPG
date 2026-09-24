@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.gui;
 
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.InviteDialogService;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -26,12 +27,14 @@ public final class PartyGUI extends AbstractGUI {
     private final Player viewer;
     private final PartyManager partyManager;
     private final PlayerProfileManager profileManager;
+    private final InviteDialogService inviteDialogService;
 
-    public PartyGUI(Player viewer, PartyManager partyManager, PlayerProfileManager profileManager) {
+    public PartyGUI(Player viewer, PartyManager partyManager, PlayerProfileManager profileManager, InviteDialogService inviteDialogService) {
         super(54, Component.text("Party", NamedTextColor.GOLD));
         this.viewer = viewer;
         this.partyManager = partyManager;
         this.profileManager = profileManager;
+        this.inviteDialogService = inviteDialogService;
     }
 
     @Override protected void populate() {
@@ -52,6 +55,9 @@ public final class PartyGUI extends AbstractGUI {
             if (party.isLeader(viewer.getUniqueId()) && !target.equals(viewer.getUniqueId())) setItem(slot, item, event -> openMemberActions(target));
             else setItem(slot, item);
             slot++;
+        }
+        if (party.isLeader(viewer.getUniqueId())) {
+            setItem(31, buildActionItem(Material.LIME_DYE, "Spieler einladen", NamedTextColor.GREEN), event -> inviteDialogService.openPartyInviteInput(viewer));
         }
         setItem(40, buildActionItem(Material.RED_DYE, party.isLeader(viewer.getUniqueId()) ? "Party auflösen" : "Party verlassen", NamedTextColor.RED), event -> {
             if (party.isLeader(viewer.getUniqueId())) partyManager.disbandParty(party);
