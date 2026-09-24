@@ -34,11 +34,17 @@ public final class ReceptionDialog {
     }
 
     public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine, PartyManager partyManager, GuildManager guildManager) {
+        this(player, profileManager, dialogueEngine, partyManager, guildManager, Player::closeDialog);
+    }
+
+    public ReceptionDialog(Player player, PlayerProfileManager profileManager, DialogueEngine dialogueEngine,
+                           PartyManager partyManager, GuildManager guildManager, Consumer<Player> backAction) {
         this.player = player;
         this.profileManager = profileManager;
         this.dialogueEngine = dialogueEngine;
         this.partyManager = partyManager;
         this.guildManager = guildManager;
+        this.backAction = backAction;
     }
 
     public void open() {
