@@ -209,7 +209,7 @@ public final class ProfessionDialog {
     /** Opens a complete recipe description before crafting or buying the recipe. */
     public void openRecipeDetails(Player player, CraftRecipe recipe, boolean allowPurchase) {
         openRecipeDetails(player, recipe, allowPurchase,
-                target -> openProfessionRecipeCategories(target, recipe.profession()));
+                target -> openProfessionRecipeCategories(target, recipe.profession(), this::open));
     }
 
     private void openRecipeDetails(Player player, CraftRecipe recipe, boolean allowPurchase, Consumer<Player> back) {
