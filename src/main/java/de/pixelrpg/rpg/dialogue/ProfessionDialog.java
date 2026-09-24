@@ -105,8 +105,7 @@ public final class ProfessionDialog {
                 Component.text(profession.displayName(), NamedTextColor.GOLD),
                 body,
                 actions,
-                1,
-                target -> open(target)
+                1
         );
     }
 
