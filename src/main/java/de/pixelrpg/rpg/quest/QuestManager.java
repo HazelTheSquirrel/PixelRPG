@@ -112,6 +112,15 @@ public final class QuestManager {
                 chapter.questIds().stream().anyMatch(id -> id.equalsIgnoreCase(quest.id())));
     }
 
+    /** Returns whether the player's active quests need the native locator-bar navigation. */
+    public boolean hasActiveNavigationQuest(PlayerProfile profile) {
+        if (profile == null) return false;
+        return profile.getActiveQuests().values().stream()
+                .map(progress -> questRepository.getQuest(progress.getQuestId()))
+                .anyMatch(quest -> quest != null
+                        && (quest.type() == QuestType.REACH_LOCATION || isStoryQuest(quest)));
+    }
+
     private boolean acceptQuestInternal(Player player, Quest quest) {
         if (player == null || quest == null) return false;
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
