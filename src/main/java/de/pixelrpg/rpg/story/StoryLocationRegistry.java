@@ -71,10 +71,22 @@ public final class StoryLocationRegistry {
                 if (!chapter.structureTrigger().equals(structureKey(structure))) continue;
                 RPGNpc npc = ensureStoryNpc(chapter, structure, chunk.getWorld());
                 if (npc != null) {
+                    cacheQuestTargets(player, chapter, npc.location());
                     markStructureQuestsReached(player, chapter);
                     plugin.getLogger().fine("Story NPC active: " + npc.id() + " at " + npc.location());
                 }
             }
+        }
+    }
+
+    private void cacheQuestTargets(Player player, StoryChapter chapter, Location safeTarget) {
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null) return;
+        for (String questId : chapter.questIds()) {
+            Quest quest = questRepository.getQuest(questId);
+            if (quest == null || quest.type() != QuestType.REACH_LOCATION) continue;
+            profile.setQuestNavigationTarget(quest.id(), new PlayerProfile.NavigationTarget(
+                    safeTarget.getWorld().getUID(), safeTarget.getX(), safeTarget.getY(), safeTarget.getZ(), chapter.structureTrigger()));
         }
     }
 
@@ -115,8 +127,8 @@ public final class StoryLocationRegistry {
         int baseY = (int) Math.floor(centerY);
         int baseZ = (int) Math.floor(centerZ);
 
-        for (int radius = 0; radius <= 4; radius++) {
-            for (int dy = -5; dy <= 5; dy++) {
+        for (int radius = 0; radius <= 8; radius++) {
+            for (int dy = -16; dy <= 16; dy++) {
                 for (int dx = -radius; dx <= radius; dx++) {
                     for (int dz = -radius; dz <= radius; dz++) {
                         if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) continue;
