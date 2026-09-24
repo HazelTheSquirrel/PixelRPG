@@ -60,21 +60,21 @@ public final class EquipmentService implements Listener {
     /** Recalculates character stats after the active hotbar slot changes. */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onItemHeld(PlayerItemHeldEvent event) {
-        event.getPlayer().getScheduler().runDelayed(PixelRPGPlugin.getInstance(),
+        event.getPlayer().getScheduler().runDelayed(plugin,
                 task -> refresh(event.getPlayer()), null, 1L);
     }
 
     /** Recalculates character stats after a main-hand/off-hand swap. */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSwapHandItems(PlayerSwapHandItemsEvent event) {
-        event.getPlayer().getScheduler().runDelayed(PixelRPGPlugin.getInstance(),
+        event.getPlayer().getScheduler().runDelayed(plugin,
                 task -> refresh(event.getPlayer()), null, 1L);
     }
 
     /** Recalculates and restores the persisted equipment state after login. */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
-        event.getPlayer().getScheduler().runDelayed(PixelRPGPlugin.getInstance(),
+        event.getPlayer().getScheduler().runDelayed(plugin,
                 task -> refresh(event.getPlayer()), null, 1L);
     }
 
@@ -87,7 +87,7 @@ public final class EquipmentService implements Listener {
     /** Recalculates character stats after respawn. */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onRespawn(PlayerRespawnEvent event) {
-        event.getPlayer().getScheduler().runDelayed(PixelRPGPlugin.getInstance(),
+        event.getPlayer().getScheduler().runDelayed(plugin,
                 task -> refresh(event.getPlayer()), null, 1L);
     }
 
