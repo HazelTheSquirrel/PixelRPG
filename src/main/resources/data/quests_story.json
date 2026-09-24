@@ -55,8 +55,8 @@
       "title": "Der Fluch unter dem Sand: Untersuchung",
       "description": "Untersuche Der Fluch unter dem Sand und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 8,
-      "categoryLevel": 8,
+      "recommendedLevel": 9,
+      "categoryLevel": 9,
       "targetKey": "story_campaign_desert_pyramid",
       "requiredAmount": 1,
       "prerequisites": [
@@ -78,8 +78,8 @@
       "title": "Die Sprache der Fallen: Untersuchung",
       "description": "Untersuche Die Sprache der Fallen und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 11,
-      "categoryLevel": 11,
+      "recommendedLevel": 13,
+      "categoryLevel": 13,
       "targetKey": "story_campaign_jungle_pyramid",
       "requiredAmount": 1,
       "prerequisites": [
@@ -101,8 +101,8 @@
       "title": "Das Haus der Hexen: Untersuchung",
       "description": "Untersuche Das Haus der Hexen und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 14,
-      "categoryLevel": 14,
+      "recommendedLevel": 17,
+      "categoryLevel": 17,
       "targetKey": "story_campaign_swamp_hut",
       "requiredAmount": 1,
       "prerequisites": [
@@ -124,8 +124,8 @@
       "title": "Die versunkene Küste: Untersuchung",
       "description": "Untersuche Die versunkene Küste und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 17,
-      "categoryLevel": 17,
+      "recommendedLevel": 21,
+      "categoryLevel": 21,
       "targetKey": "story_campaign_ocean_ruin_warm",
       "requiredAmount": 1,
       "prerequisites": [
@@ -143,39 +143,16 @@
       }
     },
     {
-      "id": "story_campaign_ocean_ruin_cold",
-      "title": "Steine unter dem Eis: Untersuchung",
-      "description": "Untersuche Steine unter dem Eis und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 20,
-      "categoryLevel": 20,
-      "targetKey": "story_campaign_ocean_ruin_cold",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_ocean_ruin_warm"
-      ],
-      "reward": {
-        "money": 345,
-        "experience": 565,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:ocean_ruin_cold",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
       "id": "story_campaign_monument",
       "title": "Die Wächter der Tiefe: Untersuchung",
       "description": "Untersuche Die Wächter der Tiefe und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 23,
-      "categoryLevel": 23,
+      "recommendedLevel": 26,
+      "categoryLevel": 26,
       "targetKey": "story_campaign_monument",
       "requiredAmount": 1,
       "prerequisites": [
-        "story_campaign_ocean_ruin_cold"
+        "story_campaign_ocean_ruin_warm"
       ],
       "reward": {
         "money": 380,
@@ -189,39 +166,16 @@
       }
     },
     {
-      "id": "story_campaign_buried_treasure",
-      "title": "Die Karte ohne Namen: Untersuchung",
-      "description": "Untersuche Die Karte ohne Namen und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 26,
-      "categoryLevel": 26,
-      "targetKey": "story_campaign_buried_treasure",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_monument"
-      ],
-      "reward": {
-        "money": 415,
-        "experience": 675,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:buried_treasure",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
       "id": "story_trail_ruins_archaeology",
       "title": "Die Spuren der Vorzeit: Untersuchung",
       "description": "Untersuche Die Spuren der Vorzeit und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 29,
-      "categoryLevel": 29,
+      "recommendedLevel": 31,
+      "categoryLevel": 31,
       "targetKey": "story_trail_ruins_archaeology",
       "requiredAmount": 1,
       "prerequisites": [
-        "story_campaign_buried_treasure"
+        "story_campaign_monument"
       ],
       "reward": {
         "money": 450,
@@ -239,8 +193,8 @@
       "title": "Die Schächte unter den Straßen: Untersuchung",
       "description": "Untersuche Die Schächte unter den Straßen und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 32,
-      "categoryLevel": 32,
+      "recommendedLevel": 36,
+      "categoryLevel": 36,
       "targetKey": "story_campaign_mineshaft",
       "requiredAmount": 1,
       "prerequisites": [
@@ -258,62 +212,16 @@
       }
     },
     {
-      "id": "story_campaign_mineshaft_mesa",
-      "title": "Rotes Gestein, alte Wege: Untersuchung",
-      "description": "Untersuche Rotes Gestein, alte Wege und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 35,
-      "categoryLevel": 35,
-      "targetKey": "story_campaign_mineshaft_mesa",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_mineshaft"
-      ],
-      "reward": {
-        "money": 520,
-        "experience": 840,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:mineshaft_mesa",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
-      "id": "story_campaign_igloo",
-      "title": "Die Kammer unter dem Eis: Untersuchung",
-      "description": "Untersuche Die Kammer unter dem Eis und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 37,
-      "categoryLevel": 37,
-      "targetKey": "story_campaign_igloo",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_mineshaft_mesa"
-      ],
-      "reward": {
-        "money": 555,
-        "experience": 895,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:igloo",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
       "id": "story_campaign_pillager_outpost",
       "title": "Die Spaltung der Illager: Untersuchung",
       "description": "Untersuche Die Spaltung der Illager und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 40,
-      "categoryLevel": 40,
+      "recommendedLevel": 42,
+      "categoryLevel": 42,
       "targetKey": "story_campaign_pillager_outpost",
       "requiredAmount": 1,
       "prerequisites": [
-        "story_campaign_igloo"
+        "story_campaign_mineshaft"
       ],
       "reward": {
         "money": 590,
@@ -331,8 +239,8 @@
       "title": "Das Haus der verbotenen Kunst: Untersuchung",
       "description": "Untersuche Das Haus der verbotenen Kunst und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 43,
-      "categoryLevel": 43,
+      "recommendedLevel": 48,
+      "categoryLevel": 48,
       "targetKey": "story_campaign_mansion",
       "requiredAmount": 1,
       "prerequisites": [
@@ -350,154 +258,16 @@
       }
     },
     {
-      "id": "story_campaign_ruined_portal_desert",
-      "title": "Das Tor im Sand: Untersuchung",
-      "description": "Untersuche Das Tor im Sand und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 46,
-      "categoryLevel": 46,
-      "targetKey": "story_campaign_ruined_portal_desert",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_mansion"
-      ],
-      "reward": {
-        "money": 660,
-        "experience": 1060,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:ruined_portal_desert",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
-      "id": "story_campaign_ruined_portal_jungle",
-      "title": "Das überwucherte Tor: Untersuchung",
-      "description": "Untersuche Das überwucherte Tor und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 49,
-      "categoryLevel": 49,
-      "targetKey": "story_campaign_ruined_portal_jungle",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_ruined_portal_desert"
-      ],
-      "reward": {
-        "money": 695,
-        "experience": 1115,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:ruined_portal_jungle",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
-      "id": "story_campaign_ruined_portal_swamp",
-      "title": "Das Tor im Moor: Untersuchung",
-      "description": "Untersuche Das Tor im Moor und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 52,
-      "categoryLevel": 52,
-      "targetKey": "story_campaign_ruined_portal_swamp",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_ruined_portal_jungle"
-      ],
-      "reward": {
-        "money": 730,
-        "experience": 1170,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:ruined_portal_swamp",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
-      "id": "story_campaign_ruined_portal_mountain",
-      "title": "Der Riss im Stein: Untersuchung",
-      "description": "Untersuche Der Riss im Stein und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 55,
-      "categoryLevel": 55,
-      "targetKey": "story_campaign_ruined_portal_mountain",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_ruined_portal_swamp"
-      ],
-      "reward": {
-        "money": 765,
-        "experience": 1225,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:ruined_portal_mountain",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
-      "id": "story_campaign_ruined_portal_ocean",
-      "title": "Das Tor unter der Flut: Untersuchung",
-      "description": "Untersuche Das Tor unter der Flut und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 58,
-      "categoryLevel": 58,
-      "targetKey": "story_campaign_ruined_portal_ocean",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_ruined_portal_mountain"
-      ],
-      "reward": {
-        "money": 800,
-        "experience": 1280,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:ruined_portal_ocean",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
-      "id": "story_campaign_ruined_portal_nether",
-      "title": "Der Rückweg aus der Glut: Untersuchung",
-      "description": "Untersuche Der Rückweg aus der Glut und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 61,
-      "categoryLevel": 61,
-      "targetKey": "story_campaign_ruined_portal_nether",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_ruined_portal_ocean"
-      ],
-      "reward": {
-        "money": 835,
-        "experience": 1335,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:ruined_portal_nether",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
       "id": "story_campaign_ruined_portal",
       "title": "Das Muster der Tore: Untersuchung",
       "description": "Untersuche Das Muster der Tore und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 64,
-      "categoryLevel": 64,
+      "recommendedLevel": 54,
+      "categoryLevel": 54,
       "targetKey": "story_campaign_ruined_portal",
       "requiredAmount": 1,
       "prerequisites": [
-        "story_campaign_ruined_portal_nether"
+        "story_campaign_mansion"
       ],
       "reward": {
         "money": 870,
@@ -515,8 +285,8 @@
       "title": "Unter dem Stein: Untersuchung",
       "description": "Untersuche Unter dem Stein und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 67,
-      "categoryLevel": 67,
+      "recommendedLevel": 61,
+      "categoryLevel": 61,
       "targetKey": "story_under_the_stone",
       "requiredAmount": 1,
       "prerequisites": [
@@ -534,39 +304,16 @@
       }
     },
     {
-      "id": "story_campaign_nether_fossil",
-      "title": "Knochen im Nether: Untersuchung",
-      "description": "Untersuche Knochen im Nether und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 69,
-      "categoryLevel": 69,
-      "targetKey": "story_campaign_nether_fossil",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_under_the_stone"
-      ],
-      "reward": {
-        "money": 940,
-        "experience": 1500,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:nether_fossil",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
       "id": "story_campaign_fortress",
       "title": "Die schwarze Flamme: Untersuchung",
       "description": "Untersuche Die schwarze Flamme und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 72,
-      "categoryLevel": 72,
+      "recommendedLevel": 68,
+      "categoryLevel": 68,
       "targetKey": "story_campaign_fortress",
       "requiredAmount": 1,
       "prerequisites": [
-        "story_campaign_nether_fossil"
+        "story_under_the_stone"
       ],
       "reward": {
         "money": 975,
@@ -603,39 +350,16 @@
       }
     },
     {
-      "id": "story_campaign_trial_chambers",
-      "title": "Die Prüfung unter der Welt: Untersuchung",
-      "description": "Untersuche Die Prüfung unter der Welt und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 78,
-      "categoryLevel": 78,
-      "targetKey": "story_campaign_trial_chambers",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_bastion_remnant"
-      ],
-      "reward": {
-        "money": 1045,
-        "experience": 1665,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:trial_chambers",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
       "id": "story_campaign_stronghold",
       "title": "Die Verzweiflungstat: Untersuchung",
       "description": "Untersuche Die Verzweiflungstat und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 81,
-      "categoryLevel": 81,
+      "recommendedLevel": 82,
+      "categoryLevel": 82,
       "targetKey": "story_campaign_stronghold",
       "requiredAmount": 1,
       "prerequisites": [
-        "story_campaign_trial_chambers"
+        "story_campaign_bastion_remnant"
       ],
       "reward": {
         "money": 1080,
@@ -653,8 +377,8 @@
       "title": "Jenseits der Welt: Untersuchung",
       "description": "Untersuche Jenseits der Welt und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 84,
-      "categoryLevel": 84,
+      "recommendedLevel": 89,
+      "categoryLevel": 89,
       "targetKey": "story_campaign_end_city",
       "requiredAmount": 1,
       "prerequisites": [
@@ -667,121 +391,6 @@
       },
       "navigation": {
         "structure": "minecraft:end_city",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
-      "id": "story_campaign_shipwreck_beached",
-      "title": "Das Schiff, das nicht sinken durfte: Untersuchung",
-      "description": "Untersuche Das Schiff, das nicht sinken durfte und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 87,
-      "categoryLevel": 87,
-      "targetKey": "story_campaign_shipwreck_beached",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_end_city"
-      ],
-      "reward": {
-        "money": 1150,
-        "experience": 1830,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:shipwreck_beached",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
-      "id": "story_campaign_village_desert",
-      "title": "Die Wüstenchronik: Untersuchung",
-      "description": "Untersuche Die Wüstenchronik und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 90,
-      "categoryLevel": 90,
-      "targetKey": "story_campaign_village_desert",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_shipwreck_beached"
-      ],
-      "reward": {
-        "money": 1185,
-        "experience": 1885,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:village_desert",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
-      "id": "story_campaign_village_savanna",
-      "title": "Die Sonnenstraße: Untersuchung",
-      "description": "Untersuche Die Sonnenstraße und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 93,
-      "categoryLevel": 93,
-      "targetKey": "story_campaign_village_savanna",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_village_desert"
-      ],
-      "reward": {
-        "money": 1220,
-        "experience": 1940,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:village_savanna",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
-      "id": "story_campaign_village_snowy",
-      "title": "Das Dorf im Schnee: Untersuchung",
-      "description": "Untersuche Das Dorf im Schnee und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 96,
-      "categoryLevel": 96,
-      "targetKey": "story_campaign_village_snowy",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_village_savanna"
-      ],
-      "reward": {
-        "money": 1255,
-        "experience": 1995,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:village_snowy",
-        "radius": 8192,
-        "findUnexplored": false
-      }
-    },
-    {
-      "id": "story_campaign_village_taiga",
-      "title": "Die letzte Spur der Siedler: Untersuchung",
-      "description": "Untersuche Die letzte Spur der Siedler und sichere die Spuren für das PixelRPG-Archiv.",
-      "type": "REACH_LOCATION",
-      "recommendedLevel": 99,
-      "categoryLevel": 99,
-      "targetKey": "story_campaign_village_taiga",
-      "requiredAmount": 1,
-      "prerequisites": [
-        "story_campaign_village_snowy"
-      ],
-      "reward": {
-        "money": 1290,
-        "experience": 2050,
-        "items": []
-      },
-      "navigation": {
-        "structure": "minecraft:village_taiga",
         "radius": 8192,
         "findUnexplored": false
       }
