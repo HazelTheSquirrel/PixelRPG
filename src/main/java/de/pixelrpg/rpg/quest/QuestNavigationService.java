@@ -46,7 +46,7 @@ public final class QuestNavigationService {
         this.profileManager = profileManager;
         this.npcManager = npcManager;
         this.storyQuestIds = storyManager.getAllChapters().stream()
-                .flatMap(chapter -> chapter.quests().stream())
+                .flatMap(chapter -> chapter.questIds().stream())
                 .map(String::trim)
                 .filter(id -> !id.isBlank())
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());
