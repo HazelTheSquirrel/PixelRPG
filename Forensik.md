@@ -1214,9 +1214,9 @@ Nicht geändert wurden:
 
 Der aktuelle Entwicklungsstand liegt weiterhin ausschließlich auf Branch test.
 
-Aktueller Head:
+Code-Hardening-Stand vor dieser Dokumentationsaktualisierung:
 
-e7271d6fe23b0ae8e1eb3763d2ba588173fcc7ce
+e2179e7ff65a64e9488b64edb60fafcfb468ecab
 
 Der GitHub-Status dieses Commits liefert derzeit keine hinterlegten CI-Statusmeldungen. Ein vollständiger Paper-26.2-Runtime-Smoke-Test wurde in dieser Umgebung daher nicht behauptet.
 
