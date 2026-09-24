@@ -176,7 +176,7 @@ public final class QuestNavigationService {
     private Location resolveTarget(Location origin, Quest quest, QuestProgress progress) {
         if (progress.getCurrentAmount() >= quest.requiredAmount()) return resolveQuestGiver(quest);
         return switch (quest.type()) {
-            case TALK_TO_NPC -> resolveNpc(quest.targetKey());
+            case TALK_TO_NPC -> resolveNpc(origin, quest.targetKey());
             case HUNT, COLLECT, REACH_LOCATION -> resolveWorldTarget(origin, quest);
             case GLOBAL_EVENT -> null;
         };
@@ -188,9 +188,20 @@ public final class QuestNavigationService {
                 : npcManager.getById(quest.questGiverNpcId()).map(npc -> npc.location()).orElse(null);
     }
 
-    private Location resolveNpc(String targetKey) {
+    private Location resolveNpc(Location origin, String targetKey) {
         if (targetKey == null || targetKey.isBlank()) return null;
-        return npcManager.getById(targetKey).map(npc -> npc.location()).orElse(null);
+        Location staticTarget = npcManager.getById(targetKey).map(npc -> npc.location()).orElse(null);
+        if (staticTarget != null) return staticTarget;
+
+        String storyPrefix = "story_" + targetKey.toLowerCase(java.util.Locale.ROOT) + "_";
+        return npcManager.getAll().stream()
+                .filter(npc -> npc.type() == de.pixelrpg.rpg.npc.NpcType.STORY)
+                .filter(npc -> npc.id().toLowerCase(java.util.Locale.ROOT).startsWith(storyPrefix))
+                .map(de.pixelrpg.rpg.npc.RPGNpc::location)
+                .filter(location -> location.getWorld() != null && origin.getWorld() != null)
+                .filter(location -> location.getWorld().equals(origin.getWorld()))
+                .min(java.util.Comparator.comparingDouble(location -> location.distanceSquared(origin)))
+                .orElse(null);
     }
 
     private Location resolveWorldTarget(Location origin, Quest quest) {
