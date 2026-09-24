@@ -2,12 +2,14 @@ package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.npc.NpcManager;
+import de.pixelrpg.rpg.story.StoryManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
@@ -31,16 +33,22 @@ public final class QuestNavigationService {
     private final QuestRepository questRepository;
     private final PlayerProfileManager profileManager;
     private final NpcManager npcManager;
+    private final Set<String> storyQuestIds;
     private final Map<UUID, Map<String, QuestMarker>> markersByPlayer = new HashMap<>();
     private final Map<UUID, RefreshState> refreshStateByPlayer = new HashMap<>();
     private final Map<NavigationCacheKey, CachedTarget> targetCache = new LinkedHashMap<>(64, 0.75F, true);
 
     public QuestNavigationService(Plugin plugin, QuestRepository questRepository,
-                                  PlayerProfileManager profileManager, NpcManager npcManager) {
+                                  PlayerProfileManager profileManager, NpcManager npcManager, StoryManager storyManager) {
         this.plugin = plugin;
         this.questRepository = questRepository;
         this.profileManager = profileManager;
         this.npcManager = npcManager;
+        this.storyQuestIds = storyManager.getAllChapters().stream()
+                .flatMap(chapter -> chapter.quests().stream())
+                .map(String::trim)
+                .filter(id -> !id.isBlank())
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
     }
 
     /** Refreshes every active quest's locator-bar target for one player. */
@@ -68,7 +76,7 @@ public final class QuestNavigationService {
         List<QuestProgressEntry> entries = new ArrayList<>();
         for (QuestProgress progress : profile.getActiveQuests().values()) {
             Quest quest = questRepository.getQuest(progress.getQuestId());
-            if (quest != null) entries.add(new QuestProgressEntry(quest, progress));
+            if (quest != null && isNavigationQuest(quest)) entries.add(new QuestProgressEntry(quest, progress));
         }
         entries.sort(java.util.Comparator.comparing(entry -> entry.quest().id()));
 
@@ -135,6 +143,10 @@ public final class QuestNavigationService {
         targetCache.clear();
     }
 
+    private boolean isNavigationQuest(Quest quest) {
+        return quest.type() == QuestType.REACH_LOCATION || storyQuestIds.contains(quest.id());
+    }
+
     private QuestMarker createMarker(Player player, int index, Location target) {
         ArmorStand marker = target.getWorld().spawn(target, ArmorStand.class, stand -> {
             stand.setInvisible(true);
@@ -144,6 +156,7 @@ public final class QuestNavigationService {
             stand.setSilent(true);
             stand.setPersistent(false);
             stand.setVisibleByDefault(false);
+            stand.getAttribute(Attribute.WAYPOINT_TRANSMIT_RANGE).setBaseValue(60_000_000.0D);
             stand.setWaypointColor(QUEST_COLORS.get(index));
             stand.setWaypointStyle(DEFAULT_WAYPOINT_STYLE);
             stand.getPersistentDataContainer().set(RPGKeys.Quest.navigationCompass(), PersistentDataType.BYTE, (byte) 1);
