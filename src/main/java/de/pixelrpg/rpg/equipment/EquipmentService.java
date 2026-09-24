@@ -46,6 +46,26 @@ public final class EquipmentService implements Listener {
         stats.recalculate(player);
     }
 
+    public void syncToProfile(Player player) {
+        profiles.getProfile(player.getUniqueId()).ifPresent(profile -> profile.setEquipment(snapshot(player)));
+    }
+
+    public void restoreFromProfile(Player player) {
+        profiles.getProfile(player.getUniqueId()).ifPresent(profile -> {
+            Map<EquipmentSlot, ItemStack> stored = profile.getEquipment();
+            if (!stored.isEmpty()) {
+                PlayerInventory inventory = player.getInventory();
+                inventory.setHelmet(copy(stored.get(EquipmentSlot.HELMET)));
+                inventory.setChestplate(copy(stored.get(EquipmentSlot.CHEST)));
+                inventory.setLeggings(copy(stored.get(EquipmentSlot.LEGS)));
+                inventory.setBoots(copy(stored.get(EquipmentSlot.FEET)));
+                inventory.setItemInMainHand(copy(stored.get(EquipmentSlot.MAINHAND)));
+                inventory.setItemInOffHand(copy(stored.get(EquipmentSlot.OFFHAND)));
+            }
+            refresh(player);
+        });
+    }
+
     /** Recalculates character stats after a relevant inventory slot changes. */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventorySlotChange(PlayerInventorySlotChangeEvent event) {
@@ -75,12 +95,13 @@ public final class EquipmentService implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
         event.getPlayer().getScheduler().runDelayed(plugin,
-                task -> refresh(event.getPlayer()), null, 1L);
+                task -> restoreFromProfile(event.getPlayer()), null, 1L);
     }
 
     /** Captures the live equipment state before the profile is persisted on logout. */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
+        syncToProfile(event.getPlayer());
         profiles.saveProfileAsync(event.getPlayer().getUniqueId());
     }
 
@@ -89,6 +110,10 @@ public final class EquipmentService implements Listener {
     public void onRespawn(PlayerRespawnEvent event) {
         event.getPlayer().getScheduler().runDelayed(plugin,
                 task -> refresh(event.getPlayer()), null, 1L);
+    }
+
+    private static ItemStack copy(ItemStack item) {
+        return item == null ? null : item.clone();
     }
 
     private static void put(Map<EquipmentSlot, ItemStack> result, EquipmentSlot slot, ItemStack item) {
