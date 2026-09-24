@@ -104,12 +104,12 @@ public final class InviteDialogService implements Listener {
 
     private List<Player> resolveOnlinePlayers(String input, Player inviter) {
         String normalized = input.toLowerCase(Locale.ROOT);
-        List<Player> exact = Bukkit.getOnlinePlayers().stream()
+        List<Player> exact = Bukkit.getOnlinePlayers().stream().map(player -> (Player) player)
                 .filter(player -> !player.getUniqueId().equals(inviter.getUniqueId()))
                 .filter(player -> player.getName().equalsIgnoreCase(input))
                 .toList();
         if (!exact.isEmpty()) return exact;
-        return Bukkit.getOnlinePlayers().stream()
+        return Bukkit.getOnlinePlayers().stream().map(player -> (Player) player)
                 .filter(player -> !player.getUniqueId().equals(inviter.getUniqueId()))
                 .filter(player -> player.getName().toLowerCase(Locale.ROOT).startsWith(normalized))
                 .sorted(Comparator.comparing(Player::getName, String.CASE_INSENSITIVE_ORDER))
