@@ -5,6 +5,8 @@ import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.quest.Quest;
+import de.pixelrpg.rpg.quest.QuestText;
 import de.pixelrpg.rpg.dialogue.PartyDialog;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
@@ -73,11 +75,24 @@ public final class ReceptionDialog {
             }
             PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
             if (pixelRPG != null && pixelRPG.getStoryManager() != null && pixelRPG.getQuestManager() != null) {
-                pixelRPG.getStoryManager().getNextChapterFor(player.getUniqueId()).ifPresent(chapter ->
+                pixelRPG.getStoryManager().getNextChapterFor(player.getUniqueId()).ifPresent(chapter -> {
+                    String storyQuestId = chapter.startQuestId();
+                    Quest storyQuest = storyQuestId.isBlank()
+                            ? null
+                            : pixelRPG.getQuestManager().getRepository().getQuest(storyQuestId);
+                    if (storyQuest != null
+                            && !profile.hasActiveQuest(storyQuest.id())
+                            && !profile.hasCompletedQuest(storyQuest.id())) {
                         actions.add(dialogueEngine.actionButton(
-                                Component.text("Story: " + chapter.title(), NamedTextColor.LIGHT_PURPLE),
+                                Component.text("Storyquest: " + storyQuest.title(), NamedTextColor.LIGHT_PURPLE),
                                 NamedTextColor.LIGHT_PURPLE,
-                                target -> openStoryChapter(target, chapter))));
+                                target -> openStoryChapter(target, chapter)));
+                    }
+                });
+                actions.add(dialogueEngine.actionButton(
+                        Component.text("Pixel-Archiv", NamedTextColor.AQUA),
+                        NamedTextColor.AQUA,
+                        this::openStoryArchive));
             }
             actions.add(dialogueEngine.actionButton(
                     Component.text(profile.isScoreboardEnabled() ? "Scoreboard ausschalten" : "Scoreboard einschalten", NamedTextColor.GOLD),
@@ -85,6 +100,73 @@ public final class ReceptionDialog {
         }
         actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
         dialogueEngine.openMultiAction(player, Component.text("RPG-Registrierung", NamedTextColor.GOLD), body, actions, 1);
+    }
+
+    /** Opens the persistent Pixel-Archiv containing every completed story quest. */
+    private void openStoryArchive(Player target) {
+        PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
+        if (pixelRPG == null || pixelRPG.getStoryManager() == null || pixelRPG.getQuestManager() == null) return;
+
+        PlayerProfile profile = profileManager.getProfile(target.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered()) return;
+
+        List<DialogBody> body = new ArrayList<>();
+        List<ActionButton> actions = new ArrayList<>();
+        body.add(DialogBody.plainMessage(Component.text(
+                "Hier werden abgeschlossene Storyquests dauerhaft als Teil deiner persönlichen Chronik festgehalten.",
+                NamedTextColor.WHITE)));
+
+        pixelRPG.getStoryManager().getAllChapters().stream()
+                .sorted(java.util.Comparator.comparingInt(de.pixelrpg.rpg.story.StoryChapter::order))
+                .forEach(chapter -> {
+                    for (String questId : chapter.questIds()) {
+                        Quest quest = pixelRPG.getQuestManager().getRepository().getQuest(questId);
+                        if (quest == null || !profile.hasCompletedQuest(quest.id())) continue;
+                        actions.add(dialogueEngine.actionButton(
+                                Component.text(chapter.title() + " • " + quest.title(), NamedTextColor.AQUA),
+                                NamedTextColor.AQUA,
+                                next -> openArchivedStoryQuest(next, chapter, quest)));
+                    }
+                });
+
+        if (actions.isEmpty()) {
+            body.add(DialogBody.plainMessage(Component.text(
+                    "Deine Chronik ist noch leer. Schließe deine erste Storyquest ab, damit sie hier erscheint.",
+                    NamedTextColor.GRAY)));
+        }
+
+        actions.add(dialogueEngine.actionButton(
+                Component.text("Zurück"),
+                NamedTextColor.WHITE,
+                next -> new ReceptionDialog(next, profileManager, dialogueEngine, partyManager, guildManager, backAction).open()));
+        dialogueEngine.openMultiAction(
+                target,
+                Component.text("Pixel-Archiv", NamedTextColor.GOLD),
+                body,
+                actions,
+                1
+        );
+    }
+
+    /** Opens one archived story quest for reading without offering it again. */
+    private void openArchivedStoryQuest(Player target, de.pixelrpg.rpg.story.StoryChapter chapter, Quest quest) {
+        List<DialogBody> body = List.of(
+                DialogBody.plainMessage(Component.text("Kapitel: " + chapter.title(), NamedTextColor.GOLD)),
+                DialogBody.plainMessage(Component.text(QuestText.title(quest), NamedTextColor.AQUA)),
+                DialogBody.plainMessage(QuestText.description(quest).color(NamedTextColor.WHITE)),
+                DialogBody.plainMessage(QuestText.objective(quest).color(NamedTextColor.GRAY)),
+                DialogBody.plainMessage(Component.text("Abgeschlossen – dauerhaft im Pixel-Archiv.", NamedTextColor.GREEN))
+        );
+        dialogueEngine.openMultiAction(
+                target,
+                Component.text("Archiv – " + quest.title(), NamedTextColor.GOLD),
+                body,
+                List.of(dialogueEngine.actionButton(
+                        Component.text("Zurück"),
+                        NamedTextColor.WHITE,
+                        next -> openStoryArchive(next))),
+                1
+        );
     }
 
     private void openStoryChapter(Player target, de.pixelrpg.rpg.story.StoryChapter chapter) {
