@@ -18,7 +18,8 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;\nimport java.util.function.Consumer;
+import java.util.List;
+import java.util.function.Consumer;
 
 public final class QuestBehavior implements NpcBehavior {
     private static final int MAX_NORMAL_LEVEL = 99;
@@ -77,7 +78,8 @@ public final class QuestBehavior implements NpcBehavior {
                     current ? NamedTextColor.GREEN : unlocked ? NamedTextColor.YELLOW : NamedTextColor.RED,
                     target -> openQuestCategory(target, rangeStart, rangeEnd)));
         }
-        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));\n        if (actions.size() == 1) {
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
+        if (actions.size() == 1) {
             dialogueEngine.openNotice(player, Component.text("Questgeber", NamedTextColor.GOLD),
                     Component.text("Aktuell sind keine Questbereiche konfiguriert.", NamedTextColor.WHITE), Component.text("Schließen", NamedTextColor.GRAY));
             return;
