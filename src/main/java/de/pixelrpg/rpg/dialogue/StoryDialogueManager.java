@@ -280,7 +280,7 @@ public final class StoryDialogueManager {
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(QuestText.objectiveWithProgress(quest, progress).color(NamedTextColor.AQUA)),
                 DialogBody.plainMessage(Component.text(
-                        complete ? ""Du hast genug gesammelt. Bring die Fragmente zu mir."" :
+                        complete ? "„Du hast genug gesammelt. Bring die Fragmente zu mir.“" :
                                 "„Drei Stück. Mehr brauche ich zunächst nicht.“",
                         NamedTextColor.WHITE))
         );
