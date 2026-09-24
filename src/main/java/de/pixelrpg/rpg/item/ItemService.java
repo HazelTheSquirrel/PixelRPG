@@ -3,122 +3,254 @@ package de.pixelrpg.rpg.item;
 import de.pixelrpg.rpg.api.ItemAPI;
 import de.pixelrpg.rpg.core.RPGKeys;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
 
 public final class ItemService implements ItemAPI {
-    private final ItemDefinitionRegistry defs;
+    private final ItemDefinitionRegistry definitions;
+    private final UniqueItemService uniqueItems;
     private final FoodService foodService;
 
     public ItemService(Plugin plugin) {
-        this(plugin, new FoodService(plugin));
+        this(plugin, new UniqueItemService(plugin), new FoodService(plugin));
     }
 
     public ItemService(Plugin plugin, FoodService foodService) {
-        defs = new ItemDefinitionRegistry(plugin);
+        this(plugin, new UniqueItemService(plugin), foodService);
+    }
+
+    public ItemService(Plugin plugin, UniqueItemService uniqueItems, FoodService foodService) {
+        definitions = new ItemDefinitionRegistry(plugin);
+        this.uniqueItems = java.util.Objects.requireNonNull(uniqueItems, "uniqueItems");
         this.foodService = java.util.Objects.requireNonNull(foodService, "foodService");
     }
 
-    @Override public Optional<ItemStack> createItem(Material material, ItemRarity rarity, int itemLevel) {
-        return defs.findByMaterial(material, rarity, Math.clamp(itemLevel, 1, 99)).map(this::create);
+    @Override
+    public Optional<ItemStack> createItem(Material material, ItemRarity rarity, int itemLevel) {
+        if (rarity == ItemRarity.UNIQUE) return Optional.empty();
+        return RPGItemBuilder.createItem(material, rarity, itemLevel);
     }
 
-    @Override public Optional<ItemStack> createItem(String itemId) {
-        return defs.find(itemId).filter(definition -> !definition.adminOnly()).map(this::create);
+    @Override
+    public Optional<ItemStack> createItem(String itemId) {
+        return createDefinedItem(itemId, 0, false);
     }
 
-    private ItemStack create(ItemDefinition definition) {
-        ItemStack item = new ItemStack(definition.material());
+    public Optional<ItemStack> createAdminItem(String itemId) {
+        return createDefinedItem(itemId, 0, true);
+    }
+
+    public Optional<ItemStack> createItem(String itemId, int itemLevel) {
+        return createDefinedItem(itemId, Math.clamp(itemLevel, 1, 99), false);
+    }
+
+    public List<ItemDefinition> definitions() {
+        return definitions.all().stream().toList();
+    }
+
+    @Override
+    public boolean isRPGItem(ItemStack item) {
+        return getItemId(item).isPresent();
+    }
+
+    @Override
+    public boolean isGuildItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        return Boolean.TRUE.equals(item.getItemMeta().getPersistentDataContainer()
+                .get(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN));
+    }
+
+    @Override
+    public Optional<String> getItemId(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return Optional.empty();
+        String value = item.getItemMeta().getPersistentDataContainer()
+                .get(RPGKeys.Item.itemId(), PersistentDataType.STRING);
+        return value == null || value.isBlank() ? Optional.empty() : Optional.of(value);
+    }
+
+    @Override
+    public Optional<ItemRarity> getRarity(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return Optional.empty();
+        String raw = item.getItemMeta().getPersistentDataContainer()
+                .get(RPGKeys.Item.rarity(), PersistentDataType.STRING);
+        if (raw == null) return Optional.empty();
+        try { return Optional.of(ItemRarity.valueOf(raw)); }
+        catch (IllegalArgumentException ignored) { return Optional.empty(); }
+    }
+
+    @Override
+    public Optional<ItemCategory> getCategory(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return Optional.empty();
+        String raw = item.getItemMeta().getPersistentDataContainer()
+                .get(RPGKeys.Item.category(), PersistentDataType.STRING);
+        if (raw == null) return Optional.empty();
+        try { return Optional.of(ItemCategory.valueOf(raw)); }
+        catch (IllegalArgumentException ignored) { return Optional.empty(); }
+    }
+
+    @Override
+    public Optional<ItemDefinition> getDefinition(ItemStack item) {
+        return getItemId(item).flatMap(definitions::find);
+    }
+
+    @Override
+    public Optional<Integer> getRequiredLevel(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return Optional.empty();
+        return Optional.ofNullable(item.getItemMeta().getPersistentDataContainer()
+                .get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER));
+    }
+
+    @Override
+    public Optional<Double> getGearscore(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return Optional.empty();
+        return Optional.ofNullable(item.getItemMeta().getPersistentDataContainer()
+                .get(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE));
+    }
+
+    public boolean isEconomySafeItem(ItemStack item) {
+        if (item == null || item.isEmpty() || !item.hasItemMeta()) return false;
+        ItemMeta meta = item.getItemMeta();
+        var pdc = meta.getPersistentDataContainer();
+        String id = pdc.get(RPGKeys.Item.itemId(), PersistentDataType.STRING);
+        String instanceId = pdc.get(RPGKeys.Item.instanceId(), PersistentDataType.STRING);
+        ItemRarity rarity = getRarity(item).orElse(null);
+        ItemCategory category = getCategory(item).orElse(null);
+        Integer requiredLevel = pdc.get(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER);
+        Double gearscore = pdc.get(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE);
+        if (id == null || id.isBlank() || instanceId == null || instanceId.isBlank()
+                || rarity == null || category == null || requiredLevel == null
+                || requiredLevel < 1 || requiredLevel > 99 || gearscore == null
+                || !Double.isFinite(gearscore) || gearscore < 0.0D) return false;
+        if (Boolean.TRUE.equals(pdc.get(RPGKeys.Item.soulbound(), PersistentDataType.BOOLEAN))
+                || Boolean.TRUE.equals(pdc.get(RPGKeys.Item.unique(), PersistentDataType.BOOLEAN))
+                || rarity == ItemRarity.UNIQUE) return false;
+        return definitions.find(id)
+                .map(definition -> definition.category() == category
+                        && definition.material() == item.getType()
+                        && !definition.adminOnly()
+                        && !definition.soulbound()
+                        && !definition.unique())
+                .orElse(false);
+    }
+
+    private Optional<ItemStack> createDefinedItem(String itemId, int explicitItemLevel, boolean admin) {
+        ItemDefinition definition = definitions.find(itemId).orElse(null);
+        if (definition == null || definition.adminOnly() && !admin || definition.unique() && !admin) {
+            return Optional.empty();
+        }
+
+        boolean claimed = false;
+        if (definition.unique()) {
+            if (!uniqueItems.claim(definition)) return Optional.empty();
+            claimed = true;
+        }
+
+        if (definition.category() == ItemCategory.FOOD) {
+            ItemStack item = new ItemStack(definition.material());
+            ItemMeta meta = item.getItemMeta();
+            var pdc = meta.getPersistentDataContainer();
+            pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, true);
+            pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, definition.id());
+            pdc.set(RPGKeys.Item.instanceId(), PersistentDataType.STRING, UUID.randomUUID().toString());
+            pdc.set(RPGKeys.Item.rarity(), PersistentDataType.STRING, definition.rarity().name());
+            pdc.set(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER, definition.itemLevel());
+            pdc.set(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER, definition.requiredLevel());
+            pdc.set(RPGKeys.Item.category(), PersistentDataType.STRING, definition.category().name());
+            pdc.set(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN, false);
+            pdc.set(RPGKeys.Item.resourcepackId(), PersistentDataType.STRING, definition.resourcepackId());
+            pdc.set(RPGKeys.Item.unique(), PersistentDataType.BOOLEAN, false);
+            pdc.set(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE, 0.0D);
+            meta.displayName(Component.text(definition.name(), NamedTextColor.WHITE)
+                    .decoration(TextDecoration.ITALIC, false));
+            item.setItemMeta(meta);
+            try {
+                foodService.configure(item, definition);
+            } catch (RuntimeException exception) {
+                if (claimed) uniqueItems.release(definition);
+                throw exception;
+            }
+            return Optional.of(item);
+        }
+
+        int itemLevel = explicitItemLevel > 0 ? explicitItemLevel : definition.itemLevel();
+        ItemStack item = RPGItemBuilder.createItem(
+                definition.id(), definition.name(), definition.material(), definition.rarity(), itemLevel).orElse(null);
+        if (item == null) {
+            if (claimed) uniqueItems.release(definition);
+            return Optional.empty();
+        }
+
         ItemMeta meta = item.getItemMeta();
         var pdc = meta.getPersistentDataContainer();
         pdc.set(RPGKeys.Item.itemId(), PersistentDataType.STRING, definition.id());
-        pdc.set(RPGKeys.Item.identified(), PersistentDataType.BOOLEAN, true);
-        pdc.set(RPGKeys.Item.instanceId(), PersistentDataType.STRING, UUID.randomUUID().toString());
-        pdc.set(RPGKeys.Item.rarity(), PersistentDataType.STRING, definition.rarity().name());
-        pdc.set(RPGKeys.Item.category(), PersistentDataType.STRING, definition.category().name());
-        pdc.set(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER, definition.itemLevel());
         pdc.set(RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER, definition.requiredLevel());
-        pdc.set(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE,
-                Math.round(definition.itemLevel() * rarityMultiplier(definition.rarity()) * definition.gearscoreModifier() * 10.0D) / 10.0D);
-        pdc.set(RPGKeys.Item.soulbound(), PersistentDataType.BOOLEAN, definition.soulbound());
-        pdc.set(RPGKeys.Item.unique(), PersistentDataType.BOOLEAN, definition.unique());
         pdc.set(RPGKeys.Item.resourcepackId(), PersistentDataType.STRING, definition.resourcepackId());
-        if (!definition.equipmentSlot().isBlank()) pdc.set(RPGKeys.Item.equipmentSlot(), PersistentDataType.STRING, definition.equipmentSlot());
-        if (!definition.setId().isBlank()) pdc.set(RPGKeys.Item.setId(), PersistentDataType.STRING, definition.setId());
+        pdc.set(RPGKeys.Item.unique(), PersistentDataType.BOOLEAN, definition.unique());
+        pdc.set(RPGKeys.Item.instanceId(), PersistentDataType.STRING, UUID.randomUUID().toString());
+        pdc.set(RPGKeys.Item.guildItem(), PersistentDataType.BOOLEAN, false);
+        if (!definition.equipmentSlot().isBlank()) {
+            pdc.set(RPGKeys.Item.equipmentSlot(), PersistentDataType.STRING, definition.equipmentSlot());
+        }
+        if (!definition.setId().isBlank()) {
+            pdc.set(RPGKeys.Item.setId(), PersistentDataType.STRING, definition.setId());
+        }
+        double gearscore = Math.round(itemLevel * definition.rarity().getStatMultiplier()
+                * definition.gearscoreModifier() * 10.0D) / 10.0D;
+        pdc.set(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE, gearscore);
+        if (definition.soulbound()) {
+            pdc.set(RPGKeys.Item.soulbound(), PersistentDataType.BOOLEAN, true);
+        }
         if (!definition.weaponAbility().isBlank()) {
             pdc.set(RPGKeys.Item.weaponAbility(), PersistentDataType.STRING, definition.weaponAbility());
-            pdc.set(RPGKeys.Item.weaponAbilityCooldownMillis(), PersistentDataType.LONG, definition.weaponAbilityCooldownMillis());
+            pdc.set(RPGKeys.Item.weaponAbilityCooldownMillis(), PersistentDataType.LONG,
+                    definition.weaponAbilityCooldownMillis());
         }
 
-        meta.displayName(Component.text(definition.name(), NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
-        List<Component> lore = new ArrayList<>();
-        lore.add(Component.text("Benötigt Level " + definition.requiredLevel(), NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
-        if (definition.soulbound()) lore.add(Component.text("⚡ Seelengebunden", NamedTextColor.LIGHT_PURPLE).decoration(TextDecoration.ITALIC, false));
-        if (definition.unique()) lore.add(Component.text("EINZIGARTIG • 1/1", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
-        if (!definition.weaponAbility().isBlank()) {
-            lore.add(Component.text("Fähigkeit: " + definition.weaponAbility(), NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
-            lore.add(Component.text(Math.max(0L, definition.weaponAbilityCooldownMillis()) + "ms Abklingzeit", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        List<Component> lore = meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
+        lore.removeIf(component -> component instanceof TextComponent text
+                && text.content().startsWith("Benötigt Level "));
+        lore.add(Math.min(2, lore.size()),
+                Component.text("Benötigt Level " + definition.requiredLevel(), NamedTextColor.RED)
+                        .decoration(TextDecoration.ITALIC, false));
+        if (definition.soulbound()) {
+            lore.add(0, Component.text("⚡ Seelengebunden", NamedTextColor.LIGHT_PURPLE)
+                    .decoration(TextDecoration.ITALIC, false));
         }
-        lore.add(Component.text("Ausrüstungswert " + format(pdc.get(RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE)), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+        if (definition.unique()) {
+            lore.add(0, Component.text("EINZIGARTIG • 1/1", NamedTextColor.GOLD)
+                    .decoration(TextDecoration.ITALIC, false));
+        }
+        if (!definition.weaponAbility().isBlank()) {
+            lore.add(Component.text("Fähigkeit: " + definition.weaponAbility(), NamedTextColor.AQUA)
+                    .decoration(TextDecoration.ITALIC, false));
+            lore.add(Component.text(Math.max(0L, definition.weaponAbilityCooldownMillis())
+                            + "ms Abklingzeit", NamedTextColor.GRAY)
+                    .decoration(TextDecoration.ITALIC, false));
+        }
+        lore.add(Component.text("Ausrüstungswert " + format(gearscore), NamedTextColor.YELLOW)
+                .decoration(TextDecoration.ITALIC, false));
+        meta.displayName(Component.text(definition.name(), NamedTextColor.WHITE)
+                .decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
-        if (definition.category() == ItemCategory.FOOD) {
-            foodService.configure(item, definition);
-        }
-        return item;
-    }
-
-    @Override public boolean isRPGItem(ItemStack item) { return getItemId(item).isPresent(); }
-    @Override public boolean isGuildItem(ItemStack item) { return false; }
-
-    @Override public Optional<String> getItemId(ItemStack item) { return read(item, RPGKeys.Item.itemId(), PersistentDataType.STRING); }
-    @Override public Optional<ItemRarity> getRarity(ItemStack item) {
-        return read(item, RPGKeys.Item.rarity(), PersistentDataType.STRING).flatMap(value -> parseEnum(ItemRarity.class, value));
-    }
-    @Override public Optional<ItemCategory> getCategory(ItemStack item) {
-        return read(item, RPGKeys.Item.category(), PersistentDataType.STRING).flatMap(value -> parseEnum(ItemCategory.class, value));
-    }
-    @Override public Optional<ItemDefinition> getDefinition(ItemStack item) { return getItemId(item).flatMap(defs::find); }
-    @Override public Optional<Integer> getRequiredLevel(ItemStack item) { return read(item, RPGKeys.Item.requiredLevel(), PersistentDataType.INTEGER); }
-    @Override public Optional<Double> getGearscore(ItemStack item) { return read(item, RPGKeys.Item.gearscore(), PersistentDataType.DOUBLE); }
-
-    public Optional<Integer> getItemLevel(ItemStack item) { return read(item, RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER); }
-    public Optional<String> getResourcepackId(ItemStack item) { return read(item, RPGKeys.Item.resourcepackId(), PersistentDataType.STRING); }
-    public Optional<String> getEquipmentSlot(ItemStack item) { return read(item, RPGKeys.Item.equipmentSlot(), PersistentDataType.STRING); }
-    public Optional<String> getSetId(ItemStack item) { return read(item, RPGKeys.Item.setId(), PersistentDataType.STRING); }
-    public Optional<String> getWeaponAbility(ItemStack item) { return read(item, RPGKeys.Item.weaponAbility(), PersistentDataType.STRING); }
-    public boolean isSoulbound(ItemStack item) { return read(item, RPGKeys.Item.soulbound(), PersistentDataType.BOOLEAN).orElse(false); }
-    public boolean isUnique(ItemStack item) { return read(item, RPGKeys.Item.unique(), PersistentDataType.BOOLEAN).orElse(false); }
-
-    private static double rarityMultiplier(ItemRarity rarity) {
-        return switch (rarity) {
-            case COMMON -> 1.0D;
-            case UNCOMMON -> 1.15D;
-            case RARE -> 1.35D;
-            case EPIC -> 1.60D;
-            case LEGENDARY -> 2.0D;
-            case UNIQUE -> 2.5D;
-        };
+        return Optional.of(item);
     }
 
     private static String format(double value) {
-        return Math.abs(value - Math.rint(value)) < 0.0001D ? Long.toString(Math.round(value)) : String.format(Locale.ROOT, "%.1f", value);
-    }
-
-    private <T, Z> Optional<Z> read(ItemStack item, NamespacedKey key, PersistentDataType<T, Z> type) {
-        if (item == null || item.isEmpty() || !item.hasItemMeta()) return Optional.empty();
-        return Optional.ofNullable(item.getItemMeta().getPersistentDataContainer().get(key, type));
-    }
-
-    private static <E extends Enum<E>> Optional<E> parseEnum(Class<E> type, String raw) {
-        try { return Optional.of(Enum.valueOf(type, raw.toUpperCase(Locale.ROOT))); }
-        catch (IllegalArgumentException ignored) { return Optional.empty(); }
+        return Math.abs(value - Math.rint(value)) < 0.0001D
+                ? Long.toString(Math.round(value))
+                : String.format(Locale.ROOT, "%.1f", value);
     }
 }
