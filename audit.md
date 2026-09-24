@@ -1179,3 +1179,18 @@ Die sieben im main-Inventar dokumentierten öffentlichen Eventtypen wurden als e
 - QuestCompletedEvent
 
 Die Events sind aktuell noch nicht vollständig an alle fachlichen Produzenten gekoppelt. Deshalb bleibt der Status bewusst REBUILT und nicht VERIFIED.
+
+
+## 29. Technische CI-Prüfung — 2026-09-24
+
+**IN PROGRESS**
+
+Für den Clean-Rebuild wurde ein **Draft-PR #19** ausschließlich als CI-Prüfpfad gegen main geöffnet. Der PR wird nicht gemerged; rebuild bleibt der einzige Arbeitsbranch.
+
+- Referenzbasis: main / b02747a21cde6d1308c59a7f027cda80877cfe50
+- Arbeitsbranch: rebuild
+- aktueller Rebuild-Head: 8ff450bf0b90f016d8e9b8510f6994dcd3e9701f
+- GitHub Actions Build Run: 35946662849
+- aktueller Run-Stand: Build-Schritt läuft
+
+Der Build-Run wird nicht als erfolgreich gewertet, solange Gradle Build und die anschließenden Boundary-/Artifact-Prüfungen nicht erfolgreich abgeschlossen sind.
