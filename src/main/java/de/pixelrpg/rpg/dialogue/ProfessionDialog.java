@@ -131,7 +131,7 @@ public final class ProfessionDialog {
             actions.add(dialogueEngine.actionButton(
                     Component.text(category.displayName() + " (" + categoryRecipes.size() + ")"),
                     NamedTextColor.GREEN,
-                    target -> openProfessionRecipeCategory(target, profession, category)
+                    target -> openProfessionRecipeCategory(target, profession, category, backAction)
             ));
         }
 
@@ -150,7 +150,7 @@ public final class ProfessionDialog {
         );
     }
 
-    private void openProfessionRecipeCategory(Player player, Profession profession, CraftingCategory category) {
+    private void openProfessionRecipeCategory(Player player, Profession profession, CraftingCategory category, Consumer<Player> backAction) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) return;
 
