@@ -3,6 +3,8 @@ package de.pixelrpg.rpg;
 import de.pixelrpg.rpg.api.ItemAPI;
 import de.pixelrpg.rpg.bank.BankStorageService;
 import de.pixelrpg.rpg.trade.TradeDepotManager;
+import de.pixelrpg.rpg.shop.ShopManager;
+import de.pixelrpg.rpg.gui.ShopEditorGUI;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.equipment.EquipmentService;
 import de.pixelrpg.rpg.api.PartyAPI;
@@ -41,6 +43,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private BankStorageService bankStorageService;
     private TradeDepotManager tradeDepotManager;
     private NpcManager npcManager;
+    private ShopManager shopManager;
+    private ShopEditorGUI shopEditorGUI;
 
     @Override
     public void onEnable() {
@@ -63,6 +67,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         itemService = new ItemService(this, foodService);
         bankStorageService = new BankStorageService(this);
         tradeDepotManager = new TradeDepotManager(this, profiles, bankStorageService, itemService);
+        shopManager = new ShopManager(this);
+        shopManager.load();
+        shopEditorGUI = new ShopEditorGUI(shopManager);
         npcManager = new NpcManager(this);
         npcManager.load();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
@@ -73,6 +80,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         questService = new QuestService(this, questRepository, profiles, itemService);
         getServer().getPluginManager().registerEvents(new QuestLifecycleListener(questService, profiles), this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
+        getServer().getPluginManager().registerEvents(shopEditorGUI, this);
         getServer().getPluginManager().registerEvents(foodService, this);
         getServer().getPluginManager().registerEvents(equipmentService, this);
 
@@ -93,6 +101,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         unregister(PartyAPI.class, partyManager);
         if (npcManager != null) npcManager.shutdown();
         if (tradeDepotManager != null) tradeDepotManager.shutdown();
+        if (shopManager != null) shopManager.shutdown();
         if (bankStorageService != null) bankStorageService.close();
         if (guildManager != null) guildManager.shutdown();
         if (partyManager != null) partyManager.shutdown();
@@ -116,6 +125,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         bankStorageService = null;
         tradeDepotManager = null;
         npcManager = null;
+        shopManager = null;
+        shopEditorGUI = null;
     }
 
     private <T> void register(Class<T> type, T service) {
