@@ -1415,7 +1415,7 @@ Noch nicht VERIFIED: Rücknavigation in das vollständige main-Reception-/Dialog
 
 **REBUILT / NOT VERIFIED**
 
-Der NPC-Runtime-Block wurde auf Basis der aktuell verifizierten Paper-26.2-Mannequin-API neu aufgebaut. Die aktuelle Paper-API bestätigt `Mannequin#getProfile()`, `Mannequin#setProfile(ResolvableProfile)` und die 26.2-`ResolvableProfile`-Mechanik. citeturn1search3turn1search0
+Der NPC-Runtime-Block wurde auf Basis der aktuell verifizierten Paper-26.2-Mannequin-API neu aufgebaut. Die aktuelle Paper-26.2-API wurde dafür vor der Implementierung geprüft; `Mannequin` arbeitet mit `ResolvableProfile`.
 
 Neu aufgebaut:
 
