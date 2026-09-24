@@ -4554,6 +4554,541 @@
       "category": "BOOKS",
       "enchantment": "WIND_BURST",
       "enchantmentLevel": 3
+    },
+    {
+      "id": "progression:weapons_iron_sword_common_3",
+      "label": "Eisenschwert",
+      "profession": "BLACKSMITH",
+      "result": "IRON_SWORD",
+      "resultAmount": 1,
+      "costs": {
+        "IRON_INGOT": 2,
+        "STICK": 1
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 3,
+      "unlockPrice": 0,
+      "rarity": "COMMON",
+      "unlockedByDefault": true,
+      "category": "WEAPONS",
+      "resultItemId": "pixelrpg:weapons/iron_sword/common_3"
+    },
+    {
+      "id": "progression:armor_copper_helmet_donnerwacht_10",
+      "label": "Donnerwacht-Helm",
+      "profession": "BLACKSMITH",
+      "result": "COPPER_HELMET",
+      "resultAmount": 1,
+      "costs": {
+        "COPPER_INGOT": 8
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 10,
+      "unlockPrice": 250,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/copper_helmet/donnerwacht_10"
+    },
+    {
+      "id": "progression:armor_copper_chestplate_donnerwacht_10",
+      "label": "Donnerwacht-Brustplatte",
+      "profession": "BLACKSMITH",
+      "result": "COPPER_CHESTPLATE",
+      "resultAmount": 1,
+      "costs": {
+        "COPPER_INGOT": 8
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 10,
+      "unlockPrice": 250,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/copper_chestplate/donnerwacht_10"
+    },
+    {
+      "id": "progression:armor_copper_leggings_donnerwacht_10",
+      "label": "Donnerwacht-Beinschutz",
+      "profession": "BLACKSMITH",
+      "result": "COPPER_LEGGINGS",
+      "resultAmount": 1,
+      "costs": {
+        "COPPER_INGOT": 8
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 10,
+      "unlockPrice": 250,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/copper_leggings/donnerwacht_10"
+    },
+    {
+      "id": "progression:armor_copper_boots_donnerwacht_10",
+      "label": "Donnerwacht-Stiefel",
+      "profession": "BLACKSMITH",
+      "result": "COPPER_BOOTS",
+      "resultAmount": 1,
+      "costs": {
+        "COPPER_INGOT": 6
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 10,
+      "unlockPrice": 250,
+      "rarity": "COMMON",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/copper_boots/donnerwacht_10"
+    },
+    {
+      "id": "progression:armor_chainmail_helmet_schattengeflecht_20",
+      "label": "Schattengeflecht-Helm",
+      "profession": "TAILOR",
+      "result": "CHAINMAIL_HELMET",
+      "resultAmount": 1,
+      "costs": {
+        "IRON_INGOT": 6,
+        "STRING": 2
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 20,
+      "unlockPrice": 900,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/chainmail_helmet/schattengeflecht_20"
+    },
+    {
+      "id": "progression:armor_chainmail_chestplate_schattengeflecht_20",
+      "label": "Schattengeflecht-Panzer",
+      "profession": "TAILOR",
+      "result": "CHAINMAIL_CHESTPLATE",
+      "resultAmount": 1,
+      "costs": {
+        "IRON_INGOT": 8,
+        "STRING": 2
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 20,
+      "unlockPrice": 900,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/chainmail_chestplate/schattengeflecht_20"
+    },
+    {
+      "id": "progression:armor_chainmail_leggings_schattengeflecht_20",
+      "label": "Schattengeflecht-Beinschutz",
+      "profession": "TAILOR",
+      "result": "CHAINMAIL_LEGGINGS",
+      "resultAmount": 1,
+      "costs": {
+        "IRON_INGOT": 7,
+        "STRING": 2
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 20,
+      "unlockPrice": 900,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/chainmail_leggings/schattengeflecht_20"
+    },
+    {
+      "id": "progression:armor_chainmail_boots_schattengeflecht_20",
+      "label": "Schattengeflecht-Stiefel",
+      "profession": "TAILOR",
+      "result": "CHAINMAIL_BOOTS",
+      "resultAmount": 1,
+      "costs": {
+        "IRON_INGOT": 5,
+        "STRING": 2
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 20,
+      "unlockPrice": 900,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/chainmail_boots/schattengeflecht_20"
+    },
+    {
+      "id": "progression:weapons_gold_sword_uncommon_25",
+      "label": "Goldklinge",
+      "profession": "BLACKSMITH",
+      "result": "GOLDEN_SWORD",
+      "resultAmount": 1,
+      "costs": {
+        "GOLD_INGOT": 4,
+        "STICK": 1
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 25,
+      "unlockPrice": 1600,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "category": "WEAPONS",
+      "resultItemId": "pixelrpg:weapons/gold_sword/uncommon_25"
+    },
+    {
+      "id": "progression:armor_iron_helmet_stahlwall_30",
+      "label": "Stahlwall-Helm",
+      "profession": "BLACKSMITH",
+      "result": "IRON_HELMET",
+      "resultAmount": 1,
+      "costs": {
+        "IRON_INGOT": 8
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2200,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/iron_helmet/stahlwall_30"
+    },
+    {
+      "id": "progression:armor_iron_chestplate_stahlwall_30",
+      "label": "Stahlwall-Brustplatte",
+      "profession": "BLACKSMITH",
+      "result": "IRON_CHESTPLATE",
+      "resultAmount": 1,
+      "costs": {
+        "IRON_INGOT": 8
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2200,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/iron_chestplate/stahlwall_30"
+    },
+    {
+      "id": "progression:armor_iron_leggings_stahlwall_30",
+      "label": "Stahlwall-Beinschutz",
+      "profession": "BLACKSMITH",
+      "result": "IRON_LEGGINGS",
+      "resultAmount": 1,
+      "costs": {
+        "IRON_INGOT": 8
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2200,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/iron_leggings/stahlwall_30"
+    },
+    {
+      "id": "progression:armor_iron_boots_stahlwall_30",
+      "label": "Stahlwall-Stiefel",
+      "profession": "BLACKSMITH",
+      "result": "IRON_BOOTS",
+      "resultAmount": 1,
+      "costs": {
+        "IRON_INGOT": 6
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 30,
+      "unlockPrice": 2200,
+      "rarity": "UNCOMMON",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/iron_boots/stahlwall_30"
+    },
+    {
+      "id": "progression:armor_gold_helmet_sonnengewand_45",
+      "label": "Sonnengewand-Helm",
+      "profession": "TAILOR",
+      "result": "GOLDEN_HELMET",
+      "resultAmount": 1,
+      "costs": {
+        "GOLD_INGOT": 7,
+        "STRING": 2
+      },
+      "itemCosts": {
+        "pixelrpg:boss/goldenes_fossil": 1
+      },
+      "requiredProfessionLevel": 45,
+      "unlockPrice": 5000,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/gold_helmet/sonnengewand_45"
+    },
+    {
+      "id": "progression:armor_gold_chestplate_sonnengewand_45",
+      "label": "Sonnengewand-Brustplatte",
+      "profession": "TAILOR",
+      "result": "GOLDEN_CHESTPLATE",
+      "resultAmount": 1,
+      "costs": {
+        "GOLD_INGOT": 8,
+        "STRING": 2
+      },
+      "itemCosts": {
+        "pixelrpg:boss/goldenes_fossil": 1
+      },
+      "requiredProfessionLevel": 45,
+      "unlockPrice": 5000,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/gold_chestplate/sonnengewand_45"
+    },
+    {
+      "id": "progression:armor_gold_leggings_sonnengewand_45",
+      "label": "Sonnengewand-Beinschutz",
+      "profession": "TAILOR",
+      "result": "GOLDEN_LEGGINGS",
+      "resultAmount": 1,
+      "costs": {
+        "GOLD_INGOT": 8,
+        "STRING": 2
+      },
+      "itemCosts": {
+        "pixelrpg:boss/goldenes_fossil": 1
+      },
+      "requiredProfessionLevel": 45,
+      "unlockPrice": 5000,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/gold_leggings/sonnengewand_45"
+    },
+    {
+      "id": "progression:armor_gold_boots_sonnengewand_45",
+      "label": "Sonnengewand-Stiefel",
+      "profession": "TAILOR",
+      "result": "GOLDEN_BOOTS",
+      "resultAmount": 1,
+      "costs": {
+        "GOLD_INGOT": 6,
+        "STRING": 2
+      },
+      "itemCosts": {
+        "pixelrpg:boss/goldenes_fossil": 1
+      },
+      "requiredProfessionLevel": 45,
+      "unlockPrice": 5000,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/gold_boots/sonnengewand_45"
+    },
+    {
+      "id": "progression:weapons_diamond_sword_rare_40",
+      "label": "Diamantklinge",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_SWORD",
+      "resultAmount": 1,
+      "costs": {
+        "DIAMOND": 3,
+        "STICK": 1
+      },
+      "itemCosts": {},
+      "requiredProfessionLevel": 40,
+      "unlockPrice": 4500,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "WEAPONS",
+      "resultItemId": "pixelrpg:weapons/diamond_sword/rare_40"
+    },
+    {
+      "id": "progression:armor_diamond_helmet_kristallwache_60",
+      "label": "Kristallwache-Helm",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_HELMET",
+      "resultAmount": 1,
+      "costs": {
+        "DIAMOND": 7
+      },
+      "itemCosts": {
+        "pixelrpg:boss/echoherz": 1
+      },
+      "requiredProfessionLevel": 60,
+      "unlockPrice": 9000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/diamond_helmet/kristallwache_60"
+    },
+    {
+      "id": "progression:armor_diamond_chestplate_kristallwache_60",
+      "label": "Kristallwache-Brustplatte",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_CHESTPLATE",
+      "resultAmount": 1,
+      "costs": {
+        "DIAMOND": 8
+      },
+      "itemCosts": {
+        "pixelrpg:boss/echoherz": 1
+      },
+      "requiredProfessionLevel": 60,
+      "unlockPrice": 9000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/diamond_chestplate/kristallwache_60"
+    },
+    {
+      "id": "progression:armor_diamond_leggings_kristallwache_60",
+      "label": "Kristallwache-Beinschutz",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_LEGGINGS",
+      "resultAmount": 1,
+      "costs": {
+        "DIAMOND": 8
+      },
+      "itemCosts": {
+        "pixelrpg:boss/echoherz": 1
+      },
+      "requiredProfessionLevel": 60,
+      "unlockPrice": 9000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/diamond_leggings/kristallwache_60"
+    },
+    {
+      "id": "progression:armor_diamond_boots_kristallwache_60",
+      "label": "Kristallwache-Stiefel",
+      "profession": "BLACKSMITH",
+      "result": "DIAMOND_BOOTS",
+      "resultAmount": 1,
+      "costs": {
+        "DIAMOND": 6
+      },
+      "itemCosts": {
+        "pixelrpg:boss/echoherz": 1
+      },
+      "requiredProfessionLevel": 60,
+      "unlockPrice": 9000,
+      "rarity": "EPIC",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/diamond_boots/kristallwache_60"
+    },
+    {
+      "id": "progression:armor_netherite_helmet_hoellenschmiede_80",
+      "label": "Höllenschmiede-Helm",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_HELMET",
+      "resultAmount": 1,
+      "costs": {
+        "NETHERITE_INGOT": 7
+      },
+      "itemCosts": {
+        "pixelrpg:boss/netherkern": 1
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 18000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/netherite_helmet/hoellenschmiede_80"
+    },
+    {
+      "id": "progression:armor_netherite_chestplate_hoellenschmiede_80",
+      "label": "Höllenschmiede-Brustplatte",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_CHESTPLATE",
+      "resultAmount": 1,
+      "costs": {
+        "NETHERITE_INGOT": 8
+      },
+      "itemCosts": {
+        "pixelrpg:boss/netherkern": 1
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 18000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/netherite_chestplate/hoellenschmiede_80"
+    },
+    {
+      "id": "progression:armor_netherite_leggings_hoellenschmiede_80",
+      "label": "Höllenschmiede-Beinschutz",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_LEGGINGS",
+      "resultAmount": 1,
+      "costs": {
+        "NETHERITE_INGOT": 8
+      },
+      "itemCosts": {
+        "pixelrpg:boss/netherkern": 1
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 18000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/netherite_leggings/hoellenschmiede_80"
+    },
+    {
+      "id": "progression:armor_netherite_boots_hoellenschmiede_80",
+      "label": "Höllenschmiede-Stiefel",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_BOOTS",
+      "resultAmount": 1,
+      "costs": {
+        "NETHERITE_INGOT": 6
+      },
+      "itemCosts": {
+        "pixelrpg:boss/netherkern": 1
+      },
+      "requiredProfessionLevel": 80,
+      "unlockPrice": 18000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "category": "ARMOR",
+      "resultItemId": "pixelrpg:armor/netherite_boots/hoellenschmiede_80"
+    },
+    {
+      "id": "progression:weapons_netherite_sword_legendary_90",
+      "label": "Netheritklinge",
+      "profession": "BLACKSMITH",
+      "result": "NETHERITE_SWORD",
+      "resultAmount": 1,
+      "costs": {
+        "NETHERITE_INGOT": 4,
+        "STICK": 1
+      },
+      "itemCosts": {
+        "pixelrpg:boss/endriss": 1
+      },
+      "requiredProfessionLevel": 90,
+      "unlockPrice": 25000,
+      "rarity": "LEGENDARY",
+      "unlockedByDefault": false,
+      "category": "WEAPONS",
+      "resultItemId": "pixelrpg:weapons/netherite_sword/legendary_90"
+    },
+    {
+      "id": "progression:weapons_fireball_alchemist_35",
+      "label": "Feuerball",
+      "profession": "ALCHEMIST",
+      "result": "FIRE_CHARGE",
+      "resultAmount": 1,
+      "costs": {
+        "BLAZE_POWDER": 4,
+        "GUNPOWDER": 2,
+        "GHAST_TEAR": 1
+      },
+      "itemCosts": {
+        "pixelrpg:boss/sumpftrank": 1
+      },
+      "requiredProfessionLevel": 35,
+      "unlockPrice": 3500,
+      "rarity": "RARE",
+      "unlockedByDefault": false,
+      "category": "ARCANE",
+      "resultItemId": "pixelrpg:weapons/fireball/alchemist_35"
     }
   ]
 }
