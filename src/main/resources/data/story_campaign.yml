@@ -297,8 +297,8 @@ chapters:
     title: "Das Archiv nach dem Ende"
     arc: "Was hinter dem Ende bleibt"
     required-level: 99
-    structure-trigger: ""
-    npc-id: "the_archivist"
+    structure-trigger: "minecraft:end_city"
+    npc-id: "silex"
     quests: ["story_campaign_after_the_end"]
     dialogue:
       - "Die letzte Chronik verbindet die Spuren: Ruinen, Deep Dark, Nether, Strongholds und End."
