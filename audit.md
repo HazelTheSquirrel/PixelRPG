@@ -1369,3 +1369,23 @@ Bewusst noch OPEN: vollständige Bank-/Trade-Depot-GUIs, native Bank-Dialoge, NP
 ### Aktueller Rebuild-Head
 
 `94cc760560d1b2ca7034b87b3361a9caeee83203`
+
+
+## 37. Party Command Runtime — 2026-09-24
+
+**REBUILT / NOT VERIFIED**
+
+Der bestehende PartyManager wurde um den player-facing Command-Pfad ergänzt:
+
+- aktuelle Paper `BasicCommand` API;
+- `/pixelrpgparty invite|accept|leave|kick|transfer|disband|info`;
+- Permissions über `rpg.member`;
+- Tab-Completion für Party-Unterbefehle und Online-Spieler;
+- Registrierung, Validierung und Rückmeldungen auf Basis des bestehenden PartyManagers;
+- keine Legacy-Bukkit-Command-Implementierung.
+
+Die PartyGUI und Quick-Actions bleiben weiterhin OPEN; deshalb ist der Party-Bereich noch nicht VERIFIED.
+
+### Aktueller Rebuild-Head
+
+`ae409ae8928a86bafcd5cccf551b6f7d56812067`
