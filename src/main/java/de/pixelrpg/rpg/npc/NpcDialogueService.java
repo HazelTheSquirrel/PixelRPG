@@ -132,7 +132,11 @@ public final class NpcDialogueService implements AutoCloseable {
         }
     }
 
-    private int levelOf(Player player) {\n        return profiles.getProfile(player.getUniqueId()).map(PlayerProfile::getLevel).orElse(0);\n    }\n\n    private void continueToBehavior(Player player, RPGNpc npc) {
+    private int levelOf(Player player) {
+        return profiles.getProfile(player.getUniqueId()).map(PlayerProfile::getLevel).orElse(0);
+    }
+
+    private void continueToBehavior(Player player, RPGNpc npc) {
         behaviors.get(npc.type()).ifPresentOrElse(
                 behavior -> behavior.onInteract(player, npc, target -> openIntro(target, npc, levelOf(target), false)),
                 () -> dialogue.openUnavailable(player, npc.name(), "Für diesen NPC ist noch keine Funktion hinterlegt."));
