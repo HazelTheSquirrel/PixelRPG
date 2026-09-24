@@ -24,7 +24,7 @@ public final class QuestService {
     private final QuestRepository repository;
     private final PlayerProfileManager profiles;
     private final ItemService items;
-    private final WakeScheduler<UUID> expiryScheduler;
+    private final WakeScheduler<QuestTimerKey> expiryScheduler;
 
     public QuestService(Plugin plugin, QuestRepository repository,
                         PlayerProfileManager profiles, ItemService items) {
@@ -70,7 +70,7 @@ public final class QuestService {
         PlayerProfile profile = profiles.get(player.getUniqueId());
         if (profile == null || !profile.hasActiveQuest(questId)) return false;
         profile.removeActiveQuest(questId);
-        expiryScheduler.cancel(player.getUniqueId());
+        expiryScheduler.cancel(new QuestTimerKey(player.getUniqueId(), questId));
         profiles.saveProfileAsync(player.getUniqueId());
         return true;
     }
@@ -144,7 +144,7 @@ public final class QuestService {
             expire(playerId, questId);
             return;
         }
-        expiryScheduler.wakeLater(playerId, Math.max(1L, (remaining + 49L) / 50L),
+        expiryScheduler.wakeLater(new QuestTimerKey(playerId, questId), Math.max(1L, (remaining + 49L) / 50L),
                 () -> expire(playerId, questId));
     }
 
@@ -197,6 +197,8 @@ public final class QuestService {
         items.createItem(material, rarity, Math.clamp(level, 1, 99))
                 .ifPresent(stack -> player.getInventory().addItem(stack));
     }
+
+    private record QuestTimerKey(UUID playerId, String questId) { }
 
     private void propagate(Player source, java.util.function.Consumer<PlayerProfile> action) {
         PartyAPI party = Bukkit.getServicesManager().load(PartyAPI.class);
