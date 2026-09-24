@@ -183,7 +183,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         questRepository.load();
         globalEventState = new GlobalEventState(this);
         globalEventState.load();
-        questManager = new QuestManager(this, questRepository, playerProfileManager, playerProfileManager, globalEventState, partyManager.getShareRange());
+        questManager = new QuestManager(this, questRepository, playerProfileManager, playerProfileManager, globalEventState, storyManager, partyManager.getShareRange());
         guildManager = GuildManager.getInstance(this, playerProfileManager);
         combatStateService = new CombatStateService(this);
         inviteDialogService = new InviteDialogService(this, guildManager, partyManager, playerProfileManager, combatStateService);
