@@ -59,6 +59,7 @@ import de.pixelrpg.rpg.npc.NpcChunkListener;
 import de.pixelrpg.rpg.npc.NpcInteractListener;
 import de.pixelrpg.rpg.npc.NpcLookTask;
 import de.pixelrpg.rpg.npc.NpcManager;
+import de.pixelrpg.rpg.npc.NpcDialogueService;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.behavior.BankerBehavior;
 import de.pixelrpg.rpg.npc.behavior.FillerBehavior;
