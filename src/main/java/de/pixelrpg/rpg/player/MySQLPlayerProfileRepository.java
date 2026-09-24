@@ -63,6 +63,8 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
     }
 
     private void loadDomainState(Connection connection, UUID id, PlayerProfile profile) throws SQLException {
+        java.util.Map<String, Integer> activeCurrent = new java.util.HashMap<>();
+        java.util.Map<String, Long> activeExpiry = new java.util.HashMap<>();
         try (var statement = connection.prepareStatement(
                 "SELECT stat_key, value FROM pixelrpg_player_stats WHERE uuid = ?")) {
             statement.setString(1, id.toString());
@@ -84,16 +86,16 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                     } else if (key.startsWith(QUEST_PREFIX) && value > 0L) {
                         profile.markQuestCompleted(key.substring(QUEST_PREFIX.length()));
                     } else if (key.startsWith(ACTIVE_QUEST_PREFIX)) {
-                        String questId = key.substring(ACTIVE_QUEST_PREFIX.length());
-                        profile.startQuest(new de.pixelrpg.rpg.quest.QuestProgress(questId, (int) value, 0L));
+                        activeCurrent.put(key.substring(ACTIVE_QUEST_PREFIX.length()), (int) value);
                     } else if (key.startsWith(ACTIVE_EXPIRY_PREFIX)) {
-                        String questId = key.substring(ACTIVE_EXPIRY_PREFIX.length());
-                        var current = profile.getActiveQuests().get(questId);
-                        if (current != null) profile.removeActiveQuest(questId); // rebuilt below from the latest expiry snapshot
-                        profile.startQuest(new de.pixelrpg.rpg.quest.QuestProgress(questId, current == null ? 0 : current.getCurrentAmount(), value));
+                        activeExpiry.put(key.substring(ACTIVE_EXPIRY_PREFIX.length()), value);
                     }
                 }
             }
+        }
+        for (String questId : activeCurrent.keySet()) {
+            profile.startQuest(new de.pixelrpg.rpg.quest.QuestProgress(
+                    questId, activeCurrent.getOrDefault(questId, 0), activeExpiry.getOrDefault(questId, 0L)));
         }
     }
 
