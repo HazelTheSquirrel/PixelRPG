@@ -1,8 +1,80 @@
 package de.pixelrpg.rpg;
-import de.pixelrpg.rpg.api.*; import de.pixelrpg.rpg.economy.EconomyService; import de.pixelrpg.rpg.guild.GuildService; import de.pixelrpg.rpg.item.ItemService; import de.pixelrpg.rpg.party.PartyService; import de.pixelrpg.rpg.player.*; import de.pixelrpg.rpg.stats.StatisticsService; import org.bukkit.Bukkit; import org.bukkit.plugin.ServicePriority; import org.bukkit.plugin.java.JavaPlugin;
+
+import de.pixelrpg.rpg.api.ItemAPI;
+import de.pixelrpg.rpg.api.PartyAPI;
+import de.pixelrpg.rpg.api.StatisticsAPI;
+import de.pixelrpg.rpg.item.ItemService;
+import de.pixelrpg.rpg.party.PartyService;
+import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
+import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.stats.StatisticsService;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.ServicePriority;
+import org.bukkit.plugin.java.JavaPlugin;
+
 public final class PixelRPGPlugin extends JavaPlugin {
- private PlayerProfileManager profiles;
- @Override public void onEnable(){saveDefaultConfig();profiles=new PlayerProfileManager(this);profiles.initialize(getConfig());getServer().getPluginManager().registerEvents(new PlayerProfileLifecycleListener(profiles),this);register(EconomyAPI.class,new EconomyService(profiles));register(GuildAPI.class,new GuildService());register(PartyAPI.class,new PartyService(getConfig().getDouble("quests.party-share-range",24)));register(StatisticsAPI.class,new StatisticsService());register(ItemAPI.class,new ItemService(this));getLogger().info("PixelRPG clean-rebuild foundation enabled.");}
- @Override public void onDisable(){if(profiles!=null)profiles.close();}
- private <T> void register(Class<T> type,T service){Bukkit.getServicesManager().register(type,service,this,ServicePriority.Normal);}
+    private PlayerProfileManager profiles;
+    private PartyService partyService;
+    private StatisticsService statisticsService;
+    private ItemService itemService;
+
+    @Override
+    public void onEnable() {
+        saveDefaultConfig();
+
+        profiles = new PlayerProfileManager(this);
+        profiles.initialize(getConfig());
+        getServer().getPluginManager().registerEvents(
+                new PlayerProfileLifecycleListener(profiles), this);
+
+        partyService = new PartyService(getConfig().getDouble("quests.party-share-range", 24.0D));
+        statisticsService = new StatisticsService();
+        itemService = new ItemService(this);
+
+        register(PartyAPI.class, partyService);
+        register(StatisticsAPI.class, statisticsService);
+        register(ItemAPI.class, itemService);
+
+        getLogger().info("PixelRPG clean-rebuild core enabled.");
+    }
+
+    @Override
+    public void onDisable() {
+        unregister(PartyAPI.class, partyService);
+        unregister(StatisticsAPI.class, statisticsService);
+        unregister(ItemAPI.class, itemService);
+        if (profiles != null) {
+            profiles.shutdown();
+            profiles = null;
+        }
+        partyService = null;
+        statisticsService = null;
+        itemService = null;
+    }
+
+    private <T> void register(Class<T> type, T service) {
+        Bukkit.getServicesManager().register(type, service, this, ServicePriority.Normal);
+    }
+
+    private <T> void unregister(Class<T> type, T service) {
+        if (service != null) {
+            Bukkit.getServicesManager().unregister(type, service);
+        }
+    }
+
+    public PlayerProfileManager getPlayerProfileManager() {
+        return profiles;
+    }
+
+    public PartyService getPartyService() {
+        return partyService;
+    }
+
+    public StatisticsService getStatisticsService() {
+        return statisticsService;
+    }
+
+    public ItemService getItemService() {
+        return itemService;
+    }
 }
