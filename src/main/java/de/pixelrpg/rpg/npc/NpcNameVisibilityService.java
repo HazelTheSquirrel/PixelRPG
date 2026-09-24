@@ -17,19 +17,22 @@ public final class NpcNameVisibilityService {
     private static final String PACKET_CLASS = "net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket";
 
     private final Logger logger;
+    private volatile ReflectionBridge reflectionBridge;
 
     public NpcNameVisibilityService(Logger logger) {
         this.logger = logger;
     }
 
     public void setVisible(Player player, org.bukkit.entity.Entity entity, boolean visible) {
-        if (!player.isOnline() || !entity.isValid()) return;
+        if (player == null || entity == null || !player.isOnline() || !entity.isValid()) return;
 
         try {
-            Object dataAccessor = resolveCustomNameVisibilityAccessor();
-            Object dataValue = createDataValue(dataAccessor, visible);
-            Object packet = createEntityDataPacket(entity.getEntityId(), dataValue);
-            sendPacket(player, packet);
+            ReflectionBridge bridge = getReflectionBridge();
+            Object dataValue = bridge.dataValueFactory().invoke(null, bridge.dataAccessor(), visible);
+            Object packet = bridge.packetConstructor().newInstance(entity.getEntityId(), List.of(dataValue));
+            Object connection = player.getConnection();
+            Object packetListener = bridge.packetListenerField().get(connection);
+            bridge.sendMethod().invoke(packetListener, packet);
         } catch (ReflectiveOperationException | RuntimeException exception) {
             logger.log(Level.WARNING,
                     "Failed to update NPC name visibility for " + player.getName(),
@@ -37,41 +40,29 @@ public final class NpcNameVisibilityService {
         }
     }
 
-    private static Object resolveCustomNameVisibilityAccessor() throws ReflectiveOperationException {
-        Class<?> entityClass = Class.forName(ENTITY_CLASS);
-        Field field = entityClass.getDeclaredField("DATA_CUSTOM_NAME_VISIBLE");
-        field.setAccessible(true);
-        return field.get(null);
+    private ReflectionBridge getReflectionBridge() throws ReflectiveOperationException {
+        ReflectionBridge current = reflectionBridge;
+        if (current != null) return current;
+
+        synchronized (this) {
+            current = reflectionBridge;
+            if (current == null) {
+                current = ReflectionBridge.create();
+                reflectionBridge = current;
+            }
+            return current;
+        }
     }
 
-    private static Object createDataValue(Object dataAccessor, boolean visible) throws ReflectiveOperationException {
-        Class<?> dataValueClass = Class.forName(DATA_VALUE_CLASS);
-        Method create = dataValueClass.getMethod("create", Class.forName(DATA_ACCESSOR_CLASS), Object.class);
-        return create.invoke(null, dataAccessor, visible);
-    }
-
-    private static Object createEntityDataPacket(int entityId, Object dataValue) throws ReflectiveOperationException {
-        Class<?> packetClass = Class.forName(PACKET_CLASS);
-        Constructor<?> constructor = packetClass.getConstructor(int.class, List.class);
-        return constructor.newInstance(entityId, List.of(dataValue));
-    }
-
-    private static void sendPacket(Player player, Object packet) throws ReflectiveOperationException {
-        Object connection = player.getConnection();
-        Object packetListener = findPacketListener(connection);
-        Method send = findSendMethod(packetListener.getClass());
-        send.invoke(packetListener, packet);
-    }
-
-    private static Object findPacketListener(Object connection) throws ReflectiveOperationException {
-        Class<?> type = connection.getClass();
-        while (type != null) {
+    private static Field findPacketListenerField(Class<?> type) throws ReflectiveOperationException {
+        Class<?> current = type;
+        while (current != null) {
             try {
-                Field field = type.getDeclaredField("packetListener");
+                Field field = current.getDeclaredField("packetListener");
                 field.setAccessible(true);
-                return field.get(connection);
+                return field;
             } catch (NoSuchFieldException ignored) {
-                type = type.getSuperclass();
+                current = current.getSuperclass();
             }
         }
         throw new NoSuchFieldException("packetListener");
@@ -88,5 +79,35 @@ public final class NpcNameVisibilityService {
             current = current.getSuperclass();
         }
         throw new NoSuchMethodException("send(Packet)");
+    }
+
+    private record ReflectionBridge(
+            Object dataAccessor,
+            Method dataValueFactory,
+            Constructor<?> packetConstructor,
+            Field packetListenerField,
+            Method sendMethod
+    ) {
+        private static ReflectionBridge create() throws ReflectiveOperationException {
+            Class<?> entityClass = Class.forName(ENTITY_CLASS);
+            Field accessorField = entityClass.getDeclaredField("DATA_CUSTOM_NAME_VISIBLE");
+            accessorField.setAccessible(true);
+            Object accessor = accessorField.get(null);
+
+            Class<?> dataAccessorClass = Class.forName(DATA_ACCESSOR_CLASS);
+            Class<?> dataValueClass = Class.forName(DATA_VALUE_CLASS);
+            Method factory = dataValueClass.getMethod("create", dataAccessorClass, Object.class);
+            factory.setAccessible(true);
+
+            Class<?> packetClass = Class.forName(PACKET_CLASS);
+            Constructor<?> packetConstructor = packetClass.getConstructor(int.class, List.class);
+            packetConstructor.setAccessible(true);
+
+            Class<?> connectionClass = Class.forName("net.minecraft.server.network.ServerGamePacketListenerImpl");
+            Field packetListenerField = findPacketListenerField(connectionClass);
+            Method sendMethod = findSendMethod(connectionClass);
+
+            return new ReflectionBridge(accessor, factory, packetConstructor, packetListenerField, sendMethod);
+        }
     }
 }
