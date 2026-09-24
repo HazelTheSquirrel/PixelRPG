@@ -39,7 +39,7 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
         this.profileManager = profileManager;
         this.professionService = professionService;
         this.dialogueEngine = dialogueEngine;
-        this.professionDialog = new ProfessionDialog(profileManager, dialogueEngine, quickActions);
+        this.professionDialog = new ProfessionDialog(profileManager, dialogueEngine, quickActions, quickActions.questManager());
     }
 
     @Override
