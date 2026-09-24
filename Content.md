@@ -1,3 +1,15 @@
+# 0. Überarbeitung 2026-09-24
+
+Nach der aktuellen Dialogue-/NPC-Überarbeitung wurde der Contentbestand erneut geprüft:
+
+- Berufsquests wurden vollständig entfernt; es existieren keine separaten Berufsquest-Definitionen mehr.
+- Die Questanzahl beträgt dadurch **233** statt 293.
+- Das native Dialogsystem besitzt weiterhin eine klare Hierarchie: oberste Menüs verwenden **Schließen**, Untermenüs verwenden **Zurück**.
+- DialogTree-Navigation führt bei verschachtelten Nodes zum vorherigen Node zurück.
+- Admin-platzierte NPCs erhalten beim ersten Besuch eine persistente, typabhängige Begrüßungs-/Situationsdialogspur mit variierenden Optionen und levelabhängigem Text.
+- FILLER-NPCs bleiben bewusst von dieser zusätzlichen Dialogschicht ausgenommen.
+- NPC-Interaktionen behalten ihre bestehenden fachlichen Behaviors; der neue Dialoglayer ersetzt diese nicht, sondern führt sie über die gewählte Option aus.
+
 # PixelRPG – Forensisches Content- & Feature-Audit
 
 **Prüfobjekt:** `HazelTheSquirrel/PixelRPG`  
@@ -387,7 +399,7 @@ Aktuelle Quelldateien:
 | Story | 19 |
 | V2 | 36 |
 | World Expansion | 29 |
-| **Gesamt** | **293** |
+| **Gesamt** | **233** |
 
 Questtypen:
 
@@ -1477,7 +1489,7 @@ Der statische Befund C-01 bleibt unabhängig davon bestehen: `PartySubCommand.ja
 
 Der aktuelle `test`-Stand besitzt bereits einen **umfangreichen, datengetriebenen RPG-Content-Kern**. Die großen Zahlenbereiche sind nicht mehr die Hauptbaustelle:
 
-- 293 Questdefinitionen
+- 233 Questdefinitionen
 - 20 Story-Kampagnenknoten
 - 329 Crafting-Rezepte
 - 30 Itemdefinitionen
