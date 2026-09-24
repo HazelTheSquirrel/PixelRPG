@@ -158,6 +158,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                 "(uuid, registered, experience, money_minor_units, waypoints, story_chapter, persistence_revision) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE registered=VALUES(registered), experience=VALUES(experience), " +
+                "waypoints=VALUES(waypoints), " +
                 "money_minor_units=VALUES(money_minor_units), story_chapter=VALUES(story_chapter), " +
                 "persistence_revision=VALUES(persistence_revision)")) {
             statement.setString(1, profile.uniqueId().toString());
