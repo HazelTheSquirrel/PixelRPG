@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.gui;
 
+import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
@@ -22,12 +23,14 @@ public final class QuestLogGUI extends AbstractGUI {
     private final Player viewer;
     private final QuestService quests;
     private final PlayerProfileManager profiles;
+    private final ItemService itemService;
 
-    public QuestLogGUI(Player viewer, QuestService quests, PlayerProfileManager profiles) {
+    public QuestLogGUI(Player viewer, QuestService quests, PlayerProfileManager profiles, ItemService itemService) {
         super(54, Component.text("Questlog", NamedTextColor.GOLD));
         this.viewer = viewer;
         this.quests = quests;
         this.profiles = profiles;
+        this.itemService = itemService;
     }
 
     @Override
