@@ -1538,3 +1538,80 @@ Vor produktivem Einsatz bleiben Build-/Server-Smoke-Tests auf der verbindlichen 
 5. Weltwechsel, Chunk-Wechsel, Reconnect und Entity-Tracking.
 6. Abschluss eines Hauptstrukturknotens und Weitergabe an das nächste Kapitel.
 7. check inklusive aller bestehenden Forensik-/Relocation-Prüfungen.
+
+
+---
+
+# 19. Forensik-Update – Content-Pipeline 24.09.2026
+
+## Scope
+
+Der Umbau wurde ausschließlich auf **test** durchgeführt. **main** wurde nicht verändert.
+
+Die Änderungen beschränken sich auf die Vervollständigung der bestehenden Content-Pipeline und respektieren die bestehenden Architektur-/Build-Grenzen.
+
+## Neue technische Pfade
+
+### Custom-Crafting
+
+Die bestehende Crafting-Pipeline wurde erweitert, ohne den Vanilla-Rezeptpfad zu ersetzen.
+
+Validiert werden:
+
+- Custom-`resultItemId`
+- Custom-`itemCosts`
+- zentrale ItemDefinitionRegistry
+- Verbot von Admin-/Unique-Items als Crafting-Ergebnis oder Kosten
+- Materialgleichheit zwischen Recipe-Result und ItemDefinition
+
+Die tatsächliche Erzeugung läuft weiterhin über `ItemService`.
+
+### Quest-Rewards
+
+Die Quest-Pipeline unterstützt den bestehenden `reward.companionId`-Mechanismus jetzt mit tatsächlichem Content.
+
+Custom-Item-Questbelohnungen verwenden die zentrale ItemService-Erzeugung. Die Canonicalisierung der PixelRPG-Item-IDs wurde dabei so korrigiert, dass die vorhandenen Slash-basierten IDs der zentralen ItemDefinitionRegistry unverändert erhalten bleiben.
+
+### Boss-Loot
+
+Boss-Loot-Migration ergänzt ausgewählte Progressionsitems additiv. Vorhandene Boss-Rewards werden nicht entfernt.
+
+### Physische Currency
+
+Die bestehende Currency-Factory verwendet jetzt den aktuellen Paper-26.2-Data-Component-Pfad für `MAX_STACK_SIZE`.
+
+Die automatische Pickup-Überführung in die virtuelle Economy wurde aus der Plugin-Registrierung entfernt. Damit bleibt die Währung beim normalen Spieler-Pickup physisch im Inventar.
+
+Der technisch unterstützte Stackwert wurde auf 99 begrenzt. Eine 999er Lösung wurde bewusst nicht über NMS/Legacy-Mechaniken erzwungen.
+
+## Unveränderte Forensik-Grenzen
+
+Weiterhin gültig:
+
+- keine CraftBukkit-Klassen
+- kein Legacy-NMS
+- kein `ChatColor`
+- Mojang-Mappings
+- Paper 26.x API
+- Java 25
+- bestehende Shadow-Relocations
+- bestehende Build-/Boundary-Verifikationen
+- keine statischen Live-Server-Referenzen
+- keine Entfernung der vorhandenen Verification-Tasks
+
+## Bewusst nicht angefasst
+
+- Food-Testbestand
+- globale NPC-Weltpopulation
+- manuelle Shop-Inhalte
+- Regionen/Guild-City
+- Resourcepack-Ausbau
+
+Diese Punkte sind Produkt-/Content-Entscheidungen und keine unbeabsichtigten technischen Lücken.
+
+## Verifikation
+
+Der GitHub-Workflow enthält weiterhin den bestehenden vollständigen `gradle clean build`- und API-/Artifact-Verification-Pfad.
+
+Für den aktuellen Stand wurde über den verfügbaren GitHub-Connector **kein Workflow-Run zurückgeliefert**. Deshalb wird hier kein erfolgreicher Build/Server-Smoke-Test behauptet. Die Änderungen wurden stattdessen gegen die vorhandenen Quell-/Datenstrukturen und die Paper-26.2-API-Grenzen geprüft.
+
