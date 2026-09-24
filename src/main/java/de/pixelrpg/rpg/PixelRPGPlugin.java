@@ -9,6 +9,8 @@ import de.pixelrpg.rpg.api.PartyAPI;
 import de.pixelrpg.rpg.api.StatisticsAPI;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.gui.GUIListener;
+import de.pixelrpg.rpg.npc.NpcChunkListener;
+import de.pixelrpg.rpg.npc.NpcManager;
 import de.pixelrpg.rpg.item.FoodService;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.party.PartyDisconnectListener;
@@ -38,6 +40,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private de.pixelrpg.rpg.guild.GuildManager guildManager;
     private BankStorageService bankStorageService;
     private TradeDepotManager tradeDepotManager;
+    private NpcManager npcManager;
 
     @Override
     public void onEnable() {
@@ -60,6 +63,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         itemService = new ItemService(this, foodService);
         bankStorageService = new BankStorageService(this);
         tradeDepotManager = new TradeDepotManager(this, profiles, bankStorageService, itemService);
+        npcManager = new NpcManager(this);
+        npcManager.load();
+        getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
         professionSystem = new ProfessionSystem(this, profiles);
         professionSystem.register();
         questRepository = new QuestRepository(this);
@@ -85,6 +91,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         unregister(PartyAPI.class, partyManager);
+        if (npcManager != null) npcManager.shutdown();
         if (tradeDepotManager != null) tradeDepotManager.shutdown();
         if (bankStorageService != null) bankStorageService.close();
         if (guildManager != null) guildManager.shutdown();
@@ -108,6 +115,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         guildManager = null;
         bankStorageService = null;
         tradeDepotManager = null;
+        npcManager = null;
     }
 
     private <T> void register(Class<T> type, T service) {
@@ -154,5 +162,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     public TradeDepotManager getTradeDepotManager() {
         return tradeDepotManager;
+    }
+
+    public NpcManager getNpcManager() {
+        return npcManager;
     }
 }
