@@ -2,7 +2,7 @@
 
 **Prüfobjekt:** `HazelTheSquirrel/PixelRPG`  
 **Branch:** `test`  
-**Prüfstand:** `e144a9005d1c295c237be606e2c49162a7da536d`  
+**Prüfstand:** `282342e2bef4f32fd89ff8e28ba82447bb045589`  
 **Referenzbranch:** `main`  
 **Referenzstand:** `b02747a21cde6d1308c59a7f027cda80877cfe50`  
 **Prüfdatum:** 2026-09-24  
@@ -29,7 +29,7 @@ Diese Prüfung ist **kein Anlass für einen Rewrite**. Ziel ist die Feststellung
 
 # 2. Executive Summary
 
-PixelRPG ist kein Prototyp mehr. Der aktuelle Quellbestand umfasst **247 Java-Dateien**, 15 zentrale JSON-Datendateien und 49 Resourcepack-Dateien. Die Architektur ist in zahlreiche Fachmodule aufgeteilt: Player, NPC, Dialogue, Quest, Profession, Item, Equipment, Combat, Boss, Companion, Party, Guild, Region, Shop, Economy, Story, Statistics und Storage.
+PixelRPG ist kein Prototyp mehr. Der aktuelle Quellbestand umfasst **247 Java-Dateien**, 15 zentrale JSON-Datendateien und 59 Resourcepack-Dateien. Die Architektur ist in zahlreiche Fachmodule aufgeteilt: Player, NPC, Dialogue, Quest, Profession, Item, Equipment, Combat, Boss, Companion, Party, Guild, Region, Shop, Economy, Story, Statistics und Storage.
 
 Der aktuelle `test`-Stand baut erfolgreich und verwendet die vorgegebenen technischen Grundlagen:
 
@@ -45,7 +45,7 @@ Der aktuelle `test`-Stand baut erfolgreich und verwendet die vorgegebenen techni
 - Paper Bootstrapper
 - Mojang-Mappings
 
-Der aktuelle GitHub-Actions-Lauf für exakt den geprüften Commit `e144a9005d1c295c237be606e2c49162a7da536d` war erfolgreich.
+Der aktuelle GitHub-Actions-Lauf für exakt den geprüften Commit `282342e2bef4f32fd89ff8e28ba82447bb045589` war erfolgreich.
 
 ### Gesamtbefund
 
@@ -107,7 +107,7 @@ Es existieren jedoch weiterhin konkrete Befunde:
 `test` zeigt auf:
 
 ```
-e144a9005d1c295c237be606e2c49162a7da536d
+282342e2bef4f32fd89ff8e28ba82447bb045589
 ```
 
 `main` zeigt auf:
@@ -120,7 +120,7 @@ Der Vergleich ergibt:
 
 ```
 main -> test
-ahead:  1
+ahead:  3
 behind: 0
 ```
 
@@ -144,7 +144,7 @@ Der Branch enthält:
 
 - 247 Java-Dateien
 - 15 JSON-Content-Dateien
-- 49 Resourcepack-Dateien
+- 59 Resourcepack-Dateien
 - `config.yml`
 - `paper-plugin.yml`
 - GitHub Actions
@@ -1148,7 +1148,7 @@ Der externe Skin-Cache ist instanzgebunden und damit nicht global nutzbar.
 
 # 38. Resourcepack
 
-Das Repository enthält 49 Resourcepack-Dateien.
+Das Repository enthält 59 Resourcepack-Dateien.
 
 Darunter:
 
@@ -1725,10 +1725,10 @@ führt aus:
 5. Source Boundary Verification
 6. Artifact Verification
 
-Der aktuelle Lauf für Commit `e144a9005d1c295c237be606e2c49162a7da536d`:
+Der aktuelle Lauf für Commit `282342e2bef4f32fd89ff8e28ba82447bb045589`:
 
 ```
-Run: 35950748101
+Run: 35953786074
 Status: completed
 Conclusion: success
 ```
@@ -2682,4 +2682,97 @@ Release Automation         NOT SEALED
 ```
 
 **Forensik-Stand:** 2026-09-24  
-**Geprüfter Commit:** `e144a9005d1c295c237be606e2c49162a7da536d`
+**Geprüfter Commit:** `282342e2bef4f32fd89ff8e28ba82447bb045589`
+
+
+---
+
+# 97. Aktualisierte Gegenprüfung des aktuellen `test`-Stands
+
+Dieser Abschnitt wurde bei der abschließenden Gegenprüfung am 2026-09-24 ergänzt.
+
+## Git-Differenz
+
+Der direkte Vergleich von `b02747a21cde6d1308c59a7f027cda80877cfe50` nach `test` bestätigt:
+
+- `test` ist 3 Commits voraus.
+- `test` ist 0 Commits hinter `main`.
+- Der Codebestand ist gegenüber dem Referenzcommit unverändert.
+- Die einzige in diesem Vergleich auftauchende Datei ist `forensik.md`.
+
+Damit wurde die forensische Bewertung nicht durch parallele Implementierungsänderungen verfälscht.
+
+## Repository-Zählung
+
+Der rekursive Git-Tree des aktuellen Prüfstands enthält:
+
+- 247 Java-Dateien
+- 322 Dateien insgesamt
+- 15 JSON-Dateien unter `src/main/resources/data`
+- 59 Resourcepack-Dateien
+- 46 Resourcepack-JSON-Dateien
+
+Die Modulzählung wurde erneut aus dem tatsächlichen Tree abgeleitet.
+
+## CI-Gegenprüfung
+
+Für den exakten aktuellen `test`-Commit `282342e2bef4f32fd89ff8e28ba82447bb045589` existiert ein erfolgreicher GitHub-Actions-Run:
+
+- Run ID: `35953786074`
+- Workflow: `Build`
+- Status: `completed`
+- Conclusion: `success`
+
+Die einzelnen Buildschritte wurden ebenfalls als erfolgreich gemeldet:
+
+- Set up Java 25
+- Set up Gradle 9.2.0
+- Build PixelRPG
+- Verify source API boundaries
+- Verify plugin artifact
+
+Damit ist der aktuelle Prüfstand CI-seitig tatsächlich grün.
+
+## Wichtige Korrektur zur Evidenz
+
+Ein früherer Audittext bezog sich auf den Commit `e144a9005d1c295c237be606e2c49162a7da536d`. Der aktuelle Branch steht inzwischen auf `282342e2bef4f32fd89ff8e28ba82447bb045589`.
+
+Da der Vergleich gegen den Referenzcommit ausschließlich die Dokumentation als Änderung ausweist, bleiben die technischen Codebefunde gültig. Die CI-Evidenz wurde trotzdem auf den tatsächlich aktuellen Commit aktualisiert.
+
+---
+
+# 98. Endgültige forensische Einschätzung
+
+Der aktuelle `test`-Branch ist aus Code-Sicht kein neuer experimenteller Implementierungsstand gegenüber `main`. Er ist der gleiche funktionierende Codebestand plus die Forensik-Dokumentation.
+
+Die Prüfung liefert deshalb zwei getrennte Ergebnisse:
+
+### Implementierung
+
+**Belastbar und bereits real eingesetzt.**
+
+Die Architektur ist für das Projektstadium angemessen. Es gibt mehrere starke technische Schutzmechanismen, insbesondere bei Persistenz, Revisionen, NPC-Dateien, Async-I/O, Lifecycle und Buildgrenzen.
+
+### Engineering-/Release-Absicherung
+
+**Noch nicht vollständig geschlossen.**
+
+Die wichtigsten fehlenden Beweise sind automatisierte Runtime-, Restart-, MySQL- und Content-Tests.
+
+Der sinnvollste nächste Schritt ist daher nicht ein Rewrite, sondern das Schließen dieser Verifikationslücken.
+
+**Finaler Befund:**
+
+```
+CODEBASE:               STABIL / FUNKTIONSFÄHIG
+ARCHITEKTUR:            STARK
+PERSISTENZ:             GUT ABGESICHERT
+SECURITY BASELINE:      GUT
+CI BUILD:               BESTÄTIGT GRÜN
+RUNTIME:                MANUELL BESTÄTIGT DURCH PROJEKTSTATUS
+AUTOMATED RUNTIME:      NOCH NICHT VORHANDEN
+RESTART PROOF:          NOCH NICHT AUTOMATISIERT
+CONTENT PROOF:          NOCH NICHT VOLLSTÄNDIG AUTOMATISIERT
+REWRITE NOTWENDIG:      NEIN
+NÄCHSTE PHASE:          ABSICHERUNG / TESTAUTOMATISIERUNG
+```
