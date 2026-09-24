@@ -79,7 +79,12 @@ public final class ReceptionDialog {
                     Quest storyQuest = storyQuestId.isBlank()
                             ? null
                             : pixelRPG.getQuestManager().getRepository().getQuest(storyQuestId);
-                    if (storyQuest != null
+                    if (storyQuest == null && chapter.startQuestId().isBlank()) {
+                        actions.add(dialogueEngine.actionButton(
+                                Component.text("Story starten: " + chapter.title(), NamedTextColor.LIGHT_PURPLE),
+                                NamedTextColor.LIGHT_PURPLE,
+                                target -> openStoryChapter(target, chapter)));
+                    } else if (storyQuest != null
                             && !profile.hasActiveQuest(storyQuest.id())
                             && !profile.hasCompletedQuest(storyQuest.id())) {
                         actions.add(dialogueEngine.actionButton(
