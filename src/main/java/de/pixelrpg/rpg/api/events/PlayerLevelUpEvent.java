@@ -1,0 +1,3 @@
+package de.pixelrpg.rpg.api.events;
+import org.bukkit.entity.Player; import org.bukkit.event.Event; import org.bukkit.event.HandlerList;
+public final class PlayerLevelUpEvent extends Event { private static final HandlerList HANDLERS=new HandlerList(); private final Player player; private final int previousLevel,newLevel; public PlayerLevelUpEvent(Player p,int previousLevel,int newLevel){player=p;this.previousLevel=previousLevel;this.newLevel=newLevel;} public Player getPlayer(){return player;} public int getPreviousLevel(){return previousLevel;} public int getNewLevel(){return newLevel;} @Override public HandlerList getHandlers(){return HANDLERS;} public static HandlerList getHandlerList(){return HANDLERS;} }
