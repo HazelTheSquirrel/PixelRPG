@@ -194,6 +194,12 @@ public final class QuestNavigationService {
     }
 
     private Location resolveWorldTarget(Location origin, Quest quest) {
+        // The dragon quest uses the Stronghold as the route into the End, then the End's center as the hunt target.
+        if ("ENDER_DRAGON".equalsIgnoreCase(quest.targetKey())
+                && origin.getWorld() != null
+                && origin.getWorld().getEnvironment() == org.bukkit.World.Environment.THE_END) {
+            return new Location(origin.getWorld(), 0.5D, 64.0D, 0.5D);
+        }
         if (quest.targetStructureKey() == null && quest.targetBiomeKeys().isEmpty()) return quest.reachLocation();
 
         NavigationCacheKey cacheKey = new NavigationCacheKey(

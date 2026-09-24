@@ -102,6 +102,14 @@ public final class StoryNpcDialogue {
     }
 
     private void openStronghold(Player player, StoryChapter chapter, RPGNpc npc) {
+        List<ActionButton> actions = new ArrayList<>();
+        actions.add(dialogueEngine.actionButton(Component.text("Was wissen wir über das Portal?"), NamedTextColor.AQUA,
+                target -> openStrongholdPortal(target, chapter, npc)));
+        actions.add(dialogueEngine.actionButton(Component.text("Was könnte sie vertrieben haben?"), NamedTextColor.LIGHT_PURPLE,
+                target -> openStrongholdEscape(target, chapter, npc)));
+        addCompletionAction(actions, player, chapter, npc, "Bericht erstatten", NamedTextColor.GREEN);
+        actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
+
         dialogueEngine.openMultiAction(
                 player,
                 Component.text("Oren – Die Verzweiflungstat", NamedTextColor.GOLD),
@@ -113,13 +121,29 @@ public final class StoryNpcDialogue {
                                 "„Warum jemand einen Weg in eine fremde Dimension baute, wissen wir nicht. Meine Theorie: Die Erbauer suchten einen Ausweg, als ihre eigene Welt ihnen keine Zukunft mehr bot.“",
                                 NamedTextColor.WHITE))
                 ),
-                List.of(
-                        dialogueEngine.actionButton(Component.text("Was wissen wir über das Portal?"), NamedTextColor.AQUA,
-                                target -> openStrongholdPortal(target, chapter, npc)),
-                        dialogueEngine.actionButton(Component.text("Was könnte sie vertrieben haben?"), NamedTextColor.LIGHT_PURPLE,
-                                target -> openStrongholdEscape(target, chapter, npc)),
-                        dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog)
-                ), 1);
+                actions, 1);
+    }
+
+    private void addCompletionAction(List<ActionButton> actions, Player player, StoryChapter chapter,
+                                      RPGNpc npc, String label, NamedTextColor color) {
+        if (questManager == null || npc == null) return;
+        Quest quest = chapter.completionQuestId().isBlank()
+                ? null
+                : questManager.getRepository().getQuest(chapter.completionQuestId());
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (quest == null || profile == null || !profile.hasActiveQuest(quest.id())) return;
+
+        QuestProgress progress = profile.getActiveQuests().get(quest.id());
+        if (progress == null || progress.getCurrentAmount() < quest.requiredAmount()) return;
+
+        actions.add(dialogueEngine.actionButton(Component.text(label), color, target -> {
+            if (questManager.completeQuestAtNpc(target, quest.id(), npc.id())
+                    && storyManager.isChapterArchived(target.getUniqueId(), chapter)) {
+                target.closeDialog();
+            } else {
+                openChapter(target, chapter, npc);
+            }
+        }));
     }
 
     private void openStrongholdPortal(Player player, StoryChapter chapter, RPGNpc npc) {
@@ -334,6 +358,7 @@ public final class StoryNpcDialogue {
         List<ActionButton> actions = new ArrayList<>();
         actions.add(dialogueEngine.actionButton(Component.text("Wer lebte hier?"), NamedTextColor.LIGHT_PURPLE, target -> openArchaeologistTheory(target, chapter, npc)));
         actions.add(dialogueEngine.actionButton(Component.text("Zur Untersuchung"), NamedTextColor.AQUA, target -> openChapter(target, chapter, npc)));
+        addCompletionAction(actions, player, chapter, npc, "Bericht erstatten", NamedTextColor.GREEN);
         actions.add(dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog));
         dialogueEngine.openMultiAction(player, Component.text("Der Archäologe", NamedTextColor.GOLD), body, actions, 1);
     }
