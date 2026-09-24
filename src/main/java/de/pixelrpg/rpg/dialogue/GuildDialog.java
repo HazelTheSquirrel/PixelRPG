@@ -27,16 +27,22 @@ public final class GuildDialog {
     private final PlayerProfileManager profiles;
     private final DialogueEngine dialogue;
     private final QuickActionsDialogService quickActions;
+    private final InviteDialogService invites;
 
     public GuildDialog(GuildManager guilds, PlayerProfileManager profiles, DialogueEngine dialogue) {
-        this(guilds, profiles, dialogue, null);
+        this(guilds, profiles, dialogue, null, null);
     }
 
     public GuildDialog(GuildManager guilds, PlayerProfileManager profiles, DialogueEngine dialogue, QuickActionsDialogService quickActions) {
+        this(guilds, profiles, dialogue, quickActions, null);
+    }
+
+    public GuildDialog(GuildManager guilds, PlayerProfileManager profiles, DialogueEngine dialogue, QuickActionsDialogService quickActions, InviteDialogService invites) {
         this.guilds = guilds;
         this.profiles = profiles;
         this.dialogue = dialogue;
         this.quickActions = quickActions;
+        this.invites = invites;
     }
 
     public void open(Player player) {
@@ -103,6 +109,7 @@ public final class GuildDialog {
         );
         List<ActionButton> actions = new ArrayList<>();
         actions.add(action(Component.text("Mitglieder anzeigen", NamedTextColor.AQUA), p -> showMembers(p, guild)));
+        if (leader && invites != null) actions.add(action(Component.text("Spieler einladen", NamedTextColor.GREEN), invites::openGuildInviteInput));
         actions.add(action(Component.text("Schließen", NamedTextColor.GRAY), Player::closeDialog));
         dialogue.openMultiAction(player, Component.text("Gilde – " + guild.name(), NamedTextColor.GOLD), body, actions, 1);
     }
