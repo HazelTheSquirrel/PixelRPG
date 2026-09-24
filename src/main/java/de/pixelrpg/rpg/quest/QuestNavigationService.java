@@ -177,7 +177,7 @@ public final class QuestNavigationService {
         return switch (quest.type()) {
             case TALK_TO_NPC -> resolveNpc(origin, quest.targetKey());
             case HUNT, COLLECT -> null;
-            case REACH_LOCATION -> resolveWorldTarget(profile, quest);
+            case REACH_LOCATION -> resolveWorldTarget(origin, profile, quest);
             case GLOBAL_EVENT -> null;
         };
     }
@@ -204,13 +204,39 @@ public final class QuestNavigationService {
                 .orElse(null);
     }
 
-    private Location resolveWorldTarget(PlayerProfile profile, Quest quest) {
+    private Location resolveWorldTarget(Location origin, PlayerProfile profile, Quest quest) {
         PlayerProfile.NavigationTarget cached = profile.getQuestNavigationTarget(quest.id());
-        if (cached == null) return quest.reachLocation();
-        if (cached.worldId() == null) return null;
-        org.bukkit.World world = Bukkit.getWorld(cached.worldId());
-        if (world == null) return null;
-        return new Location(world, cached.x(), cached.y(), cached.z());
+        if (cached != null && cached.worldId() != null) {
+            org.bukkit.World world = Bukkit.getWorld(cached.worldId());
+            if (world != null) return new Location(world, cached.x(), cached.y(), cached.z());
+        }
+
+        var storyChapter = PixelRpgStoryChapterResolver.findChapter(quest.id(), questRepository);
+        if (storyChapter != null && !storyChapter.npcId().isBlank()) {
+            String prefix = "story_" + storyChapter.npcId().toLowerCase(java.util.Locale.ROOT) + "_";
+            return npcManager.getAll().stream()
+                    .filter(npc -> npc.type() == de.pixelrpg.rpg.npc.NpcType.STORY)
+                    .filter(npc -> npc.id().toLowerCase(java.util.Locale.ROOT).startsWith(prefix))
+                    .map(de.pixelrpg.rpg.npc.RPGNpc::location)
+                    .filter(location -> location.getWorld() != null && origin.getWorld() != null)
+                    .filter(location -> location.getWorld().equals(origin.getWorld()))
+                    .min(java.util.Comparator.comparingDouble(location -> location.distanceSquared(origin)))
+                    .orElse(quest.reachLocation());
+        }
+        return quest.reachLocation();
+    }
+
+    private static final class PixelRpgStoryChapterResolver {
+        private PixelRpgStoryChapterResolver() { }
+
+        private static de.pixelrpg.rpg.story.StoryChapter findChapter(String questId, QuestRepository questRepository) {
+            var plugin = de.pixelrpg.rpg.PixelRPGPlugin.getInstance();
+            if (plugin == null || plugin.getStoryManager() == null || questId == null) return null;
+            return plugin.getStoryManager().getAllChapters().stream()
+                    .filter(chapter -> chapter.questIds().stream().anyMatch(id -> id.equalsIgnoreCase(questId)))
+                    .findFirst()
+                    .orElse(null);
+        }
     }
 
     private void removeMarker(Map<String, QuestMarker> markers, String questId) {
