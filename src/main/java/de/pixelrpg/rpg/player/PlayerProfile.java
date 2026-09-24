@@ -47,16 +47,22 @@ public final class PlayerProfile {
     public synchronized boolean registered() { return registered; }
     public synchronized long experience() { return experience; }
     public synchronized long moneyMinorUnits() { return moneyMinorUnits; }
+    public synchronized long getMoneyMinorUnits() { return moneyMinorUnits; }
+    public synchronized long getExperience() { return experience; }
+    public synchronized int getStoryChapterIndex() { return storyChapter; }
     public synchronized double money() { return moneyMinorUnits / 100.0D; }
     public synchronized int level() { return Level.fromExperience(experience); }
     public synchronized int storyChapter() { return storyChapter; }
     public synchronized long revision() { return persistenceRevision; }
     public synchronized long mutationRevision() { return mutationRevision; }
     public synchronized boolean isDirty() { return dirty; }
+    public synchronized boolean isRegistered() { return registered; }
 
     public void registered(boolean value) { mutate(() -> registered = value); }
     public void experience(long value) { mutate(() -> experience = Math.max(0L, value)); }
     public void moneyMinorUnits(long value) { mutate(() -> moneyMinorUnits = Math.max(0L, value)); }
+    public void setMoneyMinorUnits(long value) { moneyMinorUnits(value); }
+    public void setStoryChapterIndex(int value) { storyChapter(value); }
     public void storyChapter(int value) { mutate(() -> storyChapter = value); }
     public void revision(long value) { synchronized (this) { persistenceRevision = Math.max(0L, value); } }
 
