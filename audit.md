@@ -1342,3 +1342,30 @@ Bewusst nicht als VERIFIED markiert: Guild-GUI/Dialoge, Gildenbank, Guild Compas
 ### CI
 
 Für diesen Head läuft GitHub Actions Run `35948125975`. Der Run ist noch nicht abgeschlossen; Build-, Boundary- und Artifact-Prüfungen sind daher weiterhin offen.
+
+
+## 36. Personal Bank / Trade Depot Foundation — 2026-09-24
+
+**REBUILT / NOT VERIFIED**
+
+Der abhängige Storage-/Trading-Block wurde als eigenständige Runtime neu aufgebaut:
+
+- persönliche Bank mit zwei 54-Slot-Seiten;
+- separates 54-Slot-Handelsfach;
+- defensive ItemStack-Snapshots;
+- asynchrone, atomische YAML-Persistence über Java-25-Virtual-Thread-I/O;
+- Legacy-Aufteilung des früher kombinierten Bank-/Handelsfach-Bestands wird beim ersten Start berücksichtigt;
+- TradeDepotListing als immutable Domain-Snapshot;
+- Handelsangebote mit 7 Tagen Laufzeit;
+- 5-%-Verkaufsgebühr;
+- Kauf, Rücknahme und Ablauf-Rückgabe ins Handelsfach;
+- ausstehende Verkäufer-Auszahlungen für offline geladene Profile;
+- Economy-sichere RPG-Items als Voraussetzung für Handelsangebote;
+- exakte Ablaufplanung statt permanenter Polling-Schleifen;
+- Integration in den Plugin-Lifecycle inklusive Shutdown.
+
+Bewusst noch OPEN: vollständige Bank-/Trade-Depot-GUIs, native Bank-Dialoge, NPC-Einstiege, Kauf-/Verkaufsdarstellung, vollständige Parität der sichtbaren Abläufe und die End-to-End-Integration mit Guild-Bank/Quick-Actions.
+
+### Aktueller Rebuild-Head
+
+`94cc760560d1b2ca7034b87b3361a9caeee83203`
