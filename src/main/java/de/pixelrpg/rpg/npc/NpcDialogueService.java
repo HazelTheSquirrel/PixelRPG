@@ -134,7 +134,7 @@ public final class NpcDialogueService implements AutoCloseable {
 
     private void continueToBehavior(Player player, RPGNpc npc) {
         behaviors.get(npc.type()).ifPresentOrElse(
-                behavior -> behavior.onInteract(player, npc),
+                behavior -> behavior.onInteract(player, npc, target -> openIntro(target, npc, levelOf(target), false)),
                 () -> dialogue.openUnavailable(player, npc.name(), "Für diesen NPC ist noch keine Funktion hinterlegt."));
     }
 
