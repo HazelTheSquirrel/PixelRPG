@@ -83,16 +83,7 @@ public final class StoryNpcDialogue {
                 else openChapter(target, chapter, npc);
             }));
         }
-        if (quest != null && !profile.hasActiveQuest(quest.id()) && !profile.hasCompletedQuest(quest.id())) {
-            actions.add(dialogueEngine.actionButton(Component.text("Quest annehmen"), NamedTextColor.GREEN, target -> {
-                PlayerProfile current = profileManager.getProfile(target.getUniqueId()).orElse(null);
-                if (current == null || !current.isRegistered()) return;
-                Quest currentQuest = questManager.getRepository().getQuest(quest.id());
-                if (currentQuest != null) questManager.acceptQuest(target, currentQuest);
-                openChapter(target, chapter, npc);
-            }));
-        }
-
+        // Story quests are accepted exclusively at the central reception. This NPC only advances active story steps or lore.
         Quest completionQuest = questManager == null || chapter.completionQuestId().isBlank() ? null : questManager.getRepository().getQuest(chapter.completionQuestId());
         if (npc != null && completionQuest != null && profile.hasActiveQuest(completionQuest.id())) {
             actions.add(dialogueEngine.actionButton(Component.text("Bericht erstatten"), NamedTextColor.AQUA, target -> {
@@ -115,9 +106,7 @@ public final class StoryNpcDialogue {
         if (!"campaign_end_city".equals(chapter.id()) || questManager == null) return;
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) return;
-        Quest epilogue = questManager.getRepository().getQuest("story_campaign_after_the_end");
-        if (epilogue == null || profile.hasActiveQuest(epilogue.id()) || profile.hasCompletedQuest(epilogue.id())) return;
-        questManager.acceptQuest(player, epilogue);
+        // The next story quest is deliberately not auto-accepted here; it must be offered by the reception.
     }
 
     private void openStronghold(Player player, StoryChapter chapter, RPGNpc npc) {
@@ -137,8 +126,6 @@ public final class StoryNpcDialogue {
                                 target -> openStrongholdPortal(target, chapter, npc)),
                         dialogueEngine.actionButton(Component.text("Was könnte sie vertrieben haben?"), NamedTextColor.LIGHT_PURPLE,
                                 target -> openStrongholdEscape(target, chapter, npc)),
-                        dialogueEngine.actionButton(Component.text("Quest annehmen"), NamedTextColor.GREEN,
-                                target -> openChapter(target, chapter, npc)),
                         dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog)
                 ), 1);
     }
@@ -193,16 +180,7 @@ public final class StoryNpcDialogue {
         );
 
         List<ActionButton> actions = new ArrayList<>();
-        if (!active && !completed) {
-            actions.add(dialogueEngine.actionButton(Component.text("Die Drachenjagd beginnen"), NamedTextColor.RED,
-                    target -> {
-                        PlayerProfile current = profileManager.getProfile(target.getUniqueId()).orElse(null);
-                        if (current == null || !current.isRegistered()
-                                || current.hasActiveQuest(quest.id()) || current.hasCompletedQuest(quest.id())) return;
-                        questManager.acceptQuest(target, quest);
-                        openDragon(target, chapter, npc);
-                    }));
-        }
+        // The reception is the only place where this story quest can be accepted.
         if (active) {
             QuestProgress progress = profile.getActiveQuests().get(quest.id());
             if (progress != null && progress.getCurrentAmount() >= quest.requiredAmount()) {
