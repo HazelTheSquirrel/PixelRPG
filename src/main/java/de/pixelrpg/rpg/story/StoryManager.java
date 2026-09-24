@@ -150,6 +150,20 @@ public final class StoryManager {
         return ids.size() == known.size() && ids.containsAll(known);
     }
 
+    private boolean isPreviousCampaignV6(YamlConfiguration yaml) {
+        if (!"minecraft-lore-campaign".equalsIgnoreCase(yaml.getString("campaign-id", ""))) return false;
+
+        ConfigurationSection root = yaml.getConfigurationSection("chapters");
+        if (root == null) return false;
+
+        boolean hasStronghold = root.isConfigurationSection("campaign_stronghold");
+        boolean hasEndCity = root.isConfigurationSection("campaign_end_city");
+        boolean hasDragon = root.isConfigurationSection("campaign_dragon");
+        boolean hasEpilogue = root.isConfigurationSection("after_the_end");
+
+        return hasStronghold && hasEndCity && !hasDragon && !hasEpilogue;
+    }
+
     private static final Set<String> REMOVED_STORY_QUESTS = Set.of(
             "story_campaign_ocean_ruin_cold","story_campaign_buried_treasure","story_campaign_mineshaft_mesa",
             "story_campaign_igloo","story_campaign_ruined_portal_desert","story_campaign_ruined_portal_jungle",
