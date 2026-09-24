@@ -1,7 +1,8 @@
 package de.pixelrpg.rpg.command.impl;
 
 import de.pixelrpg.rpg.command.SubCommand;
-import de.pixelrpg.rpg.gui.PartyGUI;
+import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.dialogue.PartyDialog;
 import de.pixelrpg.rpg.dialogue.InviteDialogService;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.party.PartyManager;
@@ -53,7 +54,7 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
             return true;
         }
         if (args.length == 0) {
-            new PartyGUI(player, partyManager, profileManager, inviteDialogService).open(player);
+            new PartyDialog(partyManager, profileManager, new DialogueEngine(), inviteDialogService).open(player);
             return true;
         }
         return switch (args[0].toLowerCase(Locale.ROOT)) {
