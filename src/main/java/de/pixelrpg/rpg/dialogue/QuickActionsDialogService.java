@@ -67,7 +67,7 @@ public final class QuickActionsDialogService {
         if (!isAvailable(player)) return;
         DialogueEngine engine = new DialogueEngine();
         CompanionDialog companionDialog = new CompanionDialog(companionService, engine, this);
-        ProfessionDialog professionDialog = new ProfessionDialog(profiles, engine, this);
+        ProfessionDialog professionDialog = new ProfessionDialog(profiles, engine, this, questManager);
         GuildDialog guildDialog = new GuildDialog(
                 GuildManager.getInstance(de.pixelrpg.rpg.PixelRPGPlugin.getInstance(), profiles),
                 profiles, engine, this, inviteDialogService);
