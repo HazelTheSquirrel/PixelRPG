@@ -11,6 +11,7 @@ import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.FoodService;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.party.PartyDisconnectListener;
+import de.pixelrpg.rpg.party.PartyCommand;
 import de.pixelrpg.rpg.profession.ProfessionSystem;
 import de.pixelrpg.rpg.quest.QuestLifecycleListener;
 import de.pixelrpg.rpg.quest.QuestRepository;
@@ -68,6 +69,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(equipmentService, this);
 
         register(PartyAPI.class, partyManager);
+        getLifecycleManager().registerEventHandler(io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents.COMMANDS,
+                event -> event.registrar().register("pixelrpgparty", new PartyCommand(partyManager, profiles)));
         register(StatisticsAPI.class, statisticsService);
         register(ItemAPI.class, itemService);
 
