@@ -18,6 +18,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private PlayerProfileManager profiles;
     private PartyService partyService;
     private StatisticsService statisticsService;
+    private de.pixelrpg.rpg.stats.StatEngine statEngine;
+    private EquipmentService equipmentService;
     private ItemService itemService;
     private FoodService foodService;
 
@@ -32,10 +34,13 @@ public final class PixelRPGPlugin extends JavaPlugin {
                 new PlayerProfileLifecycleListener(profiles), this);
 
         partyService = new PartyService(getConfig().getDouble("quests.party-share-range", 24.0D));
-        statisticsService = new StatisticsService();
+        statEngine = new de.pixelrpg.rpg.stats.StatEngine(profiles);
+        equipmentService = new EquipmentService(profiles, statEngine);
+        statisticsService = new StatisticsService(statEngine);
         foodService = new FoodService(this);
         itemService = new ItemService(this, foodService);
         getServer().getPluginManager().registerEvents(foodService, this);
+        getServer().getPluginManager().registerEvents(equipmentService, this);
 
         register(PartyAPI.class, partyService);
         register(StatisticsAPI.class, statisticsService);
@@ -55,6 +60,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         }
         partyService = null;
         statisticsService = null;
+        statEngine = null;
+        equipmentService = null;
         itemService = null;
         foodService = null;
     }
