@@ -1194,3 +1194,30 @@ Für den Clean-Rebuild wurde ein **Draft-PR #19** ausschließlich als CI-Prüfpf
 - aktueller Run-Stand: Build-Schritt läuft
 
 Der Build-Run wird nicht als erfolgreich gewertet, solange Gradle Build und die anschließenden Boundary-/Artifact-Prüfungen nicht erfolgreich abgeschlossen sind.
+
+
+## 30. Core-/Persistence-Nachschärfung — 2026-09-24
+
+**REBUILT / NOT VERIFIED**
+
+Der Core-/Player-Lifecycle wurde gegenüber der ursprünglichen Foundation nach dem erneuten Abgleich mit `main` nachgeschärft:
+
+- native Paper-Dialog-Registrierung aus dem Referenz-Bootstrap wiederhergestellt;
+- JSON-Content-Manager für sichere, plugin-owned Content-Dateien ergänzt;
+- PlayerProfile um Dirty-State, Mutation-Revision und Save-Snapshots erweitert;
+- PlayerProfileManager auf UUID-serielle asynchrone I/O-Ketten umgestellt;
+- Pre-Login-Load, Join-Aktivierung, Quit-Persistenz und Shutdown-Flush zusammengeführt;
+- EconomyAPI und GuildAPI werden durch den PlayerProfileManager registriert, statt durch konkurrierende parallele Foundation-Services;
+- PlayerLevelUpEvent, PlayerRegistrationEvent und PlayerUnregistrationEvent sind an die Profile-Lifecycle-Operationen gekoppelt;
+- Party Share Range verwendet jetzt die tatsächlichen Online-Spielerpositionen und keine Platzhalterantwort mehr;
+- StatisticsAPI verwaltet Standard-, Custom- und Character-Stat-Zustände statt Null-/Fixwert-Platzhaltern.
+
+Die Änderungen sind **noch nicht VERIFIED**. Insbesondere fehlen weiterhin die vollständige Domain-Persistence aus `main`, die fachliche Guild-/Party-Anwendungsschicht, Equipment/Quest/Profession-Daten im Profile-Snapshot und die End-to-End-Paritätsprüfung.
+
+### Aktueller Rebuild-Head
+
+`ff0654854a20c777bac73b0a81430e7395147946`
+
+### CI
+
+Die technische CI-Prüfung muss nach diesem Stand erneut vollständig erfolgreich durchlaufen werden. Ein grüner Build gilt weiterhin nur als technischer Mindestnachweis und nicht als Rebuild-Abnahme.
