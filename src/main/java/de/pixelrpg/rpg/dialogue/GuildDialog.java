@@ -20,6 +20,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /** Native guild dialog for creation and basic guild management. */
 public final class GuildDialog {
@@ -28,21 +29,27 @@ public final class GuildDialog {
     private final DialogueEngine dialogue;
     private final QuickActionsDialogService quickActions;
     private final InviteDialogService invites;
+    private final Consumer<Player> backAction;
 
     public GuildDialog(GuildManager guilds, PlayerProfileManager profiles, DialogueEngine dialogue) {
-        this(guilds, profiles, dialogue, null, null);
+        this(guilds, profiles, dialogue, null, null, Player::closeDialog);
     }
 
     public GuildDialog(GuildManager guilds, PlayerProfileManager profiles, DialogueEngine dialogue, QuickActionsDialogService quickActions) {
-        this(guilds, profiles, dialogue, quickActions, null);
+        this(guilds, profiles, dialogue, quickActions, null, quickActions == null ? Player::closeDialog : quickActions::openQuickActions);
     }
 
     public GuildDialog(GuildManager guilds, PlayerProfileManager profiles, DialogueEngine dialogue, QuickActionsDialogService quickActions, InviteDialogService invites) {
+        this(guilds, profiles, dialogue, quickActions, invites, quickActions == null ? Player::closeDialog : quickActions::openQuickActions);
+    }
+
+    public GuildDialog(GuildManager guilds, PlayerProfileManager profiles, DialogueEngine dialogue, QuickActionsDialogService quickActions, InviteDialogService invites, Consumer<Player> backAction) {
         this.guilds = guilds;
         this.profiles = profiles;
         this.dialogue = dialogue;
         this.quickActions = quickActions;
         this.invites = invites;
+        this.backAction = backAction;
     }
 
     public void open(Player player) {
@@ -72,8 +79,7 @@ public final class GuildDialog {
         ActionButton cancel = ActionButton.builder(Component.text("Abbrechen", NamedTextColor.RED))
                 .action(DialogAction.customClick((response, audience) -> {
                     if (!(audience instanceof Player target)) return;
-                    if (quickActions != null) quickActions.openQuickActions(target);
-                    else new ReceptionDialog(target, profiles, dialogue, null, guilds).open();
+                    backAction.accept(target);
                 }, ClickCallback.Options.builder().uses(1).build()))
                 .width(220).build();
         player.showDialog(Dialog.create(factory -> {
@@ -110,7 +116,7 @@ public final class GuildDialog {
         List<ActionButton> actions = new ArrayList<>();
         actions.add(action(Component.text("Mitglieder anzeigen", NamedTextColor.AQUA), p -> showMembers(p, guild)));
         if (leader && invites != null) actions.add(action(Component.text("Spieler einladen", NamedTextColor.GREEN), invites::openGuildInviteInput));
-        actions.add(action(Component.text("Schließen", NamedTextColor.GRAY), Player::closeDialog));
+        actions.add(action(Component.text("Zurück", NamedTextColor.WHITE), backAction));
         dialogue.openMultiAction(player, Component.text("Gilde – " + guild.name(), NamedTextColor.GOLD), body, actions, 1);
     }
 
