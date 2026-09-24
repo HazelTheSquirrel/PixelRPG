@@ -1,19 +1,23 @@
 package de.pixelrpg.rpg.player;
 
 import de.pixelrpg.rpg.core.Level;
+import de.pixelrpg.rpg.profession.Profession;
 
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
-/**
- * Mutable in-memory player state. Persistence uses immutable snapshots so async I/O never observes
- * a partially mutated live profile.
- */
 public final class PlayerProfile {
     private final UUID uniqueId;
     private boolean registered;
     private long experience;
     private long moneyMinorUnits;
     private int storyChapter = -1;
+    private final EnumMap<Profession, Integer> professionLevels = new EnumMap<>(Profession.class);
+    private final EnumMap<Profession, Long> professionExperience = new EnumMap<>(Profession.class);
+    private final Set<Profession> learnedProfessions = new HashSet<>();
+    private final Set<String> unlockedRecipes = new HashSet<>();
     private long persistenceRevision;
     private long mutationRevision;
     private boolean dirty;
@@ -21,6 +25,10 @@ public final class PlayerProfile {
 
     public PlayerProfile(UUID id) {
         uniqueId = id;
+        for (Profession profession : Profession.values()) {
+            professionLevels.put(profession, Profession.MIN_LEVEL);
+            professionExperience.put(profession, 0L);
+        }
     }
 
     public synchronized UUID uniqueId() { return uniqueId; }
@@ -42,8 +50,7 @@ public final class PlayerProfile {
 
     public void addExperience(long amount) {
         if (amount <= 0L) return;
-        mutate(() -> experience = amount > Long.MAX_VALUE - experience
-                ? Long.MAX_VALUE : experience + amount);
+        mutate(() -> experience = amount > Long.MAX_VALUE - experience ? Long.MAX_VALUE : experience + amount);
     }
 
     public boolean depositMinorUnits(long amount) {
@@ -74,6 +81,72 @@ public final class PlayerProfile {
         return amount == 0L || changed;
     }
 
+    public double getMoney() { return money(); }
+    public void setMoney(double value) { moneyMinorUnits(de.pixelrpg.rpg.economy.Money.fromMajor(value)); }
+    public void addMoney(double amount) {
+        if (!Double.isFinite(amount) || amount <= 0.0D) return;
+        depositMinorUnits(de.pixelrpg.rpg.economy.Money.fromMajor(amount));
+    }
+    public boolean removeMoney(double amount) {
+        if (!Double.isFinite(amount) || amount <= 0.0D) return false;
+        return withdrawMinorUnits(de.pixelrpg.rpg.economy.Money.fromMajor(amount));
+    }
+
+    public synchronized int getProfessionLevel(Profession profession) {
+        return profession == null ? Profession.MIN_LEVEL : professionLevels.getOrDefault(profession, Profession.MIN_LEVEL);
+    }
+
+    public void setProfessionLevel(Profession profession, int level) {
+        if (profession == null) return;
+        mutate(() -> professionLevels.put(profession, Math.clamp(level, Profession.MIN_LEVEL, Profession.MAX_LEVEL)));
+    }
+
+    public synchronized long getProfessionExperience(Profession profession) {
+        return profession == null ? 0L : professionExperience.getOrDefault(profession, 0L);
+    }
+
+    public void setProfessionExperience(Profession profession, long value) {
+        if (profession == null) return;
+        mutate(() -> professionExperience.put(profession, Math.max(0L, value)));
+    }
+
+    public synchronized boolean hasLearnedProfession(Profession profession) {
+        return profession != null && learnedProfessions.contains(profession);
+    }
+
+    public void learnProfession(Profession profession) {
+        if (profession == null) return;
+        boolean changed;
+        synchronized (this) {
+            changed = learnedProfessions.add(profession);
+            if (changed) dirty = true;
+        }
+        if (changed) notifyDirty();
+    }
+
+    public synchronized Set<Profession> getLearnedProfessions() {
+        return Set.copyOf(learnedProfessions);
+    }
+
+    public synchronized boolean hasUnlockedRecipe(String recipeId) {
+        return recipeId != null && unlockedRecipes.contains(recipeId.trim().toLowerCase(java.util.Locale.ROOT));
+    }
+
+    public void unlockRecipe(String recipeId) {
+        if (recipeId == null || recipeId.isBlank()) return;
+        String normalized = recipeId.trim().toLowerCase(java.util.Locale.ROOT);
+        boolean changed;
+        synchronized (this) {
+            changed = unlockedRecipes.add(normalized);
+            if (changed) dirty = true;
+        }
+        if (changed) notifyDirty();
+    }
+
+    public synchronized Set<String> getUnlockedRecipes() {
+        return Set.copyOf(unlockedRecipes);
+    }
+
     public void setDirtyCallback(Runnable callback) {
         synchronized (this) { dirtyCallback = callback; }
     }
@@ -89,9 +162,7 @@ public final class PlayerProfile {
 
     public void markCleanIfRevision(long expectedMutationRevision) {
         synchronized (this) {
-            if (mutationRevision == expectedMutationRevision) {
-                dirty = false;
-            }
+            if (mutationRevision == expectedMutationRevision) dirty = false;
         }
     }
 
@@ -102,6 +173,10 @@ public final class PlayerProfile {
         snapshot.experience = experience;
         snapshot.moneyMinorUnits = moneyMinorUnits;
         snapshot.storyChapter = storyChapter;
+        snapshot.professionLevels.putAll(professionLevels);
+        snapshot.professionExperience.putAll(professionExperience);
+        snapshot.learnedProfessions.addAll(learnedProfessions);
+        snapshot.unlockedRecipes.addAll(unlockedRecipes);
         snapshot.persistenceRevision = persistenceRevision;
         snapshot.mutationRevision = mutationRevision;
         snapshot.dirty = false;
@@ -114,6 +189,12 @@ public final class PlayerProfile {
             experience = 0L;
             moneyMinorUnits = 0L;
             storyChapter = -1;
+            learnedProfessions.clear();
+            unlockedRecipes.clear();
+            for (Profession profession : Profession.values()) {
+                professionLevels.put(profession, Profession.MIN_LEVEL);
+                professionExperience.put(profession, 0L);
+            }
             dirty = true;
         }
         notifyDirty();
