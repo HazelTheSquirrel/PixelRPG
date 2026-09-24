@@ -7,6 +7,8 @@ import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
 import de.pixelrpg.rpg.quest.QuestRepository;
+import de.pixelrpg.rpg.quest.QuestManager;
+import de.pixelrpg.rpg.quest.QuestType;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -32,15 +34,17 @@ public final class StoryLocationRegistry {
     private final StoryManager storyManager;
     private final PlayerProfileManager profileManager;
     private final QuestRepository questRepository;
+    private final QuestManager questManager;
     private final NpcManager npcManager;
 
     public StoryLocationRegistry(Plugin plugin, StoryManager storyManager,
-                                 PlayerProfileManager profileManager, QuestRepository questRepository,
+                                 PlayerProfileManager profileManager, QuestRepository questRepository, QuestManager questManager,
                                  NpcManager npcManager) {
         this.plugin = plugin;
         this.storyManager = storyManager;
         this.profileManager = profileManager;
         this.questRepository = questRepository;
+        this.questManager = questManager;
         this.npcManager = npcManager;
     }
 
@@ -67,9 +71,18 @@ public final class StoryLocationRegistry {
                 if (!chapter.structureTrigger().equals(structureKey(structure))) continue;
                 RPGNpc npc = ensureStoryNpc(chapter, structure, chunk.getWorld());
                 if (npc != null) {
+                    markStructureQuestsReached(player, chapter);
                     plugin.getLogger().fine("Story NPC active: " + npc.id() + " at " + npc.location());
                 }
             }
+        }
+    }
+
+    private void markStructureQuestsReached(Player player, StoryChapter chapter) {
+        for (String questId : chapter.questIds()) {
+            Quest quest = questRepository.getQuest(questId);
+            if (quest == null || quest.type() != QuestType.REACH_LOCATION) continue;
+            questManager.markReachLocationReached(player, quest.id(), chapter.structureTrigger());
         }
     }
 
