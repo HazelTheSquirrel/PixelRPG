@@ -42,7 +42,8 @@ public final class GuildBankAccessDialog {
                 List.of(DialogBody.plainMessage(Component.text("Persönliches Bankfach und gemeinsame Gildenbank.", NamedTextColor.WHITE))),
                 List.of(
                         dialogue.actionButton(Component.text("Persönliche Bank", NamedTextColor.AQUA), NamedTextColor.AQUA, personalBank::open),
-                        dialogue.actionButton(Component.text("Gildenbank", NamedTextColor.GOLD), NamedTextColor.GOLD, guildBank::open)
+                        dialogue.actionButton(Component.text("Gildenbank", NamedTextColor.GOLD), NamedTextColor.GOLD, guildBank::open),
+                        dialogue.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction)
                 ), 1);
     }
 }
