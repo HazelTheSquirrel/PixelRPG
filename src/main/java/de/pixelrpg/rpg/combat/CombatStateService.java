@@ -1,6 +1,5 @@
 package de.pixelrpg.rpg.combat;
 
-import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.api.events.PlayerCombatEnterEvent;
 import de.pixelrpg.rpg.api.events.PlayerCombatExitEvent;
 import org.bukkit.Bukkit;
@@ -24,14 +23,12 @@ import java.util.UUID;
 public final class CombatStateService implements Listener {
     private static final long COMBAT_TIMEOUT_MILLIS = 5_000L;
 
-    private final GuildAPI guildAPI;
     private final Map<UUID, Long> combatUntil = new HashMap<>();
     private final Map<UUID, CombatExpiry> expiriesByPlayer = new HashMap<>();
     private final TreeSet<CombatExpiry> expiries = new TreeSet<>();
     private final BukkitTask cleanupTask;
 
-    public CombatStateService(Plugin plugin, GuildAPI guildAPI) {
-        this.guildAPI = guildAPI;
+    public CombatStateService(Plugin plugin) {
         Bukkit.getPluginManager().registerEvents(this, plugin);
         this.cleanupTask = Bukkit.getScheduler().runTaskTimer(plugin, this::cleanup, 20L, 20L);
     }
@@ -57,7 +54,7 @@ public final class CombatStateService implements Listener {
     }
 
     public void enter(Player player) {
-        if (!guildAPI.isRegistered(player.getUniqueId())) return;
+        if (player == null) return;
         UUID uuid = player.getUniqueId();
         boolean wasInCombat = isInCombat(uuid);
         long expiry = System.currentTimeMillis() + COMBAT_TIMEOUT_MILLIS;
