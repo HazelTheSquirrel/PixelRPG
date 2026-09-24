@@ -201,6 +201,14 @@ public final class StoryManager {
         return chapters.stream().filter(chapter -> chapter.order() == order).findFirst();
     }
 
+    /** Returns whether this chapter is permanently unlocked in the UUID-backed player profile. */
+    public boolean isChapterArchived(UUID uuid, StoryChapter chapter) {
+        if (uuid == null || chapter == null) return false;
+        return profileManager.getProfile(uuid)
+                .map(profile -> profile.isRegistered() && profile.getStoryChapterIndex() >= chapter.order())
+                .orElse(false);
+    }
+
     public boolean isNextChapter(UUID uuid, StoryChapter chapter) {
         if (uuid == null || chapter == null) return false;
         PlayerProfile profile = profileManager.getProfile(uuid).orElse(null);
