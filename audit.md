@@ -1162,3 +1162,20 @@ Nach der forensischen Gesamtinventur wird nicht nach Dateinamen, sondern nach Ab
 16. Integration / Parity / Cleanup / Build / CI
 
 Kein Bereich erhält den Status VERIFIED, bevor der konkrete Ablauf gegen main nachvollzogen und nachgewiesen wurde.
+
+
+## 28. Public Event Contract — 2026-09-24
+
+**REBUILT / NOT VERIFIED**
+
+Die sieben im main-Inventar dokumentierten öffentlichen Eventtypen wurden als eigenständiger API-Vertrag neu angelegt:
+
+- BossDefeatedEvent
+- PlayerCombatEnterEvent
+- PlayerCombatExitEvent
+- PlayerLevelUpEvent
+- PlayerRegistrationEvent
+- PlayerUnregistrationEvent
+- QuestCompletedEvent
+
+Die Events sind aktuell noch nicht vollständig an alle fachlichen Produzenten gekoppelt. Deshalb bleibt der Status bewusst REBUILT und nicht VERIFIED.
