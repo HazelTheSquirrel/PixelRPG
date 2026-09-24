@@ -16,6 +16,8 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
     private static final String LEARNED_PREFIX = "profession.learned.";
     private static final String RECIPE_PREFIX = "recipe.unlocked.";
     private static final String QUEST_PREFIX = "quest.completed.";
+    private static final String ACTIVE_QUEST_PREFIX = "quest.active.current.";
+    private static final String ACTIVE_EXPIRY_PREFIX = "quest.active.expiry.";
 
     private final DataSource dataSource;
     private final Executor io;
@@ -81,6 +83,14 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
                         profile.unlockRecipe(key.substring(RECIPE_PREFIX.length()));
                     } else if (key.startsWith(QUEST_PREFIX) && value > 0L) {
                         profile.markQuestCompleted(key.substring(QUEST_PREFIX.length()));
+                    } else if (key.startsWith(ACTIVE_QUEST_PREFIX)) {
+                        String questId = key.substring(ACTIVE_QUEST_PREFIX.length());
+                        profile.startQuest(new de.pixelrpg.rpg.quest.QuestProgress(questId, (int) value, 0L));
+                    } else if (key.startsWith(ACTIVE_EXPIRY_PREFIX)) {
+                        String questId = key.substring(ACTIVE_EXPIRY_PREFIX.length());
+                        var current = profile.getActiveQuests().get(questId);
+                        if (current != null) profile.removeActiveQuest(questId); // rebuilt below from the latest expiry snapshot
+                        profile.startQuest(new de.pixelrpg.rpg.quest.QuestProgress(questId, current == null ? 0 : current.getCurrentAmount(), value));
                     }
                 }
             }
@@ -164,6 +174,14 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
             for (String quest : profile.getCompletedQuests()) {
                 insert.setString(2, QUEST_PREFIX + quest);
                 insert.setLong(3, 1L);
+                insert.addBatch();
+            }
+            for (var entry : profile.getActiveQuests().entrySet()) {
+                insert.setString(2, ACTIVE_QUEST_PREFIX + entry.getKey());
+                insert.setLong(3, entry.getValue().getCurrentAmount());
+                insert.addBatch();
+                insert.setString(2, ACTIVE_EXPIRY_PREFIX + entry.getKey());
+                insert.setLong(3, entry.getValue().getExpiryTimestampMillis());
                 insert.addBatch();
             }
             insert.executeBatch();
