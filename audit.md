@@ -1409,3 +1409,32 @@ Noch nicht VERIFIED: Rücknavigation in das vollständige main-Reception-/Dialog
 ### Aktueller Rebuild-Head
 
 `e57ac24ddebe736d4648a0f2938a85e9bb7045ef`
+
+
+## 39. NPC Runtime / Mannequin / Skin Persistence Foundation — 2026-09-24
+
+**REBUILT / NOT VERIFIED**
+
+Der NPC-Runtime-Block wurde auf Basis der aktuell verifizierten Paper-26.2-Mannequin-API neu aufgebaut. Die aktuelle Paper-API bestätigt `Mannequin#getProfile()`, `Mannequin#setProfile(ResolvableProfile)` und die 26.2-`ResolvableProfile`-Mechanik. citeturn1search3turn1search0
+
+Neu aufgebaut:
+
+- NpcType und RPGNpc-Domain;
+- persistenter NpcManager;
+- data-driven NPC-IDs, Typen, Positionen, Professionen und Skin-Quellen;
+- Chunk-Index und Chunk-Load/Unload-Lifecycle;
+- aktuelle Paper-26.2-Mannequin-Entities;
+- NPC-PDC-Identität über `RPGKeys.Npc`;
+- Invulnerability, AI-Deaktivierung, Kollisionsschutz und kontrolliertes Despawn;
+- Skin-Auflösung über aktuelle Paper-`PlayerProfile`-/`ResolvableProfile`-Mechanik;
+- persistierte Texture-Property inklusive Signatur;
+- serverseitige Skin-Wiederherstellung nach Neustart;
+- Client-Refresh für betroffene Spieler;
+- asynchrone atomische NPC-Persistence;
+- Plugin-Lifecycle-Integration.
+
+Noch OPEN: externe Skin-Quellen/URL-Resolver, NPC-Interaktion, Behavior Registry, Look-/Nameplate-Runtime, Dialog-/Quest-/Shop-/Bank-Verknüpfungen, Admin-NPC-Commands und vollständige Paritätsprüfung gegen main.
+
+### Aktueller Rebuild-Head
+
+`dceeea4e6a7f350abfc8186572c8bb3a8636cc76`
