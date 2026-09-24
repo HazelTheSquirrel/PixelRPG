@@ -40,4 +40,8 @@ public final class StoryNpcDialogue {
     public void openChapter(Player player, de.pixelrpg.rpg.story.StoryChapter chapter) {
         storyDialogueManager.openChapter(player, chapter);
     }
+
+    public void openChapter(Player player, de.pixelrpg.rpg.story.StoryChapter chapter, RPGNpc npc) {
+        storyDialogueManager.openChapter(player, chapter, npc);
+    }
 }
