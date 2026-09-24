@@ -77,6 +77,7 @@ public final class QuickActionsDialogService {
 
         List<ActionButton> actions = new ArrayList<>();
         actions.add(quickActionButton(Component.text("Charakterprofil", NamedTextColor.AQUA), target -> openCharacterProfile(target, companionDialog, professionDialog)));
+        actions.add(quickActionSpacer());
         actions.add(quickActionButton(Component.text("Aktive Quests", NamedTextColor.YELLOW), target -> openActiveQuests(target, companionDialog, professionDialog)));
         actions.add(quickActionButton(Component.text("Begleiter", NamedTextColor.LIGHT_PURPLE), companionDialog::open));
         actions.add(quickActionButton(Component.text("Berufe", NamedTextColor.GREEN), professionDialog::open));
@@ -254,8 +255,12 @@ public final class QuickActionsDialogService {
                 .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
                     if (audience instanceof Player target) action.accept(target);
                 }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
-                .width(310)
+                .width(220)
                 .build();
+    }
+
+    private ActionButton quickActionSpacer() {
+        return ActionButton.create(Component.text(" "), null, 220, null);
     }
 
     private ActionButton quickActionsCloseButton() {
@@ -263,7 +268,7 @@ public final class QuickActionsDialogService {
                 .action(io.papermc.paper.registry.data.dialog.action.DialogAction.customClick((response, audience) -> {
                     if (audience instanceof Player target) target.closeDialog();
                 }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
-                .width(200)
+                .width(220)
                 .build();
     }
 
