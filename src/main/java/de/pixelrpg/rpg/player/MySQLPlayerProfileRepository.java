@@ -156,7 +156,7 @@ public final class MySQLPlayerProfileRepository implements PlayerProfileReposito
         try (var statement = connection.prepareStatement(
                 "INSERT INTO pixelrpg_players " +
                 "(uuid, registered, experience, money_minor_units, story_chapter, persistence_revision) " +
-                "VALUES (?, ?, ?, ?, ?, ?) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE registered=VALUES(registered), experience=VALUES(experience), " +
                 "money_minor_units=VALUES(money_minor_units), story_chapter=VALUES(story_chapter), " +
                 "persistence_revision=VALUES(persistence_revision)")) {
