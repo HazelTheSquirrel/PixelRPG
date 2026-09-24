@@ -51,7 +51,7 @@ public final class QuestBehavior implements NpcBehavior {
                     Component.text("Schließen", NamedTextColor.GRAY));
             return;
         }
-        openQuestRanges(player);
+        openQuestRanges(player, backAction);
     }
 
     private int unlockBuffer() { return questManager.getRepository().unlockEarlyLevels(); }
