@@ -427,7 +427,7 @@ public final class ProfessionDialog {
             boolean unlocked = craftingService.isUnlocked(player, recipe);
             String state = unlocked ? " • freigeschaltet" : recipe.vanillaRecipe() ? " • Rezeptbuch" : " • freischalten";
             actions.add(dialogueEngine.actionButton(Component.text(recipe.displayName() + state), unlocked ? NamedTextColor.GREEN : NamedTextColor.YELLOW,
-                    target -> openRecipeDetails(target, recipe, true)));
+                    target -> openRecipeDetails(target, recipe, true, next -> openTrainerRecipes(next, profession))));
         }
         dialogueEngine.openMultiAction(player, Component.text(profession.displayName() + "-Lehrer", NamedTextColor.GOLD), body, actions, 2);
     }
