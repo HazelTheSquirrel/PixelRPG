@@ -58,7 +58,7 @@ public final class ProfessionDialog {
         dialogueEngine.openMultiAction(player, Component.text("PixelRPG – Berufe", NamedTextColor.GOLD), body, actions, 1);
     }
 
-    public void openProfession(Player player, Profession profession) {
+    public void openProfession(Player player, Profession profession) {\n        openProfession(player, profession, this::open);\n    }\n\n    public void openProfession(Player player, Profession profession, Consumer<Player> backAction) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) {
             dialogueEngine.openUnavailable(player, "Beruf", "Du bist noch nicht registriert.");
@@ -83,7 +83,7 @@ public final class ProfessionDialog {
             actions.add(dialogueEngine.actionButton(
                     Component.text("Rezepte (" + recipes.size() + ")"),
                     NamedTextColor.GREEN,
-                    target -> openProfessionRecipeCategories(target, profession)
+                    target -> openProfessionRecipeCategories(target, profession, backAction)
             ));
         }
         if (actions.isEmpty()) {
@@ -100,7 +100,7 @@ public final class ProfessionDialog {
         );
     }
 
-    private void openProfessionRecipeCategories(Player player, Profession profession) {
+    private void openProfessionRecipeCategories(Player player, Profession profession, Consumer<Player> backAction) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) return;
 
@@ -322,7 +322,7 @@ public final class ProfessionDialog {
     }
 
     /** Opens the trainer recipe list; every recipe leads to its own detail dialog. */
-    public void openTrainerRecipes(Player player, Profession profession) {
+    public void openTrainerRecipes(Player player, Profession profession) {\n        openTrainerRecipes(player, profession, Player::closeDialog);\n    }\n\n    public void openTrainerRecipes(Player player, Profession profession, Consumer<Player> backAction) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered()) return;
         int level = professionService.getLevel(player.getUniqueId(), profession);
@@ -335,9 +335,9 @@ public final class ProfessionDialog {
             boolean unlocked = craftingService.isUnlocked(player, recipe);
             String state = unlocked ? " • freigeschaltet" : recipe.vanillaRecipe() ? " • Rezeptbuch" : " • freischalten";
             actions.add(dialogueEngine.actionButton(Component.text(recipe.displayName() + state), unlocked ? NamedTextColor.GREEN : NamedTextColor.YELLOW,
-                    target -> openRecipeDetails(target, recipe, true, next -> openTrainerRecipes(next, profession))));
+                    target -> openRecipeDetails(target, recipe, true, next -> openTrainerRecipes(next, profession, backAction))));
         }
-        dialogueEngine.openMultiAction(player, Component.text(profession.displayName() + "-Lehrer", NamedTextColor.GOLD), body, actions, 2);
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));\n        dialogueEngine.openMultiAction(player, Component.text(profession.displayName() + "-Lehrer", NamedTextColor.GOLD), body, actions, 2);
     }
 
     public static Component recipeLine(CraftRecipe recipe) { return Component.text(recipe.displayName() + " • Level " + recipe.requiredProfessionLevel()); }
