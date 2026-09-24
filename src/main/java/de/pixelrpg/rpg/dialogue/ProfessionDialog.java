@@ -50,7 +50,7 @@ public final class ProfessionDialog {
             return;
         }
         List<DialogBody> body = List.of(DialogBody.plainMessage(Component.text(
-                "Wähle einen Beruf, um Rezepte, Berufsquests und Herstellungsdetails zu sehen.", NamedTextColor.WHITE)));
+                "Wähle einen Beruf, um Rezepte und Herstellungsdetails zu sehen.", NamedTextColor.WHITE)));
         List<ActionButton> actions = new ArrayList<>();
         for (Profession profession : Profession.values()) {
             int level = professionService.getLevel(player.getUniqueId(), profession);
