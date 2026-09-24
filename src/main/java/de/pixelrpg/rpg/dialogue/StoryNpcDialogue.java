@@ -5,6 +5,7 @@ import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.quest.Quest;
 import de.pixelrpg.rpg.quest.QuestManager;
+import de.pixelrpg.rpg.quest.QuestProgress;
 import de.pixelrpg.rpg.story.StoryChapter;
 import de.pixelrpg.rpg.story.StoryManager;
 import io.papermc.paper.registry.data.dialog.ActionButton;
