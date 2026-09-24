@@ -66,9 +66,11 @@ public final class QuestLogGUI extends AbstractGUI {
         lore.add(Component.text("Ziel: " + quest.targetKey(), NamedTextColor.WHITE).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("Menge: " + quest.requiredAmount(), NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text("Benötigtes Level: " + quest.requiredLevel(), NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
-        profile.getActiveQuests().get(quest.id()).ifPresent(progress -> lore.add(
-                Component.text("Fortschritt: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.GREEN)
-                        .decoration(TextDecoration.ITALIC, false)));
+        var progress = profile.getActiveQuests().get(quest.id());
+        if (progress != null) {
+            lore.add(Component.text("Fortschritt: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.GREEN)
+                    .decoration(TextDecoration.ITALIC, false));
+        }
         meta.lore(lore);
         item.setItemMeta(meta);
         return item;
