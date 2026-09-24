@@ -60,6 +60,7 @@ public final class QuickActionsDialogService {
 
     public PlayerProfileManager profileManager() { return profiles; }
     public StatEngine statEngine() { return statEngine; }
+    public QuestManager questManager() { return questManager; }
     public boolean isAvailable(Player player) { return profiles.isRegistered(player.getUniqueId()); }
 
     /** Opens the native PixelRPG quick-actions dialog used from the Minecraft G action. */
