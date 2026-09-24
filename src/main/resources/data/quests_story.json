@@ -461,7 +461,7 @@
       "type": "TALK_TO_NPC",
       "recommendedLevel": 99,
       "categoryLevel": 99,
-      "targetKey": "the_archivist",
+      "targetKey": "silex",
       "requiredAmount": 1,
       "prerequisites": [
         "story_campaign_end_city"
