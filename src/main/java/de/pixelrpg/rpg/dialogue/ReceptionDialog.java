@@ -61,7 +61,7 @@ public final class ReceptionDialog {
             }
             if (guildManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Gilde", NamedTextColor.GOLD), NamedTextColor.GOLD,
-                        target -> new GuildDialog(guildManager, profileManager, dialogueEngine).open(target)));
+                        target -> new GuildDialog(guildManager, profileManager, dialogueEngine, null, null, next -> new ReceptionDialog(next, profileManager, dialogueEngine, partyManager, guildManager).open()).open(target)));
             }
             PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
             if (pixelRPG != null && pixelRPG.getStoryManager() != null && pixelRPG.getQuestManager() != null) {
