@@ -96,6 +96,11 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcManager = new NpcManager(this);
         npcManager.load();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
+        professionSystem = new ProfessionSystem(this, profiles);
+        professionSystem.register();
+        questRepository = new QuestRepository(this);
+        questRepository.load();
+        questService = new QuestService(this, questRepository, profiles, itemService);
         DialogueEngine dialogueEngine = new DialogueEngine();
         npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ShopBehavior(shopManager, profiles, dialogueEngine));
@@ -103,11 +108,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new TravelBehavior(npcManager, profiles, dialogueEngine));
         npcBehaviorRegistry.register(new FillerBehavior(questService, profiles, dialogueEngine));
         getServer().getPluginManager().registerEvents(new NpcInteractListener(npcManager, npcBehaviorRegistry, questService), this);
-        professionSystem = new ProfessionSystem(this, profiles);
-        professionSystem.register();
-        questRepository = new QuestRepository(this);
-        questRepository.load();
-        questService = new QuestService(this, questRepository, profiles, itemService);
         mobScalingConfig = new MobScalingConfig();
         mobScalingConfig.load(getConfig());
         combatDamageListener = new CombatDamageListener(this, profiles, profiles, statEngine,
