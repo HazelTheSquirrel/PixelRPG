@@ -57,7 +57,7 @@ public final class ReceptionDialog {
             actions.add(dialogueEngine.actionButton(Component.text("PixelRPG-Registrierung aufheben"), NamedTextColor.RED, this::openLeaveConfirmation));
             if (partyManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Party", NamedTextColor.AQUA), NamedTextColor.AQUA,
-                        target -> new PartyGUI(target, partyManager, profileManager).open(target)));
+                        target -> new PartyGUI(target, partyManager, profileManager, PixelRPGPlugin.getInstance().getInviteDialogService()).open(target)));
             }
             if (guildManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Gilde", NamedTextColor.GOLD), NamedTextColor.GOLD,
