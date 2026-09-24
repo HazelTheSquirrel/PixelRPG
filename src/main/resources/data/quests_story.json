@@ -19,7 +19,9 @@
       "reward": {
         "money": 135,
         "experience": 235,
-        "items": []
+        "items": [
+          "pixelrpg:weapons/iron_sword/common_3|3"
+        ]
       },
       "navigation": {
         "structure": "minecraft:village_plains",
@@ -42,7 +44,9 @@
       "reward": {
         "money": 170,
         "experience": 290,
-        "items": []
+        "items": [
+          "pixelrpg:armor/copper_helmet/donnerwacht_10|10"
+        ]
       },
       "navigation": {
         "structure": "minecraft:shipwreck",
@@ -65,7 +69,9 @@
       "reward": {
         "money": 205,
         "experience": 345,
-        "items": []
+        "items": [
+          "pixelrpg:armor/copper_chestplate/donnerwacht_10|10"
+        ]
       },
       "navigation": {
         "structure": "minecraft:desert_pyramid",
@@ -88,7 +94,9 @@
       "reward": {
         "money": 240,
         "experience": 400,
-        "items": []
+        "items": [
+          "pixelrpg:armor/copper_leggings/donnerwacht_10|10"
+        ]
       },
       "navigation": {
         "structure": "minecraft:jungle_pyramid",
@@ -111,7 +119,9 @@
       "reward": {
         "money": 275,
         "experience": 455,
-        "items": []
+        "items": [
+          "pixelrpg:armor/copper_boots/donnerwacht_10|10"
+        ]
       },
       "navigation": {
         "structure": "minecraft:swamp_hut",
@@ -134,7 +144,9 @@
       "reward": {
         "money": 310,
         "experience": 510,
-        "items": []
+        "items": [
+          "pixelrpg:armor/chainmail_helmet/schattengeflecht_20|20"
+        ]
       },
       "navigation": {
         "structure": "minecraft:ocean_ruin_warm",
@@ -157,7 +169,9 @@
       "reward": {
         "money": 380,
         "experience": 620,
-        "items": []
+        "items": [
+          "pixelrpg:armor/chainmail_chestplate/schattengeflecht_20|20"
+        ]
       },
       "navigation": {
         "structure": "minecraft:monument",
@@ -180,7 +194,9 @@
       "reward": {
         "money": 450,
         "experience": 730,
-        "items": []
+        "items": [
+          "pixelrpg:armor/chainmail_leggings/schattengeflecht_20|20"
+        ]
       },
       "navigation": {
         "structure": "minecraft:trail_ruins",
@@ -203,7 +219,9 @@
       "reward": {
         "money": 485,
         "experience": 785,
-        "items": []
+        "items": [
+          "pixelrpg:armor/chainmail_boots/schattengeflecht_20|20"
+        ]
       },
       "navigation": {
         "structure": "minecraft:mineshaft",
@@ -226,7 +244,9 @@
       "reward": {
         "money": 590,
         "experience": 950,
-        "items": []
+        "items": [
+          "pixelrpg:weapons/gold_sword/uncommon_25|25"
+        ]
       },
       "navigation": {
         "structure": "minecraft:pillager_outpost",
@@ -249,7 +269,9 @@
       "reward": {
         "money": 625,
         "experience": 1005,
-        "items": []
+        "items": [
+          "pixelrpg:armor/iron_helmet/stahlwall_30|30"
+        ]
       },
       "navigation": {
         "structure": "minecraft:mansion",
@@ -272,7 +294,9 @@
       "reward": {
         "money": 870,
         "experience": 1390,
-        "items": []
+        "items": [
+          "pixelrpg:armor/iron_chestplate/stahlwall_30|30"
+        ]
       },
       "navigation": {
         "structure": "minecraft:ruined_portal",
@@ -295,7 +319,9 @@
       "reward": {
         "money": 905,
         "experience": 1445,
-        "items": []
+        "items": [
+          "pixelrpg:armor/iron_leggings/stahlwall_30|30"
+        ]
       },
       "navigation": {
         "structure": "minecraft:ancient_city",
@@ -318,7 +344,9 @@
       "reward": {
         "money": 975,
         "experience": 1555,
-        "items": []
+        "items": [
+          "pixelrpg:armor/iron_boots/stahlwall_30|30"
+        ]
       },
       "navigation": {
         "structure": "minecraft:fortress",
@@ -341,7 +369,9 @@
       "reward": {
         "money": 1010,
         "experience": 1610,
-        "items": []
+        "items": [
+          "pixelrpg:armor/gold_chestplate/sonnengewand_45|45"
+        ]
       },
       "navigation": {
         "structure": "minecraft:bastion_remnant",
@@ -364,7 +394,9 @@
       "reward": {
         "money": 1080,
         "experience": 1720,
-        "items": []
+        "items": [
+          "pixelrpg:weapons/diamond_sword/rare_40|40"
+        ]
       },
       "navigation": {
         "structure": "minecraft:stronghold",
@@ -387,7 +419,9 @@
       "reward": {
         "money": 1115,
         "experience": 1775,
-        "items": []
+        "items": [
+          "pixelrpg:weapons/netherite_sword/legendary_90|90"
+        ]
       },
       "navigation": {
         "structure": "minecraft:end_city",
