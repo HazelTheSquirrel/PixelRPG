@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.command.impl;
 
 import de.pixelrpg.rpg.command.SubCommand;
 import de.pixelrpg.rpg.gui.PartyGUI;
+import de.pixelrpg.rpg.dialogue.InviteDialogService;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -24,10 +25,12 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
 
     private final PartyManager partyManager;
     private final PlayerProfileManager profileManager;
+    private final InviteDialogService inviteDialogService;
 
-    public PartySubCommand(PartyManager partyManager, PlayerProfileManager profileManager) {
+    public PartySubCommand(PartyManager partyManager, PlayerProfileManager profileManager, InviteDialogService inviteDialogService) {
         this.partyManager = partyManager;
         this.profileManager = profileManager;
+        this.inviteDialogService = inviteDialogService;
     }
 
     @Override public String name() { return "party"; }
@@ -46,7 +49,7 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
             return true;
         }
         if (args.length == 0) {
-            new PartyGUI(player, partyManager, profileManager).open(player);
+            new PartyGUI(player, partyManager, profileManager, inviteDialogService).open(player);
             return true;
         }
         return switch (args[0].toLowerCase(Locale.ROOT)) {
