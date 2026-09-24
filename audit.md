@@ -1313,3 +1313,32 @@ Der Status bleibt **NOT VERIFIED**, bis der aktuelle Rebuild-Head die vollständ
 ### Aktueller Rebuild-Head
 
 `b999e3080d1d209bd753bc6efa197d45441bb4b7`
+
+
+## 35. Guild Runtime Rebuild — 2026-09-24
+
+**REBUILT / NOT VERIFIED**
+
+Der Guild-Block wurde als eigenständige Runtime neu aufgebaut und in die aktuelle Clean-Rebuild-Composition-Root integriert.
+
+Nachgewiesene Bestandteile:
+
+- immutable Guild-Domain-Snapshot;
+- persistenter GuildManager mit YAML-Snapshot-Persistence und atomischem Schreiben;
+- Guild-Erstellung mit Referenzregeln: Level 20, 2.500 Gold, 3–24 Zeichen, eindeutiger Name;
+- Einladung, Annahme, Verlassen und Auflösen;
+- Mitglieds-/Leader-Zuordnung;
+- öffentliche GuildAPI-Delegation auf den Runtime-Manager;
+- aktuelle Paper BasicCommand-Registrierung für die player-facing Guild-Commands;
+- Adventure-Components statt Legacy-Chat/Farb-APIs;
+- Shutdown-Ownership und Service-Unregistration.
+
+Bewusst nicht als VERIFIED markiert: Guild-GUI/Dialoge, Gildenbank, Guild Compass, Quick Actions, Scoreboard-Anbindung und vollständige Paritätsprüfung aller Guild-Abläufe gegen main.
+
+### Aktueller Rebuild-Head
+
+`2f7c2292e15fbd0d6b9d44d7efaaa67c5330ec8c`
+
+### CI
+
+Für diesen Head läuft GitHub Actions Run `35948125975`. Der Run ist noch nicht abgeschlossen; Build-, Boundary- und Artifact-Prüfungen sind daher weiterhin offen.
