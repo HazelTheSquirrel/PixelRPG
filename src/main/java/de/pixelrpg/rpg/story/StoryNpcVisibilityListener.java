@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 public final class StoryNpcVisibilityListener implements Listener {
     private final Plugin plugin;
@@ -34,6 +35,7 @@ public final class StoryNpcVisibilityListener implements Listener {
     private final StoryManager storyManager;
     private final NpcManager npcManager;
     private final Map<UUID, Set<String>> visibleNpcIds = new ConcurrentHashMap<>();
+    private final Consumer<UUID> profileChangeListener = this::queueRefresh;
 
     public StoryNpcVisibilityListener(Plugin plugin, PlayerProfileManager profileManager,
                                       QuestRepository questRepository, StoryManager storyManager,
@@ -43,7 +45,7 @@ public final class StoryNpcVisibilityListener implements Listener {
         this.questRepository = questRepository;
         this.storyManager = storyManager;
         this.npcManager = npcManager;
-        profileManager.addProfileChangeListener(this::queueRefresh);
+        profileManager.addProfileChangeListener(profileChangeListener);
     }
 
     // Rebuilds story visibility shortly after the player has been fully placed in the world.
@@ -104,7 +106,7 @@ public final class StoryNpcVisibilityListener implements Listener {
             hidePreviouslyVisible(player);
         }
         visibleNpcIds.clear();
-        profileManager.removeProfileChangeListener(this::queueRefresh);
+        profileManager.removeProfileChangeListener(profileChangeListener);
     }
 
     private void queueRefresh(UUID uuid) {
