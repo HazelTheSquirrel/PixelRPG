@@ -54,7 +54,7 @@ public final class PartySubCommand implements SubCommand, CommandExecutor, TabCo
             return true;
         }
         if (args.length == 0) {
-            new PartyDialog(partyManager, profileManager, new DialogueEngine(), inviteDialogService).open(player);
+            new PartyDialog(partyManager, profileManager, new DialogueEngine(), inviteDialogService, Player::closeDialog).open(player);
             return true;
         }
         return switch (args[0].toLowerCase(Locale.ROOT)) {
