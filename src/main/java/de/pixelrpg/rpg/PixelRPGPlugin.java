@@ -341,6 +341,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public NpcManager getNpcManager() { return npcManager; }
     public ShopManager getShopManager() { return shopManager; }
     public StoryManager getStoryManager() { return storyManager; }
+    public InviteDialogService getInviteDialogService() {
+        return inviteDialogService;
+    }
+
     public PartyManager getPartyManager() { return partyManager; }
     public QuestRepository getQuestRepository() { return questRepository; }
     public QuestManager getQuestManager() { return questManager; }
