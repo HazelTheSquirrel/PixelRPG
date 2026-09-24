@@ -19,8 +19,8 @@ import java.util.logging.Level;
 
 /** Persistent, level-gated story campaign and validated lore registry. */
 public final class StoryManager {
-    private static final int MAX_CHAPTERS = 32;
-    private static final int STORY_VERSION = 3;
+    private static final int MAX_CHAPTERS = 64;
+    private static final int STORY_VERSION = 5;
 
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
@@ -35,11 +35,11 @@ public final class StoryManager {
 
     public void load() {
         chapters.clear();
-        if (!file.exists()) createDefaultStory();
+        if (!file.exists()) installBundledCampaign(false);
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
 
-        if (yaml.getInt("story-version", 1) < STORY_VERSION && isPreviousDefault(yaml.getMapList("chapters"))) {
-            createDefaultStory();
+        if (yaml.getInt("story-version", 1) < STORY_VERSION && isPreviousDefault(yaml)) {
+            installBundledCampaign(true);
             yaml = YamlConfiguration.loadConfiguration(file);
         }
 
@@ -98,66 +98,14 @@ public final class StoryManager {
         return new StoryChapter(order, id, title, dialogue, exp, 1, "", "", List.of());
     }
 
-    private void createDefaultStory() {
-        YamlConfiguration yaml = new YamlConfiguration();
-        yaml.set("story-version", STORY_VERSION);
-
-        chapter(yaml, 0, "first_traces", "Die ersten Spuren", 1, "", "", List.of(),
-                List.of("Die Oberfläche ist voller Ruinen, Dörfer und verlassener Wege.",
-                        "Die Archive kennen keine vollständige Chronik der Welt.",
-                        "Beginne mit Beobachtungen, nicht mit Gewissheiten."), 100L);
-
-        chapter(yaml, 1, "under_the_stone", "Unter dem Stein", 11, "minecraft:ancient_city", "eryn",
-                List.of("story_under_stone_expedition", "story_under_stone_echo_fragments"),
-                List.of("Tief unter der Welt liegen Ancient Cities im Deep Dark.",
-                        "Sculk, Echo Shards und der Warden gehören zu den sicher beobachtbaren Spuren.",
-                        "Warum die Städte verlassen wurden, bleibt eine offene Frage."), 300L);
-
-        chapter(yaml, 2, "forgotten_builders", "Die vergessenen Erbauer", 21, "minecraft:ancient_city", "the_archivist",
-                List.of("story_forgotten_builders"),
-                List.of("Die Architektur der Ancient Cities deutet auf eine hochentwickelte Kultur.",
-                        "Welche Verbindung zwischen ihren Bauten und anderen Ruinen besteht, ist nicht bewiesen."), 450L);
-
-        chapter(yaml, 3, "black_flame", "Die schwarze Flamme", 31, "minecraft:bastion_remnant", "vael",
-                List.of("story_black_flame"),
-                List.of("Bastions zeigen die organisierte Gesellschaft der Piglins.",
-                        "Der Wither wird durch eine konkrete Konstruktion erschaffen.",
-                        "Die Motive hinter seiner Erschaffung sind nicht vollständig überliefert."), 650L);
-
-        chapter(yaml, 4, "end_of_the_old", "Das Ende der Alten", 41, "minecraft:ruined_portal", "mara",
-                List.of("story_end_of_the_old"),
-                List.of("Ruined Portals sind sichtbare Spuren einer Verbindung zwischen Dimensionen.",
-                        "Die Welt bewahrt mehr Übergänge, als ihre Bewohner verstehen."), 800L);
-
-        chapter(yaml, 5, "beyond_the_world", "Jenseits der Welt", 51, "minecraft:stronghold", "oren",
-                List.of("story_beyond_the_world"),
-                List.of("Strongholds sind unterirdische Ruinen mit Endportalen.",
-                        "Eyes of Ender weisen den Weg zu diesen Anlagen."), 1000L);
-
-        chapter(yaml, 6, "realm_of_endermen", "Das Reich der Endermen", 61, "minecraft:end_city", "silex",
-                List.of("story_realm_of_endermen"),
-                List.of("Im End stehen Endermen, Chorus-Pflanzen und End Cities nebeneinander.",
-                        "Wer die Herkunft dieser Kultur erklären will, muss zwischen Fund und Theorie unterscheiden."), 1200L);
-
-        chapter(yaml, 7, "piglin_civilization", "Die Piglin-Zivilisation", 71, "minecraft:bastion_remnant", "kael",
-                List.of("story_piglin_civilization"),
-                List.of("Gold ist für Piglins nicht nur Beute, sondern Teil ihrer Kultur.",
-                        "Bastions bewahren Spuren von Handel, Vorräten und Macht."), 1400L);
-
-        chapter(yaml, 8, "the_dragon", "Der Drache", 81, "minecraft:end_city", "lyra",
-                List.of("story_the_dragon"),
-                List.of("Der Enderdrache bewacht das Zentrum des Endes.",
-                        "End Cities und Endschiffe liegen jenseits der zentralen Inseln."), 1800L);
-
-        chapter(yaml, 9, "after_the_end", "Was hinter dem Ende bleibt", 91, "minecraft:end_city", "the_archivist",
-                List.of("story_after_the_end"),
-                List.of("Sculk, Nether, Strongholds und das End bilden ein Muster.",
-                        "Das Muster ist real; die vollständige Erklärung ist es noch nicht."), 2500L);
-
+    private void installBundledCampaign(boolean replace) {
         try {
-            yaml.save(file);
+            plugin.saveResource("data/story_campaign.yml", replace);
+            File bundled = new File(plugin.getDataFolder(), "data/story_campaign.yml");
+            if (!bundled.exists()) throw new IOException("Bundled story_campaign.yml was not written.");
+            java.nio.file.Files.copy(bundled.toPath(), file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException exception) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to create default story.yml", exception);
+            plugin.getLogger().log(Level.SEVERE, "Failed to install story campaign.", exception);
         }
     }
 
@@ -175,10 +123,12 @@ public final class StoryManager {
         yaml.set(path + ".exp-reward", exp);
     }
 
-    private boolean isPreviousDefault(List<Map<?, ?>> maps) {
-        if (maps.size() != 5) return false;
-        List<String> ids = maps.stream().map(map -> String.valueOf(map.get("id"))).toList();
-        return ids.equals(List.of("echoes_beneath", "city_without_sky", "black_flame", "door_beyond_stars", "after_the_end"));
+    private boolean isPreviousDefault(YamlConfiguration yaml) {
+        List<String> known = List.of("first_traces","under_the_stone","forgotten_builders","black_flame","end_of_the_old","beyond_the_world","realm_of_endermen","piglin_civilization","the_dragon","after_the_end");
+        ConfigurationSection root = yaml.getConfigurationSection("chapters");
+        if (root == null) return false;
+        List<String> ids = root.getKeys(false).stream().toList();
+        return ids.size() == known.size() && ids.containsAll(known);
     }
 
     private String clean(Object value) {

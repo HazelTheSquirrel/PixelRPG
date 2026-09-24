@@ -1,0 +1,530 @@
+story-version: 5
+campaign-id: minecraft-lore-campaign
+max-chapters: 64
+
+chapters:
+  first_traces:
+    order: 0
+    id: first_traces
+    title: "Die ersten Spuren"
+    arc: "Die ersten Spuren"
+    required-level: 1
+    structure-trigger: ""
+    npc-id: "the_archivist"
+    quests: []
+    dialogue:
+      - "Die Welt ist voller Ruinen, Wege und Siedlungen."
+      - "Noch ist nicht klar, ob all diese Orte miteinander verbunden sind."
+      - "Beginne mit Beobachtungen. Die Antworten liegen nicht dort, wo die Geschichten beginnen."
+    exp-reward: 100
+
+  campaign_village_plains:
+    order: 1
+    id: campaign_village_plains
+    title: "Das Dorf der ersten Stimmen"
+    arc: "Die ersten Spuren"
+    required-level: 3
+    structure-trigger: "minecraft:village_plains"
+    npc-id: "village_founder"
+    quests: ["story_campaign_village_plains"]
+    dialogue:
+      - "Eine alte Dorfchronik deutet an, dass die heutigen Dörfer auf älteren Siedlungsmustern stehen."
+      - "Ein Dorf ist kein Beweis für ein gemeinsames Reich. Aber dieselben Bauprinzipien tauchen an vielen Orten auf."
+      - "Der nächste Schritt verlangt Level 3 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 280
+
+  campaign_shipwreck:
+    order: 2
+    id: campaign_shipwreck
+    title: "Die verlorene Flotte"
+    arc: "Die ersten Spuren"
+    required-level: 5
+    structure-trigger: "minecraft:shipwreck"
+    npc-id: "shipwright"
+    quests: ["story_campaign_shipwreck"]
+    dialogue:
+      - "Schiffswracks bewahren Spuren früher Seefahrer, Handelsrouten und gescheiterter Reisen."
+      - "Die Eigenstory: Ein Teil der Flotte suchte nach einer sicheren Route zu den Ruinen jenseits des Ozeans."
+      - "Der nächste Schritt verlangt Level 5 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 360
+
+  campaign_desert_pyramid:
+    order: 3
+    id: campaign_desert_pyramid
+    title: "Der Fluch unter dem Sand"
+    arc: "Die ersten Spuren"
+    required-level: 8
+    structure-trigger: "minecraft:desert_pyramid"
+    npc-id: "desert_sage"
+    quests: ["story_campaign_desert_pyramid"]
+    dialogue:
+      - "Desert Temples sind mit Fallen und verborgenen Kammern gebaut; Archäologie zeigt, dass hier alte Spuren bewahrt werden."
+      - "Die Eigenstory verbindet die wiederkehrenden Symbole mit einer frühen Schutztradition gegen Wissen, das nicht in falsche Hände geraten sollte."
+      - "Der nächste Schritt verlangt Level 8 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 440
+
+  campaign_jungle_pyramid:
+    order: 4
+    id: campaign_jungle_pyramid
+    title: "Die Sprache der Fallen"
+    arc: "Unter dem Stein"
+    required-level: 11
+    structure-trigger: "minecraft:jungle_pyramid"
+    npc-id: "jungle_scholar"
+    quests: ["story_campaign_jungle_pyramid"]
+    dialogue:
+      - "Jungle Temples zeigen Fallen, verborgene Mechanismen und eine andere Form alter Baukunst."
+      - "Die Eigenstory: Die Tempelbauer entwickelten Prüfungen, um nur diejenigen weiterzulassen, die die alten Zeichen lesen konnten."
+      - "Der nächste Schritt verlangt Level 11 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 520
+
+  campaign_swamp_hut:
+    order: 5
+    id: campaign_swamp_hut
+    title: "Das Haus der Hexen"
+    arc: "Unter dem Stein"
+    required-level: 14
+    structure-trigger: "minecraft:swamp_hut"
+    npc-id: "swamp_alchemist"
+    quests: ["story_campaign_swamp_hut"]
+    dialogue:
+      - "Swamp Huts sind mit Hexen und Katzen verbunden und gehören zu den älteren magischen Schauplätzen der Oberwelt."
+      - "Die Eigenstory: Hier wurden frühe Tränke entwickelt, die Erinnerungen an Orte über große Entfernungen konservieren sollten."
+      - "Der nächste Schritt verlangt Level 14 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 600
+
+  campaign_ocean_ruin_warm:
+    order: 6
+    id: campaign_ocean_ruin_warm
+    title: "Die versunkene Küste"
+    arc: "Unter dem Stein"
+    required-level: 17
+    structure-trigger: "minecraft:ocean_ruin_warm"
+    npc-id: "warm_ruin_keeper"
+    quests: ["story_campaign_ocean_ruin_warm"]
+    dialogue:
+      - "Warme Ozeanruinen bestehen überwiegend aus Sandstein und gehören zu den archäologischen Fundorten."
+      - "Die Eigenstory: Ihre Muster sind Teile einer Navigationssprache, die Küstenpunkte mit einem vergessenen Sternensystem verband."
+      - "Der nächste Schritt verlangt Level 17 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 680
+
+  campaign_ocean_ruin_cold:
+    order: 7
+    id: campaign_ocean_ruin_cold
+    title: "Steine unter dem Eis"
+    arc: "Unter dem Stein"
+    required-level: 20
+    structure-trigger: "minecraft:ocean_ruin_cold"
+    npc-id: "cold_ruin_keeper"
+    quests: ["story_campaign_ocean_ruin_cold"]
+    dialogue:
+      - "Kalte Ozeanruinen sind ein zweiter Typ der versunkenen Ruinen und enthalten Suspicious Gravel."
+      - "Die Eigenstory: Die nördlichen Ruinen waren Beobachtungsposten einer Kultur, die das Meer als Gedächtnis der Welt verstand."
+      - "Der nächste Schritt verlangt Level 20 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 760
+
+  campaign_monument:
+    order: 8
+    id: campaign_monument
+    title: "Die Wächter der Tiefe"
+    arc: "Die vergessenen Erbauer"
+    required-level: 23
+    structure-trigger: "minecraft:monument"
+    npc-id: "ocean_archivist"
+    quests: ["story_campaign_monument"]
+    dialogue:
+      - "Ocean Monuments liegen in tiefen Ozeanen und werden von Guardians und Elder Guardians verteidigt."
+      - "Die Eigenstory: Die prismarineartigen Hallen waren ein Schutzsystem für Wissen über Energie und Wasser, dessen ursprünglicher Zweck verloren ging."
+      - "Der nächste Schritt verlangt Level 23 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 840
+
+  campaign_buried_treasure:
+    order: 9
+    id: campaign_buried_treasure
+    title: "Die Karte ohne Namen"
+    arc: "Die vergessenen Erbauer"
+    required-level: 26
+    structure-trigger: "minecraft:buried_treasure"
+    npc-id: "treasure_seeker"
+    quests: ["story_campaign_buried_treasure"]
+    dialogue:
+      - "Buried Treasure ist eine eigene Weltstruktur und wird über Schatzkarten gefunden."
+      - "Die Eigenstory: Einige Schatzkarten sind absichtlich unvollständig, weil die Erbauer verhindern wollten, dass ihre Archive an einem einzigen Ort gefunden werden."
+      - "Der nächste Schritt verlangt Level 26 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 920
+
+  trail_ruins_archaeology:
+    order: 10
+    id: trail_ruins_archaeology
+    title: "Die Spuren der Vorzeit"
+    arc: "Die vergessenen Erbauer"
+    required-level: 29
+    structure-trigger: "minecraft:trail_ruins"
+    npc-id: "archaeologist"
+    quests: ["story_trail_ruins_archaeology"]
+    dialogue:
+      - "Trail Ruins sind vergrabene Siedlungen einer verlorenen Kultur; Suspicious Gravel kann durch Archäologie Hinweise und Artefakte freilegen."
+      - "Die Eigenstory: Der Archäologe erkennt wiederkehrende Markierungen, die später in anderen Ruinen erneut auftauchen."
+      - "Der nächste Schritt verlangt Level 29 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 1000
+
+  campaign_mineshaft:
+    order: 11
+    id: campaign_mineshaft
+    title: "Die Schächte unter den Straßen"
+    arc: "Die vergessenen Erbauer"
+    required-level: 32
+    structure-trigger: "minecraft:mineshaft"
+    npc-id: "mineshaft_cartographer"
+    quests: ["story_campaign_mineshaft"]
+    dialogue:
+      - "Mineshafts ziehen sich unter der Oberwelt durch und zeigen, wie tief alte Rohstoffgewinnung in die Welt eingriff."
+      - "Die Eigenstory: Ein Teil der Schächte folgt Linien, die älter sind als die Minen selbst."
+      - "Der nächste Schritt verlangt Level 32 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 1080
+
+  campaign_mineshaft_mesa:
+    order: 12
+    id: campaign_mineshaft_mesa
+    title: "Rotes Gestein, alte Wege"
+    arc: "Die vergessenen Erbauer"
+    required-level: 35
+    structure-trigger: "minecraft:mineshaft_mesa"
+    npc-id: "mesa_excavator"
+    quests: ["story_campaign_mineshaft_mesa"]
+    dialogue:
+      - "Mineshafts besitzen in Badlands eine eigene Mesa-Variante."
+      - "Die Eigenstory: Die Mesa-Schächte bewahren Materialproben, die später für Experimente an Netherite und Sculk wichtig wurden."
+      - "Der nächste Schritt verlangt Level 35 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 1160
+
+  campaign_igloo:
+    order: 13
+    id: campaign_igloo
+    title: "Die Kammer unter dem Eis"
+    arc: "Die schwarze Flamme"
+    required-level: 37
+    structure-trigger: "minecraft:igloo"
+    npc-id: "ice_healer"
+    quests: ["story_campaign_igloo"]
+    dialogue:
+      - "Igloos können eine geheime unterirdische Kammer mit einem Heilungsaufbau verbergen."
+      - "Die Eigenstory: Diese Kammer war ein frühes Experiment zur Heilung von Verwandlung und Flüchen."
+      - "Der nächste Schritt verlangt Level 37 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 1240
+
+  campaign_pillager_outpost:
+    order: 14
+    id: campaign_pillager_outpost
+    title: "Die Spaltung der Illager"
+    arc: "Die schwarze Flamme"
+    required-level: 40
+    structure-trigger: "minecraft:pillager_outpost"
+    npc-id: "outpost_scout"
+    quests: ["story_campaign_pillager_outpost"]
+    dialogue:
+      - "Pillager Outposts sind militärische Außenposten der Illager."
+      - "Die Eigenstory: Der Konflikt begann mit einem Streit darüber, ob verbotene Magie zur Rettung einer sterbenden Gesellschaft eingesetzt werden durfte."
+      - "Der nächste Schritt verlangt Level 40 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 1320
+
+  campaign_mansion:
+    order: 15
+    id: campaign_mansion
+    title: "Das Haus der verbotenen Kunst"
+    arc: "Die schwarze Flamme"
+    required-level: 43
+    structure-trigger: "minecraft:mansion"
+    npc-id: "mansion_magister"
+    quests: ["story_campaign_mansion"]
+    dialogue:
+      - "Woodland Mansions sind große Illager-Anwesen mit Bibliotheken, Werkstätten und geheimnisvollen Räumen."
+      - "Die Eigenstory: In den tiefsten Archiven wurden Experimente mit Magie und Körpern dokumentiert; die Totems der Unsterblichkeit sind ein Teil dieses Erbes."
+      - "Der nächste Schritt verlangt Level 43 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 1400
+
+  campaign_ruined_portal_desert:
+    order: 16
+    id: campaign_ruined_portal_desert
+    title: "Das Tor im Sand"
+    arc: "Die schwarze Flamme"
+    required-level: 46
+    structure-trigger: "minecraft:ruined_portal_desert"
+    npc-id: "portal_watcher_desert"
+    quests: ["story_campaign_ruined_portal_desert"]
+    dialogue:
+      - "Ruined Portals sind sichtbare Reste einer Verbindung zwischen Dimensionen; diese Variante liegt in Wüsten."
+      - "Die Eigenstory: Die Varianten sind keine zufälligen Ruinen, sondern unterschiedliche gescheiterte Stabilisierungstechniken."
+      - "Der nächste Schritt verlangt Level 46 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 1480
+
+  campaign_ruined_portal_jungle:
+    order: 17
+    id: campaign_ruined_portal_jungle
+    title: "Das überwucherte Tor"
+    arc: "Das Ende der Alten"
+    required-level: 49
+    structure-trigger: "minecraft:ruined_portal_jungle"
+    npc-id: "portal_watcher_jungle"
+    quests: ["story_campaign_ruined_portal_jungle"]
+    dialogue:
+      - "Eine Dschungelvariante des Ruined Portal zeigt, wie lange solche Übergänge ungeschützt bestehen können."
+      - "Die Eigenstory: Pflanzen haben die Portalenergie nicht zerstört, sondern in ihr Wachstum eingebaut."
+      - "Der nächste Schritt verlangt Level 49 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 1560
+
+  campaign_ruined_portal_swamp:
+    order: 18
+    id: campaign_ruined_portal_swamp
+    title: "Das Tor im Moor"
+    arc: "Das Ende der Alten"
+    required-level: 52
+    structure-trigger: "minecraft:ruined_portal_swamp"
+    npc-id: "portal_watcher_swamp"
+    quests: ["story_campaign_ruined_portal_swamp"]
+    dialogue:
+      - "Die Sumpfvariante des Ruined Portal trägt die Spuren eines alten Dimensionsversuchs."
+      - "Die Eigenstory: Der Versuch scheiterte, weil Wasser und Portalenergie auf eine Weise reagierten, die später vermieden wurde."
+      - "Der nächste Schritt verlangt Level 52 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 1640
+
+  campaign_ruined_portal_mountain:
+    order: 19
+    id: campaign_ruined_portal_mountain
+    title: "Der Riss im Stein"
+    arc: "Das Ende der Alten"
+    required-level: 55
+    structure-trigger: "minecraft:ruined_portal_mountain"
+    npc-id: "portal_watcher_mountain"
+    quests: ["story_campaign_ruined_portal_mountain"]
+    dialogue:
+      - "Ruined Portals erscheinen auch in bergigen Regionen."
+      - "Die Eigenstory: Die Bergvariante wurde gebaut, um einen Dimensionsübergang möglichst weit über dem Meeresspiegel zu stabilisieren."
+      - "Der nächste Schritt verlangt Level 55 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 1720
+
+  campaign_ruined_portal_ocean:
+    order: 20
+    id: campaign_ruined_portal_ocean
+    title: "Das Tor unter der Flut"
+    arc: "Das Ende der Alten"
+    required-level: 58
+    structure-trigger: "minecraft:ruined_portal_ocean"
+    npc-id: "portal_watcher_ocean"
+    quests: ["story_campaign_ruined_portal_ocean"]
+    dialogue:
+      - "Eine ozeanische Portalvariante liegt unter Wasser und zeigt die Reichweite der alten Übergangsexperimente."
+      - "Die Eigenstory: Das Meer wurde als natürlicher Kühlkörper für eine überhitzende Portalstruktur verwendet."
+      - "Der nächste Schritt verlangt Level 58 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 1800
+
+  campaign_ruined_portal_nether:
+    order: 21
+    id: campaign_ruined_portal_nether
+    title: "Der Rückweg aus der Glut"
+    arc: "Jenseits der Welt"
+    required-level: 61
+    structure-trigger: "minecraft:ruined_portal_nether"
+    npc-id: "portal_watcher_nether"
+    quests: ["story_campaign_ruined_portal_nether"]
+    dialogue:
+      - "Ruined Portals existieren auch im Nether."
+      - "Die Eigenstory: Diese Ruinen markieren die Orte, an denen Reisende versuchten, einen sicheren Rückweg zu erzwingen."
+      - "Der nächste Schritt verlangt Level 61 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 1880
+
+  campaign_ruined_portal:
+    order: 22
+    id: campaign_ruined_portal
+    title: "Das Muster der Tore"
+    arc: "Jenseits der Welt"
+    required-level: 64
+    structure-trigger: "minecraft:ruined_portal"
+    npc-id: "portal_watcher"
+    quests: ["story_campaign_ruined_portal"]
+    dialogue:
+      - "Die normale Ruined-Portal-Variante verbindet die bisherigen Hinweise auf Dimensionsreisen."
+      - "Die Eigenstory: Die sieben Portalvarianten bilden zusammen eine unvollständige Sicherheitsformel."
+      - "Der nächste Schritt verlangt Level 64 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 1960
+
+  under_the_stone:
+    order: 23
+    id: under_the_stone
+    title: "Unter dem Stein"
+    arc: "Jenseits der Welt"
+    required-level: 67
+    structure-trigger: "minecraft:ancient_city"
+    npc-id: "eryn"
+    quests: ["story_under_the_stone"]
+    dialogue:
+      - "Ancient Cities liegen im Deep Dark; Sculk und der Warden machen sie zu einem der gefährlichsten Rätsel der Welt."
+      - "Die Eigenstory: Die Erbauer flohen nicht einfach vor dem Sculk – sie versuchten, einen zentralen Übergang zu öffnen, bevor das Echo ihrer Stadt verstummte."
+      - "Der nächste Schritt verlangt Level 67 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 2040
+
+  campaign_nether_fossil:
+    order: 24
+    id: campaign_nether_fossil
+    title: "Knochen im Nether"
+    arc: "Das Reich der Endermen"
+    required-level: 69
+    structure-trigger: "minecraft:nether_fossil"
+    npc-id: "fossil_scribe"
+    quests: ["story_campaign_nether_fossil"]
+    dialogue:
+      - "Nether Fossils sind Strukturen aus Knochenmaterial und zeigen, dass der Nether eine eigene tiefe Geschichte besitzt."
+      - "Die Eigenstory: Die Fossilien sind keine direkten Beweise für einen Krieg, aber sie werden zum Schlüssel für eine vergessene biologische Verbindung."
+      - "Der nächste Schritt verlangt Level 69 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 2120
+
+  campaign_fortress:
+    order: 25
+    id: campaign_fortress
+    title: "Die schwarze Flamme"
+    arc: "Das Reich der Endermen"
+    required-level: 72
+    structure-trigger: "minecraft:fortress"
+    npc-id: "fortress_chronicler"
+    quests: ["story_campaign_fortress"]
+    dialogue:
+      - "Nether Fortresses verbinden Blaze, Wither Skeletons und die älteren Nether-Wege."
+      - "Die Eigenstory: Die schwarze Flamme bezeichnet das Wissen, das aus Nether-Ressourcen, Seelenenergie und zerstörerischer Beschwörung entstand."
+      - "Der nächste Schritt verlangt Level 72 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 2200
+
+  campaign_bastion_remnant:
+    order: 26
+    id: campaign_bastion_remnant
+    title: "Das Reich des Goldes"
+    arc: "Das Reich der Endermen"
+    required-level: 75
+    structure-trigger: "minecraft:bastion_remnant"
+    npc-id: "kael"
+    quests: ["story_campaign_bastion_remnant"]
+    dialogue:
+      - "Bastions bewahren Spuren der Piglin-Zivilisation, ihrer Vorräte, ihres Goldes und ihrer Machtstrukturen."
+      - "Die Eigenstory: Piglins bewahrten Erinnerungen an die Erbauer anders als die Oberwelt – nicht in Büchern, sondern in Besitz, Architektur und Ritualen."
+      - "Der nächste Schritt verlangt Level 75 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 2280
+
+  campaign_trial_chambers:
+    order: 27
+    id: campaign_trial_chambers
+    title: "Die Prüfung unter der Welt"
+    arc: "Das Reich der Endermen"
+    required-level: 78
+    structure-trigger: "minecraft:trial_chambers"
+    npc-id: "trial_master"
+    quests: ["story_campaign_trial_chambers"]
+    dialogue:
+      - "Trial Chambers sind unterirdische Prüfungsanlagen mit Vaults und Trial Spawnern."
+      - "Die Eigenstory: Die Anlagen sind ein späteres Echo der alten Prüftradition – diesmal wurde Prüfung selbst zur Maschine."
+      - "Der nächste Schritt verlangt Level 78 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 2360
+
+  campaign_stronghold:
+    order: 28
+    id: campaign_stronghold
+    title: "Die Verzweiflungstat"
+    arc: "Die Piglin-Zivilisation"
+    required-level: 81
+    structure-trigger: "minecraft:stronghold"
+    npc-id: "oren"
+    quests: ["story_campaign_stronghold"]
+    dialogue:
+      - "Strongholds sind unterirdische Ruinen und enthalten Endportalräume."
+      - "Die Eigenstory: Die Erbauer versuchten nicht, das End zu beherrschen. Sie suchten einen Ausweg aus einer Welt, die ihnen nicht mehr sicher erschien."
+      - "Der nächste Schritt verlangt Level 81 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 2440
+
+  campaign_end_city:
+    order: 29
+    id: campaign_end_city
+    title: "Jenseits der Welt"
+    arc: "Die Piglin-Zivilisation"
+    required-level: 84
+    structure-trigger: "minecraft:end_city"
+    npc-id: "silex"
+    quests: ["story_campaign_end_city"]
+    dialogue:
+      - "End Cities stehen auf den äußeren Inseln des Endes; Endschiffe bewahren Elytren."
+      - "Die Eigenstory: Die Spuren deuten auf Reisende hin, die sich an das End angepasst haben könnten – die Verbindung zu den heutigen Endermen bleibt eine Theorie."
+      - "Der nächste Schritt verlangt Level 84 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 2520
+
+  campaign_shipwreck_beached:
+    order: 30
+    id: campaign_shipwreck_beached
+    title: "Das Schiff, das nicht sinken durfte"
+    arc: "Die Piglin-Zivilisation"
+    required-level: 87
+    structure-trigger: "minecraft:shipwreck_beached"
+    npc-id: "beached_shipwright"
+    quests: ["story_campaign_shipwreck_beached"]
+    dialogue:
+      - "Beached Shipwrecks sind die gestrandete Variante der Schiffswracks."
+      - "Die Eigenstory: Ein Teil der Flotte wurde absichtlich an Land gesetzt, um Karten und Proben zu retten."
+      - "Der nächste Schritt verlangt Level 87 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 2600
+
+  campaign_village_desert:
+    order: 31
+    id: campaign_village_desert
+    title: "Die Wüstenchronik"
+    arc: "Die Piglin-Zivilisation"
+    required-level: 90
+    structure-trigger: "minecraft:village_desert"
+    npc-id: "desert_villager"
+    quests: ["story_campaign_village_desert"]
+    dialogue:
+      - "Wüstendörfer zeigen eine eigene Form heutiger Dorfsiedlungen."
+      - "Die Eigenstory: Die Dorfbewohner erbten nur Bruchstücke einer viel älteren Infrastruktur."
+      - "Der nächste Schritt verlangt Level 90 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 2680
+
+  campaign_village_savanna:
+    order: 32
+    id: campaign_village_savanna
+    title: "Die Sonnenstraße"
+    arc: "Der Drache"
+    required-level: 93
+    structure-trigger: "minecraft:village_savanna"
+    npc-id: "savanna_villager"
+    quests: ["story_campaign_village_savanna"]
+    dialogue:
+      - "Savannendörfer bewahren eine eigene regionale Bauweise."
+      - "Die Eigenstory: Ihre Handelswege kreuzen alte Linien, die bereits in den Trail Ruins auftauchten."
+      - "Der nächste Schritt verlangt Level 93 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 2760
+
+  campaign_village_snowy:
+    order: 33
+    id: campaign_village_snowy
+    title: "Das Dorf im Schnee"
+    arc: "Der Drache"
+    required-level: 96
+    structure-trigger: "minecraft:village_snowy"
+    npc-id: "snowy_villager"
+    quests: ["story_campaign_village_snowy"]
+    dialogue:
+      - "Schneedorf-Architektur zeigt, wie sich heutige Siedlungen an extreme Regionen angepasst haben."
+      - "Die Eigenstory: Unter manchen Fundamenten liegen Markierungen, die auf eine viel ältere gemeinsame Herkunft hindeuten."
+      - "Der nächste Schritt verlangt Level 96 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 2840
+
+  campaign_village_taiga:
+    order: 34
+    id: campaign_village_taiga
+    title: "Die letzte Spur der Siedler"
+    arc: "Was hinter dem Ende bleibt"
+    required-level: 99
+    structure-trigger: "minecraft:village_taiga"
+    npc-id: "taiga_villager"
+    quests: ["story_campaign_village_taiga"]
+    dialogue:
+      - "Taigadörfer schließen den Kreis der fünf klassischen Dorfvarianten."
+      - "Die Eigenstory: Der Archivar erkennt, dass die heutigen Siedlungen nicht die Erbauer der großen Ruinen gewesen sein müssen – aber sie könnten deren Nachfahren sein."
+      - "Der nächste Schritt verlangt Level 99 und die aktive Untersuchung dieses Ortes."
+    exp-reward: 2920
+

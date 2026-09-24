@@ -7,51 +7,45 @@ import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import de.pixelrpg.rpg.story.StoryChapter;
 import de.pixelrpg.rpg.story.StoryManager;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
-
-import java.util.Optional;
 
 public final class StoryBehavior implements NpcBehavior {
     private final StoryManager storyManager;
-    private final StoryNpcDialogue dialogue;
+    private final StoryNpcDialogue storyDialogue;
     private final DialogueEngine dialogueEngine;
     private final PlayerProfileManager profileManager;
 
-    public StoryBehavior(StoryManager storyManager, StoryNpcDialogue dialogue, DialogueEngine dialogueEngine, PlayerProfileManager profileManager) {
+    public StoryBehavior(StoryManager storyManager, StoryNpcDialogue storyDialogue,
+                         DialogueEngine dialogueEngine, PlayerProfileManager profileManager) {
         this.storyManager = storyManager;
-        this.dialogue = dialogue;
+        this.storyDialogue = storyDialogue;
         this.dialogueEngine = dialogueEngine;
         this.profileManager = profileManager;
     }
 
-    @Override public NpcType type() { return NpcType.STORY; }
+    @Override
+    public NpcType type() {
+        return NpcType.STORY;
+    }
 
     @Override
     public void onInteract(Player player, RPGNpc npc) {
-        if (player == null || npc == null || !profileManager.isRegistered(player.getUniqueId())) {
-            if (player != null) {
-                dialogueEngine.openUnavailable(player, "Geschichte", "Du musst zuerst registriertes Rathausmitglied sein.");
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered()) return;
+        storyManager.getChapter(profile.getStoryChapterIndex() + 1).ifPresentOrElse(chapter -> {
+            if (profile.getLevel() < chapter.requiredLevel()) {
+                dialogueEngine.openUnavailable(player, chapter.title(),
+                        "Diese Spur wird erst ab Level " + chapter.requiredLevel() + " zugänglich.");
+                return;
             }
-            return;
-        }
-
-        Optional<StoryChapter> next = storyManager.getNextChapterFor(player.getUniqueId());
-        if (next.isEmpty()) {
-            PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
-            if (profile == null) return;
-            int nextOrder = profile.getStoryChapterIndex() + 1;
-            StoryChapter locked = storyManager.getChapter(nextOrder).orElse(null);
-            if (locked != null) {
-                dialogueEngine.openUnavailable(player, "Geschichte",
-                        "Das nächste Kapitel wird ab Level " + locked.requiredLevel() + " freigeschaltet.");
-            } else {
-                dialogue.begin(player, npc);
-            }
-            return;
-        }
-
-        dialogue.openChapter(player, next.get(), npc);
+            if (chapter.hasStructureTrigger() && !npc.id().startsWith("story_" + chapter.npcId().toLowerCase() + "_")) return;
+            storyDialogue.openChapter(player, chapter, npc);
+        }, () -> dialogueEngine.openNotice(player,
+                Component.text("Das Archiv schweigt", NamedTextColor.GOLD),
+                Component.text("Für deine aktuelle Reise ist keine weitere Hauptspur registriert.", NamedTextColor.WHITE),
+                Component.text("Schließen", NamedTextColor.GRAY)));
     }
 }

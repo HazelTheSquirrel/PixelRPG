@@ -142,6 +142,7 @@ public final class NpcManager implements AutoCloseable {
             entity.setInvulnerable(true);
             entity.setPersistent(false);
             entity.setRemoveWhenFarAway(false);
+            entity.setVisibleByDefault(npc.type() != NpcType.STORY);
             entity.setCollidable(false);
             entity.customName(Component.text(npc.name(), npc.type().getColor()));
             entity.setCustomNameVisible(false);
@@ -216,8 +217,12 @@ public final class NpcManager implements AutoCloseable {
             }
 
             if (entity != null && entity.isValid()) {
-                player.hideEntity(plugin, entity);
-                player.showEntity(plugin, entity);
+                if (npc.type() == NpcType.STORY) {
+                    player.hideEntity(plugin, entity);
+                } else {
+                    player.hideEntity(plugin, entity);
+                    player.showEntity(plugin, entity);
+                }
             }
         }
     }
@@ -287,6 +292,21 @@ public final class NpcManager implements AutoCloseable {
 
     public Optional<RPGNpc> getById(String id) { return Optional.ofNullable(npcsById.get(id)); }
     public Collection<RPGNpc> getAll() { return List.copyOf(npcsById.values()); }
+
+    public Collection<RPGNpc> getStoryNpcsInChunk(World world, int chunkX, int chunkZ) {
+        if (world == null) return List.of();
+        NpcChunkKey key = new NpcChunkKey(world.getName(), chunkX, chunkZ);
+        return npcChunkIndex.getOrDefault(key, List.of()).stream()
+                .map(npcsById::get)
+                .filter(npc -> npc != null && npc.type() == NpcType.STORY)
+                .toList();
+    }
+
+    public Optional<Entity> getSpawnedEntity(String npcId) {
+        UUID uuid = spawnedEntityByNpcId.get(npcId);
+        return uuid == null ? Optional.empty() : Optional.ofNullable(Bukkit.getEntity(uuid));
+    }
+
     public Collection<UUID> getSpawnedEntityUuids() { return List.copyOf(spawnedEntityByNpcId.values()); }
 
     @Override
