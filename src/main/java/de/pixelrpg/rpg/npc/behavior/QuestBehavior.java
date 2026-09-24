@@ -146,11 +146,11 @@ public final class QuestBehavior implements NpcBehavior {
         if (status == QuestStatus.ACTIVE) {
             actions.add(dialogueEngine.actionButton(Component.text("Quest abgeben"), NamedTextColor.YELLOW, target -> {
                 questManager.completeQuest(target, quest.id());
-                openQuestCategory(target, start, end);
+                openQuestCategory(target, start, end, backAction);
             }));
             actions.add(dialogueEngine.actionButton(Component.text("Quest abbrechen"), NamedTextColor.RED, target -> {
                 questManager.abandonQuest(target, quest.id());
-                openQuestCategory(target, start, end);
+                openQuestCategory(target, start, end, backAction);
             }));
         }
         actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, target -> openQuestRanges(target, backAction)));
