@@ -11,11 +11,13 @@ public final class NpcInteractListener implements Listener {
     private final NpcManager npcManager;
     private final NpcBehaviorRegistry behaviorRegistry;
     private final QuestManager questManager;
+    private final NpcDialogueService npcDialogueService;
 
-    public NpcInteractListener(NpcManager npcManager, NpcBehaviorRegistry behaviorRegistry, QuestManager questManager) {
+    public NpcInteractListener(NpcManager npcManager, NpcBehaviorRegistry behaviorRegistry, QuestManager questManager, NpcDialogueService npcDialogueService) {
         this.npcManager = npcManager;
         this.behaviorRegistry = behaviorRegistry;
         this.questManager = questManager;
+        this.npcDialogueService = npcDialogueService;
     }
 
     // Zuständig für die primäre Interaktion mit PixelRPG-NPC-Mannequins und NPC-bezogene Questfortschritte.
@@ -27,6 +29,7 @@ public final class NpcInteractListener implements Listener {
             questManager.progressTalkToNpc(event.getPlayer(), npc.id());
             behaviorRegistry.get(npc.type()).ifPresent(behavior -> {
                 event.setCancelled(true);
+                if (npcDialogueService.open(event.getPlayer(), npc)) return;
                 behavior.onInteract(event.getPlayer(), npc);
             });
         });
