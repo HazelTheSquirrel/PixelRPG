@@ -21,7 +21,7 @@ import java.util.logging.Level;
 /** Persistent, level-gated story campaign and validated lore registry. */
 public final class StoryManager {
     private static final int MAX_CHAPTERS = 64;
-    private static final int STORY_VERSION = 6;
+    private static final int STORY_VERSION = 7;
 
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
@@ -39,7 +39,7 @@ public final class StoryManager {
         if (!file.exists()) installBundledCampaign(false);
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
 
-        if (yaml.getInt("story-version", 1) < STORY_VERSION && (isPreviousDefault(yaml) || isPreviousCampaignV5(yaml))) {
+        if (yaml.getInt("story-version", 1) < STORY_VERSION && (isPreviousDefault(yaml) || isPreviousCampaignV5(yaml) || isPreviousCampaignV6(yaml))) {
             installBundledCampaign(true);
             yaml = YamlConfiguration.loadConfiguration(file);
         }
