@@ -13,7 +13,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
-import java.util.List;
+import java.util.List;\nimport java.util.function.Consumer;
 import java.util.logging.Level;
 
 public final class ShopBehavior implements NpcBehavior {
