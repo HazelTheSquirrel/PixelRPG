@@ -235,7 +235,6 @@ public final class StoryNpcDialogue {
                         target -> {
                             if (questManager.completeQuestAtNpc(target, quest.id(), npc.id())
                                     && storyManager.isChapterArchived(target.getUniqueId(), chapter)) {
-                                advanceAfterEndCity(target, chapter);
                                 target.closeDialog();
                             } else {
                                 openEndCity(target, chapter, npc);
