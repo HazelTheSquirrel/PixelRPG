@@ -2890,3 +2890,314 @@ Die bewusst pausierten Bereiche bleiben unverändert:
 - Regionen
 - Resourcepack-Ausbau
 - manuelle Shop-Befüllung
+
+
+---
+
+# 37. Forensischer Abgleich — verbindlicher aktueller Content-Stand
+
+**Prüfdatum:** 24.09.2026  
+**Branch:** `test`  
+**Forensik-Referenz:** `Forensik.md` auf demselben Branch  
+**Regel:** Dieser Abschnitt überschreibt ältere, inzwischen widersprüchliche Zählungen/Statusangaben in den historischen Audit-Abschnitten.
+
+Die folgende Prüfung wurde direkt gegen den aktuellen Repository-Stand durchgeführt. Es werden nur tatsächliche Befunde dokumentiert. Die FILLER-NPC-Thematik wird ausdrücklich **nicht verändert und nicht als offene Baustelle geführt**.
+
+## 37.1 Questbestand — korrigierte Zählung
+
+Der aktuelle Datenbestand enthält:
+
+| Quelle | Definitionen |
+|---|---:|
+| Crafting Orders | 60 |
+| Additional | 84 |
+| Content Expansion 01 | 46 |
+| Expansion 02 | 19 |
+| V2 | 36 |
+| World Expansion | 29 |
+| Story | 19 |
+| **Gesamt** | **293** |
+
+Die Story-Datei enthält **19 Questdefinitionen**, obwohl `story_campaign.yml` insgesamt **20 Kapitelknoten (Order 0–19)** besitzt. Das erste Kapitel `first_traces` ist ein reines Story-/Dialogkapitel ohne eigene Questdefinition.
+
+**Verbindlicher Stand: 293 aktive Questdefinitionen.**
+
+### Quest-GUI
+
+Der aktuelle `QuestLogGUI` zeigt die Quests weiterhin als **eine flache, status-/alphabetisch sortierte Liste** und begrenzt die Darstellung auf 45 Einträge.
+
+Die gewünschte Progressionsdarstellung in **10 Levelbereichen** ist aktuell noch nicht umgesetzt:
+
+1. Level 1–10
+2. Level 11–20
+3. Level 21–30
+4. Level 31–40
+5. Level 41–50
+6. Level 51–60
+7. Level 61–70
+8. Level 71–80
+9. Level 81–90
+10. Level 91–99
+
+Damit ist die Questmenü-Struktur weiterhin eine **offene Content-/UI-Integrationsaufgabe**. Die Questdaten selbst sind vorhanden.
+
+**Status Questdaten: 🟢**  
+**Status 10-Level-Bereiche: 🟠 OFFEN**
+
+---
+
+## 37.2 Story-Kampagne — Datenbestand ist vollständig, UI-Workflow noch nicht vollständig
+
+Die Hauptkampagne besitzt aktuell:
+
+- Orders 0–19
+- 10 definierte Arcs
+- Story-Level 1–99
+- Stronghold
+- Enderdrache
+- End City
+- Level-99-Epilog
+- `story_campaign_dragon`
+- `story_campaign_after_the_end`
+
+Damit ist die frühere Lücke „Story endet bei Level 84“ **nicht mehr aktuell**.
+
+**Status Hauptkampagne: 🟢 CONTENT-SEITIG VOLLSTÄNDIG**
+
+### Reception → Story
+
+Der Reception-Dialog besitzt bereits einen separaten **Story-Eintrag** und kann eine aktive Story-Kampagne öffnen.
+
+Aktuell vorhanden:
+
+- Story anzeigen
+- Storydialog öffnen
+- Storyquest annehmen
+- Storyfortschritt/Questzustand anzeigen
+
+Aktuell **nicht vollständig** umgesetzt ist der gewünschte vollständige Workflow direkt aus der Reception:
+
+- Storyquest annehmen: **vorhanden**
+- Storyquest abgeben: **nicht als eigener Reception-Workflow vorhanden**
+- Storyquest abbrechen: **nicht als eigener Reception-Workflow vorhanden**
+
+Das allgemeine Questdetail besitzt zwar eine Abbruchfunktion, und Story-NPCs besitzen Abgabe-/Berichtsfunktionen. Das ersetzt jedoch nicht den ausdrücklich gewünschten **Reception → Story → Annehmen / Abgeben / Abbrechen**-Loop.
+
+**Status: 🟠 CONTENT-/UI-INTEGRATIONS-LÜCKE**
+
+---
+
+## 37.3 PixelRPG-Progressionsitems — korrigierter Bestand
+
+`item-definitions.json` enthält aktuell **30 Definitionen**:
+
+- **28 klassische Progressionsitems:** 4 Progressionsschwerter + 24 Rüstungsteile
+- **1 zusätzliches spielbares Custom-Item:** Feuerball
+- **1 Admin-/Unique-Relikt**
+
+Damit ist die frühere Formulierung „29 normale Progressionsitems“ fachlich zu präzisieren.
+
+Die sechs Rüstungssets sind weiterhin:
+
+1. Donnerwacht — Level 10
+2. Schattengeflecht — Level 20
+3. Stahlwall — Level 30
+4. Sonnengewand — Level 45
+5. Kristallwache — Level 60
+6. Höllenschmiede — Level 80
+
+---
+
+## 37.4 Custom-Crafting — 329 Rezepte, aber 14 Boss-Objekt-Abhängigkeiten
+
+Der aktuelle Crafting-Bestand enthält **329 Rezepte**.
+
+Davon sind **14 Rezepte direkt von `pixelrpg:boss/*`-Items abhängig**.
+
+Das widerspricht der inzwischen festgelegten Designregel:
+
+> **Normale Crafting-Rezepte dürfen keine Boss-Objekte als Zutaten verwenden.**
+
+Die betroffenen Progressionsrezepte betreffen insbesondere die höheren Ausrüstungsstufen.
+
+Beispiele aus dem aktuellen Stand:
+
+- Sonnengewand → `pixelrpg:boss/goldenes_fossil`
+- Kristallwache → `pixelrpg:boss/echoherz`
+- Höllenschmiede → `pixelrpg:boss/netherkern`
+- Netheritklinge → `pixelrpg:boss/endriss`
+- Feuerball → `pixelrpg:boss/sumpftrank`
+
+### Verbindliche Zielrichtung
+
+Diese Boss-Objekte sollen aus den normalen Rezeptkosten verschwinden.
+
+Stattdessen müssen die Rezepte auf normale Minecraft-Materialien und/oder bereits vorhandene reguläre RPG-Ressourcen umgestellt werden.
+
+Die konkrete Materialauswahl ist noch nicht als verbindlicher Content festgelegt und darf daher nicht erfunden werden.
+
+**Status: 🟠 OFFENE CONTENT-/CRAFTING-ÄNDERUNG**
+
+---
+
+## 37.5 Boss-Belohnungen — 32 Custom-Bossobjekte vorhanden
+
+`boss-reward-items.json` enthält **32 Boss-Reward-Definitionen**.
+
+Der aktuelle Bestand verwendet durchgehend `BRUSH` als Vanilla-Basis und kennzeichnet die Gegenstände über `pixelrpg:boss/*`-IDs und eigene Fähigkeiten.
+
+Damit ist die technische Anzahl der Bossbelohnungen ausreichend, aber das gewünschte neue Reward-Design ist **noch nicht umgesetzt**:
+
+- Vanilla-Basisitem
+- RPG-Stats / Ability
+- keine künstliche „Bossobjekt“-Materialklasse als zentrale Progressionsressource
+
+Wichtig: Die konkrete Ersatzmaterialverteilung ist noch offen. Der frühere Iron-Block-Beispielwert ist **keine verbindliche Vorgabe**.
+
+**Status Anzahl: 🟢**  
+**Status gewünschtes Reward-Design: 🟠 OFFEN**
+
+---
+
+## 37.6 Monster-Loot — aktuell weiterhin sehr großzügig
+
+`config.yml` enthält aktuell:
+
+`items.loot.item-drop-chance: 0.60`
+
+Der `LootDropListener` würfelt diese Chance bei registrierten Spielern auf Monster-Tode und erzeugt bei Erfolg ein RPG-Item bzw. vorhandene Itemdefinitionen.
+
+Damit liegt aktuell eine **60-%-Chance auf zusätzlichen PixelRPG-Item-Loot** vor.
+
+Das entspricht nicht dem inzwischen gewünschten **grindigeren Progressionsgefühl**.
+
+Die Loot-Logik besitzt bereits eine Levelgewichtung für das Itemlevel; das Problem ist primär die hohe Grundchance und damit die Häufigkeit.
+
+**Status: 🟠 BALANCING-/CONTENT-LÜCKE**
+
+Zielrichtung:
+
+- Vanilla-Loot bleibt häufig.
+- RPG-Loot wird seltener.
+- Höhere Progressionsstufen dürfen bessere Chancen/Qualität erhalten.
+- Bossloot bleibt davon getrennt.
+
+Die konkrete Zielchance sollte erst nach dem gewünschten Economy-/Progressions-Balancing festgelegt werden.
+
+---
+
+## 37.7 NPC-Weltcontent — FILLER ausdrücklich ausgeschlossen
+
+Das NPC-System enthält weiterhin:
+
+- RECEPTION
+- 9 Profession-Trainer
+- QUEST
+- SHOP
+- TRAVEL
+- STORY
+- BANKER
+- FILLER
+
+Die FILLER-NPCs werden in diesem Audit **nicht verändert**.
+
+### Travel
+
+Der `TRAVEL`-Typ und dessen Interaktion sind vorhanden. Eine allgemeine automatische „ein Travel-NPC in jedes Dorf“-Logik ist nicht als verbindlicher Content festgelegt.
+
+Die gewünschte Weltpopulation lautet weiterhin:
+
+- nur gelegentlich Travel-NPCs
+- bevorzugt in Dörfern mit vorhandener Glocke
+- nicht jedes Dorf
+- Story-/Struktur-NPCs ebenfalls selektiv
+- keine globale FILLER-Population als Ersatz
+
+Das ist primär **Welt-/Spawn-Konfiguration**, nicht ein fehlendes NPC-Grundsystem.
+
+**Status Travel-System: 🟢**  
+**Status finale Weltplatzierung: 🟡**
+
+---
+
+## 37.8 Story-NPC-Strukturen
+
+Das Story-System arbeitet mit strukturbasierten Storykapiteln und stabilen Story-NPC-IDs.
+
+Der aktuelle `NpcManager` behandelt Story-Mannequins grundsätzlich separat von normalen NPCs; Story-NPCs sind zunächst nicht standardmäßig für alle Spieler sichtbar und werden über den Story-/Trackingpfad synchronisiert.
+
+Die zuvor geklärte FILLER-NPC-Frage wird hiervon **nicht neu aufgerollt**.
+
+**Status technischer Story-NPC-Loop: 🟢**  
+**Status finale Welt-/Strukturplatzierung: 🟡**
+
+---
+
+## 37.9 Forensische Befunde, die NICHT als Content-Lücken umetikettiert werden dürfen
+
+Die `Forensik.md` nennt mehrere technische Befunde:
+
+- MySQL-Fallback kann einen geöffneten Hikari-Pool im Fehlerpfad zurücklassen.
+- Synchrones JSON-Speichern existiert in einem derzeit nicht nachgewiesen aktiven Pfad.
+- `QuestManager.checkReachLocationQuests()` kann teure Structure-/Biome-Locator-Aufrufe auslösen.
+- modernes NMS-Reflection im Name-Visibility-Pfad ist versionsgebunden.
+- externe Skin-Auflösung bleibt eine Netzwerk-Trust-Boundary.
+- Debug-Permission ist inkonsistent (`pixelrpg.admin` vs. `rpg.admin`).
+- CI führt keinen vollständigen gestarteten Paper-Server-Smoke-Test aus.
+
+Diese Punkte sind **keine Content-Lücken** und werden in dieser Datei nur zur Abgrenzung dokumentiert. Sie gehören in die technische Forensik und dürfen nicht durch Content-Änderungen kaschiert werden.
+
+---
+
+# 38. Verbindlicher aktueller Prioritätsstand
+
+## 🔴 P0
+
+### 1. Custom-Crafting von Boss-Objekten entkoppeln
+**14 Rezepte** müssen von `pixelrpg:boss/*`-Zutaten befreit werden.
+
+### 2. Boss-Reward-Design umstellen
+**32 Bossbelohnungen** auf Vanilla-Basis + RPG-Stats/Abilities neu definieren.
+
+## 🟠 P1
+
+### 3. Monster-RPG-Loot grinden statt inflationär machen
+Aktuelle Grundchance: **60 %**.  
+Ziel: deutlich seltenerer RPG-Loot bei weiterhin funktionierender Progression.
+
+### 4. Questlog in 10 Levelbereiche aufteilen
+Die Daten besitzen `categoryLevel`; die GUI nutzt diese Information aktuell nicht für die gewünschte Bereichsdarstellung.
+
+### 5. Reception-Story-Workflow vervollständigen
+Story-Annehmen ist vorhanden; Abgeben und Abbrechen müssen für den gewünschten Reception-Loop ergänzt werden.
+
+## 🟡 P2
+
+### 6. Travel-/Story-Weltplatzierung
+Selektive Travel-NPCs und selektive Story-Strukturen/NPCs in der finalen Zielwelt setzen.
+
+### 7. Story-Nebencontent
+Weitere Bücher, Gerüchte, optionale Lore und Nebenquests sind Erweiterungen, keine Kernblocker.
+
+---
+
+# 39. Bewusst unverändert / ausgeschlossen
+
+Diese Punkte werden bei der nächsten Umsetzung **nicht** unnötig angefasst:
+
+- FILLER-NPC-System
+- globale FILLER-Population
+- grundlegender NPC-Kern
+- Bank-Kern
+- Quest-Kern
+- Boss-Kern
+- Companion-Kern
+- Party-Kern
+- Guild-Kern
+- Trade-Depot-Kern
+- pausierte Food-Content-Pipeline
+- pausierte Regionen
+- pausierter Resourcepack-Ausbau
+- pausierter Guild-City-Weltcontent
+
+Der Fokus liegt damit nicht auf einem weiteren Komplettumbau, sondern auf den konkret belegten Lücken aus diesem Abgleich.
