@@ -15,7 +15,7 @@ import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.trade.TradeDepotManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.Player;\n\nimport java.util.function.Consumer;
 
 public final class BankerBehavior implements NpcBehavior {
     private final PlayerProfileManager profileManager;
@@ -34,7 +34,7 @@ public final class BankerBehavior implements NpcBehavior {
         GuildManager guildManager = GuildManager.getInstance(PixelRPGPlugin.getInstance(), profileManager);
         this.guildBankService = new GuildBankService(PixelRPGPlugin.getInstance(), guildManager);
         BankDialog personalBank = new BankDialog(profileManager, dialogueEngine, bankStorage, tradeDepot);
-        this.guildBankAccess = new GuildBankAccessDialog(guildManager, guildBankService, dialogueEngine, personalBank);
+        this.guildBankAccess = new GuildBankAccessDialog(guildManager, guildBankService, dialogueEngine, personalBank, backAction);
     }
 
     @Override public NpcType type() { return NpcType.BANKER; }
