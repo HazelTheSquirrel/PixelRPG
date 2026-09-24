@@ -38,17 +38,20 @@ public final class QuestManager {
     private final QuestRepository questRepository;
     private final PlayerProfileManager profileManager;
     private final GlobalEventState globalEventState;
+    private final de.pixelrpg.rpg.story.StoryManager storyManager;
     private final double partyShareRange;
     private final ItemService itemService;
     private final Map<QuestTimerKey, BukkitTask> questExpiryTasks = new ConcurrentHashMap<>();
     private Consumer<Player> questStateChangeListener = ignored -> { };
 
     public QuestManager(Plugin plugin, QuestRepository questRepository, PlayerProfileManager profileManager,
-                        de.pixelrpg.rpg.api.GuildAPI guildAPI, GlobalEventState globalEventState, double partyShareRange) {
+                        de.pixelrpg.rpg.api.GuildAPI guildAPI, GlobalEventState globalEventState,
+                        de.pixelrpg.rpg.story.StoryManager storyManager, double partyShareRange) {
         this.plugin = plugin;
         this.questRepository = questRepository;
         this.profileManager = profileManager;
         this.globalEventState = globalEventState;
+        this.storyManager = storyManager;
         this.partyShareRange = partyShareRange;
         this.itemService = PixelRPGPlugin.getInstance().getItemService();
         if (this.itemService == null) throw new IllegalStateException("ItemService must be initialized before QuestManager.");
@@ -89,7 +92,28 @@ public final class QuestManager {
                 .getLevel(profile.getUuid(), quest.profession());
     }
 
+    /** Accepts only non-story quests through the generic quest-giver pipeline. Story quests are reception-only. */
     public boolean acceptQuest(Player player, Quest quest) {
+        if (isStoryQuest(quest)) return false;
+        return acceptQuestInternal(player, quest);
+    }
+
+    /** Accepts the next story quest only from the central reception flow. */
+    public boolean acceptStoryQuestFromReception(Player player, Quest quest) {
+        if (player == null || quest == null || !isStoryQuest(quest)) return false;
+        var chapter = storyManager.getNextChapterFor(player.getUniqueId()).orElse(null);
+        if (chapter == null || !chapter.startQuestId().equalsIgnoreCase(quest.id())) return false;
+        return acceptQuestInternal(player, quest);
+    }
+
+    public boolean isStoryQuest(Quest quest) {
+        if (quest == null || storyManager == null) return false;
+        return storyManager.getAllChapters().stream().anyMatch(chapter ->
+                chapter.questIds().stream().anyMatch(id -> id.equalsIgnoreCase(quest.id())));
+    }
+
+    private boolean acceptQuestInternal(Player player, Quest quest) {
+        if (player == null || quest == null) return false;
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered() || !canAccept(profile, quest) || profile.hasActiveQuest(quest.id())) return false;
         if (profile.getActiveQuests().size() >= MAX_ACTIVE_QUESTS) {
@@ -204,6 +228,12 @@ public final class QuestManager {
         player.showTitle(Title.title(QuestText.title(player, quest).color(NamedTextColor.YELLOW), Component.empty(),
                 Title.Times.times(Duration.ofMillis(300), Duration.ofMillis(1800), Duration.ofMillis(300))));
         Bukkit.getPluginManager().callEvent(new QuestCompletedEvent(player, quest.id()));
+        if (isStoryQuest(quest)) {
+            storyManager.getAllChapters().stream()
+                    .filter(chapter -> chapter.completionQuestId().equalsIgnoreCase(quest.id()))
+                    .findFirst()
+                    .ifPresent(chapter -> storyManager.completeChapter(player, chapter));
+        }
         return true;
     }
 
