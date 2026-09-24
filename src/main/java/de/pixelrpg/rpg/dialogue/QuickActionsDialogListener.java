@@ -27,12 +27,14 @@ public final class QuickActionsDialogListener implements Listener {
     private final ProfessionDialog professionDialog;
     private final CharacterCardScoreboardService characterCardScoreboard;
     private final GuildManager guildManager;
+    private final InviteDialogService inviteDialogService;
 
-    public QuickActionsDialogListener(QuickActionsDialogService service, CompanionService companionService) {
+    public QuickActionsDialogListener(QuickActionsDialogService service, CompanionService companionService, InviteDialogService inviteDialogService) {
         this.plugin = PixelRPGPlugin.getInstance();
         this.service = service;
         this.companionService = companionService;
         this.guildManager = GuildManager.getInstance(plugin, service.profileManager());
+        this.inviteDialogService = inviteDialogService;
         DialogueEngine dialogueEngine = new DialogueEngine();
         this.companionDialog = new CompanionDialog(companionService, dialogueEngine, service);
         this.professionDialog = new ProfessionDialog(service.profileManager(), dialogueEngine, service);
@@ -61,7 +63,7 @@ public final class QuickActionsDialogListener implements Listener {
     /** Handles guild creation or guild management from the native G character card. */
     @EventHandler
     public void onGuildAction(PlayerCustomClickEvent event) {
-        handlePlayerAction(event, GUILD_ACTION, player -> new GuildDialog(guildManager, service.profileManager(), new DialogueEngine(), service).open(player));
+        handlePlayerAction(event, GUILD_ACTION, player -> new GuildDialog(guildManager, service.profileManager(), new DialogueEngine(), service, inviteDialogService).open(player));
     }
 
     /** Handles the validated companion equipment action from its native dialog. */
