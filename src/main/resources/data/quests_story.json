@@ -15,9 +15,7 @@
       "categoryLevel": 3,
       "targetKey": "story_campaign_village_plains",
       "requiredAmount": 1,
-      "prerequisites": [
-        "story_first_traces"
-      ],
+      "prerequisites": [],
       "reward": {
         "money": 135,
         "experience": 235,
