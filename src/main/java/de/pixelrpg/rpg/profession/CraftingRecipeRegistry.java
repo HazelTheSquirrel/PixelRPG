@@ -262,10 +262,7 @@ public final class CraftingRecipeRegistry {
     private static String canonicalItemId(String raw) {
         String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
         if (!value.startsWith("pixelrpg:")) return value;
-        String body = value.substring("pixelrpg:".length());
-        int slash = body.indexOf('/');
-        if (slash > 0) body = body.substring(0, slash) + ":" + body.substring(slash + 1);
-        return "pixelrpg:" + body;
+        return value;
     }
 
     private static String canonicalRecipeId(String raw) {
