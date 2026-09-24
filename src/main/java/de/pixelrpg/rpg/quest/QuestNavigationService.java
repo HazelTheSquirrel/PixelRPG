@@ -9,8 +9,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.GameRules;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
@@ -61,6 +62,9 @@ public final class QuestNavigationService {
         }
 
         UUID playerId = player.getUniqueId();
+        if (playerLocationWorld(player) != null && !Boolean.TRUE.equals(playerLocationWorld(player).getGameRuleValue(GameRules.LOCATOR_BAR))) {
+            playerLocationWorld(player).setGameRule(GameRules.LOCATOR_BAR, true);
+        }
         Map<String, QuestMarker> currentMarkers = markersByPlayer.computeIfAbsent(playerId, ignored -> new HashMap<>());
         Location playerLocation = player.getLocation();
         UUID worldId = playerLocation.getWorld() == null ? null : playerLocation.getWorld().getUID();
@@ -149,22 +153,27 @@ public final class QuestNavigationService {
     }
 
     private QuestMarker createMarker(Player player, int index, Location target) {
-        ArmorStand marker = target.getWorld().spawn(target, ArmorStand.class, stand -> {
-            stand.setInvisible(true);
-            stand.setMarker(true);
-            stand.setGravity(false);
-            stand.setInvulnerable(true);
-            stand.setSilent(true);
-            stand.setPersistent(false);
-            stand.setVisibleByDefault(false);
-            var transmitRange = stand.getAttribute(Attribute.WAYPOINT_TRANSMIT_RANGE);
+        Mannequin marker = target.getWorld().spawn(target, Mannequin.class, mannequin -> {
+            mannequin.setInvisible(true);
+            mannequin.setNoPhysics(true);
+            mannequin.setImmovable(true);
+            mannequin.setCollidable(false);
+            mannequin.setInvulnerable(true);
+            mannequin.setSilent(true);
+            mannequin.setPersistent(false);
+            mannequin.setVisibleByDefault(false);
+            var transmitRange = mannequin.getAttribute(Attribute.WAYPOINT_TRANSMIT_RANGE);
             if (transmitRange != null) transmitRange.setBaseValue(60_000_000.0D);
-            stand.setWaypointColor(QUEST_COLORS.get(index));
-            stand.setWaypointStyle(DEFAULT_WAYPOINT_STYLE);
-            stand.getPersistentDataContainer().set(RPGKeys.Quest.navigationCompass(), PersistentDataType.BYTE, (byte) 1);
+            mannequin.setWaypointColor(QUEST_COLORS.get(index));
+            mannequin.setWaypointStyle(DEFAULT_WAYPOINT_STYLE);
+            mannequin.getPersistentDataContainer().set(RPGKeys.Quest.navigationCompass(), PersistentDataType.BYTE, (byte) 1);
         });
         player.showEntity(plugin, marker);
         return new QuestMarker(marker);
+    }
+
+    private org.bukkit.World playerLocationWorld(Player player) {
+        return player.getWorld();
     }
 
     private Location resolveTarget(Location origin, Quest quest, QuestProgress progress) {
@@ -266,7 +275,7 @@ public final class QuestNavigationService {
         }
     }
 
-    private record QuestMarker(ArmorStand entity) { }
+    private record QuestMarker(Mannequin entity) { }
     private record QuestProgressEntry(Quest quest, QuestProgress progress) { }
     private record NavigationCacheKey(UUID worldId, int chunkX, int chunkZ, String questId) { }
     private record CachedTarget(Location location, long createdAtMillis) { }
