@@ -1194,3 +1194,141 @@ Damit dient diese Datei künftig als Content-Gegenstück zu `Forensik.md`:
 - `Forensik.md` = „Ist die technische Implementierung sauber?“
 - `Content.md` = „Ist die Implementierung mit ausreichend spielbarem Content gefüllt?“
 
+
+
+---
+
+# 33. Umsetzungsstand – Content-Pipeline 24.09.2026
+
+Dieser Abschnitt **überschreibt ältere offene Content-Befunde**, soweit sie durch die aktuelle Umsetzung oder durch eine bewusste Produktentscheidung geändert wurden.
+
+## Bewusst pausiert / nicht mehr als Lücke behandeln
+
+- **Food:** Die 23 Food-Definitionen bleiben bewusst als Testbestand pausiert. Es werden aktuell keine Food-Quellen, Food-Rezepte oder Food-Progressionsketten ergänzt.
+- **NPC-Weltpopulation:** Eine globale Default-NPC-Population wird nicht benötigt. NPCs/Mannequins werden gezielt dort erzeugt, wo ein Quest-/Story-Loop sie benötigt; insbesondere die bestehende Story-Struktur-NPC-Erzeugung bleibt dafür maßgeblich.
+- **Shops:** Das Shop-System gilt als content-fertig. Sortimente werden bewusst manuell über die vorhandene Shop-Administration gepflegt.
+- **Regionen, Guild-City und Resourcepack-Ausbau:** weiterhin bewusst pausiert.
+
+## Umgesetzt
+
+### Custom-Item-Erwerb / Weapon Progression
+
+Die bestehende Custom-Item-Progression ist jetzt als echter Spieler-Loop angebunden:
+
+- Eisenschwert – Level 3
+- Goldklinge – Level 25
+- Diamantklinge – Level 40
+- Netheritklinge – Level 90
+- Feuerball – Level 35, Alchemist
+
+Die vier vorhandenen Progressionswaffen besitzen weiterhin ihre bestehenden Weapon Abilities. Der Feuerball nutzt die vorhandene Fireball-Ability und wird als normales PixelRPG-Item über das Alchemist-Rezept hergestellt.
+
+**Weapon Progression bedeutet damit nicht „mehr Waffen programmieren“, sondern:**
+
+1. Spieler erreicht die erforderliche Stufe.
+2. Spieler levelt den passenden Beruf.
+3. Rezept wird über den bestehenden Unlock-Mechanismus freigeschaltet.
+4. Vanilla-Materialien und ggf. Boss-Katalysatoren werden beschafft.
+5. Custom-Waffe wird über den normalen Crafting-Loop erzeugt.
+6. Die Waffe bringt ihre definierte Ability in den Combat-Loop ein.
+
+### Custom-Rüstungssets
+
+Alle sechs vorhandenen Sets besitzen jetzt konkrete Crafting-Erwerbswege:
+
+- Donnerwacht – Schmied, Level 10
+- Schattengeflecht – Schneider, Level 20
+- Stahlwall – Schmied, Level 30
+- Sonnengewand – Schneider, Level 45
+- Kristallwache – Schmied, Level 60
+- Höllenschmiede – Schmied, Level 80
+
+Höhere Sets verwenden zusätzlich vorhandene Boss-Reward-Items als Crafting-Katalysatoren. Damit entsteht eine echte Verbindung zwischen Boss- und Equipment-Progression.
+
+### Custom-Item-Crafting
+
+Die Crafting-Pipeline unterstützt jetzt zusätzlich:
+
+- `resultItemId`
+- Custom-PixelRPG-Itemkosten
+- Validierung gegen die zentrale ItemDefinitionRegistry
+- Verbrauch von Custom-Item-Kosten
+- Erzeugung über den zentralen ItemService
+- weiterhin vollständige Vanilla-Rezepte
+
+Der bestehende Vanilla-Crafting-Bestand bleibt erhalten.
+
+### Feuerball
+
+Der Feuerball wurde als neues Custom-Item integriert:
+
+- Material: FIRE_CHARGE
+- Kategorie: RANGED_WEAPON
+- Level: 35
+- Beruf: Alchemist
+- Recipe-Kosten: Blaze Powder, Gunpowder, Ghast Tear
+- zusätzlicher Boss-Katalysator: Sumpftrank
+- bestehende Fireball-Ability
+- 3 Sekunden Cooldown
+
+Damit ist der Feuerball kein losgelöstes Beispiel mehr, sondern ein echter Content-Loop.
+
+### Story-Integration
+
+Die 17 aktiven Story-Strukturquests geben jetzt konkrete Custom-Item-Belohnungen aus der bestehenden Progressionskette.
+
+Die bestehende automatische Story-NPC-Erzeugung an den relevanten Strukturen bleibt erhalten. Eine globale NPC-Population wurde ausdrücklich nicht eingeführt.
+
+### Companion-Unlocks
+
+Die 25 questbasierten Companion-Freischaltungen sind jetzt mit Quest-Content verbunden:
+
+- 20 bestehende Companion-Quests wurden direkt mit `reward.companionId` verdrahtet.
+- 5 fehlende Unlock-Loops wurden als dedizierte Quests ergänzt:
+  - Copper Golem
+  - Pig
+  - Horse
+  - Zombie Horse
+  - Skeleton Horse
+
+Damit sind die 25 QUEST-Unlocks nicht mehr nur Definitionen, sondern besitzen konkrete Questpfade.
+
+### Boss-/Loot-Integration
+
+Progressionsausrüstung wurde zusätzlich in die Boss-Loot-Pipeline eingebunden.
+
+Bestehende Bossdefinitionen werden bei der Initialisierung migriert, sodass ausgewählte Bosse konkrete Progressionswaffen/-rüstung als garantierte Loot-Komponenten erhalten. Bestehende Lootdefinitionen werden dabei nicht ersetzt.
+
+### Physische Währung
+
+Die Währung wird jetzt als physisches Inventar-Item behandelt:
+
+- Currency bleibt ein physischer Drop.
+- Pickup transferiert **nicht automatisch** in die virtuelle Bank.
+- Einzahlung erfolgt weiterhin bewusst über die Bank.
+- Auszahlung erzeugt wieder physische Currency-Stacks.
+- Paper 26.2 unterstützt für den Item-`MAX_STACK_SIZE`-Data-Component Werte bis **99**. Daher wurde die gewünschte 999er Stackgröße auf den technisch/API-seitig unterstützten Wert 99 begrenzt, statt eine nicht unterstützte Legacy-/NMS-Lösung einzubauen.
+
+### Economy-Baseline
+
+Die vorhandenen Economy-Senken wurden in die neue Progression eingebunden:
+
+- Rezept-Unlock-Preise
+- Story-Geld
+- Boss-Geld
+- physische Currency-Drops
+- Bank-Einzahlung/-Auszahlung
+- Trade Depot
+
+Weitere Economy-Anpassungen bleiben Balancing nach Playtests und sind kein fehlendes Kernsystem.
+
+## Aktueller Content-Fokus
+
+Die verbleibenden offenen Arbeiten sind jetzt überwiegend:
+
+1. tatsächliche Welt-/Strukturplatzierung der benötigten NPCs/Mannequins,
+2. manuelle Shop-Befüllung,
+3. Playtest und Balancing der neuen Progressionskosten,
+4. spätere Food-/Resourcepack-/Regions-Erweiterungen.
+
+Die großen bisherigen „Definition liegt herum, ist aber nicht erreichbar“-Lücken bei Custom-Waffen, Rüstungssets und Companions sind damit geschlossen.
