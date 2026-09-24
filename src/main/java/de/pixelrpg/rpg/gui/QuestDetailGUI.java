@@ -78,7 +78,7 @@ public final class QuestDetailGUI extends AbstractGUI {
         }
 
         setItem(49, named(Material.ARROW, "Zurück", NamedTextColor.RED),
-                event -> new QuestLogGUI(viewer, quests, profiles).open(viewer));
+                event -> new QuestLogGUI(viewer, quests, profiles, itemService).open(viewer));
     }
 
     private ItemStack requestedItem() {
