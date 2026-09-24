@@ -8,6 +8,7 @@ import de.pixelrpg.rpg.api.StatisticsAPI;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.FoodService;
 import de.pixelrpg.rpg.party.PartyService;
+import de.pixelrpg.rpg.profession.ProfessionSystem;
 import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.stats.StatisticsService;
@@ -23,6 +24,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private EquipmentService equipmentService;
     private ItemService itemService;
     private FoodService foodService;
+    private ProfessionSystem professionSystem;
 
     @Override
     public void onEnable() {
@@ -40,6 +42,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         statisticsService = new StatisticsService(statEngine);
         foodService = new FoodService(this);
         itemService = new ItemService(this, foodService);
+        professionSystem = new ProfessionSystem(this, profiles);
+        professionSystem.register();
         getServer().getPluginManager().registerEvents(foodService, this);
         getServer().getPluginManager().registerEvents(equipmentService, this);
 
@@ -65,6 +69,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         equipmentService = null;
         itemService = null;
         foodService = null;
+        professionSystem = null;
     }
 
     private <T> void register(Class<T> type, T service) {
@@ -91,5 +96,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     public ItemService getItemService() {
         return itemService;
+    }
+
+    public ProfessionSystem getProfessionSystem() {
+        return professionSystem;
     }
 }
