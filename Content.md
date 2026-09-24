@@ -3,7 +3,7 @@
 Nach der aktuellen Dialogue-/NPC-Überarbeitung wurde der Contentbestand erneut geprüft:
 
 - Berufsquests wurden vollständig entfernt; es existieren keine separaten Berufsquest-Definitionen mehr.
-- Die Questanzahl beträgt dadurch **233** statt 293.
+- Die Questanzahl beträgt dadurch **149** statt 293.
 - Das native Dialogsystem besitzt weiterhin eine klare Hierarchie: oberste Menüs verwenden **Schließen**, Untermenüs verwenden **Zurück**.
 - DialogTree-Navigation führt bei verschachtelten Nodes zum vorherigen Node zurück.
 - Admin-platzierte NPCs erhalten beim ersten Besuch eine persistente, typabhängige Begrüßungs-/Situationsdialogspur mit variierenden Optionen und levelabhängigem Text.
@@ -399,7 +399,7 @@ Aktuelle Quelldateien:
 | Story | 19 |
 | V2 | 36 |
 | World Expansion | 29 |
-| **Gesamt** | **233** |
+| **Gesamt** | **149** |
 
 Questtypen:
 
@@ -1489,7 +1489,7 @@ Der statische Befund C-01 bleibt unabhängig davon bestehen: `PartySubCommand.ja
 
 Der aktuelle `test`-Stand besitzt bereits einen **umfangreichen, datengetriebenen RPG-Content-Kern**. Die großen Zahlenbereiche sind nicht mehr die Hauptbaustelle:
 
-- 233 Questdefinitionen
+- 149 Questdefinitionen
 - 20 Story-Kampagnenknoten
 - 329 Crafting-Rezepte
 - 30 Itemdefinitionen
