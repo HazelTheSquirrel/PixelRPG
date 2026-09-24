@@ -28,7 +28,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-public final class StoryNpcVisibilityListener implements Listener {
+public final class StoryNpcVisibilityListener implements Listener, AutoCloseable {
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
     private final QuestRepository questRepository;
@@ -101,7 +101,8 @@ public final class StoryNpcVisibilityListener implements Listener {
         visibleNpcIds.remove(event.getPlayer().getUniqueId());
     }
 
-    public void shutdown() {
+    @Override
+    public void close() {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             hidePreviouslyVisible(player);
         }
