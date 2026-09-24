@@ -31,6 +31,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ProfessionSystem professionSystem;
     private QuestRepository questRepository;
     private QuestService questService;
+    private de.pixelrpg.rpg.guild.GuildManager guildManager;
 
     @Override
     public void onEnable() {
@@ -41,6 +42,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         profiles.initialize(getConfig());
         getServer().getPluginManager().registerEvents(
                 new PlayerProfileLifecycleListener(profiles), this);
+
+        guildManager = new de.pixelrpg.rpg.guild.GuildManager(this, profiles);
 
         partyManager = new PartyManager(this);
         getServer().getPluginManager().registerEvents(new PartyDisconnectListener(partyManager), this);
@@ -68,6 +71,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         unregister(PartyAPI.class, partyManager);
+        if (guildManager != null) guildManager.shutdown();
         if (partyManager != null) partyManager.shutdown();
         unregister(StatisticsAPI.class, statisticsService);
         unregister(ItemAPI.class, itemService);
@@ -85,6 +89,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         professionSystem = null;
         questService = null;
         questRepository = null;
+        guildManager = null;
     }
 
     private <T> void register(Class<T> type, T service) {
@@ -119,5 +124,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     public QuestService getQuestService() {
         return questService;
+    }
+
+    public de.pixelrpg.rpg.guild.GuildManager getGuildManager() {
+        return guildManager;
     }
 }
