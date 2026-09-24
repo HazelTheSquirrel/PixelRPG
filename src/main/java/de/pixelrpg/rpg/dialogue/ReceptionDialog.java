@@ -216,7 +216,7 @@ public final class ReceptionDialog {
             actions.add(dialogueEngine.actionButton(Component.text("Quest annehmen", NamedTextColor.GREEN), NamedTextColor.GREEN,
                     next -> {
                         PixelRPGPlugin current = PixelRPGPlugin.getInstance();
-                        if (current != null && current.getQuestManager() != null) current.getQuestManager().acceptQuest(next, quest);
+                        if (current != null && current.getQuestManager() != null) current.getQuestManager().acceptStoryQuestFromReception(next, quest);
                         openStoryChapter(next, chapter);
                     }));
         } else if (active) {
