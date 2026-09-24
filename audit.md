@@ -1389,3 +1389,23 @@ Die PartyGUI und Quick-Actions bleiben weiterhin OPEN; deshalb ist der Party-Ber
 ### Aktueller Rebuild-Head
 
 `ae409ae8928a86bafcd5cccf551b6f7d56812067`
+
+
+## 38. GUI-/Questlog-Grundlage — 2026-09-24
+
+**REBUILT / NOT VERIFIED**
+
+Die Präsentationsgrundlage wurde neu aufgebaut:
+
+- generisches `AbstractGUI`-/Holder-/Listener-Modell für Inventar-GUIs;
+- zentrale Click-/Close-Verarbeitung mit Schutz vor Eingriffen in das Player-Inventar;
+- Questlog mit Statussortierung (verfügbar, aktiv, nicht verfügbar, abgeschlossen);
+- Questdetailansicht mit Ziel, Menge, Level, Belohnungen, Fortschritt und Abbruchaktion;
+- aktueller Paper-BasicCommand-Pfad für `/pixelrpgquestlog`;
+- GUI-Lifecycle in die Composition Root integriert.
+
+Noch nicht VERIFIED: Rücknavigation in das vollständige main-Reception-/Dialogsystem, sämtliche Quest-Navigationselemente, QuestText-Lokalisierung/Formatierung und End-to-End-Parität.
+
+### Aktueller Rebuild-Head
+
+`e57ac24ddebe736d4648a0f2938a85e9bb7045ef`
