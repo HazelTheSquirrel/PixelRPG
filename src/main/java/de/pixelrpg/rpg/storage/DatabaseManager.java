@@ -6,6 +6,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.Locale;
+import java.util.Set;
 
 public final class DatabaseManager implements AutoCloseable {
     private static final int CURRENT_SCHEMA_VERSION = 2;
