@@ -68,6 +68,17 @@ public final class PlayerProfileManager implements GuildAPI, EconomyAPI {
             repository.init();
         } catch (Exception exception) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to initialize storage, falling back to YAML.", exception);
+            if (databaseManager != null) {
+                try {
+                    databaseManager.shutdown();
+                } catch (RuntimeException shutdownException) {
+                    plugin.getLogger().log(java.util.logging.Level.WARNING,
+                            "Failed to close MySQL storage before YAML fallback.",
+                            shutdownException);
+                } finally {
+                    databaseManager = null;
+                }
+            }
             storageType = StorageType.YAML;
             repository = new YamlPlayerProfileRepository(plugin.getDataFolder());
             try {
