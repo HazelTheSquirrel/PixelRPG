@@ -7,7 +7,8 @@ import de.pixelrpg.rpg.api.PartyAPI;
 import de.pixelrpg.rpg.api.StatisticsAPI;
 import de.pixelrpg.rpg.item.ItemService;
 import de.pixelrpg.rpg.item.FoodService;
-import de.pixelrpg.rpg.party.PartyService;
+import de.pixelrpg.rpg.party.PartyManager;
+import de.pixelrpg.rpg.party.PartyDisconnectListener;
 import de.pixelrpg.rpg.profession.ProfessionSystem;
 import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
@@ -18,7 +19,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class PixelRPGPlugin extends JavaPlugin {
     private PlayerProfileManager profiles;
-    private PartyService partyService;
+    private PartyManager partyManager;
     private StatisticsService statisticsService;
     private de.pixelrpg.rpg.stats.StatEngine statEngine;
     private EquipmentService equipmentService;
@@ -36,7 +37,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(
                 new PlayerProfileLifecycleListener(profiles), this);
 
-        partyService = new PartyService(getConfig().getDouble("quests.party-share-range", 24.0D));
+        partyManager = new PartyManager(this);
+        getServer().getPluginManager().registerEvents(new PartyDisconnectListener(partyManager), this);
         statEngine = new de.pixelrpg.rpg.stats.StatEngine(profiles);
         equipmentService = new EquipmentService(profiles, statEngine);
         statisticsService = new StatisticsService(statEngine);
@@ -47,7 +49,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(foodService, this);
         getServer().getPluginManager().registerEvents(equipmentService, this);
 
-        register(PartyAPI.class, partyService);
+        register(PartyAPI.class, partyManager);
         register(StatisticsAPI.class, statisticsService);
         register(ItemAPI.class, itemService);
 
@@ -56,14 +58,15 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        unregister(PartyAPI.class, partyService);
+        unregister(PartyAPI.class, partyManager);
+        if (partyManager != null) partyManager.shutdown();
         unregister(StatisticsAPI.class, statisticsService);
         unregister(ItemAPI.class, itemService);
         if (profiles != null) {
             profiles.shutdown();
             profiles = null;
         }
-        partyService = null;
+        partyManager = null;
         statisticsService = null;
         statEngine = null;
         equipmentService = null;
@@ -86,8 +89,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         return profiles;
     }
 
-    public PartyService getPartyService() {
-        return partyService;
+    public PartyManager getPartyManager() {
+        return partyManager;
     }
 
     public StatisticsService getStatisticsService() {
