@@ -90,7 +90,7 @@ public final class QuickActionsDialogService {
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .build());
-            builder.type(DialogType.multiAction(actions, null, 2));
+            builder.type(DialogType.multiAction(actions, null, 1));
         }));
     }
 
