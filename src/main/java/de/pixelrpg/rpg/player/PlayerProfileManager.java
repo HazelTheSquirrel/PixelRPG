@@ -223,8 +223,7 @@ public final class PlayerProfileManager implements EconomyAPI, GuildAPI, AutoClo
         YamlPlayerProfileRepository emergency = null;
         try {
             File folder = new File(plugin.getDataFolder(), "emergency");
-            emergency = new YamlPlayerProfileRepository(folder.toPath(),
-                    Executors.newVirtualThreadPerTaskExecutor());
+            emergency = new YamlPlayerProfileRepository(folder.toPath(), ioExecutor);
             emergency.save(profile).join();
         } catch (Exception exception) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE,
