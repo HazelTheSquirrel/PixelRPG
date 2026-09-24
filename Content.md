@@ -1567,3 +1567,1254 @@ Ein Content-System wird ab diesem Stand als fertig behandelt, wenn es:
 4. seine benötigten Progressions-/Reward-Verbindungen besitzt,
 5. nicht nur als ungenutzte Definition existiert.
 
+
+
+---
+
+# CONTENT AUDIT v2 — Verbindlicher Stand 24.09.2026
+
+> **Wichtig:** Dieser Abschnitt ist der aktuelle, gegen den tatsächlichen Branch `test` geprüfte Content-Status. Ältere Aussagen weiter oben in dieser Datei können durch die zwischenzeitlichen Implementierungen überholt sein. Für die Entscheidung **„fertig / Content-Lücke / bewusst pausiert“** ist ausschließlich dieser Abschnitt maßgeblich.
+
+## 1. Prüfgrundlage
+
+Geprüft wurde der tatsächliche Repository-Inhalt von:
+
+- Branch: `test`
+- Build: Paper 26.2 / Java 25
+- `src/main/java`
+- `src/main/resources`
+- `resourcepack/`
+- `config.yml`
+- `data/*.json`
+- `data/story_campaign.yml`
+- vorhandene Quest-, Item-, Rezept-, Companion-, Boss- und Equipmentdefinitionen
+
+Die Bewertung beantwortet **nicht**, ob das Plugin technisch fehlerfrei ist. Sie beantwortet:
+
+> **Ist die jeweilige Implementierung bereits mit genügend spielbarem Content versehen, oder fehlt noch konkreter Spieler-Content?**
+
+---
+
+# 2. Statuslegende
+
+| Status | Bedeutung |
+|---|---|
+| 🟢 FERTIG | Der vorgesehene Content-Loop ist vorhanden. Weitere Inhalte sind Erweiterungen/Balancing. |
+| 🟡 CONTENT-LÜCKE | Die Technik existiert, aber ein relevanter Spieler-Content-Bestand fehlt. |
+| 🟠 INTEGRATIONS-LÜCKE | Content existiert, ist aber noch nicht vollständig mit dem vorgesehenen Gameplay-Loop verbunden. |
+| ⚪ PAUSIERT | Bewusst zurückgestellt; nicht als offene Pflichtarbeit behandeln. |
+| 🔵 OPTIONALE ERWEITERUNG | Kein notwendiger Fertigstellungsblocker. |
+
+---
+
+# 3. Gesamtübersicht
+
+| System | Aktueller Stand | Status |
+|---|---:|---|
+| Player / Level 1–99 | vorhanden | 🟢 |
+| Player Profile / Story-Fortschritt | vorhanden | 🟢 |
+| Custom Items | 30 Definitionen | 🟢 |
+| Spieler-Custom-Items | 29 | 🟢 |
+| Admin/Unique Item | 1 | 🟢 |
+| Waffen | 5 Spielerwaffen | 🟢 |
+| Rüstungssets | 6 vollständige Sets | 🟢 |
+| Custom-Crafting | 29 Custom-Result-Rezepte | 🟢 |
+| gesamtes Crafting | 329 Rezepte | 🟢 |
+| Food | 23 Definitionen | ⚪ |
+| Berufe | 7 Crafting + 2 passive | 🟢 |
+| reguläre Quests | 269 | 🟢 |
+| Story-REACH-Quests | 17 | 🟢 Basis / 🟡 Kampagnenausbau |
+| Story-Kampagne | umfangreiche Datenstruktur | 🟡 |
+| Companions | 28 | 🟢 |
+| Companion Quest-Unlocks | 25 | 🟢 |
+| Boss-Reward-Items | 32 | 🟢 |
+| Boss-System | vorhanden | 🟢 |
+| NPC-System | vorhanden | 🟢 |
+| globale NPC-Weltpopulation | absichtlich nicht vorgesehen | ⚪ |
+| Shops | System vorhanden, manuell zu befüllen | 🟢 |
+| Bank | vorhanden | 🟢 |
+| physische Currency | vorhanden, Stack 99 | 🟢 |
+| Party | vorhanden | 🟢 |
+| Guild | vorhanden | 🟢 |
+| Trade Depot | vorhanden | 🟢 |
+| Combat / Weapon Abilities | vorhanden | 🟢 |
+| Statistics / Scoreboard | vorhanden | 🟢 |
+| Regionen | Technik vorhanden | ⚪ |
+| Resourcepack | teilweise vorhanden | ⚪ / 🔵 |
+| Weltplatzierung / finale NPC-Positionen | abhängig von Zielwelt | 🟡 |
+
+---
+
+# 4. Player Progression
+
+## Vorhanden
+
+Das Plugin besitzt:
+
+- Level-System
+- XP
+- PlayerProfile
+- Story-Fortschritt
+- Quest-Fortschritt
+- Berufsfortschritt
+- Companion-Fortschritt
+- Statistiken
+- Playtime
+- Level-Anforderungen für Items/Rezepte
+
+Die Progression reicht bis Level 99.
+
+### Bewertung
+
+Kein grundlegendes Progressionssystem fehlt.
+
+**Status: 🟢 FERTIG**
+
+---
+
+# 5. Custom Items
+
+## Tatsächlicher Bestand
+
+`item-definitions.json` enthält **30 Items**.
+
+### 29 normale Spieleritems
+
+#### Waffen
+
+1. Eisenschwert — Level 3
+2. Goldklinge — Level 25
+3. Diamantklinge — Level 40
+4. Netheritklinge — Level 90
+5. Feuerball — Level 35, Alchemist
+
+#### Donnerwacht — Level 10
+
+6. Helm
+7. Brustplatte
+8. Beinschutz
+9. Stiefel
+
+#### Schattengeflecht — Level 20
+
+10. Helm
+11. Brustplatte
+12. Beinschutz
+13. Stiefel
+
+#### Stahlwall — Level 30
+
+14. Helm
+15. Brustplatte
+16. Beinschutz
+17. Stiefel
+
+#### Sonnengewand — Level 45
+
+18. Helm
+19. Brustplatte
+20. Beinschutz
+21. Stiefel
+
+#### Kristallwache — Level 60
+
+22. Helm
+23. Brustplatte
+24. Beinschutz
+25. Stiefel
+
+#### Höllenschmiede — Level 80
+
+26. Helm
+27. Brustplatte
+28. Beinschutz
+29. Stiefel
+
+### 1 Admin-/Unique-Item
+
+30. `unique/admin_relic`
+
+### Bewertung
+
+Die frühere Content-Lücke „nur ein Rüstungsset / Waffen existieren nur als Definition“ ist für den aktuellen `test`-Stand **geschlossen**.
+
+Die 29 Spieleritems besitzen inzwischen Custom-Crafting-Rezepte.
+
+**Status: 🟢 FERTIG**
+
+---
+
+# 6. Weapon Progression — was „fertig“ hier konkret bedeutet
+
+Die Weapon Progression ist aktuell:
+
+| Waffe | Level | Beruf | Erwerb |
+|---|---:|---|---|
+| Eisenschwert | 3 | Schmied | Crafting |
+| Goldklinge | 25 | Schmied | Crafting |
+| Diamantklinge | 40 | Schmied | Crafting |
+| Feuerball | 35 | Alchemist | Crafting |
+| Netheritklinge | 90 | Schmied | Crafting |
+
+Damit bedeutet Weapon Progression im aktuellen Plugin:
+
+**Level → Berufsfortschritt → Rezeptfreischaltung → Materialien/Boss-Katalysator → Crafting → Weapon Ability**
+
+Das ist ein vollständiger Progressionsloop.
+
+### Optionale Erweiterung
+
+Mehr Waffen wären Vielfalt, aber keine fehlende Implementierung.
+
+**Status: 🟢 FERTIG**
+
+---
+
+# 7. Rüstungssets
+
+## Tatsächlicher Bestand
+
+Es existieren **6 vollständige Sets**:
+
+1. Donnerwacht — Kupfer — Level 10
+2. Schattengeflecht — Kette — Level 20
+3. Stahlwall — Eisen — Level 30
+4. Sonnengewand — Gold — Level 45
+5. Kristallwache — Diamant — Level 60
+6. Höllenschmiede — Netherit — Level 80
+
+Die Sets besitzen Set-Boni.
+
+Zusätzlich sind alle 24 Rüstungsteile als Custom-Crafting-Ergebnisse angebunden.
+
+### Bewertung
+
+Die Set-Vielfalt ist ausreichend für die aktuelle Progression.
+
+Weitere Sets sind **Content-Erweiterung**, nicht Lückenbehebung.
+
+**Status: 🟢 FERTIG**
+
+---
+
+# 8. Custom Crafting
+
+## Tatsächlicher Stand
+
+`crafting-recipes.json` enthält **329 Rezepte**.
+
+Davon:
+
+- **300 ursprüngliche/Vanilla-orientierte Rezepte**
+- **29 Custom-Item-Result-Rezepte**
+
+### Custom-Rezepte
+
+Alle 29 Spieler-Custom-Items besitzen ein `resultItemId`.
+
+Damit sind insbesondere:
+
+- alle 24 Rüstungsteile
+- alle 4 Progressionsschwerter
+- Feuerball
+
+erreichbar.
+
+### Berufe
+
+| Beruf | Rezepte |
+|---|---:|
+| Schmied | 81 |
+| Gelehrter | 68 |
+| Landwirt | 25 |
+| Koch | 23 |
+| Schneider | 34 |
+| Alchemist | 40 |
+| Steinmetz | 58 |
+| **Gesamt** | **329** |
+
+Passive Berufe:
+
+- Fischer
+- Holzfäller
+
+### Bewertung
+
+Crafting ist nicht mehr nur ein Framework.
+
+Es besitzt einen großen Content-Bestand und eine Custom-Item-Progression.
+
+**Status: 🟢 FERTIG**
+
+---
+
+# 9. Food
+
+## Bestand
+
+`food-definitions.json` enthält **23 Food-Definitionen**.
+
+Darunter:
+
+- Mehl
+- Speck roh/gebraten
+- Karottensuppe
+- Kartoffel mit Speck
+- Hühnersuppe
+- Pilzfanne
+- Apfelmus
+- Kürbisbrot
+- Beeren-Muffin
+- Keks mit Speck
+- Süßbeeren-Marmelade
+- Getrocknete Melone
+- heißer Kakao
+- Melonensaft
+- Leuchtbeerentee
+- Kürbis-Latte
+- Spiegelei mit Speck
+- Honig mit Milch
+- Kaktus-Saft
+- Apfelkuchen
+- Spiegelei
+- Käse
+
+Die Food-Items besitzen eigene Definitionen und teilweise Effekte.
+
+### Entscheidung
+
+Diese **23 Food-Definitionen bleiben ausdrücklich pausiert**, wie vorgegeben.
+
+Sie werden daher **nicht** als offene Content-Lücke gewertet.
+
+**Status: ⚪ BEWUSST PAUSIERT**
+
+---
+
+# 10. Professionen
+
+## Crafting-Berufe
+
+- Schmied
+- Gelehrter
+- Landwirt
+- Koch
+- Schneider
+- Alchemist
+- Steinmetz
+
+## Passive Berufe
+
+- Fischer
+- Holzfäller
+
+Die Berufsinfrastruktur umfasst:
+
+- Level
+- XP
+- Rezepte
+- Freischaltungen
+- Trainer
+- Dialog
+- Profession Services
+
+### Bewertung
+
+**Status: 🟢 FERTIG**
+
+Weitere Rezepte = Erweiterung.
+
+---
+
+# 11. Quest-System
+
+## Tatsächlicher Content-Bestand
+
+Questdateien:
+
+| Quelle | Definitionen |
+|---|---:|
+| Crafting Orders | 60 |
+| Additional | 84 |
+| Content Expansion 01 | 46 |
+| Expansion 02 | 19 |
+| Story | 17 |
+| V2 | 36 |
+| World Expansion | 29 |
+| **Gesamt** | **291** |
+
+Davon sind 17 die dedizierten Story-Strukturquests.
+
+### Questtypen / Inhalte
+
+Vorhanden sind u.a.:
+
+- HUNT
+- COLLECT
+- REACH_LOCATION
+- TALK_TO_NPC
+- globale Events
+- Voraussetzungen
+- Folgequests
+- Level-Anforderungen
+- Berufsanforderungen
+- Geldbelohnungen
+- XP
+- Itembelohnungen
+- Companion-Unlocks
+
+### Bewertung
+
+Es besteht kein allgemeiner Questmangel.
+
+**Status: 🟢 FERTIG**
+
+---
+
+# 12. Story-Kampagne
+
+Hier liegt aktuell die **größte echte Content-/Progressionslücke**.
+
+## Vorhanden
+
+`story_campaign.yml` enthält:
+
+- Story-Kapitel
+- Levelanforderungen
+- Strukturtrigger
+- NPC-IDs
+- Dialogdaten
+- Folgebeziehungen
+- Loretexte
+
+Die Datei umfasst rund 549 Zeilen.
+
+## Aktive Haupt-Questkette
+
+17 Story-Quests sind tatsächlich als `REACH_LOCATION` definiert:
+
+1. Village Plains
+2. Shipwreck
+3. Desert Pyramid
+4. Jungle Pyramid
+5. Swamp Hut
+6. Warm Ocean Ruin
+7. Ocean Monument
+8. Trail Ruins
+9. Mineshaft
+10. Pillager Outpost
+11. Woodland Mansion
+12. Ruined Portal
+13. Ancient City / Unter dem Stein
+14. Nether Fortress
+15. Bastion
+16. Stronghold
+17. End City
+
+Diese Kette besitzt echte Custom-Item-Belohnungen.
+
+## Aber:
+
+Die Kapitelstruktur enthält weiterhin zusätzliche Kapitelpositionen, die bewusst **keine aktive Strukturquest** besitzen, z.B.:
+
+- Cold Ocean Ruins
+- Buried Treasure
+- Mineshaft Mesa
+- Igloo
+- einzelne Ruined-Portal-Varianten
+- Nether Fossil
+- Trial Chambers
+- weitere Village-/Shipwreck-Varianten
+
+Das ist grundsätzlich okay, wenn sie nur Lore-/Nebenüberlieferungen darstellen.
+
+### Größere Lücke: Level-/Arc-Struktur
+
+Die aktuelle Kampagne entspricht **noch nicht vollständig** der ursprünglich gewünschten sauberen Level-1–99-Aufteilung.
+
+Beispielsweise:
+
+- frühe Kapitel liegen bei Level 3–29,
+- Mineshaft bei 32,
+- Outpost bei 40,
+- Mansion bei 43,
+- Ruined Portal bei 64,
+- Ancient City / Eryn bei **67**,
+- Fortress bei 72,
+- Bastion bei 75,
+- Stronghold bei 81,
+- End City bei 84.
+
+Damit fehlen als explizit gefüllte Endgame-Storyabschnitte insbesondere:
+
+- **85–90**
+- **91–99**
+
+Außerdem ist die Ancient-City-/Deep-Dark-Erzählung derzeit nicht im ursprünglich vorgesehenen Levelbereich 11–20, sondern als späterer Kampagnenknoten bei Level 67 eingeordnet.
+
+### Inhaltlich fehlt daher noch:
+
+- vollständiger Arc 81–90 rund um End / Enderdrache
+- vollständiger Arc 91–99 als Abschluss der Kampagne
+- endgültige Verbindung zwischen Stronghold → End → Enderdrache → End City → Abschlusslore
+- finales Story-Finale
+- finale Endgame-Questkette
+
+**Status: 🟡 CONTENT-LÜCKE**
+
+Das Story-System selbst ist fertig. **Der noch fehlende Content ist die endgültige Kampagnenausarbeitung.**
+
+---
+
+# 13. Minecraft-Lore
+
+## Bereits abgedeckt
+
+Die Story verarbeitet:
+
+- alte Zivilisation
+- Archäologie
+- Trail Ruins
+- Ancient Cities
+- Sculk
+- Warden
+- Nether
+- Piglins
+- Bastions
+- Nether-Fortress
+- Strongholds
+- End
+- End Cities
+- Enderdragon-Kontext
+
+### Offene Lorebereiche
+
+Minecraft liefert an mehreren Stellen bewusst keine eindeutige Erklärung.
+
+Das Plugin darf diese weiterhin als:
+
+- In-World-Hypothesen
+- Forschungsberichte
+- Überlieferungen
+- widersprüchliche Zeugenaussagen
+- ungelöste Rätsel
+
+erzählen.
+
+### Noch auszuarbeiten
+
+Besonders:
+
+1. Warum die Ancient-City-Zivilisation verschwand.
+2. Verbindung zwischen Sculk und dem Untergang.
+3. Warum die Erbauer Strongholds errichteten.
+4. Was genau zur Flucht ins End führte.
+5. Verbindung zwischen End Cities und den alten Erbauern.
+6. Ursprung bzw. Entwicklung der Endermen als In-World-Hypothese.
+7. Geschichte des Withers.
+8. Verbindung zwischen Nether, Piglins und alter Zivilisation.
+9. Bedeutung des Enderdrachen für den Untergang.
+10. Was nach dem Enderdrachen geschieht.
+
+**Status: 🟡 CONTENT-AUSBAU**
+
+Nicht das Lore-System fehlt – die **finale narrative Ausarbeitung** fehlt.
+
+---
+
+# 14. NPC-System
+
+## Technik
+
+Vorhanden:
+
+- NPC Manager
+- NPC Typen
+- Mannequin-System
+- Skins
+- Nameplates
+- Blickverhalten
+- Interaktionen
+- Verhalten
+- Story-NPCs
+- Quest-NPCs
+- Shop-NPCs
+- Banker
+- Reception
+- Profession-Trainer
+- Travel
+- Filler
+
+### NpcType
+
+Enthalten sind u.a.:
+
+- RECEPTION
+- 9 Profession-Typen
+- QUEST
+- SHOP
+- TRAVEL
+- FILLER
+- STORY
+- BANKER
+
+## Weltpopulation
+
+Eine globale, automatisch verteilte FILLER-NPC-Population wird **nicht mehr benötigt**.
+
+Die Story-NPCs werden gezielt über das Story-System an relevanten Strukturen erzeugt.
+
+### Bewertung
+
+**NPC-System: 🟢 FERTIG**
+
+**Globale NPC-Weltpopulation: ⚪ bewusst entfernt/nicht erforderlich**
+
+### Offene Content-Arbeit
+
+Die tatsächlichen NPC-Positionen der finalen Zielwelt müssen weiterhin gesetzt werden.
+
+Das ist **Weltkonfiguration**, nicht NPC-System-Neubau.
+
+**Status: 🟡 Weltcontent**
+
+---
+
+# 15. Story-NPCs / Sichtbarkeit
+
+Vorhanden:
+
+- `NpcType.STORY`
+- strukturgebundenes Spawning
+- stabile Story-NPC-IDs
+- Questabhängigkeit
+- Profilprüfung
+- selektive Sichtbarkeit
+- Chunk-/Tracking-orientierte Aktualisierung
+- Story-Dialoge
+- Folgequests
+
+Die Story-NPCs sollen nur für Spieler sichtbar sein, die den entsprechenden Story-/Questzustand erfüllen.
+
+### Bewertung
+
+Technischer Story-NPC-Loop ist vorhanden.
+
+**Status: 🟢 FERTIG**
+
+Was noch fehlt, ist primär mehr **fertiger Dialog-/Lore-Content**.
+
+---
+
+# 16. Shops
+
+## Technik
+
+Vorhanden:
+
+- ShopManager
+- ShopEntry
+- Shop GUI
+- Shop Editor
+- Kaufen
+- Verkaufen
+- Preise
+- NPC-Anbindung
+- Persistenz
+
+## Produktentscheidung
+
+Shops werden **manuell befüllt**.
+
+Deshalb ist ein fehlender Default-Katalog **keine Content-Lücke**, solange die Zielwelt manuell eingerichtet wird.
+
+**Status: 🟢 FERTIG**
+
+### Optional
+
+Weitere Sortimente/Balancing sind später möglich.
+
+---
+
+# 17. Bank
+
+Vorhanden:
+
+- Banker-NPC
+- Bankdialog
+- Bankinventar
+- persistente Speicherung
+- Einzahlen
+- Auszahlen
+
+Die Bank ist als System vollständig.
+
+## Currency
+
+Die physische Currency ist jetzt:
+
+- physischer Drop
+- physisches Inventaritem
+- nicht automatisch virtuelle Bankwährung
+- Bankeinzahlung separat
+- maximaler aktueller Stackwert: **99**
+
+### Wichtig
+
+Die gewünschte Stackgröße 999 ist technisch mit dem aktuellen Paper-26.2-Stacklimit nicht direkt abbildbar.
+
+Daher:
+
+**99 = technische Obergrenze des aktuellen Item-Data-Component-Wegs.**
+
+Das ist keine Content-Lücke.
+
+**Status Bank: 🟢 FERTIG**
+
+---
+
+# 18. Combat
+
+Vorhanden:
+
+- Damage Calculation
+- Combat State
+- Mob Scaling
+- Mob Nameplates
+- XP
+- Loot
+- Weapon Abilities
+- Skill Input
+- Cooldowns
+- Soulbound
+- Death Handling
+
+### Waffen-Abilities
+
+Die vorhandenen Custom-Waffen besitzen konkrete Ability-Pfade.
+
+### Bewertung
+
+**Status: 🟢 FERTIG**
+
+Weitere Waffen/Abilities sind Erweiterungen.
+
+---
+
+# 19. Boss-System
+
+Vorhanden:
+
+- Boss Definition
+- Boss Manager
+- Biome Boss Spawning
+- World Bosses
+- Boss Phases
+- Attack Patterns
+- Damage Contribution
+- Boss Death
+- Boss Loot
+- Boss Rewards
+- Boss Protection
+- Boss Statistics
+- Boss Events
+
+### Content
+
+32 Boss-Reward-Items sind vorhanden.
+
+### Bewertung
+
+Das System besitzt genügend Content für einen vollständigen Boss-Loop.
+
+**Status: 🟢 FERTIG**
+
+### Optional
+
+- mehr Bosse
+- zusätzliche Phasen
+- zusätzliche Lootvarianten
+- spezielle Story-Bosse
+
+sind Erweiterungen.
+
+---
+
+# 20. Companions
+
+## Bestand
+
+`companions.json`: **28 Definitionen**
+
+Davon:
+
+- 25 QUEST
+- 1 DEFAULT
+- 1 BOSS
+- 1 ADMIN
+
+Questbasierte Begleiter umfassen u.a.:
+
+- Huhn
+- Kuh
+- Schaf
+- Kaninchen
+- Fledermaus
+- Katze
+- Fuchs
+- Ziege
+- Kupfergolem
+- Papagei
+- Gürteltier
+- Panda
+- Schwein
+- Pferd
+- Zombiepferd
+- Skelettpferd
+- Kamel
+- Nautilus
+- Knarzer
+- Glücklicher Ghast
+- Eisengolem
+- Sumpfskelett
+- Spinne
+- Creeper
+- Schwefelwürfel
+
+Zusätzlich:
+
+- Bienenkönigin als Boss-Unlock
+- Hazel als Admin-Companion
+
+### Bewertung
+
+**Status: 🟢 FERTIG**
+
+---
+
+# 21. Equipment
+
+Technisch vorhanden:
+
+- EquipmentService
+- Slots
+- Level Requirements
+- Set Effects
+- Set Service
+- 6 Sets
+- 24 Rüstungsteile
+
+### Bewertung
+
+**Status: 🟢 FERTIG**
+
+---
+
+# 22. Party
+
+Vorhanden:
+
+- Party-Erstellung
+- Einladung
+- Mitglieder
+- Verlassen
+- Disconnect Handling
+- GUI
+- Quest-Sharing
+- Share Range
+
+**Status: 🟢 FERTIG**
+
+---
+
+# 23. Guild
+
+Vorhanden:
+
+- Guild-Erstellung
+- Mitglieder
+- Einladungen
+- Guild Bank
+- Guild Currency
+- Guild Compass
+- Guild API
+- Commands
+- Persistenz
+
+### Guild City
+
+Die konkrete Welt-/Regionsgestaltung ist weiterhin nicht Bestandteil des aktuellen Content-Scope.
+
+**Guild-System: 🟢**
+
+**Guild-City-Weltcontent: ⚪ PAUSIERT**
+
+---
+
+# 24. Trade Depot
+
+Vorhanden:
+
+- Listings
+- Kaufen
+- Verkaufen
+- Preise
+- Ablauf
+- Pending Payout
+- GUI
+- Persistenz
+
+Das System erzeugt seinen Content aus Spielerangeboten.
+
+**Status: 🟢 FERTIG**
+
+---
+
+# 25. Statistics / Scoreboard / Playtime
+
+Vorhanden:
+
+- Mob Kill Statistics
+- Death Statistics
+- Quest/Boss Statistics
+- Scoreboard
+- Playtime
+
+**Status: 🟢 FERTIG**
+
+---
+
+# 26. Travel / Guild Compass
+
+Vorhanden:
+
+- Guild Compass
+- Travel Dialog
+- Reise-NPC-Typ
+- Travel-System
+
+### Offener Content
+
+Konkrete Reisepunkte müssen zur tatsächlichen Welt definiert werden.
+
+**Status System: 🟢**
+
+**Status Weltpunkte: 🟡 Weltkonfiguration**
+
+---
+
+# 27. Regionen
+
+Technisch vorhanden:
+
+- Region Manager
+- Region Repository
+- Region Types
+- Geometry
+- Flags
+- Spawn Points
+- Policies
+- Transitions
+- Editor
+
+Konkreter Weltcontent ist jedoch nicht vollständig ausgebaut.
+
+### Entscheidung
+
+Regionen bleiben bewusst pausiert.
+
+**Status: ⚪ PAUSIERT**
+
+---
+
+# 28. Resourcepack
+
+Im Repository existiert bereits ein Resourcepack-Verzeichnis.
+
+Aktuell vorhanden sind insbesondere Food-Modelle/-Definitionen.
+
+Da Food ausdrücklich pausiert wurde, ist auch dessen visuelle Pipeline kein aktueller Pflichtblocker.
+
+### Bewertung
+
+**Status: ⚪ PAUSIERT**
+
+---
+
+# 29. Commands
+
+Die aktuelle Command-Struktur enthält u.a.:
+
+- `item`
+- Player Admin
+- Debug
+- Party
+- Quest Log
+- Dialogue
+- Guild
+- Boss
+- Companion
+- Edit
+- NPC
+- Quest Admin
+- Region
+- Shop
+
+Damit sind die administrativen und spielerischen Verwaltungssysteme grundsätzlich erreichbar.
+
+**Status: 🟢 FERTIG**
+
+---
+
+# 30. Content-Lücken — tatsächlich noch offen
+
+Nach Bereinigung der inzwischen erledigten Punkte bleiben aktuell folgende **echte** Content-Arbeiten:
+
+## 🔴 P0 — Kampagnenabschluss
+
+### 1. Story Level 81–99 finalisieren
+
+Der aktuelle Storypfad endet bei:
+
+**End City / Level 84**
+
+Es fehlen noch explizite Abschlussabschnitte für:
+
+- 85–90
+- 91–99
+
+Insbesondere:
+
+- Enderdrache als zentraler Storyhöhepunkt
+- Abschlussquest
+- Rückkehr/Consequences
+- finale Lore-Verknüpfung
+- Endgame-Belohnung
+- Epilog
+
+---
+
+## 🟠 P1 — Story-Lore ausformulieren
+
+Die Story-Infrastruktur steht.
+
+Noch benötigt werden vor allem die **finalen Texte**:
+
+- Ancient-City-Erklärung
+- Sculk/Warden-Mysterium
+- alte Erbauer
+- Wither
+- Nether/Piglins
+- Stronghold
+- End
+- Endermen
+- Enderdrache
+- End Cities
+- finale Verbindung aller Hinweise
+
+---
+
+## 🟠 P1 — Weltplatzierung
+
+Für den finalen Spielbetrieb müssen die vorhandenen Systeme mit der konkreten Zielwelt verbunden werden:
+
+- Reception
+- Banker
+- Shop-NPCs
+- Profession-Trainer
+- Questgeber
+- Travel-NPCs
+- Story-NPC-Strukturen
+
+Das ist kein neuer NPC-Code.
+
+Es ist **Content-/Weltkonfiguration**.
+
+---
+
+## 🟡 P2 — Story-Nebencontent
+
+Optional, aber sinnvoll:
+
+- mehr Nebenquests
+- NPC-Gerüchte
+- Bücher
+- Archäologie-Funde
+- versteckte Lore
+- zusätzliche Companion-Quests
+- alternative Dialogzweige
+- Endgame-Geheimnisse
+
+---
+
+# 31. Bewusst NICHT als Lücke behandeln
+
+Diese Punkte werden ausdrücklich **nicht** als offen gewertet:
+
+### Food
+
+23 Definitionen vorhanden, aber bewusst pausiert.
+
+### Globale NPC-Weltpopulation
+
+Nicht mehr gewünscht.
+
+Story-NPCs werden gezielt erzeugt.
+
+### Shops
+
+Technik fertig; Sortimente werden manuell gepflegt.
+
+### Rüstungssets
+
+6 vollständige Sets vorhanden.
+
+### Weapon Progression
+
+5 Spielerwaffen + 29 Custom-Rezepte vorhanden.
+
+### Bank
+
+System fertig.
+
+### Guild City
+
+Pausiert.
+
+### Regionen
+
+Pausiert.
+
+### Resourcepack
+
+Pausiert.
+
+---
+
+# 32. Was aktuell NICHT mehr gemacht werden sollte
+
+Die folgenden Systeme brauchen keinen weiteren grundlegenden Umbau:
+
+- NPC-System
+- Bank
+- Shop-System
+- Crafting-System
+- Equipment-System
+- Companion-System
+- Boss-System
+- Party-System
+- Guild-Kernsystem
+- Trade Depot
+- Combat-Kern
+- Quest-Kern
+- Item-System
+
+Hier sollte ab jetzt **nicht mehr aus Prinzip Code erweitert werden**.
+
+Neue Arbeit sollte nur erfolgen, wenn ein konkreter Content-Loop sie benötigt.
+
+---
+
+# 33. Aktuelle Fertigstellungsdefinition
+
+PixelRPG kann einen Bereich als **fertig** behandeln, wenn:
+
+1. das technische System existiert,
+2. mindestens ein vollständiger Spieler-Loop existiert,
+3. der Content tatsächlich erreichbar ist,
+4. Belohnungen/Progression definiert sind,
+5. keine zweite technische Sonderlösung erforderlich ist.
+
+Nach diesem Maßstab sind aktuell die meisten Kernsysteme **fertig**.
+
+Die verbleibende Hauptbaustelle ist nicht mehr das Framework.
+
+> **Die verbleibende Hauptbaustelle ist die finale Welt- und Storybefüllung.**
+
+---
+
+# 34. Empfohlene Reihenfolge der letzten Content-Arbeiten
+
+## Phase 1 — Kampagne fertig machen
+
+1. Level 85–90
+2. Level 91–99
+3. Enderdragon-Story
+4. finales Lore-Netz
+5. Epilog
+6. finale Storybelohnung
+
+## Phase 2 — Welt platzieren
+
+1. Reception
+2. Berufstrainer
+3. Banker
+4. Shops
+5. Quest-NPCs
+6. Travel-NPCs
+7. Story-NPC-Zielpunkte
+
+## Phase 3 — Story-Nebencontent
+
+1. Bücher
+2. Archäologie
+3. NPC-Gerüchte
+4. Nebenquests
+5. Geheimdialoge
+6. optionale Lore
+
+## Phase 4 — Balancing
+
+1. XP
+2. Quest Rewards
+3. Crafting Costs
+4. Boss Loot
+5. Shoppreise
+6. Economy
+7. Level Gates
+
+---
+
+# 35. Abschlussbefund
+
+### 🟢 Bereits als fertig behandelbar
+
+- Player/Level
+- Items
+- Weapon Progression
+- 6 Armor Sets
+- Custom Crafting
+- 9 Berufe
+- Quest-System
+- Companion-System
+- Boss-System
+- Combat
+- Bank
+- Shops
+- Party
+- Guild-Kern
+- Trade Depot
+- Statistics
+- NPC-System
+
+### ⚪ Bewusst pausiert
+
+- Food
+- globale NPC-Weltpopulation
+- Guild-City-Weltcontent
+- Regionen
+- Resourcepack-Ausbau
+
+### 🟡 Noch mit Content füttern
+
+**Hauptsächlich:**
+
+1. Story 85–99
+2. Enderdragon-/Endgame-Abschluss
+3. finale Lore-Verknüpfung
+4. konkrete NPC-/Weltplatzierung
+5. optionale Nebenstory
+
+Damit ist die Liste wesentlich kleiner als bei der vorherigen Content-Prüfung.
+
+**Der größte Fehler wäre jetzt, erneut die bereits fertigen Systeme umzubauen. Ab diesem Stand sollte der Fokus fast vollständig auf Weltplatzierung, Storytexten und anschließendem Balancing liegen.**
