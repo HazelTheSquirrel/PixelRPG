@@ -39,7 +39,7 @@ public final class CombatDamageListener implements Listener {
         this.guildAPI = guildAPI;
         this.profileManager = profileManager;
         this.statEngine = statEngine;
-        this.combatStateService = new CombatStateService(PixelRPGPlugin.getInstance(), guildAPI);
+        this.combatStateService = new CombatStateService(PixelRPGPlugin.getInstance());
         this.bossMaxHitPercentOfMaxHp = PixelRPGPlugin.getInstance().getConfig()
                 .getDouble("combat.boss-max-hit-percent-of-max-hp", 0.12D);
     }
