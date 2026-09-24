@@ -56,7 +56,6 @@ public final class PlayerProfile {
     public synchronized long revision() { return persistenceRevision; }
     public synchronized long mutationRevision() { return mutationRevision; }
     public synchronized boolean isDirty() { return dirty; }
-    public synchronized boolean isRegistered() { return registered; }
 
     public void registered(boolean value) { mutate(() -> registered = value); }
     public void experience(long value) { mutate(() -> experience = Math.max(0L, value)); }
