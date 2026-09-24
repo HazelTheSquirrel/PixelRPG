@@ -144,10 +144,21 @@ public final class QuickActionsDialogService {
             body.add(DialogBody.plainMessage(Component.text("Aktive Quests: " + profile.getActiveQuests().size() + "/" + QuestManager.MAX_ACTIVE_QUESTS, NamedTextColor.AQUA)));
             profile.getActiveQuests().forEach((questId, progress) -> {
                 Quest quest = questManager.getRepository().getQuest(questId);
-                Component label = quest == null ? Component.text("Unbekannte Quest", NamedTextColor.RED) : QuestText.title(quest).color(NamedTextColor.YELLOW);
-                Component description = quest == null ? Component.text("Die Questdefinition konnte nicht geladen werden.", NamedTextColor.RED) : QuestText.description(quest).color(NamedTextColor.GRAY);
-                Component objective = quest == null ? Component.text("Ziel unbekannt • " + progress.getCurrentAmount() + "/?", NamedTextColor.RED) : QuestText.objectiveWithProgress(quest, progress);
-                actions.add(actionButton(label.append(Component.text(" • ", NamedTextColor.DARK_GRAY)).append(objective), target -> openQuestDetails(target, questId, description, companionDialog, professionDialog)));
+                boolean storyQuest = quest != null && questManager.isStoryQuest(quest);
+                Component label = quest == null
+                        ? Component.text("Unbekannte Quest", NamedTextColor.RED)
+                        : QuestText.title(quest).color(storyQuest ? NamedTextColor.LIGHT_PURPLE : NamedTextColor.YELLOW);
+                Component description = quest == null
+                        ? Component.text("Die Questdefinition konnte nicht geladen werden.", NamedTextColor.RED)
+                        : QuestText.description(quest).color(NamedTextColor.GRAY);
+                Component objective = quest == null
+                        ? Component.text("Ziel unbekannt • " + progress.getCurrentAmount() + "/?", NamedTextColor.RED)
+                        : QuestText.objectiveWithProgress(quest, progress);
+                Component prefix = storyQuest
+                        ? Component.text("STORY • ", NamedTextColor.LIGHT_PURPLE)
+                        : Component.empty();
+                actions.add(actionButton(prefix.append(label).append(Component.text(" • ", NamedTextColor.DARK_GRAY)).append(objective),
+                        target -> openQuestDetails(target, questId, description, companionDialog, professionDialog)));
             });
         }
         actions.add(actionButton(Component.text("Zurück", NamedTextColor.WHITE), this::openQuickActions));
@@ -168,11 +179,17 @@ public final class QuickActionsDialogService {
             return;
         }
         List<DialogBody> body = new ArrayList<>();
-        body.add(DialogBody.plainMessage(quest != null ? QuestText.title(quest).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD) : Component.text("Unbekannte Quest", NamedTextColor.RED).decorate(TextDecoration.BOLD)));
+        boolean storyQuest = quest != null && questManager.isStoryQuest(quest);
+        body.add(DialogBody.plainMessage(
+                (storyQuest ? Component.text("STORY • ", NamedTextColor.LIGHT_PURPLE) : Component.empty())
+                        .append(quest != null
+                                ? QuestText.title(quest).color(storyQuest ? NamedTextColor.LIGHT_PURPLE : NamedTextColor.YELLOW).decorate(TextDecoration.BOLD)
+                                : Component.text("Unbekannte Quest", NamedTextColor.RED).decorate(TextDecoration.BOLD))));
         body.add(DialogBody.plainMessage(quest != null ? QuestText.description(quest).color(NamedTextColor.WHITE) : fallbackDescription));
         if (quest != null) {
             body.add(DialogBody.plainMessage(QuestText.objectiveWithProgress(quest, progress)));
             body.add(DialogBody.plainMessage(Component.text("Typ: " + quest.type().name(), NamedTextColor.GRAY)));
+            if (storyQuest) body.add(DialogBody.plainMessage(Component.text("Navigation: Story-Ziel wird in der Ortungsleiste markiert.", NamedTextColor.AQUA)));
             if (quest.isProfessionQuest()) body.add(DialogBody.plainMessage(Component.text("Beruf: " + quest.profession().displayName() + " • benötigt Level " + quest.requiredProfessionLevel(), NamedTextColor.AQUA)));
             body.add(DialogBody.plainMessage(rewards(quest)));
             if (progress.hasExpiry()) body.add(DialogBody.plainMessage(Component.text("Zeit verbleibend: " + formatRemaining(progress.getExpiryTimestampMillis()), NamedTextColor.RED)));
