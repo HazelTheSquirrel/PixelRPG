@@ -350,7 +350,7 @@ public final class StoryNpcDialogue {
                                     }
                                 })
                                 : dialogueEngine.actionButton(Component.text("Die Chronik lesen"), NamedTextColor.YELLOW,
-                                target -> openEndCity(target, storyManager.getChapter(chapter.order() - 1).orElse(chapter), npc)),
+                                target -> openEndLegacy(target, chapter, npc)),
                         dialogueEngine.actionButton(Component.text("Schließen"), NamedTextColor.GRAY, Player::closeDialog)
                 ), 1);
     }
