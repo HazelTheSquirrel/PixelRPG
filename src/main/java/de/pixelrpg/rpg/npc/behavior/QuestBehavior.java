@@ -105,10 +105,10 @@ public final class QuestBehavior implements NpcBehavior {
             Component label = Component.text(status.prefix())
                     .append(QuestText.title(quest))
                     .append(Component.text(" • Level " + quest.requiredLevel(), NamedTextColor.GRAY));
-            actions.add(dialogueEngine.actionButton(label, status.color(), target -> openQuestDetails(target, quest, start, end)));
+            actions.add(dialogueEngine.actionButton(label, status.color(), target -> openQuestDetails(target, quest, start, end, backAction)));
         }
         if (actions.isEmpty()) body = List.of(DialogBody.plainMessage(Component.text("In diesem Bereich sind aktuell keine Quests verfügbar.", NamedTextColor.WHITE)));
-        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, target -> openQuestRanges(target, this::closeDialog)));
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
         dialogueEngine.openMultiAction(player, Component.text("Level " + start + "–" + end, NamedTextColor.GOLD), body, actions, 2);
     }
 
@@ -119,7 +119,7 @@ public final class QuestBehavior implements NpcBehavior {
         return QuestStatus.UNAVAILABLE;
     }
 
-    private void openQuestDetails(Player player, Quest quest, int start, int end) {
+    private void openQuestDetails(Player player, Quest quest, int start, int end, Consumer<Player> backAction) {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
         QuestStatus status = status(profile, quest);
