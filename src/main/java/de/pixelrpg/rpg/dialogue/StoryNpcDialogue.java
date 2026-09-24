@@ -90,7 +90,7 @@ public final class StoryNpcDialogue {
                 PlayerProfile current = profileManager.getProfile(target.getUniqueId()).orElse(null);
                 if (current == null || !current.isRegistered()) return;
                 if (questManager.completeQuestAtNpc(target, completionQuest.id(), npc.id())
-                        && storyManager.completeChapter(target, chapter)) {
+                        && storyManager.isChapterArchived(target.getUniqueId(), chapter)) {
                     advanceAfterEndCity(target, chapter);
                     target.closeDialog();
                 } else {
@@ -187,7 +187,7 @@ public final class StoryNpcDialogue {
                 actions.add(dialogueEngine.actionButton(Component.text("Den Sieg melden"), NamedTextColor.GREEN,
                         target -> {
                             if (questManager.completeQuestAtNpc(target, quest.id(), npc.id())
-                                    && storyManager.completeChapter(target, chapter)) target.closeDialog();
+                                    && storyManager.isChapterArchived(target.getUniqueId(), chapter)) target.closeDialog();
                             else openDragon(target, chapter, npc);
                         }));
             }
@@ -242,7 +242,7 @@ public final class StoryNpcDialogue {
                 actions.add(dialogueEngine.actionButton(Component.text("Bericht erstatten"), NamedTextColor.GREEN,
                         target -> {
                             if (questManager.completeQuestAtNpc(target, quest.id(), npc.id())
-                                    && storyManager.completeChapter(target, chapter)) {
+                                    && storyManager.isChapterArchived(target.getUniqueId(), chapter)) {
                                 advanceAfterEndCity(target, chapter);
                                 target.closeDialog();
                             } else {
