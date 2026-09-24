@@ -224,8 +224,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcLookTask.start();
         DialogueEngine dialogueEngine = new DialogueEngine();
         StoryNpcDialogue storyNpcDialogue = new StoryNpcDialogue(playerProfileManager, storyManager, dialogueEngine);
-        QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager, itemService);
         companionService = new CompanionService(this);
+        QuickActionsDialogService quickActions = new QuickActionsDialogService(playerProfileManager, statEngine, questManager, itemService, partyManager, inviteDialogService, companionService);
         npcBehaviorRegistry = new NpcBehaviorRegistry();
         npcBehaviorRegistry.register(new ReceptionBehavior(playerProfileManager, dialogueEngine, partyManager));
         npcBehaviorRegistry.register(new QuestBehavior(questManager, playerProfileManager, dialogueEngine));
