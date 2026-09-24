@@ -13,6 +13,9 @@ import de.pixelrpg.rpg.npc.behavior.FillerBehavior;
 import de.pixelrpg.rpg.npc.behavior.ShopBehavior;
 import de.pixelrpg.rpg.npc.behavior.StoryBehavior;
 import de.pixelrpg.rpg.npc.behavior.TravelBehavior;
+import de.pixelrpg.rpg.combat.CombatDamageListener;
+import de.pixelrpg.rpg.combat.MobExperienceListener;
+import de.pixelrpg.rpg.combat.scaling.MobScalingConfig;
 import de.pixelrpg.rpg.gui.ShopEditorGUI;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.equipment.EquipmentService;
@@ -56,6 +59,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private ShopEditorGUI shopEditorGUI;
     private StoryManager storyManager;
     private NpcBehaviorRegistry npcBehaviorRegistry;
+    private MobScalingConfig mobScalingConfig;
+    private CombatDamageListener combatDamageListener;
 
     @Override
     public void onEnable() {
@@ -99,6 +104,12 @@ public final class PixelRPGPlugin extends JavaPlugin {
         questRepository = new QuestRepository(this);
         questRepository.load();
         questService = new QuestService(this, questRepository, profiles, itemService);
+        mobScalingConfig = new MobScalingConfig();
+        mobScalingConfig.load(getConfig());
+        combatDamageListener = new CombatDamageListener(this, profiles, profiles, statEngine,
+                getConfig().getDouble("combat.boss-max-hit-percent-of-max-hp", 0.12D));
+        getServer().getPluginManager().registerEvents(combatDamageListener, this);
+        getServer().getPluginManager().registerEvents(new MobExperienceListener(profiles, mobScalingConfig), this);
         getServer().getPluginManager().registerEvents(new QuestLifecycleListener(questService, profiles), this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(shopEditorGUI, this);
@@ -128,6 +139,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         if (partyManager != null) partyManager.shutdown();
         unregister(StatisticsAPI.class, statisticsService);
         unregister(ItemAPI.class, itemService);
+        if (combatDamageListener != null) combatDamageListener.shutdown();
         if (questService != null) questService.shutdown();
         if (profiles != null) {
             profiles.shutdown();
@@ -147,6 +159,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         tradeDepotManager = null;
         npcManager = null;
         npcBehaviorRegistry = null;
+        mobScalingConfig = null;
+        combatDamageListener = null;
         shopManager = null;
         storyManager = null;
         shopEditorGUI = null;
