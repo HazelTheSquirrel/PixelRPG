@@ -415,29 +415,6 @@ public final class QuestManager {
 
     public int getGlobalEventProgress(String questId) { return globalEventState.getProgress(questId); }
 
-    private Location resolveNavigationLocation(Location origin, Quest quest) {
-        if (quest.targetStructureKey() != null && !quest.targetStructureKey().isBlank()) {
-            var structureRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.STRUCTURE);
-            var key = org.bukkit.NamespacedKey.fromString(quest.targetStructureKey());
-            if (key != null) {
-                Structure structure = structureRegistry.get(key);
-                if (structure != null) {
-                    var result = origin.getWorld().locateNearestStructure(origin, structure, quest.navigationRadius(), false);
-                    if (result != null) return result.getLocation();
-                }
-            }
-        }
-        if (!quest.targetBiomeKeys().isEmpty()) {
-            var biomeRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME);
-            Biome[] biomes = quest.targetBiomeKeys().stream().map(org.bukkit.NamespacedKey::fromString).filter(java.util.Objects::nonNull).map(biomeRegistry::get).filter(java.util.Objects::nonNull).toArray(Biome[]::new);
-            if (biomes.length > 0) {
-                var result = origin.getWorld().locateNearestBiome(origin, quest.navigationRadius(), biomes);
-                if (result != null) return result.getLocation();
-            }
-        }
-        return quest.reachLocation();
-    }
-
     private void incrementProgress(PlayerProfile profile, QuestProgress progress, Quest quest) {
         if (progress.getCurrentAmount() >= quest.requiredAmount()) return;
         int next = Math.min(quest.requiredAmount(), progress.getCurrentAmount() + 1);
