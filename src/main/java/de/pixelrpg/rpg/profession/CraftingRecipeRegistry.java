@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-/** Registry for profession recipes whose inputs and outputs are vanilla Minecraft items. */
+/** Registry for profession recipes supporting both vanilla and validated PixelRPG item inputs/outputs. */
 public final class CraftingRecipeRegistry {
     private static final String RECIPE_DATA_PATH = "recipes/crafting-recipes.json";
     private final Map<String, CraftRecipe> recipes = new LinkedHashMap<>();
@@ -132,16 +132,33 @@ public final class CraftingRecipeRegistry {
     }
 
     private void validateDependencies() {
+        Map<String, String> producerByItemId = new LinkedHashMap<>();
+        for (CraftRecipe recipe : recipes.values()) {
+            if (!recipe.resultItemId().isBlank()) {
+                producerByItemId.put(canonicalItemId(recipe.resultItemId()), recipe.id());
+            }
+        }
+
         Set<String> visiting = new HashSet<>();
         Set<String> visited = new HashSet<>();
         for (String recipeId : recipes.keySet()) {
-            validateDependencyPath(recipeId, visiting, visited);
+            validateDependencyPath(recipeId, producerByItemId, visiting, visited);
         }
     }
 
-    private void validateDependencyPath(String recipeId, Set<String> visiting, Set<String> visited) {
+    private void validateDependencyPath(String recipeId, Map<String, String> producerByItemId,
+                                         Set<String> visiting, Set<String> visited) {
         if (visited.contains(recipeId)) return;
         if (!visiting.add(recipeId)) throw new IllegalStateException("Circular crafting recipe dependency detected at " + recipeId);
+
+        CraftRecipe recipe = recipes.get(recipeId);
+        if (recipe != null) {
+            for (String itemId : recipe.itemCosts().keySet()) {
+                String producer = producerByItemId.get(canonicalItemId(itemId));
+                if (producer != null) validateDependencyPath(producer, producerByItemId, visiting, visited);
+            }
+        }
+
         visiting.remove(recipeId);
         visited.add(recipeId);
     }
