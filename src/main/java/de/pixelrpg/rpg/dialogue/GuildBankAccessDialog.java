@@ -8,14 +8,14 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 
-import java.util.List;
+import java.util.List;\nimport java.util.function.Consumer;
 
 /** Adds the guild-bank entry to the existing Banker interaction without replacing personal banking. */
 public final class GuildBankAccessDialog {
     private final GuildManager guilds;
     private final GuildBankService guildBank;
     private final DialogueEngine dialogue;
-    private final BankDialog personalBank;
+    private final BankDialog personalBank;\n    private final Consumer<Player> backAction;
 
     public GuildBankAccessDialog(GuildManager guilds, GuildBankService guildBank, DialogueEngine dialogue, BankDialog personalBank) {
         this.guilds = guilds;
