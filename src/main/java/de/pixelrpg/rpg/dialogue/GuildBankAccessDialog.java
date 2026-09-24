@@ -20,10 +20,16 @@ public final class GuildBankAccessDialog {
     private final Consumer<Player> backAction;
 
     public GuildBankAccessDialog(GuildManager guilds, GuildBankService guildBank, DialogueEngine dialogue, BankDialog personalBank) {
+        this(guilds, guildBank, dialogue, personalBank, Player::closeDialog);
+    }
+
+    public GuildBankAccessDialog(GuildManager guilds, GuildBankService guildBank, DialogueEngine dialogue,
+                                 BankDialog personalBank, Consumer<Player> backAction) {
         this.guilds = guilds;
         this.guildBank = guildBank;
         this.dialogue = dialogue;
         this.personalBank = personalBank;
+        this.backAction = backAction;
     }
 
     public void open(Player player) {
