@@ -27,6 +27,7 @@ public final class PlayerProfile {
     private final Set<String> unlockedWaypoints = new HashSet<>();
     private int storyChapterIndex;
     private final Map<String, QuestProgress> activeQuests = new HashMap<>();
+    private final Map<String, NavigationTarget> questNavigationTargets = new HashMap<>();
     private final Set<String> completedQuests = new HashSet<>();
     private final Map<String, Long> statistics = new HashMap<>();
     private final Map<EquipmentSlot, ItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
@@ -85,6 +86,18 @@ public final class PlayerProfile {
     public void setStoryChapterIndex(int value){mutate(()->storyChapterIndex=value);}
     public synchronized Map<String,QuestProgress> getActiveQuests(){return Collections.unmodifiableMap(new HashMap<>(activeQuests));}
     public synchronized boolean hasActiveQuest(String id){return id!=null&&activeQuests.containsKey(id);}
+    public synchronized NavigationTarget getQuestNavigationTarget(String questId){
+        NavigationTarget target = questId == null ? null : questNavigationTargets.get(questId);
+        return target == null ? null : target;
+    }
+    public void setQuestNavigationTarget(String questId, NavigationTarget target){
+        if (questId == null || questId.isBlank() || target == null) return;
+        mutate(()->questNavigationTargets.put(questId, target));
+    }
+    public void clearQuestNavigationTarget(String questId){
+        if (questId == null) return;
+        mutateIfChanged(()->questNavigationTargets.remove(questId) != null);
+    }
     public void startQuest(QuestProgress progress){if(progress==null)return;synchronized(this){progress.setDirtyCallback(this::markDirty);activeQuests.put(progress.getQuestId(),progress);}notifyDirty();}
     public void removeActiveQuest(String id){if(id==null)return;synchronized(this){if(activeQuests.remove(id)==null)return;}notifyDirty();}
     public synchronized Set<String> getCompletedQuests(){return Collections.unmodifiableSet(new HashSet<>(completedQuests));}
@@ -108,13 +121,14 @@ public final class PlayerProfile {
     public void setPlaytimeMillis(long value){mutate(()->playtimeMillis=Math.max(0L,value));}
     public synchronized boolean isDirty(){return dirty;}
 
-    public synchronized PlayerProfile snapshotForSave(){if(!dirty)return null;PlayerProfile snapshot=new PlayerProfile(uuid);snapshot.registered=registered;snapshot.experience=experience;snapshot.moneyMinorUnits=moneyMinorUnits;snapshot.professionLevels.clear();snapshot.professionLevels.putAll(professionLevels);snapshot.professionExperience.clear();snapshot.professionExperience.putAll(professionExperience);snapshot.learnedProfessions.addAll(learnedProfessions);snapshot.unlockedRecipes.addAll(unlockedRecipes);snapshot.unlockedWaypoints.addAll(unlockedWaypoints);snapshot.storyChapterIndex=storyChapterIndex;for(QuestProgress progress:activeQuests.values())snapshot.activeQuests.put(progress.getQuestId(),new QuestProgress(progress.getQuestId(),progress.getCurrentAmount(),progress.getExpiryTimestampMillis()));snapshot.completedQuests.addAll(completedQuests);snapshot.statistics.putAll(statistics);equipment.forEach((slot,item)->snapshot.equipment.put(slot,item.clone()));snapshot.scoreboardEnabled=scoreboardEnabled;snapshot.partyHudEnabled=partyHudEnabled;snapshot.questTrackerEnabled=questTrackerEnabled;snapshot.playtimeMillis=playtimeMillis;snapshot.persistenceRevision=persistenceRevision;snapshot.mutationRevision=mutationRevision;snapshot.dirty=false;return snapshot;}
+    public synchronized PlayerProfile snapshotForSave(){if(!dirty)return null;PlayerProfile snapshot=new PlayerProfile(uuid);snapshot.registered=registered;snapshot.experience=experience;snapshot.moneyMinorUnits=moneyMinorUnits;snapshot.professionLevels.clear();snapshot.professionLevels.putAll(professionLevels);snapshot.professionExperience.clear();snapshot.professionExperience.putAll(professionExperience);snapshot.learnedProfessions.addAll(learnedProfessions);snapshot.unlockedRecipes.addAll(unlockedRecipes);snapshot.unlockedWaypoints.addAll(unlockedWaypoints);snapshot.storyChapterIndex=storyChapterIndex;for(QuestProgress progress:activeQuests.values())snapshot.activeQuests.put(progress.getQuestId(),new QuestProgress(progress.getQuestId(),progress.getCurrentAmount(),progress.getExpiryTimestampMillis()));snapshot.questNavigationTargets.putAll(questNavigationTargets);snapshot.completedQuests.addAll(completedQuests);snapshot.statistics.putAll(statistics);equipment.forEach((slot,item)->snapshot.equipment.put(slot,item.clone()));snapshot.scoreboardEnabled=scoreboardEnabled;snapshot.partyHudEnabled=partyHudEnabled;snapshot.questTrackerEnabled=questTrackerEnabled;snapshot.playtimeMillis=playtimeMillis;snapshot.persistenceRevision=persistenceRevision;snapshot.mutationRevision=mutationRevision;snapshot.dirty=false;return snapshot;}
     public synchronized void setDirtyCallback(Runnable callback){dirtyCallback=callback;}
     public void markDirty(){synchronized(this){dirty=true;}notifyDirty();}
     public synchronized void markClean(){dirty=false;}
     public synchronized void markCleanIfRevision(long expectedRevision){if(mutationRevision==expectedRevision)dirty=false;}
-    public void resetProgress(){synchronized(this){registered=false;experience=0L;moneyMinorUnits=0L;storyChapterIndex=-1;scoreboardEnabled=true;partyHudEnabled=false;questTrackerEnabled=false;learnedProfessions.clear();unlockedRecipes.clear();unlockedWaypoints.clear();activeQuests.clear();completedQuests.clear();equipment.clear();for(Profession profession:Profession.values()){professionLevels.put(profession,Profession.MIN_LEVEL);professionExperience.put(profession,0L);}}notifyDirty();}
+    public void resetProgress(){synchronized(this){registered=false;experience=0L;moneyMinorUnits=0L;storyChapterIndex=-1;scoreboardEnabled=true;partyHudEnabled=false;questTrackerEnabled=false;learnedProfessions.clear();unlockedRecipes.clear();unlockedWaypoints.clear();activeQuests.clear();completedQuests.clear();questNavigationTargets.clear();equipment.clear();for(Profession profession:Profession.values()){professionLevels.put(profession,Profession.MIN_LEVEL);professionExperience.put(profession,0L);}}notifyDirty();}
     private void mutate(Runnable mutation){synchronized(this){mutation.run();dirty=true;}notifyDirty();}
     private void mutateIfChanged(java.util.function.BooleanSupplier mutation){boolean changed;synchronized(this){changed=mutation.getAsBoolean();if(changed)dirty=true;}if(changed)notifyDirty();}
+    public record NavigationTarget(UUID worldId, double x, double y, double z, String structureKey) { }
     private void notifyDirty(){Runnable callback;synchronized(this){mutationRevision++;callback=dirtyCallback;}if(callback!=null)callback.run();}
 }
