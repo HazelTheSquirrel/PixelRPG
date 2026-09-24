@@ -62,8 +62,8 @@ public final class QuestNavigationService {
         }
 
         UUID playerId = player.getUniqueId();
-        if (playerLocationWorld(player) != null && !Boolean.TRUE.equals(playerLocationWorld(player).getGameRuleValue(GameRules.LOCATOR_BAR))) {
-            playerLocationWorld(player).setGameRule(GameRules.LOCATOR_BAR, true);
+        if (!Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRules.LOCATOR_BAR))) {
+            player.getWorld().setGameRule(GameRules.LOCATOR_BAR, true);
         }
         Map<String, QuestMarker> currentMarkers = markersByPlayer.computeIfAbsent(playerId, ignored -> new HashMap<>());
         Location playerLocation = player.getLocation();
@@ -161,6 +161,7 @@ public final class QuestNavigationService {
             mannequin.setInvulnerable(true);
             mannequin.setSilent(true);
             mannequin.setPersistent(false);
+            mannequin.setRemoveWhenFarAway(false);
             mannequin.setVisibleByDefault(false);
             var transmitRange = mannequin.getAttribute(Attribute.WAYPOINT_TRANSMIT_RANGE);
             if (transmitRange != null) transmitRange.setBaseValue(60_000_000.0D);
@@ -170,10 +171,6 @@ public final class QuestNavigationService {
         });
         player.showEntity(plugin, marker);
         return new QuestMarker(marker);
-    }
-
-    private org.bukkit.World playerLocationWorld(Player player) {
-        return player.getWorld();
     }
 
     private Location resolveTarget(Location origin, Quest quest, QuestProgress progress) {
