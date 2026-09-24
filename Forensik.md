@@ -1468,28 +1468,73 @@ Weiterhin erforderlich:
 Die statische Implementierung ersetzt keinen vollständigen Runtime-Smoke-Test.
 
 
-## 26. Finale Story-Kampagne & clientseitige Story-NPC-Sichtbarkeit
+## 26. Story-Kampagne – Strukturknoten und Nebenüberlieferungen
 
-- Der Test-Branch enthält nun die datengetriebene Kampagnenquelle `src/main/resources/data/story_campaign.yml` mit 35 Story-Schritten: Einstiegskapitel plus alle in Paper/Minecraft 26.2 als Worldgen-Strukturen geführten Struktur-IDs, einschließlich Varianten für Dörfer, Schiffswracks, Ozeanruinen und Ruined Portals.
-- Die Kampagne ist von Level 1 bis 99 gestaffelt und verkettet jede Struktur-Untersuchung über Quest-Prerequisites. Die bestehende Story-Profilprogression bleibt die einzige Quelle für den Kapitelindex.
-- Die Story-Questdaten werden über das bestehende `QuestRepository` geladen; es wurden keine neue Persistenzschicht und keine neue synchronisierte Dateischreiblogik eingeführt.
-- Story-NPCs werden beim Spawn mit `Entity#setVisibleByDefault(false)` angelegt. `StoryNpcVisibilityListener` verwendet die native Paper-Sichtbarkeits-API `Player#hideEntity/showEntity` und `PlayerTrackEntityEvent` als harte Tracking-Schranke.
-- Ein Story-NPC ist nur sichtbar, wenn ein registriertes PixelRPG-Profil existiert und mindestens die zur NPC-/Kapiteldefinition gehörige Quest aktiv ist. Vanilla-/unregistrierte Spieler erhalten keine Story-NPC-Entity.
-- Aktualisierung erfolgt ausschließlich über Join, Weltwechsel, Chunk-Wechsel, Profiländerungen und Entity-Tracking; es gibt keinen permanenten Tick-Scan und keine globale Weltiteration für die Sichtbarkeit.
-- Die Sichtbarkeitsauflösung arbeitet über den bestehenden NPC-Chunk-Index und hält nur pro Spieler die tatsächlich eingeblendeten Story-NPC-IDs vor. Damit bleibt die normale NPC-Sichtbarkeit unangetastet.
-- Die native Dialog-Anbindung bleibt über die vorhandene `DialogueEngine`. Der Trail-Ruins-Archäologe enthält einen konkreten Lore-Lückenfüller: offizielle Fakten über die verlorene Kultur und Suspicious Gravel werden von einer ausdrücklich als Theorie markierten PixelRPG-Eigeninterpretation überlagert.
-- Die offizielle Lore-Basis für Trail Ruins, Ocean Monuments, Strongholds, Ancient Cities, Echo Shards und Bastions wurde gegen aktuelle Minecraft-Quellen geprüft; Eigenstory wird im Dialog sprachlich als Vermutung/Theorie getrennt.
-- Die bisherige MySQL/YAML-Profilstruktur, Questpersistenz, NPC-Persistenz und bestehende NPC-Typen werden nicht ersetzt.
+Der Story-Audit wurde nach der Vollprüfung der bisherigen 35 Kapitel bereinigt. Ziel ist nicht, jede Vanilla-Struktur als eigenen Questknoten zu behandeln, sondern nur Strukturen zu verwenden, die für den roten Lore-Faden einen eigenständigen Informationswert liefern.
 
-### 26.1 Runtime-Verifikation offen
+## 26.1 Beibehaltene Haupt-Strukturen
 
-Vor produktivem Einsatz bleiben Build-/Server-Smoke-Tests auf der verbindlichen Paper-26.2-Dev-Bundle-Basis erforderlich, insbesondere:
+Die aktive Strukturkampagne verfolgt diese 17 Strukturknoten:
 
-1. Story-NPC spawn/respawn in geladenen Struktur-Chunks.
-2. Sichtbarkeit für registriertes Profil mit aktiver Quest.
-3. Unsichtbarkeit für registriertes Profil ohne aktive Quest.
-4. Unsichtbarkeit für unregistrierte/Vanilla-Spieler.
-5. Quest-Annahme und Quest-Abschluss während bereits geladener NPC-Chunks.
-6. Weltwechsel, Chunk-Wechsel und Reconnect.
-7. Migration eines bestehenden Story-Profils von der vorherigen Default-Kampagne auf Version 5.
-8. `check` inklusive aller bestehenden Forensik-/Relocation-Prüfungen.
+- Plains Village
+- Shipwreck
+- Desert Pyramid
+- Jungle Pyramid
+- Swamp Hut
+- Warm Ocean Ruins
+- Ocean Monument
+- Trail Ruins / Archäologie
+- Mineshaft
+- Pillager Outpost
+- Woodland Mansion
+- Ruined Portal
+- Ancient City
+- Nether Fortress
+- Bastion Remnant
+- Stronghold / End Portal
+- End City / End Ship
+
+Damit bleiben die vom Projekt geforderten Lore-Bereiche abgedeckt: Oberwelt-Siedlungen und Reisen, Archäologie, Illager, Dimensionsübergänge, Deep Dark, Nether, Endzugang und End-Endgame. Offizielle Minecraft-Quellen bestätigen die eigenständigen Erkundungs-/Lorebezüge insbesondere für Trail Ruins, Ocean Monuments, Ancient Cities, Strongholds, Bastions und End Cities. citeturn5search1turn0search2turn2search2turn2search5turn3search2turn4search2
+
+## 26.2 Aus der aktiven Strukturkampagne entfernt
+
+Folgende Varianten bzw. Nebenstrukturen erzeugen keinen eigenen Story-NPC und keine eigene REACH_LOCATION-Quest mehr:
+
+- Cold Ocean Ruins
+- Buried Treasure
+- Badlands/Mesa-Mineshaft-Variante
+- Igloo
+- die einzelnen Ruined-Portal-Varianten (Desert, Jungle, Swamp, Mountain, Ocean, Nether)
+- Nether Fossil
+- Trial Chambers
+- Beach-/Strand-Schiffswrack-Variante
+- Desert, Savanna, Snowy und Taiga Village als separate Storyknoten
+
+Das sind keine gelöschten Vanilla-Strukturen. Sie bleiben Bestandteil der Welt und werden als Nebenüberlieferungen über den Archivar bzw. andere NPCs erzählt. Die offizielle Archäologie-Dokumentation ordnet warme und kalte Ozeanruinen sowie Trail Ruins gemeinsam in die Archäologie-Fundorte ein; deshalb ist ein gemeinsamer Hauptstrang ausreichend. citeturn5search0turn5search3
+
+Ruined-Portal-Varianten werden ebenfalls gemeinsam über einen Hauptknoten behandelt. Minecraft beschreibt Ruined Portals allgemein als Reste alter Portalverbindungen in Oberwelt und Nether. citeturn3search0turn3search7
+
+## 26.3 Nebenüberlieferungen und Migration
+
+Die entfernten Strukturquests werden nicht mehr geladen. Die entsprechenden Kapitelpositionen bleiben als reine, questlose Dialogkapitel erhalten, damit bestehende storyChapterIndex-Werte nicht verschoben werden. StoryManager entfernt beim Zugriff auf die Story außerdem veraltete aktive Storyquests aus der vorherigen Kampagnenversion.
+
+Die Kampagne steigt damit auf Story-Version 6. Eine bestehende, unveränderte Version-5-Kampagne wird automatisch durch die neue Bundled-Kampagne ersetzt; benutzerdefinierte Storydaten mit abweichender Kapitelstruktur werden nicht pauschal überschrieben.
+
+## 26.4 Clientseitige Story-NPC-Sichtbarkeit
+
+- Story-NPCs werden weiterhin mit Entity#setVisibleByDefault(false) angelegt.
+- StoryNpcVisibilityListener nutzt Player#showEntity/hideEntity und PlayerTrackEntityEvent als native Sichtbarkeitsschranke.
+- Ein Story-NPC wird nur bei registriertem PixelRPG-Profil und aktiver Kapitelquest sichtbar.
+- Join, Weltwechsel, Chunk-Wechsel, Profiländerung und Tracking bleiben die gezielten Aktualisierungspunkte; kein permanenter Tick-Scan.
+
+## 26.5 Runtime-Verifikation offen
+
+Vor produktivem Einsatz bleiben Build-/Server-Smoke-Tests auf der verbindlichen Paper-26.2-Dev-Bundle-Basis erforderlich:
+
+1. Migration von Story-Version 5 auf Version 6.
+2. Entfernte Storyquests werden aus aktiven Profilen bereinigt.
+3. Questannahme erzeugt den korrekten Story-NPC und macht ihn nur für berechtigte Spieler sichtbar.
+4. Unregistrierte/Vanilla-Spieler sehen keine Story-NPCs.
+5. Weltwechsel, Chunk-Wechsel, Reconnect und Entity-Tracking.
+6. Abschluss eines Hauptstrukturknotens und Weitergabe an das nächste Kapitel.
+7. check inklusive aller bestehenden Forensik-/Relocation-Prüfungen.
