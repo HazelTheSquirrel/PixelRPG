@@ -33,6 +33,7 @@ public final class QuestNavigationService {
     private final QuestRepository questRepository;
     private final PlayerProfileManager profileManager;
     private final NpcManager npcManager;
+    private final StoryManager storyManager;
     private final Set<String> storyQuestIds;
     private final Map<UUID, Map<String, QuestMarker>> markersByPlayer = new HashMap<>();
     private final Map<UUID, RefreshState> refreshStateByPlayer = new HashMap<>();
@@ -43,6 +44,7 @@ public final class QuestNavigationService {
         this.questRepository = questRepository;
         this.profileManager = profileManager;
         this.npcManager = npcManager;
+        this.storyManager = storyManager;
         this.storyQuestIds = storyManager.getAllChapters().stream()
                 .flatMap(chapter -> chapter.questIds().stream())
                 .map(String::trim)
@@ -211,7 +213,9 @@ public final class QuestNavigationService {
             if (world != null) return new Location(world, cached.x(), cached.y(), cached.z());
         }
 
-        var storyChapter = PixelRpgStoryChapterResolver.findChapter(quest.id(), questRepository);
+        var storyChapter = storyManager.getAllChapters().stream()
+                .filter(chapter -> chapter.questIds().stream().anyMatch(id -> id.equalsIgnoreCase(quest.id())))
+                .findFirst().orElse(null);
         if (storyChapter != null && !storyChapter.npcId().isBlank()) {
             String prefix = "story_" + storyChapter.npcId().toLowerCase(java.util.Locale.ROOT) + "_";
             return npcManager.getAll().stream()
@@ -224,19 +228,6 @@ public final class QuestNavigationService {
                     .orElse(quest.reachLocation());
         }
         return quest.reachLocation();
-    }
-
-    private static final class PixelRpgStoryChapterResolver {
-        private PixelRpgStoryChapterResolver() { }
-
-        private static de.pixelrpg.rpg.story.StoryChapter findChapter(String questId, QuestRepository questRepository) {
-            var plugin = de.pixelrpg.rpg.PixelRPGPlugin.getInstance();
-            if (plugin == null || plugin.getStoryManager() == null || questId == null) return null;
-            return plugin.getStoryManager().getAllChapters().stream()
-                    .filter(chapter -> chapter.questIds().stream().anyMatch(id -> id.equalsIgnoreCase(questId)))
-                    .findFirst()
-                    .orElse(null);
-        }
     }
 
     private void removeMarker(Map<String, QuestMarker> markers, String questId) {
