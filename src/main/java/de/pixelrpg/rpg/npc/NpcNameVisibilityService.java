@@ -18,6 +18,7 @@ public final class NpcNameVisibilityService {
 
     private final Logger logger;
     private volatile ReflectionBridge reflectionBridge;
+    private volatile PacketBridge packetBridge;
 
     public NpcNameVisibilityService(Logger logger) {
         this.logger = logger;
@@ -31,8 +32,9 @@ public final class NpcNameVisibilityService {
             Object dataValue = bridge.dataValueFactory().invoke(null, bridge.dataAccessor(), visible);
             Object packet = bridge.packetConstructor().newInstance(entity.getEntityId(), List.of(dataValue));
             Object connection = player.getConnection();
-            Object packetListener = bridge.packetListenerField().get(connection);
-            bridge.sendMethod().invoke(packetListener, packet);
+            PacketBridge packetBridge = getPacketBridge(connection);
+            Object packetListener = packetBridge.packetListenerField().get(connection);
+            packetBridge.sendMethod().invoke(packetListener, packet);
         } catch (ReflectiveOperationException | RuntimeException exception) {
             logger.log(Level.WARNING,
                     "Failed to update NPC name visibility for " + player.getName(),
@@ -52,6 +54,26 @@ public final class NpcNameVisibilityService {
             }
             return current;
         }
+    }
+
+    private PacketBridge getPacketBridge(Object connection) throws ReflectiveOperationException {
+        PacketBridge current = packetBridge;
+        if (current != null && current.connectionType().isInstance(connection)) return current;
+
+        synchronized (this) {
+            current = packetBridge;
+            if (current == null || !current.connectionType().isInstance(connection)) {
+                Object packetListener = findPacketListener(connection);
+                current = PacketBridge.create(connection.getClass(), packetListener.getClass());
+                packetBridge = current;
+            }
+            return current;
+        }
+    }
+
+    private static Object findPacketListener(Object connection) throws ReflectiveOperationException {
+        Field field = findPacketListenerField(connection.getClass());
+        return field.get(connection);
     }
 
     private static Field findPacketListenerField(Class<?> type) throws ReflectiveOperationException {
@@ -103,11 +125,21 @@ public final class NpcNameVisibilityService {
             Constructor<?> packetConstructor = packetClass.getConstructor(int.class, List.class);
             packetConstructor.setAccessible(true);
 
-            Class<?> connectionClass = Class.forName("net.minecraft.server.network.ServerGamePacketListenerImpl");
-            Field packetListenerField = findPacketListenerField(connectionClass);
-            Method sendMethod = findSendMethod(connectionClass);
+            return new ReflectionBridge(accessor, factory, packetConstructor);
+        }
+    }
 
-            return new ReflectionBridge(accessor, factory, packetConstructor, packetListenerField, sendMethod);
+    private record PacketBridge(
+            Class<?> connectionType,
+            Field packetListenerField,
+            Method sendMethod
+    ) {
+        private static PacketBridge create(Class<?> connectionType, Class<?> packetListenerType) throws ReflectiveOperationException {
+            return new PacketBridge(
+                    connectionType,
+                    findPacketListenerField(connectionType),
+                    findSendMethod(packetListenerType)
+            );
         }
     }
 }
