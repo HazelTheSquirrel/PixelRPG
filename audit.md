@@ -1082,3 +1082,83 @@ Der Status **REBUILT** bedeutet hier ausschließlich, dass eine neue Zielimpleme
 Der Release-Status bleibt daher:
 
 **NOT COMPLETE**
+
+
+## 25. Forensische Paket-Inventarisierung — 2026-09-24
+
+**VERIFIED**
+
+Die vollständige Java-Inventur von main wurde erneut direkt gegen den Git-Tree b02747a21cde6d1308c59a7f027cda80877cfe50 geprüft: **247 Java-Dateien**.
+
+Erfasste fachliche Cluster:
+
+- Core / API / Events
+- Boss / Boss Patterns
+- Combat / Loot / Scaling / Skills
+- Commands / Subcommands
+- Companions
+- Config
+- Dialogue / Bank / Character Card / Quick Actions
+- Economy
+- Equipment
+- GUI
+- Guild
+- Items / Food / Unique / Soulbound
+- NPC / NPC Behaviors / Skin
+- Party
+- Player / Persistence
+- Profession / Crafting
+- Quest / Navigation / Passive Checks
+- Region / World Rules
+- Scoreboard / Playtime
+- Shop
+- Statistics
+- Storage
+- Story
+- Trade Depot
+- Travel / Guild Compass
+
+Die Inventur bestätigt, dass der Rebuild-Scope tatsächlich wesentlich größer als die bisherige Foundation ist. Kein Cluster wird aufgrund vorhandener Foundation als erledigt markiert.
+
+## 26. Item-Content-Rebuild — 2026-09-24
+
+**REBUILT / NOT VERIFIED**
+
+Die Item-Foundation wurde gegen die tatsächlichen main-Daten nachgeschärft.
+
+Neu bzw. korrigiert:
+
+- ItemCategory auf die tatsächlichen Referenzkategorien erweitert;
+- ItemStatProfile neu eingeführt;
+- GearCategoryRegistry neu eingeführt;
+- ItemDefinition um die tatsächlich benötigten Definitionsfelder erweitert;
+- ItemDefinitionRegistry lädt jetzt item-definitions.json, boss-reward-items.json und food-definitions.json;
+- IDs werden normalisiert;
+- Material-/Kategorie-Konsistenz wird validiert;
+- doppelte IDs werden abgewiesen;
+- ungültige Level-/Cooldown-/Gearscore-Werte werden abgewiesen.
+
+Wichtig: Der Item-Runtime-Stack ist damit noch **nicht** funktional paritätsgeprüft. Insbesondere Equipment, Food-Effekte, Unique-Claims, Soulbound-Verhalten, Weapon Abilities, Set Effects und vollständige Item-Presentation bleiben OPEN.
+
+## 27. Nächste verbindliche Rebuild-Reihenfolge
+
+Nach der forensischen Gesamtinventur wird nicht nach Dateinamen, sondern nach Abhängigkeiten weitergebaut:
+
+1. Core / Player Lifecycle / Persistence vollständig abschließen
+2. Item / Equipment / Food / Unique / Soulbound
+3. Stats / Economy
+4. Profession / Crafting
+5. Quest / Navigation
+6. Party / Guild / Bank / Trade Depot
+7. NPC / Skin / Behavior
+8. Dialog / Character Card / Quick Actions
+9. Shop
+10. Companion
+11. Combat / Skills / Boss
+12. Region / World Rules
+13. Story
+14. GUI / Scoreboard / Playtime
+15. Commands / Administration
+16. Integration / Parity / Cleanup / Build / CI
+
+Kein Bereich erhält den Status VERIFIED, bevor der konkrete Ablauf gegen main nachvollzogen und nachgewiesen wurde.
