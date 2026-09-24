@@ -69,7 +69,7 @@ public final class ReceptionDialog {
             }
             if (guildManager != null) {
                 actions.add(dialogueEngine.actionButton(Component.text("Gilde", NamedTextColor.GOLD), NamedTextColor.GOLD,
-                        target -> new GuildDialog(guildManager, profileManager, dialogueEngine, null, null, next -> new ReceptionDialog(next, profileManager, dialogueEngine, partyManager, guildManager).open()).open(target)));
+                        target -> new GuildDialog(guildManager, profileManager, dialogueEngine, null, null, next -> new ReceptionDialog(next, profileManager, dialogueEngine, partyManager, guildManager, backAction).open()).open(target)));
             }
             PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
             if (pixelRPG != null && pixelRPG.getStoryManager() != null && pixelRPG.getQuestManager() != null) {
@@ -131,11 +131,11 @@ public final class ReceptionDialog {
     private void toggleScoreboard(Player target) {
         var scoreboardService = PixelRPGPlugin.getInstance().getScoreboardService();
         if (scoreboardService == null) {
-            new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager).open();
+            new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager, backAction).open();
             return;
         }
         scoreboardService.setEnabled(target, !scoreboardService.isEnabled(target));
-        new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager).open();
+        new ReceptionDialog(target, profileManager, dialogueEngine, partyManager, guildManager, backAction).open();
     }
 
     private void openLeaveConfirmation(Player target) {
@@ -143,7 +143,7 @@ public final class ReceptionDialog {
             profileManager.unregisterPlayer(player);
             player.sendMessage(Component.text("Deine PixelRPG-Registrierung wurde aufgehoben. Dein Fortschritt wurde gelöscht.", NamedTextColor.GREEN));
         });
-        ActionButton no = dialogueEngine.actionButton(Component.text("Nein, abbrechen"), NamedTextColor.GREEN,
+        ActionButton no = dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE,
                 player -> new ReceptionDialog(player, profileManager, dialogueEngine, partyManager, guildManager).open());
         dialogueEngine.openConfirmation(target, Component.text("Registrierung aufheben?", NamedTextColor.GOLD),
                 List.of(DialogBody.plainMessage(Component.text("Warnung: Setzt deinen gesamten PixelRPG-Fortschritt zurück.", NamedTextColor.WHITE))), yes, no);
