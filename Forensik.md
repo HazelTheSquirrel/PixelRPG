@@ -1615,3 +1615,144 @@ Der GitHub-Workflow enthält weiterhin den bestehenden vollständigen `gradle cl
 
 Für den aktuellen Stand wurde über den verfügbaren GitHub-Connector **kein Workflow-Run zurückgeliefert**. Deshalb wird hier kein erfolgreicher Build/Server-Smoke-Test behauptet. Die Änderungen wurden stattdessen gegen die vorhandenen Quell-/Datenstrukturen und die Paper-26.2-API-Grenzen geprüft.
 
+
+
+---
+
+# 35. Forensik-Update – Abschluss der Content-Pipeline
+
+**Stand:** 24.09.2026  
+**Branch:** `test`
+
+Dieser Abschnitt ergänzt die vorherigen forensischen Befunde und beschreibt den aktuellen Abschluss der Content-Vervollständigung.
+
+## Änderungsprinzip
+
+Es wurden ausschließlich Content-Pfade ergänzt bzw. vervollständigt. Bestehende Kernsysteme wurden nicht durch parallele Ersatzimplementierungen ersetzt.
+
+Besonders geschützt blieben:
+
+- PlayerProfileManager
+- bestehende MySQL-/YAML-Persistenz
+- Story-Fortschritt über `PlayerProfile.storyChapterIndex`
+- NpcManager
+- DialogueEngine
+- QuestManager
+- ItemService
+- BossRepository
+- bestehende API-/Event-Strukturen
+
+## Custom-Crafting – Forensik
+
+Die Crafting-Pipeline validiert Custom-Items gegen die zentrale ItemDefinitionRegistry.
+
+Ein Rezept kann nicht beliebige interne IDs erzeugen. Custom-Ergebnisse laufen über `resultItemId` und werden zentral über `ItemService` erzeugt.
+
+Custom-Kosten werden separat von Vanilla-Materialkosten behandelt.
+
+Die Rezeptabhängigkeitsprüfung erkennt Produzenten von Custom-Items und verhindert zyklische Abhängigkeiten.
+
+Damit werden insbesondere folgende Klassen von Content-Exploits reduziert:
+
+- unbekannte Custom-Item-IDs
+- nicht registrierte Crafting-Ergebnisse
+- ungültige Custom-Kosten
+- zirkuläre Rezeptketten
+
+## Quest-Rewards
+
+Questbelohnungen für Custom-Items werden über den vorhandenen ItemService-Pfad erzeugt.
+
+Companion-Rewards verwenden die vorhandene `reward.companionId`-Struktur. Alle 25 questbasierten Companion-Definitionen besitzen aktuell eine passende Quest.
+
+Es wurde keine neue persistente Player-Referenzstruktur eingeführt.
+
+## Boss-Loot
+
+Die Progressions-Loot-Migration arbeitet additiv.
+
+Vorhandene Boss-Lootdefinitionen werden nicht durch eine neue parallele Lootpipeline ersetzt. Fehlende Progressionsbelohnungen werden nur ergänzt.
+
+Bei fehlender `bosses.yml` erzeugt `BossRepository` weiterhin die definierten 26 Biome- und 6 World-Bosse.
+
+## Story-/NPC-Pipeline
+
+Story-NPCs werden ausschließlich über den bestehenden `NpcManager` erzeugt.
+
+Der Triggerpfad:
+
+1. registriertes Profil prüfen,
+2. Story-/Queststatus prüfen,
+3. relevanten Chunk prüfen,
+4. vorhandene Strukturinformationen verwenden,
+5. stabile Story-NPC-ID erzeugen,
+6. NPC nur einmalig registrieren,
+7. vorhandenen NPC-/Persistenzpfad verwenden.
+
+Es gibt keinen permanenten globalen World-Scan und keinen zusätzlichen synchronen Datenbankpfad.
+
+## Story-NPC-Sichtbarkeit
+
+`NpcType.STORY` bleibt clientseitig selektiv sichtbar.
+
+Ein Spieler ohne gültiges PixelRPG-Profil bzw. ohne passende aktive Quest erhält keine Story-NPC-Sichtbarkeit.
+
+Die Aktualisierung ist ereignisbasiert:
+
+- Join
+- Weltwechsel
+- Chunk-/Tracking-Ereignisse
+- Profiländerung
+
+Kein globaler permanenter Tick-Scan.
+
+## Physische Currency
+
+Die automatische Currency-Pickup-Überführung in die virtuelle Bank wurde aus dem Plugin-Registrierungspfad entfernt.
+
+Die Currency bleibt ein physisches Inventarobjekt.
+
+Der Stack-Limit-Pfad verwendet den aktuellen Paper-26.2-Data-Component-Mechanismus. Der konfigurierte Wert wird auf den API-seitig unterstützten Bereich begrenzt.
+
+Eine künstliche 999er NMS-/Legacy-Implementierung wurde bewusst vermieden.
+
+## Bewusst nicht implementiert
+
+Die folgenden Punkte sind Produktentscheidungen und keine forensischen Defekte:
+
+- Food-Testbestand
+- globale NPC-Weltpopulation
+- automatische Default-Shops
+- Guild-City-Weltcontent
+- Regionen-Ausbau
+- Resourcepack-Ausbau
+
+## Build-/Runtime-Hinweis
+
+Die statische Forensik kann keinen vollständigen Server-Smoke-Test ersetzen.
+
+Vor Produktionsdeployment sind weiterhin sinnvoll:
+
+- `gradle clean check`
+- Shadow-JAR-Erzeugung
+- Serverstart auf Paper 26.2
+- Story-Quest-Durchlauf
+- Custom-Crafting-Durchlauf
+- Boss-Loot-Durchlauf
+- Currency-Pickup-/Bank-Test
+- Companion-Unlock-Test
+- Sichtbarkeitstest mit registriertem und nicht registriertem Spieler
+
+Die vorhandenen Build-Grenzprüfungen bleiben unverändert Bestandteil von `check`.
+
+## Abschlussbewertung
+
+Aus Sicht der **Content-Pipeline** gibt es im aktuellen, nicht pausierten Scope keinen bekannten technischen Blocker mehr.
+
+Die nächsten Änderungen sollten deshalb nicht mehr als „fehlende Grundimplementierung“ behandelt werden, sondern als:
+
+- Balancing,
+- Playtesting,
+- manuelle Welt-/Shop-Konfiguration,
+- oder optionale neue Content-Pakete.
+
