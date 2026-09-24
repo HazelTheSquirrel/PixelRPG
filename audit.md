@@ -990,3 +990,95 @@ Bei Unsicherheit wird geprüft oder nachgefragt.
 > **Wir entfernen Altlasten und totes Zeug erst dann, wenn nachgewiesen ist, dass dadurch kein SOLL-Verhalten verloren geht.**
 >
 > **`rebuild` wird ein vollständiger Clean Rebuild von `main` — nicht ein Teil-Rebuild und nicht eine Sammlung einzelner Fixes.**
+
+---
+
+## 24. Rebuild-Fortschritt — 2026-09-24
+
+### RESET
+**VERIFIED**
+
+- `rebuild/src/` war vor Beginn des neuen Rebuilds leer bzw. nicht vorhanden.
+- Die historische Rebuild-Implementierung wurde nicht als technische Basis weiterverwendet.
+- `main` Referenz bleibt der Commit `b02747a21cde6d1308c59a7f027cda80877cfe50`.
+
+### Referenzinventar
+**OPEN**
+
+Aktuell aus `main` verifiziert:
+
+- 247 Java-Dateien
+- 17 Dateien unter `src/main/resources`
+- vollständiger Resourcepack-Bestand unter `resourcepack/`
+- technische Buildbasis und `paper-plugin.yml`
+- öffentliche API-Oberfläche
+- Plugin-/Bootstrap-Lifecycle
+- bestehende Persistence-Grundlage
+- bestehende Player-/Economy-/Item-/Party-/Guild-/Statistics-Einstiegspunkte.
+
+Die 247 Java-Dateien sind **nicht** als Rebuild übernommen worden. Sie bleiben ausschließlich Referenzmaterial für Verhalten, Datenflüsse und Paritätsprüfung.
+
+### Rebuild Foundation
+**REBUILT**
+
+Neu aufgebaut wurde eine eigenständige Foundation unter `rebuild/src/main/java`:
+
+- neuer Plugin-Einstiegspunkt;
+- separater Bootstrap-Einstiegspunkt;
+- Lifecycle-Besitzmodell;
+- API-Vertrag für Economy, Guild, Item, Party und Statistics;
+- Player-Profile-Domainmodell;
+- asynchroner Profile-Lifecycle;
+- YAML-Persistence;
+- MySQL/Hikari-Persistence;
+- Datenbankschema-Grundlage;
+- Economy-Service;
+- Guild-Service-Grundlage;
+- Party-Service-Grundlage;
+- Statistics-Service-Grundlage;
+- Item-Definition-Registry;
+- Item-Service mit PDC-basierter Identität;
+- Java-25-Virtual-Thread-I/O für Persistence.
+
+### Content
+**REBUILT**
+
+Die vollständigen bestehenden statischen Content- und Resourcepack-Dateien aus `main` wurden als Referenz-/Content-Bestand in den Clean-Rebuild übernommen. Sie wurden nicht mit neuer Java-Architektur vermischt.
+
+### Noch OPEN
+
+Die folgenden Bereiche sind weiterhin vollständig offen und dürfen nicht als erledigt betrachtet werden:
+
+- vollständige NPC-/Skin-Runtime;
+- native Dialogsysteme;
+- Character Card;
+- alle GUIs;
+- Commands;
+- Quests und Quest-Navigation;
+- Story;
+- Berufe/Crafting;
+- vollständige Items/Equipment;
+- Combat;
+- Bosse;
+- Companions;
+- Party-Funktionalität;
+- Guild-Funktionalität;
+- Bank;
+- Trade Depot;
+- Shops;
+- Regionen;
+- Scoreboard/Playtime;
+- Content-Konsolidierung und Referenzvalidierung;
+- öffentliche Events;
+- vollständige Persistence aller Domänen;
+- vollständige Integrationsprüfung;
+- End-to-End-Paritätsprüfung gegen `main`;
+- Clean-Rebuild-Abnahme.
+
+### Nachweisregel
+
+Der Status **REBUILT** bedeutet hier ausschließlich, dass eine neue Zielimplementierung für den jeweiligen Foundation-Bereich angelegt wurde. Er bedeutet ausdrücklich **nicht**, dass funktionale Parität mit `main` bereits nachgewiesen ist.
+
+Der Release-Status bleibt daher:
+
+**NOT COMPLETE**
