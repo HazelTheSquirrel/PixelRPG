@@ -65,7 +65,7 @@ public final class StoryLocationRegistry {
 
             for (GeneratedStructure structure : structures) {
                 if (!chapter.structureTrigger().equals(structureKey(structure))) continue;
-                RPGNpc npc = ensureStoryNpc(chapter, structure);
+                RPGNpc npc = ensureStoryNpc(chapter, structure, chunk.getWorld());
                 if (npc != null) {
                     plugin.getLogger().fine("Story NPC active: " + npc.id() + " at " + npc.location());
                 }
@@ -81,8 +81,8 @@ public final class StoryLocationRegistry {
         return false;
     }
 
-    private RPGNpc ensureStoryNpc(StoryChapter chapter, GeneratedStructure structure) {
-        Location location = findSpawnLocation(structure);
+    private RPGNpc ensureStoryNpc(StoryChapter chapter, GeneratedStructure structure, World world) {
+        Location location = findSpawnLocation(structure, world);
         if (location == null) return null;
 
         String id = stableNpcId(chapter, location);
@@ -92,9 +92,7 @@ public final class StoryLocationRegistry {
         return npcManager.createWithId(id, NpcType.STORY, displayName(chapter), location, null, null);
     }
 
-    private Location findSpawnLocation(GeneratedStructure structure) {
-        World world = structure.getBoundingBox().getCenter().getWorld();
-        if (world == null) return null;
+    private Location findSpawnLocation(GeneratedStructure structure, World world) {
 
         double centerX = structure.getBoundingBox().getCenterX();
         double centerY = structure.getBoundingBox().getCenterY();
