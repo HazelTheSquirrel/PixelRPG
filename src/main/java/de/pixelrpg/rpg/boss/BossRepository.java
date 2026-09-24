@@ -32,11 +32,13 @@ public final class BossRepository {
         definitionsById.clear();
         if (!file.exists()) createDefaultBosses();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
-        if (ensureWorldBossDefaults(yaml)) {
+        boolean changed = ensureWorldBossDefaults(yaml);
+        changed |= ensureCustomProgressionLoot(yaml);
+        if (changed) {
             try {
                 yaml.save(file);
             } catch (IOException e) {
-                plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to migrate world boss defaults", e);
+                plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to migrate boss loot defaults", e);
             }
         }
         ConfigurationSection root = yaml.getConfigurationSection("bosses");
@@ -119,6 +121,30 @@ public final class BossRepository {
                 }
             }
         }
+    }
+
+    private boolean ensureCustomProgressionLoot(YamlConfiguration yaml) {
+        Map<String, String> progressionLoot = Map.of(
+                "plunderer", "pixelrpg:weapons/iron_sword/common_3",
+                "forest_witch", "pixelrpg:armor/chainmail_helmet/schattengeflecht_20",
+                "ravager_chief", "pixelrpg:armor/iron_chestplate/stahlwall_30",
+                "sandstone_colossus", "pixelrpg:weapons/gold_sword/uncommon_25",
+                "guardian_of_depths", "pixelrpg:armor/gold_chestplate/sonnengewand_45",
+                "ancient_warden", "pixelrpg:armor/diamond_chestplate/kristallwache_60",
+                "nether_lord", "pixelrpg:armor/netherite_chestplate/hoellenschmiede_80",
+                "end_king", "pixelrpg:weapons/netherite_sword/legendary_90"
+        );
+        boolean changed = false;
+        for (Map.Entry<String, String> entry : progressionLoot.entrySet()) {
+            String path = "bosses." + entry.getKey();
+            if (!yaml.isConfigurationSection(path)) continue;
+            List<String> guaranteed = new ArrayList<>(yaml.getStringList(path + ".loot.guaranteed"));
+            if (guaranteed.stream().anyMatch(value -> value.equalsIgnoreCase(entry.getValue()))) continue;
+            guaranteed.add(entry.getValue());
+            yaml.set(path + ".loot.guaranteed", guaranteed);
+            changed = true;
+        }
+        return changed;
     }
 
     private boolean ensureWorldBossDefaults(YamlConfiguration yaml) {
