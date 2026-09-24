@@ -5,6 +5,7 @@ import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
+import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.story.StoryChapter;
 import de.pixelrpg.rpg.story.StoryManager;
@@ -38,7 +39,16 @@ public final class StoryBehavior implements NpcBehavior {
 
         Optional<StoryChapter> next = storyManager.getNextChapterFor(player.getUniqueId());
         if (next.isEmpty()) {
-            dialogue.begin(player, npc);
+            PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+            if (profile == null) return;
+            int nextOrder = profile.getStoryChapterIndex() + 1;
+            StoryChapter locked = storyManager.getChapter(nextOrder).orElse(null);
+            if (locked != null) {
+                dialogueEngine.openUnavailable(player, "Geschichte",
+                        "Das nächste Kapitel wird ab Level " + locked.requiredLevel() + " freigeschaltet.");
+            } else {
+                dialogue.begin(player, npc);
+            }
             return;
         }
 
