@@ -409,16 +409,16 @@
       "title": "Jenseits der Welt: Untersuchung",
       "description": "Untersuche Jenseits der Welt und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 89,
-      "categoryLevel": 89,
+      "recommendedLevel": 94,
+      "categoryLevel": 94,
       "targetKey": "story_campaign_end_city",
       "requiredAmount": 1,
       "prerequisites": [
-        "story_campaign_stronghold"
+        "story_campaign_dragon"
       ],
       "reward": {
-        "money": 1115,
-        "experience": 1775,
+        "money": 1600,
+        "experience": 2600,
         "items": [
           "pixelrpg:weapons/netherite_sword/legendary_90|90"
         ]
@@ -427,6 +427,51 @@
         "structure": "minecraft:end_city",
         "radius": 8192,
         "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_dragon",
+      "title": "Der Drache: Bezwinge den Enderdrachen",
+      "description": "Besiege den Enderdrachen und sichere den Zugang zu den äußeren Inseln des Endes.",
+      "type": "HUNT",
+      "recommendedLevel": 90,
+      "categoryLevel": 90,
+      "targetKey": "ENDER_DRAGON",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_stronghold"
+      ],
+      "reward": {
+        "money": 1500,
+        "experience": 2500,
+        "items": [
+          "pixelrpg:weapons/netherite_sword/legendary_90|1"
+        ]
+      },
+      "navigation": {
+        "structure": "minecraft:stronghold",
+        "radius": 8192,
+        "findUnexplored": false
+      }
+    },
+    {
+      "id": "story_campaign_after_the_end",
+      "title": "Was hinter dem Ende bleibt: Das letzte Archiv",
+      "description": "Kehre mit deinen Erkenntnissen zum Archiv zurück und vollende die Chronik.",
+      "type": "TALK_TO_NPC",
+      "recommendedLevel": 99,
+      "categoryLevel": 99,
+      "targetKey": "the_archivist",
+      "requiredAmount": 1,
+      "prerequisites": [
+        "story_campaign_end_city"
+      ],
+      "reward": {
+        "money": 2500,
+        "experience": 5000,
+        "items": [
+          "pixelrpg:weapons/netherite_sword/legendary_90|1"
+        ]
       }
     }
   ]
