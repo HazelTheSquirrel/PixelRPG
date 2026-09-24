@@ -93,6 +93,7 @@ public final class ProfessionDialog {
         if (actions.isEmpty()) {
             body.add(DialogBody.plainMessage(Component.text("Du hast noch keine Inhalte freigeschaltet.", NamedTextColor.WHITE)));
         }
+        actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
 
         dialogueEngine.openMultiAction(
                 player,
@@ -138,7 +139,7 @@ public final class ProfessionDialog {
         actions.add(dialogueEngine.actionButton(
                 Component.text("Zurück"),
                 NamedTextColor.WHITE,
-                target -> openProfession(target, profession)
+                target -> openProfession(target, profession, backAction)
         ));
 
         dialogueEngine.openMultiAction(
@@ -193,7 +194,7 @@ public final class ProfessionDialog {
         actions.add(dialogueEngine.actionButton(
                 Component.text("← Kategorien"),
                 NamedTextColor.WHITE,
-                target -> openProfessionRecipeCategories(target, profession)
+                target -> openProfessionRecipeCategories(target, profession, backAction)
         ));
 
         dialogueEngine.openMultiAction(
