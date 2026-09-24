@@ -4,6 +4,8 @@ import de.pixelrpg.rpg.api.ItemAPI;
 import de.pixelrpg.rpg.bank.BankStorageService;
 import de.pixelrpg.rpg.trade.TradeDepotManager;
 import de.pixelrpg.rpg.shop.ShopManager;
+import de.pixelrpg.rpg.story.StoryBookFactory;
+import de.pixelrpg.rpg.story.StoryManager;
 import de.pixelrpg.rpg.gui.ShopEditorGUI;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.equipment.EquipmentService;
@@ -45,11 +47,13 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private NpcManager npcManager;
     private ShopManager shopManager;
     private ShopEditorGUI shopEditorGUI;
+    private StoryManager storyManager;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         RPGKeys.init(this);
+        StoryBookFactory.load(getConfig());
 
         profiles = new PlayerProfileManager(this);
         profiles.initialize(getConfig());
@@ -70,6 +74,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         shopManager = new ShopManager(this);
         shopManager.load();
         shopEditorGUI = new ShopEditorGUI(shopManager);
+        storyManager = new StoryManager(this, profiles);
+        storyManager.load();
         npcManager = new NpcManager(this);
         npcManager.load();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
@@ -126,6 +132,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         tradeDepotManager = null;
         npcManager = null;
         shopManager = null;
+        storyManager = null;
         shopEditorGUI = null;
     }
 
