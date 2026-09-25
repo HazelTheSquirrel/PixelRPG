@@ -16,6 +16,7 @@ public record CraftRecipe(
         Map<Material, Integer> costs,
         Map<String, Integer> itemCosts,
         int requiredProfessionLevel,
+        long professionXp,
         long unlockPrice,
         String requiredQuestId,
         boolean unlockedByDefault,
@@ -43,6 +44,7 @@ public record CraftRecipe(
         if (requiredProfessionLevel < Profession.MIN_LEVEL || requiredProfessionLevel > Profession.MAX_LEVEL) {
             throw new IllegalArgumentException("Invalid required profession level");
         }
+        if (professionXp <= 0L) throw new IllegalArgumentException("Profession XP must be positive");
         if (unlockPrice < 0L) throw new IllegalArgumentException("Unlock price must not be negative");
         if (requiredQuestId == null) requiredQuestId = "";
         if (resultItemId == null) resultItemId = "";
