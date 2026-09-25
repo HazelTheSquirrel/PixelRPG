@@ -68,8 +68,18 @@ public final class PlayerProfile {
     @Deprecated(forRemoval = true) public synchronized boolean isRegisteredInGuild() { return isRegistered(); }
     @Deprecated(forRemoval = true) public synchronized void setRegisteredInGuild(boolean value) { setRegistered(value); }
     public synchronized long getExperience() { return experience; }
-    public void setExperience(long value) { mutate(() -> experience = Math.max(0L, value)); }
-    public void addExperience(long amount) { if (amount <= 0L) return; mutate(() -> experience = amount > Long.MAX_VALUE - experience ? Long.MAX_VALUE : experience + amount); }
+    public void setExperience(long value) {
+        long capped = Math.clamp(value, 0L, Level.getRequiredExperience(Level.MAX_NORMAL_LEVEL));
+        mutate(() -> experience = capped);
+    }
+    public void addExperience(long amount) {
+        if (amount <= 0L) return;
+        mutate(() -> {
+            long cap = Level.getRequiredExperience(Level.MAX_NORMAL_LEVEL);
+            long next = amount > Long.MAX_VALUE - experience ? Long.MAX_VALUE : experience + amount;
+            experience = Math.min(cap, next);
+        });
+    }
     public synchronized int getLevel() { return Level.fromExperience(experience); }
     public synchronized double getMoney() { return Money.toMajor(moneyMinorUnits); }
     public synchronized long getMoneyMinorUnits() { return moneyMinorUnits; }
