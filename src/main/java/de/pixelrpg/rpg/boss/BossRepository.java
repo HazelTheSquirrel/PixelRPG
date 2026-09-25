@@ -213,12 +213,12 @@ public final class BossRepository {
 
     private boolean ensureWorldBossDefaults(YamlConfiguration yaml) {
         boolean changed = false;
-        changed |= ensureWorldBoss(yaml, "rift_colossus", "Der Risskoloss", "RAVAGER", 80, 35.0, 5.0, 1.75, 2500, 6000, "pixelrpg:boss/risskern", "NETHER_STAR", "NETHERITE_INGOT", 15.0, "LEGENDARY");
-        changed |= ensureWorldBoss(yaml, "storm_lord", "Der Sturmherrscher", "EVOKER", 84, 38.0, 4.8, 1.55, 3000, 7000, "pixelrpg:boss/sturmherz", "TOTEM_OF_UNDYING", "DIAMOND_BLOCK", 18.0, "LEGENDARY");
-        changed |= ensureWorldBoss(yaml, "abyss_lord", "Der Abgrundfürst", "ELDER_GUARDIAN", 88, 42.0, 4.5, 1.55, 3400, 8000, "pixelrpg:boss/abgrundkern", "HEART_OF_THE_SEA", "SPONGE", 20.0, "EPIC");
-        changed |= ensureWorldBoss(yaml, "soul_devourer", "Der Seelenverschlinger", "WITHER_SKELETON", 92, 45.0, 5.4, 1.50, 3800, 9000, "pixelrpg:boss/seelenkrone", "NETHER_STAR", "NETHERITE_SCRAP", 20.0, "LEGENDARY");
-        changed |= ensureWorldBoss(yaml, "end_harbinger", "Der Endbote", "ENDERMAN", 96, 48.0, 5.2, 1.55, 4200, 10000, "pixelrpg:boss/endriss", "DRAGON_BREATH", "ENDER_EYE", 25.0, "LEGENDARY");
-        changed |= ensureWorldBoss(yaml, "ancient_world_warden", "Der Uralte Weltenwächter", "WARDEN", 100, 55.0, 6.0, 1.65, 5000, 12000, "pixelrpg:boss/weltenherz", "NETHER_STAR", "ECHO_SHARD", 30.0, "LEGENDARY");
+        changed |= ensureWorldBoss(yaml, "rift_colossus", "Der Risskoloss", "RAVAGER", 40, 2.800, 2.200, 1.75, 2500, 6000, "pixelrpg:boss/risskern", "NETHER_STAR", "NETHERITE_INGOT", 15.0, "LEGENDARY");
+        changed |= ensureWorldBoss(yaml, "storm_lord", "Der Sturmherrscher", "EVOKER", 44, 3.040, 2.300, 1.55, 3000, 7000, "pixelrpg:boss/sturmherz", "TOTEM_OF_UNDYING", "DIAMOND_BLOCK", 18.0, "LEGENDARY");
+        changed |= ensureWorldBoss(yaml, "abyss_lord", "Der Abgrundfürst", "ELDER_GUARDIAN", 48, 3.280, 2.400, 1.55, 3400, 8000, "pixelrpg:boss/abgrundkern", "HEART_OF_THE_SEA", "SPONGE", 20.0, "EPIC");
+        changed |= ensureWorldBoss(yaml, "soul_devourer", "Der Seelenverschlinger", "WITHER_SKELETON", 52, 3.520, 2.500, 1.50, 3800, 9000, "pixelrpg:boss/seelenkrone", "NETHER_STAR", "NETHERITE_SCRAP", 20.0, "LEGENDARY");
+        changed |= ensureWorldBoss(yaml, "end_harbinger", "Der Endbote", "ENDERMAN", 56, 3.760, 2.600, 1.55, 4200, 10000, "pixelrpg:boss/endriss", "DRAGON_BREATH", "ENDER_EYE", 25.0, "LEGENDARY");
+        changed |= ensureWorldBoss(yaml, "ancient_world_warden", "Der Uralte Weltenwächter", "WARDEN", 60, 4.000, 2.700, 1.65, 5000, 12000, "pixelrpg:boss/weltenherz", "NETHER_STAR", "ECHO_SHARD", 30.0, "LEGENDARY");
         return changed;
     }
 
