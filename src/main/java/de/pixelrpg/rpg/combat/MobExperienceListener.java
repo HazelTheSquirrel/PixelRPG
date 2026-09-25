@@ -42,6 +42,8 @@ public final class MobExperienceListener implements Listener {
     public void onMonsterDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
         if (!(entity instanceof Monster)) return;
+        if (entity.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING)) return;
+
         Player killer = entity.getKiller();
         if (killer == null || !guildAPI.isRegistered(killer.getUniqueId())) return;
         var pdc = entity.getPersistentDataContainer();
