@@ -42,6 +42,16 @@ public final class NpcDialogueService implements AutoCloseable {
      * The lore page rotates through five unique entries per level band and repeats only after all
      * five entries of the current cycle have been seen.
      */
+    /** Opens the registration gate shown when an unregistered player approaches any non-reception NPC. */
+    public void openRegistrationRequired(Player player) {
+        dialogue.openNotice(
+                player,
+                Component.text("PixelRPG – Registrierung", NamedTextColor.GOLD),
+                Component.text("Sprich zuerst mit der Reception.", NamedTextColor.WHITE),
+                Component.text("Schließen", NamedTextColor.GRAY)
+        );
+    }
+
     public boolean open(Player player, RPGNpc npc) {
         if (npc.type() == NpcType.FILLER || npc.type() == NpcType.STORY) return false;
 
