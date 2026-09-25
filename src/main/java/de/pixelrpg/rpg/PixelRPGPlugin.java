@@ -237,6 +237,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_MASON, Profession.MASON, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FISHERMAN, Profession.FISHERMAN, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_WOODCUTTER, Profession.WOODCUTTER, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_MOUNTAIN_MINER, Profession.MOUNTAIN_MINER, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
         getServer().getPluginManager().registerEvents(equipmentService, this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(craftingGUI, this);
