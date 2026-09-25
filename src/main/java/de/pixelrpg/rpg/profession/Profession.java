@@ -13,6 +13,7 @@ public enum Profession {
     ALCHEMIST("Alchemist", "Vanilla-Tränke und alchemistische Verarbeitung", NamedTextColor.DARK_PURPLE),
     MASON("Steinmetz", "Stein, Ziegel und hochwertige Baublöcke", NamedTextColor.DARK_GRAY),
     FISHERMAN("Fischer", "Passiv: Angeln, Fangmenge und Vanilla-Schätze", NamedTextColor.BLUE),
+    MOUNTAIN_MINER("Bergbauer", "Passiv: Bergbau, Erzertrag und sichere Rohstoffgewinnung", NamedTextColor.DARK_GRAY),
     WOODCUTTER("Holzfäller", "Passiv: Holzfällen, Holzertrag und sicheres Baumfällen", NamedTextColor.DARK_GREEN);
 
     public static final int MIN_LEVEL = 1;
