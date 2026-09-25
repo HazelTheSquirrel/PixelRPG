@@ -79,6 +79,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
     }
 
     private void loadProfessions(PlayerProfile profile, ConfigurationSection section) {
+        migrateHistoricalMountainMiner(profile, section);
         for (Profession profession : Profession.values()) {
             String key = profession.name().toLowerCase();
             if (section.contains(key + ".level")) {
@@ -97,6 +98,23 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         }
     }
 
+    private void migrateHistoricalMountainMiner(PlayerProfile profile, ConfigurationSection section) {
+        String key = "mountain_miner";
+        if (!section.contains(key + ".level") && !section.contains(key + ".experience") && !section.getBoolean(key + ".learned", false)) return;
+
+        int historicalLevel = section.getInt(key + ".level", Profession.MIN_LEVEL);
+        long historicalExperience = section.getLong(key + ".experience", 0L);
+        boolean historicalLearned = section.getBoolean(key + ".learned", historicalLevel > Profession.MIN_LEVEL);
+
+        int blacksmithLevel = profile.getProfessionLevel(Profession.BLACKSMITH);
+        long blacksmithExperience = profile.getProfessionExperience(Profession.BLACKSMITH);
+        profile.setProfessionLevel(Profession.BLACKSMITH, Math.max(blacksmithLevel, Math.clamp(historicalLevel, Profession.MIN_LEVEL, Profession.MAX_LEVEL)));
+        profile.setProfessionExperience(Profession.BLACKSMITH, Math.max(blacksmithExperience, Math.max(0L, historicalExperience)));
+        if (historicalLearned || historicalLevel > Profession.MIN_LEVEL || historicalExperience > 0L) {
+            profile.learnProfession(Profession.BLACKSMITH);
+        }
+    }
+
     private String legacyKey(Profession profession) {
         return switch (profession) {
             case BLACKSMITH -> "blacksmithing";
@@ -104,7 +122,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
             case FISHERMAN -> "fishing";
             case TAILOR -> "skinning";
             case ALCHEMIST -> "alchemy";
-            case SCHOLAR, FARMER, MASON, MOUNTAIN_MINER, WOODCUTTER -> null;
+            case SCHOLAR, FARMER, MASON, WOODCUTTER -> null;
         };
     }
 
