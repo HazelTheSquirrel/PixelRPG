@@ -1003,9 +1003,3 @@ Die größten nachweisbaren Content-Integrationslücken sind derzeit:
 - vollständige Weltanbindung der Story-/Questdaten
 
 Dieses Dokument bewertet ausschließlich den tatsächlichen Stand des Branches `test`.
-
-
-## 17. Neue technische Anbindungen
-- **Bergbauer:** neue passive Profession `MOUNTAIN_MINER` mit Ertragsbonus auf Vanilla-Erze ab Berufslevel 20.
-- **Vanilla-Baublöcke-Shop:** Default-Shop-ID `vanilla_building_blocks` mit Vanilla-Baublöcken; kann an einen SHOP-NPC mit dieser ID gebunden werden.
-- **JourneyMap:** Regionseckpunkte werden über den stabilen `journeymap:waypoint`-Plugin-Channel als Boundary-Marker an JourneyMap-Clients gesendet. JourneyMap-Polygon-Overlays selbst sind eine Client-API-Funktion und werden deshalb nicht als Paper-Abhängigkeit eingebaut.
