@@ -29,11 +29,11 @@ public final class ShopManager {
     // Lädt Shop-Items und unterstützt sowohl das alte einzelne "price"-Feld als auch die neuen Kauf-/Verkaufspreise.
     public void load() {
         shopsByNpcId.clear();
-        if (!file.exists()) return;
 
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        YamlConfiguration yaml = file.exists()
+                ? YamlConfiguration.loadConfiguration(file)
+                : new YamlConfiguration();
         ConfigurationSection root = yaml.getConfigurationSection("shops");
-        if (root == null) return;
 
         boolean migratedAny = false;
         for (String npcId : root.getKeys(false)) {
@@ -67,7 +67,60 @@ public final class ShopManager {
             shopsByNpcId.put(npcId, List.copyOf(entries));
         }
 
-        if (migratedAny) save();
+        boolean defaultAdded = ensureDefaultVanillaBuildingShop();
+        if (migratedAny || defaultAdded) save();
+    }
+
+    private boolean ensureDefaultVanillaBuildingShop() {
+        String shopId = "vanilla_building_blocks";
+        if (!getEntries(shopId).isEmpty()) return false;
+
+        List<ShopEntry> entries = new ArrayList<>();
+        addDefaultEntry(entries, Material.STONE, 1.00D);
+        addDefaultEntry(entries, Material.COBBLESTONE, 0.50D);
+        addDefaultEntry(entries, Material.DEEPSLATE, 1.25D);
+        addDefaultEntry(entries, Material.COBBLED_DEEPSLATE, 0.75D);
+        addDefaultEntry(entries, Material.GRANITE, 0.75D);
+        addDefaultEntry(entries, Material.DIORITE, 0.75D);
+        addDefaultEntry(entries, Material.ANDESITE, 0.75D);
+        addDefaultEntry(entries, Material.TUFF, 0.75D);
+        addDefaultEntry(entries, Material.CALCITE, 1.25D);
+        addDefaultEntry(entries, Material.BLACKSTONE, 1.25D);
+        addDefaultEntry(entries, Material.BASALT, 1.00D);
+        addDefaultEntry(entries, Material.SAND, 0.75D);
+        addDefaultEntry(entries, Material.RED_SAND, 1.00D);
+        addDefaultEntry(entries, Material.GRAVEL, 0.50D);
+        addDefaultEntry(entries, Material.SANDSTONE, 1.25D);
+        addDefaultEntry(entries, Material.RED_SANDSTONE, 1.50D);
+        addDefaultEntry(entries, Material.BRICKS, 2.50D);
+        addDefaultEntry(entries, Material.STONE_BRICKS, 1.25D);
+        addDefaultEntry(entries, Material.DEEPSLATE_BRICKS, 1.50D);
+        addDefaultEntry(entries, Material.DEEPSLATE_TILES, 1.50D);
+        addDefaultEntry(entries, Material.MUD_BRICKS, 2.00D);
+        addDefaultEntry(entries, Material.OAK_PLANKS, 0.75D);
+        addDefaultEntry(entries, Material.SPRUCE_PLANKS, 0.75D);
+        addDefaultEntry(entries, Material.BIRCH_PLANKS, 0.75D);
+        addDefaultEntry(entries, Material.JUNGLE_PLANKS, 0.75D);
+        addDefaultEntry(entries, Material.ACACIA_PLANKS, 0.75D);
+        addDefaultEntry(entries, Material.DARK_OAK_PLANKS, 0.75D);
+        addDefaultEntry(entries, Material.MANGROVE_PLANKS, 0.75D);
+        addDefaultEntry(entries, Material.CHERRY_PLANKS, 0.75D);
+        addDefaultEntry(entries, Material.PALE_OAK_PLANKS, 0.75D);
+        addDefaultEntry(entries, Material.GLASS, 2.00D);
+        addDefaultEntry(entries, Material.TERRACOTTA, 2.00D);
+        addDefaultEntry(entries, Material.QUARTZ_BLOCK, 5.00D);
+        addDefaultEntry(entries, Material.PRISMARINE, 3.50D);
+        addDefaultEntry(entries, Material.OBSIDIAN, 10.00D);
+        addDefaultEntry(entries, Material.WHITE_CONCRETE, 3.00D);
+        addDefaultEntry(entries, Material.GRAY_CONCRETE, 3.00D);
+        addDefaultEntry(entries, Material.BLACK_CONCRETE, 3.00D);
+        shopsByNpcId.put(shopId, List.copyOf(entries));
+        plugin.getLogger().info("Created default vanilla building-block shop '" + shopId + "'.");
+        return true;
+    }
+
+    private static void addDefaultEntry(List<ShopEntry> entries, Material material, double buyPrice) {
+        entries.add(new ShopEntry(ItemStack.of(material, 64), buyPrice, buyPrice * 0.50D));
     }
 
     private ItemStack readItem(ConfigurationSection entriesSection, String key) {
