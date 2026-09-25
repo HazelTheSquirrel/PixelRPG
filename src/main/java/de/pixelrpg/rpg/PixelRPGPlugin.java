@@ -202,7 +202,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         bossManager = new BossManager(this, patternRegistry, playerProfileManager, partyManager, playerProfileManager, itemService, mobScalingConfig,
                 getConfig().getDouble("bosses.bar-radius", 60.0D), getConfig().getInt("bosses.bar-update-interval-ticks", 20), getConfig().getInt("bosses.phase-check-interval-ticks", 10));
         biomeBossSpawnTask = new BiomeBossSpawnTask(this, bossRepository, bossManager, getConfig().getDouble("bosses.biome-spawn.spawn-radius", 80.0D),
-                getConfig().getInt("bosses.biome-spawn.check-interval-seconds", 60), getConfig().getInt("bosses.biome-spawn.max-concurrent", 4));
+                getConfig().getInt("bosses.biome-spawn.check-interval-seconds", 60), getConfig().getInt("bosses.biome-spawn.max-concurrent", 3), getConfig().getDouble("bosses.biome-spawn.spawn-chance-percent", 0.5));
         biomeBossSpawnTask.start();
         statisticsService = new StatisticsService(playerProfileManager);
         Bukkit.getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
