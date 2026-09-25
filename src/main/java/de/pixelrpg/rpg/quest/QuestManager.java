@@ -108,13 +108,48 @@ public final class QuestManager {
                 chapter.questIds().stream().anyMatch(id -> id.equalsIgnoreCase(quest.id())));
     }
 
-    /** Returns whether the player's active quests need the native locator-bar navigation. */
-    public boolean hasActiveNavigationQuest(PlayerProfile profile) {
+    /** Returns whether the player has an active quest with a persisted coordinate target. */
+    public boolean hasActiveCoordinateQuest(PlayerProfile profile) {
         if (profile == null) return false;
         return profile.getActiveQuests().values().stream()
                 .map(progress -> questRepository.getQuest(progress.getQuestId()))
-                .anyMatch(quest -> quest != null
-                        && (quest.type() == QuestType.REACH_LOCATION || isStoryQuest(quest)));
+                .anyMatch(quest -> quest != null && quest.hasNavigationTarget());
+    }
+
+    /** Resolves missing quest coordinates once after profile activation. */
+    public void restoreQuestCoordinates(Player player) {
+        if (player == null) return;
+        PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.isRegistered()) return;
+
+        for (QuestProgress progress : profile.getActiveQuests().values()) {
+            Quest quest = questRepository.getQuest(progress.getQuestId());
+            if (quest == null || !quest.hasNavigationTarget() || profile.getQuestNavigationTarget(quest.id()) != null) continue;
+            resolveAndStoreQuestCoordinate(player, profile, quest, false);
+        }
+    }
+
+    private boolean resolveAndStoreQuestCoordinate(Player player, PlayerProfile profile, Quest quest, boolean announce) {
+        if (!quest.hasNavigationTarget()) return true;
+        if (profile.getQuestNavigationTarget(quest.id()) != null) return true;
+
+        try {
+            QuestCoordinateResolver.PlayerProfileTarget resolved = QuestCoordinateResolver.resolve(player, quest);
+            if (resolved == null || resolved.location() == null || resolved.location().getWorld() == null) {
+                if (announce) player.sendMessage(Component.text("Für diese Quest konnte kein Zielort gefunden werden.", NamedTextColor.RED));
+                return false;
+            }
+            Location location = resolved.location();
+            profile.setQuestNavigationTarget(quest.id(), new PlayerProfile.NavigationTarget(
+                    location.getWorld().getUID(), location.getX(), location.getY(), location.getZ(), resolved.targetKey()));
+            if (announce) player.sendMessage(QuestText.navigationTarget(player, quest, profile.getQuestNavigationTarget(quest.id())));
+            return true;
+        } catch (RuntimeException exception) {
+            plugin.getLogger().log(java.util.logging.Level.WARNING,
+                    "Failed to resolve quest target for " + quest.id() + " and player " + player.getUniqueId(), exception);
+            if (announce) player.sendMessage(Component.text("Der Zielort dieser Quest konnte nicht ermittelt werden. Bitte versuche es erneut.", NamedTextColor.RED));
+            return false;
+        }
     }
 
     private boolean acceptQuestInternal(Player player, Quest quest) {
@@ -126,6 +161,10 @@ public final class QuestManager {
             return false;
         }
         long expiry = quest.hasTimeLimit() ? System.currentTimeMillis() + quest.durationMinutes() * 60_000L : 0L;
+        if (quest.hasNavigationTarget() && !resolveAndStoreQuestCoordinate(player, profile, quest, false)) {
+            player.sendMessage(Component.text("Die Quest kann gerade nicht angenommen werden, weil kein Zielort ermittelt werden konnte.", NamedTextColor.RED));
+            return false;
+        }
         profile.startQuest(new QuestProgress(quest.id(), 0, expiry));
         if (quest.hasTimeLimit()) {
             scheduleExpiry(player.getUniqueId(), quest.id(), expiry);
@@ -133,6 +172,9 @@ public final class QuestManager {
         }
         player.sendMessage(Component.text("Quest angenommen: ").color(NamedTextColor.GREEN)
                 .append(Component.text(QuestText.titlePlain(player, quest), NamedTextColor.YELLOW)));
+        if (quest.hasNavigationTarget()) {
+            player.sendMessage(QuestText.navigationTarget(player, quest, profile.getQuestNavigationTarget(quest.id())));
+        }
         questStateChangeListener.accept(player);
         return true;
     }
@@ -202,6 +244,13 @@ public final class QuestManager {
 
     private boolean isAtQuestGiver(Player player, Quest quest) {
         if (quest.isProfessionQuest()) return true;
+        if (isStoryQuest(quest)) {
+            return PixelRPGPlugin.getInstance().getNpcManager().getAll().stream()
+                    .filter(npc -> npc.type() == NpcType.RECEPTION)
+                    .map(RPGNpc::location)
+                    .filter(location -> location.getWorld() != null && player.getWorld().equals(location.getWorld()))
+                    .anyMatch(location -> player.getLocation().distanceSquared(location) <= 36.0D);
+        }
         if (quest.questGiverNpcId() == null || quest.questGiverNpcId().isBlank()) {
             return PixelRPGPlugin.getInstance().getNpcManager().getAll().stream()
                     .filter(npc -> npc.type() == NpcType.QUEST)
@@ -284,7 +333,7 @@ public final class QuestManager {
         return true;
     }
 
-    /** Completes a story quest at the persistent story NPC that owns the interaction. */
+    /** Legacy interaction bridge; story quests are now completed only at the reception. */
     public boolean completeQuestAtNpc(Player player, String questId, String npcId) {
         if (player == null || questId == null || npcId == null || npcId.isBlank()) return false;
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
@@ -295,13 +344,11 @@ public final class QuestManager {
         if (progress == null || progress.isExpired() || progress.getCurrentAmount() < quest.requiredAmount()) return false;
 
         var npc = PixelRPGPlugin.getInstance().getNpcManager().getById(npcId).orElse(null);
-        if (npc == null || npc.type() != NpcType.STORY || npc.location().getWorld() == null
+        if (npc == null || npc.type() != NpcType.RECEPTION || npc.location().getWorld() == null
                 || !player.getWorld().equals(npc.location().getWorld())
                 || player.getLocation().distanceSquared(npc.location()) > 36.0D) return false;
 
-        if (quest.questGiverNpcId() != null && !quest.questGiverNpcId().isBlank()
-                && !quest.questGiverNpcId().equalsIgnoreCase(npcId)) return false;
-
+        if (!isStoryQuest(quest)) return false;
         return grantCompletion(player, profile, quest);
     }
 
