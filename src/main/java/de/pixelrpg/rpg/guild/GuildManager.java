@@ -140,7 +140,7 @@ public final class GuildManager implements GuildAPI {
         if (shuttingDown || player == null) return Result.NOT_IN_GUILD;
         GuildData guild = guilds.get(memberGuilds.get(player.getUniqueId()));
         if (guild == null) return Result.NOT_IN_GUILD;
-        if (guild.leaderId().equals(player.getUniqueId())) return Result.LEADER_CANNOT_LEAVE;
+        if (guild.leaderId().equals(player.getUniqueId())) return Result.LEADER_CANNOT_LEAVE, TREASURY_NOT_EMPTY;
         guild.members().remove(player.getUniqueId());
         memberGuilds.remove(player.getUniqueId());
         save();
@@ -227,6 +227,7 @@ public final class GuildManager implements GuildAPI {
         GuildData guild = guilds.get(memberGuilds.get(player.getUniqueId()));
         if (guild == null) return Result.NOT_IN_GUILD;
         if (!guild.leaderId().equals(player.getUniqueId())) return Result.NOT_LEADER;
+        if (guild.treasuryMinorUnits() > 0L) return Result.TREASURY_NOT_EMPTY;
         Set<UUID> changedMembers = Set.copyOf(guild.members());
         guild.members().forEach(memberGuilds::remove);
         guilds.remove(guild.id());
