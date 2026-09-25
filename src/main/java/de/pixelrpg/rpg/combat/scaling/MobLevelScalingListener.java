@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.combat.scaling;
 
 import de.pixelrpg.rpg.api.GuildAPI;
 import de.pixelrpg.rpg.api.events.PlayerLevelUpEvent;
+import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.core.WakeScheduler;
 import io.papermc.paper.event.player.PlayerInventorySlotChangeEvent;
@@ -238,7 +239,7 @@ public final class MobLevelScalingListener implements Listener {
             playerLevel = Math.max(playerLevel, guildAPI.getLevel(playerUuid));
             gearMultiplier = Math.max(gearMultiplier, gearLevelMultiplierCached(playerUuid));
         }
-        playerLevel = Math.clamp(playerLevel, 1, 99);
+        playerLevel = Math.clamp(playerLevel, Level.MIN_LEVEL, Level.MAX_NORMAL_LEVEL);
         ScalingSnapshot desired = new ScalingSnapshot(playerLevel, gearMultiplier);
         ScalingSnapshot previous = scalingCache.put(mobUuid, desired);
 
@@ -270,7 +271,7 @@ public final class MobLevelScalingListener implements Listener {
         return gearMultiplierCache.computeIfAbsent(playerUuid, uuid -> {
             Player player = findPlayer(uuid);
             if (player == null) return 1.0D;
-            int playerLevel = Math.clamp(guildAPI.getLevel(uuid), 1, 99);
+            int playerLevel = Math.clamp(guildAPI.getLevel(uuid), Level.MIN_LEVEL, Level.MAX_NORMAL_LEVEL);
             return gearLevelMultiplier(player, playerLevel);
         });
     }
