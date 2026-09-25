@@ -17,7 +17,7 @@ items:
     cost: 200.0
     min-level: 30
   loot:
-    item-drop-chance: 0.60
+    item-drop-chance: 0.0
     currency-drop-chance: 0.20
     currency-drop-min-amount: 1
     currency-drop-max-amount: 8
