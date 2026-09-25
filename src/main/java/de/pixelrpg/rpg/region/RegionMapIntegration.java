@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.plugin.Plugin;
 
 import java.io.ByteArrayOutputStream;
@@ -42,6 +43,12 @@ public final class RegionMapIntegration implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Bukkit.getScheduler().runTaskLater(plugin, () -> sendRegions(event.getPlayer()), 40L);
+    }
+
+    // Aktualisiert die sichtbaren Region-Grenzmarker nach einem Dimensionswechsel.
+    @EventHandler
+    public void onWorldChange(PlayerChangedWorldEvent event) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> sendRegions(event.getPlayer()), 20L);
     }
 
     public void sendRegions(Player player) {
