@@ -44,7 +44,6 @@ import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
-import de.pixelrpg.rpg.economy.GuildCurrencyPickupListener;
 import de.pixelrpg.rpg.equipment.EquipmentService;
 import de.pixelrpg.rpg.gui.CraftingGUI;
 import de.pixelrpg.rpg.gui.GUIListener;
@@ -96,7 +95,6 @@ import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.region.RegionEditor;
 import de.pixelrpg.rpg.region.RegionListener;
 import de.pixelrpg.rpg.region.RegionManager;
-import de.pixelrpg.rpg.region.RegionMapIntegration;
 import de.pixelrpg.rpg.region.RegionRepository;
 import de.pixelrpg.rpg.region.RegionSpawnService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -141,7 +139,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private CombatStateService combatStateService;
     private InviteDialogService inviteDialogService;
     private RegionManager regionManager;
-    private RegionMapIntegration regionMapIntegration;
     private RegionEditor regionEditor;
     private RegionSpawnService regionSpawnService;
     private GuildManager guildManager;
@@ -189,7 +186,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         RegionRepository regionRepository = new RegionRepository(getDataFolder(), getLogger());
         regionManager = new RegionManager(regionRepository);
         regionManager.load();
-        regionMapIntegration = new RegionMapIntegration(this, regionManager);
         regionEditor = new RegionEditor(this, regionManager);
         regionEditor.start();
         regionSpawnService = new RegionSpawnService(this, regionManager);
@@ -278,7 +274,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         lifecycle.register(() -> partyManager.shutdown());
         lifecycle.register(() -> combatStateService.shutdown());
         lifecycle.register(() -> guildManager.shutdown());
-        lifecycle.register(() -> regionMapIntegration.shutdown());
         lifecycle.register(() -> regionManager.shutdown());
         lifecycle.register(() -> npcManager.shutdown());
         lifecycle.register(() -> npcLookTask.stop());
@@ -340,10 +335,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public NpcManager getNpcManager() { return npcManager; }
     public ShopManager getShopManager() { return shopManager; }
     public StoryManager getStoryManager() { return storyManager; }
-    public InviteDialogService getInviteDialogService() {
-        return inviteDialogService;
-    }
-
+    public InviteDialogService getInviteDialogService() { return inviteDialogService; }
     public PartyManager getPartyManager() { return partyManager; }
     public QuestRepository getQuestRepository() { return questRepository; }
     public QuestManager getQuestManager() { return questManager; }
