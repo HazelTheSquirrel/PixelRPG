@@ -61,7 +61,8 @@ bosses:
   biome-spawn:
     spawn-radius: 80.0
     check-interval-seconds: 60
-    max-concurrent: 4
+    spawn-chance-percent: 0.5
+    max-concurrent: 3
 
 statistics:
   autosave-interval-ticks: 6000
