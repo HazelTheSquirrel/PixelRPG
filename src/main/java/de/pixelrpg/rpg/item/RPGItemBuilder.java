@@ -14,18 +14,12 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 public final class RPGItemBuilder {
     private static final long WEAPON_ABILITY_COOLDOWN_MILLIS = 6_000L;
-    private static final double MIN_ROLL_FACTOR = 0.50D;
-    private static final double MAX_ROLL_FACTOR = 1.50D;
     private static double growthMultiplier = 2.0D;
     private static double weaponBaseDamage = 3.0D;
     private static double weaponBaseCritChance = 0.5D;
@@ -108,7 +102,7 @@ public final class RPGItemBuilder {
         lore.add(Component.text(" "));
 
         switch (category.getProfile()) {
-            case WEAPON, ARMOR, SHIELD -> addRandomEquipmentStats(lore, pdc, category, rarity, multiplier, levelFactor);
+            case WEAPON, ARMOR, SHIELD -> addDeterministicEquipmentStats(lore, pdc, category, rarity, multiplier, levelFactor);
             case TOOL -> addToolStats(lore, pdc, multiplier, levelFactor);
             case FOOD -> {
             }
@@ -165,33 +159,43 @@ public final class RPGItemBuilder {
         };
     }
 
-    private static void addRandomEquipmentStats(List<Component> lore, PersistentDataContainer pdc,
-                                                ItemCategory category, ItemRarity rarity,
-                                                double multiplier, double levelFactor) {
-        int count = statCount(rarity);
-        List<EquipmentStat> pool = new ArrayList<>(List.of(EquipmentStat.values()));
-        Collections.shuffle(pool, ThreadLocalRandom.current());
-        Set<EquipmentStat> selected = EnumSet.copyOf(pool.subList(0, Math.min(count, pool.size())));
-        for (EquipmentStat stat : selected) {
-            double value = roll(stat.baseValue() * levelFactor * multiplier);
+    private static void addDeterministicEquipmentStats(List<Component> lore, PersistentDataContainer pdc,
+                                                        ItemCategory category, ItemRarity rarity,
+                                                        double multiplier, double levelFactor) {
+        List<EquipmentStat> stats = switch (category.getProfile()) {
+            case WEAPON -> List.of(
+                    EquipmentStat.ATTACK_POWER,
+                    EquipmentStat.CRIT,
+                    EquipmentStat.CRIT_DAMAGE,
+                    EquipmentStat.REACH,
+                    EquipmentStat.LIFESTEAL,
+                    EquipmentStat.HP
+            );
+            case ARMOR -> List.of(
+                    EquipmentStat.ARMOR,
+                    EquipmentStat.HP,
+                    EquipmentStat.MOVEMENT_SPEED,
+                    EquipmentStat.CRIT,
+                    EquipmentStat.CRIT_DAMAGE,
+                    EquipmentStat.LIFESTEAL
+            );
+            case SHIELD -> List.of(
+                    EquipmentStat.ARMOR,
+                    EquipmentStat.HP,
+                    EquipmentStat.REACH,
+                    EquipmentStat.CRIT,
+                    EquipmentStat.CRIT_DAMAGE,
+                    EquipmentStat.LIFESTEAL
+            );
+            default -> List.of();
+        };
+
+        int count = Math.min(statCount(rarity), stats.size());
+        for (EquipmentStat stat : stats.subList(0, count)) {
+            double value = deterministicValue(stat.baseValue() * levelFactor * multiplier);
             stat.write(pdc, value);
             lore.add(line(stat.lore(value)));
         }
-    }
-
-    private static int statCount(ItemRarity rarity) {
-        return switch (rarity) {
-            case COMMON -> 2;
-            case UNCOMMON -> 3;
-            case RARE -> 4;
-            case EPIC -> 5;
-            case LEGENDARY, UNIQUE -> 6;
-        };
-    }
-
-    private static double roll(double deterministicValue) {
-        if (deterministicValue <= 0.0D) return 0.0D;
-        return round(deterministicValue * ThreadLocalRandom.current().nextDouble(MIN_ROLL_FACTOR, Math.nextUp(MAX_ROLL_FACTOR)));
     }
 
     private enum EquipmentStat {
@@ -243,7 +247,7 @@ public final class RPGItemBuilder {
 
     private static void addToolStats(List<Component> lore, PersistentDataContainer pdc,
                                      double multiplier, double levelFactor) {
-        double efficiency = round(toolBaseEfficiency * levelFactor * multiplier);
+        double efficiency = deterministicValue(toolBaseEfficiency * levelFactor * multiplier);
         pdc.set(RPGKeys.Item.toolBonus(), PersistentDataType.DOUBLE, efficiency);
         lore.add(line(Component.text("+" + format(efficiency) + " Effizienz", NamedTextColor.YELLOW)));
     }
