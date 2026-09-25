@@ -7,6 +7,8 @@ package de.pixelrpg.rpg.core;
 public final class Level {
     public static final int MIN_LEVEL = 1;
     public static final int MAX_NORMAL_LEVEL = 60;
+    /** Compatibility marker for callers that distinguish the unreachable post-cap level. */
+    public static final int RESERVED_LEVEL = MAX_NORMAL_LEVEL + 1;
 
     private static final long[] REQUIRED_EXPERIENCE = createExperienceTable();
 
@@ -43,6 +45,13 @@ public final class Level {
         if (level == MAX_NORMAL_LEVEL) return 0L;
         return Math.max(0L, getExperienceForNextLevel(level) - experience);
     }
+
+    /** Compatibility threshold for legacy callers; level 60 is the hard cap and has no further progression. */
+    public static long getExperienceForTranscendence() {
+        return REQUIRED_EXPERIENCE[MAX_NORMAL_LEVEL - 1];
+    }
+
+    public static boolean isReservedLevel(int level) { return level == RESERVED_LEVEL; }
 
     public static long getExperienceIntoLevel(long totalExperience) {
         long experience = Math.max(0L, totalExperience);
