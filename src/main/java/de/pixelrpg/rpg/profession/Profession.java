@@ -3,7 +3,7 @@ package de.pixelrpg.rpg.profession;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
-/** The nine optional professions available to every PixelRPG player. */
+/** The ten optional professions available to every PixelRPG player. */
 public enum Profession {
     BLACKSMITH("Schmied", "Metall, Werkzeuge, Waffen und Rüstung", NamedTextColor.GRAY),
     SCHOLAR("Gelehrter", "Bücher, Wissen, Zaubertisch und Verzauberungen", NamedTextColor.AQUA),
