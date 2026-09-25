@@ -140,7 +140,7 @@ public final class GuildManager implements GuildAPI {
         if (shuttingDown || player == null) return Result.NOT_IN_GUILD;
         GuildData guild = guilds.get(memberGuilds.get(player.getUniqueId()));
         if (guild == null) return Result.NOT_IN_GUILD;
-        if (guild.leaderId().equals(player.getUniqueId())) return Result.LEADER_CANNOT_LEAVE, TREASURY_NOT_EMPTY;
+        if (guild.leaderId().equals(player.getUniqueId())) return Result.LEADER_CANNOT_LEAVE;
         guild.members().remove(player.getUniqueId());
         memberGuilds.remove(player.getUniqueId());
         save();
@@ -364,7 +364,7 @@ public final class GuildManager implements GuildAPI {
     public enum Result {
         SUCCESS, NOT_REGISTERED, ALREADY_IN_GUILD, LEVEL_TOO_LOW, INVALID_NAME, NAME_TAKEN, INSUFFICIENT_GOLD,
         NOT_IN_GUILD, NOT_LEADER, GUILD_FULL, TARGET_ALREADY_IN_GUILD, NO_INVITATION, GUILD_NOT_FOUND,
-        LEADER_CANNOT_LEAVE
+        LEADER_CANNOT_LEAVE, TREASURY_NOT_EMPTY
     }
 
     private record Invitation(UUID guildId, long createdAt) { }
