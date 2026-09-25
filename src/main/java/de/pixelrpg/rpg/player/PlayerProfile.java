@@ -91,8 +91,8 @@ public final class PlayerProfile {
     public void setProfessionLevel(Profession profession, int level) { if (profession == null) return; mutate(() -> professionLevels.put(profession, Math.clamp(level, Profession.MIN_LEVEL, Profession.MAX_LEVEL))); }
     public synchronized Map<Profession, Integer> getProfessionLevels() { return Collections.unmodifiableMap(new EnumMap<>(professionLevels)); }
     public synchronized long getProfessionExperience(Profession profession) { return professionExperience.getOrDefault(profession, 0L); }
-    public void setProfessionExperience(Profession profession, long value) { if (profession == null) return; mutate(() -> professionExperience.put(profession, Math.max(0L, value))); }
-    public void addProfessionExperience(Profession profession, long amount) { if (profession == null || amount <= 0L) return; mutate(() -> { long current = professionExperience.getOrDefault(profession, 0L); professionExperience.put(profession, amount > Long.MAX_VALUE - current ? Long.MAX_VALUE : current + amount); }); }
+    public void setProfessionExperience(Profession profession, long value) { if (profession == null) return; mutate(() -> professionExperience.put(profession, Math.clamp(value, 0L, Profession.MAX_EXPERIENCE))); }
+    public void addProfessionExperience(Profession profession, long amount) { if (profession == null || amount <= 0L) return; mutate(() -> { long current = professionExperience.getOrDefault(profession, 0L); long next = amount > Long.MAX_VALUE - current ? Long.MAX_VALUE : current + amount; professionExperience.put(profession, Math.min(Profession.MAX_EXPERIENCE, next)); }); }
     public synchronized Map<Profession, Long> getProfessionExperiences() { return Collections.unmodifiableMap(new EnumMap<>(professionExperience)); }
     public synchronized boolean hasLearnedProfession(Profession profession) { return profession != null && learnedProfessions.contains(profession); }
     public void learnProfession(Profession profession) { if (profession != null) mutateIfChanged(() -> learnedProfessions.add(profession)); }
