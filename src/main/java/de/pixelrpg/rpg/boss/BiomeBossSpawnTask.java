@@ -22,7 +22,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class BiomeBossSpawnTask implements Listener {
     /** Biome bosses are intentionally rare world encounters rather than routine mob spawns. */
-    private static final double SPAWN_CHANCE_PERCENT = 2.0D;
+    private final double spawnChancePercent;
 
     private final Plugin plugin;
     private final BossRepository bossRepository;
@@ -34,13 +34,14 @@ public final class BiomeBossSpawnTask implements Listener {
     private BukkitTask task;
 
     public BiomeBossSpawnTask(Plugin plugin, BossRepository bossRepository, BossManager bossManager,
-                              double spawnRadius, int checkIntervalSeconds, int maxConcurrentBosses) {
+                              double spawnRadius, int checkIntervalSeconds, int maxConcurrentBosses, double spawnChancePercent) {
         this.plugin = plugin;
         this.bossRepository = bossRepository;
         this.bossManager = bossManager;
         this.spawnRadius = Math.max(8.0D, spawnRadius);
         this.intervalTicks = Math.max(20, checkIntervalSeconds * 20);
         this.maxConcurrentBosses = Math.max(1, maxConcurrentBosses);
+        this.spawnChancePercent = Math.clamp(spawnChancePercent, 0.01D, 100.0D);
     }
 
     public void start() {
@@ -71,7 +72,7 @@ public final class BiomeBossSpawnTask implements Listener {
             if (biome == null) continue;
             BossDefinition definition = bossRepository.getBiomeBoss(biome);
             if (definition == null || bossManager.hasActiveBossOfType(definition.getId())) continue;
-            if (ThreadLocalRandom.current().nextDouble(100.0D) >= SPAWN_CHANCE_PERCENT) continue;
+            if (ThreadLocalRandom.current().nextDouble(100.0D) >= spawnChancePercent) continue;
             Location location = findSpawnLocation(player, definition);
             if (location == null) continue;
             bossManager.spawnBiomeBoss(definition, location);
