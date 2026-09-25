@@ -74,6 +74,7 @@ import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.profession.ProfessionSystem;
+import de.pixelrpg.rpg.progression.CharacterProgressionTelemetry;
 import de.pixelrpg.rpg.quest.GlobalEventState;
 import de.pixelrpg.rpg.quest.QuestManager;
 import de.pixelrpg.rpg.quest.QuestMobKillListener;
@@ -134,6 +135,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private StatisticsService statisticsService;
     private ScoreboardService scoreboardService;
     private PlaytimeTracker playtimeTracker;
+    private CharacterProgressionTelemetry characterProgressionTelemetry;
     private CompanionService companionService;
     private CombatDamageListener combatDamageListener;
     private CombatStateService combatStateService;
@@ -209,6 +211,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         scoreboardService.startTask();
         playtimeTracker = new PlaytimeTracker(this, playerProfileManager);
         playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
+        characterProgressionTelemetry = new CharacterProgressionTelemetry(playerProfileManager);
+        getServer().getPluginManager().registerEvents(characterProgressionTelemetry, this);
         npcManager = lifecycle.register(new NpcManager(this));
         npcManager.loadAll();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
@@ -280,6 +284,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         lifecycle.register(() -> bossManager.shutdown());
         lifecycle.register(() -> questManager.shutdown());
         lifecycle.register(() -> scoreboardService.shutdown());
+        lifecycle.register(() -> characterProgressionTelemetry.shutdown());
         lifecycle.register(() -> playtimeTracker.shutdown());
         lifecycle.register(() -> mobLevelScalingListener.shutdown());
         lifecycle.register(() -> biomeBossSpawnTask.stop());
