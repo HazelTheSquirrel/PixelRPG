@@ -45,7 +45,7 @@ Der Branch enthält einen umfangreichen RPG-Kern mit:
 
 ### Level
 
-- Level 1–99
+- Level 1–60
 - Level-/XP-Berechnung
 - XP bis zum nächsten Level
 - Level-Up-Events
@@ -379,6 +379,7 @@ NPC-Typen:
 - PROFESSION_WOODCUTTER
 - QUEST
 - SHOP
+- PROFESSION_MOUNTAIN_MINER (Bergbauer)
 - TRAVEL
 - FILLER
 - STORY
@@ -429,7 +430,7 @@ Eine Repository-Default-`shops.yml` ist nicht vorhanden.
 
 Daraus folgt:
 
-**Shop-Engine vorhanden; konkreter Shop-Warenbestand ist kein vollständiger statischer Repository-Default.**
+**Shop-Engine vorhanden; der Default-Shop vanilla_building_blocks wird beim Laden automatisch mit Vanilla-Baublöcken bestückt.**
 
 ---
 
@@ -438,6 +439,8 @@ Daraus folgt:
 Der Bossbestand umfasst **32 Bossdefinitionen**.
 
 ### Biome-Bosse
+
+Die Biome-Bosse sind auf Level 1–60 verteilt; die Spawnchance ist konfigurierbar und im Default auf 0,5 % pro Prüfzyklus reduziert.
 
 Der Code enthält 26 Biome-Bosse, darunter:
 
@@ -504,11 +507,11 @@ Bossmechaniken:
 
 Sie dienen als:
 
-- Boss-Loot
+- Boss-Loot (Custom-PixelRPG-Items werden nicht mehr als Bossloot ausgegeben)
 - Progressionsmaterial
 - Crafting-Kosten
 
-Im aktuellen Content werden Custom-Boss-Items auch als Kosten in Crafting-Rezepten verwendet.
+Custom-Boss-Items bleiben als Content-/Itemdefinitionen erhalten, werden aber nicht mehr durch Bosse gedroppt.
 
 ---
 
@@ -1000,3 +1003,9 @@ Die größten nachweisbaren Content-Integrationslücken sind derzeit:
 - vollständige Weltanbindung der Story-/Questdaten
 
 Dieses Dokument bewertet ausschließlich den tatsächlichen Stand des Branches `test`.
+
+
+## 17. Neue technische Anbindungen
+- **Bergbauer:** neue passive Profession `MOUNTAIN_MINER` mit Ertragsbonus auf Vanilla-Erze ab Berufslevel 20.
+- **Vanilla-Baublöcke-Shop:** Default-Shop-ID `vanilla_building_blocks` mit Vanilla-Baublöcken; kann an einen SHOP-NPC mit dieser ID gebunden werden.
+- **JourneyMap:** Regionseckpunkte werden über den stabilen `journeymap:waypoint`-Plugin-Channel als Boundary-Marker an JourneyMap-Clients gesendet. JourneyMap-Polygon-Overlays selbst sind eine Client-API-Funktion und werden deshalb nicht als Paper-Abhängigkeit eingebaut.
