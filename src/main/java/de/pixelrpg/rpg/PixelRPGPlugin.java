@@ -140,6 +140,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private CombatStateService combatStateService;
     private InviteDialogService inviteDialogService;
     private RegionManager regionManager;
+    private RegionMapIntegration regionMapIntegration;
     private RegionEditor regionEditor;
     private RegionSpawnService regionSpawnService;
     private GuildManager guildManager;
@@ -187,6 +188,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         RegionRepository regionRepository = new RegionRepository(getDataFolder(), getLogger());
         regionManager = new RegionManager(regionRepository);
         regionManager.load();
+        regionMapIntegration = new RegionMapIntegration(this, regionManager);
         regionEditor = new RegionEditor(this, regionManager);
         regionEditor.start();
         regionSpawnService = new RegionSpawnService(this, regionManager);
@@ -275,6 +277,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         lifecycle.register(() -> partyManager.shutdown());
         lifecycle.register(() -> combatStateService.shutdown());
         lifecycle.register(() -> guildManager.shutdown());
+        lifecycle.register(() -> regionMapIntegration.shutdown());
         lifecycle.register(() -> regionManager.shutdown());
         lifecycle.register(() -> npcManager.shutdown());
         lifecycle.register(() -> npcLookTask.stop());
