@@ -17,6 +17,7 @@ public enum Profession {
 
     public static final int MIN_LEVEL = 1;
     public static final int MAX_LEVEL = 60;
+    public static final long MAX_EXPERIENCE = 182_900L;
 
     /**
      * Compatibility alias for the historical tenth profession. Mountain mining is
