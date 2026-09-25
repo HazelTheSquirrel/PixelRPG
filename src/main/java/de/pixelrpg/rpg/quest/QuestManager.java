@@ -321,7 +321,7 @@ public final class QuestManager {
 
         Quest quest = questRepository.getQuest(questId);
         QuestProgress progress = profile.getActiveQuests().get(questId);
-        if (quest == null || progress == null || quest.type() != QuestType.REACH_LOCATION
+        if (quest == null || progress == null || !quest.hasNavigationTarget()
                 || quest.targetStructureKey() == null
                 || !quest.targetStructureKey().equalsIgnoreCase(structureKey)
                 || progress.getCurrentAmount() >= quest.requiredAmount()) return false;
@@ -412,7 +412,7 @@ public final class QuestManager {
         for (var entry : profile.getActiveQuests().entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             QuestProgress progress = entry.getValue();
-            if (quest == null || quest.type() != QuestType.REACH_LOCATION
+            if (quest == null || !quest.hasNavigationTarget()
                     || progress.getCurrentAmount() >= quest.requiredAmount()) continue;
 
             PlayerProfile.NavigationTarget target = profile.getQuestNavigationTarget(quest.id());
