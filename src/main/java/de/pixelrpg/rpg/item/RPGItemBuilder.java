@@ -97,6 +97,7 @@ public final class RPGItemBuilder {
 
         List<Component> lore = new ArrayList<>();
         lore.add(line(rarity.displayName()));
+        lore.add(line(Component.text("Gegenstandstier " + ItemTier.forLevel(itemLevel).displayName(), NamedTextColor.AQUA)));
         lore.add(line(Component.text("Gegenstandslevel " + itemLevel, NamedTextColor.YELLOW)));
         lore.add(line(Component.text("Benötigt Level " + itemLevel, NamedTextColor.RED)));
         lore.add(Component.text(" "));
