@@ -133,7 +133,7 @@ public final class NpcDialogueService implements AutoCloseable {
                     target -> continueToBehavior(target, npc)));
             case PROFESSION_BLACKSMITH, PROFESSION_SCHOLAR, PROFESSION_FARMER,
                  PROFESSION_COOK, PROFESSION_TAILOR, PROFESSION_ALCHEMIST,
-                 PROFESSION_MASON, PROFESSION_FISHERMAN, PROFESSION_WOODCUTTER ->
+                 PROFESSION_MASON, PROFESSION_FISHERMAN, PROFESSION_MOUNTAIN_MINER, PROFESSION_WOODCUTTER ->
                     actions.add(dialogue.actionButton(Component.text("Über den Beruf sprechen"), NamedTextColor.GREEN,
                             target -> continueToBehavior(target, npc)));
             case STORY, FILLER -> {
