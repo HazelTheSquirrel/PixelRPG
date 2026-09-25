@@ -2,7 +2,6 @@ package de.pixelrpg.rpg.progression;
 
 import de.pixelrpg.rpg.api.events.PlayerLevelUpEvent;
 import de.pixelrpg.rpg.api.events.PlayerRegistrationEvent;
-import de.pixelrpg.rpg.api.events.PlayerUnregistrationEvent;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.entity.Player;
@@ -67,14 +66,7 @@ public final class CharacterProgressionTelemetry implements Listener {
         sessions.put(uuid, new Session(event.getNewLevel(), System.currentTimeMillis()));
     }
 
-    // Zuständig für das Speichern der bis zum Abmelden von PixelRPG gesammelten Levelzeit.
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onUnregistration(PlayerUnregistrationEvent event) {
-        flush(event.getPlayer().getUniqueId());
-    }
-
     public void shutdown() {
-        sessions.keySet().toArray(UUID[]::new);
         for (UUID uuid : sessions.keySet()) flush(uuid);
         sessions.clear();
     }
