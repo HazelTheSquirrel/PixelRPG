@@ -39,6 +39,18 @@ public final class ProfessionActivityListener implements Listener {
             Material.MOSS_BLOCK,
             Material.ROOTED_DIRT
     );
+    private static final Set<Material> MINEABLE_ORES = Set.of(
+            Material.COAL_ORE, Material.DEEPSLATE_COAL_ORE,
+            Material.IRON_ORE, Material.DEEPSLATE_IRON_ORE,
+            Material.COPPER_ORE, Material.DEEPSLATE_COPPER_ORE,
+            Material.GOLD_ORE, Material.DEEPSLATE_GOLD_ORE,
+            Material.REDSTONE_ORE, Material.DEEPSLATE_REDSTONE_ORE,
+            Material.LAPIS_ORE, Material.DEEPSLATE_LAPIS_ORE,
+            Material.DIAMOND_ORE, Material.DEEPSLATE_DIAMOND_ORE,
+            Material.EMERALD_ORE, Material.DEEPSLATE_EMERALD_ORE,
+            Material.NETHER_GOLD_ORE, Material.NETHER_QUARTZ_ORE, Material.ANCIENT_DEBRIS
+    );
+
     private static final List<Material> FISHING_TREASURE = List.of(
             Material.BOW,
             Material.FISHING_ROD,
@@ -134,6 +146,49 @@ public final class ProfessionActivityListener implements Listener {
 
         ItemStack stack = matchingDrop.getItemStack();
         if (stack.getAmount() < stack.getMaxStackSize()) stack.setAmount(stack.getAmount() + 1);
+    }
+
+    // Verstärkt den passiven Bergbauer-Ertrag auf Vanilla-Erze, ohne Vanilla-Drops zu ersetzen.
+    @EventHandler
+    public void onMountainMinerDrop(BlockDropItemEvent event) {
+        Player player = event.getPlayer();
+        Material blockType = event.getBlockState().getType();
+        if (!MINEABLE_ORES.contains(blockType)) return;
+
+        int level = professionService.getLevel(player.getUniqueId(), Profession.MOUNTAIN_MINER);
+        if (level < 20) return;
+
+        double chance = level >= 100 ? 0.40D : level >= 80 ? 0.30D : level >= 60 ? 0.25D : 0.20D;
+        if (random.nextDouble() >= chance) return;
+
+        Material expectedDrop = oreDropMaterial(blockType);
+        if (expectedDrop == null) return;
+
+        Item matchingDrop = event.getItems().stream()
+                .filter(item -> item.getItemStack().getType() == expectedDrop)
+                .findFirst()
+                .orElse(null);
+        if (matchingDrop == null) return;
+
+        ItemStack stack = matchingDrop.getItemStack();
+        if (stack.getAmount() < stack.getMaxStackSize()) stack.setAmount(stack.getAmount() + 1);
+    }
+
+    private static Material oreDropMaterial(Material material) {
+        return switch (material) {
+            case COAL_ORE, DEEPSLATE_COAL_ORE -> Material.COAL;
+            case IRON_ORE, DEEPSLATE_IRON_ORE -> Material.RAW_IRON;
+            case COPPER_ORE, DEEPSLATE_COPPER_ORE -> Material.RAW_COPPER;
+            case GOLD_ORE, DEEPSLATE_GOLD_ORE -> Material.RAW_GOLD;
+            case REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE -> Material.REDSTONE;
+            case LAPIS_ORE, DEEPSLATE_LAPIS_ORE -> Material.LAPIS_LAZULI;
+            case DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE -> Material.DIAMOND;
+            case EMERALD_ORE, DEEPSLATE_EMERALD_ORE -> Material.EMERALD;
+            case NETHER_GOLD_ORE -> Material.GOLD_NUGGET;
+            case NETHER_QUARTZ_ORE -> Material.QUARTZ;
+            case ANCIENT_DEBRIS -> Material.ANCIENT_DEBRIS;
+            default -> null;
+        };
     }
 
     // Vergibt Fischer-XP und verbessert Fangmenge sowie Vanilla-Schatzchance rein passiv.
