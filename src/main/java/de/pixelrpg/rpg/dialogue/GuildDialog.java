@@ -110,14 +110,83 @@ public final class GuildDialog {
                 DialogBody.plainMessage(Component.text("Gilde: " + guild.name(), NamedTextColor.GOLD)),
                 DialogBody.plainMessage(Component.text("Rolle: " + (leader ? "Gildenmeister" : "Mitglied"), NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text("Mitglieder: " + guild.memberCount() + "/" + Guild.MAX_MEMBERS, NamedTextColor.AQUA)),
+                DialogBody.plainMessage(Component.text("Gildenkasse: " + String.format(java.util.Locale.ROOT, "%.2f", guild.treasury()) + " Gold", NamedTextColor.GOLD)),
                 DialogBody.plainMessage(Component.text("Die Gildenstadt wird ausschließlich manuell mit WorldEdit/WorldGuard verwaltet.", NamedTextColor.GRAY)),
                 DialogBody.plainMessage(Component.text("Zum Einladen: /gildeneinladen <Spieler>", NamedTextColor.YELLOW))
         );
         List<ActionButton> actions = new ArrayList<>();
         actions.add(action(Component.text("Mitglieder anzeigen", NamedTextColor.AQUA), p -> showMembers(p, guild)));
+        actions.add(action(Component.text("Gold einzahlen", NamedTextColor.GOLD), this::openTreasuryDeposit));
+        if (leader) actions.add(action(Component.text("Gold auszahlen", NamedTextColor.YELLOW), this::openTreasuryWithdraw));
         if (leader && invites != null) actions.add(action(Component.text("Spieler einladen", NamedTextColor.GREEN), invites::openGuildInviteInput));
         actions.add(action(Component.text("Zurück", NamedTextColor.WHITE), backAction));
         dialogue.openMultiAction(player, Component.text("Gilde – " + guild.name(), NamedTextColor.GOLD), body, actions, 1);
+    }
+
+    private void openTreasuryDeposit(Player player) {
+        DialogInput amount = DialogInput.text("amount", 260, Component.text("Goldbetrag", NamedTextColor.WHITE), true, "", 16, null);
+        dialogue.openMultiAction(player, Component.text("Gold einzahlen", NamedTextColor.GOLD),
+                List.of(DialogBody.plainMessage(Component.text("Das Gold wird aus deinem Wallet in die gemeinsame Gildenkasse übertragen.", NamedTextColor.WHITE))),
+                List.of(dialogue.actionButton(Component.text("Einzahlen"), NamedTextColor.GREEN, target -> {
+                    DialogResponseView response = target.getDialogResponseView();
+                    if (response == null) return;
+                    String raw = response.getText("amount");
+                    try {
+                        double value = new java.math.BigDecimal(raw.trim().replace(',', '.')).doubleValue();
+                        if (!guilds.depositToTreasury(target, value)) {
+                            target.sendMessage(Component.text("Die Einzahlung konnte nicht durchgeführt werden.", NamedTextColor.RED));
+                        } else {
+                            target.sendMessage(Component.text("Gold wurde in die Gildenkasse eingezahlt.", NamedTextColor.GREEN));
+                        }
+                    } catch (Exception ignored) {
+                        target.sendMessage(Component.text("Ungültiger Goldbetrag.", NamedTextColor.RED));
+                    }
+                    open(target);
+                }), dialogue.actionButton(Component.text("Abbrechen"), NamedTextColor.RED, this::open)), 1);
+        player.showDialog(Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Gold einzahlen", NamedTextColor.GOLD)).body(List.of(DialogBody.plainMessage(Component.text("Betrag eingeben:", NamedTextColor.WHITE)))).inputs(List.of(amount)).canCloseWithEscape(true).afterAction(DialogBase.DialogAfterAction.CLOSE).build());
+            builder.type(DialogType.multiAction(List.of(
+                    dialogue.actionButton(Component.text("Einzahlen"), NamedTextColor.GREEN, target -> {
+                        DialogResponseView response = target.getDialogResponseView();
+                        if (response == null) return;
+                        try {
+                            double value = new java.math.BigDecimal(response.getText("amount").trim().replace(',', '.')).doubleValue();
+                            if (!guilds.depositToTreasury(target, value)) target.sendMessage(Component.text("Die Einzahlung konnte nicht durchgeführt werden.", NamedTextColor.RED));
+                            else target.sendMessage(Component.text("Gold wurde in die Gildenkasse eingezahlt.", NamedTextColor.GREEN));
+                        } catch (Exception ignored) {
+                            target.sendMessage(Component.text("Ungültiger Goldbetrag.", NamedTextColor.RED));
+                        }
+                        open(target);
+                    }),
+                    dialogue.actionButton(Component.text("Abbrechen"), NamedTextColor.RED, this::open)
+            ), null, 2));
+        }));
+    }
+
+    private void openTreasuryWithdraw(Player player) {
+        DialogInput amount = DialogInput.text("amount", 260, Component.text("Goldbetrag", NamedTextColor.WHITE), true, "", 16, null);
+        player.showDialog(Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Gold auszahlen", NamedTextColor.GOLD))
+                    .body(List.of(DialogBody.plainMessage(Component.text("Nur der Gildenmeister kann Gold aus der Gildenkasse in sein Wallet auszahlen.", NamedTextColor.WHITE))))
+                    .inputs(List.of(amount)).canCloseWithEscape(true).afterAction(DialogBase.DialogAfterAction.CLOSE).build());
+            builder.type(DialogType.multiAction(List.of(
+                    dialogue.actionButton(Component.text("Auszahlen"), NamedTextColor.GREEN, target -> {
+                        DialogResponseView response = target.getDialogResponseView();
+                        if (response == null) return;
+                        try {
+                            double value = new java.math.BigDecimal(response.getText("amount").trim().replace(',', '.')).doubleValue();
+                            if (!guilds.withdrawFromTreasury(target, value)) target.sendMessage(Component.text("Die Auszahlung konnte nicht durchgeführt werden.", NamedTextColor.RED));
+                            else target.sendMessage(Component.text("Gold wurde aus der Gildenkasse ausgezahlt.", NamedTextColor.GREEN));
+                        } catch (Exception ignored) {
+                            target.sendMessage(Component.text("Ungültiger Goldbetrag.", NamedTextColor.RED));
+                        }
+                        open(target);
+                    }),
+                    dialogue.actionButton(Component.text("Abbrechen"), NamedTextColor.RED, this::open)
+            ), null, 2));
+        }));
     }
 
     private void showMembers(Player player, Guild guild) {
