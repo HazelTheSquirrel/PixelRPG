@@ -49,6 +49,20 @@ public final class QuestText {
     public static Component description(Player player, Quest quest) { return description(quest); }
     public static Component objective(Quest quest) { return objective(null, quest); }
 
+    public static Component navigationTarget(Player player, Quest quest, PlayerProfile.NavigationTarget target) {
+        if (target == null || target.worldId() == null) return Component.empty();
+        String worldName = java.util.Optional.ofNullable(org.bukkit.Bukkit.getWorld(target.worldId()))
+                .map(world -> world.getName())
+                .orElse("unbekannte Welt");
+        return Component.text("Quest-Ziel: ", NamedTextColor.AQUA)
+                .append(Component.text("X " + formatCoordinate(target.x()) + "  Y " + formatCoordinate(target.y()) + "  Z " + formatCoordinate(target.z()), NamedTextColor.YELLOW))
+                .append(Component.text(" • Welt: " + worldName, NamedTextColor.GRAY));
+    }
+
+    private static String formatCoordinate(double value) {
+        return Long.toString(Math.round(value));
+    }
+
     public static Component objective(Player player, Quest quest) {
         String amount = String.valueOf(quest.requiredAmount());
         return switch (quest.type()) {
