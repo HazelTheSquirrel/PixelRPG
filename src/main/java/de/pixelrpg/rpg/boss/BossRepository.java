@@ -33,7 +33,7 @@ public final class BossRepository {
         if (!file.exists()) createDefaultBosses();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         boolean changed = ensureWorldBossDefaults(yaml);
-        changed |= ensureCustomProgressionLoot(yaml);
+        changed |= migrateCustomLoot(yaml);
         changed |= migrateProgressionLevels(yaml);
         if (changed) {
             try {
@@ -125,26 +125,34 @@ public final class BossRepository {
         }
     }
 
-    private boolean ensureCustomProgressionLoot(YamlConfiguration yaml) {
-        Map<String, String> progressionLoot = Map.of(
-                "plunderer", "pixelrpg:weapons/iron_sword/common_3",
-                "forest_witch", "pixelrpg:armor/chainmail_helmet/schattengeflecht_20",
-                "ravager_chief", "pixelrpg:armor/iron_chestplate/stahlwall_30",
-                "sandstone_colossus", "pixelrpg:weapons/gold_sword/uncommon_25",
-                "guardian_of_depths", "pixelrpg:armor/gold_chestplate/sonnengewand_45",
-                "ancient_warden", "pixelrpg:armor/diamond_chestplate/kristallwache_60",
-                "nether_lord", "pixelrpg:armor/netherite_chestplate/hoellenschmiede_80",
-                "end_king", "pixelrpg:weapons/netherite_sword/legendary_90"
-        );
+    private boolean migrateCustomLoot(YamlConfiguration yaml) {
         boolean changed = false;
-        for (Map.Entry<String, String> entry : progressionLoot.entrySet()) {
-            String path = "bosses." + entry.getKey();
+        ConfigurationSection bosses = yaml.getConfigurationSection("bosses");
+        if (bosses == null) return false;
+
+        for (String id : bosses.getKeys(false)) {
+            String path = "bosses." + id + ".loot";
             if (!yaml.isConfigurationSection(path)) continue;
-            List<String> guaranteed = new ArrayList<>(yaml.getStringList(path + ".loot.guaranteed"));
-            if (guaranteed.stream().anyMatch(value -> value.equalsIgnoreCase(entry.getValue()))) continue;
-            guaranteed.add(entry.getValue());
-            yaml.set(path + ".loot.guaranteed", guaranteed);
-            changed = true;
+
+            List<String> guaranteed = yaml.getStringList(path + ".guaranteed");
+            List<String> filteredGuaranteed = guaranteed.stream()
+                    .filter(value -> !value.trim().toLowerCase(java.util.Locale.ROOT).startsWith("pixelrpg:"))
+                    .toList();
+            if (!filteredGuaranteed.equals(guaranteed)) {
+                yaml.set(path + ".guaranteed", filteredGuaranteed);
+                changed = true;
+            }
+
+            List<?> chanceDrops = yaml.getList(path + ".chance-drops", List.of());
+            List<?> filteredChanceDrops = chanceDrops.stream()
+                    .filter(value -> !(value instanceof Map<?, ?> map
+                            && String.valueOf(map.getOrDefault("material", "")).trim()
+                            .toLowerCase(java.util.Locale.ROOT).startsWith("pixelrpg:")))
+                    .toList();
+            if (filteredChanceDrops.size() != chanceDrops.size()) {
+                yaml.set(path + ".chance-drops", filteredChanceDrops);
+                changed = true;
+            }
         }
         return changed;
     }
@@ -258,7 +266,7 @@ public final class BossRepository {
         yaml.set(path + ".scale-multiplier", scale);
         yaml.set(path + ".attack-interval-ticks", interval);
         yaml.set(path + ".attack-patterns", patterns);
-        yaml.set(path + ".loot.guaranteed", List.of(customDrop));
+        yaml.set(path + ".loot.guaranteed", List.of());
         yaml.set(path + ".loot.money", money);
         yaml.set(path + ".loot.exp", exp);
     }
@@ -274,7 +282,7 @@ public final class BossRepository {
         yaml.set(path + ".health-multiplier", hp);
         yaml.set(path + ".damage-multiplier", damage);
         yaml.set(path + ".scale-multiplier", scale);
-        yaml.set(path + ".loot.guaranteed", List.of(customDrop, guaranteedMaterial));
+        yaml.set(path + ".loot.guaranteed", List.of(guaranteedMaterial));
         yaml.set(path + ".loot.chance-drops", List.of(Map.of("material", chanceMaterial, "chance-percent", chancePercent, "rarity", rarity)));
         yaml.set(path + ".loot.money", money);
         yaml.set(path + ".loot.exp", exp);
