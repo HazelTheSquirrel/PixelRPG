@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.item.ItemDisplayNameResolver;
+import de.pixelrpg.rpg.player.PlayerProfile;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
