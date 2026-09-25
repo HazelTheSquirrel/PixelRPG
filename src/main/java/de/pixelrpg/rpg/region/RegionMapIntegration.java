@@ -10,7 +10,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -31,7 +30,6 @@ public final class RegionMapIntegration implements Listener {
 
     private final Plugin plugin;
     private final RegionManager regionManager;
-    private BukkitTask initialSyncTask;
 
     public RegionMapIntegration(Plugin plugin, RegionManager regionManager) {
         this.plugin = plugin;
@@ -65,10 +63,6 @@ public final class RegionMapIntegration implements Listener {
     }
 
     public void shutdown() {
-        if (initialSyncTask != null) {
-            initialSyncTask.cancel();
-            initialSyncTask = null;
-        }
         HandlerList.unregisterAll(this);
         plugin.getServer().getMessenger().unregisterOutgoingPluginChannel(plugin, CHANNEL);
     }
