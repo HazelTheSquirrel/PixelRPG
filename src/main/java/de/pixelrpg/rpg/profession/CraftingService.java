@@ -60,7 +60,7 @@ public final class CraftingService {
         removeMaterialCosts(player, recipe.costs());
         removeItemCosts(player, recipe.itemCosts());
         player.getInventory().addItem(result).values().forEach(stack -> player.getWorld().dropItemNaturally(player.getLocation(), stack));
-        long experience = craftExperience(recipe);
+        long experience = recipe.professionXp();
         professionService.addExperience(player, recipe.profession(), experience);
         return CraftResult.success(result, experience, "Herstellung erfolgreich.");
     }
@@ -151,12 +151,6 @@ public final class CraftingService {
         }
 
         return result;
-    }
-
-    private long craftExperience(CraftRecipe recipe) {
-        long materialCount = recipe.costs().values().stream().mapToLong(Integer::longValue).sum();
-        long itemCount = recipe.itemCosts().values().stream().mapToLong(Integer::longValue).sum();
-        return Math.max(20L, recipe.requiredProfessionLevel() * 6L + materialCount * 5L + itemCount * 10L);
     }
 
     public record CraftResult(boolean success, String message, ItemStack result, long experience) {
