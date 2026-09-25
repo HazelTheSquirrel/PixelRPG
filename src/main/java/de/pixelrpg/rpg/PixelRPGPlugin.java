@@ -96,6 +96,7 @@ import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.region.RegionEditor;
 import de.pixelrpg.rpg.region.RegionListener;
 import de.pixelrpg.rpg.region.RegionManager;
+import de.pixelrpg.rpg.region.RegionMapIntegration;
 import de.pixelrpg.rpg.region.RegionRepository;
 import de.pixelrpg.rpg.region.RegionSpawnService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
