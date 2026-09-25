@@ -146,7 +146,7 @@ public final class BossRepository {
             List<?> chanceDrops = yaml.getList(path + ".chance-drops", List.of());
             List<?> filteredChanceDrops = chanceDrops.stream()
                     .filter(value -> !(value instanceof Map<?, ?> map
-                            && String.valueOf(map.getOrDefault("material", "")).trim()
+                            && String.valueOf(map.containsKey("material") ? map.get("material") : "").trim()
                             .toLowerCase(java.util.Locale.ROOT).startsWith("pixelrpg:")))
                     .toList();
             if (filteredChanceDrops.size() != chanceDrops.size()) {
