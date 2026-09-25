@@ -36,7 +36,7 @@ public final class ShopManager {
         ConfigurationSection root = yaml.getConfigurationSection("shops");
 
         boolean migratedAny = false;
-        for (String npcId : root.getKeys(false)) {
+        if (root != null) for (String npcId : root.getKeys(false)) {
             ConfigurationSection section = root.getConfigurationSection(npcId);
             if (section == null) continue;
 
