@@ -91,8 +91,6 @@ import de.pixelrpg.rpg.stats.StatEngine;
 import de.pixelrpg.rpg.stats.StatisticsService;
 import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryManager;
-import de.pixelrpg.rpg.story.StoryLocationRegistry;
-import de.pixelrpg.rpg.story.StoryTriggerListener;
 import de.pixelrpg.rpg.story.StoryNpcVisibilityListener;
 import de.pixelrpg.rpg.travel.GuildCompassListener;
 import de.pixelrpg.rpg.guild.GuildManager;
@@ -216,8 +214,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcManager = lifecycle.register(new NpcManager(this));
         npcManager.loadAll();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
-        StoryLocationRegistry storyLocationRegistry = new StoryLocationRegistry(this, storyManager, playerProfileManager, questRepository, questManager, npcManager);
-        getServer().getPluginManager().registerEvents(new StoryTriggerListener(storyLocationRegistry), this);
         StoryNpcVisibilityListener storyNpcVisibility = new StoryNpcVisibilityListener(this, playerProfileManager, questRepository, storyManager, npcManager);
         getServer().getPluginManager().registerEvents(storyNpcVisibility, this);
         lifecycle.register(storyNpcVisibility);
