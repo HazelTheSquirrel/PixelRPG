@@ -91,7 +91,6 @@ import de.pixelrpg.rpg.stats.StatEngine;
 import de.pixelrpg.rpg.stats.StatisticsService;
 import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryManager;
-import de.pixelrpg.rpg.story.StoryNpcVisibilityListener;
 import de.pixelrpg.rpg.travel.GuildCompassListener;
 import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.region.RegionEditor;
@@ -214,9 +213,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         npcManager = lifecycle.register(new NpcManager(this));
         npcManager.loadAll();
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
-        StoryNpcVisibilityListener storyNpcVisibility = new StoryNpcVisibilityListener(this, playerProfileManager, questRepository, storyManager, npcManager);
-        getServer().getPluginManager().registerEvents(storyNpcVisibility, this);
-        lifecycle.register(storyNpcVisibility);
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0), getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
         DialogueEngine dialogueEngine = new DialogueEngine();
