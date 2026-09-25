@@ -419,9 +419,12 @@ public final class QuestManager {
             if (target == null || target.worldId() == null || !player.getWorld().getUID().equals(target.worldId())) continue;
 
             double dx = player.getLocation().getX() - target.x();
-            double dy = player.getLocation().getY() - target.y();
             double dz = player.getLocation().getZ() - target.z();
-            if ((dx * dx) + (dy * dy) + (dz * dz) <= 400.0D) {
+
+            // The locate result is an X/Z structure anchor. Y is only a surface
+            // reference for display, so never let underground/terrain height
+            // prevent the player from reaching the quest target.
+            if ((dx * dx) + (dz * dz) <= 400.0D) {
                 progress.setCurrentAmount(quest.requiredAmount());
                 player.sendMessage(Component.text("Ort erreicht: ")
                         .color(NamedTextColor.GREEN)
