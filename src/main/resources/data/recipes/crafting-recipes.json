@@ -13,7 +13,8 @@
       "unlockPrice": 0,
       "rarity": "COMMON",
       "unlockedByDefault": true,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 31
     },
     {
       "id": "blacksmith:copper_axe",
@@ -28,7 +29,8 @@
       "unlockPrice": 0,
       "rarity": "COMMON",
       "unlockedByDefault": true,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 31
     },
     {
       "id": "blacksmith:copper_shovel",
@@ -43,7 +45,8 @@
       "unlockPrice": 0,
       "rarity": "COMMON",
       "unlockedByDefault": true,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 21
     },
     {
       "id": "blacksmith:copper_hoe",
@@ -58,7 +61,8 @@
       "unlockPrice": 0,
       "rarity": "COMMON",
       "unlockedByDefault": true,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 26
     },
     {
       "id": "blacksmith:iron_pickaxe",
@@ -69,11 +73,12 @@
         "IRON_INGOT": 3,
         "STICK": 2
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 7,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 67
     },
     {
       "id": "blacksmith:iron_axe",
@@ -84,11 +89,12 @@
         "IRON_INGOT": 3,
         "STICK": 2
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 7,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 67
     },
     {
       "id": "blacksmith:iron_shovel",
@@ -99,11 +105,12 @@
         "IRON_INGOT": 1,
         "STICK": 2
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 7,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 57
     },
     {
       "id": "blacksmith:iron_hoe",
@@ -114,11 +121,12 @@
         "IRON_INGOT": 2,
         "STICK": 2
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 7,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 62
     },
     {
       "id": "blacksmith:gold_pickaxe",
@@ -129,11 +137,12 @@
         "GOLD_INGOT": 3,
         "STICK": 2
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 121
     },
     {
       "id": "blacksmith:gold_axe",
@@ -144,11 +153,12 @@
         "GOLD_INGOT": 3,
         "STICK": 2
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 121
     },
     {
       "id": "blacksmith:gold_shovel",
@@ -159,11 +169,12 @@
         "GOLD_INGOT": 1,
         "STICK": 2
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 111
     },
     {
       "id": "blacksmith:gold_hoe",
@@ -174,11 +185,12 @@
         "GOLD_INGOT": 2,
         "STICK": 2
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 116
     },
     {
       "id": "blacksmith:diamond_pickaxe",
@@ -189,11 +201,12 @@
         "STICK": 2,
         "DIAMOND": 3
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 29,
       "unlockPrice": 4400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 199
     },
     {
       "id": "blacksmith:diamond_axe",
@@ -204,11 +217,12 @@
         "STICK": 2,
         "DIAMOND": 3
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 29,
       "unlockPrice": 4400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 199
     },
     {
       "id": "blacksmith:diamond_shovel",
@@ -219,11 +233,12 @@
         "STICK": 2,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 29,
       "unlockPrice": 4400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 189
     },
     {
       "id": "blacksmith:diamond_hoe",
@@ -234,11 +249,12 @@
         "STICK": 2,
         "DIAMOND": 2
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 29,
       "unlockPrice": 4400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 194
     },
     {
       "id": "blacksmith:copper_sword",
@@ -249,11 +265,12 @@
         "COPPER_INGOT": 2,
         "STICK": 1
       },
-      "requiredProfessionLevel": 5,
+      "requiredProfessionLevel": 4,
       "unlockPrice": 400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "WEAPONS"
+      "category": "WEAPONS",
+      "professionXp": 39
     },
     {
       "id": "blacksmith:iron_sword",
@@ -264,11 +281,12 @@
         "IRON_INGOT": 2,
         "STICK": 1
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 10,
       "unlockPrice": 1400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "WEAPONS"
+      "category": "WEAPONS",
+      "professionXp": 75
     },
     {
       "id": "blacksmith:gold_sword",
@@ -279,11 +297,12 @@
         "GOLD_INGOT": 2,
         "STICK": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "WEAPONS"
+      "category": "WEAPONS",
+      "professionXp": 129
     },
     {
       "id": "blacksmith:diamond_sword",
@@ -294,11 +313,12 @@
         "STICK": 1,
         "DIAMOND": 2
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 4900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "WEAPONS"
+      "category": "WEAPONS",
+      "professionXp": 207
     },
     {
       "id": "blacksmith:netherite_sword",
@@ -309,11 +329,12 @@
         "NETHERITE_INGOT": 2,
         "STICK": 1
       },
-      "requiredProfessionLevel": 85,
+      "requiredProfessionLevel": 54,
       "unlockPrice": 8400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "WEAPONS"
+      "category": "WEAPONS",
+      "professionXp": 339
     },
     {
       "id": "blacksmith:copper_spear",
@@ -324,11 +345,12 @@
         "COPPER_INGOT": 2,
         "STICK": 1
       },
-      "requiredProfessionLevel": 5,
+      "requiredProfessionLevel": 4,
       "unlockPrice": 400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "WEAPONS"
+      "category": "WEAPONS",
+      "professionXp": 39
     },
     {
       "id": "blacksmith:iron_spear",
@@ -339,11 +361,12 @@
         "IRON_INGOT": 2,
         "STICK": 1
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 10,
       "unlockPrice": 1400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "WEAPONS"
+      "category": "WEAPONS",
+      "professionXp": 75
     },
     {
       "id": "blacksmith:gold_spear",
@@ -354,11 +377,12 @@
         "GOLD_INGOT": 2,
         "STICK": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "WEAPONS"
+      "category": "WEAPONS",
+      "professionXp": 129
     },
     {
       "id": "blacksmith:diamond_spear",
@@ -369,11 +393,12 @@
         "STICK": 1,
         "DIAMOND": 2
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 4900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "WEAPONS"
+      "category": "WEAPONS",
+      "professionXp": 207
     },
     {
       "id": "blacksmith:netherite_spear",
@@ -384,11 +409,12 @@
         "NETHERITE_INGOT": 2,
         "STICK": 1
       },
-      "requiredProfessionLevel": 85,
+      "requiredProfessionLevel": 54,
       "unlockPrice": 8400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "WEAPONS"
+      "category": "WEAPONS",
+      "professionXp": 339
     },
     {
       "id": "blacksmith:trident",
@@ -400,11 +426,12 @@
         "DIAMOND": 2,
         "STICK": 1
       },
-      "requiredProfessionLevel": 95,
+      "requiredProfessionLevel": 60,
       "unlockPrice": 9400,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
-      "category": "WEAPONS"
+      "category": "WEAPONS",
+      "professionXp": 405
     },
     {
       "id": "blacksmith:copper_helmet",
@@ -414,11 +441,12 @@
       "costs": {
         "COPPER_INGOT": 5
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 13,
       "unlockPrice": 1900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 103
     },
     {
       "id": "blacksmith:copper_chestplate",
@@ -428,11 +456,12 @@
       "costs": {
         "COPPER_INGOT": 8
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 13,
       "unlockPrice": 1900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 118
     },
     {
       "id": "blacksmith:copper_leggings",
@@ -442,11 +471,12 @@
       "costs": {
         "COPPER_INGOT": 7
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 13,
       "unlockPrice": 1900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 113
     },
     {
       "id": "blacksmith:copper_boots",
@@ -456,11 +486,12 @@
       "costs": {
         "COPPER_INGOT": 4
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 13,
       "unlockPrice": 1900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 98
     },
     {
       "id": "blacksmith:iron_helmet",
@@ -470,11 +501,12 @@
       "costs": {
         "IRON_INGOT": 5
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 139
     },
     {
       "id": "blacksmith:iron_chestplate",
@@ -484,11 +516,12 @@
       "costs": {
         "IRON_INGOT": 8
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 154
     },
     {
       "id": "blacksmith:iron_leggings",
@@ -498,11 +531,12 @@
       "costs": {
         "IRON_INGOT": 7
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 149
     },
     {
       "id": "blacksmith:iron_boots",
@@ -512,11 +546,12 @@
       "costs": {
         "IRON_INGOT": 4
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 134
     },
     {
       "id": "blacksmith:gold_helmet",
@@ -526,11 +561,12 @@
       "costs": {
         "GOLD_INGOT": 5
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 25,
       "unlockPrice": 3900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 175
     },
     {
       "id": "blacksmith:gold_chestplate",
@@ -540,11 +576,12 @@
       "costs": {
         "GOLD_INGOT": 8
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 25,
       "unlockPrice": 3900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 190
     },
     {
       "id": "blacksmith:gold_leggings",
@@ -554,11 +591,12 @@
       "costs": {
         "GOLD_INGOT": 7
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 25,
       "unlockPrice": 3900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 185
     },
     {
       "id": "blacksmith:gold_boots",
@@ -568,11 +606,12 @@
       "costs": {
         "GOLD_INGOT": 4
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 25,
       "unlockPrice": 3900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 170
     },
     {
       "id": "blacksmith:diamond_helmet",
@@ -582,11 +621,12 @@
       "costs": {
         "DIAMOND": 5
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 253
     },
     {
       "id": "blacksmith:diamond_chestplate",
@@ -596,11 +636,12 @@
       "costs": {
         "DIAMOND": 8
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 268
     },
     {
       "id": "blacksmith:diamond_leggings",
@@ -610,11 +651,12 @@
       "costs": {
         "DIAMOND": 7
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 263
     },
     {
       "id": "blacksmith:diamond_boots",
@@ -624,11 +666,12 @@
       "costs": {
         "DIAMOND": 4
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 248
     },
     {
       "id": "blacksmith:shield",
@@ -639,11 +682,12 @@
         "OAK_LOG": 1,
         "IRON_INGOT": 2
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 111
     },
     {
       "id": "blacksmith:bucket",
@@ -653,11 +697,12 @@
       "costs": {
         "IRON_INGOT": 3
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 13,
       "unlockPrice": 1900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 93
     },
     {
       "id": "blacksmith:shears",
@@ -667,11 +712,12 @@
       "costs": {
         "IRON_INGOT": 2
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 13,
       "unlockPrice": 1900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "TOOLS"
+      "category": "TOOLS",
+      "professionXp": 88
     },
     {
       "id": "blacksmith:flint_and_steel",
@@ -682,11 +728,12 @@
         "IRON_INGOT": 1,
         "FLINT": 1
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 106
     },
     {
       "id": "blacksmith:cauldron",
@@ -696,11 +743,12 @@
       "costs": {
         "IRON_INGOT": 7
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 167
     },
     {
       "id": "blacksmith:iron_bars",
@@ -710,11 +758,12 @@
       "costs": {
         "IRON_INGOT": 6
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "MATERIALS"
+      "category": "MATERIALS",
+      "professionXp": 144
     },
     {
       "id": "blacksmith:iron_chain",
@@ -724,11 +773,12 @@
       "costs": {
         "IRON_NUGGET": 2
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "MATERIALS"
+      "category": "MATERIALS",
+      "professionXp": 142
     },
     {
       "id": "blacksmith:lantern",
@@ -739,11 +789,12 @@
         "IRON_NUGGET": 8,
         "TORCH": 1
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 25,
       "unlockPrice": 3900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 195
     },
     {
       "id": "blacksmith:anvil",
@@ -754,11 +805,12 @@
         "IRON_BLOCK": 3,
         "IRON_INGOT": 4
       },
-      "requiredProfessionLevel": 80,
+      "requiredProfessionLevel": 51,
       "unlockPrice": 7900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 341
     },
     {
       "id": "blacksmith:hopper",
@@ -769,11 +821,12 @@
         "IRON_INGOT": 5,
         "CHEST": 1
       },
-      "requiredProfessionLevel": 70,
+      "requiredProfessionLevel": 44,
       "unlockPrice": 6900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 294
     },
     {
       "id": "blacksmith:smithing_table",
@@ -784,11 +837,12 @@
         "IRON_INGOT": 2,
         "OAK_PLANKS": 4
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 4900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "CRAFTING"
+      "category": "CRAFTING",
+      "professionXp": 222
     },
     {
       "id": "blacksmith:grindstone",
@@ -800,11 +854,12 @@
         "STONE": 2,
         "STICK": 2
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 29,
       "unlockPrice": 4400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "CRAFTING"
+      "category": "CRAFTING",
+      "professionXp": 199
     },
     {
       "id": "blacksmith:crafter",
@@ -816,11 +871,12 @@
         "REDSTONE": 2,
         "CHEST": 1
       },
-      "requiredProfessionLevel": 90,
+      "requiredProfessionLevel": 57,
       "unlockPrice": 8900,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
-      "category": "CRAFTING"
+      "category": "CRAFTING",
+      "professionXp": 382
     },
     {
       "id": "blacksmith:copper_horse_armor",
@@ -830,11 +886,12 @@
       "costs": {
         "COPPER_INGOT": 7
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 41,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 281
     },
     {
       "id": "blacksmith:copper_nautilus_armor",
@@ -845,11 +902,12 @@
         "COPPER_INGOT": 7,
         "NAUTILUS_SHELL": 2
       },
-      "requiredProfessionLevel": 75,
+      "requiredProfessionLevel": 47,
       "unlockPrice": 7400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 327
     },
     {
       "id": "blacksmith:diamond_horse_armor",
@@ -859,11 +917,12 @@
       "costs": {
         "DIAMOND": 7
       },
-      "requiredProfessionLevel": 80,
+      "requiredProfessionLevel": 51,
       "unlockPrice": 7900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 341
     },
     {
       "id": "blacksmith:golden_horse_armor",
@@ -873,11 +932,12 @@
       "costs": {
         "GOLD_INGOT": 7
       },
-      "requiredProfessionLevel": 55,
+      "requiredProfessionLevel": 35,
       "unlockPrice": 5400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 245
     },
     {
       "id": "blacksmith:iron_horse_armor",
@@ -887,11 +947,12 @@
       "costs": {
         "IRON_INGOT": 7
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 25,
       "unlockPrice": 3900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "ARMOR"
+      "category": "ARMOR",
+      "professionXp": 185
     },
     {
       "id": "farmer:wheat_seeds",
@@ -905,7 +966,8 @@
       "unlockPrice": 0,
       "rarity": "COMMON",
       "unlockedByDefault": true,
-      "category": "CROPS"
+      "category": "CROPS",
+      "professionXp": 20
     },
     {
       "id": "farmer:beetroot_seeds",
@@ -919,7 +981,8 @@
       "unlockPrice": 400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "CROPS"
+      "category": "CROPS",
+      "professionXp": 35
     },
     {
       "id": "farmer:pumpkin_seeds",
@@ -933,7 +996,8 @@
       "unlockPrice": 400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "CROPS"
+      "category": "CROPS",
+      "professionXp": 35
     },
     {
       "id": "farmer:melon_seeds",
@@ -943,11 +1007,12 @@
       "costs": {
         "MELON": 1
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 11,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "CROPS"
+      "category": "CROPS",
+      "professionXp": 71
     },
     {
       "id": "farmer:torchflower_seeds",
@@ -957,11 +1022,12 @@
       "costs": {
         "TORCHFLOWER": 1
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 44,
       "unlockPrice": 3900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "CROPS"
+      "category": "CROPS",
+      "professionXp": 269
     },
     {
       "id": "farmer:pitcher_pod",
@@ -971,11 +1037,12 @@
       "costs": {
         "PITCHER_PLANT": 1
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 49,
       "unlockPrice": 4400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "CROPS"
+      "category": "CROPS",
+      "professionXp": 299
     },
     {
       "id": "farmer:sugar",
@@ -985,11 +1052,12 @@
       "costs": {
         "SUGAR_CANE": 1
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 11,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "PROCESSING"
+      "category": "PROCESSING",
+      "professionXp": 71
     },
     {
       "id": "farmer:paper",
@@ -999,11 +1067,12 @@
       "costs": {
         "SUGAR_CANE": 3
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 1400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "PROCESSING"
+      "category": "PROCESSING",
+      "professionXp": 111
     },
     {
       "id": "farmer:hay_block",
@@ -1013,11 +1082,12 @@
       "costs": {
         "WHEAT": 9
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "PRODUCE"
+      "category": "PRODUCE",
+      "professionXp": 177
     },
     {
       "id": "farmer:bone_meal",
@@ -1027,11 +1097,12 @@
       "costs": {
         "BONE": 1
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 11,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "PROCESSING"
+      "category": "PROCESSING",
+      "professionXp": 71
     },
     {
       "id": "farmer:dried_kelp",
@@ -1041,11 +1112,12 @@
       "costs": {
         "KELP": 1
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 1400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "PROCESSING"
+      "category": "PROCESSING",
+      "professionXp": 101
     },
     {
       "id": "farmer:dried_kelp_block",
@@ -1055,11 +1127,12 @@
       "costs": {
         "DRIED_KELP": 9
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 33,
       "unlockPrice": 2900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "PRODUCE"
+      "category": "PRODUCE",
+      "professionXp": 243
     },
     {
       "id": "farmer:pumpkin",
@@ -1069,11 +1142,12 @@
       "costs": {
         "PUMPKIN_SEEDS": 4
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 27,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "PRODUCE"
+      "category": "PRODUCE",
+      "professionXp": 182
     },
     {
       "id": "farmer:melon",
@@ -1083,11 +1157,12 @@
       "costs": {
         "MELON_SEEDS": 9
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 33,
       "unlockPrice": 2900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "PRODUCE"
+      "category": "PRODUCE",
+      "professionXp": 243
     },
     {
       "id": "farmer:sugar_block",
@@ -1098,11 +1173,12 @@
         "SUGAR": 4,
         "HONEYCOMB": 1
       },
-      "requiredProfessionLevel": 55,
+      "requiredProfessionLevel": 60,
       "unlockPrice": 5400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "SPECIALTIES"
+      "category": "SPECIALTIES",
+      "professionXp": 385
     },
     {
       "id": "farmer:composter",
@@ -1112,11 +1188,12 @@
       "costs": {
         "OAK_SLAB": 7
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 167
     },
     {
       "id": "farmer:moss_block",
@@ -1127,11 +1204,12 @@
         "MOSS_CARPET": 2,
         "BONE_MEAL": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 3400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "PRODUCE"
+      "category": "PRODUCE",
+      "professionXp": 243
     },
     {
       "id": "farmer:white_dye",
@@ -1145,7 +1223,8 @@
       "unlockPrice": 0,
       "rarity": "COMMON",
       "unlockedByDefault": true,
-      "category": "PROCESSING"
+      "category": "PROCESSING",
+      "professionXp": 20
     },
     {
       "id": "farmer:yellow_dye",
@@ -1159,7 +1238,8 @@
       "unlockPrice": 400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "PROCESSING"
+      "category": "PROCESSING",
+      "professionXp": 35
     },
     {
       "id": "farmer:red_dye",
@@ -1173,7 +1253,8 @@
       "unlockPrice": 400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "PROCESSING"
+      "category": "PROCESSING",
+      "professionXp": 35
     },
     {
       "id": "farmer:blue_dye",
@@ -1183,11 +1264,12 @@
       "costs": {
         "LAPIS_LAZULI": 1
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 1400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "PROCESSING"
+      "category": "PROCESSING",
+      "professionXp": 101
     },
     {
       "id": "farmer:green_dye",
@@ -1197,11 +1279,12 @@
       "costs": {
         "CACTUS": 1
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 1400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "PROCESSING"
+      "category": "PROCESSING",
+      "professionXp": 101
     },
     {
       "id": "farmer:lime_dye",
@@ -1212,11 +1295,12 @@
         "GREEN_DYE": 1,
         "WHITE_DYE": 1
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "PROCESSING"
+      "category": "PROCESSING",
+      "professionXp": 142
     },
     {
       "id": "farmer:orange_dye",
@@ -1227,11 +1311,12 @@
         "RED_DYE": 1,
         "YELLOW_DYE": 1
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "PROCESSING"
+      "category": "PROCESSING",
+      "professionXp": 142
     },
     {
       "id": "farmer:purple_dye",
@@ -1242,11 +1327,12 @@
         "RED_DYE": 1,
         "BLUE_DYE": 1
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "PROCESSING"
+      "category": "PROCESSING",
+      "professionXp": 142
     },
     {
       "id": "cook:bread",
@@ -1260,7 +1346,8 @@
       "unlockPrice": 0,
       "rarity": "COMMON",
       "unlockedByDefault": true,
-      "category": "BASIC_FOOD"
+      "category": "BASIC_FOOD",
+      "professionXp": 21
     },
     {
       "id": "cook:cookie",
@@ -1271,11 +1358,12 @@
         "WHEAT": 2,
         "COCOA_BEANS": 1
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 6,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "BASIC_FOOD"
+      "category": "BASIC_FOOD",
+      "professionXp": 51
     },
     {
       "id": "cook:pumpkin_pie",
@@ -1287,11 +1375,12 @@
         "SUGAR": 1,
         "EGG": 1
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 12,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "MEALS"
+      "category": "MEALS",
+      "professionXp": 87
     },
     {
       "id": "cook:cake",
@@ -1304,11 +1393,12 @@
         "MILK_BUCKET": 3,
         "EGG": 1
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 27,
       "unlockPrice": 4400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "MEALS"
+      "category": "MEALS",
+      "professionXp": 207
     },
     {
       "id": "cook:cooked_beef",
@@ -1318,11 +1408,12 @@
       "costs": {
         "BEEF": 1
       },
-      "requiredProfessionLevel": 5,
+      "requiredProfessionLevel": 3,
       "unlockPrice": 400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "COOKED_FOOD"
+      "category": "COOKED_FOOD",
+      "professionXp": 23
     },
     {
       "id": "cook:cooked_chicken",
@@ -1332,11 +1423,12 @@
       "costs": {
         "CHICKEN": 1
       },
-      "requiredProfessionLevel": 5,
+      "requiredProfessionLevel": 3,
       "unlockPrice": 400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "COOKED_FOOD"
+      "category": "COOKED_FOOD",
+      "professionXp": 23
     },
     {
       "id": "cook:cooked_porkchop",
@@ -1346,11 +1438,12 @@
       "costs": {
         "PORKCHOP": 1
       },
-      "requiredProfessionLevel": 5,
+      "requiredProfessionLevel": 3,
       "unlockPrice": 400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "COOKED_FOOD"
+      "category": "COOKED_FOOD",
+      "professionXp": 23
     },
     {
       "id": "cook:cooked_mutton",
@@ -1360,11 +1453,12 @@
       "costs": {
         "MUTTON": 1
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 6,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "COOKED_FOOD"
+      "category": "COOKED_FOOD",
+      "professionXp": 41
     },
     {
       "id": "cook:cooked_rabbit",
@@ -1374,11 +1468,12 @@
       "costs": {
         "RABBIT": 1
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 9,
       "unlockPrice": 1400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "COOKED_FOOD"
+      "category": "COOKED_FOOD",
+      "professionXp": 59
     },
     {
       "id": "cook:cooked_cod",
@@ -1388,11 +1483,12 @@
       "costs": {
         "COD": 1
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 6,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "COOKED_FOOD"
+      "category": "COOKED_FOOD",
+      "professionXp": 41
     },
     {
       "id": "cook:cooked_salmon",
@@ -1402,11 +1498,12 @@
       "costs": {
         "SALMON": 1
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 9,
       "unlockPrice": 1400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "COOKED_FOOD"
+      "category": "COOKED_FOOD",
+      "professionXp": 59
     },
     {
       "id": "cook:rabbit_stew",
@@ -1419,11 +1516,12 @@
         "POTATO": 1,
         "BOWL": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 21,
       "unlockPrice": 3400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "MEALS"
+      "category": "MEALS",
+      "professionXp": 146
     },
     {
       "id": "cook:mushroom_stew",
@@ -1435,11 +1533,12 @@
         "BROWN_MUSHROOM": 1,
         "BOWL": 1
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 6,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "MEALS"
+      "category": "MEALS",
+      "professionXp": 51
     },
     {
       "id": "cook:beetroot_soup",
@@ -1450,11 +1549,12 @@
         "BEETROOT": 6,
         "BOWL": 1
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 12,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "MEALS"
+      "category": "MEALS",
+      "professionXp": 107
     },
     {
       "id": "cook:suspicious_stew",
@@ -1467,11 +1567,12 @@
         "DANDELION": 1,
         "BOWL": 1
       },
-      "requiredProfessionLevel": 55,
+      "requiredProfessionLevel": 33,
       "unlockPrice": 5400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "SPECIALTIES"
+      "category": "SPECIALTIES",
+      "professionXp": 218
     },
     {
       "id": "cook:golden_carrot",
@@ -1482,11 +1583,12 @@
         "CARROT": 1,
         "GOLD_NUGGET": 8
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 21,
       "unlockPrice": 3400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "SPECIALTIES"
+      "category": "SPECIALTIES",
+      "professionXp": 171
     },
     {
       "id": "cook:golden_apple",
@@ -1497,11 +1599,12 @@
         "APPLE": 1,
         "GOLD_INGOT": 8
       },
-      "requiredProfessionLevel": 70,
+      "requiredProfessionLevel": 42,
       "unlockPrice": 6900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "SPECIALTIES"
+      "category": "SPECIALTIES",
+      "professionXp": 297
     },
     {
       "id": "cook:enchanted_golden_apple",
@@ -1512,11 +1615,12 @@
         "GOLDEN_APPLE": 1,
         "GOLD_BLOCK": 8
       },
-      "requiredProfessionLevel": 100,
+      "requiredProfessionLevel": 60,
       "unlockPrice": 9900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "SPECIALTIES"
+      "category": "SPECIALTIES",
+      "professionXp": 405
     },
     {
       "id": "cook:glistering_melon",
@@ -1527,11 +1631,12 @@
         "MELON_SLICE": 1,
         "GOLD_NUGGET": 8
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 18,
       "unlockPrice": 2900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "SPECIALTIES"
+      "category": "SPECIALTIES",
+      "professionXp": 153
     },
     {
       "id": "cook:honey_bottle",
@@ -1542,11 +1647,12 @@
         "GLASS_BOTTLE": 1,
         "HONEYCOMB": 1
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 15,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "SPECIALTIES"
+      "category": "SPECIALTIES",
+      "professionXp": 100
     },
     {
       "id": "cook:baked_potato",
@@ -1556,11 +1662,12 @@
       "costs": {
         "POTATO": 1
       },
-      "requiredProfessionLevel": 5,
+      "requiredProfessionLevel": 3,
       "unlockPrice": 400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "COOKED_FOOD"
+      "category": "COOKED_FOOD",
+      "professionXp": 23
     },
     {
       "id": "cook:dried_kelp",
@@ -1570,11 +1677,12 @@
       "costs": {
         "KELP": 1
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 9,
       "unlockPrice": 1400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "BASIC_FOOD"
+      "category": "BASIC_FOOD",
+      "professionXp": 59
     },
     {
       "id": "cook:sweet_berries",
@@ -1585,11 +1693,12 @@
         "SWEET_BERRIES": 2,
         "SUGAR": 1
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 12,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "BASIC_FOOD"
+      "category": "BASIC_FOOD",
+      "professionXp": 87
     },
     {
       "id": "tailor:white_wool",
@@ -1603,7 +1712,8 @@
       "unlockPrice": 0,
       "rarity": "COMMON",
       "unlockedByDefault": true,
-      "category": "TEXTILES"
+      "category": "TEXTILES",
+      "professionXp": 26
     },
     {
       "id": "tailor:black_wool",
@@ -1614,11 +1724,12 @@
         "WHITE_WOOL": 1,
         "BLACK_DYE": 1
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 9,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "TEXTILES"
+      "category": "TEXTILES",
+      "professionXp": 64
     },
     {
       "id": "tailor:red_wool",
@@ -1629,11 +1740,12 @@
         "WHITE_WOOL": 1,
         "RED_DYE": 1
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 14,
       "unlockPrice": 1400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "TEXTILES"
+      "category": "TEXTILES",
+      "professionXp": 94
     },
     {
       "id": "tailor:blue_wool",
@@ -1644,11 +1756,12 @@
         "WHITE_WOOL": 1,
         "BLUE_DYE": 1
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "TEXTILES"
+      "category": "TEXTILES",
+      "professionXp": 124
     },
     {
       "id": "tailor:white_carpet",
@@ -1658,12 +1771,13 @@
       "costs": {
         "WHITE_WOOL": 2
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 9,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "TEXTILES",
-      "resultAmount": 3
+      "resultAmount": 3,
+      "professionXp": 64
     },
     {
       "id": "tailor:black_carpet",
@@ -1673,12 +1787,13 @@
       "costs": {
         "BLACK_WOOL": 2
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "TEXTILES",
-      "resultAmount": 3
+      "resultAmount": 3,
+      "professionXp": 124
     },
     {
       "id": "tailor:red_carpet",
@@ -1688,12 +1803,13 @@
       "costs": {
         "RED_WOOL": 2
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 23,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "TEXTILES",
-      "resultAmount": 3
+      "resultAmount": 3,
+      "professionXp": 148
     },
     {
       "id": "tailor:blue_carpet",
@@ -1703,12 +1819,13 @@
       "costs": {
         "BLUE_WOOL": 2
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 28,
       "unlockPrice": 2900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "TEXTILES",
-      "resultAmount": 3
+      "resultAmount": 3,
+      "professionXp": 178
     },
     {
       "id": "tailor:white_bed",
@@ -1719,11 +1836,12 @@
         "WHITE_WOOL": 3,
         "OAK_PLANKS": 3
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 23,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "DECORATION"
+      "category": "DECORATION",
+      "professionXp": 168
     },
     {
       "id": "tailor:red_bed",
@@ -1734,11 +1852,12 @@
         "RED_WOOL": 3,
         "OAK_PLANKS": 3
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 28,
       "unlockPrice": 2900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "DECORATION"
+      "category": "DECORATION",
+      "professionXp": 198
     },
     {
       "id": "tailor:blue_bed",
@@ -1749,11 +1868,12 @@
         "BLUE_WOOL": 3,
         "OAK_PLANKS": 3
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 3400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "DECORATION"
+      "category": "DECORATION",
+      "professionXp": 222
     },
     {
       "id": "tailor:white_banner",
@@ -1764,11 +1884,12 @@
         "WHITE_WOOL": 6,
         "STICK": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 3400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "DECORATION"
+      "category": "DECORATION",
+      "professionXp": 227
     },
     {
       "id": "tailor:black_banner",
@@ -1779,11 +1900,12 @@
         "BLACK_WOOL": 6,
         "STICK": 1
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 37,
       "unlockPrice": 3900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "DECORATION"
+      "category": "DECORATION",
+      "professionXp": 257
     },
     {
       "id": "tailor:red_banner",
@@ -1794,11 +1916,12 @@
         "RED_WOOL": 6,
         "STICK": 1
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 42,
       "unlockPrice": 4400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "DECORATION"
+      "category": "DECORATION",
+      "professionXp": 287
     },
     {
       "id": "tailor:blue_banner",
@@ -1809,11 +1932,12 @@
         "BLUE_WOOL": 6,
         "STICK": 1
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 46,
       "unlockPrice": 4900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "DECORATION"
+      "category": "DECORATION",
+      "professionXp": 311
     },
     {
       "id": "tailor:leather",
@@ -1823,11 +1947,12 @@
       "costs": {
         "RABBIT_HIDE": 4
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 9,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "LEATHER"
+      "category": "LEATHER",
+      "professionXp": 74
     },
     {
       "id": "tailor:leather_helmet",
@@ -1837,11 +1962,12 @@
       "costs": {
         "LEATHER": 5
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "LEATHER"
+      "category": "LEATHER",
+      "professionXp": 139
     },
     {
       "id": "tailor:leather_chestplate",
@@ -1851,11 +1977,12 @@
       "costs": {
         "LEATHER": 8
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 28,
       "unlockPrice": 2900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "LEATHER"
+      "category": "LEATHER",
+      "professionXp": 208
     },
     {
       "id": "tailor:leather_leggings",
@@ -1865,11 +1992,12 @@
       "costs": {
         "LEATHER": 7
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 3400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "LEATHER"
+      "category": "LEATHER",
+      "professionXp": 227
     },
     {
       "id": "tailor:leather_boots",
@@ -1879,11 +2007,12 @@
       "costs": {
         "LEATHER": 4
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 23,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "LEATHER"
+      "category": "LEATHER",
+      "professionXp": 158
     },
     {
       "id": "tailor:bundle",
@@ -1894,11 +2023,12 @@
         "LEATHER": 1,
         "STRING": 6
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 42,
       "unlockPrice": 4400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "LEATHER"
+      "category": "LEATHER",
+      "professionXp": 287
     },
     {
       "id": "tailor:leather_horse_armor",
@@ -1908,11 +2038,12 @@
       "costs": {
         "LEATHER": 7
       },
-      "requiredProfessionLevel": 55,
+      "requiredProfessionLevel": 51,
       "unlockPrice": 5400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "LEATHER"
+      "category": "LEATHER",
+      "professionXp": 341
     },
     {
       "id": "tailor:painting",
@@ -1923,11 +2054,12 @@
         "STICK": 8,
         "WHITE_WOOL": 1
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 37,
       "unlockPrice": 3900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "DECORATION"
+      "category": "DECORATION",
+      "professionXp": 267
     },
     {
       "id": "tailor:loom",
@@ -1938,11 +2070,12 @@
         "STRING": 2,
         "OAK_PLANKS": 2
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 46,
       "unlockPrice": 4900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "CRAFTING"
+      "category": "CRAFTING",
+      "professionXp": 296
     },
     {
       "id": "tailor:name_tag",
@@ -1953,11 +2086,12 @@
         "PAPER": 1,
         "STRING": 2
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 60,
       "unlockPrice": 6400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "CRAFTING"
+      "category": "CRAFTING",
+      "professionXp": 375
     },
     {
       "id": "alchemist:water",
@@ -1972,7 +2106,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": true,
       "category": "POTIONS",
-      "potionType": "WATER"
+      "potionType": "WATER",
+      "professionXp": 20
     },
     {
       "id": "alchemist:awkward",
@@ -1983,12 +2118,13 @@
         "GLASS_BOTTLE": 1,
         "NETHER_WART": 1
       },
-      "requiredProfessionLevel": 5,
+      "requiredProfessionLevel": 3,
       "unlockPrice": 400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "AWKWARD"
+      "potionType": "AWKWARD",
+      "professionXp": 28
     },
     {
       "id": "alchemist:healing",
@@ -2000,12 +2136,13 @@
         "NETHER_WART": 1,
         "GLISTERING_MELON_SLICE": 1
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 12,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "STRONG_HEALING"
+      "potionType": "STRONG_HEALING",
+      "professionXp": 87
     },
     {
       "id": "alchemist:strength",
@@ -2017,12 +2154,13 @@
         "NETHER_WART": 1,
         "BLAZE_POWDER": 1
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 15,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "STRONG_STRENGTH"
+      "potionType": "STRONG_STRENGTH",
+      "professionXp": 105
     },
     {
       "id": "alchemist:swiftness",
@@ -2034,12 +2172,13 @@
         "NETHER_WART": 1,
         "SUGAR": 1
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 15,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "STRONG_SWIFTNESS"
+      "potionType": "STRONG_SWIFTNESS",
+      "professionXp": 105
     },
     {
       "id": "alchemist:fire_resistance",
@@ -2051,12 +2190,13 @@
         "NETHER_WART": 1,
         "MAGMA_CREAM": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 18,
       "unlockPrice": 2900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "FIRE_RESISTANCE"
+      "potionType": "FIRE_RESISTANCE",
+      "professionXp": 123
     },
     {
       "id": "alchemist:water_breathing",
@@ -2068,12 +2208,13 @@
         "NETHER_WART": 1,
         "PUFFERFISH": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 21,
       "unlockPrice": 3400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "WATER_BREATHING"
+      "potionType": "WATER_BREATHING",
+      "professionXp": 141
     },
     {
       "id": "alchemist:night_vision",
@@ -2085,12 +2226,13 @@
         "NETHER_WART": 1,
         "GOLDEN_CARROT": 1
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 24,
       "unlockPrice": 3900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "NIGHT_VISION"
+      "potionType": "NIGHT_VISION",
+      "professionXp": 159
     },
     {
       "id": "alchemist:leaping",
@@ -2102,12 +2244,13 @@
         "NETHER_WART": 1,
         "RABBIT_FOOT": 1
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 27,
       "unlockPrice": 4400,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "STRONG_LEAPING"
+      "potionType": "STRONG_LEAPING",
+      "professionXp": 177
     },
     {
       "id": "alchemist:slow_falling",
@@ -2119,12 +2262,13 @@
         "NETHER_WART": 1,
         "PHANTOM_MEMBRANE": 1
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 30,
       "unlockPrice": 4900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "SLOW_FALLING"
+      "potionType": "SLOW_FALLING",
+      "professionXp": 195
     },
     {
       "id": "alchemist:poison",
@@ -2136,12 +2280,13 @@
         "NETHER_WART": 1,
         "SPIDER_EYE": 1
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 15,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "STRONG_POISON"
+      "potionType": "STRONG_POISON",
+      "professionXp": 105
     },
     {
       "id": "alchemist:weakness",
@@ -2152,12 +2297,13 @@
         "GLASS_BOTTLE": 1,
         "FERMENTED_SPIDER_EYE": 1
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 12,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "WEAKNESS"
+      "potionType": "WEAKNESS",
+      "professionXp": 82
     },
     {
       "id": "alchemist:regeneration",
@@ -2169,12 +2315,13 @@
         "NETHER_WART": 1,
         "GHAST_TEAR": 1
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 36,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "STRONG_REGENERATION"
+      "potionType": "STRONG_REGENERATION",
+      "professionXp": 231
     },
     {
       "id": "alchemist:turtle_master",
@@ -2186,12 +2333,13 @@
         "NETHER_WART": 1,
         "TURTLE_SCUTE": 5
       },
-      "requiredProfessionLevel": 80,
+      "requiredProfessionLevel": 48,
       "unlockPrice": 7900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "STRONG_TURTLE_MASTER"
+      "potionType": "STRONG_TURTLE_MASTER",
+      "professionXp": 323
     },
     {
       "id": "alchemist:luck",
@@ -2202,12 +2350,13 @@
         "GLASS_BOTTLE": 1,
         "RABBIT_FOOT": 1
       },
-      "requiredProfessionLevel": 70,
+      "requiredProfessionLevel": 42,
       "unlockPrice": 6900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "potionType": "LUCK"
+      "potionType": "LUCK",
+      "professionXp": 262
     },
     {
       "id": "alchemist:fermented_spider_eye",
@@ -2219,11 +2368,12 @@
         "SUGAR": 1,
         "BROWN_MUSHROOM": 1
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 6,
       "unlockPrice": 900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "POTIONS"
+      "category": "POTIONS",
+      "professionXp": 51
     },
     {
       "id": "alchemist:blaze_powder",
@@ -2233,11 +2383,12 @@
       "costs": {
         "BLAZE_ROD": 1
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 9,
       "unlockPrice": 1400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "POTIONS"
+      "category": "POTIONS",
+      "professionXp": 59
     },
     {
       "id": "alchemist:magma_cream",
@@ -2248,11 +2399,12 @@
         "MAGMA_BLOCK": 1,
         "SLIME_BALL": 1
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 15,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "POTIONS"
+      "category": "POTIONS",
+      "professionXp": 100
     },
     {
       "id": "alchemist:glistering_melon",
@@ -2263,11 +2415,12 @@
         "MELON_SLICE": 1,
         "GOLD_NUGGET": 8
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 12,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "POTIONS"
+      "category": "POTIONS",
+      "professionXp": 117
     },
     {
       "id": "alchemist:ender_eye",
@@ -2278,11 +2431,12 @@
         "ENDER_PEARL": 1,
         "BLAZE_POWDER": 1
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 39,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "POTIONS"
+      "category": "POTIONS",
+      "professionXp": 244
     },
     {
       "id": "alchemist:splash_potion",
@@ -2293,11 +2447,12 @@
         "POTION": 1,
         "GUNPOWDER": 1
       },
-      "requiredProfessionLevel": 55,
+      "requiredProfessionLevel": 33,
       "unlockPrice": 5400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "POTIONS"
+      "category": "POTIONS",
+      "professionXp": 208
     },
     {
       "id": "alchemist:lingering_potion",
@@ -2308,11 +2463,12 @@
         "SPLASH_POTION": 1,
         "DRAGON_BREATH": 1
       },
-      "requiredProfessionLevel": 75,
+      "requiredProfessionLevel": 45,
       "unlockPrice": 7400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "POTIONS"
+      "category": "POTIONS",
+      "professionXp": 280
     },
     {
       "id": "alchemist:dragon_breath",
@@ -2323,11 +2479,12 @@
         "GLASS_BOTTLE": 1,
         "CHORUS_FRUIT": 1
       },
-      "requiredProfessionLevel": 85,
+      "requiredProfessionLevel": 51,
       "unlockPrice": 8400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "POTIONS"
+      "category": "POTIONS",
+      "professionXp": 316
     },
     {
       "id": "alchemist:zombie_spawn_egg",
@@ -2338,11 +2495,12 @@
         "ROTTEN_FLESH": 8,
         "IRON_INGOT": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 18,
       "unlockPrice": 2900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 153
     },
     {
       "id": "alchemist:skeleton_spawn_egg",
@@ -2353,11 +2511,12 @@
         "BONE": 8,
         "IRON_INGOT": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 21,
       "unlockPrice": 3400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 171
     },
     {
       "id": "alchemist:creeper_spawn_egg",
@@ -2368,11 +2527,12 @@
         "GUNPOWDER": 8,
         "IRON_INGOT": 1
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 24,
       "unlockPrice": 3900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 189
     },
     {
       "id": "alchemist:spider_spawn_egg",
@@ -2383,11 +2543,12 @@
         "SPIDER_EYE": 8,
         "IRON_INGOT": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 21,
       "unlockPrice": 3400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 171
     },
     {
       "id": "alchemist:cave_spider_spawn_egg",
@@ -2398,11 +2559,12 @@
         "SPIDER_EYE": 10,
         "FERMENTED_SPIDER_EYE": 2
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 30,
       "unlockPrice": 4900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 240
     },
     {
       "id": "alchemist:slime_spawn_egg",
@@ -2413,11 +2575,12 @@
         "SLIME_BALL": 8,
         "IRON_INGOT": 1
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 27,
       "unlockPrice": 4400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 207
     },
     {
       "id": "alchemist:enderman_spawn_egg",
@@ -2428,11 +2591,12 @@
         "ENDER_PEARL": 4,
         "IRON_INGOT": 2
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 39,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 264
     },
     {
       "id": "alchemist:blaze_spawn_egg",
@@ -2443,11 +2607,12 @@
         "BLAZE_ROD": 6,
         "GOLD_INGOT": 2
       },
-      "requiredProfessionLevel": 70,
+      "requiredProfessionLevel": 42,
       "unlockPrice": 6900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 292
     },
     {
       "id": "alchemist:ghast_spawn_egg",
@@ -2458,11 +2623,12 @@
         "GHAST_TEAR": 4,
         "QUARTZ": 8
       },
-      "requiredProfessionLevel": 80,
+      "requiredProfessionLevel": 48,
       "unlockPrice": 7900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 348
     },
     {
       "id": "alchemist:magma_cube_spawn_egg",
@@ -2473,11 +2639,12 @@
         "MAGMA_CREAM": 8,
         "GOLD_INGOT": 2
       },
-      "requiredProfessionLevel": 75,
+      "requiredProfessionLevel": 45,
       "unlockPrice": 7400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 320
     },
     {
       "id": "alchemist:witch_spawn_egg",
@@ -2489,11 +2656,12 @@
         "GLASS_BOTTLE": 4,
         "REDSTONE": 4
       },
-      "requiredProfessionLevel": 80,
+      "requiredProfessionLevel": 48,
       "unlockPrice": 7900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 348
     },
     {
       "id": "alchemist:guardian_spawn_egg",
@@ -2504,11 +2672,12 @@
         "PRISMARINE_SHARD": 8,
         "PUFFERFISH": 2
       },
-      "requiredProfessionLevel": 85,
+      "requiredProfessionLevel": 51,
       "unlockPrice": 8400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 356
     },
     {
       "id": "alchemist:shulker_spawn_egg",
@@ -2519,11 +2688,12 @@
         "SHULKER_SHELL": 4,
         "ENDER_PEARL": 2
       },
-      "requiredProfessionLevel": 90,
+      "requiredProfessionLevel": 54,
       "unlockPrice": 8900,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 354
     },
     {
       "id": "alchemist:wither_skeleton_spawn_egg",
@@ -2534,11 +2704,12 @@
         "WITHER_SKELETON_SKULL": 2,
         "BONE": 8
       },
-      "requiredProfessionLevel": 95,
+      "requiredProfessionLevel": 57,
       "unlockPrice": 9400,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 392
     },
     {
       "id": "alchemist:warden_spawn_egg",
@@ -2549,11 +2720,12 @@
         "SCULK_CATALYST": 2,
         "ECHO_SHARD": 8
       },
-      "requiredProfessionLevel": 100,
+      "requiredProfessionLevel": 60,
       "unlockPrice": 9900,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 410
     },
     {
       "id": "alchemist:copper_golem_spawn_egg",
@@ -2564,11 +2736,12 @@
         "COPPER_BLOCK": 2,
         "COPPER_INGOT": 4
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 36,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "SPECIAL_MATERIALS"
+      "category": "SPECIAL_MATERIALS",
+      "professionXp": 246
     },
     {
       "id": "mason:stone",
@@ -2582,7 +2755,8 @@
       "unlockPrice": 0,
       "rarity": "COMMON",
       "unlockedByDefault": true,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 26
     },
     {
       "id": "mason:stone_bricks",
@@ -2592,11 +2766,12 @@
       "costs": {
         "STONE": 4
       },
-      "requiredProfessionLevel": 6,
+      "requiredProfessionLevel": 4,
       "unlockPrice": 500,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 44
     },
     {
       "id": "mason:deepslate",
@@ -2606,11 +2781,12 @@
       "costs": {
         "COBBLED_DEEPSLATE": 4
       },
-      "requiredProfessionLevel": 11,
+      "requiredProfessionLevel": 7,
       "unlockPrice": 1000,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 62
     },
     {
       "id": "mason:deepslate_bricks",
@@ -2620,11 +2796,12 @@
       "costs": {
         "DEEPSLATE": 4
       },
-      "requiredProfessionLevel": 16,
+      "requiredProfessionLevel": 10,
       "unlockPrice": 1500,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 80
     },
     {
       "id": "mason:deepslate_tiles",
@@ -2634,11 +2811,12 @@
       "costs": {
         "DEEPSLATE_BRICKS": 4
       },
-      "requiredProfessionLevel": 21,
+      "requiredProfessionLevel": 14,
       "unlockPrice": 2000,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 104
     },
     {
       "id": "mason:blackstone",
@@ -2648,11 +2826,12 @@
       "costs": {
         "BLACKSTONE": 4
       },
-      "requiredProfessionLevel": 26,
+      "requiredProfessionLevel": 17,
       "unlockPrice": 2500,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 122
     },
     {
       "id": "mason:blackstone_bricks",
@@ -2662,11 +2841,12 @@
       "costs": {
         "POLISHED_BLACKSTONE": 4
       },
-      "requiredProfessionLevel": 31,
+      "requiredProfessionLevel": 20,
       "unlockPrice": 3000,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 140
     },
     {
       "id": "mason:nether_bricks",
@@ -2676,11 +2856,12 @@
       "costs": {
         "NETHER_BRICK": 4
       },
-      "requiredProfessionLevel": 36,
+      "requiredProfessionLevel": 23,
       "unlockPrice": 3500,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 158
     },
     {
       "id": "mason:end_stone_bricks",
@@ -2690,11 +2871,12 @@
       "costs": {
         "END_STONE": 4
       },
-      "requiredProfessionLevel": 41,
+      "requiredProfessionLevel": 26,
       "unlockPrice": 4000,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 176
     },
     {
       "id": "mason:prismarine_bricks",
@@ -2704,11 +2886,12 @@
       "costs": {
         "PRISMARINE": 4
       },
-      "requiredProfessionLevel": 46,
+      "requiredProfessionLevel": 29,
       "unlockPrice": 4500,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 194
     },
     {
       "id": "mason:quartz_block",
@@ -2718,11 +2901,12 @@
       "costs": {
         "QUARTZ": 4
       },
-      "requiredProfessionLevel": 51,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 5000,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 212
     },
     {
       "id": "mason:quartz_bricks",
@@ -2732,11 +2916,12 @@
       "costs": {
         "QUARTZ_BLOCK": 4
       },
-      "requiredProfessionLevel": 56,
+      "requiredProfessionLevel": 36,
       "unlockPrice": 5500,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 236
     },
     {
       "id": "mason:smooth_quartz",
@@ -2746,11 +2931,12 @@
       "costs": {
         "QUARTZ_BLOCK": 4
       },
-      "requiredProfessionLevel": 61,
+      "requiredProfessionLevel": 39,
       "unlockPrice": 6000,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 254
     },
     {
       "id": "mason:bricks",
@@ -2760,11 +2946,12 @@
       "costs": {
         "BRICK": 4
       },
-      "requiredProfessionLevel": 66,
+      "requiredProfessionLevel": 42,
       "unlockPrice": 6500,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 272
     },
     {
       "id": "mason:mud_bricks",
@@ -2774,11 +2961,12 @@
       "costs": {
         "MUD": 4
       },
-      "requiredProfessionLevel": 71,
+      "requiredProfessionLevel": 45,
       "unlockPrice": 7000,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 290
     },
     {
       "id": "mason:polished_granite",
@@ -2788,11 +2976,12 @@
       "costs": {
         "GRANITE": 4
       },
-      "requiredProfessionLevel": 76,
+      "requiredProfessionLevel": 48,
       "unlockPrice": 7500,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 308
     },
     {
       "id": "mason:polished_diorite",
@@ -2802,11 +2991,12 @@
       "costs": {
         "DIORITE": 4
       },
-      "requiredProfessionLevel": 81,
+      "requiredProfessionLevel": 51,
       "unlockPrice": 8000,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 326
     },
     {
       "id": "mason:polished_andesite",
@@ -2816,11 +3006,12 @@
       "costs": {
         "ANDESITE": 4
       },
-      "requiredProfessionLevel": 86,
+      "requiredProfessionLevel": 54,
       "unlockPrice": 8500,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 344
     },
     {
       "id": "mason:polished_tuff",
@@ -2830,11 +3021,12 @@
       "costs": {
         "TUFF": 4
       },
-      "requiredProfessionLevel": 91,
+      "requiredProfessionLevel": 57,
       "unlockPrice": 9000,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 362
     },
     {
       "id": "mason:tuff_bricks",
@@ -2844,11 +3036,12 @@
       "costs": {
         "POLISHED_TUFF": 4
       },
-      "requiredProfessionLevel": 95,
+      "requiredProfessionLevel": 60,
       "unlockPrice": 9400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STONE_BLOCKS"
+      "category": "STONE_BLOCKS",
+      "professionXp": 380
     },
     {
       "id": "mason:stone_slab",
@@ -2858,11 +3051,12 @@
       "costs": {
         "STONE": 2
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 238
     },
     {
       "id": "mason:stone_stairs",
@@ -2872,11 +3066,12 @@
       "costs": {
         "STONE": 3
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 41,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 261
     },
     {
       "id": "mason:stone_wall",
@@ -2886,11 +3081,12 @@
       "costs": {
         "COBBLESTONE": 3
       },
-      "requiredProfessionLevel": 70,
+      "requiredProfessionLevel": 44,
       "unlockPrice": 6900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 279
     },
     {
       "id": "mason:stone_bricks_slab",
@@ -2900,11 +3096,12 @@
       "costs": {
         "STONE_BRICKS": 2
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 238
     },
     {
       "id": "mason:stone_bricks_stairs",
@@ -2914,11 +3111,12 @@
       "costs": {
         "STONE_BRICKS": 3
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 41,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 261
     },
     {
       "id": "mason:stone_bricks_wall",
@@ -2928,11 +3126,12 @@
       "costs": {
         "STONE_BRICKS": 3
       },
-      "requiredProfessionLevel": 70,
+      "requiredProfessionLevel": 44,
       "unlockPrice": 6900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 279
     },
     {
       "id": "mason:deepslate_slab",
@@ -2942,11 +3141,12 @@
       "costs": {
         "DEEPSLATE": 2
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 238
     },
     {
       "id": "mason:deepslate_stairs",
@@ -2956,11 +3156,12 @@
       "costs": {
         "DEEPSLATE": 3
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 41,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 261
     },
     {
       "id": "mason:deepslate_wall",
@@ -2970,11 +3171,12 @@
       "costs": {
         "COBBLED_DEEPSLATE": 3
       },
-      "requiredProfessionLevel": 70,
+      "requiredProfessionLevel": 44,
       "unlockPrice": 6900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 279
     },
     {
       "id": "mason:polished_blackstone_slab",
@@ -2984,11 +3186,12 @@
       "costs": {
         "POLISHED_BLACKSTONE": 2
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 238
     },
     {
       "id": "mason:polished_blackstone_stairs",
@@ -2998,11 +3201,12 @@
       "costs": {
         "POLISHED_BLACKSTONE": 3
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 41,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 261
     },
     {
       "id": "mason:polished_blackstone_wall",
@@ -3012,11 +3216,12 @@
       "costs": {
         "POLISHED_BLACKSTONE": 3
       },
-      "requiredProfessionLevel": 70,
+      "requiredProfessionLevel": 44,
       "unlockPrice": 6900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 279
     },
     {
       "id": "mason:end_stone_bricks_slab",
@@ -3026,11 +3231,12 @@
       "costs": {
         "END_STONE_BRICKS": 2
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 238
     },
     {
       "id": "mason:end_stone_bricks_stairs",
@@ -3040,11 +3246,12 @@
       "costs": {
         "END_STONE_BRICKS": 3
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 41,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 261
     },
     {
       "id": "mason:end_stone_bricks_wall",
@@ -3054,11 +3261,12 @@
       "costs": {
         "END_STONE_BRICKS": 3
       },
-      "requiredProfessionLevel": 70,
+      "requiredProfessionLevel": 44,
       "unlockPrice": 6900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 279
     },
     {
       "id": "mason:prismarine_slab",
@@ -3068,11 +3276,12 @@
       "costs": {
         "PRISMARINE": 2
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 238
     },
     {
       "id": "mason:prismarine_stairs",
@@ -3082,11 +3291,12 @@
       "costs": {
         "PRISMARINE": 3
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 41,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 261
     },
     {
       "id": "mason:prismarine_wall",
@@ -3096,11 +3306,12 @@
       "costs": {
         "PRISMARINE": 3
       },
-      "requiredProfessionLevel": 70,
+      "requiredProfessionLevel": 44,
       "unlockPrice": 6900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 279
     },
     {
       "id": "mason:quartz_block_slab",
@@ -3110,11 +3321,12 @@
       "costs": {
         "QUARTZ_BLOCK": 2
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 238
     },
     {
       "id": "mason:quartz_block_stairs",
@@ -3124,11 +3336,12 @@
       "costs": {
         "QUARTZ_BLOCK": 3
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 41,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "STAIRS_SLABS"
+      "category": "STAIRS_SLABS",
+      "professionXp": 261
     },
     {
       "id": "mason:chiseled_stone_bricks",
@@ -3138,11 +3351,12 @@
       "costs": {
         "STONE_BRICKS": 2
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 29,
       "unlockPrice": 4400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 184
     },
     {
       "id": "mason:chiseled_deepslate",
@@ -3152,11 +3366,12 @@
       "costs": {
         "DEEPSLATE": 2
       },
-      "requiredProfessionLevel": 55,
+      "requiredProfessionLevel": 35,
       "unlockPrice": 5400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 220
     },
     {
       "id": "mason:chiseled_tuff",
@@ -3166,11 +3381,12 @@
       "costs": {
         "TUFF": 2
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 41,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 256
     },
     {
       "id": "mason:chiseled_quartz",
@@ -3180,11 +3396,12 @@
       "costs": {
         "QUARTZ_BLOCK": 2
       },
-      "requiredProfessionLevel": 70,
+      "requiredProfessionLevel": 44,
       "unlockPrice": 6900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 274
     },
     {
       "id": "mason:quartz_pillar",
@@ -3194,11 +3411,12 @@
       "costs": {
         "QUARTZ_BLOCK": 2
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 238
     },
     {
       "id": "mason:smooth_stone",
@@ -3208,11 +3426,12 @@
       "costs": {
         "STONE": 3
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 41,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 261
     },
     {
       "id": "mason:smooth_sandstone",
@@ -3222,11 +3441,12 @@
       "costs": {
         "SANDSTONE": 4
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 152
     },
     {
       "id": "mason:smooth_red_sandstone",
@@ -3236,11 +3456,12 @@
       "costs": {
         "RED_SANDSTONE": 4
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 25,
       "unlockPrice": 3900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 170
     },
     {
       "id": "mason:cut_sandstone",
@@ -3250,11 +3471,12 @@
       "costs": {
         "SANDSTONE": 4
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 134
     },
     {
       "id": "mason:cut_red_sandstone",
@@ -3264,11 +3486,12 @@
       "costs": {
         "RED_SANDSTONE": 4
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 152
     },
     {
       "id": "mason:glass",
@@ -3278,11 +3501,12 @@
       "costs": {
         "SAND": 4
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 13,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 98
     },
     {
       "id": "mason:glass_pane",
@@ -3292,11 +3516,12 @@
       "costs": {
         "GLASS": 6
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 126
     },
     {
       "id": "mason:terracotta",
@@ -3306,11 +3531,12 @@
       "costs": {
         "CLAY": 4
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 116
     },
     {
       "id": "mason:brick",
@@ -3320,11 +3546,12 @@
       "costs": {
         "CLAY_BALL": 4
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 10,
       "unlockPrice": 1400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 80
     },
     {
       "id": "mason:concrete",
@@ -3335,11 +3562,12 @@
         "WHITE_CONCRETE_POWDER": 4,
         "WATER_BUCKET": 1
       },
-      "requiredProfessionLevel": 75,
+      "requiredProfessionLevel": 47,
       "unlockPrice": 7400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 307
     },
     {
       "id": "mason:prismarine",
@@ -3350,11 +3578,12 @@
         "PRISMARINE_SHARD": 4,
         "PRISMARINE_CRYSTALS": 1
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 4900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 217
     },
     {
       "id": "mason:sea_lantern",
@@ -3365,11 +3594,12 @@
         "PRISMARINE_SHARD": 4,
         "PRISMARINE_CRYSTALS": 5
       },
-      "requiredProfessionLevel": 80,
+      "requiredProfessionLevel": 51,
       "unlockPrice": 7900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 351
     },
     {
       "id": "mason:obsidian",
@@ -3380,11 +3610,12 @@
         "LAVA_BUCKET": 4,
         "WATER_BUCKET": 1
       },
-      "requiredProfessionLevel": 90,
+      "requiredProfessionLevel": 57,
       "unlockPrice": 8900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "CHISELED"
+      "category": "CHISELED",
+      "professionXp": 367
     },
     {
       "id": "tailor:rotten_flesh_to_leather",
@@ -3394,11 +3625,12 @@
       "costs": {
         "ROTTEN_FLESH": 4
       },
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 9,
       "unlockPrice": 900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "LEATHER"
+      "category": "LEATHER",
+      "professionXp": 74
     },
     {
       "id": "scholar:paper",
@@ -3412,7 +3644,8 @@
       "unlockPrice": 0,
       "rarity": "COMMON",
       "unlockedByDefault": true,
-      "category": "BOOKS"
+      "category": "BOOKS",
+      "professionXp": 21
     },
     {
       "id": "scholar:book",
@@ -3423,11 +3656,12 @@
         "PAPER": 3,
         "LEATHER": 1
       },
-      "requiredProfessionLevel": 5,
+      "requiredProfessionLevel": 4,
       "unlockPrice": 400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "BOOKS"
+      "category": "BOOKS",
+      "professionXp": 44
     },
     {
       "id": "scholar:bookshelf",
@@ -3438,11 +3672,12 @@
         "BOOK": 3,
         "OAK_PLANKS": 3
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 10,
       "unlockPrice": 1400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "BOOKS"
+      "category": "BOOKS",
+      "professionXp": 90
     },
     {
       "id": "scholar:lectern",
@@ -3453,11 +3688,12 @@
         "BOOKSHELF": 1,
         "OAK_SLAB": 4
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "KNOWLEDGE"
+      "category": "KNOWLEDGE",
+      "professionXp": 157
     },
     {
       "id": "scholar:compass",
@@ -3468,11 +3704,12 @@
         "IRON_INGOT": 4,
         "REDSTONE": 1
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 13,
       "unlockPrice": 1900,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "KNOWLEDGE"
+      "category": "KNOWLEDGE",
+      "professionXp": 103
     },
     {
       "id": "scholar:clock",
@@ -3483,11 +3720,12 @@
         "GOLD_INGOT": 4,
         "REDSTONE": 1
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "KNOWLEDGE"
+      "category": "KNOWLEDGE",
+      "professionXp": 121
     },
     {
       "id": "scholar:map",
@@ -3498,11 +3736,12 @@
         "PAPER": 8,
         "COMPASS": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "KNOWLEDGE"
+      "category": "KNOWLEDGE",
+      "professionXp": 159
     },
     {
       "id": "scholar:spyglass",
@@ -3513,11 +3752,12 @@
         "COPPER_INGOT": 2,
         "AMETHYST_SHARD": 1
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 29,
       "unlockPrice": 4400,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
-      "category": "KNOWLEDGE"
+      "category": "KNOWLEDGE",
+      "professionXp": 189
     },
     {
       "id": "scholar:recovery_compass",
@@ -3528,11 +3768,12 @@
         "COMPASS": 1,
         "ECHO_SHARD": 8
       },
-      "requiredProfessionLevel": 80,
+      "requiredProfessionLevel": 51,
       "unlockPrice": 7900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "ARCANE"
+      "category": "ARCANE",
+      "professionXp": 351
     },
     {
       "id": "scholar:ender_eye",
@@ -3543,11 +3784,12 @@
         "ENDER_PEARL": 1,
         "BLAZE_POWDER": 1
       },
-      "requiredProfessionLevel": 70,
+      "requiredProfessionLevel": 44,
       "unlockPrice": 6900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "ARCANE"
+      "category": "ARCANE",
+      "professionXp": 274
     },
     {
       "id": "scholar:ender_chest",
@@ -3558,11 +3800,12 @@
         "OBSIDIAN": 8,
         "ENDER_EYE": 1
       },
-      "requiredProfessionLevel": 85,
+      "requiredProfessionLevel": 54,
       "unlockPrice": 8400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "ARCANE"
+      "category": "ARCANE",
+      "professionXp": 369
     },
     {
       "id": "scholar:enchanting_table",
@@ -3574,11 +3817,12 @@
         "DIAMOND": 2,
         "OBSIDIAN": 4
       },
-      "requiredProfessionLevel": 75,
+      "requiredProfessionLevel": 47,
       "unlockPrice": 7400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "ARCANE"
+      "category": "ARCANE",
+      "professionXp": 317
     },
     {
       "id": "scholar:beacon",
@@ -3590,11 +3834,12 @@
         "OBSIDIAN": 3,
         "NETHER_STAR": 1
       },
-      "requiredProfessionLevel": 95,
+      "requiredProfessionLevel": 60,
       "unlockPrice": 9400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "ARCANE"
+      "category": "ARCANE",
+      "professionXp": 405
     },
     {
       "id": "scholar:end_crystal",
@@ -3606,11 +3851,12 @@
         "GHAST_TEAR": 1,
         "ENDER_EYE": 1
       },
-      "requiredProfessionLevel": 90,
+      "requiredProfessionLevel": 57,
       "unlockPrice": 8900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "ARCANE"
+      "category": "ARCANE",
+      "professionXp": 387
     },
     {
       "id": "scholar:respawn_anchor",
@@ -3621,11 +3867,12 @@
         "GLOWSTONE": 6,
         "CRYING_OBSIDIAN": 3
       },
-      "requiredProfessionLevel": 85,
+      "requiredProfessionLevel": 54,
       "unlockPrice": 8400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "ARCANE"
+      "category": "ARCANE",
+      "professionXp": 369
     },
     {
       "id": "scholar:lodestone",
@@ -3636,11 +3883,12 @@
         "CHISELED_STONE_BRICKS": 8,
         "IRON_INGOT": 1
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 41,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "KNOWLEDGE"
+      "category": "KNOWLEDGE",
+      "professionXp": 291
     },
     {
       "id": "scholar:experience_bottle",
@@ -3652,11 +3900,12 @@
         "GLOWSTONE_DUST": 2,
         "REDSTONE": 2
       },
-      "requiredProfessionLevel": 90,
+      "requiredProfessionLevel": 57,
       "unlockPrice": 8900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
-      "category": "ARCANE"
+      "category": "ARCANE",
+      "professionXp": 367
     },
     {
       "id": "scholar:firework_rocket",
@@ -3667,11 +3916,12 @@
         "PAPER": 1,
         "GUNPOWDER": 2
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 4900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 207
     },
     {
       "id": "scholar:firework_star",
@@ -3682,11 +3932,12 @@
         "GUNPOWDER": 1,
         "GLOWSTONE_DUST": 1
       },
-      "requiredProfessionLevel": 55,
+      "requiredProfessionLevel": 35,
       "unlockPrice": 5400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 220
     },
     {
       "id": "scholar:redstone_torch",
@@ -3697,11 +3948,12 @@
         "REDSTONE": 1,
         "STICK": 1
       },
-      "requiredProfessionLevel": 15,
+      "requiredProfessionLevel": 10,
       "unlockPrice": 1400,
       "rarity": "COMMON",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 70
     },
     {
       "id": "scholar:observer",
@@ -3713,11 +3965,12 @@
         "REDSTONE": 2,
         "QUARTZ": 1
       },
-      "requiredProfessionLevel": 70,
+      "requiredProfessionLevel": 44,
       "unlockPrice": 6900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 309
     },
     {
       "id": "scholar:comparator",
@@ -3729,11 +3982,12 @@
         "REDSTONE_TORCH": 3,
         "QUARTZ": 1
       },
-      "requiredProfessionLevel": 65,
+      "requiredProfessionLevel": 41,
       "unlockPrice": 6400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 281
     },
     {
       "id": "scholar:dispenser",
@@ -3745,11 +3999,12 @@
         "BOW": 1,
         "REDSTONE": 1
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 5900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 273
     },
     {
       "id": "scholar:dropper",
@@ -3760,11 +4015,12 @@
         "COBBLESTONE": 7,
         "REDSTONE": 1
       },
-      "requiredProfessionLevel": 55,
+      "requiredProfessionLevel": 35,
       "unlockPrice": 5400,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 250
     },
     {
       "id": "scholar:target",
@@ -3775,11 +4031,12 @@
         "HAY_BLOCK": 1,
         "REDSTONE": 4
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 4900,
       "rarity": "RARE",
       "unlockedByDefault": false,
-      "category": "UTILITY"
+      "category": "UTILITY",
+      "professionXp": 217
     },
     {
       "id": "scholar:aqua_affinity_book",
@@ -3791,13 +4048,14 @@
         "LAPIS_LAZULI": 5,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 13,
       "unlockPrice": 1900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "AQUA_AFFINITY",
-      "enchantmentLevel": 1
+      "enchantmentLevel": 1,
+      "professionXp": 113
     },
     {
       "id": "scholar:bane_of_arthropods_book",
@@ -3809,13 +4067,14 @@
         "LAPIS_LAZULI": 8,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "BANE_OF_ARTHROPODS",
-      "enchantmentLevel": 5
+      "enchantmentLevel": 5,
+      "professionXp": 146
     },
     {
       "id": "scholar:binding_curse_book",
@@ -3827,13 +4086,14 @@
         "LAPIS_LAZULI": 5,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "BINDING_CURSE",
-      "enchantmentLevel": 1
+      "enchantmentLevel": 1,
+      "professionXp": 149
     },
     {
       "id": "scholar:blast_protection_book",
@@ -3845,13 +4105,14 @@
         "LAPIS_LAZULI": 6,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "BLAST_PROTECTION",
-      "enchantmentLevel": 4
+      "enchantmentLevel": 4,
+      "professionXp": 154
     },
     {
       "id": "scholar:breach_book",
@@ -3863,13 +4124,14 @@
         "LAPIS_LAZULI": 6,
         "DIAMOND": 2
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 4900,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "BREACH",
-      "enchantmentLevel": 4
+      "enchantmentLevel": 4,
+      "professionXp": 237
     },
     {
       "id": "scholar:channeling_book",
@@ -3881,13 +4143,14 @@
         "LAPIS_LAZULI": 5,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 25,
       "unlockPrice": 3900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "CHANNELING",
-      "enchantmentLevel": 1
+      "enchantmentLevel": 1,
+      "professionXp": 185
     },
     {
       "id": "scholar:density_book",
@@ -3899,13 +4162,14 @@
         "LAPIS_LAZULI": 8,
         "DIAMOND": 2
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 4900,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "DENSITY",
-      "enchantmentLevel": 5
+      "enchantmentLevel": 5,
+      "professionXp": 247
     },
     {
       "id": "scholar:depth_strider_book",
@@ -3917,13 +4181,14 @@
         "LAPIS_LAZULI": 6,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "DEPTH_STRIDER",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 154
     },
     {
       "id": "scholar:efficiency_book",
@@ -3935,13 +4200,14 @@
         "LAPIS_LAZULI": 8,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "EFFICIENCY",
-      "enchantmentLevel": 5
+      "enchantmentLevel": 5,
+      "professionXp": 146
     },
     {
       "id": "scholar:feather_falling_book",
@@ -3953,13 +4219,14 @@
         "LAPIS_LAZULI": 6,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "FEATHER_FALLING",
-      "enchantmentLevel": 4
+      "enchantmentLevel": 4,
+      "professionXp": 136
     },
     {
       "id": "scholar:fire_aspect_book",
@@ -3971,13 +4238,14 @@
         "LAPIS_LAZULI": 5,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "FIRE_ASPECT",
-      "enchantmentLevel": 2
+      "enchantmentLevel": 2,
+      "professionXp": 131
     },
     {
       "id": "scholar:fire_protection_book",
@@ -3989,13 +4257,14 @@
         "LAPIS_LAZULI": 6,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "FIRE_PROTECTION",
-      "enchantmentLevel": 4
+      "enchantmentLevel": 4,
+      "professionXp": 154
     },
     {
       "id": "scholar:flame_book",
@@ -4007,13 +4276,14 @@
         "LAPIS_LAZULI": 5,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "FLAME",
-      "enchantmentLevel": 1
+      "enchantmentLevel": 1,
+      "professionXp": 149
     },
     {
       "id": "scholar:fortune_book",
@@ -4025,13 +4295,14 @@
         "LAPIS_LAZULI": 6,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "FORTUNE",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 172
     },
     {
       "id": "scholar:frost_walker_book",
@@ -4043,13 +4314,14 @@
         "LAPIS_LAZULI": 5,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "FROST_WALKER",
-      "enchantmentLevel": 2
+      "enchantmentLevel": 2,
+      "professionXp": 167
     },
     {
       "id": "scholar:impaling_book",
@@ -4061,13 +4333,14 @@
         "LAPIS_LAZULI": 8,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "IMPALING",
-      "enchantmentLevel": 5
+      "enchantmentLevel": 5,
+      "professionXp": 182
     },
     {
       "id": "scholar:infinity_book",
@@ -4079,13 +4352,14 @@
         "LAPIS_LAZULI": 5,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 25,
       "unlockPrice": 3900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "INFINITY",
-      "enchantmentLevel": 1
+      "enchantmentLevel": 1,
+      "professionXp": 185
     },
     {
       "id": "scholar:knockback_book",
@@ -4097,13 +4371,14 @@
         "LAPIS_LAZULI": 5,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 2400,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "KNOCKBACK",
-      "enchantmentLevel": 2
+      "enchantmentLevel": 2,
+      "professionXp": 131
     },
     {
       "id": "scholar:looting_book",
@@ -4115,13 +4390,14 @@
         "LAPIS_LAZULI": 6,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 25,
       "unlockPrice": 3900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "LOOTING",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 190
     },
     {
       "id": "scholar:loyalty_book",
@@ -4133,13 +4409,14 @@
         "LAPIS_LAZULI": 6,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "LOYALTY",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 172
     },
     {
       "id": "scholar:luck_of_the_sea_book",
@@ -4151,13 +4428,14 @@
         "LAPIS_LAZULI": 6,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "LUCK_OF_THE_SEA",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 172
     },
     {
       "id": "scholar:lunge_book",
@@ -4169,13 +4447,14 @@
         "LAPIS_LAZULI": 6,
         "DIAMOND": 2
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 29,
       "unlockPrice": 4400,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "LUNGE",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 219
     },
     {
       "id": "scholar:lure_book",
@@ -4187,13 +4466,14 @@
         "LAPIS_LAZULI": 6,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "LURE",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 154
     },
     {
       "id": "scholar:mending_book",
@@ -4205,13 +4485,14 @@
         "LAPIS_LAZULI": 5,
         "DIAMOND": 2
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 4900,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "MENDING",
-      "enchantmentLevel": 1
+      "enchantmentLevel": 1,
+      "professionXp": 232
     },
     {
       "id": "scholar:multishot_book",
@@ -4223,13 +4504,14 @@
         "LAPIS_LAZULI": 5,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "MULTISHOT",
-      "enchantmentLevel": 1
+      "enchantmentLevel": 1,
+      "professionXp": 167
     },
     {
       "id": "scholar:piercing_book",
@@ -4241,13 +4523,14 @@
         "LAPIS_LAZULI": 6,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "PIERCING",
-      "enchantmentLevel": 4
+      "enchantmentLevel": 4,
+      "professionXp": 172
     },
     {
       "id": "scholar:power_book",
@@ -4259,13 +4542,14 @@
         "LAPIS_LAZULI": 8,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "POWER",
-      "enchantmentLevel": 5
+      "enchantmentLevel": 5,
+      "professionXp": 182
     },
     {
       "id": "scholar:projectile_protection_book",
@@ -4277,13 +4561,14 @@
         "LAPIS_LAZULI": 6,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "PROJECTILE_PROTECTION",
-      "enchantmentLevel": 4
+      "enchantmentLevel": 4,
+      "professionXp": 154
     },
     {
       "id": "scholar:protection_book",
@@ -4295,13 +4580,14 @@
         "LAPIS_LAZULI": 6,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "PROTECTION",
-      "enchantmentLevel": 4
+      "enchantmentLevel": 4,
+      "professionXp": 154
     },
     {
       "id": "scholar:punch_book",
@@ -4313,13 +4599,14 @@
         "LAPIS_LAZULI": 5,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "PUNCH",
-      "enchantmentLevel": 2
+      "enchantmentLevel": 2,
+      "professionXp": 149
     },
     {
       "id": "scholar:quick_charge_book",
@@ -4331,13 +4618,14 @@
         "LAPIS_LAZULI": 6,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "QUICK_CHARGE",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 154
     },
     {
       "id": "scholar:respiration_book",
@@ -4349,13 +4637,14 @@
         "LAPIS_LAZULI": 6,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "RESPIRATION",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 154
     },
     {
       "id": "scholar:riptide_book",
@@ -4367,13 +4656,14 @@
         "LAPIS_LAZULI": 6,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 25,
       "unlockPrice": 3900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "RIPTIDE",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 190
     },
     {
       "id": "scholar:sharpness_book",
@@ -4385,13 +4675,14 @@
         "LAPIS_LAZULI": 8,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "SHARPNESS",
-      "enchantmentLevel": 5
+      "enchantmentLevel": 5,
+      "professionXp": 182
     },
     {
       "id": "scholar:silk_touch_book",
@@ -4403,13 +4694,14 @@
         "LAPIS_LAZULI": 5,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 25,
       "unlockPrice": 3900,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "SILK_TOUCH",
-      "enchantmentLevel": 1
+      "enchantmentLevel": 1,
+      "professionXp": 185
     },
     {
       "id": "scholar:smite_book",
@@ -4421,13 +4713,14 @@
         "LAPIS_LAZULI": 8,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "SMITE",
-      "enchantmentLevel": 5
+      "enchantmentLevel": 5,
+      "professionXp": 164
     },
     {
       "id": "scholar:soul_speed_book",
@@ -4439,13 +4732,14 @@
         "LAPIS_LAZULI": 6,
         "DIAMOND": 2
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 29,
       "unlockPrice": 4400,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "SOUL_SPEED",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 219
     },
     {
       "id": "scholar:sweeping_edge_book",
@@ -4457,13 +4751,14 @@
         "LAPIS_LAZULI": 6,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "SWEEPING_EDGE",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 172
     },
     {
       "id": "scholar:swift_sneak_book",
@@ -4475,13 +4770,14 @@
         "LAPIS_LAZULI": 6,
         "DIAMOND": 2
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 29,
       "unlockPrice": 4400,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "SWIFT_SNEAK",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 219
     },
     {
       "id": "scholar:thorns_book",
@@ -4493,13 +4789,14 @@
         "LAPIS_LAZULI": 6,
         "DIAMOND": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 22,
       "unlockPrice": 3400,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "THORNS",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 172
     },
     {
       "id": "scholar:unbreaking_book",
@@ -4511,13 +4808,14 @@
         "LAPIS_LAZULI": 6,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "UNBREAKING",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 154
     },
     {
       "id": "scholar:vanishing_curse_book",
@@ -4529,13 +4827,14 @@
         "LAPIS_LAZULI": 5,
         "EMERALD": 1
       },
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2900,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "VANISHING_CURSE",
-      "enchantmentLevel": 1
+      "enchantmentLevel": 1,
+      "professionXp": 149
     },
     {
       "id": "scholar:wind_burst_book",
@@ -4547,13 +4846,14 @@
         "LAPIS_LAZULI": 6,
         "DIAMOND": 2
       },
-      "requiredProfessionLevel": 50,
+      "requiredProfessionLevel": 32,
       "unlockPrice": 4900,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "BOOKS",
       "enchantment": "WIND_BURST",
-      "enchantmentLevel": 3
+      "enchantmentLevel": 3,
+      "professionXp": 237
     },
     {
       "id": "progression:weapons_iron_sword_common_3",
@@ -4566,12 +4866,13 @@
         "STICK": 1
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 3,
+      "requiredProfessionLevel": 2,
       "unlockPrice": 0,
       "rarity": "COMMON",
       "unlockedByDefault": true,
       "category": "WEAPONS",
-      "resultItemId": "pixelrpg:weapons/iron_sword/common_3"
+      "resultItemId": "pixelrpg:weapons/iron_sword/common_3",
+      "professionXp": 27
     },
     {
       "id": "progression:armor_copper_helmet_donnerwacht_10",
@@ -4583,12 +4884,13 @@
         "COPPER_INGOT": 8
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 7,
       "unlockPrice": 250,
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/copper_helmet/donnerwacht_10"
+      "resultItemId": "pixelrpg:armor/copper_helmet/donnerwacht_10",
+      "professionXp": 82
     },
     {
       "id": "progression:armor_copper_chestplate_donnerwacht_10",
@@ -4600,12 +4902,13 @@
         "COPPER_INGOT": 8
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 7,
       "unlockPrice": 250,
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/copper_chestplate/donnerwacht_10"
+      "resultItemId": "pixelrpg:armor/copper_chestplate/donnerwacht_10",
+      "professionXp": 82
     },
     {
       "id": "progression:armor_copper_leggings_donnerwacht_10",
@@ -4617,12 +4920,13 @@
         "COPPER_INGOT": 8
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 7,
       "unlockPrice": 250,
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/copper_leggings/donnerwacht_10"
+      "resultItemId": "pixelrpg:armor/copper_leggings/donnerwacht_10",
+      "professionXp": 82
     },
     {
       "id": "progression:armor_copper_boots_donnerwacht_10",
@@ -4634,12 +4938,13 @@
         "COPPER_INGOT": 6
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 10,
+      "requiredProfessionLevel": 7,
       "unlockPrice": 250,
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/copper_boots/donnerwacht_10"
+      "resultItemId": "pixelrpg:armor/copper_boots/donnerwacht_10",
+      "professionXp": 72
     },
     {
       "id": "progression:armor_chainmail_helmet_schattengeflecht_20",
@@ -4652,12 +4957,13 @@
         "STRING": 2
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/chainmail_helmet/schattengeflecht_20"
+      "resultItemId": "pixelrpg:armor/chainmail_helmet/schattengeflecht_20",
+      "professionXp": 154
     },
     {
       "id": "progression:armor_chainmail_chestplate_schattengeflecht_20",
@@ -4670,12 +4976,13 @@
         "STRING": 2
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/chainmail_chestplate/schattengeflecht_20"
+      "resultItemId": "pixelrpg:armor/chainmail_chestplate/schattengeflecht_20",
+      "professionXp": 164
     },
     {
       "id": "progression:armor_chainmail_leggings_schattengeflecht_20",
@@ -4688,12 +4995,13 @@
         "STRING": 2
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/chainmail_leggings/schattengeflecht_20"
+      "resultItemId": "pixelrpg:armor/chainmail_leggings/schattengeflecht_20",
+      "professionXp": 159
     },
     {
       "id": "progression:armor_chainmail_boots_schattengeflecht_20",
@@ -4706,12 +5014,13 @@
         "STRING": 2
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 20,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 900,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/chainmail_boots/schattengeflecht_20"
+      "resultItemId": "pixelrpg:armor/chainmail_boots/schattengeflecht_20",
+      "professionXp": 149
     },
     {
       "id": "progression:weapons_gold_sword_uncommon_25",
@@ -4724,12 +5033,13 @@
         "STICK": 1
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 25,
+      "requiredProfessionLevel": 16,
       "unlockPrice": 1600,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "WEAPONS",
-      "resultItemId": "pixelrpg:weapons/gold_sword/uncommon_25"
+      "resultItemId": "pixelrpg:weapons/gold_sword/uncommon_25",
+      "professionXp": 121
     },
     {
       "id": "progression:armor_iron_helmet_stahlwall_30",
@@ -4741,12 +5051,13 @@
         "IRON_INGOT": 8
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2200,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/iron_helmet/stahlwall_30"
+      "resultItemId": "pixelrpg:armor/iron_helmet/stahlwall_30",
+      "professionXp": 154
     },
     {
       "id": "progression:armor_iron_chestplate_stahlwall_30",
@@ -4758,12 +5069,13 @@
         "IRON_INGOT": 8
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2200,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/iron_chestplate/stahlwall_30"
+      "resultItemId": "pixelrpg:armor/iron_chestplate/stahlwall_30",
+      "professionXp": 154
     },
     {
       "id": "progression:armor_iron_leggings_stahlwall_30",
@@ -4775,12 +5087,13 @@
         "IRON_INGOT": 8
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2200,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/iron_leggings/stahlwall_30"
+      "resultItemId": "pixelrpg:armor/iron_leggings/stahlwall_30",
+      "professionXp": 154
     },
     {
       "id": "progression:armor_iron_boots_stahlwall_30",
@@ -4792,12 +5105,13 @@
         "IRON_INGOT": 6
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 30,
+      "requiredProfessionLevel": 19,
       "unlockPrice": 2200,
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/iron_boots/stahlwall_30"
+      "resultItemId": "pixelrpg:armor/iron_boots/stahlwall_30",
+      "professionXp": 144
     },
     {
       "id": "progression:armor_gold_helmet_sonnengewand_45",
@@ -4812,12 +5126,13 @@
       "itemCosts": {
         "pixelrpg:boss/goldenes_fossil": 1
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 42,
       "unlockPrice": 5000,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/gold_helmet/sonnengewand_45"
+      "resultItemId": "pixelrpg:armor/gold_helmet/sonnengewand_45",
+      "professionXp": 307
     },
     {
       "id": "progression:armor_gold_chestplate_sonnengewand_45",
@@ -4832,12 +5147,13 @@
       "itemCosts": {
         "pixelrpg:boss/goldenes_fossil": 1
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 42,
       "unlockPrice": 5000,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/gold_chestplate/sonnengewand_45"
+      "resultItemId": "pixelrpg:armor/gold_chestplate/sonnengewand_45",
+      "professionXp": 312
     },
     {
       "id": "progression:armor_gold_leggings_sonnengewand_45",
@@ -4852,12 +5168,13 @@
       "itemCosts": {
         "pixelrpg:boss/goldenes_fossil": 1
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 42,
       "unlockPrice": 5000,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/gold_leggings/sonnengewand_45"
+      "resultItemId": "pixelrpg:armor/gold_leggings/sonnengewand_45",
+      "professionXp": 312
     },
     {
       "id": "progression:armor_gold_boots_sonnengewand_45",
@@ -4872,12 +5189,13 @@
       "itemCosts": {
         "pixelrpg:boss/goldenes_fossil": 1
       },
-      "requiredProfessionLevel": 45,
+      "requiredProfessionLevel": 42,
       "unlockPrice": 5000,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/gold_boots/sonnengewand_45"
+      "resultItemId": "pixelrpg:armor/gold_boots/sonnengewand_45",
+      "professionXp": 302
     },
     {
       "id": "progression:weapons_diamond_sword_rare_40",
@@ -4890,12 +5208,13 @@
         "STICK": 1
       },
       "itemCosts": {},
-      "requiredProfessionLevel": 40,
+      "requiredProfessionLevel": 25,
       "unlockPrice": 4500,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "WEAPONS",
-      "resultItemId": "pixelrpg:weapons/diamond_sword/rare_40"
+      "resultItemId": "pixelrpg:weapons/diamond_sword/rare_40",
+      "professionXp": 170
     },
     {
       "id": "progression:armor_diamond_helmet_kristallwache_60",
@@ -4909,12 +5228,13 @@
       "itemCosts": {
         "pixelrpg:boss/echoherz": 1
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 9000,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/diamond_helmet/kristallwache_60"
+      "resultItemId": "pixelrpg:armor/diamond_helmet/kristallwache_60",
+      "professionXp": 273
     },
     {
       "id": "progression:armor_diamond_chestplate_kristallwache_60",
@@ -4928,12 +5248,13 @@
       "itemCosts": {
         "pixelrpg:boss/echoherz": 1
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 9000,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/diamond_chestplate/kristallwache_60"
+      "resultItemId": "pixelrpg:armor/diamond_chestplate/kristallwache_60",
+      "professionXp": 278
     },
     {
       "id": "progression:armor_diamond_leggings_kristallwache_60",
@@ -4947,12 +5268,13 @@
       "itemCosts": {
         "pixelrpg:boss/echoherz": 1
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 9000,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/diamond_leggings/kristallwache_60"
+      "resultItemId": "pixelrpg:armor/diamond_leggings/kristallwache_60",
+      "professionXp": 278
     },
     {
       "id": "progression:armor_diamond_boots_kristallwache_60",
@@ -4966,12 +5288,13 @@
       "itemCosts": {
         "pixelrpg:boss/echoherz": 1
       },
-      "requiredProfessionLevel": 60,
+      "requiredProfessionLevel": 38,
       "unlockPrice": 9000,
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/diamond_boots/kristallwache_60"
+      "resultItemId": "pixelrpg:armor/diamond_boots/kristallwache_60",
+      "professionXp": 268
     },
     {
       "id": "progression:armor_netherite_helmet_hoellenschmiede_80",
@@ -4985,12 +5308,13 @@
       "itemCosts": {
         "pixelrpg:boss/netherkern": 1
       },
-      "requiredProfessionLevel": 80,
+      "requiredProfessionLevel": 51,
       "unlockPrice": 18000,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/netherite_helmet/hoellenschmiede_80"
+      "resultItemId": "pixelrpg:armor/netherite_helmet/hoellenschmiede_80",
+      "professionXp": 351
     },
     {
       "id": "progression:armor_netherite_chestplate_hoellenschmiede_80",
@@ -5004,12 +5328,13 @@
       "itemCosts": {
         "pixelrpg:boss/netherkern": 1
       },
-      "requiredProfessionLevel": 80,
+      "requiredProfessionLevel": 51,
       "unlockPrice": 18000,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/netherite_chestplate/hoellenschmiede_80"
+      "resultItemId": "pixelrpg:armor/netherite_chestplate/hoellenschmiede_80",
+      "professionXp": 356
     },
     {
       "id": "progression:armor_netherite_leggings_hoellenschmiede_80",
@@ -5023,12 +5348,13 @@
       "itemCosts": {
         "pixelrpg:boss/netherkern": 1
       },
-      "requiredProfessionLevel": 80,
+      "requiredProfessionLevel": 51,
       "unlockPrice": 18000,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/netherite_leggings/hoellenschmiede_80"
+      "resultItemId": "pixelrpg:armor/netherite_leggings/hoellenschmiede_80",
+      "professionXp": 356
     },
     {
       "id": "progression:armor_netherite_boots_hoellenschmiede_80",
@@ -5042,12 +5368,13 @@
       "itemCosts": {
         "pixelrpg:boss/netherkern": 1
       },
-      "requiredProfessionLevel": 80,
+      "requiredProfessionLevel": 51,
       "unlockPrice": 18000,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/netherite_boots/hoellenschmiede_80"
+      "resultItemId": "pixelrpg:armor/netherite_boots/hoellenschmiede_80",
+      "professionXp": 346
     },
     {
       "id": "progression:weapons_netherite_sword_legendary_90",
@@ -5062,12 +5389,13 @@
       "itemCosts": {
         "pixelrpg:boss/endriss": 1
       },
-      "requiredProfessionLevel": 90,
+      "requiredProfessionLevel": 57,
       "unlockPrice": 25000,
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "WEAPONS",
-      "resultItemId": "pixelrpg:weapons/netherite_sword/legendary_90"
+      "resultItemId": "pixelrpg:weapons/netherite_sword/legendary_90",
+      "professionXp": 377
     },
     {
       "id": "progression:weapons_fireball_alchemist_35",
@@ -5083,12 +5411,13 @@
       "itemCosts": {
         "pixelrpg:boss/sumpftrank": 1
       },
-      "requiredProfessionLevel": 35,
+      "requiredProfessionLevel": 21,
       "unlockPrice": 3500,
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "ARCANE",
-      "resultItemId": "pixelrpg:weapons/fireball/alchemist_35"
+      "resultItemId": "pixelrpg:weapons/fireball/alchemist_35",
+      "professionXp": 171
     }
   ]
 }
