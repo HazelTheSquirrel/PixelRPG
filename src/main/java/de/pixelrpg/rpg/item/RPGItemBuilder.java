@@ -199,6 +199,20 @@ public final class RPGItemBuilder {
         }
     }
 
+    private static int statCount(ItemRarity rarity) {
+        return switch (rarity) {
+            case COMMON -> 2;
+            case UNCOMMON -> 3;
+            case RARE -> 4;
+            case EPIC -> 5;
+            case LEGENDARY, UNIQUE -> 6;
+        };
+    }
+
+    private static double deterministicValue(double value) {
+        return value <= 0.0D ? 0.0D : round(value);
+    }
+
     private enum EquipmentStat {
         HP {
             @Override double baseValue() { return healthBase; }
