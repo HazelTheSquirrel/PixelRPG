@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.quest;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
+import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
@@ -47,7 +48,16 @@ public final class QuestCoordinateResolver {
             var result = world.locateNearestStructure(origin, structure, radius, false);
             if (result == null) return null;
 
-            Location location = result.getLocation();
+            Location located = result.getLocation();
+            int targetX = located.getBlockX();
+            int targetZ = located.getBlockZ();
+
+            // Vanilla locate returns a structure anchor with no meaningful surface Y
+            // (commonly 0). Keep the exact located X/Z and derive only a navigable
+            // surface Y from the target chunk. Quest completion itself uses X/Z.
+            int surfaceY = world.getHighestBlockYAt(targetX, targetZ, HeightMap.MOTION_BLOCKING_NO_LEAVES) + 1;
+            Location location = new Location(world, targetX + 0.5D, surfaceY, targetZ + 0.5D);
+
             NamespacedKey resolvedKey = RegistryAccess.registryAccess()
                     .getRegistry(RegistryKey.STRUCTURE)
                     .getKey(result.getStructure());
