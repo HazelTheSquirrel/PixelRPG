@@ -168,6 +168,7 @@ public final class NpcDialogueService implements AutoCloseable {
                 case PROFESSION_ALCHEMIST -> "Die Nacht war schrecklich. Einige Phiolen haben im Labor reagiert. In der Alchemie ist Neugier nützlich, Nachlässigkeit dagegen teuer.";
                 case PROFESSION_MASON -> "Die Nacht war schrecklich. An den Mauern sind neue Risse aufgetaucht. Ein guter Maurer repariert nicht nur den Schaden, sondern versteht seine Ursache.";
                 case PROFESSION_FISHERMAN -> "Die Nacht war schrecklich. Die Fische sind ungewöhnlich nah ans Ufer gekommen. Das Wasser erzählt oft früher von Veränderungen als die Menschen.";
+                case PROFESSION_MOUNTAIN_MINER -> "Die Nacht war schrecklich. Aus den Bergen kommen seltsame Geräusche. Wer Erz abbaut, muss wissen, wann ein Berg sicher ist – und wann nicht.";
                 case PROFESSION_WOODCUTTER -> "Die Nacht war schrecklich. Im Wald sind Spuren zu sehen, die dort nicht hingehören. Wer Holz schlägt, muss den Wald lesen können.";
                 case STORY, FILLER -> "";
             };
@@ -186,6 +187,7 @@ public final class NpcDialogueService implements AutoCloseable {
             case PROFESSION_ALCHEMIST -> "Die Phiolen stehen wieder sicher. Die interessantesten Ergebnisse entstehen selten beim ersten Versuch.";
             case PROFESSION_MASON -> "Die Mauer hält. Jetzt geht es darum, zu verstehen, warum sie überhaupt nachgegeben hat.";
             case PROFESSION_FISHERMAN -> "Das Wasser ist ruhiger. Die Strömung hat trotzdem Dinge mitgebracht, die ich noch nicht einordnen kann.";
+            case PROFESSION_MOUNTAIN_MINER -> "Die Berge sind heute ruhig. Trotzdem sollte man bei neuen Rissen und ungewöhnlichen Geräuschen genau hinhören.";
             case PROFESSION_WOODCUTTER -> "Der Wald ist heute still. Zu still, wenn du mich fragst.";
             case STORY, FILLER -> "";
         };
@@ -283,6 +285,13 @@ public final class NpcDialogueService implements AutoCloseable {
                 case 2 -> new String[]{"Tiefe verändert alles.", "Ein ruhiges Ufer und ein tiefer Abschnitt können völlig unterschiedliche Bedingungen haben. Wer seine Umgebung versteht, muss wissen, wo sich das Leben sammelt."};
                 case 3 -> new String[]{"Das Wetter schreibt auf die Wasseroberfläche.", "Wind, Regen und Temperatur verändern, wie sich Fische bewegen. Erfahrung heißt, diese Zeichen zu lesen, bevor die Angel überhaupt im Wasser liegt."};
                 default -> new String[]{"Fischen ist auch Geduld mit Grenzen.", "Wenn nichts beißt, bringt hektisches Wechseln selten etwas. Manchmal ist die beste Entscheidung, den Platz zu wechseln und später wiederzukommen."};
+            };
+            case PROFESSION_MOUNTAIN_MINER -> switch (variant) {
+                case 0 -> new String[]{"Der Berg ist kein Steinlager.", "Gute Bergleute achten auf Gestein, Geräusche und die Stabilität ihrer Umgebung. Erz zu finden ist nur die halbe Arbeit – sicher wieder herauszukommen gehört genauso dazu."};
+                case 1 -> new String[]{"Nicht jede Ader lohnt den Abbau.", "Tiefe, Material und Umgebung entscheiden darüber, ob sich ein Fund lohnt. Wer blind nach Erz gräbt, übersieht schnell die Gefahren um ihn herum."};
+                case 2 -> new String[]{"Gestein erzählt seine eigene Geschichte.", "Schichten, Risse und Veränderungen im Fels geben Hinweise darauf, wo man sicher arbeiten kann. Erfahrung bedeutet, diese Zeichen früh zu erkennen."};
+                case 3 -> new String[]{"Erz ist nicht das Einzige, was unter der Erde liegt.", "Hohlräume, Wasser und instabile Bereiche können gefährlicher sein als jeder seltene Fund. Ein guter Bergbauer plant den Rückweg, bevor er tiefer geht."};
+                default -> new String[]{"Sichere Rohstoffgewinnung braucht Geduld.", "Wer nur schnell möglichst viel Erz holen will, riskiert unnötige Schäden. Gute Bergleute arbeiten so, dass auch der nächste Abschnitt noch beherrschbar bleibt."};
             };
             case PROFESSION_WOODCUTTER -> switch (variant) {
                 case 0 -> new String[]{"Ein Wald ist kein Vorratslager.", "Wenn du nur nimmst, was du siehst, zerstörst du langfristig die Grundlage deines eigenen Handwerks. Nachhaltiges Arbeiten beginnt mit der Frage, was morgen noch wachsen soll."};
