@@ -57,7 +57,7 @@ public final class QuestPassiveCheckTask implements Listener {
         wakeScheduler.wake(playerId, () -> process(playerId));
     }
 
-    // A player joining the server needs its persisted quest timers and navigation state restored once.
+    // A player joining the server restores persisted quest timers and coordinate targets once.
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         questManager.restoreTimers(event.getPlayer());
@@ -65,13 +65,13 @@ public final class QuestPassiveCheckTask implements Listener {
         wake(event.getPlayer());
     }
 
-    // Story structure detection remains event-driven; navigation/progress updates are throttled to one pass per second.
+    // Coordinate objective checks are throttled to one pass per second.
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
         // Intentionally empty: StoryTriggerListener handles structure/chunk detection.
     }
 
-    // A world change invalidates both location checks and navigation targets.
+    // A world change requires another throttled coordinate-objective check.
     @EventHandler
     public void onWorldChange(PlayerChangedWorldEvent event) {
         wake(event.getPlayer());
@@ -90,7 +90,7 @@ public final class QuestPassiveCheckTask implements Listener {
         wake(event.getPlayer());
     }
 
-    // Quest completion can change the navigation target from an objective to its quest giver.
+    // Quest completion can change the active quest state.
     @EventHandler
     public void onQuestCompleted(QuestCompletedEvent event) {
         wake(event.getPlayer());
@@ -115,7 +115,7 @@ public final class QuestPassiveCheckTask implements Listener {
     }
 
     public void clear(Player player) {
-        if (navigationService != null) navigationService.clear(player);
+        if (player == null) return;
         wakeScheduler.cancel(player.getUniqueId());
     }
 
