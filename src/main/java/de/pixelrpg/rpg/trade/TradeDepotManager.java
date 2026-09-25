@@ -4,6 +4,7 @@ import de.pixelrpg.rpg.api.ItemAPI;
 import de.pixelrpg.rpg.core.AsyncFileWriter;
 import de.pixelrpg.rpg.dialogue.BankStorageService;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
+import de.pixelrpg.rpg.economy.Money;
 import de.pixelrpg.rpg.gui.TradeDepotGUI;
 import de.pixelrpg.rpg.gui.TradeDepotSellGUI;
 import de.pixelrpg.rpg.item.ItemService;
@@ -24,6 +25,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
@@ -148,7 +150,12 @@ public final class TradeDepotManager {
         }
         ItemStack listed = current.clone();
         player.getInventory().setItem(inventorySlot, null);
-        TradeDepotListing listing = new TradeDepotListing(UUID.randomUUID(), player.getUniqueId(), listed, price, System.currentTimeMillis() + LISTING_DURATION_MILLIS);
+        double normalizedPrice = Money.toMajor(Money.fromMajor(price));
+        if (normalizedPrice <= 0.0D) {
+            player.sendMessage(Component.text("Der Verkaufspreis ist zu klein.", NamedTextColor.RED));
+            return;
+        }
+        TradeDepotListing listing = new TradeDepotListing(UUID.randomUUID(), player.getUniqueId(), listed, normalizedPrice, System.currentTimeMillis() + LISTING_DURATION_MILLIS);
         listings.put(listing.id(), listing);
         invalidateListingOrder();
         scheduleExpiry(listing);
@@ -186,7 +193,10 @@ public final class TradeDepotManager {
         listings.remove(listingId);
         invalidateListingOrder();
         cancelExpiry(listingId);
-        double sellerAmount = listing.price() * (1.0D - SALE_FEE);
+        long priceMinor = Money.fromMajor(listing.price());
+        long feeMinor = BigDecimal.valueOf(priceMinor).multiply(BigDecimal.valueOf(SALE_FEE)).setScale(0, RoundingMode.HALF_UP).longValueExact();
+        long sellerMinor = priceMinor - feeMinor;
+        double sellerAmount = Money.toMajor(sellerMinor);
         PlayerProfile sellerProfile = profileManager.getProfile(listing.sellerId()).orElse(null);
         if (sellerProfile != null) sellerProfile.addMoney(sellerAmount);
         else pendingPayouts.merge(listing.sellerId(), sellerAmount, Double::sum);
@@ -301,7 +311,7 @@ public final class TradeDepotManager {
         if (root != null) for (String key : root.getKeys(false)) try {
             UUID id = UUID.fromString(key);
             UUID seller = UUID.fromString(root.getString(key + ".seller"));
-            double price = root.getDouble(key + ".price");
+            double price = Money.toMajor(Money.fromMajor(root.getDouble(key + ".price")));
             long expires = root.getLong(key + ".expires");
             String encoded = root.getString(key + ".item");
             if (encoded == null) continue;
