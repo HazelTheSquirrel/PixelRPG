@@ -17,6 +17,7 @@ public enum NpcType {
     PROFESSION_MASON(NamedTextColor.DARK_GRAY, NpcFunction.PROFESSION),
     PROFESSION_FISHERMAN(NamedTextColor.BLUE, NpcFunction.PROFESSION),
     PROFESSION_WOODCUTTER(NamedTextColor.DARK_GREEN, NpcFunction.PROFESSION),
+    PROFESSION_MOUNTAIN_MINER(NamedTextColor.DARK_GRAY, NpcFunction.PROFESSION),
     QUEST(NamedTextColor.YELLOW, NpcFunction.QUEST),
     SHOP(NamedTextColor.GREEN, NpcFunction.SHOP),
     TRAVEL(NamedTextColor.LIGHT_PURPLE, NpcFunction.TRAVEL),
