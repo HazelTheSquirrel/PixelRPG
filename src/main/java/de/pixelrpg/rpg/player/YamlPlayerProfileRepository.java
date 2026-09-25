@@ -104,7 +104,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
             case FISHERMAN -> "fishing";
             case TAILOR -> "skinning";
             case ALCHEMIST -> "alchemy";
-            case SCHOLAR, FARMER, MASON, WOODCUTTER -> null;
+            case SCHOLAR, FARMER, MASON, MOUNTAIN_MINER, WOODCUTTER -> null;
         };
     }
 
