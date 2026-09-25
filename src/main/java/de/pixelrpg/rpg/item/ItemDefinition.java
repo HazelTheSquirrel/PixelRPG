@@ -33,13 +33,17 @@ public record ItemDefinition(
         id = normalize(id);
         equipmentSlot = equipmentSlot == null ? "" : equipmentSlot.trim().toUpperCase(Locale.ROOT);
         setId = setId == null ? "" : setId.trim().toLowerCase(Locale.ROOT);
-        if (itemLevel < 1 || itemLevel > 99) throw new IllegalArgumentException("itemLevel must be between 1 and 99");
-        if (requiredLevel < 1 || requiredLevel > 99) throw new IllegalArgumentException("requiredLevel must be between 1 and 99");
+        if (itemLevel < 1 || itemLevel > 60) throw new IllegalArgumentException("itemLevel must be between 1 and 60");
+        if (requiredLevel < 1 || requiredLevel > 60) throw new IllegalArgumentException("requiredLevel must be between 1 and 60");
         if (requiredLevel > itemLevel) throw new IllegalArgumentException("requiredLevel must not exceed itemLevel");
         if (unique && (!adminOnly || rarity != ItemRarity.UNIQUE)) throw new IllegalArgumentException("Unique items must be UNIQUE and adminOnly");
         if (rarity == ItemRarity.UNIQUE && !unique) throw new IllegalArgumentException("UNIQUE rarity requires unique=true");
         if (weaponAbilityCooldownMillis < 0) throw new IllegalArgumentException("weaponAbilityCooldownMillis must not be negative");
         if (gearscoreModifier <= 0.0D) throw new IllegalArgumentException("gearscoreModifier must be positive");
+    }
+
+    public ItemTier tier() {
+        return ItemTier.forLevel(itemLevel);
     }
 
     private static String normalize(String value) {
