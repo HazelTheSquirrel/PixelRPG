@@ -34,6 +34,7 @@ public final class BossRepository {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         boolean changed = ensureWorldBossDefaults(yaml);
         changed |= ensureCustomProgressionLoot(yaml);
+        changed |= migrateProgressionLevels(yaml);
         if (changed) {
             try {
                 yaml.save(file);
@@ -78,10 +79,11 @@ public final class BossRepository {
                 List<BossLootEntry> chanceDrops = new ArrayList<>();
                 for (Map<?, ?> entry : lootSection.getMapList("chance-drops")) {
                     String material = stringValue(entry.get("material"));
-                    if (material.isBlank()) continue;
+                    if (material.isBlank() || material.trim().toLowerCase(java.util.Locale.ROOT).startsWith("pixelrpg:")) continue;
                     chanceDrops.add(new BossLootEntry(material, toDouble(entry.get("chance-percent")), parseRarity(stringValue(entry.get("rarity"), "RARE"))));
                 }
-                definition.setLootConfig(new BossLootConfig(lootSection.getStringList("guaranteed"), chanceDrops,
+                definition.setLootConfig(new BossLootConfig(lootSection.getStringList("guaranteed").stream()
+                        .filter(value -> !value.trim().toLowerCase(java.util.Locale.ROOT).startsWith("pixelrpg:")).toList(), chanceDrops,
                         lootSection.getDouble("money", 0.0D), lootSection.getLong("exp", 0L)));
             }
 
@@ -147,6 +149,40 @@ public final class BossRepository {
         return changed;
     }
 
+    private boolean migrateProgressionLevels(YamlConfiguration yaml) {
+        Map<String, Integer> biomeLevels = Map.ofEntries(
+                Map.entry("plunderer", 1), Map.entry("bee_queen", 4), Map.entry("forest_witch", 6),
+                Map.entry("creaking_heart", 9), Map.entry("jungle_warden", 11), Map.entry("swamp_witch", 14),
+                Map.entry("husk_king", 16), Map.entry("ravager_chief", 19), Map.entry("sandstone_colossus", 21),
+                Map.entry("frostwolf", 24), Map.entry("stray_warrior", 26), Map.entry("mountain_goat", 29),
+                Map.entry("wild_goat", 31), Map.entry("blossom_warden", 34), Map.entry("drowned_captain", 36),
+                Map.entry("river_warden", 39), Map.entry("guardian_of_depths", 41), Map.entry("mycelium_king", 44),
+                Map.entry("cave_hunter", 46), Map.entry("ancient_warden", 49), Map.entry("nether_lord", 51),
+                Map.entry("crimson_beast", 54), Map.entry("enderman_lord", 56), Map.entry("soul_lord", 58),
+                Map.entry("magma_colossus", 59), Map.entry("end_king", 60)
+        );
+        Map<String, Integer> worldLevels = Map.of(
+                "rift_colossus", 40, "storm_lord", 44, "abyss_lord", 48,
+                "soul_devourer", 52, "end_harbinger", 56, "ancient_world_warden", 60
+        );
+        boolean changed = false;
+        for (Map.Entry<String, Integer> entry : biomeLevels.entrySet()) {
+            String path = "bosses." + entry.getKey() + ".level";
+            if (yaml.isConfigurationSection("bosses." + entry.getKey()) && yaml.getInt(path) != entry.getValue()) {
+                yaml.set(path, entry.getValue());
+                changed = true;
+            }
+        }
+        for (Map.Entry<String, Integer> entry : worldLevels.entrySet()) {
+            String path = "bosses." + entry.getKey() + ".level";
+            if (yaml.isConfigurationSection("bosses." + entry.getKey()) && yaml.getInt(path) != entry.getValue()) {
+                yaml.set(path, entry.getValue());
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
     private boolean ensureWorldBossDefaults(YamlConfiguration yaml) {
         boolean changed = false;
         changed |= ensureWorldBoss(yaml, "rift_colossus", "Der Risskoloss", "RAVAGER", 80, 35.0, 5.0, 1.75, 2500, 6000, "pixelrpg:boss/risskern", "NETHER_STAR", "NETHERITE_INGOT", 15.0, "LEGENDARY");
@@ -170,39 +206,39 @@ public final class BossRepository {
 
     private void createDefaultBosses() {
         YamlConfiguration yaml = new YamlConfiguration();
-        boss(yaml, "plunderer", "Der Plünderer", "PILLAGER", 12, 4.0, 1.6, 1.15, 100, List.of("PROJECTILE_VOLLEY"), List.of("PLAINS", "SUNFLOWER_PLAINS"), "pixelrpg:boss/pluenderer_siegel", 150, 300);
-        boss(yaml, "bee_queen", "Die Bienenkönigin", "BEE", 16, 5.0, 1.5, 1.20, 80, List.of("SLAM"), List.of("FOREST", "FLOWER_FOREST", "BIRCH_FOREST", "OLD_GROWTH_BIRCH_FOREST"), "pixelrpg:boss/bienenkoenigin", 200, 400);
-        boss(yaml, "forest_witch", "Die Hexe des Waldes", "WITCH", 22, 5.5, 1.7, 1.20, 90, List.of("PROJECTILE_VOLLEY"), List.of("DARK_FOREST"), "pixelrpg:boss/hexenkessel", 250, 500);
-        boss(yaml, "creaking_heart", "Das Knarzende Herz", "CREAKING", 26, 6.0, 1.8, 1.25, 90, List.of("SLAM"), List.of("PALE_GARDEN"), "pixelrpg:boss/knarzendes_herzstueck", 300, 650);
-        boss(yaml, "jungle_warden", "Der Dschungelwächter", "PANDA", 30, 7.0, 1.9, 1.30, 90, List.of("SLAM"), List.of("JUNGLE", "SPARSE_JUNGLE", "BAMBOO_JUNGLE"), "pixelrpg:boss/dschungel_amulett", 350, 800);
-        boss(yaml, "swamp_witch", "Die Sumpfhexe", "WITCH", 32, 7.0, 1.9, 1.30, 85, List.of("PROJECTILE_VOLLEY"), List.of("SWAMP", "MANGROVE_SWAMP"), "pixelrpg:boss/sumpftrank", 400, 900);
-        boss(yaml, "husk_king", "Der Husk-König", "HUSK", 34, 7.5, 2.0, 1.30, 90, List.of("SLAM"), List.of("DESERT"), "pixelrpg:boss/husk_siegel", 450, 1000);
-        boss(yaml, "ravager_chief", "Der Ravager-Häuptling", "RAVAGER", 38, 9.0, 2.2, 1.35, 85, List.of("SLAM"), List.of("SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA"), "pixelrpg:boss/ravager_trophaee", 500, 1200);
-        boss(yaml, "sandstone_colossus", "Der Sandstein-Koloss", "HUSK", 40, 10.0, 2.2, 1.40, 95, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("BADLANDS", "WOODED_BADLANDS", "ERODED_BADLANDS"), "pixelrpg:boss/goldenes_fossil", 550, 1300);
-        boss(yaml, "frostwolf", "Der Frostwolf", "WOLF", 42, 10.0, 2.3, 1.35, 75, List.of("SLAM"), List.of("TAIGA", "OLD_GROWTH_PINE_TAIGA", "OLD_GROWTH_SPRUCE_TAIGA", "SNOWY_TAIGA"), "pixelrpg:boss/frostwolf_fang", 600, 1400);
-        boss(yaml, "stray_warrior", "Der Streuner-Krieger", "STRAY", 45, 11.0, 2.4, 1.35, 80, List.of("PROJECTILE_VOLLEY"), List.of("SNOWY_PLAINS", "ICE_SPIKES"), "pixelrpg:boss/frostpfeil_koecher", 650, 1600);
-        boss(yaml, "mountain_goat", "Der Bergbock", "GOAT", 48, 12.0, 2.5, 1.40, 75, List.of("SLAM"), List.of("JAGGED_PEAKS", "FROZEN_PEAKS", "STONY_PEAKS"), "pixelrpg:boss/horn_des_berges", 700, 1800);
-        boss(yaml, "wild_goat", "Der wilde Bergbock", "GOAT", 44, 10.0, 2.3, 1.35, 75, List.of("SLAM"), List.of("MEADOW"), "pixelrpg:boss/wildhorn", 650, 1500);
-        boss(yaml, "blossom_warden", "Der Blütenwächter", "BEE", 50, 12.0, 2.4, 1.35, 80, List.of("SLAM"), List.of("CHERRY_GROVE"), "pixelrpg:boss/bluetenhonig", 800, 2000);
-        boss(yaml, "drowned_captain", "Der Ertrunkene Kapitän", "DROWNED", 52, 13.0, 2.5, 1.35, 80, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("BEACH", "SNOWY_BEACH", "STONY_SHORE"), "pixelrpg:boss/kapitaens_nautilus", 850, 2200);
-        boss(yaml, "river_warden", "Der Flusswächter", "DROWNED", 50, 12.0, 2.4, 1.35, 80, List.of("PROJECTILE_VOLLEY"), List.of("RIVER", "FROZEN_RIVER"), "pixelrpg:boss/flusskiesel", 850, 2100);
-        boss(yaml, "guardian_of_depths", "Der Tiefenwächter", "GUARDIAN", 58, 15.0, 2.6, 1.40, 90, List.of("PROJECTILE_VOLLEY"), List.of("OCEAN", "DEEP_OCEAN", "COLD_OCEAN", "DEEP_COLD_OCEAN", "LUKEWARM_OCEAN", "DEEP_LUKEWARM_OCEAN", "WARM_OCEAN", "FROZEN_OCEAN", "DEEP_FROZEN_OCEAN"), "pixelrpg:boss/auge_der_tiefe", 1000, 2600);
-        boss(yaml, "mycelium_king", "Der Myzelkönig", "MOOSHROOM", 55, 14.0, 2.4, 1.35, 85, List.of("SLAM"), List.of("MUSHROOM_FIELDS"), "pixelrpg:boss/myzelkern", 900, 2400);
-        boss(yaml, "cave_hunter", "Der Höhlenjäger", "SPIDER", 46, 11.0, 2.2, 1.30, 75, List.of("SLAM"), List.of("DRIPSTONE_CAVES", "LUSH_CAVES"), "pixelrpg:boss/spinnenauge_des_jaegers", 750, 1900);
-        boss(yaml, "ancient_warden", "Der Uralte Wächter", "WARDEN", 65, 20.0, 3.0, 1.45, 100, List.of("SLAM"), List.of("DEEP_DARK"), "pixelrpg:boss/echoherz", 1200, 3500);
-        boss(yaml, "nether_lord", "Der Netherfürst", "PIGLIN_BRUTE", 68, 18.0, 3.0, 1.45, 80, List.of("SLAM", "PROJECTILE_VOLLEY"), List.of("NETHER_WASTES"), "pixelrpg:boss/netherkern", 1300, 3800);
-        boss(yaml, "crimson_beast", "Die Karmesinbestie", "HOGLIN", 62, 17.0, 2.8, 1.40, 75, List.of("SLAM"), List.of("CRIMSON_FOREST"), "pixelrpg:boss/karmesinherz", 1200, 3300);
-        boss(yaml, "enderman_lord", "Der Endermanfürst", "ENDERMAN", 72, 20.0, 3.0, 1.45, 80, List.of("SLAM", "PROJECTILE_VOLLEY"), List.of("WARPED_FOREST"), "pixelrpg:boss/gebundene_enderperle", 1400, 4000);
-        boss(yaml, "soul_lord", "Der Seelenfürst", "WITHER_SKELETON", 70, 19.0, 3.1, 1.45, 80, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("SOUL_SAND_VALLEY"), "pixelrpg:boss/seelenfragment", 1400, 3900);
-        boss(yaml, "magma_colossus", "Der Magmakoloss", "MAGMA_CUBE", 66, 18.0, 2.8, 1.45, 70, List.of("SLAM"), List.of("BASALT_DELTAS"), "pixelrpg:boss/magmaherz", 1350, 3700);
-        boss(yaml, "end_king", "Der Endkönig", "SHULKER", 78, 22.0, 3.2, 1.50, 85, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("THE_END", "END_HIGHLANDS", "END_MIDLANDS", "SMALL_END_ISLANDS", "END_BARRENS"), "pixelrpg:boss/shulkerkern", 1800, 5000);
+        boss(yaml, "plunderer", "Der Plünderer", "PILLAGER", 1, 2.2, 1, 1.15, 100, List.of("PROJECTILE_VOLLEY"), List.of("PLAINS", "SUNFLOWER_PLAINS"), "pixelrpg:boss/pluenderer_siegel", 150, 300);
+        boss(yaml, "bee_queen", "Die Bienenkönigin", "BEE", 4, 2.3, 1, 1.20, 80, List.of("SLAM"), List.of("FOREST", "FLOWER_FOREST", "BIRCH_FOREST", "OLD_GROWTH_BIRCH_FOREST"), "pixelrpg:boss/bienenkoenigin", 200, 400);
+        boss(yaml, "forest_witch", "Die Hexe des Waldes", "WITCH", 6, 2.4, 1, 1.20, 90, List.of("PROJECTILE_VOLLEY"), List.of("DARK_FOREST"), "pixelrpg:boss/hexenkessel", 250, 500);
+        boss(yaml, "creaking_heart", "Das Knarzende Herz", "CREAKING", 9, 2.5, 1.05, 1.25, 90, List.of("SLAM"), List.of("PALE_GARDEN"), "pixelrpg:boss/knarzendes_herzstueck", 300, 650);
+        boss(yaml, "jungle_warden", "Der Dschungelwächter", "PANDA", 11, 2.6, 1.05, 1.30, 90, List.of("SLAM"), List.of("JUNGLE", "SPARSE_JUNGLE", "BAMBOO_JUNGLE"), "pixelrpg:boss/dschungel_amulett", 350, 800);
+        boss(yaml, "swamp_witch", "Die Sumpfhexe", "WITCH", 14, 2.7, 1.05, 1.30, 85, List.of("PROJECTILE_VOLLEY"), List.of("SWAMP", "MANGROVE_SWAMP"), "pixelrpg:boss/sumpftrank", 400, 900);
+        boss(yaml, "husk_king", "Der Husk-König", "HUSK", 16, 2.8, 1.1, 1.30, 90, List.of("SLAM"), List.of("DESERT"), "pixelrpg:boss/husk_siegel", 450, 1000);
+        boss(yaml, "ravager_chief", "Der Ravager-Häuptling", "RAVAGER", 19, 3, 1.1, 1.35, 85, List.of("SLAM"), List.of("SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA"), "pixelrpg:boss/ravager_trophaee", 500, 1200);
+        boss(yaml, "sandstone_colossus", "Der Sandstein-Koloss", "HUSK", 21, 3.1, 1.1, 1.40, 95, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("BADLANDS", "WOODED_BADLANDS", "ERODED_BADLANDS"), "pixelrpg:boss/goldenes_fossil", 550, 1300);
+        boss(yaml, "frostwolf", "Der Frostwolf", "WOLF", 24, 3.2, 1.1, 1.35, 75, List.of("SLAM"), List.of("TAIGA", "OLD_GROWTH_PINE_TAIGA", "OLD_GROWTH_SPRUCE_TAIGA", "SNOWY_TAIGA"), "pixelrpg:boss/frostwolf_fang", 600, 1400);
+        boss(yaml, "stray_warrior", "Der Streuner-Krieger", "STRAY", 26, 3.3, 1.15, 1.35, 80, List.of("PROJECTILE_VOLLEY"), List.of("SNOWY_PLAINS", "ICE_SPIKES"), "pixelrpg:boss/frostpfeil_koecher", 650, 1600);
+        boss(yaml, "mountain_goat", "Der Bergbock", "GOAT", 29, 3.4, 1.15, 1.40, 75, List.of("SLAM"), List.of("JAGGED_PEAKS", "FROZEN_PEAKS", "STONY_PEAKS"), "pixelrpg:boss/horn_des_berges", 700, 1800);
+        boss(yaml, "wild_goat", "Der wilde Bergbock", "GOAT", 31, 3.3, 1.1, 1.35, 75, List.of("SLAM"), List.of("MEADOW"), "pixelrpg:boss/wildhorn", 650, 1500);
+        boss(yaml, "blossom_warden", "Der Blütenwächter", "BEE", 34, 3.5, 1.15, 1.35, 80, List.of("SLAM"), List.of("CHERRY_GROVE"), "pixelrpg:boss/bluetenhonig", 800, 2000);
+        boss(yaml, "drowned_captain", "Der Ertrunkene Kapitän", "DROWNED", 36, 3.6, 1.2, 1.35, 80, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("BEACH", "SNOWY_BEACH", "STONY_SHORE"), "pixelrpg:boss/kapitaens_nautilus", 850, 2200);
+        boss(yaml, "river_warden", "Der Flusswächter", "DROWNED", 39, 3.5, 1.15, 1.35, 80, List.of("PROJECTILE_VOLLEY"), List.of("RIVER", "FROZEN_RIVER"), "pixelrpg:boss/flusskiesel", 850, 2100);
+        boss(yaml, "guardian_of_depths", "Der Tiefenwächter", "GUARDIAN", 41, 3.8, 1.2, 1.40, 90, List.of("PROJECTILE_VOLLEY"), List.of("OCEAN", "DEEP_OCEAN", "COLD_OCEAN", "DEEP_COLD_OCEAN", "LUKEWARM_OCEAN", "DEEP_LUKEWARM_OCEAN", "WARM_OCEAN", "FROZEN_OCEAN", "DEEP_FROZEN_OCEAN"), "pixelrpg:boss/auge_der_tiefe", 1000, 2600);
+        boss(yaml, "mycelium_king", "Der Myzelkönig", "MOOSHROOM", 44, 3.7, 1.2, 1.35, 85, List.of("SLAM"), List.of("MUSHROOM_FIELDS"), "pixelrpg:boss/myzelkern", 900, 2400);
+        boss(yaml, "cave_hunter", "Der Höhlenjäger", "SPIDER", 46, 3.4, 1.15, 1.30, 75, List.of("SLAM"), List.of("DRIPSTONE_CAVES", "LUSH_CAVES"), "pixelrpg:boss/spinnenauge_des_jaegers", 750, 1900);
+        boss(yaml, "ancient_warden", "Der Uralte Wächter", "WARDEN", 49, 4, 1.25, 1.45, 100, List.of("SLAM"), List.of("DEEP_DARK"), "pixelrpg:boss/echoherz", 1200, 3500);
+        boss(yaml, "nether_lord", "Der Netherfürst", "PIGLIN_BRUTE", 51, 4.1, 1.25, 1.45, 80, List.of("SLAM", "PROJECTILE_VOLLEY"), List.of("NETHER_WASTES"), "pixelrpg:boss/netherkern", 1300, 3800);
+        boss(yaml, "crimson_beast", "Die Karmesinbestie", "HOGLIN", 54, 4, 1.25, 1.40, 75, List.of("SLAM"), List.of("CRIMSON_FOREST"), "pixelrpg:boss/karmesinherz", 1200, 3300);
+        boss(yaml, "enderman_lord", "Der Endermanfürst", "ENDERMAN", 56, 4.2, 1.3, 1.45, 80, List.of("SLAM", "PROJECTILE_VOLLEY"), List.of("WARPED_FOREST"), "pixelrpg:boss/gebundene_enderperle", 1400, 4000);
+        boss(yaml, "soul_lord", "Der Seelenfürst", "WITHER_SKELETON", 58, 4.2, 1.3, 1.45, 80, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("SOUL_SAND_VALLEY"), "pixelrpg:boss/seelenfragment", 1400, 3900);
+        boss(yaml, "magma_colossus", "Der Magmakoloss", "MAGMA_CUBE", 59, 4.3, 1.3, 1.45, 70, List.of("SLAM"), List.of("BASALT_DELTAS"), "pixelrpg:boss/magmaherz", 1350, 3700);
+        boss(yaml, "end_king", "Der Endkönig", "SHULKER", 60, 4.5, 1.35, 1.50, 85, List.of("PROJECTILE_VOLLEY", "SLAM"), List.of("THE_END", "END_HIGHLANDS", "END_MIDLANDS", "SMALL_END_ISLANDS", "END_BARRENS"), "pixelrpg:boss/shulkerkern", 1800, 5000);
 
-        worldBoss(yaml, "rift_colossus", "Der Risskoloss", "RAVAGER", 80, 35.0, 5.0, 1.75, 2500, 6000, "pixelrpg:boss/risskern", "NETHER_STAR", "NETHERITE_INGOT", 15.0, "LEGENDARY");
-        worldBoss(yaml, "storm_lord", "Der Sturmherrscher", "EVOKER", 84, 38.0, 4.8, 1.55, 3000, 7000, "pixelrpg:boss/sturmherz", "TOTEM_OF_UNDYING", "DIAMOND_BLOCK", 18.0, "LEGENDARY");
-        worldBoss(yaml, "abyss_lord", "Der Abgrundfürst", "ELDER_GUARDIAN", 88, 42.0, 4.5, 1.55, 3400, 8000, "pixelrpg:boss/abgrundkern", "HEART_OF_THE_SEA", "SPONGE", 20.0, "EPIC");
-        worldBoss(yaml, "soul_devourer", "Der Seelenverschlinger", "WITHER_SKELETON", 92, 45.0, 5.4, 1.50, 3800, 9000, "pixelrpg:boss/seelenkrone", "NETHER_STAR", "NETHERITE_SCRAP", 20.0, "LEGENDARY");
-        worldBoss(yaml, "end_harbinger", "Der Endbote", "ENDERMAN", 96, 48.0, 5.2, 1.55, 4200, 10000, "pixelrpg:boss/endriss", "DRAGON_BREATH", "ENDER_EYE", 25.0, "LEGENDARY");
-        worldBoss(yaml, "ancient_world_warden", "Der Uralte Weltenwächter", "WARDEN", 100, 55.0, 6.0, 1.65, 5000, 12000, "pixelrpg:boss/weltenherz", "NETHER_STAR", "ECHO_SHARD", 30.0, "LEGENDARY");
+        worldBoss(yaml, "rift_colossus", "Der Risskoloss", "RAVAGER", 40, 4.5, 1.35, 1.75, 2500, 6000, "pixelrpg:boss/risskern", "NETHER_STAR", "NETHERITE_INGOT", 15.0, "LEGENDARY");
+        worldBoss(yaml, "storm_lord", "Der Sturmherrscher", "EVOKER", 44, 4.8, 1.4, 1.55, 3000, 7000, "pixelrpg:boss/sturmherz", "TOTEM_OF_UNDYING", "DIAMOND_BLOCK", 18.0, "LEGENDARY");
+        worldBoss(yaml, "abyss_lord", "Der Abgrundfürst", "ELDER_GUARDIAN", 48, 5, 1.45, 1.55, 3400, 8000, "pixelrpg:boss/abgrundkern", "HEART_OF_THE_SEA", "SPONGE", 20.0, "EPIC");
+        worldBoss(yaml, "soul_devourer", "Der Seelenverschlinger", "WITHER_SKELETON", 52, 5.2, 1.5, 1.50, 3800, 9000, "pixelrpg:boss/seelenkrone", "NETHER_STAR", "NETHERITE_SCRAP", 20.0, "LEGENDARY");
+        worldBoss(yaml, "end_harbinger", "Der Endbote", "ENDERMAN", 56, 5.4, 1.55, 1.55, 4200, 10000, "pixelrpg:boss/endriss", "DRAGON_BREATH", "ENDER_EYE", 25.0, "LEGENDARY");
+        worldBoss(yaml, "ancient_world_warden", "Der Uralte Weltenwächter", "WARDEN", 60, 5.6, 1.6, 1.65, 5000, 12000, "pixelrpg:boss/weltenherz", "NETHER_STAR", "ECHO_SHARD", 30.0, "LEGENDARY");
 
         try { file.getParentFile().mkdirs(); yaml.save(file); }
         catch (IOException e) { plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to create default bosses.yml", e); }
