@@ -25,9 +25,7 @@ public final class QuestPassiveCheckTask implements Listener {
     private final QuestManager questManager;
     private final WakeScheduler<UUID> wakeScheduler;
     private BukkitTask throttledTask;
-    private QuestNavigationService navigationService;
     private QuestInventoryTracker inventoryTracker;
-    private QuestNavigationLifecycleListener navigationLifecycleListener;
     private boolean started;
 
     public QuestPassiveCheckTask(Plugin plugin, QuestManager questManager) {
@@ -39,13 +37,9 @@ public final class QuestPassiveCheckTask implements Listener {
     public void start() {
         if (started) return;
         started = true;
-        PixelRPGPlugin pixelRPG = PixelRPGPlugin.getInstance();
-        navigationService = new QuestNavigationService(plugin, questManager.getRepository(), pixelRPG.getPlayerProfileManager(), pixelRPG.getNpcManager(), pixelRPG.getStoryManager());
         questManager.setQuestStateChangeListener(this::wake);
         inventoryTracker = new QuestInventoryTracker(questManager);
-        navigationLifecycleListener = new QuestNavigationLifecycleListener(navigationService);
         plugin.getServer().getPluginManager().registerEvents(inventoryTracker, plugin);
-        plugin.getServer().getPluginManager().registerEvents(navigationLifecycleListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         throttledTask = plugin.getServer().getScheduler().runTaskTimer(plugin, this::processOnlinePlayers, 20L, 20L);
         for (Player player : Bukkit.getOnlinePlayers()) wake(player);
@@ -67,6 +61,7 @@ public final class QuestPassiveCheckTask implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         questManager.restoreTimers(event.getPlayer());
+        questManager.restoreQuestCoordinates(event.getPlayer());
         wake(event.getPlayer());
     }
 
@@ -85,6 +80,7 @@ public final class QuestPassiveCheckTask implements Listener {
     // Registration enables quest processing for the player and therefore wakes its state once.
     @EventHandler
     public void onRegistration(PlayerRegistrationEvent event) {
+        questManager.restoreQuestCoordinates(event.getPlayer());
         wake(event.getPlayer());
     }
 
@@ -110,13 +106,11 @@ public final class QuestPassiveCheckTask implements Listener {
     private void process(UUID uuid) {
         Player player = Bukkit.getPlayer(uuid);
         if (player == null || !player.isOnline()) return;
-        if (navigationService == null) return;
         questManager.checkReachLocationQuests(player);
-        navigationService.refresh(player);
     }
 
     private void processOnlinePlayers() {
-        if (!started || navigationService == null) return;
+        if (!started) return;
         for (Player player : Bukkit.getOnlinePlayers()) process(player.getUniqueId());
     }
 
@@ -136,12 +130,8 @@ public final class QuestPassiveCheckTask implements Listener {
             inventoryTracker.shutdown();
             HandlerList.unregisterAll(inventoryTracker);
         }
-        if (navigationLifecycleListener != null) HandlerList.unregisterAll(navigationLifecycleListener);
         HandlerList.unregisterAll(this);
-        if (navigationService != null) navigationService.clearAll();
         inventoryTracker = null;
-        navigationLifecycleListener = null;
-        navigationService = null;
         questManager.setQuestStateChangeListener(null);
         started = false;
     }
