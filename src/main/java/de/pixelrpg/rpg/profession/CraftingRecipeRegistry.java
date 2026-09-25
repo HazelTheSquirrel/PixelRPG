@@ -112,6 +112,12 @@ public final class CraftingRecipeRegistry {
             int amount = integerField(json, "resultAmount", id, 1);
             if (amount <= 0) throw new IllegalStateException("Invalid resultAmount for " + id + ": " + amount);
 
+            long materialCount = costs.values().stream().mapToLong(Integer::longValue).sum();
+            long itemCount = itemCosts.values().stream().mapToLong(Integer::longValue).sum();
+            long defaultProfessionXp = Math.max(20L, level * 6L + materialCount * 5L + itemCount * 10L);
+            long professionXp = longField(json, "professionXp", id, defaultProfessionXp);
+            if (professionXp <= 0L) throw new IllegalStateException("Invalid professionXp for " + id + ": " + professionXp);
+
             long price = longField(json, "unlockPrice", id, 0L);
             if (price < 0L) throw new IllegalStateException("Invalid unlockPrice for " + id + ": " + price);
 
@@ -127,7 +133,7 @@ public final class CraftingRecipeRegistry {
                 throw new IllegalStateException("PixelRPG item recipes must produce exactly one item: " + id);
             }
             recipes.put(id, new CraftRecipe(profession, category, id, label, result, amount, maximumRarity, costs, itemCosts,
-                    level, price, quest, defaultUnlocked, resultItemId.isBlank(), resultItemId, potionType, enchantment, enchantmentLevel));
+                    level, professionXp, price, quest, defaultUnlocked, resultItemId.isBlank(), resultItemId, potionType, enchantment, enchantmentLevel));
         }
     }
 
