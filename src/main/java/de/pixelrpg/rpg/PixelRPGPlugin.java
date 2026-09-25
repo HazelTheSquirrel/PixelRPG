@@ -44,6 +44,7 @@ import de.pixelrpg.rpg.dialogue.QuickActionsDialogListener;
 import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
 import de.pixelrpg.rpg.dialogue.StoryNpcDialogue;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
+import de.pixelrpg.rpg.economy.GuildCurrencyPickupListener;
 import de.pixelrpg.rpg.equipment.EquipmentService;
 import de.pixelrpg.rpg.gui.CraftingGUI;
 import de.pixelrpg.rpg.gui.GUIListener;
@@ -248,6 +249,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SkillInputListener(weaponAbilityEngine), this);
         getServer().getPluginManager().registerEvents(shopEditorGUI, this);
         getServer().getPluginManager().registerEvents(new LootDropListener(playerProfileManager, itemEconomyConfig), this);
+        getServer().getPluginManager().registerEvents(new GuildCurrencyPickupListener(playerProfileManager, playerProfileManager), this);
         mobLevelScalingListener = new MobLevelScalingListener(this, playerProfileManager, mobScalingConfig);
         getServer().getPluginManager().registerEvents(mobLevelScalingListener, this);
         mobLevelScalingListener.start();
