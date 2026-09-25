@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.combat.loot;
 
 import de.pixelrpg.rpg.api.GuildAPI;
+import de.pixelrpg.rpg.core.RPGKeys;
 import de.pixelrpg.rpg.economy.GuildCurrencyItemFactory;
 import de.pixelrpg.rpg.item.ItemEconomyConfig;
 import org.bukkit.entity.LivingEntity;
@@ -10,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -32,10 +34,10 @@ public final class LootDropListener implements Listener {
     public void onMonsterDeath(EntityDeathEvent event) {
         LivingEntity entity = event.getEntity();
         if (!(entity instanceof Monster)) return;
+        if (entity.getPersistentDataContainer().has(RPGKeys.Boss.bossId(), PersistentDataType.STRING)) return;
 
         Player killer = entity.getKiller();
         if (killer == null || !guildAPI.isRegistered(killer.getUniqueId())) return;
-
         if (ThreadLocalRandom.current().nextDouble() >= economyConfig.getCurrencyDropChance()) return;
 
         long min = economyConfig.getCurrencyDropMinAmount();
