@@ -24,7 +24,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-/** Connects normal Minecraft activities with the nine optional PixelRPG professions. */
+/** Connects normal Minecraft activities with the ten optional PixelRPG professions. */
 public final class ProfessionActivityListener implements Listener {
     private static final int MAX_TREE_LOGS = 64;
     private static final Set<Material> TREE_GROUND = Set.of(
@@ -110,12 +110,15 @@ public final class ProfessionActivityListener implements Listener {
         if (profession == null) return;
 
         long experience = switch (profession) {
-            case BLACKSMITH -> miningXp(material);
+            case BLACKSMITH, MOUNTAIN_MINER -> miningXp(material);
             case FARMER, WOODCUTTER, MASON, ALCHEMIST -> 8L;
             case SCHOLAR -> 5L;
             default -> 0L;
         };
         if (experience > 0L) professionService.addExperience(player, profession, experience);
+        if (MINEABLE_ORES.contains(material)) {
+            professionService.addExperience(player, Profession.MOUNTAIN_MINER, Math.max(4L, miningXp(material)));
+        }
 
         if (!automated
                 && profession == Profession.WOODCUTTER
