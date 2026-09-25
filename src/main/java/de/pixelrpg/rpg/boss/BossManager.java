@@ -255,7 +255,7 @@ public final class BossManager {
         if (rewardId == null || rewardId.isBlank()) return;
         String normalized = rewardId.trim().toLowerCase(java.util.Locale.ROOT);
         if (normalized.startsWith("pixelrpg:")) {
-            itemService.createItem(normalized, level).ifPresent(item -> giveItem(player, item));
+            plugin.getLogger().warning("Ignoring custom PixelRPG boss loot '" + rewardId + "'; custom items are quest/profession rewards only.");
             return;
         }
         Material material = Material.matchMaterial(rewardId);
