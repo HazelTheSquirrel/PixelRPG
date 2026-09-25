@@ -59,7 +59,7 @@ public final class MobScalingConfig {
     }
 
     public LevelBaseStats getBaseStats(int level) {
-        int safeLevel = Math.max(1, Math.min(99, level));
+        int safeLevel = Math.max(1, Math.min(60, level));
         return new LevelBaseStats(20.0D + safeLevel * hpPerLevel, 2.0D + safeLevel * damagePerLevel);
     }
 
