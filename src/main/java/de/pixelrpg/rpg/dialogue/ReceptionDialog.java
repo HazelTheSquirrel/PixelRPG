@@ -98,6 +98,20 @@ public final class ReceptionDialog {
                                 target -> openStoryChapter(target, chapter)));
                     }
                 });
+                pixelRPG.getQuestManager().getRepository().getAllQuests().stream()
+                        .filter(pixelRPG.getQuestManager()::isStoryQuest)
+                        .filter(storyQuest -> profile.hasActiveQuest(storyQuest.id()))
+                        .filter(storyQuest -> {
+                            var progress = profile.getActiveQuests().get(storyQuest.id());
+                            return progress != null && progress.getCurrentAmount() >= storyQuest.requiredAmount();
+                        })
+                        .forEach(storyQuest -> actions.add(dialogueEngine.actionButton(
+                                Component.text("Storyquest abgeben: " + storyQuest.title(), NamedTextColor.GREEN),
+                                NamedTextColor.GREEN,
+                                target -> {
+                                    pixelRPG.getQuestManager().completeQuest(target, storyQuest.id());
+                                    open();
+                                })));
                 actions.add(dialogueEngine.actionButton(
                         Component.text("Pixel-Archiv", NamedTextColor.AQUA),
                         NamedTextColor.AQUA,
