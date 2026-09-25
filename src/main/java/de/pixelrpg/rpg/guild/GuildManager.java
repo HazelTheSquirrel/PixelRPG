@@ -8,6 +8,7 @@ import de.pixelrpg.rpg.command.GuildInviteCommand;
 import de.pixelrpg.rpg.command.GuildLeaveCommand;
 import de.pixelrpg.rpg.command.PaperBasicCommandAdapter;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.economy.Money;
 import de.pixelrpg.rpg.scoreboard.ScoreboardService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.text.Component;
@@ -174,6 +175,43 @@ public final class GuildManager implements GuildAPI {
         return guilds.values().stream().filter(g -> g.name().equalsIgnoreCase(name)).findFirst().map(GuildData::snapshot);
     }
 
+    public synchronized double getTreasury(UUID playerId) {
+        GuildData guild = guilds.get(memberGuilds.get(playerId));
+        return guild == null ? 0.0D : Money.toMajor(guild.treasuryMinorUnits());
+    }
+
+    public synchronized boolean depositToTreasury(Player player, double amount) {
+        if (shuttingDown || player == null || !Double.isFinite(amount) || amount <= 0.0D) return false;
+        GuildData guild = guilds.get(memberGuilds.get(player.getUniqueId()));
+        if (guild == null) return false;
+        long minor = Money.fromMajor(amount);
+        if (minor <= 0L) return false;
+        var profile = profiles.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null || !profile.removeMoney(amount)) return false;
+        guild.addTreasury(minor);
+        profiles.saveProfileAsync(player.getUniqueId());
+        save();
+        return true;
+    }
+
+    public synchronized boolean withdrawFromTreasury(Player player, double amount) {
+        if (shuttingDown || player == null || !Double.isFinite(amount) || amount <= 0.0D) return false;
+        GuildData guild = guilds.get(memberGuilds.get(player.getUniqueId()));
+        if (guild == null || !guild.leaderId().equals(player.getUniqueId())) return false;
+        long minor = Money.fromMajor(amount);
+        if (minor <= 0L || guild.treasuryMinorUnits() < minor) return false;
+        guild.removeTreasury(minor);
+        var profile = profiles.getProfile(player.getUniqueId()).orElse(null);
+        if (profile == null) {
+            guild.addTreasury(minor);
+            return false;
+        }
+        profile.addMoney(amount);
+        profiles.saveProfileAsync(player.getUniqueId());
+        save();
+        return true;
+    }
+
     public synchronized Set<UUID> getMembers(UUID guildId) {
         GuildData guild = guilds.get(guildId);
         return guild == null ? Set.of() : Set.copyOf(guild.members());
@@ -237,6 +275,7 @@ public final class GuildManager implements GuildAPI {
                 for (String text : section.getStringList(idText + ".members")) members.add(UUID.fromString(text));
                 if (members.isEmpty()) members.add(leader);
                 GuildData guild = new GuildData(id, name, leader, members);
+                guild.treasuryMinorUnits = Money.fromMajor(section.getDouble(idText + ".treasury", 0.0D));
                 guilds.put(id, guild);
                 members.forEach(member -> memberGuilds.put(member, id));
             } catch (Exception exception) {
@@ -278,6 +317,7 @@ public final class GuildManager implements GuildAPI {
             snapshot.set(path + ".name", guild.name());
             snapshot.set(path + ".leader", guild.leaderId().toString());
             snapshot.set(path + ".members", guild.members().stream().map(UUID::toString).toList());
+            snapshot.set(path + ".treasury", Money.toMajor(guild.treasuryMinorUnits()));
         }
         return snapshot;
     }
@@ -333,18 +373,23 @@ public final class GuildManager implements GuildAPI {
         private final String name;
         private final UUID leaderId;
         private final LinkedHashSet<UUID> members;
+        private long treasuryMinorUnits;
 
         private GuildData(UUID id, String name, UUID leaderId, LinkedHashSet<UUID> members) {
             this.id = id;
             this.name = name;
             this.leaderId = leaderId;
             this.members = members;
+            this.treasuryMinorUnits = 0L;
         }
 
         private UUID id() { return id; }
         private String name() { return name; }
         private UUID leaderId() { return leaderId; }
         private LinkedHashSet<UUID> members() { return members; }
-        private Guild snapshot() { return new Guild(id, name, leaderId, members.size()); }
+        private Guild snapshot() { return new Guild(id, name, leaderId, members.size(), treasuryMinorUnits); }
+        private long treasuryMinorUnits() { return treasuryMinorUnits; }
+        private void addTreasury(long amount) { treasuryMinorUnits = amount > Long.MAX_VALUE - treasuryMinorUnits ? Long.MAX_VALUE : treasuryMinorUnits + amount; }
+        private void removeTreasury(long amount) { treasuryMinorUnits -= amount; }
     }
 }
