@@ -110,16 +110,12 @@ public final class ProfessionActivityListener implements Listener {
         if (profession == null) return;
 
         long experience = switch (profession) {
-            case BLACKSMITH, MOUNTAIN_MINER -> miningXp(material);
+            case BLACKSMITH -> miningXp(material);
             case FARMER, WOODCUTTER, MASON, ALCHEMIST -> 8L;
             case SCHOLAR -> 5L;
             default -> 0L;
         };
         if (experience > 0L) professionService.addExperience(player, profession, experience);
-        if (MINEABLE_ORES.contains(material)) {
-            professionService.addExperience(player, Profession.MOUNTAIN_MINER, Math.max(4L, miningXp(material)));
-        }
-
         if (!automated
                 && profession == Profession.WOODCUTTER
                 && professionService.getLevel(player.getUniqueId(), Profession.WOODCUTTER) >= 60
@@ -143,32 +139,6 @@ public final class ProfessionActivityListener implements Listener {
         Material logType = event.getBlockState().getType();
         Item matchingDrop = event.getItems().stream()
                 .filter(item -> item.getItemStack().getType() == logType)
-                .findFirst()
-                .orElse(null);
-        if (matchingDrop == null) return;
-
-        ItemStack stack = matchingDrop.getItemStack();
-        if (stack.getAmount() < stack.getMaxStackSize()) stack.setAmount(stack.getAmount() + 1);
-    }
-
-    // Verstärkt den passiven Bergbauer-Ertrag auf Vanilla-Erze, ohne Vanilla-Drops zu ersetzen.
-    @EventHandler
-    public void onMountainMinerDrop(BlockDropItemEvent event) {
-        Player player = event.getPlayer();
-        Material blockType = event.getBlockState().getType();
-        if (!MINEABLE_ORES.contains(blockType)) return;
-
-        int level = professionService.getLevel(player.getUniqueId(), Profession.MOUNTAIN_MINER);
-        if (level < 20) return;
-
-        double chance = level >= 100 ? 0.40D : level >= 80 ? 0.30D : level >= 60 ? 0.25D : 0.20D;
-        if (random.nextDouble() >= chance) return;
-
-        Material expectedDrop = oreDropMaterial(blockType);
-        if (expectedDrop == null) return;
-
-        Item matchingDrop = event.getItems().stream()
-                .filter(item -> item.getItemStack().getType() == expectedDrop)
                 .findFirst()
                 .orElse(null);
         if (matchingDrop == null) return;
