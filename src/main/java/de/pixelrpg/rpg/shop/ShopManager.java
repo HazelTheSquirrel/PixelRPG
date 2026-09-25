@@ -36,8 +36,9 @@ public final class ShopManager {
         ConfigurationSection root = yaml.getConfigurationSection("shops");
 
         boolean migratedAny = false;
-        if (root != null) for (String npcId : root.getKeys(false)) {
-            ConfigurationSection section = root.getConfigurationSection(npcId);
+        if (root != null) {
+            for (String npcId : root.getKeys(false)) {
+                ConfigurationSection section = root.getConfigurationSection(npcId);
             if (section == null) continue;
 
             List<ShopEntry> entries = new ArrayList<>();
@@ -64,7 +65,8 @@ public final class ShopManager {
                     }
                 }
             }
-            shopsByNpcId.put(npcId, List.copyOf(entries));
+                shopsByNpcId.put(npcId, List.copyOf(entries));
+            }
         }
 
         boolean defaultAdded = ensureDefaultVanillaBuildingShop();
