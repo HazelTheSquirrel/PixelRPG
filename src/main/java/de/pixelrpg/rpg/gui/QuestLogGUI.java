@@ -81,6 +81,11 @@ public final class QuestLogGUI extends AbstractGUI {
             lore.add(QuestText.requiredItem(viewer, quest).color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
         }
         if (progress != null) {
+            PlayerProfile.NavigationTarget target = profileManager.getProfile(viewer.getUniqueId())
+                    .map(activeProfile -> activeProfile.getQuestNavigationTarget(quest.id()))
+                    .orElse(null);
+            if (target != null) lore.add(QuestText.navigationTarget(viewer, quest, target)
+                    .color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
             lore.add(Component.text("Fortschritt: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.YELLOW)
                     .decoration(TextDecoration.ITALIC, false));
             if (progress.hasExpiry()) lore.add(Component.text("Zeitlich begrenzte Quest.", NamedTextColor.RED).decoration(TextDecoration.ITALIC, false));
