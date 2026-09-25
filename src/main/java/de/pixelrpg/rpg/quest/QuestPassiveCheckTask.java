@@ -68,7 +68,7 @@ public final class QuestPassiveCheckTask implements Listener {
     // Coordinate objective checks are throttled to one pass per second.
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
-        // Intentionally empty: StoryTriggerListener handles structure/chunk detection.
+        // Coordinate targets are persisted once; movement only needs the throttled X/Z check.
     }
 
     // A world change requires another throttled coordinate-objective check.
