@@ -37,11 +37,6 @@ public final class NpcDialogueService implements AutoCloseable {
         this.behaviors = Objects.requireNonNull(behaviors, "behaviors");
     }
 
-    /**
-     * Opens the NPC's narrative hub. The functional action remains available beside the lore.
-     * The lore page rotates through five unique entries per level band and repeats only after all
-     * five entries of the current cycle have been seen.
-     */
     /** Opens the registration gate shown when an unregistered player approaches any non-reception NPC. */
     public void openRegistrationRequired(Player player) {
         dialogue.openNotice(
@@ -52,6 +47,11 @@ public final class NpcDialogueService implements AutoCloseable {
         );
     }
 
+    /**
+     * Opens the NPC's narrative hub. The functional action remains available beside the lore.
+     * The lore page rotates through five unique entries per level band and repeats only after all
+     * five entries of the current cycle have been seen.
+     */
     public boolean open(Player player, RPGNpc npc) {
         if (npc.type() == NpcType.FILLER || npc.type() == NpcType.STORY) return false;
 
