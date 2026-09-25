@@ -41,6 +41,26 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         profile.setUnlockedWaypoints(new HashSet<>(yaml.getStringList("unlocked-waypoints")));
         profile.setStoryChapterIndex(yaml.getInt("story-chapter-index", -1));
         profile.setCompletedQuests(new HashSet<>(yaml.getStringList("completed-quests")));
+        ConfigurationSection navigationSection = yaml.getConfigurationSection("quest-navigation");
+        if (navigationSection != null) {
+            for (String questId : navigationSection.getKeys(false)) {
+                ConfigurationSection target = navigationSection.getConfigurationSection(questId);
+                if (target == null) continue;
+                String worldRaw = target.getString("world");
+                if (worldRaw == null) continue;
+                try {
+                    UUID worldId = UUID.fromString(worldRaw);
+                    profile.setQuestNavigationTarget(questId, new PlayerProfile.NavigationTarget(
+                            worldId,
+                            target.getDouble("x"),
+                            target.getDouble("y"),
+                            target.getDouble("z"),
+                            target.getString("target-key")
+                    ));
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+        }
         ConfigurationSection activeSection = yaml.getConfigurationSection("active-quests");
         if (activeSection != null) for (String questId : activeSection.getKeys(false)) profile.startQuest(new QuestProgress(questId, activeSection.getInt(questId + ".amount", 0), activeSection.getLong(questId + ".expiry", 0L)));
         ConfigurationSection statsSection = yaml.getConfigurationSection("statistics");
@@ -94,7 +114,20 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         yaml.set("registered", profile.isRegistered()); yaml.set("experience", profile.getExperience()); yaml.set("money-minor-units", profile.getMoneyMinorUnits());
         for (Profession profession : Profession.values()) { String key = profession.name().toLowerCase(); yaml.set("professions." + key + ".level", profile.getProfessionLevel(profession)); yaml.set("professions." + key + ".experience", profile.getProfessionExperience(profession)); yaml.set("professions." + key + ".learned", profile.hasLearnedProfession(profession)); }
         yaml.set("unlocked-recipes", new ArrayList<>(profile.getUnlockedRecipes())); yaml.set("unlocked-waypoints", new ArrayList<>(profile.getUnlockedWaypoints())); yaml.set("story-chapter-index", profile.getStoryChapterIndex()); yaml.set("completed-quests", new ArrayList<>(profile.getCompletedQuests()));
-        for (QuestProgress progress : profile.getActiveQuests().values()) { String path = "active-quests." + progress.getQuestId(); yaml.set(path + ".amount", progress.getCurrentAmount()); yaml.set(path + ".expiry", progress.getExpiryTimestampMillis()); }
+        for (QuestProgress progress : profile.getActiveQuests().values()) {
+            String path = "active-quests." + progress.getQuestId();
+            yaml.set(path + ".amount", progress.getCurrentAmount());
+            yaml.set(path + ".expiry", progress.getExpiryTimestampMillis());
+        }
+        for (var entry : profile.getQuestNavigationTargets().entrySet()) {
+            String path = "quest-navigation." + entry.getKey();
+            PlayerProfile.NavigationTarget target = entry.getValue();
+            yaml.set(path + ".world", target.worldId().toString());
+            yaml.set(path + ".x", target.x());
+            yaml.set(path + ".y", target.y());
+            yaml.set(path + ".z", target.z());
+            yaml.set(path + ".target-key", target.structureKey());
+        }
         for (var entry : profile.getAllStatistics().entrySet()) yaml.set("statistics." + entry.getKey(), entry.getValue());
         for (var entry : profile.getEquipment().entrySet()) yaml.set("equipment." + entry.getKey().name().toLowerCase(), entry.getValue());
         yaml.set("scoreboard-enabled", profile.isScoreboardEnabled()); yaml.set("party-hud-enabled", profile.isPartyHudEnabled()); yaml.set("quest-tracker-enabled", profile.isQuestTrackerEnabled()); yaml.set("playtime-millis", profile.getPlaytimeMillis());
