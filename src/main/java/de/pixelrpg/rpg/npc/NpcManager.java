@@ -70,6 +70,7 @@ public final class NpcManager implements AutoCloseable {
         ConfigurationSection root = yaml.getConfigurationSection("npcs");
         if (root == null) return;
 
+        boolean removedLegacyStoryNpcs = false;
         for (String id : root.getKeys(false)) {
             ConfigurationSection section = root.getConfigurationSection(id);
             if (section == null) continue;
@@ -77,6 +78,13 @@ public final class NpcManager implements AutoCloseable {
             NpcType type = parseType(section.getString("type"));
             if (type == null) continue;
 
+            // Story quests no longer use target NPCs/mannequins. Remove legacy
+            // story entities from the persisted NPC registry instead of respawning
+            // them invisibly around the player's quest target.
+            if (type == NpcType.STORY) {
+                removedLegacyStoryNpcs = true;
+                continue;
+            }
 
             String name = section.getString("name", "NPC");
             World world = section.getString("world") == null ? null : Bukkit.getWorld(section.getString("world"));
@@ -104,6 +112,7 @@ public final class NpcManager implements AutoCloseable {
             if (world.isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) spawnEntityFor(npc);
         }
 
+        if (removedLegacyStoryNpcs) saveAll();
     }
 
     public RPGNpc create(NpcType type, String name, Location location, String skinSource) {
@@ -145,7 +154,7 @@ public final class NpcManager implements AutoCloseable {
             entity.setInvulnerable(true);
             entity.setPersistent(false);
             entity.setRemoveWhenFarAway(false);
-            entity.setVisibleByDefault(true);
+            entity.setVisibleByDefault(npc.type() != NpcType.STORY);
             entity.setCollidable(false);
             entity.customName(Component.text(npc.name(), npc.type().getColor()));
             entity.setCustomNameVisible(false);
