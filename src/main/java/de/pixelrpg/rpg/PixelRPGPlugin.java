@@ -146,6 +146,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private RegionEditor regionEditor;
     private RegionSpawnService regionSpawnService;
     private GuildManager guildManager;
+    private GuildTerritoryManager guildTerritoryManager;
     private PlayerTradeManager playerTradeManager;
 
     @Override
@@ -197,6 +198,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         regionEditor.start();
         regionSpawnService = new RegionSpawnService(this, regionManager);
         regionSpawnService.start();
+        guildTerritoryManager = new GuildTerritoryManager(this, guildManager, regionManager);
+        getServer().getPluginManager().registerEvents(new GuildTerritoryListener(guildTerritoryManager), this);
         getServer().getPluginManager().registerEvents(new RegionListener(regionManager, regionEditor, regionSpawnService), this);
         BossAttackPatternRegistry patternRegistry = new BossAttackPatternRegistry();
         patternRegistry.register(new SlamAttackPattern());
@@ -282,6 +285,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         lifecycle.register(() -> companionService.shutdown());
         lifecycle.register(() -> partyManager.shutdown());
         lifecycle.register(() -> combatStateService.shutdown());
+        lifecycle.register(() -> guildTerritoryManager.shutdown());
         lifecycle.register(() -> guildManager.shutdown());
         lifecycle.register(playerTradeManager::close);
         lifecycle.register(() -> regionManager.shutdown());
@@ -358,5 +362,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public ScoreboardService getScoreboardService() { return scoreboardService; }
     public CompanionService getCompanionService() { return companionService; }
     public RegionManager getRegionManager() { return regionManager; }
+    public GuildTerritoryManager getGuildTerritoryManager() { return guildTerritoryManager; }
     public RegionEditor getRegionEditor() { return regionEditor; }
 }
