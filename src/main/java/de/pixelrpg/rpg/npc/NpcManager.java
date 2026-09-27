@@ -465,7 +465,7 @@ public final class NpcManager implements AutoCloseable {
     private NpcType parseType(String raw) {
         if (raw == null) return null;
         String normalized = raw.trim().toUpperCase();
-        if (normalized.equals("BLACKSMITH") || normalized.equals("PROFESSION_BLACKSMITH")) return NpcType.PROFESSION_BLACKSMITH;
+        if (normalized.equals("BLACKSMITH") || normalized.equals("PROFESSION_BLACKSMITH") || normalized.equals("PROFESSION_MOUNTAIN_MINER") || normalized.equals("MOUNTAIN_MINER")) return NpcType.PROFESSION_BLACKSMITH;
         if (normalized.equals("PROFESSION_PROVISIONER")) return NpcType.PROFESSION_COOK;
         if (normalized.equals("PROFESSION_COOK")) return NpcType.PROFESSION_COOK;
         try { return NpcType.valueOf(normalized); }
