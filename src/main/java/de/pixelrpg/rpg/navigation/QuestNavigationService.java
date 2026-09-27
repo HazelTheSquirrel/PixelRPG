@@ -44,7 +44,12 @@ public final class QuestNavigationService implements Listener {
             resetCompass(player);
             return;
         }
-        player.setCompassTarget(target.location());
+        var world = Bukkit.getWorld(target.location().worldId());
+        if (world == null) {
+            resetCompass(player);
+            return;
+        }
+        player.setCompassTarget(new Location(world, target.location().x(), target.location().y(), target.location().z()));
     }
 
     /** Selects an active quest for navigation and persists the existing target representation. */
