@@ -12,6 +12,7 @@ import de.pixelrpg.rpg.guild.Guild;
 import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.party.Party;
 import de.pixelrpg.rpg.player.PlayerProfile;
+import de.pixelrpg.rpg.quest.QuestManager;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import net.kyori.adventure.text.Component;
@@ -334,24 +335,23 @@ public final class ScoreboardService implements Listener {
 
     private void appendPartyLine(List<Component> lines, Player player) {
         Party party = PixelRPGPlugin.getInstance().getPartyManager().getParty(player.getUniqueId()).orElse(null);
-        Component line = Component.text("Party: ", NamedTextColor.GRAY);
+        Component header = Component.text("Party: ", NamedTextColor.GRAY);
         if (party == null || party.getMembers().isEmpty()) {
-            lines.add(line.append(Component.text("Keine", NamedTextColor.DARK_GRAY)));
+            lines.add(header.append(Component.text("Keine", NamedTextColor.DARK_GRAY)));
             return;
         }
-        boolean first = true;
+
+        lines.add(header);
         for (UUID memberId : party.getMembers()) {
-            if (!first) line = line.append(Component.text(", ", NamedTextColor.DARK_GRAY));
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(memberId);
             String name = offlinePlayer.getName() == null ? memberId.toString().substring(0, 8) : offlinePlayer.getName();
-            Component member = Component.text(name, memberId.equals(player.getUniqueId()) ? NamedTextColor.AQUA : NamedTextColor.WHITE);
-            if (offlinePlayer instanceof Player onlinePlayer && onlinePlayer.isOnline()) member = member.hoverEvent(onlinePlayer.asHoverEvent());
-            line = line.append(member);
-            first = false;
+            Component member = Component.text("  " + name, memberId.equals(player.getUniqueId()) ? NamedTextColor.AQUA : NamedTextColor.WHITE);
+            if (offlinePlayer instanceof Player onlinePlayer && onlinePlayer.isOnline()) {
+                member = member.hoverEvent(onlinePlayer.asHoverEvent());
+            }
+            lines.add(member);
         }
-        lines.add(line);
     }
-
 
     private String formatGold(double amount) {
         return String.format(java.util.Locale.ROOT, "%.2f", amount);
