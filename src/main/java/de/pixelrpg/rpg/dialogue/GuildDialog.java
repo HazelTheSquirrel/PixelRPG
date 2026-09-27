@@ -118,9 +118,8 @@ public final class GuildDialog {
         );
         List<ActionButton> actions = new ArrayList<>();
         actions.add(action(Component.text("Mitglieder anzeigen", NamedTextColor.AQUA), p -> showMembers(p, guild)));
-        actions.add(action(Component.text("Gold einzahlen", NamedTextColor.GOLD), this::openTreasuryDeposit));
+        actions.add(action(Component.text("Gildengold", NamedTextColor.GOLD), p -> openGuildGold(p, guild)));
         if (leader || guild.isDeputy(player.getUniqueId())) actions.add(action(Component.text("Grenzmarker kaufen", NamedTextColor.GOLD), this::purchaseMarker));
-        if (leader) actions.add(action(Component.text("Gold auszahlen", NamedTextColor.YELLOW), this::openTreasuryWithdraw));
         if (leader && invites != null) actions.add(action(Component.text("Spieler einladen", NamedTextColor.GREEN), invites::openGuildInviteInput));
         if (leader) actions.add(action(Component.text(guild.deputyId() == null ? "Stellvertreter ernennen" : "Stellvertreter verwalten", NamedTextColor.AQUA), this::openDeputyManagement));
         actions.add(action(Component.text("Zurück", NamedTextColor.WHITE), backAction));
@@ -212,6 +211,39 @@ public final class GuildDialog {
         });
         ActionButton back = action(Component.text("Zurück", NamedTextColor.WHITE), this::open);
         dialogue.openMultiAction(player, Component.text("Stellvertreter", NamedTextColor.AQUA), body, List.of(remove, back), 1);
+    }
+
+    private void openGuildGold(Player player, Guild guild) {
+        Guild currentGuild = guilds.getGuild(player.getUniqueId()).orElse(null);
+        if (currentGuild == null || !currentGuild.id().equals(guild.id())) {
+            open(player);
+            return;
+        }
+
+        boolean leader = currentGuild.isLeader(player.getUniqueId());
+        List<ActionButton> actions = new ArrayList<>();
+        actions.add(action(Component.text("Gold einzahlen", NamedTextColor.GOLD), this::openTreasuryDeposit));
+        if (leader) actions.add(action(Component.text("Gold auszahlen", NamedTextColor.YELLOW), this::openTreasuryWithdraw));
+        actions.add(action(Component.text("Zurück", NamedTextColor.WHITE), this::open));
+
+        List<DialogBody> body = List.of(
+                DialogBody.plainMessage(Component.text(
+                        "Gildenkasse: " + String.format(java.util.Locale.ROOT, "%.2f", currentGuild.treasury()) + " Goldtaler",
+                        NamedTextColor.GOLD)),
+                DialogBody.plainMessage(Component.text(
+                        leader
+                                ? "Du kannst Gold einzahlen oder als Gildenmeister aus der Gildenkasse auszahlen."
+                                : "Du kannst Gold in die gemeinsame Gildenkasse einzahlen.",
+                        NamedTextColor.WHITE))
+        );
+
+        dialogue.openMultiAction(
+                player,
+                Component.text("Gildengold", NamedTextColor.GOLD),
+                body,
+                actions,
+                1
+        );
     }
 
     private void openTreasuryDeposit(Player player) {
