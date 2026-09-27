@@ -7,21 +7,19 @@ import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
-import org.bukkit.block.Biome;
 import org.bukkit.entity.Player;
 import org.bukkit.generator.structure.Structure;
 
 import java.util.Locale;
 
 /**
- * Resolves a quest's world target exactly once from the vanilla/Paper locate APIs.
+ * Resolves a quest structure once through Paper's vanilla locate API.
  *
- * The resolved coordinates are persisted in PlayerProfile and are never recalculated
- * while the quest is active. No entity or locator bar is involved.
+ * The resolved X/Z coordinates are persisted while the quest is active.
+ * There is no navigation UI, navigation bar, or live target tracking.
  */
 public final class QuestCoordinateResolver {
     private static final int DEFAULT_STRUCTURE_RADIUS_CHUNKS = 64;
-    private static final int DEFAULT_BIOME_RADIUS_BLOCKS = 10_000;
 
     private QuestCoordinateResolver() {
     }
@@ -33,62 +31,39 @@ public final class QuestCoordinateResolver {
         World world = origin.getWorld();
         if (world == null) return null;
 
-        if (quest.targetStructureKey() != null && !quest.targetStructureKey().isBlank()) {
-            NamespacedKey key = NamespacedKey.fromString(quest.targetStructureKey().trim().toLowerCase(Locale.ROOT));
-            if (key == null) throw new IllegalArgumentException("Invalid structure key: " + quest.targetStructureKey());
+        NamespacedKey key = NamespacedKey.fromString(quest.targetStructureKey().trim().toLowerCase(Locale.ROOT));
+        if (key == null) throw new IllegalArgumentException("Invalid structure key: " + quest.targetStructureKey());
 
-            Structure structure = RegistryAccess.registryAccess()
-                    .getRegistry(RegistryKey.STRUCTURE)
-                    .get(key);
-            if (structure == null) throw new IllegalArgumentException("Unknown structure: " + quest.targetStructureKey());
+        Structure structure = RegistryAccess.registryAccess()
+                .getRegistry(RegistryKey.STRUCTURE)
+                .get(key);
+        if (structure == null) throw new IllegalArgumentException("Unknown structure: " + quest.targetStructureKey());
 
-            int radius = Math.max(1, quest.locateRadius() > 0
-                    ? quest.navigationRadius()
-                    : DEFAULT_STRUCTURE_RADIUS_CHUNKS);
-            var result = world.locateNearestStructure(origin, structure, radius, false);
-            if (result == null) return null;
+        int radius = Math.max(1, quest.locateRadius() > 0
+                ? quest.locateRadius()
+                : DEFAULT_STRUCTURE_RADIUS_CHUNKS);
+        var result = world.locateNearestStructure(origin, structure, radius, false);
+        if (result == null) return null;
 
-            Location located = result.getLocation();
-            int targetX = located.getBlockX();
-            int targetZ = located.getBlockZ();
+        Location located = result.getLocation();
+        int targetX = located.getBlockX();
+        int targetZ = located.getBlockZ();
 
-            // Vanilla locate returns a structure anchor with no meaningful surface Y
-            // (commonly 0). Keep the exact located X/Z and derive only a navigable
-            // surface Y from the target chunk. Quest completion itself uses X/Z.
-            int surfaceY = world.getHighestBlockYAt(targetX, targetZ, HeightMap.MOTION_BLOCKING_NO_LEAVES) + 1;
-            Location location = new Location(world, targetX + 0.5D, surfaceY, targetZ + 0.5D);
+        int surfaceY = world.getHighestBlockYAt(
+                targetX,
+                targetZ,
+                HeightMap.MOTION_BLOCKING_NO_LEAVES
+        ) + 1;
+        Location location = new Location(world, targetX + 0.5D, surfaceY, targetZ + 0.5D);
 
-            NamespacedKey resolvedKey = RegistryAccess.registryAccess()
-                    .getRegistry(RegistryKey.STRUCTURE)
-                    .getKey(result.getStructure());
-            return new PlayerProfileTarget(location, resolvedKey == null ? key.toString() : resolvedKey.toString());
-        }
+        NamespacedKey resolvedKey = RegistryAccess.registryAccess()
+                .getRegistry(RegistryKey.STRUCTURE)
+                .getKey(result.getStructure());
 
-        if (!quest.targetBiomeKeys().isEmpty()) {
-            var registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME);
-            var biomes = quest.targetBiomeKeys().stream()
-                    .map(String::trim)
-                    .filter(key -> !key.isBlank())
-                    .map(key -> NamespacedKey.fromString(key.toLowerCase(Locale.ROOT)))
-                    .filter(java.util.Objects::nonNull)
-                    .map(registry::get)
-                    .filter(java.util.Objects::nonNull)
-                    .toArray(Biome[]::new);
-            if (biomes.length == 0) return null;
-
-            int radius = Math.max(1, quest.navigationRadius() > 0
-                    ? quest.navigationRadius()
-                    : DEFAULT_BIOME_RADIUS_BLOCKS);
-            var result = world.locateNearestBiome(origin, radius, biomes);
-            if (result == null) return null;
-
-            NamespacedKey resolvedKey = registry.getKey(result.getBiome());
-            return new PlayerProfileTarget(result.getLocation(), resolvedKey == null ? null : resolvedKey.toString());
-        }
-
-        Location fixed = quest.reachLocation();
-        if (fixed == null || fixed.getWorld() == null) return null;
-        return new PlayerProfileTarget(fixed, null);
+        return new PlayerProfileTarget(
+                location,
+                resolvedKey == null ? key.toString() : resolvedKey.toString()
+        );
     }
 
     public record PlayerProfileTarget(Location location, String targetKey) {
