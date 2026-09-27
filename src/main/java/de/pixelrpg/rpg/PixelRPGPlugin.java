@@ -94,6 +94,7 @@ import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryManager;
 import de.pixelrpg.rpg.travel.GuildCompassListener;
 import de.pixelrpg.rpg.guild.GuildManager;
+import de.pixelrpg.rpg.trade.PlayerTradeManager;
 import de.pixelrpg.rpg.region.RegionEditor;
 import de.pixelrpg.rpg.region.RegionListener;
 import de.pixelrpg.rpg.region.RegionManager;
@@ -145,6 +146,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private RegionEditor regionEditor;
     private RegionSpawnService regionSpawnService;
     private GuildManager guildManager;
+    private PlayerTradeManager playerTradeManager;
 
     @Override
     public void onEnable() {
@@ -184,6 +186,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         globalEventState.load();
         questManager = new QuestManager(this, questRepository, playerProfileManager, playerProfileManager, globalEventState, storyManager, partyManager.getShareRange());
         guildManager = GuildManager.getInstance(this, playerProfileManager);
+        playerTradeManager = new PlayerTradeManager(this, playerProfileManager, itemService);
+        getServer().getPluginManager().registerEvents(playerTradeManager, this);
         combatStateService = new CombatStateService(this);
         inviteDialogService = new InviteDialogService(this, guildManager, partyManager, playerProfileManager, combatStateService);
         RegionRepository regionRepository = new RegionRepository(getDataFolder(), getLogger());
@@ -280,6 +284,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         lifecycle.register(() -> partyManager.shutdown());
         lifecycle.register(() -> combatStateService.shutdown());
         lifecycle.register(() -> guildManager.shutdown());
+        lifecycle.register(playerTradeManager::close);
         lifecycle.register(() -> regionManager.shutdown());
         lifecycle.register(() -> npcManager.shutdown());
         lifecycle.register(() -> npcLookTask.stop());
@@ -333,6 +338,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
 
     public static PixelRPGPlugin getInstance() { return instance; }
     public PlayerProfileManager getPlayerProfileManager() { return playerProfileManager; }
+    public PlayerTradeManager getPlayerTradeManager() { return playerTradeManager; }
     public StatEngine getStatEngine() { return statEngine; }
     public ProfessionSystem getProfessionSystem() { return professionSystem; }
     public ItemDisplayNameResolver getItemDisplayNameResolver() { return itemDisplayNameResolver; }

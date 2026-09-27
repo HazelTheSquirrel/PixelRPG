@@ -10,6 +10,8 @@ import de.pixelrpg.rpg.command.PaperBasicCommandAdapter;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.economy.Money;
 import de.pixelrpg.rpg.scoreboard.ScoreboardService;
+import de.pixelrpg.rpg.region.PixelRegion;
+import de.pixelrpg.rpg.region.RegionType;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -131,6 +133,7 @@ public final class GuildManager implements GuildAPI {
         if (guild.members().size() >= MAX_MEMBERS) return Result.GUILD_FULL;
         guild.members().add(player.getUniqueId());
         memberGuilds.put(player.getUniqueId(), guild.id());
+        syncCityMember(guild, player.getUniqueId());
         save();
         wakeScoreboards(Set.of(player.getUniqueId()));
         return Result.SUCCESS;
@@ -143,6 +146,7 @@ public final class GuildManager implements GuildAPI {
         if (guild.leaderId().equals(player.getUniqueId())) return Result.LEADER_CANNOT_LEAVE;
         guild.members().remove(player.getUniqueId());
         memberGuilds.remove(player.getUniqueId());
+        syncCityMember(guild, player.getUniqueId());
         save();
         wakeScoreboards(Set.of(player.getUniqueId()));
         return Result.SUCCESS;
@@ -212,6 +216,77 @@ public final class GuildManager implements GuildAPI {
         return true;
     }
 
+    public synchronized Result claimCity(Player leader, String selector) {
+        if (shuttingDown || leader == null || selector == null || selector.isBlank()) return Result.NOT_IN_GUILD;
+        GuildData guild = guilds.get(memberGuilds.get(leader.getUniqueId()));
+        if (guild == null) return Result.NOT_IN_GUILD;
+        if (!guild.leaderId().equals(leader.getUniqueId())) return Result.NOT_LEADER;
+        if (guild.cityRegionId != null) return Result.CITY_ALREADY_CLAIMED;
+        var regionManager = plugin.getRegionManager();
+        if (regionManager == null) return Result.CITY_REGION_NOT_FOUND;
+        PixelRegion region = resolveRegion(regionManager, selector);
+        if (region == null || region.isGlobal()) return Result.CITY_REGION_NOT_FOUND;
+        if (region.type() != RegionType.GUILD_CITY) return Result.NOT_GUILD_CITY;
+        if (region.ownerId() != null && !region.ownerId().equals(leader.getUniqueId())) return Result.CITY_OWNED;
+        if (guilds.values().stream().anyMatch(other -> region.id().equals(other.cityRegionId))) return Result.CITY_OWNED;
+        region.setOwner(leader.getUniqueId());
+        guild.members().forEach(region::addMember);
+        guild.cityRegionId = region.id();
+        regionManager.save();
+        save();
+        return Result.SUCCESS;
+    }
+
+    public synchronized Result releaseCity(Player leader) {
+        if (shuttingDown || leader == null) return Result.NOT_IN_GUILD;
+        GuildData guild = guilds.get(memberGuilds.get(leader.getUniqueId()));
+        if (guild == null) return Result.NOT_IN_GUILD;
+        if (!guild.leaderId().equals(leader.getUniqueId())) return Result.NOT_LEADER;
+        if (guild.cityRegionId == null) return Result.NO_CITY;
+        releaseCityInternal(guild);
+        save();
+        return Result.SUCCESS;
+    }
+
+    public synchronized Optional<UUID> getCityRegionId(UUID playerId) {
+        GuildData guild = guilds.get(memberGuilds.get(playerId));
+        return guild == null ? Optional.empty() : Optional.ofNullable(guild.cityRegionId);
+    }
+
+    private PixelRegion resolveRegion(de.pixelrpg.rpg.region.RegionManager regions, String selector) {
+        try {
+            UUID id = UUID.fromString(selector);
+            return regions.get(id).orElse(null);
+        } catch (IllegalArgumentException ignored) {
+            return regions.all().stream().filter(region -> region.name().equalsIgnoreCase(selector)).findFirst().orElse(null);
+        }
+    }
+
+    private void syncCityMember(GuildData guild, UUID playerId) {
+        if (guild.cityRegionId == null) return;
+        var regions = plugin.getRegionManager();
+        if (regions == null) return;
+        PixelRegion region = regions.get(guild.cityRegionId).orElse(null);
+        if (region == null) return;
+        if (guild.members().contains(playerId)) region.addMember(playerId);
+        else region.removeMember(playerId);
+        regions.save();
+    }
+
+    private void releaseCityInternal(GuildData guild) {
+        if (guild.cityRegionId == null) return;
+        var regions = plugin.getRegionManager();
+        if (regions != null) {
+            PixelRegion region = regions.get(guild.cityRegionId).orElse(null);
+            if (region != null) {
+                region.clearOwner();
+                for (UUID member : guild.members()) region.removeMember(member);
+                regions.save();
+            }
+        }
+        guild.cityRegionId = null;
+    }
+
     public synchronized Set<UUID> getMembers(UUID guildId) {
         GuildData guild = guilds.get(guildId);
         return guild == null ? Set.of() : Set.copyOf(guild.members());
@@ -228,6 +303,7 @@ public final class GuildManager implements GuildAPI {
         if (guild == null) return Result.NOT_IN_GUILD;
         if (!guild.leaderId().equals(player.getUniqueId())) return Result.NOT_LEADER;
         if (guild.treasuryMinorUnits() > 0L) return Result.TREASURY_NOT_EMPTY;
+        releaseCityInternal(guild);
         Set<UUID> changedMembers = Set.copyOf(guild.members());
         guild.members().forEach(memberGuilds::remove);
         guilds.remove(guild.id());
@@ -277,6 +353,8 @@ public final class GuildManager implements GuildAPI {
                 if (members.isEmpty()) members.add(leader);
                 GuildData guild = new GuildData(id, name, leader, members);
                 guild.treasuryMinorUnits = Money.fromMajor(section.getDouble(idText + ".treasury", 0.0D));
+                String cityRegion = section.getString(idText + ".city-region");
+                if (cityRegion != null) { try { guild.cityRegionId = UUID.fromString(cityRegion); } catch (IllegalArgumentException ignored) { guild.cityRegionId = null; } }
                 guilds.put(id, guild);
                 members.forEach(member -> memberGuilds.put(member, id));
             } catch (Exception exception) {
@@ -319,6 +397,7 @@ public final class GuildManager implements GuildAPI {
             snapshot.set(path + ".leader", guild.leaderId().toString());
             snapshot.set(path + ".members", guild.members().stream().map(UUID::toString).toList());
             snapshot.set(path + ".treasury", Money.toMajor(guild.treasuryMinorUnits()));
+            if (guild.cityRegionId != null) snapshot.set(path + ".city-region", guild.cityRegionId.toString());
         }
         return snapshot;
     }
@@ -364,7 +443,7 @@ public final class GuildManager implements GuildAPI {
     public enum Result {
         SUCCESS, NOT_REGISTERED, ALREADY_IN_GUILD, LEVEL_TOO_LOW, INVALID_NAME, NAME_TAKEN, INSUFFICIENT_GOLD,
         NOT_IN_GUILD, NOT_LEADER, GUILD_FULL, TARGET_ALREADY_IN_GUILD, NO_INVITATION, GUILD_NOT_FOUND,
-        LEADER_CANNOT_LEAVE, TREASURY_NOT_EMPTY
+        LEADER_CANNOT_LEAVE, TREASURY_NOT_EMPTY, CITY_ALREADY_CLAIMED, CITY_REGION_NOT_FOUND, NOT_GUILD_CITY, CITY_OWNED, NO_CITY
     }
 
     private record Invitation(UUID guildId, long createdAt) { }
@@ -375,6 +454,7 @@ public final class GuildManager implements GuildAPI {
         private final UUID leaderId;
         private final LinkedHashSet<UUID> members;
         private long treasuryMinorUnits;
+        private UUID cityRegionId;
 
         private GuildData(UUID id, String name, UUID leaderId, LinkedHashSet<UUID> members) {
             this.id = id;
@@ -382,13 +462,14 @@ public final class GuildManager implements GuildAPI {
             this.leaderId = leaderId;
             this.members = members;
             this.treasuryMinorUnits = 0L;
+            this.cityRegionId = null;
         }
 
         private UUID id() { return id; }
         private String name() { return name; }
         private UUID leaderId() { return leaderId; }
         private LinkedHashSet<UUID> members() { return members; }
-        private Guild snapshot() { return new Guild(id, name, leaderId, members.size(), treasuryMinorUnits); }
+        private Guild snapshot() { return new Guild(id, name, leaderId, members.size(), treasuryMinorUnits, cityRegionId); }
         private long treasuryMinorUnits() { return treasuryMinorUnits; }
         private void addTreasury(long amount) { treasuryMinorUnits = amount > Long.MAX_VALUE - treasuryMinorUnits ? Long.MAX_VALUE : treasuryMinorUnits + amount; }
         private void removeTreasury(long amount) { treasuryMinorUnits -= amount; }

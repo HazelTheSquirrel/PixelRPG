@@ -5,13 +5,17 @@ import java.util.UUID;
 import de.pixelrpg.rpg.economy.Money;
 
 /** Immutable guild identity and membership limits. */
-public record Guild(UUID id, String name, UUID leaderId, int memberCount, long treasuryMinorUnits) {
+public record Guild(UUID id, String name, UUID leaderId, int memberCount, long treasuryMinorUnits, UUID cityRegionId) {
     public static final int MAX_MEMBERS = 50;
     public static final int CREATION_COST_GOLD = 2_500;
     public static final int MIN_CREATION_LEVEL = 20;
 
     public Guild(UUID id, String name, UUID leaderId, int memberCount) {
-        this(id, name, leaderId, memberCount, 0L);
+        this(id, name, leaderId, memberCount, 0L, null);
+    }
+
+    public Guild(UUID id, String name, UUID leaderId, int memberCount, long treasuryMinorUnits) {
+        this(id, name, leaderId, memberCount, treasuryMinorUnits, null);
     }
 
     public Guild {

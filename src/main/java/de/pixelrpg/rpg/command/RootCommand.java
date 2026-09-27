@@ -15,6 +15,7 @@ import de.pixelrpg.rpg.command.impl.ShopSubCommand;
 import de.pixelrpg.rpg.dialogue.DialogueCommand;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.guild.GuildManager;
+import de.pixelrpg.rpg.command.impl.TradeSubCommand;
 import de.pixelrpg.rpg.item.ItemService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -40,6 +41,7 @@ public final class RootCommand implements CommandExecutor, TabCompleter {
         register(new QuestLogCommand(plugin.getQuestManager(), plugin.getPlayerProfileManager()));
         register(new DialogueSubCommandAdapter(plugin.getPlayerProfileManager()));
         register(new GuildSubCommand(GuildManager.getInstance(plugin, plugin.getPlayerProfileManager())));
+        register(new TradeSubCommand(plugin.getPlayerTradeManager()));
     }
 
     public void register(SubCommand subCommand) {

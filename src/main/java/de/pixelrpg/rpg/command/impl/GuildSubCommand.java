@@ -14,7 +14,7 @@ import java.util.Locale;
 
 /** Provides the complete player-facing guild command tree below /pixelrpg guild. */
 public final class GuildSubCommand implements SubCommand {
-    private static final List<String> SUBCOMMANDS = List.of("create", "invite", "accept", "leave", "info", "disband");
+    private static final List<String> SUBCOMMANDS = List.of("create", "invite", "accept", "leave", "info", "city", "disband");
 
     private final GuildManager guildManager;
 
@@ -160,6 +160,43 @@ public final class GuildSubCommand implements SubCommand {
         player.sendMessage(Component.text("Gilde: " + guild.name(), NamedTextColor.GOLD));
         player.sendMessage(Component.text("Mitglieder: " + guild.memberCount() + "/" + Guild.MAX_MEMBERS, NamedTextColor.GRAY));
         player.sendMessage(Component.text("Gildenmeister: " + Bukkit.getOfflinePlayer(guild.leaderId()).getName(), NamedTextColor.GRAY));
+        player.sendMessage(Component.text("Gildenstadt: " + (guild.cityRegionId() == null ? "keine" : guild.cityRegionId()), NamedTextColor.GRAY));
+        return true;
+    }
+
+    private boolean city(Player player, String[] args) {
+        if (args.length < 2) {
+            player.sendMessage(Component.text("Verwendung: /pixelrpg guild city <claim|release> [Region]", NamedTextColor.YELLOW));
+            return true;
+        }
+        switch (args[1].toLowerCase(Locale.ROOT)) {
+            case "claim" -> {
+                if (args.length != 3) {
+                    player.sendMessage(Component.text("Verwendung: /pixelrpg guild city claim <Region>", NamedTextColor.YELLOW));
+                    return true;
+                }
+                switch (guildManager.claimCity(player, args[2])) {
+                    case SUCCESS -> player.sendMessage(Component.text("Die Gilde besitzt jetzt diese Gildenstadt.", NamedTextColor.GREEN));
+                    case NOT_IN_GUILD -> player.sendMessage(Component.text("Du bist in keiner Gilde.", NamedTextColor.RED));
+                    case NOT_LEADER -> player.sendMessage(Component.text("Nur der Gildenmeister kann eine Gildenstadt beanspruchen.", NamedTextColor.RED));
+                    case CITY_ALREADY_CLAIMED -> player.sendMessage(Component.text("Deine Gilde besitzt bereits eine Gildenstadt.", NamedTextColor.RED));
+                    case CITY_REGION_NOT_FOUND -> player.sendMessage(Component.text("Gildenstadt-Region nicht gefunden.", NamedTextColor.RED));
+                    case NOT_GUILD_CITY -> player.sendMessage(Component.text("Die Region ist nicht vom Typ GUILD_CITY.", NamedTextColor.RED));
+                    case CITY_OWNED -> player.sendMessage(Component.text("Diese Gildenstadt ist bereits vergeben.", NamedTextColor.RED));
+                    default -> player.sendMessage(Component.text("Die Gildenstadt konnte nicht beansprucht werden.", NamedTextColor.RED));
+                }
+            }
+            case "release" -> {
+                switch (guildManager.releaseCity(player)) {
+                    case SUCCESS -> player.sendMessage(Component.text("Die Gilde hat ihre Gildenstadt freigegeben.", NamedTextColor.YELLOW));
+                    case NOT_IN_GUILD -> player.sendMessage(Component.text("Du bist in keiner Gilde.", NamedTextColor.RED));
+                    case NOT_LEADER -> player.sendMessage(Component.text("Nur der Gildenmeister kann die Gildenstadt freigeben.", NamedTextColor.RED));
+                    case NO_CITY -> player.sendMessage(Component.text("Deine Gilde besitzt keine Gildenstadt.", NamedTextColor.RED));
+                    default -> player.sendMessage(Component.text("Die Gildenstadt konnte nicht freigegeben werden.", NamedTextColor.RED));
+                }
+            }
+            default -> player.sendMessage(Component.text("Verwendung: /pixelrpg guild city <claim|release> [Region]", NamedTextColor.YELLOW));
+        }
         return true;
     }
 
@@ -180,6 +217,8 @@ public final class GuildSubCommand implements SubCommand {
         player.sendMessage(Component.text("/pixelrpg guild accept", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild leave", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild info", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/pixelrpg guild city claim <Region>", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/pixelrpg guild city release", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild disband", NamedTextColor.YELLOW));
     }
 }
