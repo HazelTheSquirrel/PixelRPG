@@ -23,7 +23,7 @@ public record Companion(
         Objects.requireNonNull(name, "name");
         Objects.requireNonNull(rarity, "rarity");
         Objects.requireNonNull(entityType, "entityType");
-        if (level < 1 || level > 99) throw new IllegalArgumentException("level must be between 1 and 99");
+        if (level < 1 || level > 60) throw new IllegalArgumentException("level must be between 1 and 60");
         if (experience < 0L) throw new IllegalArgumentException("experience must not be negative");
     }
 
