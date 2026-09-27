@@ -27,7 +27,7 @@ public final class QuestCoordinateResolver {
     }
 
     public static PlayerProfileTarget resolve(Player player, Quest quest) {
-        if (player == null || quest == null || !quest.hasNavigationTarget()) return null;
+        if (player == null || quest == null || !quest.hasLocateTarget()) return null;
 
         Location origin = player.getLocation();
         World world = origin.getWorld();
@@ -42,7 +42,7 @@ public final class QuestCoordinateResolver {
                     .get(key);
             if (structure == null) throw new IllegalArgumentException("Unknown structure: " + quest.targetStructureKey());
 
-            int radius = Math.max(1, quest.navigationRadius() > 0
+            int radius = Math.max(1, quest.locateRadius() > 0
                     ? quest.navigationRadius()
                     : DEFAULT_STRUCTURE_RADIUS_CHUNKS);
             var result = world.locateNearestStructure(origin, structure, radius, false);
