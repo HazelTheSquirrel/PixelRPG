@@ -389,7 +389,7 @@ public final class GuildTerritoryManager {
                     geometry.points(),
                     world.getMinHeight(),
                     world.getMaxHeight() - 1,
-                    "Gildengebiet: " + guild.name(),
+                    guild.name(),
                     RegionType.GUILD_TERRITORY
             );
             if (!result.valid()) return false;
