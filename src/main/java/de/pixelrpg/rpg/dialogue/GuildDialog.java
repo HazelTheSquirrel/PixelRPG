@@ -109,7 +109,7 @@ public final class GuildDialog {
         boolean leader = guild.isLeader(player.getUniqueId());
         List<DialogBody> body = List.of(
                 DialogBody.plainMessage(Component.text("Gilde: " + guild.name(), NamedTextColor.GOLD)),
-                DialogBody.plainMessage(Component.text("Rolle: " + (leader ? "Gildenmeister" : "Mitglied"), NamedTextColor.WHITE)),
+                DialogBody.plainMessage(Component.text("Rolle: " + (leader ? "Gildenmeister" : guild.isDeputy(player.getUniqueId()) ? "Stellvertreter" : "Mitglied"), NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text("Mitglieder: " + guild.memberCount() + "/" + Guild.MAX_MEMBERS, NamedTextColor.AQUA)),
                 DialogBody.plainMessage(Component.text("Gildenkasse: " + String.format(java.util.Locale.ROOT, "%.2f", guild.treasury()) + " Goldtaler", NamedTextColor.GOLD)),
                 territoryBody(guild),
@@ -172,9 +172,15 @@ public final class GuildDialog {
                             open(target);
                             return;
                         }
-                        org.bukkit.OfflinePlayer offline = org.bukkit.Bukkit.getOfflinePlayerIfCached(name.trim());
-                        Player online = org.bukkit.Bukkit.getPlayerExact(name.trim());
-                        java.util.UUID targetId = online != null ? online.getUniqueId() : offline == null ? null : offline.getUniqueId();
+                        java.util.UUID targetId = null;
+                        for (java.util.UUID memberId : guilds.getMembers(guild.id())) {
+                            Player onlineMember = org.bukkit.Bukkit.getPlayer(memberId);
+                            String memberName = onlineMember != null ? onlineMember.getName() : org.bukkit.Bukkit.getOfflinePlayer(memberId).getName();
+                            if (memberName != null && memberName.equalsIgnoreCase(name.trim())) {
+                                targetId = memberId;
+                                break;
+                            }
+                        }
                         if (targetId == null) {
                             target.sendMessage(Component.text("Das Gildenmitglied wurde nicht gefunden.", NamedTextColor.RED));
                             open(target);
