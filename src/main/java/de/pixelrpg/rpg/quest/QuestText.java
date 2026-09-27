@@ -63,7 +63,7 @@ public final class QuestText {
 
     public static Component objectiveWithProgress(Quest quest, QuestProgress progress) { return objectiveWithProgress(null, quest, progress); }
 
-    /** Builds the player-facing notification for a resolved quest navigation target. */
+    /** Builds the player-facing notification for a resolved quest locate target. */
     public static Component objectiveWithProgress(Player player, Quest quest, QuestProgress progress) {
         int current = Math.min(Math.max(0, progress.getCurrentAmount()), quest.requiredAmount());
         NamedTextColor color = current >= quest.requiredAmount() ? NamedTextColor.GREEN : NamedTextColor.AQUA;
