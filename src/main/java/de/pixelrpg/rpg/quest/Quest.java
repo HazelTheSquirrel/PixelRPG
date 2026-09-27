@@ -21,17 +21,13 @@ public record Quest(
         String rewardCompanionId,
         String questGiverNpcId,
         String targetStructureKey,
-        List<String> targetBiomeKeys,
-        int navigationRadius,
-        boolean findUnexploredStructure,
-        Location reachLocation,
+        int locateRadius,
         Profession profession,
         int requiredProfessionLevel
 ) {
 
     public Quest {
         rewardItemMaterials = rewardItemMaterials == null ? List.of() : List.copyOf(rewardItemMaterials);
-        targetBiomeKeys = targetBiomeKeys == null ? List.of() : List.copyOf(targetBiomeKeys);
         requiredProfessionLevel = Math.max(1, requiredProfessionLevel);
     }
 
@@ -47,7 +43,7 @@ public record Quest(
         return profession != null;
     }
 
-    public boolean hasNavigationTarget() {
-        return (targetStructureKey != null && !targetStructureKey.isBlank()) || !targetBiomeKeys.isEmpty() || reachLocation != null;
+    public boolean hasLocateTarget() {
+        return targetStructureKey != null && !targetStructureKey.isBlank();
     }
 }
