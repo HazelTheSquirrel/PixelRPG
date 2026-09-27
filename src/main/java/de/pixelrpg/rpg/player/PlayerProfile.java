@@ -33,7 +33,6 @@ public final class PlayerProfile {
     private final Map<EquipmentSlot, ItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
     private boolean scoreboardEnabled;
     private boolean partyHudEnabled;
-    private boolean questTrackerEnabled;
     private long playtimeMillis;
     private long persistenceRevision;
     private long mutationRevision;
@@ -48,7 +47,6 @@ public final class PlayerProfile {
         this.storyChapterIndex = -1;
         this.scoreboardEnabled = true;
         this.partyHudEnabled = false;
-        this.questTrackerEnabled = true;
         this.playtimeMillis = 0L;
         this.persistenceRevision = 0L;
         this.mutationRevision = 0L;
@@ -132,8 +130,6 @@ public final class PlayerProfile {
     public void setScoreboardEnabled(boolean value) { mutate(() -> scoreboardEnabled = value); }
     public synchronized boolean isPartyHudEnabled() { return partyHudEnabled; }
     public void setPartyHudEnabled(boolean value) { mutate(() -> partyHudEnabled = value); }
-    public synchronized boolean isQuestTrackerEnabled() { return questTrackerEnabled; }
-    public void setQuestTrackerEnabled(boolean value) { mutate(() -> questTrackerEnabled = value); }
     public synchronized long getPlaytimeMillis() { return playtimeMillis; }
     public void addPlaytimeMillis(long amount) { if (amount <= 0L) return; mutate(() -> playtimeMillis = amount > Long.MAX_VALUE - playtimeMillis ? Long.MAX_VALUE : playtimeMillis + amount); }
     public void setPlaytimeMillis(long value) { mutate(() -> playtimeMillis = Math.max(0L, value)); }
@@ -160,7 +156,6 @@ public final class PlayerProfile {
         equipment.forEach((slot, item) -> snapshot.equipment.put(slot, item.clone()));
         snapshot.scoreboardEnabled = scoreboardEnabled;
         snapshot.partyHudEnabled = partyHudEnabled;
-        snapshot.questTrackerEnabled = questTrackerEnabled;
         snapshot.playtimeMillis = playtimeMillis;
         snapshot.persistenceRevision = persistenceRevision;
         snapshot.mutationRevision = mutationRevision;
@@ -180,7 +175,6 @@ public final class PlayerProfile {
             storyChapterIndex = -1;
             scoreboardEnabled = true;
             partyHudEnabled = false;
-            questTrackerEnabled = true;
             learnedProfessions.clear();
             unlockedRecipes.clear();
             unlockedWaypoints.clear();
