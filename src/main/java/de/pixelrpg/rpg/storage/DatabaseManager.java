@@ -65,7 +65,6 @@ public final class DatabaseManager {
                     completed_quests TEXT,
                     scoreboard_enabled BOOLEAN NOT NULL DEFAULT FALSE,
                     party_hud_enabled BOOLEAN NOT NULL DEFAULT FALSE,
-                    quest_tracker_enabled BOOLEAN NOT NULL DEFAULT TRUE,
                     playtime_millis BIGINT NOT NULL DEFAULT 0,
                     persistence_revision BIGINT NOT NULL DEFAULT 0
                 )
@@ -73,7 +72,6 @@ public final class DatabaseManager {
         String activeQuestsSql = "CREATE TABLE IF NOT EXISTS pixelrpg_active_quests (uuid CHAR(36) NOT NULL, quest_id VARCHAR(64) NOT NULL, amount INT NOT NULL DEFAULT 0, expiry BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (uuid, quest_id))";
         String statsSql = "CREATE TABLE IF NOT EXISTS pixelrpg_player_stats (uuid CHAR(36) NOT NULL, stat_key VARCHAR(64) NOT NULL, value BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (uuid, stat_key))";
         String equipmentSql = "CREATE TABLE IF NOT EXISTS pixelrpg_player_equipment (uuid CHAR(36) NOT NULL, slot VARCHAR(16) NOT NULL, item_yaml TEXT NOT NULL, PRIMARY KEY (uuid, slot))";
-        String navigationSql = "CREATE TABLE IF NOT EXISTS pixelrpg_quest_navigation_targets (uuid CHAR(36) NOT NULL, quest_id VARCHAR(64) NOT NULL, world_uuid CHAR(36) NOT NULL, x DOUBLE NOT NULL, y DOUBLE NOT NULL, z DOUBLE NOT NULL, target_key VARCHAR(256), PRIMARY KEY (uuid, quest_id))";
 
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
             statement.executeUpdate(schemaSql);
@@ -82,7 +80,6 @@ public final class DatabaseManager {
             statement.executeUpdate(activeQuestsSql);
             statement.executeUpdate(statsSql);
             statement.executeUpdate(equipmentSql);
-            statement.executeUpdate(navigationSql);
         }
     }
 
