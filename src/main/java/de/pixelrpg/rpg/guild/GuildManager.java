@@ -106,6 +106,8 @@ public final class GuildManager implements GuildAPI {
         memberGuilds.put(player.getUniqueId(), id);
         profiles.saveProfileAsync(player.getUniqueId());
         save();
+        GuildTerritoryManager territoryManager = plugin.getGuildTerritoryManager();
+        if (territoryManager != null) territoryManager.grantInitialMarkers(player, id);
         wakeScoreboards(Set.of(player.getUniqueId()));
         return Result.SUCCESS;
     }
@@ -145,6 +147,7 @@ public final class GuildManager implements GuildAPI {
         if (guild == null) return Result.NOT_IN_GUILD;
         if (guild.leaderId().equals(player.getUniqueId())) return Result.LEADER_CANNOT_LEAVE;
         guild.members().remove(player.getUniqueId());
+        if (player.getUniqueId().equals(guild.deputyId)) guild.deputyId = null;
         memberGuilds.remove(player.getUniqueId());
         syncCityMember(guild, player.getUniqueId());
         save();
@@ -175,6 +178,42 @@ public final class GuildManager implements GuildAPI {
         invitations.remove(playerId);
     }
 
+    public synchronized Optional<Guild> getGuildById(UUID guildId) {
+        GuildData guild = guilds.get(guildId);
+        return guild == null ? Optional.empty() : Optional.of(guild.snapshot());
+    }
+
+    public synchronized Optional<UUID> getDeputyId(UUID playerId) {
+        GuildData guild = guilds.get(memberGuilds.get(playerId));
+        return guild == null ? Optional.empty() : Optional.ofNullable(guild.deputyId);
+    }
+
+    public synchronized Result appointDeputy(Player leader, Player target) {
+        if (shuttingDown || leader == null || target == null) return Result.NOT_IN_GUILD;
+        GuildData guild = guilds.get(memberGuilds.get(leader.getUniqueId()));
+        if (guild == null) return Result.NOT_IN_GUILD;
+        if (!guild.leaderId().equals(leader.getUniqueId())) return Result.NOT_LEADER;
+        if (!guild.members().contains(target.getUniqueId())) return Result.TARGET_NOT_MEMBER;
+        if (target.getUniqueId().equals(guild.leaderId())) return Result.INVALID_DEPUTY;
+        guild.deputyId = target.getUniqueId();
+        save();
+        wakeScoreboards(Set.of(leader.getUniqueId(), target.getUniqueId()));
+        return Result.SUCCESS;
+    }
+
+    public synchronized Result removeDeputy(Player leader) {
+        if (shuttingDown || leader == null) return Result.NOT_IN_GUILD;
+        GuildData guild = guilds.get(memberGuilds.get(leader.getUniqueId()));
+        if (guild == null) return Result.NOT_IN_GUILD;
+        if (!guild.leaderId().equals(leader.getUniqueId())) return Result.NOT_LEADER;
+        if (guild.deputyId == null) return Result.NO_DEPUTY;
+        UUID previous = guild.deputyId;
+        guild.deputyId = null;
+        save();
+        wakeScoreboards(Set.of(leader.getUniqueId(), previous));
+        return Result.SUCCESS;
+    }
+
     public synchronized Optional<Guild> getGuildByName(String name) {
         return guilds.values().stream().filter(g -> g.name().equalsIgnoreCase(name)).findFirst().map(GuildData::snapshot);
     }
@@ -194,6 +233,17 @@ public final class GuildManager implements GuildAPI {
         if (profile == null || !profile.removeMoney(amount)) return false;
         guild.addTreasury(minor);
         profiles.saveProfileAsync(player.getUniqueId());
+        save();
+        return true;
+    }
+
+    public synchronized boolean chargeTreasury(UUID guildId, double amount) {
+        if (shuttingDown || guildId == null || !Double.isFinite(amount) || amount <= 0.0D) return false;
+        GuildData guild = guilds.get(guildId);
+        if (guild == null) return false;
+        long minor = Money.fromMajor(amount);
+        if (minor <= 0L || guild.treasuryMinorUnits() < minor) return false;
+        guild.removeTreasury(minor);
         save();
         return true;
     }
@@ -304,6 +354,8 @@ public final class GuildManager implements GuildAPI {
         if (!guild.leaderId().equals(player.getUniqueId())) return Result.NOT_LEADER;
         if (guild.treasuryMinorUnits() > 0L) return Result.TREASURY_NOT_EMPTY;
         releaseCityInternal(guild);
+        GuildTerritoryManager territoryManager = plugin.getGuildTerritoryManager();
+        if (territoryManager != null) territoryManager.removeGuildTerritory(guild.id());
         Set<UUID> changedMembers = Set.copyOf(guild.members());
         guild.members().forEach(memberGuilds::remove);
         guilds.remove(guild.id());
@@ -352,6 +404,11 @@ public final class GuildManager implements GuildAPI {
                 for (String text : section.getStringList(idText + ".members")) members.add(UUID.fromString(text));
                 if (members.isEmpty()) members.add(leader);
                 GuildData guild = new GuildData(id, name, leader, members);
+                String deputyText = section.getString(idText + ".deputy");
+                if (deputyText != null) {
+                    try { guild.deputyId = UUID.fromString(deputyText); } catch (IllegalArgumentException ignored) { guild.deputyId = null; }
+                }
+                if (guild.deputyId != null && (!members.contains(guild.deputyId) || guild.deputyId.equals(leader))) guild.deputyId = null;
                 guild.treasuryMinorUnits = Money.fromMajor(section.getDouble(idText + ".treasury", 0.0D));
                 String cityRegion = section.getString(idText + ".city-region");
                 if (cityRegion != null) { try { guild.cityRegionId = UUID.fromString(cityRegion); } catch (IllegalArgumentException ignored) { guild.cityRegionId = null; } }
@@ -395,6 +452,7 @@ public final class GuildManager implements GuildAPI {
             String path = "guilds." + guild.id();
             snapshot.set(path + ".name", guild.name());
             snapshot.set(path + ".leader", guild.leaderId().toString());
+            if (guild.deputyId != null) snapshot.set(path + ".deputy", guild.deputyId.toString());
             snapshot.set(path + ".members", guild.members().stream().map(UUID::toString).toList());
             snapshot.set(path + ".treasury", Money.toMajor(guild.treasuryMinorUnits()));
             if (guild.cityRegionId != null) snapshot.set(path + ".city-region", guild.cityRegionId.toString());
@@ -442,7 +500,7 @@ public final class GuildManager implements GuildAPI {
 
     public enum Result {
         SUCCESS, NOT_REGISTERED, ALREADY_IN_GUILD, LEVEL_TOO_LOW, INVALID_NAME, NAME_TAKEN, INSUFFICIENT_GOLD,
-        NOT_IN_GUILD, NOT_LEADER, GUILD_FULL, TARGET_ALREADY_IN_GUILD, NO_INVITATION, GUILD_NOT_FOUND,
+        NOT_IN_GUILD, NOT_LEADER, GUILD_FULL, TARGET_ALREADY_IN_GUILD, TARGET_NOT_MEMBER, INVALID_DEPUTY, NO_DEPUTY, NO_INVITATION, GUILD_NOT_FOUND,
         LEADER_CANNOT_LEAVE, TREASURY_NOT_EMPTY, CITY_ALREADY_CLAIMED, CITY_REGION_NOT_FOUND, NOT_GUILD_CITY, CITY_OWNED, NO_CITY
     }
 
@@ -452,6 +510,7 @@ public final class GuildManager implements GuildAPI {
         private final UUID id;
         private final String name;
         private final UUID leaderId;
+        private UUID deputyId;
         private final LinkedHashSet<UUID> members;
         private long treasuryMinorUnits;
         private UUID cityRegionId;
@@ -460,6 +519,7 @@ public final class GuildManager implements GuildAPI {
             this.id = id;
             this.name = name;
             this.leaderId = leaderId;
+            this.deputyId = null;
             this.members = members;
             this.treasuryMinorUnits = 0L;
             this.cityRegionId = null;
@@ -469,7 +529,7 @@ public final class GuildManager implements GuildAPI {
         private String name() { return name; }
         private UUID leaderId() { return leaderId; }
         private LinkedHashSet<UUID> members() { return members; }
-        private Guild snapshot() { return new Guild(id, name, leaderId, members.size(), treasuryMinorUnits, cityRegionId); }
+        private Guild snapshot() { return new Guild(id, name, leaderId, deputyId, members.size(), treasuryMinorUnits, cityRegionId); }
         private long treasuryMinorUnits() { return treasuryMinorUnits; }
         private void addTreasury(long amount) { treasuryMinorUnits = amount > Long.MAX_VALUE - treasuryMinorUnits ? Long.MAX_VALUE : treasuryMinorUnits + amount; }
         private void removeTreasury(long amount) { treasuryMinorUnits -= amount; }
