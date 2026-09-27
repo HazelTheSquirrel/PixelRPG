@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "pixelrpg:item/food/kartoffel_mit_speck"
+    "layer0": "pixelrpg:item/food/kartoffel__mit__speck"
   }
 }
