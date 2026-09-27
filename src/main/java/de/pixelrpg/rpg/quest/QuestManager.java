@@ -394,7 +394,7 @@ public final class QuestManager {
         for (var entry : profile.getActiveQuests().entrySet()) {
             Quest quest = questRepository.getQuest(entry.getKey());
             QuestProgress progress = entry.getValue();
-            if (quest == null || !quest.hasNavigationTarget()
+            if (quest == null || !quest.hasLocateTarget()
                     || progress.getCurrentAmount() >= quest.requiredAmount()) continue;
 
             PlayerProfile.QuestCoordinate target = profile.getQuestCoordinate(quest.id());
