@@ -12,6 +12,10 @@ import de.pixelrpg.rpg.core.WakeScheduler;
 import de.pixelrpg.rpg.guild.Guild;
 import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.party.Party;
+import de.pixelrpg.rpg.quest.Quest;
+import de.pixelrpg.rpg.quest.QuestManager;
+import de.pixelrpg.rpg.quest.QuestProgress;
+import de.pixelrpg.rpg.quest.QuestText;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import io.papermc.paper.scoreboard.numbers.NumberFormat;
@@ -49,6 +53,7 @@ public final class ScoreboardService implements Listener {
 
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
+    private final QuestManager questManager;
     private final WakeScheduler<UUID> wakeScheduler;
     private int experienceBarTaskId = -1;
     private final Map<UUID, PlayerScoreboardState> stateByPlayer = new ConcurrentHashMap<>();
@@ -70,9 +75,10 @@ public final class ScoreboardService implements Listener {
         }
     }
 
-    public ScoreboardService(Plugin plugin, PlayerProfileManager profileManager, int ignoredUpdateIntervalTicks) {
+    public ScoreboardService(Plugin plugin, PlayerProfileManager profileManager, QuestManager questManager, int ignoredUpdateIntervalTicks) {
         this.plugin = plugin;
         this.profileManager = profileManager;
+        this.questManager = questManager;
         this.wakeScheduler = new WakeScheduler<>(plugin);
         this.profileManager.addProfileChangeListener(profileChangeListener);
     }
@@ -312,6 +318,7 @@ public final class ScoreboardService implements Listener {
         List<Component> lines = new ArrayList<>();
         lines.add(Component.text(" "));
         lines.add(Component.text(player.getName(), NamedTextColor.WHITE));
+        appendQuestLines(lines, player, profile);
         lines.add(Component.text("Level: ", NamedTextColor.GRAY).append(Component.text(profile.getLevel(), NamedTextColor.GOLD)));
         appendGuildLine(lines, player);
         appendPartyLine(lines, player);
@@ -324,6 +331,40 @@ public final class ScoreboardService implements Listener {
         lines.add(Component.text("Gold: ", NamedTextColor.GRAY).append(Component.text(formatGold(profile.getMoney()), NamedTextColor.GOLD)));
         lines.add(Component.text("Tode: ", NamedTextColor.GRAY).append(Component.text(profile.getStatistic("DEATHS"), NamedTextColor.DARK_RED)));
         return lines;
+    }
+
+    private void appendQuestLines(List<Component> lines, Player player, PlayerProfile profile) {
+        if (!profile.isQuestTrackerEnabled()) return;
+
+        QuestSelection selection = profile.getActiveQuests().entrySet().stream()
+                .map(entry -> {
+                    Quest quest = questManager.getRepository().getQuest(entry.getKey());
+                    return quest == null ? null : new QuestSelection(quest, entry.getValue());
+                })
+                .filter(java.util.Objects::nonNull)
+                .sorted(java.util.Comparator
+                        .comparingInt((QuestSelection value) -> questManager.isStoryQuest(value.quest()) ? 0 : 1)
+                        .thenComparing(value -> value.quest().id(), String.CASE_INSENSITIVE_ORDER))
+                .findFirst()
+                .orElse(null);
+
+        if (selection == null) return;
+
+        Quest quest = selection.quest();
+        QuestProgress progress = selection.progress();
+        Component title = QuestText.title(player, quest)
+                .color(questManager.isStoryQuest(quest) ? NamedTextColor.LIGHT_PURPLE : NamedTextColor.YELLOW);
+        lines.add(Component.text("Quest: ", NamedTextColor.GRAY).append(title));
+        lines.add(QuestText.objectiveWithProgress(player, quest, progress).color(NamedTextColor.WHITE));
+
+        PlayerProfile.NavigationTarget target = profile.getQuestNavigationTarget(quest.id());
+        if (target != null) {
+            lines.add(Component.text("Navigation: ", NamedTextColor.GRAY)
+                    .append(Component.text("X " + Math.round(target.x()) + " Y " + Math.round(target.y()) + " Z " + Math.round(target.z()), NamedTextColor.AQUA)));
+        } else {
+            lines.add(Component.text("Navigation: ", NamedTextColor.GRAY)
+                    .append(Component.text("kein Ziel", NamedTextColor.DARK_GRAY)));
+        }
     }
 
     private void appendGuildLine(List<Component> lines, Player player) {
@@ -356,6 +397,8 @@ public final class ScoreboardService implements Listener {
         }
         lines.add(line);
     }
+
+    private record QuestSelection(Quest quest, QuestProgress progress) { }
 
     private String formatGold(double amount) {
         return String.format(java.util.Locale.ROOT, "%.2f", amount);
