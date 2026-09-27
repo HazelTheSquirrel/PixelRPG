@@ -61,6 +61,27 @@ public final class RegionGeometry {
     public double minZ() { return minZ; }
     public double maxZ() { return maxZ; }
 
+    public boolean overlaps(RegionGeometry other) {
+        if (other == null) return false;
+        if (maxX < other.minX - EPSILON || other.maxX < minX - EPSILON
+                || maxZ < other.minZ - EPSILON || other.maxZ < minZ - EPSILON) {
+            return false;
+        }
+
+        for (int i = 0; i < points.size(); i++) {
+            RegionPoint a1 = points.get(i);
+            RegionPoint a2 = points.get((i + 1) % points.size());
+            for (int j = 0; j < other.points.size(); j++) {
+                RegionPoint b1 = other.points.get(j);
+                RegionPoint b2 = other.points.get((j + 1) % other.points.size());
+                if (segmentsIntersect(a1, a2, b1, b2)) return true;
+            }
+        }
+
+        return contains(other.points.getFirst().x(), other.points.getFirst().z())
+                || other.contains(points.getFirst().x(), points.getFirst().z());
+    }
+
     public boolean contains(double x, double z) {
         if (x < minX - EPSILON || x > maxX + EPSILON || z < minZ - EPSILON || z > maxZ + EPSILON) return false;
         boolean inside = false;
