@@ -13,7 +13,7 @@ import java.util.UUID;
 public final class PixelRegion {
     private final UUID id;
     private final String worldName;
-    private final RegionGeometry geometry;
+    private RegionGeometry geometry;
     private final boolean global;
     private final int minY;
     private final int maxY;
@@ -130,6 +130,11 @@ public final class PixelRegion {
 
     public boolean isOwner(UUID playerId) { return !global && playerId != null && playerId.equals(ownerId); }
     public boolean isMember(UUID playerId) { return playerId != null && members.contains(playerId); }
+    public void replaceGeometry(RegionGeometry value) {
+        if (global || value == null) throw new IllegalArgumentException("A normal region requires geometry");
+        geometry = value;
+    }
+
     public void setFlag(RegionFlag flag, boolean enabled) { flags.put(flag, enabled); }
     public void setName(String value) { name = value; }
     public void setType(RegionType value) { type = value; }
