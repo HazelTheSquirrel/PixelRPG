@@ -283,7 +283,7 @@ public final class MobLevelScalingListener implements Listener {
             if (item == null || !item.hasItemMeta()) continue;
             Integer itemLevel = item.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
             if (itemLevel == null) continue;
-            totalLevel += Math.clamp(itemLevel, 1, 99);
+            totalLevel += Math.clamp(itemLevel, Level.MIN_LEVEL, Level.MAX_NORMAL_LEVEL);
             counted++;
         }
         ItemStack mainHand = player.getInventory().getItemInMainHand();
