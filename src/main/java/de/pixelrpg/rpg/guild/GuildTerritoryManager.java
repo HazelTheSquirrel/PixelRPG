@@ -399,7 +399,7 @@ public final class GuildTerritoryManager {
             return false;
         }
 
-        region.setName("Gildengebiet: " + guild.name());
+        region.setName(guild.name());
         region.setType(RegionType.GUILD_TERRITORY);
         region.setDescription("Dynamisch durch die Gilde gesetztes Gebiet.");
         region.setPriority(100);
