@@ -117,8 +117,8 @@ public final class QuestManager {
     }
 
     private boolean resolveAndStoreQuestCoordinate(Player player, PlayerProfile profile, Quest quest, boolean announce) {
-        if (!quest.hasNavigationTarget()) return true;
-        if (profile.getQuestNavigationTarget(quest.id()) != null) return true;
+        if (!quest.hasLocateTarget()) return true;
+        if (profile.getQuestCoordinate(quest.id()) != null) return true;
 
         try {
             QuestCoordinateResolver.PlayerProfileTarget resolved = QuestCoordinateResolver.resolve(player, quest);
@@ -129,7 +129,7 @@ public final class QuestManager {
             Location location = resolved.location();
             profile.setQuestCoordinate(quest.id(), new PlayerProfile.QuestCoordinate(
                     location.getWorld().getUID(), location.getX(), location.getY(), location.getZ(), resolved.targetKey()));
-            if (announce) player.sendMessage(QuestText.navigationTarget(player, quest, profile.getQuestNavigationTarget(quest.id())));
+            if (announce) { PlayerProfile.QuestCoordinate coordinate = profile.getQuestCoordinate(quest.id()); player.sendMessage(Component.text("Quest-Ziel: ", NamedTextColor.AQUA).append(Component.text(QuestText.titlePlain(player, quest), NamedTextColor.YELLOW)).append(Component.text(" bei ", NamedTextColor.GRAY)).append(Component.text(Math.round(coordinate.x()) + ", " + Math.round(coordinate.z()), NamedTextColor.WHITE))); }
             return true;
         } catch (RuntimeException exception) {
             plugin.getLogger().log(java.util.logging.Level.WARNING,
@@ -148,7 +148,7 @@ public final class QuestManager {
             return false;
         }
         long expiry = quest.hasTimeLimit() ? System.currentTimeMillis() + quest.durationMinutes() * 60_000L : 0L;
-        if (quest.hasNavigationTarget() && !resolveAndStoreQuestCoordinate(player, profile, quest, false)) {
+        if (quest.hasLocateTarget() && !resolveAndStoreQuestCoordinate(player, profile, quest, false)) {
             player.sendMessage(Component.text("Die Quest kann gerade nicht angenommen werden, weil kein Zielort ermittelt werden konnte.", NamedTextColor.RED));
             return false;
         }
@@ -249,7 +249,7 @@ public final class QuestManager {
 
     private boolean grantCompletion(Player player, PlayerProfile profile, Quest quest) {
         profile.removeActiveQuest(quest.id());
-        profile.clearQuestNavigationTarget(quest.id());
+        profile.clearQuestCoordinate(quest.id());
         profile.markQuestCompleted(quest.id());
         removeTimer(player.getUniqueId(), quest.id());
         if (quest.rewardMoney() > 0.0D) profile.addMoney(quest.rewardMoney());
@@ -303,7 +303,7 @@ public final class QuestManager {
 
         Quest quest = questRepository.getQuest(questId);
         QuestProgress progress = profile.getActiveQuests().get(questId);
-        if (quest == null || progress == null || !quest.hasNavigationTarget()
+        if (quest == null || progress == null || !quest.hasLocateTarget()
                 || quest.targetStructureKey() == null
                 || !quest.targetStructureKey().equalsIgnoreCase(structureKey)
                 || progress.getCurrentAmount() >= quest.requiredAmount()) return false;
@@ -397,7 +397,7 @@ public final class QuestManager {
             if (quest == null || !quest.hasNavigationTarget()
                     || progress.getCurrentAmount() >= quest.requiredAmount()) continue;
 
-            PlayerProfile.NavigationTarget target = profile.getQuestNavigationTarget(quest.id());
+            PlayerProfile.QuestCoordinate target = profile.getQuestCoordinate(quest.id());
             if (target == null || target.worldId() == null || !player.getWorld().getUID().equals(target.worldId())) continue;
 
             double dx = player.getLocation().getX() - target.x();
