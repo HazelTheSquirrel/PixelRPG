@@ -1,0 +1,53 @@
+name: Resource Pack
+
+on:
+  push:
+    branches:
+      - test
+    paths:
+      - 'resourcepack/**'
+      - '!resourcepack/PixelRPG-resourcepack.zip'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: resourcepack-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build resource pack archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f resourcepack/PixelRPG-resourcepack.zip
+          (
+            cd resourcepack
+            zip -qr PixelRPG-resourcepack.zip . -x 'README.md' -x 'PixelRPG-resourcepack.zip'
+          )
+
+      - name: Calculate SHA-1
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha1sum resourcepack/PixelRPG-resourcepack.zip | cut -d ' ' -f1 > src/main/resources/resourcepack.sha1
+
+      - name: Commit generated resource pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resourcepack/PixelRPG-resourcepack.zip src/main/resources/resourcepack.sha1
+          if git diff --cached --quiet; then
+            echo 'Resource pack is already up to date.'
+            exit 0
+          fi
+          git commit -m 'Update generated resource pack'
+          git push
