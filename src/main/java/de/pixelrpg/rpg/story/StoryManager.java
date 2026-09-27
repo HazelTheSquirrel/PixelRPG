@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.Set;
-import java.util.logging.Level;
 
 /** Persistent, level-gated story campaign and validated lore registry. */
 public final class StoryManager {
@@ -107,7 +106,7 @@ public final class StoryManager {
             if (!bundled.exists()) throw new IOException("Bundled story_campaign.yml was not written.");
             java.nio.file.Files.copy(bundled.toPath(), file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException exception) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to install story campaign.", exception);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to install story campaign.", exception);
         }
     }
 
