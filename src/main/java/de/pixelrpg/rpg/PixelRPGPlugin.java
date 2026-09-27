@@ -76,6 +76,7 @@ import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.Profession;
 import de.pixelrpg.rpg.profession.ProfessionSystem;
 import de.pixelrpg.rpg.progression.CharacterProgressionTelemetry;
+import de.pixelrpg.rpg.resourcepack.ResourcePackJoinListener;
 import de.pixelrpg.rpg.quest.GlobalEventState;
 import de.pixelrpg.rpg.quest.QuestManager;
 import de.pixelrpg.rpg.quest.QuestMobKillListener;
@@ -161,6 +162,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         playerProfileManager = new PlayerProfileManager(this);
         playerProfileManager.initialize(getConfig());
         getServer().getPluginManager().registerEvents(new PlayerProfileLifecycleListener(playerProfileManager), this);
+        getServer().getPluginManager().registerEvents(new ResourcePackJoinListener(this), this);
         statEngine = new StatEngine(playerProfileManager);
         professionSystem = new ProfessionSystem(this, playerProfileManager);
         professionSystem.register();
