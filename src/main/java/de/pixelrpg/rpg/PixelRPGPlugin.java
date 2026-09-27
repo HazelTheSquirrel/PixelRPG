@@ -217,6 +217,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         scoreboardService = new ScoreboardService(this, playerProfileManager, questManager, getConfig().getInt("scoreboard.update-interval-ticks", 20));
         scoreboardService.startTask();
         questNavigationService = new QuestNavigationService(this, playerProfileManager, questManager);
+        questManager.setQuestStateChangeListener(questNavigationService::refresh);
         getServer().getPluginManager().registerEvents(questNavigationService, this);
         playtimeTracker = new PlaytimeTracker(this, playerProfileManager);
         playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
