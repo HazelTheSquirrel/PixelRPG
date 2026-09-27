@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "pixelrpg:item/food/leuchtbeeren_tee"
+    "layer0": "pixelrpg:item/food/leuchtbeerentee"
   }
 }
