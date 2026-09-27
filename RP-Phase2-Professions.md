@@ -24,7 +24,7 @@ Die vorhandene Crafting-Struktur mit **329 Rezepten** wurde weiterverwendet.
 
 ## 2. Berufsmodell
 
-Die RP.md definiert neun Berufe:
+Die RP.md definiert zehn Berufe:
 
 ### Aktiv
 1. BLACKSMITH
@@ -38,25 +38,13 @@ Die RP.md definiert neun Berufe:
 ### Passiv
 8. FISHERMAN
 9. WOODCUTTER
-
-Der bisherige zehnte Code-Beruf `MOUNTAIN_MINER` wurde aus der tatsächlichen Enum-Professionenliste entfernt.
-
-### Kompatibilität
-
-Bestehende Daten werden nicht blind verworfen:
-
-- historische `mountain_miner`-YAML-Daten werden in BLACKSMITH übernommen,
-- historische MySQL-Statkeys `MOUNTAIN_MINER` werden beim Laden auf BLACKSMITH gemappt,
-- ein veralteter Java-Kompatibilitätsalias bleibt vorübergehend vorhanden,
-- BLACKSMITH übernimmt damit die Rohstoff-/Metallprogression des früheren Bergbauerpfads.
-
-Damit entstehen keine zwei konkurrierenden Bergbau-/Metallberufe.
+10. MOUNTAIN_MINER
 
 ---
 
 ## 3. Berufslevel 1–60
 
-Alle neun Berufe verwenden:
+Alle zehn Berufe verwenden:
 
 - Mindestlevel: **1**
 - Maximallevel: **60**
@@ -120,9 +108,10 @@ Der Bestand bleibt vollständig erhalten:
 | MASON | 58 |
 | FISHERMAN | 0 |
 | WOODCUTTER | 0 |
+| MOUNTAIN_MINER | 0 |
 | **Gesamt** | **329** |
 
-FISHERMAN und WOODCUTTER bleiben passive Berufe und erhalten keine künstlichen Crafting-Rezepte.
+FISHERMAN, WOODCUTTER und MOUNTAIN_MINER bleiben passive Berufe und erhalten keine künstlichen Crafting-Rezepte.
 
 ---
 
@@ -236,30 +225,23 @@ Die Berufssystematik bleibt auf Spezialisierung ausgerichtet:
 - MASON → Stein / Baublöcke
 - FISHERMAN → Angeln
 - WOODCUTTER → Holz
+- MOUNTAIN_MINER → Bergbau / Erze
 
 Passiv bedeutet nicht „wertlos“:
 
-FISHERMAN und WOODCUTTER erzeugen ihre Progression über Weltaktivitäten und passive Vorteile statt über eine künstliche Rezeptliste.
+FISHERMAN, WOODCUTTER und MOUNTAIN_MINER erzeugen ihre Progression über Weltaktivitäten und passive Vorteile statt über eine künstliche Rezeptliste.
+
+MOUNTAIN_MINER erhält ab Berufslevel 20 zusätzlich eine passive Chance auf einen weiteren gültigen Erz-/Mineral-Drop: 5 % ab Level 20, 10 % ab Level 40 und 15 % ab Level 60.
 
 ---
 
-## 11. Bergbau-Migration
+## 11. Bergarbeiter
 
-Der frühere `MOUNTAIN_MINER` war eine Abweichung von der RP.md.
+`MOUNTAIN_MINER` ist wieder ein eigenständiger passiver Beruf.
 
-Die Rohstoffaktivität wird deshalb nicht als elfter bzw. zehnter Beruf weitergeführt.
+Erz- und Mineralabbau liefert `MOUNTAIN_MINER`-Berufs-XP. Der Beruf besitzt keine Crafting-Rezepte und entwickelt sich ausschließlich über Bergbauaktivitäten und passive Vorteile.
 
-Erz-/Metallabbau liefert jetzt BLACKSMITH-Berufs-XP.
-
-Historische Profile werden migriert, damit vorhandener Fortschritt nicht verloren geht.
-
-Das verhindert:
-
-`Bergbauer → Schmied → doppelte Metallprogression`
-
-und führt zu:
-
-`Rohstoffgewinnung → BLACKSMITH → Metallverarbeitung`
+Die bestehende Spielerprofil-Persistenz verwendet den Enum-Namen `mountain_miner` in YAML bzw. `profession.*.mountain_miner` in MySQL.
 
 ---
 
@@ -320,7 +302,7 @@ Ebenso wurden keine Verkaufspreise erfunden. Die tatsächliche Produktionswirtsc
 
 | Punkt | Status |
 |---|---|
-| alle 9 Berufe 1–60 | ERFÜLLT |
+| alle 10 Berufe 1–60 | ERFÜLLT |
 | Berufs-XP definiert | ERFÜLLT |
 | Level-60-XP-Cap | ERFÜLLT |
 | Materialtiers 1–60 | ERFÜLLT |
@@ -331,8 +313,8 @@ Ebenso wurden keine Verkaufspreise erfunden. Die tatsächliche Produktionswirtsc
 | Unlockkosten erhalten/validiert | ERFÜLLT |
 | Produktionskosten validiert | ERFÜLLT |
 | Custom-Item-Abhängigkeiten validiert | ERFÜLLT |
-| Mining-Duplikat bereinigt | ERFÜLLT |
-| historische Mining-Progression migrierbar | ERFÜLLT |
+| Mining als eigenständiger passiver Beruf | ERFÜLLT |
+| MOUNTAIN_MINER persistent und passiv | ERFÜLLT |
 | main verändert | NEIN |
 | test verändert | JA |
 
