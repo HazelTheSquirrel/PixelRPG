@@ -149,6 +149,8 @@ public final class PixelRegion {
         return members.add(playerId);
     }
     public boolean removeMember(UUID playerId) { return playerId != null && members.remove(playerId); }
+
+    public void clearMembers() { members.clear(); }
     public void setEnterMessage(String value) { enterMessage = value == null ? "" : value; }
     public void setLeaveMessage(String value) { leaveMessage = value == null ? "" : value; }
     public void setPriority(int value) { priority = value; }
