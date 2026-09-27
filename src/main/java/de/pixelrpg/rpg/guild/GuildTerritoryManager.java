@@ -246,18 +246,41 @@ public final class GuildTerritoryManager {
         Guild guild = guilds.getGuild(player.getUniqueId()).orElse(null);
         if (guild == null || !guild.id().equals(state.guildId)) return OperationResult.failure("Dieser Grenzmarker gehört nicht zu deiner Gilde.");
         if (!guild.canManageTerritory(player.getUniqueId())) return OperationResult.failure("Nur der Gildenmeister oder Stellvertreter darf Grenzmarker entfernen.");
-        if (state.markers.size() <= GuildTerritory.INITIAL_MARKERS) {
-            return OperationResult.failure("Eine Gilde muss mindestens vier Grenzmarker behalten.");
-        }
 
         int index = indexOf(state.markers, block);
+        if (index < 0) return OperationResult.failure("Der Grenzmarker konnte nicht eindeutig gefunden werden.");
+
+        ArrayList<GuildTerritory.Marker> previous = new ArrayList<>(state.markers);
         ArrayList<GuildTerritory.Marker> candidate = new ArrayList<>(state.markers);
         candidate.remove(index);
+
+        /*
+         * A guild territory exists only while at least four markers form a closed polygon.
+         * Removing the fourth marker therefore deliberately tears the region down.
+         * The remaining physical markers stay removable until none are left.
+         */
+        if (candidate.size() < GuildTerritory.INITIAL_MARKERS) {
+            state.markers.clear();
+            state.markers.addAll(candidate);
+
+            regions.delete(state.regionId);
+
+            block.setType(Material.AIR, false);
+            giveItems(player, createMarkerItem(state.guildId, 1));
+
+            if (candidate.isEmpty()) {
+                territories.remove(state.guildId);
+            }
+
+            save();
+            return OperationResult.success(candidate.isEmpty()
+                    ? "Grenzmarker entfernt. Das Gildengebiet wurde vollständig abgebaut."
+                    : "Grenzmarker entfernt. Das Gildengebiet wurde aufgelöst; die verbleibenden Grenzmarker können ebenfalls abgebaut werden.");
+        }
 
         OperationResult validation = validateCompleteBoundary(state.guildId, candidate, state.regionId);
         if (!validation.success()) return validation;
 
-        ArrayList<GuildTerritory.Marker> previous = new ArrayList<>(state.markers);
         state.markers.clear();
         state.markers.addAll(candidate);
 
