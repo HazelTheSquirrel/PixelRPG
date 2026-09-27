@@ -67,7 +67,7 @@ public final class QuestRepository {
             int categoryLevel = number(json, "categoryLevel", recommendedLevel);
             int requiredAmount = number(json, "requiredAmount", 1);
             JsonObject reward = object(json, "reward");
-            JsonObject navigation = object(json, "navigation");
+            JsonObject locate = object(json, "locate");
             Profession profession = parseProfession(string(json, "profession", ""));
             int requiredProfessionLevel = number(json, "requiredProfessionLevel", profession == null ? 1 : recommendedLevel);
             if (profession != null) {
@@ -79,8 +79,7 @@ public final class QuestRepository {
                     numberDouble(reward, "money", 0.0), numberLong(reward, "experience", 0L),
                     number(reward, "durationMinutes", 0), stringList(reward, "items"),
                     string(reward, "companionId", "").strip(), string(json, "questGiverNpcId", "").strip(),
-                    string(navigation, "structure", "").strip(), stringList(navigation, "biomes"),
-                    Math.max(1, number(navigation, "radius", 1024)), bool(navigation, "findUnexplored", false), null,
+                    string(locate, "structure", "").strip(), Math.max(1, number(locate, "radius", 64)),
                     profession, requiredProfessionLevel);
             questsById.put(id, quest);
             prerequisitesByQuest.put(id, mergePrerequisites(json));
@@ -125,7 +124,7 @@ public final class QuestRepository {
             plugin.getLogger().warning("Ignoring quest '" + id + "': unknown COLLECT target '" + string(json, "targetKey", "") + "'.");
             return false;
         }
-        if (type == QuestType.REACH_LOCATION && !hasWorldNavigation(object(json, "navigation"))) return false;
+        if (type == QuestType.REACH_LOCATION && !hasLocateStructure(object(json, "locate"))) return false;
         return true;
     }
 
@@ -146,8 +145,8 @@ public final class QuestRepository {
         }
     }
 
-    private boolean hasWorldNavigation(JsonObject navigation) {
-        return navigation != null && (!string(navigation, "structure", "").isBlank() || !stringList(navigation, "biomes").isEmpty());
+    private boolean hasLocateStructure(JsonObject locate) {
+        return locate != null && !string(locate, "structure", "").isBlank();
     }
 
     /** Accepts normal Minecraft materials, registered PixelRPG items and profession recipe outputs. */
