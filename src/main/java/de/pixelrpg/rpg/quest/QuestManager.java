@@ -38,7 +38,6 @@ public final class QuestManager {
     private final double partyShareRange;
     private final ItemService itemService;
     private final Map<QuestTimerKey, BukkitTask> questExpiryTasks = new ConcurrentHashMap<>();
-    private Consumer<Player> questStateChangeListener = ignored -> { };
 
     public QuestManager(Plugin plugin, QuestRepository questRepository, PlayerProfileManager profileManager,
                         de.pixelrpg.rpg.api.GuildAPI guildAPI, GlobalEventState globalEventState,
@@ -63,10 +62,6 @@ public final class QuestManager {
                 if (quest != null) scheduleExpiry(player.getUniqueId(), quest.id(), progress.getExpiryTimestampMillis());
             }
         }
-    }
-
-    public void setQuestStateChangeListener(Consumer<Player> listener) {
-        questStateChangeListener = listener == null ? ignored -> { } : listener;
     }
 
     public void shutdown() {
@@ -175,7 +170,6 @@ public final class QuestManager {
         if (quest.hasNavigationTarget()) {
             player.sendMessage(QuestText.navigationTarget(player, quest, profile.getQuestNavigationTarget(quest.id())));
         }
-        questStateChangeListener.accept(player);
         return true;
     }
 
@@ -206,7 +200,6 @@ public final class QuestManager {
         }
         profile.removeActiveQuest(key.questId());
         Player player = Bukkit.getPlayer(key.playerId());
-        if (player != null && player.isOnline()) questStateChangeListener.accept(player);
         if (player != null && player.isOnline()) player.sendMessage(Component.text("Dein Quest-Vertrag ist abgelaufen!", NamedTextColor.RED));
     }
 
