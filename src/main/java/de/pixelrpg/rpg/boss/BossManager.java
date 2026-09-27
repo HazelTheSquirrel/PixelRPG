@@ -220,6 +220,7 @@ public final class BossManager {
             guildAPI.addExperience(uuid, lootConfig.expReward());
             giveGuaranteedLoot(player, lootConfig, activeBoss.getDefinition().getLevel());
             giveChanceLoot(player, lootConfig, activeBoss.getDefinition().getLevel());
+            giveCustomItemReward(player, lootConfig);
             player.sendMessage(Component.text("Boss besiegt! +" + lootConfig.moneyReward() + " Gold, +" + lootConfig.expReward() + " EP", NamedTextColor.GREEN));
         }
         callDefeatedEvent(activeBoss, onlineRegistered(participants));
@@ -251,11 +252,19 @@ public final class BossManager {
         for (BossLootEntry entry : lootConfig.chanceDrops()) if (random.nextDouble(100.0D) < entry.chancePercent()) giveReward(player, entry.material(), entry.rarity(), level);
     }
 
+    private void giveCustomItemReward(Player player, BossLootConfig lootConfig) {
+        String rewardId = lootConfig.customItemReward();
+        if (rewardId.isBlank()) return;
+        itemService.createItem(rewardId).ifPresentOrElse(
+                item -> giveItem(player, item),
+                () -> plugin.getLogger().warning("Invalid PixelRPG boss custom reward: " + rewardId));
+    }
+
     private void giveReward(Player player, String rewardId, ItemRarity rarity, int level) {
         if (rewardId == null || rewardId.isBlank()) return;
         String normalized = rewardId.trim().toLowerCase(java.util.Locale.ROOT);
         if (normalized.startsWith("pixelrpg:")) {
-            plugin.getLogger().warning("Ignoring custom PixelRPG boss loot '" + rewardId + "'; custom items are quest/profession rewards only.");
+            plugin.getLogger().warning("Ignoring PixelRPG custom reward in vanilla loot list: " + rewardId);
             return;
         }
         Material material = Material.matchMaterial(rewardId);
