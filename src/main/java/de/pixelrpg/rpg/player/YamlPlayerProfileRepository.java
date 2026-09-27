@@ -71,7 +71,6 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         profile.setEquipment(equipment);
         profile.setScoreboardEnabled(yaml.getBoolean("scoreboard-enabled", true));
         profile.setPartyHudEnabled(yaml.getBoolean("party-hud-enabled", false));
-        profile.setQuestTrackerEnabled(yaml.getBoolean("quest-tracker-enabled", true));
         profile.setPlaytimeMillis(yaml.getLong("playtime-millis", 0L));
         profile.setPersistenceRevision(yaml.getLong("persistence-revision", 0L));
         profile.markClean();
@@ -137,18 +136,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
             yaml.set(path + ".amount", progress.getCurrentAmount());
             yaml.set(path + ".expiry", progress.getExpiryTimestampMillis());
         }
-        for (var entry : profile.getQuestNavigationTargets().entrySet()) {
-            String path = "quest-navigation." + entry.getKey();
-            PlayerProfile.NavigationTarget target = entry.getValue();
-            yaml.set(path + ".world", target.worldId().toString());
-            yaml.set(path + ".x", target.x());
-            yaml.set(path + ".y", target.y());
-            yaml.set(path + ".z", target.z());
-            yaml.set(path + ".target-key", target.structureKey());
-        }
-        for (var entry : profile.getAllStatistics().entrySet()) yaml.set("statistics." + entry.getKey(), entry.getValue());
-        for (var entry : profile.getEquipment().entrySet()) yaml.set("equipment." + entry.getKey().name().toLowerCase(), entry.getValue());
-        yaml.set("scoreboard-enabled", profile.isScoreboardEnabled()); yaml.set("party-hud-enabled", profile.isPartyHudEnabled()); yaml.set("quest-tracker-enabled", profile.isQuestTrackerEnabled()); yaml.set("playtime-millis", profile.getPlaytimeMillis());
+        yaml.set("scoreboard-enabled", profile.isScoreboardEnabled()); yaml.set("party-hud-enabled", profile.isPartyHudEnabled()); yaml.set("playtime-millis", profile.getPlaytimeMillis());
         long nextRevision = profile.getPersistenceRevision() + 1L; yaml.set("persistence-revision", nextRevision);
         if (!playersFolder.exists()) playersFolder.mkdirs();
         File target = new File(playersFolder, profile.getUuid() + ".yml"); File tempFile = new File(playersFolder, profile.getUuid() + ".yml.tmp"); yaml.save(tempFile);
