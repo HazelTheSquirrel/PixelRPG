@@ -27,7 +27,7 @@ public final class PlayerProfile {
     private final Set<String> unlockedWaypoints = new HashSet<>();
     private int storyChapterIndex;
     private final Map<String, QuestProgress> activeQuests = new HashMap<>();
-    private final Map<String, NavigationTarget> questNavigationTargets = new HashMap<>();
+    private final Map<String, QuestCoordinate> questCoordinates = new HashMap<>();
     private final Set<String> completedQuests = new HashSet<>();
     private final Map<String, Long> statistics = new HashMap<>();
     private final Map<EquipmentSlot, ItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
@@ -107,13 +107,6 @@ public final class PlayerProfile {
     public void setStoryChapterIndex(int value) { mutate(() -> storyChapterIndex = value); }
     public synchronized Map<String, QuestProgress> getActiveQuests() { return Collections.unmodifiableMap(new HashMap<>(activeQuests)); }
     public synchronized boolean hasActiveQuest(String id) { return id != null && activeQuests.containsKey(id); }
-    public synchronized NavigationTarget getQuestNavigationTarget(String questId) { return questId == null ? null : questNavigationTargets.get(questId); }
-    public synchronized Map<String, NavigationTarget> getQuestNavigationTargets() { return Collections.unmodifiableMap(new HashMap<>(questNavigationTargets)); }
-    public void setQuestNavigationTarget(String questId, NavigationTarget target) {
-        if (questId == null || questId.isBlank() || target == null) return;
-        mutate(() -> questNavigationTargets.put(questId, target));
-    }
-    public void clearQuestNavigationTarget(String questId) { if (questId == null) return; mutateIfChanged(() -> questNavigationTargets.remove(questId) != null); }
     public void startQuest(QuestProgress progress) { if (progress == null) return; synchronized (this) { progress.setDirtyCallback(this::markDirty); activeQuests.put(progress.getQuestId(), progress); } notifyDirty(); }
     public void removeActiveQuest(String id) { if (id == null) return; synchronized (this) { if (activeQuests.remove(id) == null) return; } notifyDirty(); }
     public synchronized Set<String> getCompletedQuests() { return Collections.unmodifiableSet(new HashSet<>(completedQuests)); }
@@ -150,7 +143,7 @@ public final class PlayerProfile {
         snapshot.unlockedWaypoints.addAll(unlockedWaypoints);
         snapshot.storyChapterIndex = storyChapterIndex;
         for (QuestProgress progress : activeQuests.values()) snapshot.activeQuests.put(progress.getQuestId(), new QuestProgress(progress.getQuestId(), progress.getCurrentAmount(), progress.getExpiryTimestampMillis()));
-        snapshot.questNavigationTargets.putAll(questNavigationTargets);
+        snapshot.questCoordinates.putAll(questCoordinates);
         snapshot.completedQuests.addAll(completedQuests);
         snapshot.statistics.putAll(statistics);
         equipment.forEach((slot, item) -> snapshot.equipment.put(slot, item.clone()));
@@ -180,7 +173,7 @@ public final class PlayerProfile {
             unlockedWaypoints.clear();
             activeQuests.clear();
             completedQuests.clear();
-            questNavigationTargets.clear();
+            questCoordinates.clear();
             equipment.clear();
             for (Profession profession : Profession.values()) {
                 professionLevels.put(profession, Profession.MIN_LEVEL);
@@ -192,6 +185,13 @@ public final class PlayerProfile {
 
     private void mutate(Runnable mutation) { synchronized (this) { mutation.run(); dirty = true; } notifyDirty(); }
     private void mutateIfChanged(java.util.function.BooleanSupplier mutation) { boolean changed; synchronized (this) { changed = mutation.getAsBoolean(); if (changed) dirty = true; } if (changed) notifyDirty(); }
-    public record NavigationTarget(UUID worldId, double x, double y, double z, String structureKey) { }
+    public synchronized QuestCoordinate getQuestCoordinate(String questId) { return questId == null ? null : questCoordinates.get(questId); }
+    public synchronized Map<String, QuestCoordinate> getQuestCoordinates() { return Collections.unmodifiableMap(new HashMap<>(questCoordinates)); }
+    public void setQuestCoordinate(String questId, QuestCoordinate coordinate) {
+        if (questId == null || questId.isBlank() || coordinate == null) return;
+        mutate(() -> questCoordinates.put(questId, coordinate));
+    }
+    public void clearQuestCoordinate(String questId) { if (questId == null) return; mutateIfChanged(() -> questCoordinates.remove(questId) != null); }
+    public record QuestCoordinate(UUID worldId, double x, double y, double z, String structureKey) { }
     private void notifyDirty() { Runnable callback; synchronized (this) { mutationRevision++; callback = dirtyCallback; } if (callback != null) callback.run(); }
 }
