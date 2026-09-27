@@ -69,7 +69,6 @@ import de.pixelrpg.rpg.npc.behavior.ReceptionBehavior;
 import de.pixelrpg.rpg.npc.behavior.ShopBehavior;
 import de.pixelrpg.rpg.npc.behavior.StoryBehavior;
 import de.pixelrpg.rpg.npc.behavior.TravelBehavior;
-import de.pixelrpg.rpg.navigation.QuestNavigationService;
 import de.pixelrpg.rpg.party.PartyDisconnectListener;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.player.PlayerProfileLifecycleListener;
@@ -137,7 +136,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private BiomeBossSpawnTask biomeBossSpawnTask;
     private StatisticsService statisticsService;
     private ScoreboardService scoreboardService;
-    private QuestNavigationService questNavigationService;
     private PlaytimeTracker playtimeTracker;
     private CharacterProgressionTelemetry characterProgressionTelemetry;
     private CompanionService companionService;
@@ -216,9 +214,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
         Bukkit.getServicesManager().register(StatisticsAPI.class, statisticsService, this, ServicePriority.Normal);
         scoreboardService = new ScoreboardService(this, playerProfileManager, questManager, getConfig().getInt("scoreboard.update-interval-ticks", 20));
         scoreboardService.startTask();
-        questNavigationService = new QuestNavigationService(this, playerProfileManager, questManager);
-        questManager.setQuestStateChangeListener(questNavigationService::refresh);
-        getServer().getPluginManager().registerEvents(questNavigationService, this);
         playtimeTracker = new PlaytimeTracker(this, playerProfileManager);
         playtimeTracker.startAutosaveTask(getConfig().getInt("statistics.autosave-interval-ticks", 6000));
         characterProgressionTelemetry = new CharacterProgressionTelemetry(playerProfileManager);
@@ -361,7 +356,6 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public BossManager getBossManager() { return bossManager; }
     public StatisticsService getStatisticsService() { return statisticsService; }
     public ScoreboardService getScoreboardService() { return scoreboardService; }
-    public QuestNavigationService getQuestNavigationService() { return questNavigationService; }
     public CompanionService getCompanionService() { return companionService; }
     public RegionManager getRegionManager() { return regionManager; }
     public RegionEditor getRegionEditor() { return regionEditor; }
