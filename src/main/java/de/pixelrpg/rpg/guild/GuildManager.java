@@ -38,7 +38,7 @@ public final class GuildManager implements GuildAPI {
     public static final int CREATION_COST_GOLD = Guild.CREATION_COST_GOLD;
     public static final int MIN_CREATION_LEVEL = Guild.MIN_CREATION_LEVEL;
     private static volatile GuildManager instance;
-    private final JavaPlugin plugin;
+    private final PixelRPGPlugin plugin;
     private final PlayerProfileManager profiles;
     private final File file;
     private final Map<UUID, GuildData> guilds = new HashMap<>();
@@ -49,7 +49,7 @@ public final class GuildManager implements GuildAPI {
     private long stateRevision;
     private volatile boolean shuttingDown;
 
-    public GuildManager(JavaPlugin plugin, PlayerProfileManager profiles) {
+    public GuildManager(PixelRPGPlugin plugin, PlayerProfileManager profiles) {
         this.plugin = plugin;
         this.profiles = profiles;
         if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
@@ -65,7 +65,7 @@ public final class GuildManager implements GuildAPI {
         instance = this;
     }
 
-    public static GuildManager getInstance(JavaPlugin plugin, PlayerProfileManager profiles) {
+    public static GuildManager getInstance(PixelRPGPlugin plugin, PlayerProfileManager profiles) {
         GuildManager current = instance;
         if (current != null) return current;
         synchronized (GuildManager.class) {
