@@ -71,7 +71,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         profile.setEquipment(equipment);
         profile.setScoreboardEnabled(yaml.getBoolean("scoreboard-enabled", true));
         profile.setPartyHudEnabled(yaml.getBoolean("party-hud-enabled", false));
-        profile.setQuestTrackerEnabled(yaml.getBoolean("quest-tracker-enabled", false));
+        profile.setQuestTrackerEnabled(yaml.getBoolean("quest-tracker-enabled", true));
         profile.setPlaytimeMillis(yaml.getLong("playtime-millis", 0L));
         profile.setPersistenceRevision(yaml.getLong("persistence-revision", 0L));
         profile.markClean();
