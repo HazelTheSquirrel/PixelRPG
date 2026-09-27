@@ -111,7 +111,7 @@ public final class QuestManager {
 
         for (QuestProgress progress : profile.getActiveQuests().values()) {
             Quest quest = questRepository.getQuest(progress.getQuestId());
-            if (quest == null || !quest.hasNavigationTarget() || profile.getQuestNavigationTarget(quest.id()) != null) continue;
+            if (quest == null || !quest.hasLocateTarget() || profile.getQuestCoordinate(quest.id()) != null) continue;
             resolveAndStoreQuestCoordinate(player, profile, quest, false);
         }
     }
@@ -127,13 +127,13 @@ public final class QuestManager {
                 return false;
             }
             Location location = resolved.location();
-            profile.setQuestNavigationTarget(quest.id(), new PlayerProfile.NavigationTarget(
+            profile.setQuestCoordinate(quest.id(), new PlayerProfile.QuestCoordinate(
                     location.getWorld().getUID(), location.getX(), location.getY(), location.getZ(), resolved.targetKey()));
             if (announce) player.sendMessage(QuestText.navigationTarget(player, quest, profile.getQuestNavigationTarget(quest.id())));
             return true;
         } catch (RuntimeException exception) {
             plugin.getLogger().log(java.util.logging.Level.WARNING,
-                    "Failed to resolve quest target for " + quest.id() + " and player " + player.getUniqueId(), exception);
+                    "Failed to resolve quest locate target for " + quest.id() + " and player " + player.getUniqueId(), exception);
             if (announce) player.sendMessage(Component.text("Der Zielort dieser Quest konnte nicht ermittelt werden. Bitte versuche es erneut.", NamedTextColor.RED));
             return false;
         }
@@ -196,7 +196,7 @@ public final class QuestManager {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null || !profile.isRegistered() || !profile.hasActiveQuest(questId)) return false;
         profile.removeActiveQuest(questId);
-        profile.clearQuestNavigationTarget(questId);
+        profile.clearQuestCoordinate(questId);
         removeTimer(player.getUniqueId(), questId);
         player.sendMessage(Component.text("Quest abgebrochen.", NamedTextColor.YELLOW));
         return true;
