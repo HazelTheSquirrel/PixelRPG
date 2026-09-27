@@ -41,26 +41,6 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         profile.setUnlockedWaypoints(new HashSet<>(yaml.getStringList("unlocked-waypoints")));
         profile.setStoryChapterIndex(yaml.getInt("story-chapter-index", -1));
         profile.setCompletedQuests(new HashSet<>(yaml.getStringList("completed-quests")));
-        ConfigurationSection navigationSection = yaml.getConfigurationSection("quest-navigation");
-        if (navigationSection != null) {
-            for (String questId : navigationSection.getKeys(false)) {
-                ConfigurationSection target = navigationSection.getConfigurationSection(questId);
-                if (target == null) continue;
-                String worldRaw = target.getString("world");
-                if (worldRaw == null) continue;
-                try {
-                    UUID worldId = UUID.fromString(worldRaw);
-                    profile.setQuestNavigationTarget(questId, new PlayerProfile.NavigationTarget(
-                            worldId,
-                            target.getDouble("x"),
-                            target.getDouble("y"),
-                            target.getDouble("z"),
-                            target.getString("target-key")
-                    ));
-                } catch (IllegalArgumentException ignored) {
-                }
-            }
-        }
         ConfigurationSection activeSection = yaml.getConfigurationSection("active-quests");
         if (activeSection != null) for (String questId : activeSection.getKeys(false)) profile.startQuest(new QuestProgress(questId, activeSection.getInt(questId + ".amount", 0), activeSection.getLong(questId + ".expiry", 0L)));
         ConfigurationSection statsSection = yaml.getConfigurationSection("statistics");
