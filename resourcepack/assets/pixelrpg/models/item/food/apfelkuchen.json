@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "pixelrpg:item/food/apfelkuchen"
+    "layer0": "pixelrpg:item/food/apfel_kuchen"
   }
 }
