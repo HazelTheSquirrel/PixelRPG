@@ -339,7 +339,6 @@ public final class BossRepository {
         yaml.set(path + ".loot.custom-item", customDrop);
         yaml.set(path + ".loot.money", money);
         yaml.set(path + ".loot.exp", exp);
-        yaml.set(path + ".loot.custom-item", customDrop);
     }
 
     private void worldBoss(YamlConfiguration yaml, String id, String name, String entity, int level,
@@ -357,6 +356,7 @@ public final class BossRepository {
         yaml.set(path + ".loot.chance-drops", List.of(Map.of("material", chanceMaterial, "chance-percent", chancePercent, "rarity", rarity)));
         yaml.set(path + ".loot.money", money);
         yaml.set(path + ".loot.exp", exp);
+        yaml.set(path + ".loot.custom-item", customDrop);
         yaml.set(path + ".phases", worldBossPhases(id));
     }
 
