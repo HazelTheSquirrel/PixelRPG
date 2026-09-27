@@ -206,6 +206,7 @@ public final class QuestManager {
         }
         profile.removeActiveQuest(key.questId());
         Player player = Bukkit.getPlayer(key.playerId());
+        if (player != null && player.isOnline()) questStateChangeListener.accept(player);
         if (player != null && player.isOnline()) player.sendMessage(Component.text("Dein Quest-Vertrag ist abgelaufen!", NamedTextColor.RED));
     }
 
