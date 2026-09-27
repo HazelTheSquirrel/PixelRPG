@@ -39,7 +39,7 @@ public final class CompanionRegistry {
         JsonObject progression = object(root, "progression");
         JsonObject xp = object(progression, "xp");
         JsonObject defaults = object(root, "defaults");
-        int maxLevel = clampInt(number(progression, "maxLevel", 99), 1, 999);
+        int maxLevel = clampInt(number(progression, "maxLevel", 60), 1, 60);
         long base = Math.max(1L, numberLong(xp, "base", 100L));
         long perLevel = Math.max(0L, numberLong(xp, "perLevel", 8L));
         boolean activeXpOnly = bool(defaults, "activeXpOnly", true);
@@ -131,7 +131,7 @@ public final class CompanionRegistry {
 
         JsonObject progression = object(json, "progression");
         CompanionDefinition.CompanionProgressionDefinition progressionDefinition = new CompanionDefinition.CompanionProgressionDefinition(
-                clampInt(number(progression, "maxLevel", 99), 1, 999),
+                clampInt(number(progression, "maxLevel", 60), 1, 60),
                 number(progression, "healthPerLevel", 0.008D),
                 number(progression, "damagePerLevel", 0.006D),
                 number(progression, "speedPerLevel", 0.0015D),
