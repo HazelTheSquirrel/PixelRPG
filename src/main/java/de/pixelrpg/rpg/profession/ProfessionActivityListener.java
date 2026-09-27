@@ -48,7 +48,6 @@ public final class ProfessionActivityListener implements Listener {
     );
 
     private final ProfessionService professionService;
-    private final Set<BlockPosition> automatedTreeFelling = new HashSet<>();
     private final Random random = new Random();
 
     public ProfessionActivityListener(ProfessionService professionService) {
@@ -102,13 +101,6 @@ public final class ProfessionActivityListener implements Listener {
             default -> 0L;
         };
         if (experience > 0L) professionService.addExperience(player, profession, experience);
-        if (!automated
-                && profession == Profession.WOODCUTTER
-                && professionService.getLevel(player.getUniqueId(), Profession.WOODCUTTER) >= 60
-                && Tag.ITEMS_AXES.isTagged(player.getInventory().getItemInMainHand().getType())
-                && Tag.OVERWORLD_NATURAL_LOGS.isTagged(material)) {
-            fellSafeTree(player, event.getBlock());
-        }
     }
 
     // Verstärkt Holzertrag passiv abhängig vom Holzfäller-Level, ohne Vanilla-Drops zu ersetzen.
