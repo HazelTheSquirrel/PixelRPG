@@ -65,7 +65,7 @@ public final class DatabaseManager {
                     completed_quests TEXT,
                     scoreboard_enabled BOOLEAN NOT NULL DEFAULT FALSE,
                     party_hud_enabled BOOLEAN NOT NULL DEFAULT FALSE,
-                    quest_tracker_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+                    quest_tracker_enabled BOOLEAN NOT NULL DEFAULT TRUE,
                     playtime_millis BIGINT NOT NULL DEFAULT 0,
                     persistence_revision BIGINT NOT NULL DEFAULT 0
                 )
