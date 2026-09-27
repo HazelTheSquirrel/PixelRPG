@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public final class QuestBehavior implements NpcBehavior {
-    private static final int MAX_NORMAL_LEVEL = 99;
+    private static final int MAX_NORMAL_LEVEL = 60;
 
     private final QuestManager questManager;
     private final PlayerProfileManager profileManager;
@@ -68,7 +68,7 @@ public final class QuestBehavior implements NpcBehavior {
         if (profile == null) return;
 
         List<DialogBody> body = List.of(
-                DialogBody.plainMessage(Component.text("Wähle deinen gewünschten Levelbereich. Die Questbereiche sind fest auf 1–10, 11–20 usw. bis 91–99 aufgeteilt.", NamedTextColor.WHITE)),
+                DialogBody.plainMessage(Component.text("Wähle deinen gewünschten Levelbereich. Die Questbereiche sind fest auf 1–10, 11–20 usw. bis 51–60 aufgeteilt.", NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text("Dein aktuelles Level: " + profile.getLevel(), NamedTextColor.AQUA))
         );
 
