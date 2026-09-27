@@ -48,7 +48,7 @@ public final class PlayerProfile {
         this.storyChapterIndex = -1;
         this.scoreboardEnabled = true;
         this.partyHudEnabled = false;
-        this.questTrackerEnabled = false;
+        this.questTrackerEnabled = true;
         this.playtimeMillis = 0L;
         this.persistenceRevision = 0L;
         this.mutationRevision = 0L;
@@ -180,7 +180,7 @@ public final class PlayerProfile {
             storyChapterIndex = -1;
             scoreboardEnabled = true;
             partyHudEnabled = false;
-            questTrackerEnabled = false;
+            questTrackerEnabled = true;
             learnedProfessions.clear();
             unlockedRecipes.clear();
             unlockedWaypoints.clear();
