@@ -12,9 +12,9 @@ public enum Profession {
     TAILOR("Schneider", "Wolle, Leder, Betten und tragbare Ausrüstung", NamedTextColor.LIGHT_PURPLE),
     ALCHEMIST("Alchemist", "Vanilla-Tränke und alchemistische Verarbeitung", NamedTextColor.DARK_PURPLE),
     MASON("Steinmetz", "Stein, Ziegel und hochwertige Baublöcke", NamedTextColor.DARK_GRAY),
-    FISHERMAN("Fischer", "Passiv: Angeln, Fangmenge und Vanilla-Schätze", NamedTextColor.BLUE),
-    WOODCUTTER("Holzfäller", "Passiv: Holzfällen, Holzertrag und sicheres Baumfällen", NamedTextColor.DARK_GREEN),
-    MOUNTAIN_MINER("Bergarbeiter", "Passiv: Bergbau, Erzgewinn und wertvollere Funde", NamedTextColor.DARK_AQUA);
+    FISHERMAN("Fischer", "Angeln und Fischfang", NamedTextColor.BLUE),
+    WOODCUTTER("Holzfäller", "Holzfällen und Holzgewinnung", NamedTextColor.DARK_GREEN),
+    MOUNTAIN_MINER("Bergarbeiter", "Bergbau und Erzgewinnung", NamedTextColor.DARK_AQUA);
 
     public static final int MIN_LEVEL = 1;
     public static final int MAX_LEVEL = 60;
