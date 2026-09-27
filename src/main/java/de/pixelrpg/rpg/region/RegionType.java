@@ -5,6 +5,7 @@ public enum RegionType {
     VILLAGE,
     CITY,
     GUILD_CITY,
+    GUILD_TERRITORY,
     RUINS,
     FORTRESS,
     DUNGEON,
