@@ -23,6 +23,9 @@ items:
     currency-drop-max-amount: 8
 
 economy:
+  guild-territory:
+    marker-base-price: 500.0
+    marker-price-increase: 500.0
   bank:
     quick-amount: 10.0
   currency:
