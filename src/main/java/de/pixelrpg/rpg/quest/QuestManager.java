@@ -103,14 +103,6 @@ public final class QuestManager {
                 chapter.questIds().stream().anyMatch(id -> id.equalsIgnoreCase(quest.id())));
     }
 
-    /** Returns whether the player has an active quest with a persisted coordinate target. */
-    public boolean hasActiveCoordinateQuest(PlayerProfile profile) {
-        if (profile == null) return false;
-        return profile.getActiveQuests().values().stream()
-                .map(progress -> questRepository.getQuest(progress.getQuestId()))
-                .anyMatch(quest -> quest != null && quest.hasNavigationTarget());
-    }
-
     /** Resolves missing quest coordinates once after profile activation. */
     public void restoreQuestCoordinates(Player player) {
         if (player == null) return;
@@ -210,7 +202,6 @@ public final class QuestManager {
         profile.clearQuestNavigationTarget(questId);
         removeTimer(player.getUniqueId(), questId);
         player.sendMessage(Component.text("Quest abgebrochen.", NamedTextColor.YELLOW));
-        questStateChangeListener.accept(player);
         return true;
     }
 
