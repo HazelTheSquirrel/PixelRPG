@@ -307,7 +307,7 @@ public final class GuildTerritoryManager {
 
             ArrayList<GuildTerritory.Marker> candidate = new ArrayList<>(current);
             candidate.add(i + 1, marker);
-            OperationResult validation = validateCompleteBoundary(guildId, candidate, null);
+            OperationResult validation = validateCompleteBoundary(guildId, candidate, currentRegionId);
             if (!validation.success()) continue;
 
             RegionGeometry candidateGeometry = geometry(candidate);
