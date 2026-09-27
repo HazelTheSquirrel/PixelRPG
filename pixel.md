@@ -129,11 +129,10 @@ Entsprechend sollte das Resourcepack die zugehörigen Item-Modelle unter dem Nam
 
 | Namespace-Bereich | Anzahl | Verwendung |
 |---|---:|---|
-| `pixelrpg:weapons/*` | 5 | definierte Waffen |
-| `pixelrpg:armor/*` | 20 | definierte Rüstungsteile |
+| `pixelrpg:weapons/*` | 5 | definierte Waffen inkl. Feuerball |
+| `pixelrpg:armor/*` | 24 | definierte Rüstungsteile |
 | `pixelrpg:unique/*` | 1 | Admin-/Unique-Item |
 | `pixelrpg:boss/*` | 32 | Boss-Rewards |
 | `pixelrpg:food/*` | 23 | Food |
-| `pixelrpg:weapons/fireball` | 1 | Feuerball-Item |
 
 **Wichtig:** Die Resourcepack-ID ist nicht identisch mit der vollständigen Plugin-Item-ID. Bei Waffen/Rüstung/Boss-Items können mehrere konkrete Plugin-Definitionen dieselbe Resourcepack-ID verwenden. Das Resourcepack-Modell beschreibt damit die visuelle Variante, während die Plugin-Item-ID die konkrete RPG-Definition identifiziert.
