@@ -37,7 +37,6 @@ public final class QuestPassiveCheckTask implements Listener {
     public void start() {
         if (started) return;
         started = true;
-        questManager.setQuestStateChangeListener(this::wake);
         inventoryTracker = new QuestInventoryTracker(questManager);
         plugin.getServer().getPluginManager().registerEvents(inventoryTracker, plugin);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -132,7 +131,6 @@ public final class QuestPassiveCheckTask implements Listener {
         }
         HandlerList.unregisterAll(this);
         inventoryTracker = null;
-        questManager.setQuestStateChangeListener(null);
         started = false;
     }
 }
