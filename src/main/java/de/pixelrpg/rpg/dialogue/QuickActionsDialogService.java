@@ -1,7 +1,6 @@
 package de.pixelrpg.rpg.dialogue;
 
 import de.pixelrpg.rpg.item.ItemDefinition;
-import de.pixelrpg.rpg.navigation.QuestNavigationService;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.companion.CompanionService;
