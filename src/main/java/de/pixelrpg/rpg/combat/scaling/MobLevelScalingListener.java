@@ -290,7 +290,7 @@ public final class MobLevelScalingListener implements Listener {
         if (mainHand != null && mainHand.hasItemMeta()) {
             Integer itemLevel = mainHand.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
             if (itemLevel != null) {
-                totalLevel += Math.clamp(itemLevel, 1, 99);
+                totalLevel += Math.clamp(itemLevel, Level.MIN_LEVEL, Level.MAX_NORMAL_LEVEL);
                 counted++;
             }
         }
@@ -298,7 +298,7 @@ public final class MobLevelScalingListener implements Listener {
         if (offHand != null && offHand.hasItemMeta()) {
             Integer itemLevel = offHand.getItemMeta().getPersistentDataContainer().get(RPGKeys.Item.itemLevel(), PersistentDataType.INTEGER);
             if (itemLevel != null) {
-                totalLevel += Math.clamp(itemLevel, 1, 99);
+                totalLevel += Math.clamp(itemLevel, Level.MIN_LEVEL, Level.MAX_NORMAL_LEVEL);
                 counted++;
             }
         }
