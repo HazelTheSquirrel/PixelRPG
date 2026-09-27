@@ -189,15 +189,19 @@ public final class GuildManager implements GuildAPI {
     }
 
     public synchronized Result appointDeputy(Player leader, Player target) {
-        if (shuttingDown || leader == null || target == null) return Result.NOT_IN_GUILD;
+        return target == null ? Result.TARGET_NOT_MEMBER : appointDeputy(leader, target.getUniqueId());
+    }
+
+    public synchronized Result appointDeputy(Player leader, UUID targetId) {
+        if (shuttingDown || leader == null || targetId == null) return Result.NOT_IN_GUILD;
         GuildData guild = guilds.get(memberGuilds.get(leader.getUniqueId()));
         if (guild == null) return Result.NOT_IN_GUILD;
         if (!guild.leaderId().equals(leader.getUniqueId())) return Result.NOT_LEADER;
-        if (!guild.members().contains(target.getUniqueId())) return Result.TARGET_NOT_MEMBER;
-        if (target.getUniqueId().equals(guild.leaderId())) return Result.INVALID_DEPUTY;
-        guild.deputyId = target.getUniqueId();
+        if (!guild.members().contains(targetId)) return Result.TARGET_NOT_MEMBER;
+        if (targetId.equals(guild.leaderId())) return Result.INVALID_DEPUTY;
+        guild.deputyId = targetId;
         save();
-        wakeScoreboards(Set.of(leader.getUniqueId(), target.getUniqueId()));
+        wakeScoreboards(Set.of(leader.getUniqueId(), targetId));
         return Result.SUCCESS;
     }
 
