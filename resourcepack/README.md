@@ -22,3 +22,6 @@ The item model paths below are prepared for the 23 PixelRPG food items. Add the 
 Each model uses `minecraft:item/generated` and points to its own texture. The referenced PNG files may be **16x16 or 32x32 pixels**.
 
 Namespace: `pixelrpg`
+## Server delivery
+
+The generated `PixelRPG-resourcepack.zip` is packaged automatically for server-side delivery.
