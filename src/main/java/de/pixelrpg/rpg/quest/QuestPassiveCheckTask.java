@@ -19,7 +19,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.UUID;
 
-/** Event-driven quest/navigation runtime; there is no permanent passive polling loop. */
+/** Event-driven quest coordinate runtime; there is no permanent passive polling loop. */
 public final class QuestPassiveCheckTask implements Listener {
     private final Plugin plugin;
     private final QuestManager questManager;
@@ -44,19 +44,19 @@ public final class QuestPassiveCheckTask implements Listener {
         for (Player player : Bukkit.getOnlinePlayers()) wake(player);
     }
 
-    /** Wakes one player after a relevant quest/navigation state change. */
+    /** Wakes one player after a relevant quest coordinate state change. */
     public void wake(Player player) {
         if (player == null) return;
         wakeScheduler.wake(player.getUniqueId(), () -> process(player.getUniqueId()));
     }
 
-    /** Wakes one player after a relevant quest/navigation state change. */
+    /** Wakes one player after a relevant quest coordinate state change. */
     public void wake(UUID playerId) {
         if (playerId == null) return;
         wakeScheduler.wake(playerId, () -> process(playerId));
     }
 
-    // A player joining the server restores persisted quest timers and coordinate targets once.
+    // A player joining the server restores persisted quest timers and structure coordinates once.
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         questManager.restoreTimers(event.getPlayer());
@@ -67,7 +67,7 @@ public final class QuestPassiveCheckTask implements Listener {
     // Coordinate objective checks are throttled to one pass per second.
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
-        // Coordinate targets are persisted once; movement only needs the throttled X/Z check.
+        // Structure coordinates are persisted once; movement only needs the throttled X/Z check.
     }
 
     // A world change requires another throttled coordinate-objective check.
