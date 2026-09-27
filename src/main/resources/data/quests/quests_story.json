@@ -23,10 +23,9 @@
           "pixelrpg:weapons/iron_sword/common_3|3"
         ]
       },
-      "navigation": {
+      "locate": {
         "structure": "minecraft:village_plains",
         "radius": 8192,
-        "findUnexplored": false
       }
     },
     {
