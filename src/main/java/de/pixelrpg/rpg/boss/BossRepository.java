@@ -82,9 +82,13 @@ public final class BossRepository {
                     if (material.isBlank() || material.trim().toLowerCase(java.util.Locale.ROOT).startsWith("pixelrpg:")) continue;
                     chanceDrops.add(new BossLootEntry(material, toDouble(entry.get("chance-percent")), parseRarity(stringValue(entry.get("rarity"), "RARE"))));
                 }
+                String customItemReward = lootSection.getString("custom-item", "").trim();
+                if (!customItemReward.isBlank() && !customItemReward.toLowerCase(java.util.Locale.ROOT).startsWith("pixelrpg:")) {
+                    customItemReward = "";
+                }
                 definition.setLootConfig(new BossLootConfig(lootSection.getStringList("guaranteed").stream()
                         .filter(value -> !value.trim().toLowerCase(java.util.Locale.ROOT).startsWith("pixelrpg:")).toList(), chanceDrops,
-                        lootSection.getDouble("money", 0.0D), lootSection.getLong("exp", 0L)));
+                        customItemReward, lootSection.getDouble("money", 0.0D), lootSection.getLong("exp", 0L)));
             }
 
             if (definition.getKind() == BossKind.BIOME && definition.getBiomes().isEmpty()) {
@@ -134,6 +138,13 @@ public final class BossRepository {
             String path = "bosses." + id + ".loot";
             if (!yaml.isConfigurationSection(path)) continue;
 
+            String defaultReward = defaultBossRewardItem(id);
+            String existingCustom = yaml.getString(path + ".custom-item", "").trim();
+            if (existingCustom.isBlank() && !defaultReward.isBlank()) {
+                yaml.set(path + ".custom-item", defaultReward);
+                changed = true;
+            }
+
             List<String> guaranteed = yaml.getStringList(path + ".guaranteed");
             List<String> filteredGuaranteed = guaranteed.stream()
                     .filter(value -> !value.trim().toLowerCase(java.util.Locale.ROOT).startsWith("pixelrpg:"))
@@ -155,6 +166,44 @@ public final class BossRepository {
             }
         }
         return changed;
+    }
+
+    private String defaultBossRewardItem(String bossId) {
+        return switch (bossId) {
+            case "plunderer" -> "pixelrpg:boss/pluenderer_siegel";
+            case "bee_queen" -> "pixelrpg:boss/bienenkoenigin";
+            case "forest_witch" -> "pixelrpg:boss/hexenkessel";
+            case "creaking_heart" -> "pixelrpg:boss/knarzendes_herzstueck";
+            case "jungle_warden" -> "pixelrpg:boss/dschungel_amulett";
+            case "swamp_witch" -> "pixelrpg:boss/sumpftrank";
+            case "husk_king" -> "pixelrpg:boss/husk_siegel";
+            case "ravager_chief" -> "pixelrpg:boss/ravager_trophaee";
+            case "sandstone_colossus" -> "pixelrpg:boss/goldenes_fossil";
+            case "frostwolf" -> "pixelrpg:boss/frostwolf_fang";
+            case "stray_warrior" -> "pixelrpg:boss/frostpfeil_koecher";
+            case "mountain_goat" -> "pixelrpg:boss/horn_des_berges";
+            case "wild_goat" -> "pixelrpg:boss/wildhorn";
+            case "blossom_warden" -> "pixelrpg:boss/bluetenhonig";
+            case "drowned_captain" -> "pixelrpg:boss/kapitaens_nautilus";
+            case "river_warden" -> "pixelrpg:boss/flusskiesel";
+            case "guardian_of_depths" -> "pixelrpg:boss/auge_der_tiefe";
+            case "mycelium_king" -> "pixelrpg:boss/myzelkern";
+            case "cave_hunter" -> "pixelrpg:boss/spinnenauge_des_jaegers";
+            case "ancient_warden" -> "pixelrpg:boss/echoherz";
+            case "nether_lord" -> "pixelrpg:boss/netherkern";
+            case "crimson_beast" -> "pixelrpg:boss/karmesinherz";
+            case "enderman_lord" -> "pixelrpg:boss/gebundene_enderperle";
+            case "soul_lord" -> "pixelrpg:boss/seelenfragment";
+            case "magma_colossus" -> "pixelrpg:boss/magmaherz";
+            case "end_king" -> "pixelrpg:boss/shulkerkern";
+            case "rift_colossus" -> "pixelrpg:boss/risskern";
+            case "storm_lord" -> "pixelrpg:boss/sturmherz";
+            case "abyss_lord" -> "pixelrpg:boss/abgrundkern";
+            case "soul_devourer" -> "pixelrpg:boss/seelenkrone";
+            case "end_harbinger" -> "pixelrpg:boss/endriss";
+            case "ancient_world_warden" -> "pixelrpg:boss/weltenherz";
+            default -> "";
+        };
     }
 
     private boolean migrateProgressionLevels(YamlConfiguration yaml) {
@@ -287,8 +336,10 @@ public final class BossRepository {
         yaml.set(path + ".attack-interval-ticks", interval);
         yaml.set(path + ".attack-patterns", patterns);
         yaml.set(path + ".loot.guaranteed", List.of());
+        yaml.set(path + ".loot.custom-item", customDrop);
         yaml.set(path + ".loot.money", money);
         yaml.set(path + ".loot.exp", exp);
+        yaml.set(path + ".loot.custom-item", customDrop);
     }
 
     private void worldBoss(YamlConfiguration yaml, String id, String name, String entity, int level,
