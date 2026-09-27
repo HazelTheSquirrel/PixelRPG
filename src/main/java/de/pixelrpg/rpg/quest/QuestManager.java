@@ -159,9 +159,6 @@ public final class QuestManager {
         }
         player.sendMessage(Component.text("Quest angenommen: ").color(NamedTextColor.GREEN)
                 .append(Component.text(QuestText.titlePlain(player, quest), NamedTextColor.YELLOW)));
-        if (quest.hasNavigationTarget()) {
-            player.sendMessage(QuestText.navigationTarget(player, quest, profile.getQuestNavigationTarget(quest.id())));
-        }
         return true;
     }
 
