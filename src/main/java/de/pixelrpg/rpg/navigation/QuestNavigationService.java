@@ -39,7 +39,8 @@ public final class QuestNavigationService implements Listener {
         }
 
         QuestNavigationTarget target = findTarget(profile);
-        if (target == null || target.location() == null || !player.getWorld().getUID().equals(target.location().getWorld().getUID())) {
+        if (target == null || target.location() == null || target.location().worldId() == null
+                || !player.getWorld().getUID().equals(target.location().worldId())) {
             resetCompass(player);
             return;
         }
