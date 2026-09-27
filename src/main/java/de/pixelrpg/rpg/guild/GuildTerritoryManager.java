@@ -194,7 +194,7 @@ public final class GuildTerritoryManager {
 
             if (candidate.size() == GuildTerritory.INITIAL_MARKERS) {
                 candidate = orderInitialMarkers(candidate);
-                OperationResult validation = validateCompleteBoundary(guildId, candidate, currentRegionId);
+                OperationResult validation = validateCompleteBoundary(guildId, candidate, state.regionId);
                 if (!validation.success()) {
                     return validation;
                 }
@@ -491,7 +491,7 @@ public final class GuildTerritoryManager {
 
     private void giveItems(Player player, ItemStack item) {
         Map<Integer, ItemStack> leftovers = player.getInventory().addItem(item);
-        leftovers.values().forEach(leftover -> player.dropItem(leftover, false));
+        leftovers.values().forEach(leftover -> player.getWorld().dropItemNaturally(player.getLocation(), leftover));
     }
 
     private static String formatGold(double amount) {
