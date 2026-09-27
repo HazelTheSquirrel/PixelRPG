@@ -88,6 +88,17 @@ public final class RegionManager {
         return RegionGeometry.ValidationResult.valid(validation.geometry());
     }
 
+    /** Replaces a region contour only after the supplied geometry has already been validated. */
+    public synchronized boolean replaceGeometry(UUID id, RegionGeometry geometry) {
+        PixelRegion region = regions.get(id);
+        if (region == null || region.isGlobal() || geometry == null) return false;
+        removeFromIndex(region);
+        region.replaceGeometry(geometry);
+        addToIndex(region);
+        save();
+        return true;
+    }
+
     public synchronized boolean delete(UUID id) {
         PixelRegion removed = regions.remove(id);
         if (removed == null) return false;
