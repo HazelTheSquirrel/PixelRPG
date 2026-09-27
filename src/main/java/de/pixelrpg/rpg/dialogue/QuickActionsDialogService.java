@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.dialogue;
 
 import de.pixelrpg.rpg.item.ItemDefinition;
+import de.pixelrpg.rpg.navigation.QuestNavigationService;
 import de.pixelrpg.rpg.party.PartyManager;
 import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.companion.CompanionService;
@@ -78,7 +79,19 @@ public final class QuickActionsDialogService {
         List<ActionButton> actions = new ArrayList<>();
         actions.add(quickActionButton(Component.text("Charakterprofil", NamedTextColor.AQUA), target -> openCharacterProfile(target, companionDialog, professionDialog)));
         actions.add(quickActionSpacer());
+        QuestNavigationService navigation = PixelRPGPlugin.getInstance().getQuestNavigationService();
+        boolean trackerEnabled = navigation != null && navigation.isEnabled(player);
+        actions.add(quickActionButton(
+                Component.text("Quest-Tracker: " + (trackerEnabled ? "AN" : "AUS"), trackerEnabled ? NamedTextColor.GREEN : NamedTextColor.GRAY),
+                target -> {
+                    if (navigation != null) navigation.setEnabled(target, !navigation.isEnabled(target));
+                    openQuickActions(target);
+                }));
         actions.add(quickActionButton(Component.text("Aktive Quests", NamedTextColor.YELLOW), target -> openActiveQuests(target, companionDialog, professionDialog)));
+        actions.add(quickActionButton(Component.text("Navigation aktualisieren", NamedTextColor.AQUA), target -> {
+            if (navigation != null) navigation.refresh(target);
+            openQuickActions(target);
+        }));
         actions.add(quickActionButton(Component.text("Begleiter", NamedTextColor.LIGHT_PURPLE), companionDialog::open));
         actions.add(quickActionButton(Component.text("Berufe", NamedTextColor.GREEN), professionDialog::open));
         actions.add(quickActionButton(Component.text("Party", NamedTextColor.AQUA), partyDialog::open));
