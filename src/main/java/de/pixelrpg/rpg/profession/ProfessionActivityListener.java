@@ -24,7 +24,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-/** Connects normal Minecraft activities with the ten optional PixelRPG professions. */
+/** Connects normal Minecraft activities with the nine optional PixelRPG professions. */
 public final class ProfessionActivityListener implements Listener {
     private static final int MAX_TREE_LOGS = 64;
     private static final Set<Material> TREE_GROUND = Set.of(
@@ -70,9 +70,7 @@ public final class ProfessionActivityListener implements Listener {
                  COPPER_ORE, DEEPSLATE_COPPER_ORE, GOLD_ORE, DEEPSLATE_GOLD_ORE,
                  REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE, LAPIS_ORE, DEEPSLATE_LAPIS_ORE,
                  DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE, EMERALD_ORE, DEEPSLATE_EMERALD_ORE,
-                 NETHER_GOLD_ORE, NETHER_QUARTZ_ORE, ANCIENT_DEBRIS,
-                 RAW_IRON_BLOCK, RAW_COPPER_BLOCK, RAW_GOLD_BLOCK,
-                 IRON_BLOCK, COPPER_BLOCK, GOLD_BLOCK -> Profession.BLACKSMITH;
+                 NETHER_GOLD_ORE, NETHER_QUARTZ_ORE, ANCIENT_DEBRIS -> Profession.BLACKSMITH;
             case WHEAT, CARROTS, POTATOES, BEETROOTS, NETHER_WART, COCOA, SWEET_BERRY_BUSH,
                  GLOW_BERRIES, KELP, SEAGRASS, TALL_SEAGRASS, SUGAR_CANE, CACTUS, BAMBOO,
                  VINE, GLOW_LICHEN, MOSS_BLOCK, PUMPKIN, MELON -> Profession.FARMER;
@@ -121,7 +119,7 @@ public final class ProfessionActivityListener implements Listener {
         int level = professionService.getLevel(player.getUniqueId(), Profession.WOODCUTTER);
         if (level < 20) return;
 
-        double chance = level >= 100 ? 0.40D : level >= 80 ? 0.30D : level >= 60 ? 0.25D : 0.20D;
+        double chance = level >= 60 ? 0.25D : 0.20D;
         if (random.nextDouble() >= chance) return;
 
         Material logType = event.getBlockState().getType();
@@ -274,16 +272,12 @@ public final class ProfessionActivityListener implements Listener {
     }
 
     private double fishingDoubleChance(int level) {
-        if (level >= 100) return 0.30D;
-        if (level >= 80) return 0.20D;
         if (level >= 60) return 0.15D;
         if (level >= 40) return 0.10D;
         return 0.05D;
     }
 
     private double fishingTreasureChance(int level) {
-        if (level >= 100) return 0.25D;
-        if (level >= 80) return 0.18D;
         if (level >= 60) return 0.12D;
         return 0.06D;
     }
