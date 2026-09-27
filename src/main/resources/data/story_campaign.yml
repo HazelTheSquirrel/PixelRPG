@@ -1,4 +1,4 @@
-story-version: 7
+story-version: 8
 campaign-id: minecraft-lore-campaign
 max-chapters: 64
 
@@ -11,7 +11,7 @@ chapters:
     id: first_traces
     title: "Die ersten Spuren"
     arc: "Die ersten Spuren"
-    required-level: 1
+    required-level: 60
     structure-trigger: ""
     npc-id: "the_archivist"
     quests: []
@@ -26,7 +26,7 @@ chapters:
     id: campaign_village_plains
     title: "Das Dorf der ersten Stimmen"
     arc: "Die ersten Spuren"
-    required-level: 3
+    required-level: 60
     structure-trigger: "minecraft:village_plains"
     npc-id: "village_founder"
     quests: ["story_campaign_village_plains"]
@@ -41,7 +41,7 @@ chapters:
     id: campaign_shipwreck
     title: "Die verlorene Flotte"
     arc: "Die ersten Spuren"
-    required-level: 5
+    required-level: 60
     structure-trigger: "minecraft:shipwreck"
     npc-id: "shipwright"
     quests: ["story_campaign_shipwreck"]
@@ -56,7 +56,7 @@ chapters:
     id: campaign_desert_pyramid
     title: "Der Fluch unter dem Sand"
     arc: "Die ersten Spuren"
-    required-level: 9
+    required-level: 60
     structure-trigger: "minecraft:desert_pyramid"
     npc-id: "desert_sage"
     quests: ["story_campaign_desert_pyramid"]
@@ -71,7 +71,7 @@ chapters:
     id: campaign_jungle_pyramid
     title: "Die Sprache der Fallen"
     arc: "Unter dem Stein"
-    required-level: 13
+    required-level: 60
     structure-trigger: "minecraft:jungle_pyramid"
     npc-id: "jungle_scholar"
     quests: ["story_campaign_jungle_pyramid"]
@@ -86,7 +86,7 @@ chapters:
     id: campaign_swamp_hut
     title: "Das Haus der Hexen"
     arc: "Unter dem Stein"
-    required-level: 17
+    required-level: 60
     structure-trigger: "minecraft:swamp_hut"
     npc-id: "swamp_alchemist"
     quests: ["story_campaign_swamp_hut"]
@@ -101,7 +101,7 @@ chapters:
     id: campaign_ocean_ruin_warm
     title: "Die versunkene Küste"
     arc: "Unter dem Stein"
-    required-level: 21
+    required-level: 60
     structure-trigger: "minecraft:ocean_ruin_warm"
     npc-id: "warm_ruin_keeper"
     quests: ["story_campaign_ocean_ruin_warm"]
@@ -116,7 +116,7 @@ chapters:
     id: campaign_monument
     title: "Die Wächter der Tiefe"
     arc: "Die vergessenen Erbauer"
-    required-level: 26
+    required-level: 60
     structure-trigger: "minecraft:monument"
     npc-id: "ocean_archivist"
     quests: ["story_campaign_monument"]
@@ -131,7 +131,7 @@ chapters:
     id: trail_ruins_archaeology
     title: "Die Spuren der Vorzeit"
     arc: "Die vergessenen Erbauer"
-    required-level: 31
+    required-level: 60
     structure-trigger: "minecraft:trail_ruins"
     npc-id: "archaeologist"
     quests: ["story_trail_ruins_archaeology"]
@@ -146,7 +146,7 @@ chapters:
     id: campaign_mineshaft
     title: "Die Schächte unter den Straßen"
     arc: "Die vergessenen Erbauer"
-    required-level: 36
+    required-level: 60
     structure-trigger: "minecraft:mineshaft"
     npc-id: "mineshaft_cartographer"
     quests: ["story_campaign_mineshaft"]
@@ -161,7 +161,7 @@ chapters:
     id: campaign_pillager_outpost
     title: "Die Spaltung der Illager"
     arc: "Die schwarze Flamme"
-    required-level: 42
+    required-level: 60
     structure-trigger: "minecraft:pillager_outpost"
     npc-id: "outpost_scout"
     quests: ["story_campaign_pillager_outpost"]
@@ -176,7 +176,7 @@ chapters:
     id: campaign_mansion
     title: "Das Haus der verbotenen Kunst"
     arc: "Die schwarze Flamme"
-    required-level: 48
+    required-level: 60
     structure-trigger: "minecraft:mansion"
     npc-id: "mansion_magister"
     quests: ["story_campaign_mansion"]
@@ -191,7 +191,7 @@ chapters:
     id: campaign_ruined_portal
     title: "Das Muster der Tore"
     arc: "Die schwarze Flamme"
-    required-level: 54
+    required-level: 60
     structure-trigger: "minecraft:ruined_portal"
     npc-id: "portal_watcher"
     quests: ["story_campaign_ruined_portal"]
@@ -206,7 +206,7 @@ chapters:
     id: under_the_stone
     title: "Unter dem Stein"
     arc: "Das Ende der Alten"
-    required-level: 61
+    required-level: 60
     structure-trigger: "minecraft:ancient_city"
     npc-id: "eryn"
     quests: ["story_under_the_stone"]
@@ -221,7 +221,7 @@ chapters:
     id: campaign_fortress
     title: "Die schwarze Flamme"
     arc: "Jenseits der Welt"
-    required-level: 68
+    required-level: 60
     structure-trigger: "minecraft:fortress"
     npc-id: "fortress_chronicler"
     quests: ["story_campaign_fortress"]
@@ -236,7 +236,7 @@ chapters:
     id: campaign_bastion_remnant
     title: "Das Reich des Goldes"
     arc: "Das Reich der Endermen"
-    required-level: 75
+    required-level: 60
     structure-trigger: "minecraft:bastion_remnant"
     npc-id: "kael"
     quests: ["story_campaign_bastion_remnant"]
@@ -251,7 +251,7 @@ chapters:
     id: campaign_stronghold
     title: "Die Verzweiflungstat"
     arc: "Der Drache"
-    required-level: 82
+    required-level: 60
     structure-trigger: "minecraft:stronghold"
     npc-id: "oren"
     quests: ["story_campaign_stronghold"]
@@ -266,7 +266,7 @@ chapters:
     id: campaign_dragon
     title: "Der Drache"
     arc: "Der Drache"
-    required-level: 90
+    required-level: 60
     structure-trigger: ""
     npc-id: "oren"
     quests: ["story_campaign_dragon"]
@@ -281,7 +281,7 @@ chapters:
     id: campaign_end_city
     title: "Was hinter dem Ende bleibt"
     arc: "Was hinter dem Ende bleibt"
-    required-level: 94
+    required-level: 60
     structure-trigger: "minecraft:end_city"
     npc-id: "silex"
     quests: ["story_campaign_end_city"]
@@ -296,7 +296,7 @@ chapters:
     id: after_the_end
     title: "Das Archiv nach dem Ende"
     arc: "Was hinter dem Ende bleibt"
-    required-level: 99
+    required-level: 60
     structure-trigger: "minecraft:end_city"
     npc-id: "silex"
     quests: ["story_campaign_after_the_end"]

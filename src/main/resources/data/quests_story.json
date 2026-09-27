@@ -3,7 +3,7 @@
     "maxActive": 5,
     "unlockEarlyLevels": 0,
     "normalLevelMin": 1,
-    "normalLevelMax": 99
+    "normalLevelMax": 60
   },
   "definitions": [
     {
@@ -309,8 +309,8 @@
       "title": "Unter dem Stein: Untersuchung",
       "description": "Untersuche Unter dem Stein und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 61,
-      "categoryLevel": 61,
+      "recommendedLevel": 60,
+      "categoryLevel": 60,
       "targetKey": "story_under_the_stone",
       "requiredAmount": 1,
       "prerequisites": [
@@ -334,8 +334,8 @@
       "title": "Die schwarze Flamme: Untersuchung",
       "description": "Untersuche Die schwarze Flamme und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 68,
-      "categoryLevel": 68,
+      "recommendedLevel": 60,
+      "categoryLevel": 60,
       "targetKey": "story_campaign_fortress",
       "requiredAmount": 1,
       "prerequisites": [
@@ -359,8 +359,8 @@
       "title": "Das Reich des Goldes: Untersuchung",
       "description": "Untersuche Das Reich des Goldes und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 75,
-      "categoryLevel": 75,
+      "recommendedLevel": 60,
+      "categoryLevel": 60,
       "targetKey": "story_campaign_bastion_remnant",
       "requiredAmount": 1,
       "prerequisites": [
@@ -384,8 +384,8 @@
       "title": "Die Verzweiflungstat: Untersuchung",
       "description": "Untersuche Die Verzweiflungstat und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 82,
-      "categoryLevel": 82,
+      "recommendedLevel": 60,
+      "categoryLevel": 60,
       "targetKey": "story_campaign_stronghold",
       "requiredAmount": 1,
       "prerequisites": [
@@ -409,8 +409,8 @@
       "title": "Jenseits der Welt: Untersuchung",
       "description": "Untersuche Jenseits der Welt und sichere die Spuren für das PixelRPG-Archiv.",
       "type": "REACH_LOCATION",
-      "recommendedLevel": 94,
-      "categoryLevel": 94,
+      "recommendedLevel": 60,
+      "categoryLevel": 60,
       "targetKey": "story_campaign_end_city",
       "requiredAmount": 1,
       "prerequisites": [
@@ -434,8 +434,8 @@
       "title": "Der Drache: Bezwinge den Enderdrachen",
       "description": "Besiege den Enderdrachen und sichere den Zugang zu den äußeren Inseln des Endes.",
       "type": "HUNT",
-      "recommendedLevel": 90,
-      "categoryLevel": 90,
+      "recommendedLevel": 60,
+      "categoryLevel": 60,
       "targetKey": "ENDER_DRAGON",
       "requiredAmount": 1,
       "prerequisites": [
@@ -459,8 +459,8 @@
       "title": "Was hinter dem Ende bleibt: Das letzte Archiv",
       "description": "Kehre mit deinen Erkenntnissen zum Archiv zurück und vollende die Chronik.",
       "type": "TALK_TO_NPC",
-      "recommendedLevel": 99,
-      "categoryLevel": 99,
+      "recommendedLevel": 60,
+      "categoryLevel": 60,
       "targetKey": "silex",
       "requiredAmount": 1,
       "prerequisites": [

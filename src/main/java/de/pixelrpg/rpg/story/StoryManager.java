@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.story;
 
+import de.pixelrpg.rpg.core.Level;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import org.bukkit.configuration.ConfigurationSection;
@@ -21,7 +22,7 @@ import java.util.logging.Level;
 /** Persistent, level-gated story campaign and validated lore registry. */
 public final class StoryManager {
     private static final int MAX_CHAPTERS = 64;
-    private static final int STORY_VERSION = 7;
+    private static final int STORY_VERSION = 8;
 
     private final Plugin plugin;
     private final PlayerProfileManager profileManager;
@@ -39,7 +40,7 @@ public final class StoryManager {
         if (!file.exists()) installBundledCampaign(false);
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
 
-        if (yaml.getInt("story-version", 1) < STORY_VERSION && (isPreviousDefault(yaml) || isPreviousCampaignV5(yaml) || isPreviousCampaignV6(yaml))) {
+        if (yaml.getInt("story-version", 1) < STORY_VERSION && (isPreviousDefault(yaml) || isPreviousCampaignV5(yaml) || isPreviousCampaignV6(yaml) || isPreviousCampaignV7(yaml))) {
             installBundledCampaign(true);
             yaml = YamlConfiguration.loadConfiguration(file);
         }
@@ -69,7 +70,7 @@ public final class StoryManager {
         String title = clean(section.getString("title"));
         if (order < 0 || id == null || title == null) return null;
 
-        int requiredLevel = Math.clamp(section.getInt("required-level", 1), 1, 99);
+        int requiredLevel = Math.clamp(section.getInt("required-level", Level.MIN_LEVEL), Level.MIN_LEVEL, Level.MAX_NORMAL_LEVEL);
         long expReward = Math.max(0L, section.getLong("exp-reward", 0L));
         String structure = clean(section.getString("structure-trigger"));
         String npcId = clean(section.getString("npc-id"));
@@ -162,6 +163,13 @@ public final class StoryManager {
         boolean hasEpilogue = root.isConfigurationSection("after_the_end");
 
         return hasStronghold && hasEndCity && !hasDragon && !hasEpilogue;
+    }
+
+    private boolean isPreviousCampaignV7(YamlConfiguration yaml) {
+        if (!"minecraft-lore-campaign".equalsIgnoreCase(yaml.getString("campaign-id", ""))) return false;
+        return yaml.getInt("story-version", 1) == 7
+                && yaml.isConfigurationSection("chapters")
+                && yaml.getConfigurationSection("chapters").isConfigurationSection("after_the_end");
     }
 
     private static final Set<String> REMOVED_STORY_QUESTS = Set.of(
