@@ -2,53 +2,22 @@ package de.pixelrpg.rpg.profession;
 
 import de.pixelrpg.rpg.api.events.QuestCompletedEvent;
 import org.bukkit.Material;
-import org.bukkit.Tag;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerFishEvent;
-import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
 
-/** Connects normal Minecraft activities with the nine optional PixelRPG professions. */
+/** Connects normal Minecraft activities with the ten optional PixelRPG professions. */
 public final class ProfessionActivityListener implements Listener {
-    private static final int MAX_TREE_LOGS = 64;
-    private static final Set<Material> TREE_GROUND = Set.of(
-            Material.GRASS_BLOCK,
-            Material.DIRT,
-            Material.COARSE_DIRT,
-            Material.PODZOL,
-            Material.MYCELIUM,
-            Material.SAND,
-            Material.RED_SAND,
-            Material.MUD,
-            Material.MOSS_BLOCK,
-            Material.ROOTED_DIRT
-    );
-    private static final List<Material> FISHING_TREASURE = List.of(
-            Material.BOW,
-            Material.FISHING_ROD,
-            Material.NAME_TAG,
-            Material.NAUTILUS_SHELL,
-            Material.SADDLE
-    );
 
     private final ProfessionService professionService;
-    private final Random random = new Random();
 
     public ProfessionActivityListener(ProfessionService professionService) {
         this.professionService = professionService;
@@ -61,9 +30,6 @@ public final class ProfessionActivityListener implements Listener {
 
         Player player = event.getPlayer();
         Material material = event.getBlock().getType();
-        BlockPosition position = BlockPosition.of(event.getBlock());
-        boolean automated = automatedTreeFelling.remove(position);
-
         Profession profession = switch (material) {
             case COAL_ORE, DEEPSLATE_COAL_ORE, IRON_ORE, DEEPSLATE_IRON_ORE,
                  COPPER_ORE, DEEPSLATE_COPPER_ORE, GOLD_ORE, DEEPSLATE_GOLD_ORE,
@@ -101,71 +67,6 @@ public final class ProfessionActivityListener implements Listener {
             default -> 0L;
         };
         if (experience > 0L) professionService.addExperience(player, profession, experience);
-    }
-
-    // Verstärkt Holzertrag passiv abhängig vom Holzfäller-Level, ohne Vanilla-Drops zu ersetzen.
-    @EventHandler
-    public void onWoodDrop(BlockDropItemEvent event) {
-        Player player = event.getPlayer();
-        if (!Tag.OVERWORLD_NATURAL_LOGS.isTagged(event.getBlockState().getType())) return;
-        int level = professionService.getLevel(player.getUniqueId(), Profession.WOODCUTTER);
-        if (level < 20) return;
-
-        double chance = level >= 60 ? 0.25D : 0.20D;
-        if (random.nextDouble() >= chance) return;
-
-        Material logType = event.getBlockState().getType();
-        Item matchingDrop = event.getItems().stream()
-                .filter(item -> item.getItemStack().getType() == logType)
-                .findFirst()
-                .orElse(null);
-        if (matchingDrop == null) return;
-
-        ItemStack stack = matchingDrop.getItemStack();
-        if (stack.getAmount() < stack.getMaxStackSize()) stack.setAmount(stack.getAmount() + 1);
-    }
-
-    // Verstärkt Erz- und Mineralertrag passiv abhängig vom Bergarbeiter-Level, ohne Vanilla-Drops zu ersetzen.
-    @EventHandler
-    public void onMiningDrop(BlockDropItemEvent event) {
-        Material material = event.getBlockState().getType();
-        if (!isMiningOre(material)) return;
-
-        Player player = event.getPlayer();
-        int level = professionService.getLevel(player.getUniqueId(), Profession.MOUNTAIN_MINER);
-        if (level < 20) return;
-
-        if (random.nextDouble() >= miningDoubleChance(level)) return;
-
-        Item matchingDrop = event.getItems().stream()
-                .filter(item -> !item.getItemStack().isEmpty())
-                .findFirst()
-                .orElse(null);
-        if (matchingDrop == null) return;
-
-        ItemStack stack = matchingDrop.getItemStack();
-        if (stack.getAmount() < stack.getMaxStackSize()) stack.setAmount(stack.getAmount() + 1);
-    }
-
-    // Vergibt Fischer-XP und verbessert Fangmenge sowie Vanilla-Schatzchance rein passiv.
-    @EventHandler
-    public void onPlayerFish(PlayerFishEvent event) {
-        if (event.getState() != PlayerFishEvent.State.CAUGHT_FISH) return;
-
-        Player player = event.getPlayer();
-        int level = professionService.getLevel(player.getUniqueId(), Profession.FISHERMAN);
-        professionService.addExperience(player, Profession.FISHERMAN, 18L);
-
-        if (!(event.getCaught() instanceof Item caught)) return;
-
-        ItemStack stack = caught.getItemStack();
-        if (level >= 20 && random.nextDouble() < fishingDoubleChance(level) && stack.getAmount() < stack.getMaxStackSize()) {
-            stack.setAmount(stack.getAmount() + 1);
-        }
-
-        if (level >= 40 && random.nextDouble() < fishingTreasureChance(level)) {
-            caught.setItemStack(new ItemStack(FISHING_TREASURE.get(random.nextInt(FISHING_TREASURE.size()))));
-        }
     }
 
     // Vergibt Koch-XP für das Erlegen von Tieren, deren Drops als Nahrung genutzt werden können.
@@ -217,102 +118,6 @@ public final class ProfessionActivityListener implements Listener {
         };
     }
 
-    private boolean isMiningOre(Material material) {
-        return switch (material) {
-            case COAL_ORE, DEEPSLATE_COAL_ORE, IRON_ORE, DEEPSLATE_IRON_ORE,
-                 COPPER_ORE, DEEPSLATE_COPPER_ORE, GOLD_ORE, DEEPSLATE_GOLD_ORE,
-                 REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE, LAPIS_ORE, DEEPSLATE_LAPIS_ORE,
-                 DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE, EMERALD_ORE, DEEPSLATE_EMERALD_ORE,
-                 NETHER_GOLD_ORE, NETHER_QUARTZ_ORE, ANCIENT_DEBRIS -> true;
-            default -> false;
-        };
-    }
-
-    private double miningDoubleChance(int level) {
-        if (level >= 60) return 0.15D;
-        if (level >= 40) return 0.10D;
-        return 0.05D;
-    }
-
-    private void fellSafeTree(Player player, org.bukkit.block.Block start) {
-        List<org.bukkit.block.Block> logs = collectTreeLogs(start);
-        if (logs.size() < 3 || !looksLikeNaturalTree(start, logs)) return;
-
-        for (org.bukkit.block.Block log : logs) {
-            BlockPosition position = BlockPosition.of(log);
-            if (!position.equals(BlockPosition.of(start))) automatedTreeFelling.add(position);
-        }
-
-        for (org.bukkit.block.Block log : logs) {
-            if (log.equals(start) || log.getType().isAir()) continue;
-            BlockPosition position = BlockPosition.of(log);
-            if (!automatedTreeFelling.contains(position)) continue;
-            if (player.breakBlock(log)) automatedTreeFelling.remove(position);
-        }
-    }
-
-    private List<org.bukkit.block.Block> collectTreeLogs(org.bukkit.block.Block start) {
-        ArrayDeque<org.bukkit.block.Block> queue = new ArrayDeque<>();
-        Set<BlockPosition> visited = new HashSet<>();
-        List<org.bukkit.block.Block> logs = new java.util.ArrayList<>();
-        queue.add(start);
-        visited.add(BlockPosition.of(start));
-
-        while (!queue.isEmpty() && logs.size() < MAX_TREE_LOGS) {
-            org.bukkit.block.Block current = queue.removeFirst();
-            if (!Tag.OVERWORLD_NATURAL_LOGS.isTagged(current.getType())) continue;
-            logs.add(current);
-
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dy = -1; dy <= 1; dy++) {
-                    for (int dz = -1; dz <= 1; dz++) {
-                        if (dx == 0 && dy == 0 && dz == 0) continue;
-                        org.bukkit.block.Block next = current.getRelative(dx, dy, dz);
-                        BlockPosition position = BlockPosition.of(next);
-                        if (visited.add(position) && Tag.OVERWORLD_NATURAL_LOGS.isTagged(next.getType())) {
-                            queue.addLast(next);
-                        }
-                    }
-                }
-            }
-        }
-        return logs;
-    }
-
-    private boolean looksLikeNaturalTree(org.bukkit.block.Block start, List<org.bukkit.block.Block> logs) {
-        org.bukkit.block.Block base = logs.stream()
-                .min(java.util.Comparator.comparingInt(org.bukkit.block.Block::getY))
-                .orElse(start);
-        if (!TREE_GROUND.contains(base.getRelative(org.bukkit.block.BlockFace.DOWN).getType())) return false;
-
-        int leaves = 0;
-        Set<BlockPosition> counted = new HashSet<>();
-        for (org.bukkit.block.Block log : logs) {
-            for (int dx = -3; dx <= 3; dx++) {
-                for (int dy = -3; dy <= 3; dy++) {
-                    for (int dz = -3; dz <= 3; dz++) {
-                        if (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) > 4) continue;
-                        org.bukkit.block.Block nearby = log.getRelative(dx, dy, dz);
-                        BlockPosition position = BlockPosition.of(nearby);
-                        if (counted.add(position) && Tag.LEAVES.isTagged(nearby.getType())) leaves++;
-                    }
-                }
-            }
-        }
-        return leaves >= 3;
-    }
-
-    private double fishingDoubleChance(int level) {
-        if (level >= 60) return 0.15D;
-        if (level >= 40) return 0.10D;
-        return 0.05D;
-    }
-
-    private double fishingTreasureChance(int level) {
-        if (level >= 60) return 0.12D;
-        return 0.06D;
-    }
-
     private Profession professionForQuest(String questId) {
         if (questId == null || questId.isBlank()) return null;
         String id = questId.toLowerCase(Locale.ROOT);
@@ -330,9 +135,4 @@ public final class ProfessionActivityListener implements Listener {
         return null;
     }
 
-    private record BlockPosition(UUID worldId, int x, int y, int z) {
-        static BlockPosition of(org.bukkit.block.Block block) {
-            return new BlockPosition(block.getWorld().getUID(), block.getX(), block.getY(), block.getZ());
-        }
-    }
 }
