@@ -1,7 +1,6 @@
 package de.pixelrpg.rpg.quest;
 
 import de.pixelrpg.rpg.profession.Profession;
-import org.bukkit.Location;
 
 import java.util.List;
 
