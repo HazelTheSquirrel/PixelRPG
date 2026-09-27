@@ -271,6 +271,10 @@ public final class GuildTerritoryManager {
         return OperationResult.success("Grenzmarker entfernt und an dich zurückgegeben.");
     }
 
+    public synchronized boolean isMarkerBlock(Block block) {
+        return block != null && findStateAt(block) != null;
+    }
+
     public synchronized boolean isProtectedBlock(Block block) {
         if (block == null) return false;
         if (findStateAt(block) != null) return true;
