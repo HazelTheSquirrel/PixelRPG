@@ -94,6 +94,8 @@ import de.pixelrpg.rpg.story.StoryBookFactory;
 import de.pixelrpg.rpg.story.StoryManager;
 import de.pixelrpg.rpg.travel.GuildCompassListener;
 import de.pixelrpg.rpg.guild.GuildManager;
+import de.pixelrpg.rpg.guild.GuildTerritoryListener;
+import de.pixelrpg.rpg.guild.GuildTerritoryManager;
 import de.pixelrpg.rpg.trade.PlayerTradeManager;
 import de.pixelrpg.rpg.region.RegionEditor;
 import de.pixelrpg.rpg.region.RegionListener;
