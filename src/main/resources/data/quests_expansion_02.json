@@ -35,8 +35,8 @@
       "type": "HUNT",
       "targetKey": "SKELETON",
       "requiredAmount": 18,
-      "recommendedLevel": 10,
-      "categoryLevel": 10,
+      "recommendedLevel": 9,
+      "categoryLevel": 9,
       "prerequisites": [
         "expansion_02_zombie_watch"
       ],
@@ -52,8 +52,8 @@
       "type": "COLLECT",
       "targetKey": "COAL",
       "requiredAmount": 32,
-      "recommendedLevel": 12,
-      "categoryLevel": 12,
+      "recommendedLevel": 11,
+      "categoryLevel": 11,
       "reward": {
         "money": 175,
         "experience": 190
@@ -66,8 +66,8 @@
       "type": "HUNT",
       "targetKey": "SPIDER",
       "requiredAmount": 20,
-      "recommendedLevel": 15,
-      "categoryLevel": 15,
+      "recommendedLevel": 13,
+      "categoryLevel": 13,
       "prerequisites": [
         "expansion_02_skeleton_patrol"
       ],
@@ -83,8 +83,8 @@
       "type": "COLLECT",
       "targetKey": "REDSTONE",
       "requiredAmount": 48,
-      "recommendedLevel": 20,
-      "categoryLevel": 20,
+      "recommendedLevel": 16,
+      "categoryLevel": 16,
       "reward": {
         "money": 300,
         "experience": 320
@@ -97,8 +97,8 @@
       "type": "HUNT",
       "targetKey": "CREEPER",
       "requiredAmount": 15,
-      "recommendedLevel": 22,
-      "categoryLevel": 22,
+      "recommendedLevel": 18,
+      "categoryLevel": 18,
       "prerequisites": [
         "expansion_02_spider_hunt"
       ],
@@ -114,8 +114,8 @@
       "type": "COLLECT",
       "targetKey": "LAPIS_LAZULI",
       "requiredAmount": 40,
-      "recommendedLevel": 25,
-      "categoryLevel": 25,
+      "recommendedLevel": 19,
+      "categoryLevel": 19,
       "reward": {
         "money": 420,
         "experience": 440
@@ -128,8 +128,8 @@
       "type": "HUNT",
       "targetKey": "DROWNED",
       "requiredAmount": 16,
-      "recommendedLevel": 30,
-      "categoryLevel": 30,
+      "recommendedLevel": 22,
+      "categoryLevel": 22,
       "prerequisites": [
         "expansion_02_creeper_control"
       ],
@@ -145,8 +145,8 @@
       "type": "COLLECT",
       "targetKey": "DIAMOND",
       "requiredAmount": 12,
-      "recommendedLevel": 35,
-      "categoryLevel": 35,
+      "recommendedLevel": 25,
+      "categoryLevel": 25,
       "reward": {
         "money": 700,
         "experience": 700
@@ -159,8 +159,8 @@
       "type": "HUNT",
       "targetKey": "WITCH",
       "requiredAmount": 10,
-      "recommendedLevel": 40,
-      "categoryLevel": 40,
+      "recommendedLevel": 29,
+      "categoryLevel": 29,
       "prerequisites": [
         "expansion_02_drowned_depths"
       ],
@@ -176,8 +176,8 @@
       "type": "COLLECT",
       "targetKey": "EMERALD",
       "requiredAmount": 20,
-      "recommendedLevel": 45,
-      "categoryLevel": 45,
+      "recommendedLevel": 31,
+      "categoryLevel": 31,
       "reward": {
         "money": 900,
         "experience": 900
@@ -190,8 +190,8 @@
       "type": "HUNT",
       "targetKey": "ENDERMAN",
       "requiredAmount": 12,
-      "recommendedLevel": 50,
-      "categoryLevel": 50,
+      "recommendedLevel": 34,
+      "categoryLevel": 34,
       "prerequisites": [
         "expansion_02_witch_hunt"
       ],
@@ -207,8 +207,8 @@
       "type": "COLLECT",
       "targetKey": "QUARTZ",
       "requiredAmount": 48,
-      "recommendedLevel": 55,
-      "categoryLevel": 55,
+      "recommendedLevel": 37,
+      "categoryLevel": 37,
       "reward": {
         "money": 1200,
         "experience": 1150
@@ -221,8 +221,8 @@
       "type": "HUNT",
       "targetKey": "BLAZE",
       "requiredAmount": 14,
-      "recommendedLevel": 60,
-      "categoryLevel": 60,
+      "recommendedLevel": 51,
+      "categoryLevel": 51,
       "prerequisites": [
         "expansion_02_enderman_trace"
       ],
@@ -238,8 +238,8 @@
       "type": "COLLECT",
       "targetKey": "PRISMARINE_SHARD",
       "requiredAmount": 64,
-      "recommendedLevel": 60,
-      "categoryLevel": 60,
+      "recommendedLevel": 53,
+      "categoryLevel": 53,
       "reward": {
         "money": 1600,
         "experience": 1500
@@ -252,8 +252,8 @@
       "type": "HUNT",
       "targetKey": "GHAST",
       "requiredAmount": 8,
-      "recommendedLevel": 60,
-      "categoryLevel": 60,
+      "recommendedLevel": 51,
+      "categoryLevel": 51,
       "prerequisites": [
         "expansion_02_blaze_breaker"
       ],
@@ -269,8 +269,8 @@
       "type": "COLLECT",
       "targetKey": "NAUTILUS_SHELL",
       "requiredAmount": 3,
-      "recommendedLevel": 60,
-      "categoryLevel": 60,
+      "recommendedLevel": 52,
+      "categoryLevel": 52,
       "reward": {
         "money": 2500,
         "experience": 2200
@@ -283,8 +283,8 @@
       "type": "COLLECT",
       "targetKey": "HEART_OF_THE_SEA",
       "requiredAmount": 1,
-      "recommendedLevel": 60,
-      "categoryLevel": 60,
+      "recommendedLevel": 52,
+      "categoryLevel": 52,
       "prerequisites": [
         "expansion_02_ocean_treasure"
       ],
