@@ -64,29 +64,6 @@ public final class QuestText {
     public static Component objectiveWithProgress(Quest quest, QuestProgress progress) { return objectiveWithProgress(null, quest, progress); }
 
     /** Builds the player-facing notification for a resolved quest navigation target. */
-    public static Component navigationTarget(Player player, Quest quest, PlayerProfile.NavigationTarget target) {
-        if (quest == null || target == null) {
-            return Component.text("Quest-Ziel konnte nicht bestimmt werden.", NamedTextColor.RED);
-        }
-
-        String targetName = target.structureKey();
-        if (targetName == null || targetName.isBlank()) {
-            targetName = "Zielort";
-        } else {
-            targetName = prettyKey(targetName);
-        }
-
-        return Component.text("Quest-Ziel: ", NamedTextColor.AQUA)
-                .append(Component.text(titlePlain(quest), NamedTextColor.YELLOW))
-                .append(Component.text(" → ", NamedTextColor.DARK_GRAY))
-                .append(Component.text(targetName, NamedTextColor.WHITE))
-                .append(Component.text(" bei ", NamedTextColor.GRAY))
-                .append(Component.text(
-                        String.format(Locale.ROOT, "%d, %d", Math.round(target.x()), Math.round(target.z())),
-                        NamedTextColor.WHITE
-                ));
-    }
-
     public static Component objectiveWithProgress(Player player, Quest quest, QuestProgress progress) {
         int current = Math.min(Math.max(0, progress.getCurrentAmount()), quest.requiredAmount());
         NamedTextColor color = current >= quest.requiredAmount() ? NamedTextColor.GREEN : NamedTextColor.AQUA;
