@@ -170,9 +170,12 @@ public final class GuildTerritoryManager {
         }
 
         PixelRegion locationRegion = regions.find(world, block.getX() + 0.5D, block.getY(), block.getZ() + 0.5D).orElse(null);
-        if (locationRegion != null && !locationRegion.isGlobal()
-                && !locationRegion.type().equals(RegionType.GUILD_TERRITORY)) {
-            return OperationResult.failure("Grenzmarker dürfen keine bestehende Region überlappen.");
+        if (locationRegion != null && !locationRegion.isGlobal()) {
+            boolean sameGuildTerritory = locationRegion.type() == RegionType.GUILD_TERRITORY
+                    && guildId.equals(parseGuildId(locationRegion.properties().get("guild-id")));
+            if (!sameGuildTerritory) {
+                return OperationResult.failure("Grenzmarker dürfen keine bestehende Region überlappen.");
+            }
         }
 
         TerritoryState state = territories.computeIfAbsent(guildId,
@@ -191,7 +194,7 @@ public final class GuildTerritoryManager {
 
             if (candidate.size() == GuildTerritory.INITIAL_MARKERS) {
                 candidate = orderInitialMarkers(candidate);
-                OperationResult validation = validateCompleteBoundary(guildId, candidate, null);
+                OperationResult validation = validateCompleteBoundary(guildId, candidate, currentRegionId);
                 if (!validation.success()) {
                     return validation;
                 }
@@ -211,7 +214,7 @@ public final class GuildTerritoryManager {
                     : "Grenzmarker gesetzt. Noch " + (GuildTerritory.INITIAL_MARKERS - state.markers.size()) + " Marker bis zum ersten Gildengebiet.");
         }
 
-        InsertionCandidate insertion = findInsertionCandidate(guildId, state.markers, marker);
+        InsertionCandidate insertion = findInsertionCandidate(guildId, state.markers, marker, state.regionId);
         if (insertion == null) {
             return OperationResult.failure("Der neue Marker kann hier nicht sicher in die bestehende Grenze eingefügt werden. Setze ihn näher an einen Grenzabschnitt und halte alle Abstände bei höchstens 32 Blöcken.");
         }
@@ -287,7 +290,7 @@ public final class GuildTerritoryManager {
         return blocks.stream().anyMatch(this::isProtectedBlock);
     }
 
-    private InsertionCandidate findInsertionCandidate(UUID guildId, List<GuildTerritory.Marker> current, GuildTerritory.Marker marker) {
+    private InsertionCandidate findInsertionCandidate(UUID guildId, List<GuildTerritory.Marker> current, GuildTerritory.Marker marker, UUID currentRegionId) {
         RegionGeometry currentGeometry = geometry(current);
         if (currentGeometry == null) return null;
         if (currentGeometry.contains(marker.x() + 0.5D, marker.z() + 0.5D)) return null;
@@ -471,6 +474,15 @@ public final class GuildTerritoryManager {
         double cx = ax + t * dx;
         double cz = az + t * dz;
         return Math.hypot(px - cx, pz - cz);
+    }
+
+    private static UUID parseGuildId(String value) {
+        if (value == null || value.isBlank()) return null;
+        try {
+            return UUID.fromString(value);
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     private static UUID regionId(UUID guildId) {
