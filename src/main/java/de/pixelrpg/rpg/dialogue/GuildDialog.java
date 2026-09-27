@@ -2,6 +2,7 @@ package de.pixelrpg.rpg.dialogue;
 
 import de.pixelrpg.rpg.guild.Guild;
 import de.pixelrpg.rpg.guild.GuildManager;
+import de.pixelrpg.rpg.guild.GuildTerritoryManager;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import io.papermc.paper.dialog.Dialog;
@@ -110,17 +111,101 @@ public final class GuildDialog {
                 DialogBody.plainMessage(Component.text("Gilde: " + guild.name(), NamedTextColor.GOLD)),
                 DialogBody.plainMessage(Component.text("Rolle: " + (leader ? "Gildenmeister" : "Mitglied"), NamedTextColor.WHITE)),
                 DialogBody.plainMessage(Component.text("Mitglieder: " + guild.memberCount() + "/" + Guild.MAX_MEMBERS, NamedTextColor.AQUA)),
-                DialogBody.plainMessage(Component.text("Gildenkasse: " + String.format(java.util.Locale.ROOT, "%.2f", guild.treasury()) + " Gold", NamedTextColor.GOLD)),
-                DialogBody.plainMessage(Component.text("Die Gildenstadt wird ausschließlich manuell mit WorldEdit/WorldGuard verwaltet.", NamedTextColor.GRAY)),
+                DialogBody.plainMessage(Component.text("Gildenkasse: " + String.format(java.util.Locale.ROOT, "%.2f", guild.treasury()) + " Goldtaler", NamedTextColor.GOLD)),
+                territoryBody(guild),
+                DialogBody.plainMessage(Component.text("Das Gildengebiet wird physisch mit Kupfer-Grenzmarkern aufgebaut. Jede Grenzkante darf höchstens 32 Blöcke lang sein.", NamedTextColor.GRAY)),
                 DialogBody.plainMessage(Component.text("Zum Einladen: /gildeneinladen <Spieler>", NamedTextColor.YELLOW))
         );
         List<ActionButton> actions = new ArrayList<>();
         actions.add(action(Component.text("Mitglieder anzeigen", NamedTextColor.AQUA), p -> showMembers(p, guild)));
         actions.add(action(Component.text("Gold einzahlen", NamedTextColor.GOLD), this::openTreasuryDeposit));
+        if (leader || guild.isDeputy(player.getUniqueId())) actions.add(action(Component.text("Grenzmarker kaufen", NamedTextColor.GOLD), this::purchaseMarker));
         if (leader) actions.add(action(Component.text("Gold auszahlen", NamedTextColor.YELLOW), this::openTreasuryWithdraw));
         if (leader && invites != null) actions.add(action(Component.text("Spieler einladen", NamedTextColor.GREEN), invites::openGuildInviteInput));
+        if (leader) actions.add(action(Component.text(guild.deputyId() == null ? "Stellvertreter ernennen" : "Stellvertreter verwalten", NamedTextColor.AQUA), this::openDeputyManagement));
         actions.add(action(Component.text("Zurück", NamedTextColor.WHITE), backAction));
         dialogue.openMultiAction(player, Component.text("Gilde – " + guild.name(), NamedTextColor.GOLD), body, actions, 1);
+    }
+
+    private DialogBody territoryBody(Guild guild) {
+        GuildTerritoryManager territories = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getGuildTerritoryManager();
+        if (territories == null) {
+            return DialogBody.plainMessage(Component.text("Gildengebiet: derzeit nicht verfügbar.", NamedTextColor.RED));
+        }
+        int markers = territories.markerCount(guild.id());
+        double price = territories.nextMarkerPrice(guild.id());
+        String markerText = markers < de.pixelrpg.rpg.guild.GuildTerritory.INITIAL_MARKERS
+                ? markers + "/" + de.pixelrpg.rpg.guild.GuildTerritory.INITIAL_MARKERS + " Grenzmarker für die erste Grenze"
+                : markers + " Grenzmarker";
+        return DialogBody.plainMessage(Component.text("Gildengebiet: " + markerText + " • nächster Marker: "
+                + String.format(java.util.Locale.ROOT, "%.2f", price) + " Goldtaler", NamedTextColor.AQUA));
+    }
+
+    private void purchaseMarker(Player player) {
+        GuildTerritoryManager territories = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getGuildTerritoryManager();
+        if (territories == null) {
+            player.sendMessage(Component.text("Das Gildengebiet-System ist derzeit nicht verfügbar.", NamedTextColor.RED));
+            return;
+        }
+        GuildTerritoryManager.OperationResult result = territories.purchaseMarker(player);
+        player.sendMessage(Component.text(result.message(), result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
+        open(player);
+    }
+
+    private void openDeputyManagement(Player player) {
+        Guild guild = guilds.getGuild(player.getUniqueId()).orElse(null);
+        if (guild == null || !guild.isLeader(player.getUniqueId())) {
+            open(player);
+            return;
+        }
+
+        List<DialogBody> body = new ArrayList<>();
+        if (guild.deputyId() == null) {
+            body.add(DialogBody.plainMessage(Component.text("Der Stellvertreter erhält dieselben Rechte wie der Gildenmeister für die Verwaltung des Gildengebiets.", NamedTextColor.WHITE)));
+            DialogInput input = DialogInput.text("deputy_name", 260, Component.text("Mitgliedsname", NamedTextColor.WHITE), true, "", 16, null);
+            ActionButton appoint = ActionButton.builder(Component.text("Stellvertreter ernennen", NamedTextColor.GREEN))
+                    .action(DialogAction.customClick((response, audience) -> {
+                        if (!(audience instanceof Player target)) return;
+                        String name = response.getText("deputy_name");
+                        if (name == null || name.isBlank()) {
+                            target.sendMessage(Component.text("Bitte gib den Namen eines Gildenmitglieds ein.", NamedTextColor.RED));
+                            open(target);
+                            return;
+                        }
+                        org.bukkit.OfflinePlayer offline = org.bukkit.Bukkit.getOfflinePlayerIfCached(name.trim());
+                        Player online = org.bukkit.Bukkit.getPlayerExact(name.trim());
+                        java.util.UUID targetId = online != null ? online.getUniqueId() : offline == null ? null : offline.getUniqueId();
+                        if (targetId == null) {
+                            target.sendMessage(Component.text("Das Gildenmitglied wurde nicht gefunden.", NamedTextColor.RED));
+                            open(target);
+                            return;
+                        }
+                        GuildManager.Result result = guilds.appointDeputy(target, targetId);
+                        target.sendMessage(Component.text(result == GuildManager.Result.SUCCESS
+                                ? "Stellvertreter wurde ernannt."
+                                : "Der Stellvertreter konnte nicht ernannt werden.", result == GuildManager.Result.SUCCESS ? NamedTextColor.GREEN : NamedTextColor.RED));
+                        open(target);
+                    }, ClickCallback.Options.builder().uses(1).build()))
+                    .width(220).build();
+            ActionButton cancel = action(Component.text("Zurück", NamedTextColor.WHITE), this::open);
+            player.showDialog(Dialog.create(factory -> {
+                DialogRegistryEntry.Builder builder = factory.empty();
+                builder.base(DialogBase.builder(Component.text("Stellvertreter ernennen", NamedTextColor.AQUA))
+                        .body(body).inputs(List.of(input)).canCloseWithEscape(true).afterAction(DialogBase.DialogAfterAction.CLOSE).build());
+                builder.type(DialogType.multiAction(List.of(appoint, cancel), null, 1));
+            }));
+            return;
+        }
+
+        body.add(DialogBody.plainMessage(Component.text("Aktueller Stellvertreter: " + resolveName(guild.deputyId()), NamedTextColor.AQUA)));
+        ActionButton remove = action(Component.text("Stellvertreter absetzen", NamedTextColor.RED), target -> {
+            GuildManager.Result result = guilds.removeDeputy(target);
+            target.sendMessage(Component.text(result == GuildManager.Result.SUCCESS ? "Stellvertreter wurde abgesetzt." : "Der Stellvertreter konnte nicht abgesetzt werden.",
+                    result == GuildManager.Result.SUCCESS ? NamedTextColor.GREEN : NamedTextColor.RED));
+            open(target);
+        });
+        ActionButton back = action(Component.text("Zurück", NamedTextColor.WHITE), this::open);
+        dialogue.openMultiAction(player, Component.text("Stellvertreter", NamedTextColor.AQUA), body, List.of(remove, back), 1);
     }
 
     private void openTreasuryDeposit(Player player) {
