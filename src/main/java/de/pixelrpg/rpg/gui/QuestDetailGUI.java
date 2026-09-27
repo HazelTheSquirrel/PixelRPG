@@ -54,9 +54,7 @@ public final class QuestDetailGUI extends AbstractGUI {
         }
         if (profile.hasActiveQuest(quest.id())) {
             var progress = profile.getActiveQuests().get(quest.id());
-            PlayerProfile.NavigationTarget target = profile.getQuestNavigationTarget(quest.id());
             if (target != null) {
-                lore.add(QuestText.navigationTarget(viewer, quest, target)
                         .color(NamedTextColor.AQUA).decoration(TextDecoration.ITALIC, false));
             }
             lore.add(Component.text("Fortschritt: " + progress.getCurrentAmount() + "/" + quest.requiredAmount(), NamedTextColor.GREEN)
