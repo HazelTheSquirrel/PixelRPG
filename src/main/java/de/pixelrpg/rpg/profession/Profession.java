@@ -3,7 +3,7 @@ package de.pixelrpg.rpg.profession;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
-/** The nine player professions defined by the PixelRPG RP progression model. */
+/** The ten player professions defined by the PixelRPG RP progression model. */
 public enum Profession {
     BLACKSMITH("Schmied", "Metall, Werkzeuge, Waffen und Rüstung", NamedTextColor.GRAY),
     SCHOLAR("Gelehrter", "Bücher, Wissen, Zaubertisch und Verzauberungen", NamedTextColor.AQUA),
@@ -13,19 +13,12 @@ public enum Profession {
     ALCHEMIST("Alchemist", "Vanilla-Tränke und alchemistische Verarbeitung", NamedTextColor.DARK_PURPLE),
     MASON("Steinmetz", "Stein, Ziegel und hochwertige Baublöcke", NamedTextColor.DARK_GRAY),
     FISHERMAN("Fischer", "Passiv: Angeln, Fangmenge und Vanilla-Schätze", NamedTextColor.BLUE),
-    WOODCUTTER("Holzfäller", "Passiv: Holzfällen, Holzertrag und sicheres Baumfällen", NamedTextColor.DARK_GREEN);
+    WOODCUTTER("Holzfäller", "Passiv: Holzfällen, Holzertrag und sicheres Baumfällen", NamedTextColor.DARK_GREEN),
+    MOUNTAIN_MINER("Bergarbeiter", "Passiv: Bergbau, Erzgewinn und wertvollere Funde", NamedTextColor.DARK_AQUA);
 
     public static final int MIN_LEVEL = 1;
     public static final int MAX_LEVEL = 60;
     public static final long MAX_EXPERIENCE = 182_900L;
-
-    /**
-     * Compatibility alias for the historical tenth profession. Mountain mining is
-     * now part of the blacksmith resource chain and is no longer a separate
-     * profession in the RP progression model.
-     */
-    @Deprecated(forRemoval = true)
-    public static final Profession MOUNTAIN_MINER = BLACKSMITH;
 
     private final String displayName;
     private final String description;
