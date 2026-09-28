@@ -32,14 +32,12 @@ public final class CombatDamageListener implements Listener {
     private final GuildAPI guildAPI;
     private final PlayerProfileManager profileManager;
     private final StatEngine statEngine;
-    private final CombatStateService combatStateService;
     private final double bossMaxHitPercentOfMaxHp;
 
     public CombatDamageListener(GuildAPI guildAPI, PlayerProfileManager profileManager, StatEngine statEngine) {
         this.guildAPI = guildAPI;
         this.profileManager = profileManager;
         this.statEngine = statEngine;
-        this.combatStateService = new CombatStateService(PixelRPGPlugin.getInstance());
         this.bossMaxHitPercentOfMaxHp = PixelRPGPlugin.getInstance().getConfig()
                 .getDouble("combat.boss-max-hit-percent-of-max-hp", 0.12D);
     }
@@ -155,10 +153,6 @@ public final class CombatDamageListener implements Listener {
         if (guildAPI.isRegistered(player.getUniqueId())) return;
         event.setCancelled(true);
         monster.setTarget(null);
-    }
-
-    public void shutdown() {
-        combatStateService.shutdown();
     }
 
     private Player resolvePlayerAttacker(org.bukkit.entity.Entity damager) {
