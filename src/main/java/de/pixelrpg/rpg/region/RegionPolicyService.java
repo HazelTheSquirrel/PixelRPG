@@ -185,8 +185,8 @@ public final class RegionPolicyService {
         return allowsFlag(player, player.getLocation(), RegionFlag.NATURAL_HUNGER_DRAIN);
     }
 
-    public boolean allowsEntry(Location location) { return regions.hasFlag(location, RegionFlag.ENTRY); }
-    public boolean allowsExit(Location location) { return regions.hasFlag(location, RegionFlag.EXIT); }
+    public boolean allowsEntry(Location location) { return true; }
+    public boolean allowsExit(Location location) { return true; }
 
     /** Returns whether the player is owner/member of the most specific region at the location. */
     private boolean isRegionMemberOrOwner(Player player) {
