@@ -28,6 +28,12 @@ items:
     currency-drop-min-amount: 1
     currency-drop-max-amount: 8
 
+
+crafting:
+  npc-required-ranks:
+    NPC_ADVANCED: JOURNEYMAN
+    KINGDOM_ELITE: MASTER
+
 profession-xp:
   gathering:
     farmer: 8
