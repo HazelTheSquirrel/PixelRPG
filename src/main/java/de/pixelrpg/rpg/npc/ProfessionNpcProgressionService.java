@@ -30,7 +30,7 @@ public final class ProfessionNpcProgressionService {
         if(!hasInfrastructure(npc))return Result.INFRASTRUCTURE;
         if(npc.profession().isMain() && next.specializationCost()>availableSpecializationPoints(guild.id())+npc.professionNpcRank().specializationCost())return Result.SPECIALIZATION;
         if(next.isGrandmaster()&&npc.profession().isMain()&&globalGrandmasters(npc.profession())>=plugin.getConfig().getInt("kingdom.grandmaster.main-profession-global-cap",2))return Result.GRANDMASTER_CAP;
-        long gold=rankConfig(next,npc.profession()).getDouble("gold",plugin.getConfig().getLong("kingdom.profession-npc.ranks."+next.name()+".gold",0L));
+        long gold=Math.max(0L, Math.round(rankConfig(next,npc.profession()).getDouble("gold", plugin.getConfig().getDouble("kingdom.profession-npc.ranks."+next.name()+".gold", 0.0D)) * 100.0D));
         ConfigurationSection req=rankConfig(next,npc.profession()).getConfigurationSection("materials");
         Map<Material,Integer> progress=delivered.getOrDefault(npc.id(),Map.of());
         if(req!=null)for(String key:req.getKeys(false)){Material m=Material.matchMaterial(key);int amount=req.getInt(key);if(m==null||progress.getOrDefault(m,0)<amount)return Result.MATERIALS;}
