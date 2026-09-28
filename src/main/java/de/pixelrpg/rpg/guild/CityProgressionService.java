@@ -41,7 +41,11 @@ public final class CityProgressionService {
         Guild guild = guilds.getGuildById(guildId).orElse(null);
         if (guild == null) return null;
         int level = guild.cityLevel();
-        int next = level >= Guild.MAX_CITY_LEVEL ? level : level + 1;
+        if (level >= Guild.MAX_CITY_LEVEL) {
+            return new CityView(level, Guild.cityName(level), level, Guild.cityName(level),
+                    guild.cityUpgradeCooldownUntil(), 0L, 0L, 0L, Map.of(), Map.of(), Map.of(), Map.of(), false);
+        }
+        int next = level + 1;
         Requirements requirements = requirements(next);
         Map<Material,Integer> current = delivered.getOrDefault(guildId, Map.of());
         Map<Material,Integer> progress = new LinkedHashMap<>();
