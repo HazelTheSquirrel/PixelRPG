@@ -15,7 +15,7 @@ import java.util.UUID;
 public final class ResourcePackJoinListener implements Listener {
     private static final UUID RESOURCE_PACK_ID = UUID.fromString("2f0d3d2d-6d0d-4c1d-8a5a-6d0d3d2d6d0d");
     private static final URI RESOURCE_PACK_URI = URI.create(
-            "https://raw.githubusercontent.com/HazelTheSquirrel/PixelRPG/test/resourcepack/PixelRPG-resourcepack.zip"
+            "https://raw.githubusercontent.com/HazelTheSquirrel/PixelRPG/Rebuild/resourcepack/PixelRPG-resourcepack.zip"
     );
 
     private final JavaPlugin plugin;
