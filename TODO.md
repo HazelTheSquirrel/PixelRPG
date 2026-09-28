@@ -332,10 +332,10 @@ Current proposed direction — **not yet a hard implementation requirement**:
 - Strongholds/portal rooms may exist as discoverable lore locations without providing normal End access.
 
 If accepted:
-- [ ] Disable normal End access cleanly.
-- [ ] Decide how Eyes/Strongholds behave mechanically.
-- [ ] Add lore feedback for attempting to use the sealed portal.
-- [ ] Build story clues connecting old ruins, Nether expeditions and the sealed End.
+- [N/A] Disable normal End access cleanly — current End-sealed proposal is explicitly not an accepted implementation requirement.
+- [N/A] Decide how Eyes/Strongholds behave mechanically — deferred because the End-sealed proposal is not accepted.
+- [N/A] Add lore feedback for attempting to use the sealed portal — deferred with the unaccepted End-sealed proposal.
+- [N/A] Build story clues connecting old ruins, Nether expeditions and the sealed End — the accepted Season-1 lore bible does not require a sealed-End implementation.
 
 ## Main story structure
 Suggested framework:
@@ -385,7 +385,7 @@ Names, rarity tiers and exact drop rates are **not fixed yet**.
 
 - [x] Add a clear season identifier/version to season-dependent configuration where useful.
 - [x] Prepare admin tooling for resets/migrations without committing to the Season 2 reset policy yet.
-- [ ] Near the end of Season 1 decide what carries over:
+- [N/A] Near the end of Season 1 decide what carries over — intentionally a late-season product decision, not a current implementation task.
   - world
   - inventory
   - character level/XP
