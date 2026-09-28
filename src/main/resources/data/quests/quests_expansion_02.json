@@ -503,6 +503,54 @@
         "money": 100,
         "experience": 180
       }
+    },
+    {
+      "id": "worldboss_rift_colossus",
+      "title": "Der Risskoloss",
+      "description": "Beteilige dich an der Verteidigung der Welt gegen den Risskoloss.",
+      "type": "GLOBAL_EVENT",
+      "targetKey": "boss:rift_colossus",
+      "requiredAmount": 1,
+      "recommendedLevel": 40,
+      "categoryLevel": 40,
+      "reward": {
+        "money": 2500,
+        "experience": 2500
+      }
+    },
+    {
+      "id": "worldboss_storm_lord",
+      "title": "Herr des Sturms",
+      "description": "Überlebe den Weltboss-Angriff des Sturmherrn und hilf bei seiner Niederlage.",
+      "type": "GLOBAL_EVENT",
+      "targetKey": "boss:storm_lord",
+      "requiredAmount": 1,
+      "recommendedLevel": 50,
+      "categoryLevel": 50,
+      "prerequisites": [
+        "worldboss_rift_colossus"
+      ],
+      "reward": {
+        "money": 5000,
+        "experience": 4500
+      }
+    },
+    {
+      "id": "worldboss_ancient_world_warden",
+      "title": "Herz der Welt",
+      "description": "Beteilige dich an der Niederlage des Weltenwächters und sichere sein seltenes Material.",
+      "type": "GLOBAL_EVENT",
+      "targetKey": "boss:ancient_world_warden",
+      "requiredAmount": 1,
+      "recommendedLevel": 60,
+      "categoryLevel": 60,
+      "prerequisites": [
+        "worldboss_storm_lord"
+      ],
+      "reward": {
+        "money": 10000,
+        "experience": 8000
+      }
     }
   ]
 }
