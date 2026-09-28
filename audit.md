@@ -1,348 +1,240 @@
-# PixelRPG – Forensisches Architektur-, Sicherheits- und Stabilitätsaudit
+# PixelRPG — Bestandsforensik & Technisches Voll-Audit
 
-**Prüfobjekt:** HazelTheSquirrel/PixelRPG  
-**Branch:** `test`  
-**Prüfstand:** 25.09.2026  
-**Branch-HEAD:** `07ce91803d2f397f81ee606d393edbeafc83a22a`  
-**Technische Sollbasis:** Java 25 / Paper 26.2 / Mojang-Mappings  
-**Methode:** Statische Analyse des tatsächlichen Branch-Dateibaums, gezielte Quellcodeprüfung der Lifecycle-, Persistenz-, Netzwerk-, NPC-, Quest-, Region-, Combat-, Command- und UI-Kernkomponenten. Keine Ableitung aus Commit-Absichten.
+**Prüfobjekt:** `HazelTheSquirrel/PixelRPG`  
+**Prüfbranch:** `Rebuild`  
+**Prüfstand:** 28.09.2026  
+**HEAD:** `f94c9500f6e45d6a4b4302a5d3cf1e3001186521`  
+**Referenz:** `main` = `86f17c8fc14a31897108e47b389443ee44c503d6`  
+**Sollplattform:** Java 25 + Paper 26.2 + Mojang-Mappings  
+**Prüfart:** statische Bestands-, Architektur-, Persistenz-, Sicherheits-, Integrations-, Resourcepack- und CI-Forensik
+
+> Dieses Dokument beschreibt den tatsächlich vorhandenen Zustand von `Rebuild`. Es bewertet keine vermuteten Absichten und ersetzt keinen Live-Server-/Last-/Exploit-Test.
 
 ---
 
 ## 1. Executive Summary
 
-Der aktuelle `test`-Stand ist ein umfangreiches, modular aufgebautes Paper-Plugin mit **249 Java-Dateien** unter `src/main/java`. Die Architektur ist überwiegend service-/managerorientiert und verwendet für persistente Spielerdaten UUID-basierte Zustände.
+Der Branch `Rebuild` ist ein umfangreicher Paper-26.2-RPG-Kern mit **264 Java-Dateien**. Die Codebasis ist in fachliche Module gegliedert und besitzt getrennte Services/Manager für Spieler, Berufe, Items, Quests, NPCs, Gilden/Städte, Regionen, Combat, Bosse, Companions, Handel, Wirtschaft, UI und Persistenz.
 
-Die wichtigsten positiven Befunde:
+### Aktueller Buildzustand
 
-- Paper-Plugin-Lifecycle und aktuelles Dialogsystem sind vorhanden.
+Der aktuellste sichtbare GitHub-Actions-Lauf für HEAD `f94c9500...` hat:
+
+- Gradle Build: **erfolgreich**
+- Source-API-Grenzprüfung: **erfolgreich**
+- Shadow-/Plugin-Artefaktprüfung: **erfolgreich**
+- Resourcepack-Item-Model-Prüfung: **fehlgeschlagen**
+
+Damit ist der Java-/Plugin-Build aktuell nicht das Problem. Der verbleibende CI-Blocker liegt im Resourcepack.
+
+Die aktuelle Resourcepack-Forensik zeigt konkret:
+
+- 24 Food-Item-JSON-Dateien
+- 23 Food-Model-JSON-Dateien
+- 21 Food-PNG-Dateien
+- `suessbeeren_marmelade.json` verweist auf ein nicht vorhandenes Model
+- mehrere Modeldateinamen unterscheiden sich bewusst vom tatsächlichen PNG-Namen; die geprüften `layer0`-Referenzen dieser Modelle zeigen auf vorhandene PNGs
+- die aktuelle Food-Struktur ist deshalb **noch nicht vollständig konsistent**
+
+### Wesentliche technische Befunde
+
+**Positiv**
+
+- Java 25 ist korrekt konfiguriert.
+- Paperweight 2.0.0-beta.21 und Paper 26.2.build.121-stable sind vorhanden.
 - `paper-plugin.yml` wird verwendet.
-- Java 25 und Paper 26.2 Dev-Bundle sind in Gradle konfiguriert.
-- HikariCP, Prepared Statements und Transaktionen werden für MySQL verwendet.
-- Spielerprofil-I/O läuft über separate Executor.
-- Mehrere Runtime-Tasks besitzen explizite Shutdown-Pfade.
-- NPC-/Companion-/Quest-/Scoreboard-Zustände verwenden überwiegend UUIDs statt dauerhaft gespeicherter Player-Objekte.
-- Externe Skin-Abfragen laufen asynchron und besitzen URL-/Response-Größenprüfungen sowie Schutz gegen lokale/private Ziele.
-- Die vorhandenen Build-Verifikationen für Legacy-APIs und Shading bleiben aktiv.
+- ShadowJar-Relocations sind vorhanden.
+- Build-Grenzprüfungen sind aktiv.
+- MySQL verwendet HikariCP und Prepared Statements.
+- Persistenz besitzt Revision-/Transaktionsschutz.
+- Player-State wird UUID-basiert verwaltet.
+- Native Paper-Dialoge sind vorhanden.
+- Guild-Territory ist als physisches Marker-/Polygon-System implementiert.
+- Region-/Guild-City-Bindung ist inzwischen konsolidiert.
+- Externe Skin-Kommunikation läuft asynchron und besitzt mehrere SSRF-/Größen-/Timeout-Schutzmaßnahmen.
+- Shutdown-Lifecycle ist zentralisiert.
 
-Die wichtigsten negativen Befunde:
+**Kritische bzw. hohe Befunde**
 
-1. **PartyGUI-Rest:** `PartySubCommand` referenziert weiterhin `PartyGUI`, obwohl diese Datei im Branch-Dateibestand fehlt. Das ist eine konkrete Codekonsistenz-/Build-Risikoquelle.
-2. **Synchrones Shop-YAML-I/O:** `ShopManager.save()` schreibt YAML synchron. Bei häufigen Änderungen oder großen Daten kann dies den Main Thread blockieren.
-3. **NPC-Resync-Skalierung:** Teile der NPC-Resynchronisation arbeiten über den gesamten bekannten NPC-Bestand statt ausschließlich über einen räumlichen Index.
-4. **Scoreboard-Erfahrung:** Das Plugin überschreibt bewusst die Vanilla-EXP-Bar über `Player#setExp` und `Player#setLevel`. Das ist funktional gewollt, aber ein konkurrierendes UI-System: andere Vanilla-/Plugin-Anzeigen können dadurch verdrängt werden.
-5. **Default-Weltcontent:** NPC- und Shop-Daten werden aus Laufzeit-YAMLs erwartet; im Repository liegen keine entsprechenden Default-`npcs.yml`/`shops.yml`.
-6. **Externe Abhängigkeit:** MineSkin und externe Skinquellen erweitern die Angriffs-/Ausfallfläche. Der Code enthält Schutzmaßnahmen, bleibt aber netzwerkabhängig.
+1. **Resourcepack ist am aktuellen HEAD noch CI-rot.**
+2. `suessbeeren_marmelade` besitzt eine Itemdefinition, aber kein zugehöriges Model.
+3. Es existiert damit eine konkrete Content-/Asset-Inkonsistenz zwischen Itemdefinition, Item-Model-Routing und Resourcepack.
+4. Der Resourcepack-Workflow erzeugt und committed selbstständig ZIP/SHA1-Dateien; dadurch können Build- und Resourcepack-Commits zeitlich gegeneinander laufen.
+5. Einige Runtime-YAML-Daten sind weniger streng schema-validiert als die JSON-basierten Content-Registries.
+6. `ShopManager.save()` schreibt synchron auf den Serverthread.
+7. Mehrere periodische/global arbeitende Systeme besitzen lineare Skalierung gegenüber Spieler-/NPC-Mengen.
 
-**Gesamtbewertung:** **7/10** für den untersuchten statischen Stand. Das bedeutet: technisch bereits deutlich über einem einfachen Hobby-Plugin, aber noch nicht frei von Integrations-, Skalierungs- und Betriebsrisiken.
+**Keine konkreten Befunde für**
 
----
-
-# 2. Architektur & Code-Qualität
-
-## 2.1 Lifecycle
-
-`PixelRPGPlugin` übernimmt die zentrale Komposition der Systeme. Die Komponenten werden beim Start aufgebaut und über einen `LifecycleCoordinator` mit Shutdown-Aktionen registriert.
-
-Explizit registrierte Shutdown-Komponenten umfassen unter anderem:
-
-- PlayerProfileManager
-- CompanionService
-- PartyManager
-- CombatStateService
-- GuildManager
-- RegionManager
-- NpcManager
-- NpcLookTask
-- BossManager
-- QuestManager
-- ScoreboardService
-- PlaytimeTracker
-- MobLevelScalingListener
-- BiomeBossSpawnTask
-- QuestPassiveCheckTask
-- RegionEditor
-- RegionSpawnService
-- BankerBehavior
-
-`onDisable()` schließt zuerst den Lifecycle und hebt danach Bukkit-Services auf. Die statische Plugin-Referenz wird anschließend auf `null` gesetzt.
-
-**Befund:** 🟢 sauberer Lifecycle-Grundaufbau.
-
-## 2.2 Event-Handling
-
-Die Registrierung erfolgt zentral in `PixelRPGPlugin.onEnable()`.
-
-Vorhandene Listener decken u. a. ab:
-
-- Player lifecycle
-- Combat
-- Loot
-- Mob scaling
-- Bosses
-- NPCs
-- Quests
-- Party
-- Guild
-- Scoreboard
-- Statistics
-- Companions
-- GUI
-- Skills
-- Regions
-- Soulbound
-
-Auffällig positiv: zustandsbehaftete Listener besitzen häufig Join/Quit-/World-Change-Bereinigung.
-
-Beispiele:
-
-- `NpcLookTask` entfernt Player-Zustand bei Quit.
-- `BiomeBossSpawnTask` entfernt Biome-Caches bei Quit.
-- `QuestPassiveCheckTask` cancelt den UUID-bezogenen Wake-Zustand bei Quit.
-- `ScoreboardService` entfernt Player-Scoreboard-State bei Quit.
-- `CompanionFollowTask` cancelt den Owner-Zustand bei Quit.
-
-**Befund:** 🟢 kein offensichtlicher Listener-bedingter Player-Referenz-Leak in den geprüften Kernkomponenten.
-
-## 2.3 Listener-Prioritäten
-
-In den gezielt geprüften Kernlistenern ist keine systematische Fehlverwendung extremer Event-Prioritäten erkennbar. Die Architektur setzt eher auf fachlich getrennte Listener.
-
-**Restprüfung:** Für eine vollständige Laufzeitverifikation aller Event-Reihenfolgen wäre ein echter Server-Test mit konkurrierenden Plugins erforderlich.
+- Legacy-NMS-Pakete
+- CraftBukkit
+- `ChatColor`
+- offensichtliche Hardcoded-Backdoors
+- offensichtliches Remote-Classloading
+- offensichtliche SQL-Injection in den geprüften Player-Storage-Pfaden
 
 ---
 
-# 3. Scheduler & Threading
+# 2. Repository-Bestand
 
-## 3.1 Async-I/O
+## 2.1 Java
 
-Der Spielerpersistenzpfad verwendet:
+`src/main/java` enthält aktuell:
 
-- `ExecutorService`
-- mehrere Worker-Threads
-- UUID-basierte Save-Chains
-- `CompletableFuture`
-- kontrolliertes Shutdown/Flush
+**264 Java-Dateien**
 
-Das reduziert Main-Thread-I/O.
+Die Hauptmodule sind:
 
-## 3.2 AsyncFileWriter
+- `api`
+- `boss`
+- `combat`
+- `command`
+- `companion`
+- `config`
+- `core`
+- `dialogue`
+- `economy`
+- `equipment`
+- `gui`
+- `guild`
+- `item`
+- `npc`
+- `party`
+- `player`
+- `profession`
+- `progression`
+- `quest`
+- `region`
+- `resourcepack`
+- `scoreboard`
+- `shop`
+- `stats`
+- `storage`
+- `story`
+- `trade`
+- `travel`
 
-`AsyncFileWriter` verwendet einen Single-Thread-Executor und schreibt Daten außerhalb des Serverthreads. Der Writer besitzt:
-
-- Queue-/Drain-Mechanik
-- Lifecycle-Lock
-- atomisches Verschieben, soweit unterstützt
-- Cleanup
-- Shutdown mit Timeout
-- `shutdownNow()` als Fallback
-
-**Befund:** 🟢.
-
-## 3.3 Bukkit API aus Async-Kontext
-
-Der externe Skin-Service ist korrekt getrennt:
-
-1. Netzwerk über `HttpClient.sendAsync()`
-2. Ergebnisverarbeitung
-3. Bukkit-Mannequin-Anwendung über `Bukkit.getScheduler().runTask(plugin, ...)`
-
-Das ist genau die relevante Trennung: Netzwerk außerhalb des Main Threads, Entity-/Bukkit-Mutation zurück auf den Serverthread.
-
-**Befund:** 🟢.
-
-## 3.4 Periodische Tasks
-
-Mehrere periodische Tasks laufen synchron:
-
-- Boss-Biome-Spawnprüfung
-- Quest-Passivprüfung
-- Scoreboard-EXP-Bar-Update
-- NPC-/Companion-Zustände teilweise event-/wake-basiert
-
-Die geprüften Tasks besitzen Shutdown-/Cancel-Pfade.
-
-**Risiko:** Synchrones Scannen muss proportional zur Spieler-/NPC-Anzahl bleiben.
+Die Struktur ist damit nicht monolithisch; fachliche Verantwortlichkeiten sind überwiegend getrennt.
 
 ---
 
-# 4. Speicher & Player-Referenzen
+# 3. Branch-Forensik
 
-## 4.1 Positiv
+## 3.1 Rebuild gegenüber main
 
-`PlayerProfileManager` verwendet:
+GitHub-Compare:
 
-```java
-Map<UUID, PlayerProfile>
-```
+- `main`: `86f17c8fc14a31897108e47b389443ee44c503d6`
+- `Rebuild`: `f94c9500f6e45d6a4b4302a5d3cf1e3001186521`
+- Rebuild: **254 Commits ahead**
+- Rebuild: **27 Commits behind**
+- Status: **diverged**
+- gemeinsamer Merge-Base: `93dd12ab78021eea2bec5f168ab305c48cf34216`
 
-und nicht:
+Das bedeutet:
 
-```java
-Map<Player, PlayerProfile>
-```
+> `Rebuild` ist kein kleiner Patch gegenüber `main`, sondern ein stark divergierter Entwicklungsstand.
 
-Auch mehrere Runtime-Caches verwenden UUIDs.
-
-Das reduziert die Gefahr, dass ein Offline-Player durch eine Map dauerhaft stark referenziert wird.
-
-## 4.2 Temporäre Player-Referenzen
-
-Lokale Methodenvariablen mit `Player` sind selbstverständlich vorhanden. Das ist kein Leak.
-
-Die geprüften persistenten Zustandscontainer speichern überwiegend:
-
-- UUID
-- Profile
-- Entity UUID
-- IDs
-- immutable Daten
-
-**Befund:** 🟢.
+Insbesondere wurden auf `Rebuild` ältere Planungs-/Phasendokumente entfernt und die aktuelle Implementierung stärker in Code, Konfiguration und TODO-Struktur überführt.
 
 ---
 
-# 5. Datenbank & Persistenz
+# 4. Build-System
 
-## 5.1 MySQL
-
-`DatabaseManager` verwendet HikariCP.
+## 4.1 Gradle
 
 Vorhanden:
 
-- Connection Pool
-- Connection Timeout
-- Validation Timeout
-- Keepalive
-- Max Lifetime
-- Leak Detection
-- Prepared Statements
+- Java Plugin
+- Paperweight Userdev 2.0.0-beta.21
+- Shadow 9.6.1
+- Paper Dev Bundle 26.2.build.121-stable
+- Java 25 Toolchain
+- Compiler Release 25
 
-Die Konfiguration validiert:
+Dependencies:
 
-- Host
-- Port
-- Datenbank-Identifier
-- Poolgröße
-- Timeout
-- SSL-Modus
+- Gson 2.13.1
+- HikariCP 7.0.2
+- MySQL Connector/J 9.7.0
 
-Der SSL-Modus ist auf eine feste Whitelist begrenzt.
+Die vorgegebenen Dependencies wurden nicht ersetzt.
 
-## 5.2 SQL-Injection
+## 4.2 Mojang-/Paper-Mappings
 
-Die geprüften Spielerprofil-Abfragen verwenden Prepared Statements:
+`build.gradle` verwendet:
 
-```java
-PreparedStatement statement =
-    connection.prepareStatement(sql);
-statement.setString(1, uuid.toString());
-```
+`ReobfArtifactConfiguration.getMOJANG_PRODUCTION()`
 
-Die dynamischen Identifier im DatabaseManager werden vor Verwendung validiert.
+Es ist kein klassischer `reobfJar`-Workflow vorhanden.
 
-**Befund:** 🟢 kein offensichtlicher SQL-Injection-Befund in den geprüften Datenbankpfaden.
+## 4.3 ShadowJar
 
-## 5.3 Transaktionen
+Ausgabe:
 
-Der Player-Save-Pfad:
+`Pixel-RPG.jar`
 
-- startet eine Transaktion
-- prüft die Persistenzrevision
-- schreibt abhängige Tabellen
-- commitet
-- rollt bei SQLException zurück
-- stellt AutoCommit wieder her
+Relocations:
 
-Die Revision verhindert stale writes.
+- `com.google.gson` → `de.pixelrpg.rpg.libs.gson`
+- `com.zaxxer.hikari` → `de.pixelrpg.rpg.libs.hikari`
+- `com.mysql` → `de.pixelrpg.rpg.libs.mysql`
 
-**Befund:** 🟢 robust.
+Der normale Jar-Task besitzt den Classifier `slim`.
 
----
+## 4.4 Build-Grenzprüfungen
 
-# 6. IT-Forensik / Schadcode
+`check` bindet ein:
 
-## 6.1 Hardcoded Backdoors
+- `verifyPixelRpgSourceBoundaries`
+- `verifyPixelRpgShadedDependencies`
 
-In den geprüften Kernquellen wurde kein Mechanismus gefunden, der nach folgendem Muster arbeitet:
+Geprüft werden unter anderem:
 
-- versteckte UUID-OP-Freischaltung
-- geheime Benutzer-/Passwort-Kombination
-- automatische OP-Vergabe
-- dynamisches Remote-Classloading
-- versteckte Command-Ausführung
-- externe Webhook-Übertragung von Spielerdaten
-
-Die vorhandene administrative Berechtigung ist explizit:
-
-```yaml
-rpg.admin:
-  default: op
-```
-
-und wird über die Command-Permissions geprüft.
-
-**Befund:** 🟢 kein konkreter Backdoor-Befund.
-
-## 6.2 Netzwerkzugriffe
-
-Der auffällige externe Netzwerkcode sitzt in `ExternalSkinService`.
-
-Bekannte Ziele:
-
-- `textures.minecraft.net`
-- `api.mineskin.org`
-- vom Content angegebene HTTPS/HTTP-Bildquellen
-
-Die Klasse enthält:
-
-- URL-Längenlimit
-- Response-Größenlimit
-- Timeout
-- Scheme-Prüfung
-- Hostprüfung
-- Schutz vor localhost/private/reserved IPs
-- Candidate-Limit
-- Redirect-Verhalten
-- asynchrone Requests
-
-**Befund:** 🟢/🟠. Die Schutzmaßnahmen sind gut; externe HTTP-Abhängigkeit bleibt ein Betriebsrisiko.
-
----
-
-# 7. SSRF-/URL-Forensik
-
-`ExternalSkinService` prüft externe URIs gegen private/reservierte Adressbereiche.
-
-Das ist relevant, weil Skinquellen teilweise vom Content/Administrator kommen können.
-
-Zusätzlich werden nur erwartete URL-Schemata akzeptiert.
-
-**Rest-Risiko:** DNS-Rebinding-/TOCTOU-Szenarien sind bei reiner Host-IP-Prüfung grundsätzlich ein bekanntes Problem. Für normale Serverkonfiguration ist das deutlich reduziert, aber nicht mathematisch ausgeschlossen.
-
-**Priorität:** Mittel.
-
----
-
-# 8. NMS / Packets / ProtocolLib
-
-Der Branch enthält keine separaten NMS-/Packet-/ProtocolLib-Klassen im Java-Dateibaum.
-
-Es gibt keine gefundenen Legacy-Pfade:
-
-- `net.minecraft.server.v1_XX_RY`
+- `ChatColor`
 - CraftBukkit
-- Bungee `ChatColor`
+- Legacy-NMS
+- statische Live-Serverreferenzen
+- unrelocierte Third-Party-Klassen
+- JDBC-Service-Descriptor
 
-Das aktuelle Dialogsystem nutzt die Paper-Registrierungs-/Dialog-API und Mojang-/Paper-nahe aktuelle APIs.
-
-**Befund:** 🟢 keine erkennbare Legacy-NMS-Abhängigkeit.
+**Befund:** 🟢.
 
 ---
 
-# 9. Dialogsystem
+# 5. CI-Forensik
 
-`PixelRPGBootstrap` registriert native Dialoge über:
+Der aktuelle Build-Lauf für HEAD `f94c9500...` wurde vollständig ausgewertet.
+
+| Schritt | Status |
+|---|---|
+| Checkout | 🟢 |
+| Java 25 | 🟢 |
+| Gradle 9.2.0 | 🟢 |
+| Gradle clean build | 🟢 |
+| Source API boundaries | 🟢 |
+| Plugin artifact | 🟢 |
+| Resourcepack item models | 🔴 |
+
+Das ist ein wichtiger Befund:
+
+> Die Java-Codebasis kompiliert am aktuellen HEAD und das erzeugte Shadow-Artefakt erfüllt die vorhandenen Relocation-Prüfungen. Der aktuelle CI-Fehler ist ein Asset-/Resourcepack-Problem.
+
+---
+
+# 6. Paper Plugin / Bootstrap
+
+`paper-plugin.yml`:
+
+- Name: PixelRPG
+- Version: 1.0.0
+- Main: `de.pixelrpg.rpg.PixelRPGPlugin`
+- Bootstrapper: `de.pixelrpg.rpg.PixelRPGBootstrap`
+- API-Version: 26.2
+
+Der Bootstrap registriert native Dialoge über die aktuelle Paper-Registrierungsarchitektur.
+
+Verwendete Dialogbestandteile umfassen:
 
 - `RegistryEvents.DIALOG`
 - `DialogBase`
@@ -350,17 +242,714 @@ Das aktuelle Dialogsystem nutzt die Paper-Registrierungs-/Dialog-API und Mojang-
 - `DialogAction.customClick`
 - `DialogTagKeys.QUICK_ACTIONS`
 
-Das entspricht der für dieses Projekt geforderten aktuellen Paper-26.x-Mechanik.
+**Befund:** 🟢.
+
+---
+
+# 7. Lifecycle
+
+`PixelRPGPlugin` übernimmt die zentrale Komposition.
+
+Registriert bzw. verwaltet werden unter anderem:
+
+- PlayerProfileManager
+- CompanionService
+- PartyManager
+- CombatStateService
+- GuildManager
+- GuildTerritoryManager
+- KingdomMaintenanceService
+- RegionManager
+- RegionEditor
+- NpcManager
+- BossManager
+- QuestManager
+- ScoreboardService
+- PlaytimeTracker
+- MobLevelScalingListener
+- BiomeBossSpawnTask
+- QuestPassiveCheckTask
+
+Beim Shutdown werden die Services über `LifecycleCoordinator` beendet.
+
+Zusätzlich werden Bukkit-Services deregistriert.
+
+Die statische Plugin-Instanz wird beim Disable auf `null` gesetzt.
 
 **Befund:** 🟢.
 
 ---
 
-# 10. Commands & Permission-Sicherheit
+# 8. Spielerprofil / Persistenz
 
-Der zentrale Command-Baum verwendet explizite Subcommand-Permissions.
+## 8.1 PlayerProfile
 
-Im aktuellen Root-Baum vorhanden:
+Persistenter Zustand umfasst unter anderem:
+
+- UUID
+- Registrierung
+- Charakter-XP
+- Geld in Minor Units
+- Berufslevel
+- Berufs-XP
+- gelernte Berufe
+- aktiver Hauptberuf
+- Rezeptfreischaltungen
+- Waypoints
+- Story-Fortschritt
+- aktive Quests
+- Questkoordinaten
+- abgeschlossene Quests
+- Statistiken
+- Equipment
+- Scoreboard-Einstellung
+- Party-HUD
+- Spielzeit
+- Persistenzrevision
+
+Der Profilzustand wird über UUIDs adressiert.
+
+## 8.2 Mutation-/Dirty-System
+
+`PlayerProfile` besitzt:
+
+- `dirty`
+- `mutationRevision`
+- `persistenceRevision`
+- Dirty-Callback
+- Snapshot für Save
+
+Das ist grundsätzlich eine sinnvolle Trennung zwischen Runtime-Zustand und Persistenzzustand.
+
+## 8.3 Level
+
+Charakterlevel:
+
+- Minimum: 1
+- Maximum: 60
+
+Profession:
+
+- Minimum: 1
+- Maximum: 60
+
+Die Berufserfahrung ist auf `182900` begrenzt, was der aktuellen Levelkurve bis Level 60 entspricht.
+
+**Befund:** 🟢.
+
+---
+
+# 9. YAML- und MySQL-Persistenz
+
+## 9.1 YAML
+
+Der YAML-Player-Repository-Pfad verwendet temporäre Dateien und atomisches Verschieben, soweit das Dateisystem dies unterstützt.
+
+Das reduziert das Risiko eines teilweise geschriebenen Playerprofils.
+
+## 9.2 MySQL
+
+Schema-Version:
+
+**4**
+
+Spielerdaten werden auf mehrere Tabellen verteilt:
+
+- `pixelrpg_players`
+- `pixelrpg_active_quests`
+- `pixelrpg_player_stats`
+- `pixelrpg_player_equipment`
+- `pixelrpg_schema_version`
+
+## 9.3 SQL-Sicherheit
+
+Die geprüften Player-Abfragen verwenden Prepared Statements.
+
+Dynamische Datenbank-Identifier werden vorher validiert.
+
+Der MySQL-Connector unterstützt:
+
+- Pooling
+- Prepared-Statement-Cache
+- Server Prepared Statements
+- SSL-Modus-Whitelist
+- Connection Timeout
+- Validation Timeout
+- Keepalive
+- Max Lifetime
+- Leak Detection
+
+**Befund:** 🟢.
+
+## 9.4 Revision-Schutz
+
+Der MySQL-Save-Pfad prüft die Datenbankrevision innerhalb einer Transaktion mit `FOR UPDATE`.
+
+Bei abweichender Revision wird der Save abgebrochen.
+
+**Befund:** 🟢.
+
+---
+
+# 10. Berufe
+
+Aktuell sind **10 Berufe** definiert.
+
+### Gathering
+
+- FARMER
+- FISHERMAN
+- WOODCUTTER
+- MOUNTAIN_MINER
+
+### Main
+
+- BLACKSMITH
+- COOK
+- TAILOR
+- ALCHEMIST
+- MASON
+- SCHOLAR
+
+Die Kategorie ist explizit:
+
+- `GATHERING`
+- `MAIN`
+
+Die Implementierung unterstützt:
+
+- parallele Gathering-Berufe
+- genau einen aktiven Hauptberuf
+- Hauptberufswechsel
+- Level-/XP-Verwaltung
+- Rezeptfreischaltung
+- Berufsvoraussetzungen
+
+**Befund:** 🟢 Architektur entspricht dem aktuellen Season-1-Modell.
+
+---
+
+# 11. Crafting
+
+Aktueller Datenbestand:
+
+**306 Rezepte**
+
+Die Registry unterstützt unter anderem:
+
+- Vanilla-Material-Ergebnisse
+- Custom-Item-Ergebnisse
+- Materialkosten
+- Custom-Item-Kosten
+- Berufszuordnung
+- Beruflevel
+- Unlock-Preis
+- Questvoraussetzungen
+- Rarity
+- Potion
+- Enchantment
+- Access Tier
+
+Zentrale Access-Tiers:
+
+- BASIC
+- NPC_ADVANCED
+- KINGDOM_ELITE
+
+Die Registry besitzt Validierungen gegen ungültige Referenzen und Rezeptabhängigkeiten.
+
+**Befund:** 🟢.
+
+---
+
+# 12. Items
+
+Aktueller Datenbestand:
+
+**30 Itemdefinitionen**
+
+Unter anderem:
+
+- Waffen
+- Rüstungssets
+- Unique/Admin-Item
+- Custom-Resourcepack-IDs
+
+Itemdefinitionen besitzen u. a.:
+
+- ID
+- Name
+- Material
+- Rarity
+- Kategorie
+- Itemlevel
+- Required Level
+- Soulbound
+- Unique
+- AdminOnly
+- Resourcepack-ID
+- Gearscore
+- Equipment Slot
+- Set-ID
+
+**Befund:** 🟢.
+
+---
+
+# 13. Food
+
+Aktueller Datenbestand:
+
+**23 Fooddefinitionen**
+
+Food besitzt unter anderem:
+
+- Nutrition
+- Saturation
+- Custom Item ID
+- Rarity
+- Resourcepack ID
+- optionale Effekte
+
+### Forensischer Asset-Befund
+
+Food-Resourcepack:
+
+- 24 Item-Routing-Dateien
+- 23 Model-Dateien
+- 21 PNG-Texturen
+
+Konkreter Fehler:
+
+`resourcepack/assets/pixelrpg/items/food/suessbeeren_marmelade.json`
+
+verweist auf:
+
+`pixelrpg:item/food/suessbeeren_marmelade`
+
+Ein entsprechendes Model:
+
+`resourcepack/assets/pixelrpg/models/item/food/suessbeeren_marmelade.json`
+
+existiert aktuell nicht.
+
+**Priorität:** 🔴 P0 für Resourcepack-CI.
+
+Zusätzlich ist erkennbar, dass einige Modeldateinamen und PNG-Dateinamen absichtlich nicht identisch sind, beispielsweise:
+
+- Model `apfelkuchen.json` → PNG `apfel_kuchen.png`
+- Model `kaktus_saft.json` → PNG `kaktussaft.png`
+
+Die geprüften `layer0`-Referenzen dieser Modelle zeigen auf die vorhandenen tatsächlichen PNG-Namen.
+
+Das ist zulässig; entscheidend ist die Referenz im Model und nicht die Gleichheit der Model-/PNG-Dateinamen.
+
+---
+
+# 14. Equipment Sets
+
+Aktueller Datenbestand:
+
+**6 Sets**
+
+Vorhanden sind vierteilige Sets mit Set-ID und Set-Effekten.
+
+Die Itemdefinitionen referenzieren die Set-IDs.
+
+**Befund:** 🟢.
+
+---
+
+# 15. Companions
+
+Aktueller Datenbestand:
+
+**28 Companion-Definitionen**
+
+Vorhanden sind separate Komponenten für:
+
+- Definition
+- Runtime Registry
+- Service
+- Progression
+- Stats
+- Equipment
+- Combat
+- Follow
+- Mount
+- Mannequin
+- Boss Rewards
+
+**Befund:** 🟢 modular.
+
+---
+
+# 16. Quests
+
+Aktuelle Questdateien:
+
+- `quests_v2.json`: 36
+- `quests_story.json`: 19
+- `quests_expansion_02.json`: 19
+- `quests_world_expansion.json`: 29
+
+Gesamt:
+
+**103 Questdefinitionen**
+
+Unterstützte Questmechaniken umfassen:
+
+- Hunt
+- Collect
+- Talk-to-NPC
+- Reach Location
+- Global Events
+- Levelvoraussetzungen
+- Berufsanforderungen
+- Follow-ups
+- Rewards
+- Companion-Unlocks
+- Party-Sharing
+- Quest-Tracker
+- passive Prüfungen
+- Mob-Kills
+- NPC-Interaktionen
+- Locations
+- Boss-/Statistik-Verknüpfungen
+
+**Befund:** 🟢.
+
+---
+
+# 17. Story
+
+`story_campaign.yml`:
+
+- Story-Version 8
+- Kampagnen-ID `minecraft-lore-campaign`
+- maximal 64 Kapitel
+- Orders 0–19 für die lineare Hauptkampagne
+- 20 Hauptknoten
+
+Die Kampagne verwendet Minecraft-Strukturen als Triggerdaten und trennt gesicherte Minecraft-Fakten von Eigenchronik-/Theorie-Texten.
+
+**Befund:** 🟢.
+
+---
+
+# 18. Gilden / Städte / Territory
+
+Der aktuelle Branch verwendet ein physisches Territory-System.
+
+Kernkomponenten:
+
+- `GuildTerritory`
+- `GuildTerritoryManager`
+- `GuildTerritoryListener`
+- `GuildManager`
+- `CityProgressionService`
+- `RegionManager`
+- `RegionGeometry`
+
+## 18.1 Territory-Modell
+
+Eine Gildenstadt wird aus physischen Grenzmarkern aufgebaut.
+
+Eigenschaften:
+
+- initial 4 Marker
+- maximal 32 Blöcke Abstand zwischen benachbarten Markern
+- geschlossene Polygon-Geometrie
+- Block-/Flächenprüfung
+- Überschneidungsprüfung
+- Area-Limit abhängig vom Stadtlevel
+
+## 18.2 Region-Bindung
+
+Die physische Territory-Logik erzeugt/synchronisiert die Region als:
+
+`RegionType.GUILD_CITY`
+
+Die Guild speichert zusätzlich ihre gebundene City-Region-ID.
+
+Die aktuelle Architektur verwendet damit nicht mehr zwei konkurrierende Claim-Lifecycle-Systeme.
+
+## 18.3 Repair-/Sync-Pfad
+
+`synchronizeGuildCity(...)` dient als Reparatur-/Synchronisationsoperation für ein vorhandenes physisches Territory.
+
+Das ist keine zweite physische Claim-Implementierung.
+
+## 18.4 Desynchronisationsschutz
+
+Beim Abbau des Territoriums wird die gebundene City-Region-Zuordnung über `unbindCityRegion` entfernt.
+
+Beim Erzeugen/Synchronisieren wird die Guild-Bindung über `bindCityRegion` aktualisiert.
+
+**Befund:** 🟢 nach der aktuellen Integration deutlich konsistenter als der frühere Parallelbetrieb von manuellem Claim und Territory-System.
+
+---
+
+# 19. Stadtprogression
+
+Stadtlevel:
+
+1. Lager
+2. Außenposten
+3. Weiler
+4. Dorf
+5. Stadt
+6. Großstadt
+7. Regionalstadt
+8. Provinzstadt
+9. Residenzstadt
+10. Metropole
+
+Die Anforderungen werden aus `config.yml` gelesen.
+
+Nur die nächste Upgrade-Stufe wird in `CityView` exponiert.
+
+Der Upgradeprozess prüft:
+
+- Berechtigung
+- aktuelles Level
+- Cooldown
+- Gold
+- gelieferte Materialien
+- Objectives
+
+Beim Upgrade wird der nächste Cooldown gesetzt.
+
+### Wichtig
+
+Die konfigurierte Cooldown-Tabelle ergibt insgesamt **36 Tage**, nicht 33 Tage.
+
+Die aktuelle TODO-Dokumentation behandelt die 36 Tage als autoritativen Stand.
+
+**Befund:** 🟡 dokumentations-/designrelevant, aber kein ungeklärter Codefehler.
+
+---
+
+# 20. Professionelle NPCs
+
+Vorhanden:
+
+- `ProfessionNpcProgressionService`
+- `ProfessionNpcBuffService`
+- `ProfessionNpcRank`
+- `GrandmasterRegistry`
+- `MeisterbriefService`
+- `MeisterbriefSpawnListener`
+
+Das System unterstützt:
+
+- Apprentice
+- Journeyman
+- Expert
+- Master
+- Grandmaster
+- Kosten
+- Ressourcen
+- Stadtlevel-Voraussetzungen
+- Spezialisierung
+- globale Grandmaster-Grenze für Main-Professions
+- Buffs
+
+Gathering-Grandmasters und Main-Profession-Grandmasters werden getrennt behandelt.
+
+**Befund:** 🟢.
+
+---
+
+# 21. Regionen
+
+Region-Komponenten:
+
+- `PixelRegion`
+- `RegionEditor`
+- `RegionFlag`
+- `RegionFlagCategory`
+- `RegionFlagDialogService`
+- `RegionGeometry`
+- `RegionListener`
+- `RegionManager`
+- `RegionPolicyService`
+- `RegionRepository`
+- `RegionSpawnService`
+- `RegionTransitionService`
+- `RegionType`
+
+Das System unterstützt:
+
+- Regiontypen
+- Flags
+- Geometrie
+- Spawnpunkte
+- Transitionen
+- Policies
+- Persistenz
+
+**Befund:** 🟢.
+
+---
+
+# 22. Combat
+
+Vorhanden:
+
+- Damage Calculator
+- Damage Context
+- Combat State
+- Mob XP
+- Mob Scaling
+- Loot
+- Soulbound
+- Weapon Abilities
+
+Combat-Tag und Kingdom-Combat-Mode sind integriert.
+
+Die konfigurierten Kingdom-Werte umfassen:
+
+- Mode Switch Delay: 300 Sekunden
+- Mode Cooldown: 1800 Sekunden
+- Combat Tag: 5 Sekunden
+
+**Befund:** 🟢 statisch konsistent; echte Exploitfreigabe benötigt Laufzeittests.
+
+---
+
+# 23. Boss-System
+
+Vorhanden:
+
+- Boss Registry/Repository
+- Active Boss
+- Boss Manager
+- Attack Patterns
+- Phasen
+- Loot
+- Rewards
+- Damage Contribution
+- Schutzlistener
+- Biome Spawn Task
+
+Aktuelle Contentdaten:
+
+- 32 Boss-Reward-Items
+
+Mob-Scaling-Daten liegen separat in:
+
+`mob-scaling.json`
+
+**Befund:** 🟢.
+
+---
+
+# 24. Economy / Trade
+
+Vorhanden:
+
+- Money
+- Player Economy API
+- Guild Currency
+- Guild Bank
+- Shop
+- Trade Depot
+- Player Trade
+
+Geld wird intern in Minor Units gespeichert.
+
+Das reduziert Floating-Point-Probleme bei persistenter Währung.
+
+## Kritischer Performance-Restpunkt
+
+`ShopManager.save()` ruft synchron:
+
+`yaml.save(file)`
+
+auf.
+
+Das kann den Serverthread blockieren.
+
+**Priorität:** 🟠.
+
+Empfehlung:
+
+1. Bukkit-/Inventory-Zustand synchron snapshotten.
+2. YAML-String außerhalb des Serverthreads serialisieren/schreiben.
+3. Bestehenden `AsyncFileWriter` verwenden.
+
+---
+
+# 25. NPC-System
+
+Vorhanden:
+
+- NPC Manager
+- RPGNpc
+- Behavior Registry
+- Dialog Service
+- Interaction Listener
+- Chunk Listener
+- Look Task
+- Name Visibility
+- Profession Trainer
+- Banker
+- Quest
+- Shop
+- Travel
+- Story
+- Reception
+
+Die Runtime ist damit fachlich stark aufgeteilt.
+
+### Skalierungsrisiko
+
+Bestimmte Resynchronisationspfade können gegen den gesamten bekannten NPC-Bestand arbeiten.
+
+Bei sehr großen NPC-Mengen sollte konsequent ein Chunk-/Region-Index verwendet werden.
+
+**Priorität:** 🟠 bei großen Serverpopulationen.
+
+---
+
+# 26. Externe Skin-Infrastruktur
+
+`ExternalSkinService` verwendet:
+
+- `textures.minecraft.net`
+- MineSkin API
+- externe Bildquellen
+
+Vorhandene Schutzmechanismen:
+
+- URL-Limit
+- Response-Limit
+- Connect Timeout
+- Request Timeout
+- Scheme-Prüfung
+- Host-Prüfung
+- lokale/private/reservierte Adressen werden berücksichtigt
+- Kandidatenlimit
+- asynchrone HTTP-Requests
+
+Die Bukkit-Mannequin-Anwendung wird zurück auf den Serverthread verschoben.
+
+**Befund:** 🟢/🟠.
+
+Rest-Risiken:
+
+- externe Verfügbarkeit
+- Rate Limits
+- DNS-Rebinding-/TOCTOU-Szenarien
+- Bild-Decoding-Ressourcen
+- externe Content-Änderungen
+
+---
+
+# 27. Command-System
+
+Vorhandene Hauptbereiche umfassen:
 
 - item
 - player
@@ -377,417 +966,515 @@ Im aktuellen Root-Baum vorhanden:
 - region
 - edit
 
-Administrative Komponenten verwenden überwiegend `rpg.admin`.
+Die Root-Kommandos werden über Paper Lifecycle Commands registriert.
 
-Player-Funktionen verwenden `rpg.member` oder keine zusätzliche Subcommand-Permission, wenn sie bewusst allgemein verfügbar sind.
+Permissions:
 
-**Befund:** 🟢.
+- `rpg.admin`
+- `rpg.member`
 
-## Kritischer Integrationsbefund
+### Party
 
-`PartySubCommand` referenziert `PartyGUI`, obwohl `PartyGUI.java` im aktuellen Branch-Dateibestand nicht vorhanden ist.
+Die frühere Audit-Dokumentation behauptete eine fehlende `PartyGUI`.
 
-Das ist kein Berechtigungsproblem, sondern ein konkreter Integrationsfehler.
+Das ist im aktuellen `Rebuild`-Stand **nicht mehr korrekt**.
 
-**Priorität:** Kritisch.
+`PartySubCommand` verwendet aktuell:
+
+`PartyDialog`
+
+und besitzt keine `PartyGUI`-Referenz.
+
+**Befund:** 🟢 dieser frühere Befund ist behoben.
 
 ---
 
-# 11. Exploit- und Input-Validierung
+# 28. Dialog-/UI-System
 
-Die geprüften Systeme validieren zahlreiche Eingaben:
+Native Paper-Dialoge werden für zentrale Interaktionen eingesetzt.
+
+Zusätzlich existieren klassische Inventory-GUIs für:
+
+- Crafting
+- Questlog
+- Questdetails
+- Shop
+- Trade Depot
+- Shop Editor
+
+Damit existieren zwei UI-Kanäle:
+
+1. native Dialoge
+2. Inventory-GUIs
+
+Das ist technisch zulässig, sollte aber fachlich bewusst getrennt bleiben.
+
+---
+
+# 29. Scoreboard / EXP-Bar
+
+`ScoreboardService` verwendet die Vanilla-XP-Bar als PixelRPG-Fortschrittsanzeige.
+
+Damit konkurriert PixelRPG bewusst mit Vanilla-XP-Anzeigezuständen.
+
+Das ist kein Sicherheitsproblem.
+
+Es ist ein Integrationspunkt:
+
+- andere Plugins können `setExp` überschreiben
+- PixelRPG kann fremde EXP-Bar-Zustände überschreiben
+
+**Priorität:** 🟡.
+
+---
+
+# 30. Threading / Async-Sicherheit
+
+Der Branch besitzt mehrere getrennte Async-Bereiche:
+
+- Player Persistence
+- File Writer
+- HTTP
+
+Die untersuchten externen HTTP-Pfade wenden Bukkit-Mutationen nicht direkt im HTTP-Thread an.
+
+Bei persistenter Spielerlogik werden Snapshots/Revisionen verwendet.
+
+**Befund:** 🟢.
+
+Eine vollständige Race-Condition-Freigabe ist statisch nicht möglich; dafür sind parallele Runtime-Tests erforderlich.
+
+---
+
+# 31. Memory-/Leak-Forensik
+
+Die untersuchten Runtime-Maps verwenden überwiegend:
+
+- UUID
+- primitive/immutable IDs
+- Profile
+- State-Objekte
+
+Nicht als dauerhaftes Primärschlüsselmodell:
+
+- `Player`
+- `World`
+- `Entity`
+
+Temporäre Player-Referenzen in Eventmethoden sind normal.
+
+Mehrere Quit-Listener räumen zustandsbezogene Daten auf.
+
+**Befund:** 🟢 kein offensichtlicher zentraler Player-Leak.
+
+---
+
+# 32. Input- und Content-Validierung
+
+Validiert werden unter anderem:
 
 - UUIDs
 - Level
 - XP
-- Gold
+- Money
+- Material
 - Profession
 - Item IDs
-- Item Stats
-- Zahlenwerte
-- finite Doubles
+- Rarity
+- Rezeptlevel
 - Mengen
-- Rezeptdaten
-- Bossdefinitionen
-- Datenbank-Identifier
-- SSL-Modus
-- Skin URLs
+- Potion-/Enchantment-Werte
+- SQL-Identifier
+- SSL-Modi
+- URL-Schemata
 - externe Response-Größen
 
-Die Crafting-Registry prüft zusätzlich Abhängigkeiten und Custom-Item-Referenzen.
+### Restproblem
 
-**Befund:** 🟢 insgesamt solide.
+Einige YAML-Laufzeitdaten sind weniger streng typisiert/validiert als die zentralen JSON-Registries.
 
-## Restbefund
+Das betrifft besonders dynamische Shop-/NPC-Daten.
 
-YAML-basierte Laufzeitdaten wie Shop-/NPC-Dateien sind weniger streng schema-validiert als Crafting-/Bossdaten.
-
-**Priorität:** Mittel.
+**Priorität:** 🟡.
 
 ---
 
-# 12. Item-/Dupe-Risiken
+# 33. Parser-Fehler
 
-Die Item- und Trade-Systeme arbeiten nicht ausschließlich mit Materialnamen, sondern besitzen PixelRPG-Item-IDs/PDC-basierte Identifikation.
+Mehrere Loader verwenden bewusst:
 
-Das ist grundsätzlich geeignet, Custom Items von Vanilla-Materialien zu unterscheiden.
+`catch (IllegalArgumentException ignored)`
 
-Der Trade-Depot-Kaufpfad prüft:
+Das verhindert bei alten/ungültigen Daten teilweise einen kompletten Startup-Abbruch.
 
-- Listing-ID
-- Käufer
-- Verkäufer
-- Warenbestand
-- verfügbaren Platz
-- Profilzustände
-- Persistenz
+Forensisch entsteht dadurch aber das Risiko, dass Contentfehler still verschwinden.
 
-**Kein konkreter Dupe-Bug wurde aus den geprüften Pfaden bewiesen.**
+Empfehlung:
 
-Für eine endgültige Dupe-Freigabe wären allerdings Belastungstests mit parallelen Klicks/Transaktionen erforderlich.
+- Warnung
+- Datei
+- Key
+- erwarteter Typ
+- tatsächlicher Wert
 
----
+loggen.
 
-# 13. Performance
-
-## 13.1 Positiv
-
-- UUID-Caches statt Player-Key-Caches
-- asynchrones Profil-I/O
-- asynchrones File-I/O
-- event-driven Quest-Wakeups
-- event-driven NPC-/Companion-Reaktionen
-- HikariCP
-- vorbereitete SQL-Abfragen
-- Task-Cancel beim Shutdown
-
-## 13.2 NPC-Resync
-
-Ein relevanter Skalierungspunkt ist die Resynchronisation eines Spielers gegen bekannte NPCs.
-
-Wenn die Gesamtzahl der NPCs stark wächst, kann eine globale Iteration pro Resync teuer werden.
-
-**Empfehlung:** Chunk-/Region-Index auch für Player-Resync konsequent verwenden.
-
-## 13.3 Scoreboard
-
-`ScoreboardService` aktualisiert die EXP-Bar periodisch:
-
-```java
-Bukkit.getScheduler().runTaskTimer(
-    plugin,
-    this::refreshExperienceBars,
-    0L,
-    80L
-);
-```
-
-Die Methode iteriert über Online-Spieler.
-
-Bei hoher Spielerzahl ist das linear:
-
-`O(P)`
-
-alle 80 Ticks.
-
-Bei normalen Servergrößen ist das vertretbar.
-
-## 13.4 Scoreboard Guild Updates
-
-Einige Guild-Updates iterieren über vorhandene Scoreboard-States bzw. Online-Spieler.
-
-Auch hier gilt linearer Aufwand.
-
-**Priorität:** Niedrig bis Mittel.
+**Priorität:** 🟡.
 
 ---
 
-# 14. Synchrones I/O – konkreter Befund
+# 34. Resourcepack-System
 
-Der wichtigste konkrete Performance-Befund außerhalb des Datenbank-I/O ist `ShopManager.save()`.
+Vorhanden:
 
-Der Pfad ruft synchron:
+- Resourcepack-Dateibaum
+- ZIP-Archiv
+- SHA1-Datei
+- Join Listener
+- CI-Verifikation
+- Item Definition Routing
+- Item Model Routing
+- Texturen
 
-```java
-yaml.save(file);
-```
+`resourcepack.sha1` ist im Plugin enthalten.
 
-auf.
+Der Resourcepack-Workflow:
 
-Wenn dieser Pfad durch häufige Adminänderungen oder andere Runtime-Aktionen ausgelöst wird, kann die Dateischreiboperation den Serverthread blockieren.
+1. erstellt ZIP
+2. berechnet SHA1
+3. schreibt SHA1 in `src/main/resources/resourcepack.sha1`
+4. committed Änderungen
+5. pusht den Branch
 
-**Empfehlung:** Snapshot auf dem Main Thread, Schreiben über bestehenden Async-File-Writer.
+### Architektur-Risiko
 
-Nicht den gesamten ShopManager blind asynchron machen: Bukkit-/Inventory-Zustände müssen weiterhin synchron gelesen werden.
+Der Workflow schreibt selbst in denselben Entwicklungsbranch, auf dem der Build-Workflow läuft.
+
+Dadurch können mehrere Pushes unmittelbar hintereinander entstehen.
+
+Die Build-Workflow-Concurrency ist zwar aktiviert, aber bei Resourcepack-Selbstcommits entstehen bewusst weitere Builds.
+
+Das ist kein Sicherheitsproblem, aber eine CI-Komplexitätsquelle.
 
 ---
 
-# 15. Fehlerbehandlung
+# 35. Konkreter Resourcepack-P0
 
-Die geprüften Kernkomponenten besitzen umfangreiche `try/catch`- und `finally`-Blöcke.
+Aktueller Zustand:
+
+`resourcepack/assets/pixelrpg/items/food/suessbeeren_marmelade.json`
+
+referenziert:
+
+`pixelrpg:item/food/suessbeeren_marmelade`
+
+Das referenzierte Model fehlt.
+
+Damit schlägt der vorhandene CI-Test korrekt fehl.
+
+### Erforderliche Entscheidung
+
+Es gibt zwei technisch saubere Möglichkeiten:
+
+1. **Süßbeeren-Marmelade soll weiterhin existieren:**  
+   Ein tatsächliches passendes Model und eine passende tatsächliche PNG-Textur müssen vorhanden sein.
+
+2. **Süßbeeren-Marmelade soll nicht mehr existieren:**  
+   Dann müssen Itemdefinition, Item-Routing und alle Gameplay-/Rezeptreferenzen konsistent entfernt werden.
+
+Nur das Model zu löschen, während das Item-Routing erhalten bleibt, ist kein konsistenter Endzustand.
+
+---
+
+# 36. Sicherheitsforensik
+
+## Backdoor
+
+Kein konkreter Befund für:
+
+- versteckte OP-Freischaltung
+- geheime UUID
+- geheime Passwortprüfung
+- versteckte Admin-Command-Kombination
+- Remote-Classloading
+
+**Befund:** 🟢.
+
+## Remote-Code-Ausführung
+
+Kein konkreter Mechanismus für dynamisches Nachladen ausführbaren Java-Codes gefunden.
+
+**Befund:** 🟢.
+
+## SQL Injection
+
+Die geprüften Player-Queries verwenden Prepared Statements.
+
+**Befund:** 🟢.
+
+## SSRF
+
+Skin-Service besitzt mehrere Schutzmaßnahmen.
+
+**Befund:** 🟢/🟠 Rest-Risiko durch externe Netzwerk-/DNS-Komplexität.
+
+## Dupe
+
+Kein konkreter Dupe wurde aus der statischen Prüfung bewiesen.
+
+Das bedeutet ausdrücklich nicht, dass parallele Trade-/Inventory-Race-Exploits ausgeschlossen sind.
+
+**Erforderlich:** Belastungstest mit parallelen Klicks, Disconnects und gleichzeitigen Saves.
+
+---
+
+# 37. Legacy-API-Forensik
+
+Die vorhandene Build-Prüfung sucht nach:
+
+- `org.bukkit.ChatColor`
+- Bungee ChatColor
+- Legacy-NMS
+- CraftBukkit
+- statischen Player-/Entity-/World-Referenzen
+
+Der aktuelle CI-Lauf meldete die Source-Grenzprüfung als erfolgreich.
+
+**Befund:** 🟢.
+
+---
+
+# 38. Persistenzrisiken
+
+## YAML
 
 Positiv:
 
-- SQL Rollback
-- Executor Shutdown Fallback
-- InterruptedException-Behandlung
-- temporäre Datei-Cleanup
-- HTTP-Fehler als failed futures
-- ungültige UUIDs werden verworfen
-- ungültige Enum-Werte werden abgefangen
+- temporäre Datei
+- atomisches Move, soweit unterstützt
+- Player-spezifische Dateien
 
-## Negativer Restpunkt
+## MySQL
 
-Mehrere Datenparser verwenden bewusst:
+Positiv:
 
-```java
-catch (IllegalArgumentException ignored) {
-}
-```
+- Transaktion
+- Revision Lock
+- Prepared Statements
+- getrennte Tabellen
+- Migrationen
 
-Das ist bei optionalen/alten Datenformaten teilweise sinnvoll, kann aber fehlerhafte Contentdaten unsichtbar machen.
+## Restpunkt
 
-**Empfehlung:** Bei Admin-/Contentdaten mindestens Warn-Logging mit Dateiname/Key.
+Für einen vollständigen Produktionsfreigabetest fehlen weiterhin reale:
 
-**Priorität:** Niedrig bis Mittel.
+- Crash-Tests
+- Serverkill während Save
+- DB-Verbindungsabbruch
+- gleichzeitige Save-Requests
+- Restart-Tests
+
+**Priorität:** 🟠 Testlücke.
 
 ---
 
-# 16. Robustheit bei Shutdown
+# 39. Shutdown-Forensik
 
-Die Architektur besitzt einen klaren Shutdown-Pfad.
+Der Lifecycle besitzt explizite Shutdown-Pfade für die wesentlichen Runtime-Systeme.
 
-Besonders positiv:
+Das reduziert:
 
-- Executor werden beendet.
-- Pending Saves werden berücksichtigt.
-- Tasks werden gecancelt.
-- Scoreboards werden bereinigt.
-- Services werden deregistriert.
-- statische Plugin-Referenz wird gelöscht.
+- offene Executor
+- offene DB-Pools
+- laufende Tasks
+- persistente Runtime-Caches
 
 **Befund:** 🟢.
 
 ---
 
-# 17. Vanilla-EXP-Bar / UI-Konflikt
+# 40. Dokumentations-/Bestandsabweichungen
 
-`ScoreboardService` setzt aktiv:
+Die bisher vorhandene `audit.md` war veraltet:
 
-```java
-player.setLevel(level);
-player.setExp(progress);
-```
+- Branch `test` statt `Rebuild`
+- alter Prüfstand
+- alter HEAD
+- 249 statt aktuell 264 Java-Dateien
+- falscher Questbestand
+- falscher Crafting-Bestand
+- bereits behobener `PartyGUI`-Befund
+- Verweis auf nicht mehr vorhandene `Forensik.md`
 
-Damit wird die Vanilla-EXP-Bar für PixelRPG-Zwecke übernommen.
-
-Das ist kein klassischer Memory-/Performance-Bug.
-
-Es ist aber eine **bewusste UI-Priorisierung**.
-
-Folge:
-
-- Vanilla-XP-Anzeige wird durch PixelRPG-Level/Progress ersetzt.
-- Andere Systeme, die `setExp()`/`setLevel()` verwenden, können konkurrieren.
-- Quest-Navigation muss daher nicht gegen eine zweite EXP-Bar „gewinnen“, sondern gegen die Scoreboard-/HUD-Logik getrennt betrachtet werden.
-
-Für eine Quest-Navigation ist daher ein eigenes UI-Channel-Konzept sinnvoll.
-
-**Befund:** 🟠 Integrations-/UI-Risiko, kein Sicherheitsproblem.
+Dieses Dokument ersetzt den veralteten Auditstand.
 
 ---
 
-# 18. Content-/Runtime-Integration
+# 41. Priorisierte Befundliste
 
-Die Codebasis besitzt umfangreiche Contentdaten, aber nicht jeder Contentbestand ist automatisch Weltcontent.
+## 🔴 P0
 
-Besonders relevant:
+### F-001 — Resourcepack: verwaistes Food-Item
 
-- `npcs.yml` wird runtime-seitig erwartet.
-- `shops.yml` wird runtime-seitig erwartet.
-- Regionen sind technisch vorhanden, konkrete Weltregionen müssen separat persistiert/angelegt werden.
+**Pfad:** `resourcepack/assets/pixelrpg/items/food/suessbeeren_marmelade.json`
 
-Das bedeutet:
+**Problem:** Referenziertes Model fehlt.
 
-> Die Runtime-Engine ist vorhanden; ein leerer Datenordner bedeutet nicht automatisch eine vollständig bevölkerte RPG-Welt.
+**Auswirkung:** Resourcepack-Verifikationsschritt schlägt fehl.
 
----
+**Nachweis:** aktueller Repository-Baum + aktueller GitHub-Actions-Lauf.
 
-# 19. Build-Konfiguration
-
-`build.gradle` erfüllt die vorgegebene Basis:
-
-- Java 25
-- Paperweight 2.0.0-beta.21
-- Paper Dev Bundle 26.2.build.121-stable
-- Shadow 9.6.1
-- Gson 2.13.1
-- HikariCP 7.0.2
-- MySQL Connector/J 9.7.0
-
-Shadow Relocations:
-
-- Gson → `de.pixelrpg.rpg.libs.gson`
-- Hikari → `de.pixelrpg.rpg.libs.hikari`
-- MySQL → `de.pixelrpg.rpg.libs.mysql`
-
-Die vorhandenen Verification-Tasks bleiben Bestandteil von `check`.
-
-**Befund:** 🟢.
+**Status:** offen.
 
 ---
 
-# 20. Sicherheitsklassifikation
+## 🟠 P1
 
-| Bereich | Befund |
+### F-002 — Shop YAML synchron
+
+**Pfad:** `ShopManager.save()`
+
+**Problem:** `yaml.save(file)` auf dem Serverthread.
+
+**Auswirkung:** mögliche Main-Thread-Spikes bei größeren Dateien oder häufigen Änderungen.
+
+**Status:** offen.
+
+### F-003 — Restart-/Crash-Persistenz nicht vollständig verifiziert
+
+**Problem:** statische Prüfung zeigt robuste Save-Mechanismen, aber keinen echten Serverkill-/Restart-Test.
+
+**Status:** Testlücke.
+
+### F-004 — NPC-Skalierung
+
+**Problem:** einzelne Resync-Pfade können global über bekannte NPCs arbeiten.
+
+**Status:** Performance-Restpunkt.
+
+### F-005 — Runtime-YAML-Schema
+
+**Problem:** weniger strenge Validierung als zentrale JSON-Contentdaten.
+
+**Status:** offen.
+
+---
+
+## 🟡 P2
+
+### F-006 — Parserfehler teilweise still
+
+`IllegalArgumentException` wird an mehreren Stellen bewusst ignoriert.
+
+### F-007 — EXP-Bar als reservierter UI-Kanal
+
+PixelRPG übernimmt die Vanilla-XP-Bar.
+
+### F-008 — Resourcepack-Selbstcommit
+
+Der Resourcepack-Workflow pusht automatisch neue Commits in `Rebuild`.
+
+### F-009 — Externe Skinprovider
+
+Externe Netzwerkabhängigkeit bleibt ein Betriebs-/Verfügbarkeitsrisiko.
+
+### F-010 — Parallel-/Race-Tests fehlen
+
+Insbesondere:
+
+- Trade
+- Inventory
+- Guild Territory
+- Player Save
+- DB Revision
+
+---
+
+# 42. Positivbefunde
+
+| Bereich | Status |
 |---|---|
-| Backdoor | 🟢 kein konkreter Befund |
-| OP-Hardcoding | 🟢 kein konkreter Befund |
-| Remote-Classloading | 🟢 kein Befund |
-| SQL Injection | 🟢 kein konkreter Befund |
-| SSRF | 🟢/🟠 Schutz vorhanden, Rest-Risiko |
-| Dupe | 🟢 kein konkreter Befund aus statischer Prüfung |
-| Packet Abuse | 🟢 keine eigene Packet-Schicht |
-| NMS Legacy | 🟢 kein Befund |
-| Player Memory Leak | 🟢 kein offensichtlicher Kernbefund |
-| Async Bukkit-Zugriff | 🟢 überwiegend sauber getrennt |
-| Main-thread I/O | 🟠 Shop-Persistenz |
-| Scheduler Leak | 🟢 Shutdown-Pfade vorhanden |
-| Input Validation | 🟢/🟠 abhängig vom Datenformat |
+| Java 25 | 🟢 |
+| Paper 26.2 | 🟢 |
+| Paperweight | 🟢 |
+| paper-plugin.yml | 🟢 |
+| Mojang Production Mapping | 🟢 |
+| Shadow Relocation | 🟢 |
+| Source Boundary Checks | 🟢 |
+| Artifact Checks | 🟢 |
+| Native Dialogs | 🟢 |
+| UUID Player State | 🟢 |
+| YAML Atomic Save | 🟢 |
+| MySQL Transactions | 🟢 |
+| Prepared Statements | 🟢 |
+| Revision Locking | 🟢 |
+| Lifecycle Shutdown | 🟢 |
+| Guild Territory Polygon | 🟢 |
+| Region/Guild binding | 🟢 |
+| Profession separation | 🟢 |
+| Quest system | 🟢 |
+| Boss system | 🟢 |
+| Companion system | 🟢 |
+| External skin hardening | 🟢/🟠 |
+| Resourcepack | 🔴 |
 
 ---
 
-# 21. Priorisierte To-do-Liste
+# 43. Abschlussbewertung
 
-## 🔴 Kritisch
+Der aktuelle `Rebuild`-Branch ist technisch bereits ein umfangreiches, modularisiertes Paper-26.2-RPG-System.
 
-### A-01 – PartyGUI-Referenz entfernen
+Der wichtigste aktuelle Blocker ist **nicht der Java-Build**, sondern die Resourcepack-Konsistenz.
 
-**Datei:** `PartySubCommand.java`
+Die CI-Evidenz zeigt:
 
-Die Referenz auf die nicht vorhandene `PartyGUI` muss auf das aktuelle Dialogsystem umgestellt oder vollständig entfernt werden.
+> Java kompiliert. Source-Grenzen bestehen. Shadow-Artefakt besteht. Resourcepack-Prüfung besteht noch nicht.
 
-### A-02 – Build auf dem aktuellen HEAD verifizieren
+Die Architektur besitzt außerdem einige mittlere technische Restpunkte:
 
-Der GitHub-Combined-Status des untersuchten HEAD enthält aktuell keine Status-Einträge. Daher ist aus dem Connector kein erfolgreicher Build ableitbar.
+- synchrones Shop-I/O
+- fehlende vollständige Crash-/Restart-Verifikation
+- globale NPC-Resync-Kosten
+- teilweise schwache Runtime-YAML-Schemata
+- externe Skinprovider
+- fehlende parallele Race-/Dupe-Tests
 
-Der nächste technische Schritt sollte ein echter Gradle-Build auf dem aktuellen Branch sein.
-
----
-
-## 🟠 Mittel
-
-### A-03 – Shop-Speicherung vollständig asynchronisieren
-
-Main-Thread-Snapshot:
-
-```java
-String serialized = yaml.saveToString();
-fileWriter.submit(path, serialized);
-```
-
-Die Bukkit-Objekte müssen vorher synchron gelesen werden.
-
-### A-04 – NPC-Resync räumlich indexieren
-
-Nicht:
-
-```java
-for (Npc npc : allNpcs) {
-    ...
-}
-```
-
-sondern möglichst:
-
-```text
-Player → Chunk → relevante NPCs
-```
-
-### A-05 – Runtime-YAMLs schema-validieren
-
-Für:
-
-- npcs.yml
-- shops.yml
-- weitere Weltdefinitionen
-
-sollten Pflichtfelder und Typen beim Laden geprüft und bei Fehlern mit präzisem Warnlog gemeldet werden.
-
-### A-06 – Externe Skinquellen weiter härten
-
-Optional:
-
-- DNS-Rebinding-resistente Verbindungsauswahl
-- Host-Allowlist für bekannte Provider
-- strengere Content-Type-Prüfung
-- Image-Decoding-Limits
-- Rate-Limit pro Quelle
+Es wurde **kein konkreter Backdoor-, Legacy-NMS-, CraftBukkit-, ChatColor- oder SQL-Injection-Befund** in den geprüften Bereichen festgestellt.
 
 ---
 
-## 🟡 Niedrig
+# 44. Empfohlene Reihenfolge für die weitere Entwicklung
 
-### A-07 – Ignorierte Parserfehler loggen
-
-Statt:
-
-```java
-catch (IllegalArgumentException ignored) {
-}
-```
-
-bei Contentdaten:
-
-```java
-catch (IllegalArgumentException exception) {
-    logger.warning("Invalid content value ...");
-}
-```
-
-### A-08 – Scoreboard-Guild-Updates messen
-
-Bei steigender Spielerzahl Profiling durchführen.
-
-### A-09 – EXP-Bar und Quest-HUD klar trennen
-
-Die EXP-Bar sollte als reservierter PixelRPG-UI-Kanal dokumentiert werden, damit zukünftige Systeme nicht versehentlich `setExp()` überschreiben.
+1. **F-001 beheben:** `suessbeeren_marmelade` konsistent aus Item → Model → Texture → Gameplay bringen.
+2. Resourcepack-CI erneut ausführen.
+3. Danach vollständigen Gradle-/Artifact-Build erneut prüfen.
+4. Restart-/Crash-Persistenz testen.
+5. Trade-/Inventory-Race-Tests durchführen.
+6. Shop-Speicherung auf Snapshot + Async Write umstellen.
+7. Runtime-YAML-Schema-Validierung ergänzen.
+8. NPC-Resync mit Chunk-/Region-Index profilieren.
+9. Externe Skin-Infrastruktur weiter härten.
+10. Erst danach die nächste größere Feature-Erweiterung aufsetzen.
 
 ---
 
-# 22. Endurteil
+## Audit-Grenzen
 
-**Statischer Stabilitäts-/Sicherheitsstand: 7/10**
+Dieses Audit ist eine **statische Bestandsforensik des Repository-Zustands**.
 
-### Begründung
+Nicht beweisbar allein durch Repository-Analyse sind insbesondere:
 
-**+** moderne Paper-Architektur  
-**+** Java-25-Basis  
-**+** native Dialog-API  
-**+** UUID-orientierte Player-State-Verwaltung  
-**+** asynchrones Persistenzsystem  
-**+** HikariCP + Prepared Statements  
-**+** Transaktions-/Revision-Schutz  
-**+** gute URL-/SSRF-Grundhärtung  
-**+** kontrollierte Shutdowns  
-**+** vorhandene Build-Verifikationen  
+- echte TPS unter Last
+- JVM-Memory-Verhalten über lange Laufzeiten
+- alle Race Conditions
+- alle Inventory-/Trade-Dupes
+- World-/Chunk-Performance
+- reale Server-Restarts
+- Datenverlust bei hartem Prozesskill
+- tatsächliches Spielerlebnis
+- reale Minecraft-Weltbevölkerung
+- Netzwerkverhalten unter Provider-Ausfall
 
-gegen:
+Diese Punkte sind als Testlücken und nicht als bewiesene Fehler zu behandeln.
 
-**−** konkrete PartyGUI-Inkonsistenz  
-**−** synchrones Shop-I/O  
-**−** einige lineare globale Scans  
-**−** externe Skin-Infrastruktur  
-**−** teilweise schwächere Runtime-YAML-Validierung  
-**−** umfangreicher Content benötigt noch Welt-/Runtime-Anbindung  
-**−** kein aktueller CI-Status am geprüften HEAD
-
-Die Bewertung ist ausdrücklich ein **technischer Zustandswert des untersuchten Codes**, keine Aussage über die Qualität einer einzelnen Person oder Commit-Historie.
-
----
-
-# 23. Abschluss
-
-Dieser Audit bewertet den tatsächlichen Branch `test` am Prüfstand 25.09.2026. Historische Commitzahlen und vermutete Entwicklerabsichten wurden nicht als Evidenz verwendet.
-
-Die getrennte Feature-/Content-Forensik liegt in **`Forensik.md`**.
+**Audit-Stand:** HEAD `f94c9500f6e45d6a4b4302a5d3cf1e3001186521` auf `Rebuild`.
