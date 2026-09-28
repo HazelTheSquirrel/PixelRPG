@@ -46,7 +46,7 @@ profession-xp:
       rare: 35
 
 economy:
-  guild-territory:
+  guild-city:
     marker-base-price: 500.0
     marker-price-increase: 500.0
   bank:
