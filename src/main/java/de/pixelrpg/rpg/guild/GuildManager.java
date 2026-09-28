@@ -8,6 +8,7 @@ import de.pixelrpg.rpg.command.GuildInviteCommand;
 import de.pixelrpg.rpg.command.GuildLeaveCommand;
 import de.pixelrpg.rpg.command.PaperBasicCommandAdapter;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.region.PixelRegion;
 import de.pixelrpg.rpg.economy.Money;
 import de.pixelrpg.rpg.scoreboard.ScoreboardService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -333,6 +334,21 @@ public final class GuildManager implements GuildAPI {
         GuildData guild = guilds.get(guildId);
         if (guild == null || !regionId.equals(guild.cityRegionId)) return false;
         guild.cityRegionId = null;
+        save();
+        return true;
+    }
+
+    /**
+     * Binds the guild metadata to the physical city region created by the territory manager.
+     * The territory manager remains the sole owner of region creation and geometry.
+     */
+    public synchronized boolean bindCityRegion(UUID guildId, UUID regionId) {
+        if (guildId == null || regionId == null) return false;
+        GuildData guild = guilds.get(guildId);
+        if (guild == null) return false;
+        if (guild.cityRegionId != null && !guild.cityRegionId.equals(regionId)) return false;
+        if (regionId.equals(guild.cityRegionId)) return true;
+        guild.cityRegionId = regionId;
         save();
         return true;
     }
