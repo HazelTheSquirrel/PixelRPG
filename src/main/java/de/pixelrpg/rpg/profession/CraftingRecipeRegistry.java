@@ -6,6 +6,7 @@ import de.pixelrpg.rpg.config.JsonDataManager;
 import de.pixelrpg.rpg.item.ItemDefinition;
 import de.pixelrpg.rpg.item.ItemDefinitionRegistry;
 import de.pixelrpg.rpg.item.ItemRarity;
+import de.pixelrpg.rpg.npc.ProfessionNpcRank;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.Material;
@@ -128,13 +129,29 @@ public final class CraftingRecipeRegistry {
             String enchantment = json.has("enchantment") ? json.get("enchantment").getAsString() : "";
             int enchantmentLevel = integerField(json, "enchantmentLevel", id, 0);
             RecipeAccessTier accessTier = json.has("accessTier") ? enumValue(RecipeAccessTier.class, json, "accessTier", id) : RecipeAccessTier.BASIC;
+            ProfessionNpcRank requiredNpcRank = configuredNpcRank(plugin, accessTier, json, id);
             validateSpecialFields(id, result, potionType, enchantment, enchantmentLevel);
 
             if (!resultItemId.isBlank() && amount != 1) {
                 throw new IllegalStateException("PixelRPG item recipes must produce exactly one item: " + id);
             }
             recipes.put(id, new CraftRecipe(profession, category, id, label, result, amount, maximumRarity, costs, itemCosts,
-                    level, professionXp, price, quest, defaultUnlocked, resultItemId.isBlank(), resultItemId, potionType, enchantment, enchantmentLevel, accessTier));
+                    level, professionXp, price, quest, defaultUnlocked, resultItemId.isBlank(), resultItemId, potionType, enchantment, enchantmentLevel, accessTier, requiredNpcRank));
+        }
+    }
+
+
+    private ProfessionNpcRank configuredNpcRank(Plugin plugin, RecipeAccessTier tier, JsonObject json, String recipeId) {
+        if (tier == RecipeAccessTier.BASIC) return ProfessionNpcRank.APPRENTICE;
+        String explicit = json.has("requiredNpcRank") ? json.get("requiredNpcRank").getAsString() : null;
+        String configured = explicit != null
+                ? explicit
+                : plugin.getConfig().getString("crafting.npc-required-ranks." + tier.name(),
+                        tier == RecipeAccessTier.NPC_ADVANCED ? "JOURNEYMAN" : "MASTER");
+        try {
+            return ProfessionNpcRank.valueOf(configured.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalStateException("Invalid NPC rank requirement for recipe " + recipeId + ": " + configured, exception);
         }
     }
 
