@@ -531,7 +531,10 @@ public final class GuildTerritoryManager {
     private synchronized void load() {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection root = yaml.getConfigurationSection("territories");
-        if (root == null) return;
+        if (root == null) {
+            bindExistingGuildCities();
+            return;
+        }
 
         for (String guildText : root.getKeys(false)) {
             try {
@@ -554,6 +557,26 @@ public final class GuildTerritoryManager {
         }
 
         territories.values().forEach(state -> restoreRegion(state.guildId, state));
+        bindExistingGuildCities();
+    }
+
+    /** Migrates persisted guild regions, including legacy GUILD_TERRITORY values, into the guild's city identity. */
+    private void bindExistingGuildCities() {
+        boolean changed = false;
+        for (PixelRegion region : regions.all()) {
+            if (region.isGlobal() || region.type() != RegionType.GUILD_CITY) continue;
+            UUID guildId = parseGuildId(region.properties().get("guild-id"));
+            if (guildId == null || guilds.getGuildById(guildId).isEmpty()) continue;
+            Guild guild = guilds.getGuildById(guildId).orElseThrow();
+            if (guild.cityRegionId() != null && !guild.cityRegionId().equals(region.id())) continue;
+            region.setName(guild.name());
+            region.setProperty("guild-id", guild.id().toString());
+            region.setOwner(guild.leaderId());
+            region.clearMembers();
+            guilds.getMembers(guild.id()).forEach(region::addMember);
+            if (guilds.bindCityRegion(guild.id(), region.id())) changed = true;
+        }
+        if (changed) regions.save();
     }
 
     private synchronized void save() {
