@@ -77,7 +77,7 @@ public final class ProfessionNpcProgressionService {
         RPGNpc npc = npcs.getById(npcId).orElse(null);
         if (npc == null || npc.profession() == null) return null;
         ProfessionNpcRank next = npc.professionNpcRank().next();
-        if (next == null) return new ProgressView(npc.professionNpcRank(), null, 0.0D, Map.of(), 0, 0, true);
+        if (next == null) return new ProgressView(npc.professionNpcRank(), null, 0.0D, Map.of(), Map.of(), 0, false);
         ConfigurationSection rank = rankConfig(next, npc.profession());
         Map<Material, Integer> required = new java.util.LinkedHashMap<>();
         ConfigurationSection materials = rank.getConfigurationSection("materials");
