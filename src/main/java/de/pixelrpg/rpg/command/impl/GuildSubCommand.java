@@ -65,6 +65,7 @@ public final class GuildSubCommand implements SubCommand {
             case "accept" -> accept(player);
             case "leave" -> leave(player);
             case "info" -> info(player);
+            case "city" -> city(player, args);
             case "disband" -> disband(player);
             case "maintenance" -> maintenance(player, args);
             default -> {
@@ -86,6 +87,16 @@ public final class GuildSubCommand implements SubCommand {
                     .map(Player::getName)
                     .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(prefix))
                     .sorted(String.CASE_INSENSITIVE_ORDER)
+                    .toList();
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("city")) {
+            return List.of("claim", "release", "info", "contribute", "upgrade", "pvp").stream()
+                    .filter(value -> value.startsWith(args[1].toLowerCase(Locale.ROOT)))
+                    .toList();
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("city") && args[1].equalsIgnoreCase("pvp")) {
+            return List.of("pve", "pvp").stream()
+                    .filter(value -> value.startsWith(args[2].toLowerCase(Locale.ROOT)))
                     .toList();
         }
         return List.of();
