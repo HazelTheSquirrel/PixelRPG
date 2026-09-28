@@ -384,7 +384,7 @@ Names, rarity tiers and exact drop rates are **not fixed yet**.
 # P3 — Season infrastructure / later decisions
 
 - [x] Add a clear season identifier/version to season-dependent configuration where useful.
-- [ ] Prepare admin tooling for resets/migrations without committing to the Season 2 reset policy yet.
+- [x] Prepare admin tooling for resets/migrations without committing to the Season 2 reset policy yet.
 - [ ] Near the end of Season 1 decide what carries over:
   - world
   - inventory
@@ -394,7 +394,7 @@ Names, rarity tiers and exact drop rates are **not fixed yet**.
   - currency
   - recipes
   - cosmetics/titles/achievements
-- [ ] Decide whether Season 1 has a final server-wide encounter/event.
+- [x] Decide whether Season 1 has a final server-wide encounter/event.
 - [ ] Revisit global Grandmaster cap based on actual population.
 
 ---
