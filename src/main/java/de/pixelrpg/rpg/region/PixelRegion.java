@@ -123,7 +123,7 @@ public final class PixelRegion {
     private static boolean defaultFlag(RegionFlag flag) {
         return switch (flag) {
             case FIRE_SPREAD, LAVA_FLOW, EXPLOSION, TNT, CREEPER_EXPLOSION, GHAST_FIREBALL,
-                 ENDERMAN_GRIEF, DENY_SPAWN -> false;
+                 ENDERMAN_GRIEF -> false;
             default -> true;
         };
     }
