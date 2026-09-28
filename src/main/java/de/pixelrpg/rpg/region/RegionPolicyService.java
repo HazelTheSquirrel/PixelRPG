@@ -1,7 +1,5 @@
 package de.pixelrpg.rpg.region;
 
-import de.pixelrpg.rpg.guild.GuildManager;
-
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -35,31 +33,15 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 public final class RegionPolicyService {
     private final RegionManager regions;
     private final RegionSpawnService spawnService;
-    private final GuildManager guilds;
 
-    public RegionPolicyService(RegionManager regions, RegionSpawnService spawnService, GuildManager guilds) {
+    public RegionPolicyService(RegionManager regions, RegionSpawnService spawnService) {
         this.regions = regions;
         this.spawnService = spawnService;
-        this.guilds = guilds;
     }
 
     public boolean allowsPvp(Player attacker, Player victim) {
-        var attackerMode = kingdomCombatMode(attacker);
-        var victimMode = kingdomCombatMode(victim);
-        if (attackerMode == de.pixelrpg.rpg.guild.KingdomCombatMode.PVE || victimMode == de.pixelrpg.rpg.guild.KingdomCombatMode.PVE) return false;
-        if (attackerMode == de.pixelrpg.rpg.guild.KingdomCombatMode.PVP || victimMode == de.pixelrpg.rpg.guild.KingdomCombatMode.PVP) return true;
         return regions.hasFlag(attacker.getLocation(), RegionFlag.PVP)
                 && regions.hasFlag(victim.getLocation(), RegionFlag.PVP);
-    }
-
-    private de.pixelrpg.rpg.guild.KingdomCombatMode kingdomCombatMode(Player player) {
-        return regions.find(player.getLocation()).flatMap(region -> {
-            if (region.type() != RegionType.GUILD_CITY) return java.util.Optional.empty();
-            String guildId = region.properties().get("guild-id");
-            if (guildId == null) return java.util.Optional.empty();
-            try { return java.util.Optional.of(guilds.effectiveCombatMode(java.util.UUID.fromString(guildId))); }
-            catch (IllegalArgumentException ignored) { return java.util.Optional.empty(); }
-        }).orElse(null);
     }
 
     public boolean allowsMobDamage(EntityDamageEvent event) {
