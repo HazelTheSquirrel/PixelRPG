@@ -1,5 +1,6 @@
 package de.pixelrpg.rpg.shop;
 
+import de.pixelrpg.rpg.core.AsyncFileWriter;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -20,10 +21,12 @@ public final class ShopManager {
     private final Plugin plugin;
     private final File file;
     private final Map<String, List<ShopEntry>> shopsByNpcId = new ConcurrentHashMap<>();
+    private final AsyncFileWriter fileWriter;
 
     public ShopManager(Plugin plugin) {
         this.plugin = plugin;
         this.file = new File(plugin.getDataFolder(), "shops.yml");
+        this.fileWriter = new AsyncFileWriter(plugin, "PixelRPG-ShopIO");
     }
 
     // Lädt Shop-Items und unterstützt sowohl das alte einzelne "price"-Feld als auch die neuen Kauf-/Verkaufspreise.
@@ -144,6 +147,7 @@ public final class ShopManager {
         }
     }
 
+    /** Snapshots the shop state on the server thread and writes the snapshot asynchronously. */
     public synchronized void save() {
         YamlConfiguration yaml = new YamlConfiguration();
         for (Map.Entry<String, List<ShopEntry>> mapEntry : shopsByNpcId.entrySet()) {
@@ -157,15 +161,12 @@ public final class ShopManager {
                 index++;
             }
         }
-        try {
-            yaml.save(file);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save shops.yml", e);
-        }
+        fileWriter.submit(file.toPath(), yaml.saveToString());
     }
 
     public void shutdown() {
         save();
+        fileWriter.shutdown();
     }
 
     public List<ShopEntry> getEntries(String npcId) {
