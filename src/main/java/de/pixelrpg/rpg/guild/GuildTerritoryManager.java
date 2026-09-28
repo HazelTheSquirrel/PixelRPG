@@ -97,6 +97,29 @@ public final class GuildTerritoryManager {
         return state == null ? Optional.empty() : Optional.of(state.snapshot());
     }
 
+    /**
+     * Rebuilds the live guild-city region from the persisted physical markers.
+     * This is a repair/synchronization operation, not a second claim system.
+     */
+    public synchronized OperationResult synchronizeGuildCity(Player player, String selector) {
+        if (shuttingDown || player == null) return OperationResult.failure("Die Gildenstadt konnte nicht synchronisiert werden.");
+        Guild guild = guilds.getGuild(player.getUniqueId()).orElse(null);
+        if (guild == null) return OperationResult.failure("Du bist in keiner Gilde.");
+        if (!guild.canManageTerritory(player.getUniqueId())) return OperationResult.failure("Nur der Gildenmeister oder Stellvertreter darf die Gildenstadt synchronisieren.");
+        if (selector != null && !selector.isBlank() && !guild.name().equalsIgnoreCase(selector)) {
+            return OperationResult.failure("Verwende den Namen deiner eigenen Gilde oder lasse den Namen weg.");
+        }
+        TerritoryState state = territories.get(guild.id());
+        if (state == null || state.markers.size() < GuildTerritory.INITIAL_MARKERS) {
+            return OperationResult.failure("Die Gildenstadt benötigt vier gesetzte Grenzmarker. Platziere zuerst die vier Startmarker.");
+        }
+        OperationResult validation = validateCompleteBoundary(guild.id(), state.markers, state.regionId);
+        if (!validation.success()) return validation;
+        if (!syncRegion(guild, state)) return OperationResult.failure("Die Gildenstadt konnte nicht mit der Regionsverwaltung synchronisiert werden.");
+        save();
+        return OperationResult.success("Die Gildenstadt wurde aus den Grenzmarkern synchronisiert.");
+    }
+
     public synchronized boolean isMarkerItem(ItemStack item) {
         return markerGuildId(item).isPresent();
     }
@@ -437,7 +460,9 @@ public final class GuildTerritoryManager {
         region.clearMembers();
         guilds.getMembers(guild.id()).forEach(region::addMember);
         regions.save();
-        guilds.bindCityRegion(guild.id(), state.regionId);
+        if (!guilds.bindCityRegion(guild.id(), state.regionId)) {
+            return false;
+        }
         return true;
     }
 
