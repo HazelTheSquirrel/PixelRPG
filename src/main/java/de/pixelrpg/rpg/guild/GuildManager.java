@@ -472,8 +472,14 @@ public final class GuildManager implements GuildAPI {
                 }
                 if (guild.deputyId != null && (!members.contains(guild.deputyId) || guild.deputyId.equals(leader))) guild.deputyId = null;
                 guild.treasuryMinorUnits = Money.fromMajor(section.getDouble(idText + ".treasury", 0.0D));
+                boolean legacyCityState = !section.contains(idText + ".city-level");
                 guild.cityLevel = Math.clamp(section.getInt(idText + ".city-level", 1), 1, Guild.MAX_CITY_LEVEL);
-                guild.cityUpgradeCooldownUntil = Math.max(0L, section.getLong(idText + ".city-upgrade-cooldown-until", 0L));
+                if (legacyCityState) {
+                    guild.cityUpgradeCooldownUntil = System.currentTimeMillis()
+                            + Math.max(0L, plugin.getConfig().getLong("kingdom.city-levels.1.cooldown-hours", 24L)) * 3_600_000L;
+                } else {
+                    guild.cityUpgradeCooldownUntil = Math.max(0L, section.getLong(idText + ".city-upgrade-cooldown-until", 0L));
+                }
                 try { guild.combatMode = KingdomCombatMode.valueOf(section.getString(idText + ".combat-mode", "PVE").toUpperCase(Locale.ROOT)); } catch (IllegalArgumentException ignored) { guild.combatMode = KingdomCombatMode.PVE; }
                 guild.combatModeChangeAt = Math.max(0L, section.getLong(idText + ".combat-mode-change-at", 0L));
                 guild.combatModeCooldownUntil = Math.max(0L, section.getLong(idText + ".combat-mode-cooldown-until", 0L));
