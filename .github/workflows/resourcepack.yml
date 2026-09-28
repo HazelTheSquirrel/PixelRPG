@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - test
+      - Rebuild
     paths:
       - 'resourcepack/**'
       - '!resourcepack/PixelRPG-resourcepack.zip'
