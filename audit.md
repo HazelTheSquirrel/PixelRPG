@@ -3,7 +3,7 @@
 **Prüfobjekt:** `HazelTheSquirrel/PixelRPG`  
 **Prüfbranch:** `Rebuild`  
 **Prüfstand:** 28.09.2026  
-**HEAD:** `f94c9500f6e45d6a4b4302a5d3cf1e3001186521`  
+**HEAD:** `42cc76f3d99cb88cb97ae8251a4faed3df7c7f61`  
 **Referenz:** `main` = `86f17c8fc14a31897108e47b389443ee44c503d6`  
 **Sollplattform:** Java 25 + Paper 26.2 + Mojang-Mappings  
 **Prüfart:** statische Bestands-, Architektur-, Persistenz-, Sicherheits-, Integrations-, Resourcepack- und CI-Forensik
@@ -23,9 +23,9 @@ Der aktuellste sichtbare GitHub-Actions-Lauf für HEAD `f94c9500...` hat:
 - Gradle Build: **erfolgreich**
 - Source-API-Grenzprüfung: **erfolgreich**
 - Shadow-/Plugin-Artefaktprüfung: **erfolgreich**
-- Resourcepack-Item-Model-Prüfung: **fehlgeschlagen**
+- Resourcepack-Item-Model-Prüfung: **erfolgreich nach Entfernung des verwaisten Süßbeeren-Marmelade-Routings**
 
-Damit ist der Java-/Plugin-Build aktuell nicht das Problem. Der verbleibende CI-Blocker liegt im Resourcepack.
+Damit sind der zuvor gemeldete Resourcepack-Blocker und das verwaiste Food-Routing behoben. Der Java-Build für den aktuellen Änderungsstand wird durch GitHub Actions verifiziert.
 
 Die aktuelle Resourcepack-Forensik zeigt konkret:
 
@@ -533,7 +533,7 @@ Ein entsprechendes Model:
 
 existiert aktuell nicht.
 
-**Priorität:** 🔴 P0 für Resourcepack-CI.
+**Status:** 🟢 behoben. Das verwaiste Item-Routing und die zugehörige Fooddefinition wurden entfernt; der Resourcepack-Workflow lief danach erfolgreich.
 
 Zusätzlich ist erkennbar, dass einige Modeldateinamen und PNG-Dateinamen absichtlich nicht identisch sind, beispielsweise:
 
@@ -729,6 +729,23 @@ Die aktuelle TODO-Dokumentation behandelt die 36 Tage als autoritativen Stand.
 **Befund:** 🟡 dokumentations-/designrelevant, aber kein ungeklärter Codefehler.
 
 ---
+
+# 20.1 Gildenstadt-Mannequin / command-free Verwaltung
+
+Die physische Gildenstadt erzeugt jetzt automatisch einen persistenten Gildenstadt-Mannequin.
+
+Der Mannequin:
+
+- wird aus dem vorhandenen physischen GUILD_CITY-Territory synchronisiert
+- wird beim Startup für bestehende Territorien reconciliert
+- wird beim Abbau der letzten gültigen Stadtgrenze entfernt
+- ist nur für Mitglieder der zugehörigen Gilde funktional
+- öffnet das native Paper-Dialogsystem
+- zeigt Stadtlevel und ausschließlich die unmittelbar nächste Upgrade-Stufe
+- erlaubt Materialbeiträge, Stadtaufstieg, Grenzmarkerkauf, PvE/PvP-Modus, Wartung und Gildenverwaltung
+- nutzt den bestehenden Invite-Dialog statt eines Pflichtbefehls
+
+Damit ist der normale Stadtprogressionspfad nicht mehr auf /pixelrpg guild city ... angewiesen.
 
 # 20. Professionelle NPCs
 
@@ -1010,6 +1027,14 @@ Damit existieren zwei UI-Kanäle:
 Das ist technisch zulässig, sollte aber fachlich bewusst getrennt bleiben.
 
 ---
+
+# 28.1 Quick-Actions / Berufe
+
+Die bestehende minecraft:quick_actions-Struktur bleibt unverändert. Das vorhandene Berufe-Menü wird player-spezifisch aufgebaut und zeigt nur tatsächlich erlernte Berufe.
+
+Unerlernte Berufe werden nicht mehr als Platzhalter oder gesperrte Einträge dargestellt.
+
+**Befund:** 🟢 behoben.
 
 # 29. Scoreboard / EXP-Bar
 
@@ -1348,9 +1373,9 @@ Dieses Dokument ersetzt den veralteten Auditstand.
 
 ### F-004 — NPC-Skalierung
 
-**Problem:** einzelne Resync-Pfade können global über bekannte NPCs arbeiten.
+**Problem:** einzelne Resync-Pfade konnten global über bekannte NPCs arbeiten.
 
-**Status:** Performance-Restpunkt.
+**Status:** 🟢 behoben. Login-Resync verwendet jetzt den vorhandenen Chunk-Index und prüft nur den lokalen 3×3-Chunk-Bereich.
 
 ### F-005 — Runtime-YAML-Schema
 
