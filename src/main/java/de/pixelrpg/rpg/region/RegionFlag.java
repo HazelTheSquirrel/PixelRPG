@@ -5,9 +5,6 @@ import java.util.List;
 
 /** Fine-grained region permissions grouped by gameplay category. */
 public enum RegionFlag {
-    ENTRY(RegionFlagCategory.REGION, "Region betreten"),
-    EXIT(RegionFlagCategory.REGION, "Region verlassen"),
-
     BLOCK_BREAK(RegionFlagCategory.BLOCKS, "Blöcke abbauen"),
     BLOCK_PLACE(RegionFlagCategory.BLOCKS, "Blöcke platzieren"),
     BLOCK_TRAMPLING(RegionFlagCategory.BLOCKS, "Blöcke zertrampeln"),
@@ -55,8 +52,6 @@ public enum RegionFlag {
     DAMAGE_ANIMALS(RegionFlagCategory.COMBAT, "Tierschaden"),
     FALL_DAMAGE(RegionFlagCategory.COMBAT, "Fallschaden"),
 
-    MOB_SPAWNING(RegionFlagCategory.MOB_SPAWN, "Overworld-Mob-Spawning"),
-    DENY_SPAWN(RegionFlagCategory.MOB_SPAWN, "Overworld-Spawning vollständig verbieten"),
     SPAWN_BOGGED(RegionFlagCategory.MOB_SPAWN, "Bogged"),
     SPAWN_PARCHED(RegionFlagCategory.MOB_SPAWN, "Parched"),
     SPAWN_SKELETON(RegionFlagCategory.MOB_SPAWN, "Skelett"),
