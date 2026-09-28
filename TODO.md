@@ -304,7 +304,7 @@ Tasks:
 
 ## Mobs / bosses
 - [x] Reconcile duplicate mob-scaling configuration sources if both are active.
-- [ ] Review Nether base level and other dimension scaling against player level cap 60.
+- [x] Review Nether base level and other dimension scaling against player level cap 60 (current implementation deliberately scales hostile mobs from the player level 1–60; no hidden Nether/End offset is applied).
 - [ ] Balance normal mob XP/damage/HP.
 - [x] Define Worldboss reward materials.
 - [x] Add boss materials to relevant endgame crafting recipes.
