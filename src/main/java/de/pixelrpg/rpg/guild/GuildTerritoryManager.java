@@ -85,8 +85,10 @@ public final class GuildTerritoryManager {
 
     public synchronized double nextMarkerPrice(UUID guildId) {
         int count = markerCount(guildId);
-        double base = plugin.getConfig().getDouble("economy.guild-territory.marker-base-price", 500.0D);
-        double increase = plugin.getConfig().getDouble("economy.guild-territory.marker-price-increase", 500.0D);
+        double base = plugin.getConfig().getDouble("economy.guild-city.marker-base-price",
+                    plugin.getConfig().getDouble("economy.guild-territory.marker-base-price", 500.0D));
+        double increase = plugin.getConfig().getDouble("economy.guild-city.marker-price-increase",
+                    plugin.getConfig().getDouble("economy.guild-territory.marker-price-increase", 500.0D));
         return Math.max(0.0D, base + Math.max(0, count - GuildTerritory.INITIAL_MARKERS) * increase);
     }
 
@@ -171,7 +173,7 @@ public final class GuildTerritoryManager {
 
         PixelRegion locationRegion = regions.find(world, block.getX() + 0.5D, block.getY(), block.getZ() + 0.5D).orElse(null);
         if (locationRegion != null && !locationRegion.isGlobal()) {
-            boolean sameGuildTerritory = locationRegion.type() == RegionType.GUILD_TERRITORY
+            boolean sameGuildTerritory = locationRegion.type() == RegionType.GUILD_CITY
                     && guildId.equals(parseGuildId(locationRegion.properties().get("guild-id")));
             if (!sameGuildTerritory) {
                 return OperationResult.failure("Grenzmarker dürfen keine bestehende Region überlappen.");
@@ -435,6 +437,7 @@ public final class GuildTerritoryManager {
         region.clearMembers();
         guilds.getMembers(guild.id()).forEach(region::addMember);
         regions.save();
+        guilds.bindCityRegion(guild.id(), state.regionId);
         return true;
     }
 
