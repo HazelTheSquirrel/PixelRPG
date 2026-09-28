@@ -670,6 +670,7 @@ public final class GuildTerritoryManager {
         TerritoryState state = territories.remove(guildId);
         if (state == null) return;
         regions.delete(state.regionId);
+        guilds.unbindCityRegion(guildId, state.regionId);
         save();
     }
 
