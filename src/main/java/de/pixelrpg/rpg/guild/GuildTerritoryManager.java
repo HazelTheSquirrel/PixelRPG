@@ -574,7 +574,8 @@ public final class GuildTerritoryManager {
             region.setOwner(guild.leaderId());
             region.clearMembers();
             guilds.getMembers(guild.id()).forEach(region::addMember);
-            if (guilds.bindCityRegion(guild.id(), region.id())) changed = true;
+            changed = true;
+            guilds.bindCityRegion(guild.id(), region.id());
         }
         if (changed) regions.save();
     }
