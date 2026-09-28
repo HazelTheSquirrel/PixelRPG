@@ -262,7 +262,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         bankerBehavior = new BankerBehavior(playerProfileManager, dialogueEngine);
         npcBehaviorRegistry.register(bankerBehavior);
         npcBehaviorRegistry.register(new FillerBehavior(questManager, playerProfileManager, dialogueEngine));
-        npcBehaviorRegistry.register(new GuildCityBehavior(guildManager, cityProgressionService, guildTerritoryManager, kingdomMaintenanceService, playerProfileManager, dialogueEngine));
+        npcBehaviorRegistry.register(new GuildCityBehavior(guildManager, cityProgressionService, guildTerritoryManager, kingdomMaintenanceService, playerProfileManager, dialogueEngine, inviteDialogService));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_BLACKSMITH, Profession.BLACKSMITH, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_SCHOLAR, Profession.SCHOLAR, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FARMER, Profession.FARMER, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
