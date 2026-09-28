@@ -33,5 +33,13 @@ public final class BossDeathListener implements Listener {
         }
 
         bossManager.onBossDeath(entity);
+        var bossId = entity.getPersistentDataContainer().get(RPGKeys.Boss.bossId(), PersistentDataType.STRING);
+        if (bossId != null) {
+            var questManager = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getQuestManager();
+            var activeBoss = bossManager.getActiveBoss(bossId);
+            if (questManager != null && activeBoss != null) {
+                activeBoss.getParticipants().forEach(playerId -> questManager.progressWorldBossQuest(playerId, bossId));
+            }
+        }
     }
 }
