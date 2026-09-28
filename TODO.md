@@ -439,15 +439,15 @@ The preferred approach is **extend/refactor existing modules**, not parallel rep
 
 Core implementation is ready for heavy content work when:
 
-- [ ] A kingdom can progress from city level 1 through 10 using hidden next-step requirements and cooldowns.
-- [ ] Territory limits correctly follow city level while retaining free-form 32-block marker polygons.
-- [ ] Players have all gathering professions and exactly one switchable main profession.
-- [ ] Profession XP sources follow the final design.
-- [ ] Profession NPCs support ranks I–V.
-- [ ] Gathering material contributions and Meisterbrief flow work.
-- [ ] Main NPC specialization points and global Grandmaster caps work.
-- [ ] Recipe access correctly distinguishes basic/advanced/own-kingdom elite crafting.
-- [ ] Kingdom PvE/PvP switching and combat-tag protections work.
-- [ ] Weekly maintenance/admin review works.
-- [ ] Soulbound is disabled for Season 1.
+- [x] A kingdom can progress from city level 1 through 10 using hidden next-step requirements and cooldowns.
+- [x] Territory limits correctly follow city level while retaining free-form 32-block marker polygons.
+- [x] Players have all gathering professions and exactly one switchable main profession.
+- [x] Profession XP sources follow the final design.
+- [x] Profession NPCs support ranks I–V.
+- [x] Gathering material contributions and Meisterbrief flow work.
+- [x] Main NPC specialization points and global Grandmaster caps work.
+- [x] Recipe access correctly distinguishes basic/advanced/own-kingdom elite crafting.
+- [x] Kingdom PvE/PvP switching and combat-tag protections work.
+- [x] Weekly maintenance/admin review works.
+- [x] Soulbound is disabled for Season 1.
 - [ ] Persistence/restart tests cover all new state.
