@@ -114,7 +114,11 @@ public final class GuildDialog {
                 DialogBody.plainMessage(Component.text("Gildenkasse: " + String.format(java.util.Locale.ROOT, "%.2f", guild.treasury()) + " Goldtaler", NamedTextColor.GOLD)),
                 territoryBody(guild),
                 DialogBody.plainMessage(Component.text("Das Gildengebiet wird physisch mit Kupfer-Grenzmarkern aufgebaut. Jede Grenzkante darf höchstens 32 Blöcke lang sein.", NamedTextColor.GRAY)),
-                DialogBody.plainMessage(Component.text("Zum Einladen: /gildeneinladen <Spieler>", NamedTextColor.YELLOW))
+                DialogBody.plainMessage(Component.text(
+                        invites == null
+                                ? "Einladungen werden über den Gilden-Dialog verwaltet."
+                                : "Einladungen, Stellvertreter und Gildengold können direkt hier verwaltet werden.",
+                        NamedTextColor.WHITE))
         );
         List<ActionButton> actions = new ArrayList<>();
         actions.add(action(Component.text("Mitglieder anzeigen", NamedTextColor.AQUA), p -> showMembers(p, guild)));
