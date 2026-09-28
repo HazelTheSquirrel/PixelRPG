@@ -33,13 +33,13 @@ public final class BossDeathListener implements Listener {
         }
 
         bossManager.onBossDeath(entity);
-        var bossId = entity.getPersistentDataContainer().get(RPGKeys.Boss.bossId(), PersistentDataType.STRING);
-        if (bossId != null) {
-            var questManager = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getQuestManager();
-            var activeBoss = bossManager.getActiveBoss(bossId);
-            if (questManager != null && activeBoss != null) {
-                activeBoss.getParticipants().forEach(playerId -> questManager.progressWorldBossQuest(playerId, bossId));
-            }
-        }
+    }
+
+    // Zuständig für die Weiterleitung eines besiegten Weltbosses an aktive Teilnehmer-Quests.
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBossDefeated(de.pixelrpg.rpg.api.events.BossDefeatedEvent event) {
+        var questManager = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getQuestManager();
+        if (questManager == null) return;
+        event.getParticipants().forEach(playerId -> questManager.progressWorldBossQuest(playerId, event.getBossId()));
     }
 }
