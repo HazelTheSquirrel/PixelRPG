@@ -23,7 +23,7 @@ public final class PlayerAdminSubCommand implements SubCommand {
     @Override public String name() { return "player"; }
     @Override public String permission() { return "rpg.admin"; }
     @Override public String description() { return "PixelRPG-Spielerdaten verwalten"; }
-    @Override public String usage() { return "/rpgadmin player <info|set-level|set-xp|set-gold|set-profession|reset> <player> ..."; }
+    @Override public String usage() { return "/pixelrpg player <info|set-level|set-xp|set-gold|set-profession|reset> <player> ..."; }
 
     @Override public boolean execute(CommandSender sender, String[] args) {
         if (args.length < 2) return false;
@@ -48,9 +48,9 @@ public final class PlayerAdminSubCommand implements SubCommand {
     }
 
     private void setLevel(CommandSender sender, Player target, PlayerProfile profile, String[] args) {
-        if (args.length < 3) { sender.sendMessage(Component.text("Usage: /rpgadmin player set-level <player> <1-99>", NamedTextColor.RED)); return; }
+        if (args.length < 3) { sender.sendMessage(Component.text("Usage: /rpgadmin player set-level <player> <1-60>", NamedTextColor.RED)); return; }
         try { int level = Integer.parseInt(args[2]); if (!Level.isValidNormalLevel(level)) throw new IllegalArgumentException(); profile.setExperience(Level.getRequiredExperience(level)); profileManager.saveProfileAsync(target.getUniqueId()); sender.sendMessage(Component.text("Level von " + target.getName() + " auf " + level + " gesetzt.", NamedTextColor.GREEN)); }
-        catch (IllegalArgumentException exception) { sender.sendMessage(Component.text("Level muss zwischen 1 und 99 liegen.", NamedTextColor.RED)); }
+        catch (IllegalArgumentException exception) { sender.sendMessage(Component.text("Level muss zwischen 1 und 60 liegen.", NamedTextColor.RED)); }
     }
 
     private void setXp(CommandSender sender, Player target, PlayerProfile profile, String[] args) {
