@@ -209,35 +209,44 @@ public final class NpcManager implements AutoCloseable {
                 });
     }
 
-    /** Re-synchronizes NPC entities for a player after login without requiring a server restart. */
+    /** Re-synchronizes NPC entities around the player's current loaded chunk after login. */
     public void resyncPlayer(Player player) {
-        for (RPGNpc npc : npcsById.values()) {
-            Location location = npc.location();
-            if (location.getWorld() != player.getWorld()) continue;
-            if (!location.getChunk().isLoaded()) continue;
-
-            UUID entityUuid = spawnedEntityByNpcId.get(npc.id());
-            Entity entity = entityUuid == null ? null : Bukkit.getEntity(entityUuid);
-
-            if (!(entity instanceof Mannequin) || !entity.isValid()) {
-                if (entityUuid != null) {
-                    spawnedEntityByNpcId.remove(npc.id(), entityUuid);
-                    entityToId.remove(entityUuid, npc.id());
-                }
-                spawnEntityFor(npc);
-                entityUuid = spawnedEntityByNpcId.get(npc.id());
-                entity = entityUuid == null ? null : Bukkit.getEntity(entityUuid);
-            }
-
-            if (entity != null && entity.isValid()) {
-                if (npc.type() == NpcType.STORY) {
-                    player.hideEntity(plugin, entity);
-                } else {
-                    player.hideEntity(plugin, entity);
-                    player.showEntity(plugin, entity);
+        if (player == null || player.getWorld() == null) return;
+        int centerX = player.getChunk().getX();
+        int centerZ = player.getChunk().getZ();
+        for (int chunkX = centerX - 1; chunkX <= centerX + 1; chunkX++) {
+            for (int chunkZ = centerZ - 1; chunkZ <= centerZ + 1; chunkZ++) {
+                for (RPGNpc npc : getNpcsInChunk(player.getWorld(), chunkX, chunkZ)) {
+                    UUID entityUuid = spawnedEntityByNpcId.get(npc.id());
+                    Entity entity = entityUuid == null ? null : Bukkit.getEntity(entityUuid);
+                    if (!(entity instanceof Mannequin) || !entity.isValid()) {
+                        if (entityUuid != null) {
+                            spawnedEntityByNpcId.remove(npc.id(), entityUuid);
+                            entityToId.remove(entityUuid, npc.id());
+                        }
+                        spawnEntityFor(npc);
+                        entityUuid = spawnedEntityByNpcId.get(npc.id());
+                        entity = entityUuid == null ? null : Bukkit.getEntity(entityUuid);
+                    }
+                    if (entity != null && entity.isValid()) {
+                        if (npc.type() == NpcType.STORY) player.hideEntity(plugin, entity);
+                        else {
+                            player.hideEntity(plugin, entity);
+                            player.showEntity(plugin, entity);
+                        }
+                    }
                 }
             }
         }
+    }
+
+    public Collection<RPGNpc> getNpcsInChunk(World world, int chunkX, int chunkZ) {
+        if (world == null) return List.of();
+        NpcChunkKey key = new NpcChunkKey(world.getName(), chunkX, chunkZ);
+        return npcChunkIndex.getOrDefault(key, List.of()).stream()
+                .map(npcsById::get)
+                .filter(java.util.Objects::nonNull)
+                .toList();
     }
 
     public synchronized boolean updateSkin(String npcId, String newSkinSource) {
@@ -318,6 +327,61 @@ public final class NpcManager implements AutoCloseable {
     public Optional<Entity> getSpawnedEntity(String npcId) {
         UUID uuid = spawnedEntityByNpcId.get(npcId);
         return uuid == null ? Optional.empty() : Optional.ofNullable(Bukkit.getEntity(uuid));
+    }
+
+    public synchronized boolean createOrUpdateGuildCityNpc(UUID guildId, String guildName, Location location) {
+        if (guildId == null || guildName == null || guildName.isBlank() || location == null || location.getWorld() == null) return false;
+        String id = "guild-city-" + guildId;
+        RPGNpc existing = npcsById.get(id);
+        if (existing == null) {
+            createWithId(id, NpcType.GUILD_CITY, "Gildenstadt " + guildName, location, null, null);
+            return assignKingdom(id, guildId);
+        }
+        RPGNpc updated = new RPGNpc(
+                existing.id(),
+                NpcType.GUILD_CITY,
+                "Gildenstadt " + guildName,
+                location.clone(),
+                existing.skinSource(),
+                null,
+                guildId,
+                existing.professionNpcRank());
+        removeFromChunkIndex(existing);
+        npcsById.put(id, updated);
+        addToChunkIndex(updated);
+        UUID entityUuid = spawnedEntityByNpcId.get(id);
+        if (entityUuid != null) {
+            Entity entity = Bukkit.getEntity(entityUuid);
+            if (entity != null && entity.isValid()) {
+                entity.teleport(location);
+                entity.customName(Component.text(updated.name(), updated.type().getColor()));
+            }
+        }
+        saveAll();
+        return true;
+    }
+
+    public synchronized boolean removeGuildCityNpc(UUID guildId) {
+        if (guildId == null) return false;
+        return removeById("guild-city-" + guildId);
+    }
+
+    public synchronized boolean updateLocation(String npcId, Location location) {
+        if (npcId == null || location == null || location.getWorld() == null) return false;
+        RPGNpc existing = npcsById.get(npcId);
+        if (existing == null) return false;
+        RPGNpc updated = new RPGNpc(existing.id(), existing.type(), existing.name(), location.clone(), existing.skinSource(),
+                existing.profession(), existing.kingdomId(), existing.professionNpcRank());
+        removeFromChunkIndex(existing);
+        npcsById.put(npcId, updated);
+        addToChunkIndex(updated);
+        UUID entityUuid = spawnedEntityByNpcId.get(npcId);
+        if (entityUuid != null) {
+            Entity entity = Bukkit.getEntity(entityUuid);
+            if (entity != null && entity.isValid()) entity.teleport(location);
+        }
+        saveAll();
+        return true;
     }
 
     public synchronized boolean assignKingdom(String npcId, UUID kingdomId) {
