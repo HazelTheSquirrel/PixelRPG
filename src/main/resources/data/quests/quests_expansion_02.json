@@ -516,7 +516,8 @@
       "reward": {
         "money": 2500,
         "experience": 2500
-      }
+      },
+      "questGiverNpcId": "the_archivist"
     },
     {
       "id": "worldboss_storm_lord",
@@ -533,7 +534,8 @@
       "reward": {
         "money": 5000,
         "experience": 4500
-      }
+      },
+      "questGiverNpcId": "the_archivist"
     },
     {
       "id": "worldboss_ancient_world_warden",
@@ -550,7 +552,8 @@
       "reward": {
         "money": 10000,
         "experience": 8000
-      }
+      },
+      "questGiverNpcId": "the_archivist"
     }
   ]
 }
