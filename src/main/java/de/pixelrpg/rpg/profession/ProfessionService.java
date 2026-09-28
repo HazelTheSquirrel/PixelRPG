@@ -17,17 +17,29 @@ public final class ProfessionService {
 
     public long getExperience(UUID uuid, Profession profession) { return profileManager.getProfile(uuid).map(profile -> profile.getProfessionExperience(profession)).orElse(0L); }
     public int getLevel(UUID uuid, Profession profession) { return profileManager.getProfile(uuid).map(profile -> profile.getProfessionLevel(profession)).orElse(Profession.MIN_LEVEL); }
-    public boolean hasLearned(UUID uuid, Profession profession) { return profileManager.getProfile(uuid).map(profile -> profile.hasLearnedProfession(profession)).orElse(false); }
+    public boolean hasLearned(UUID uuid, Profession profession) { return profession != null && profileManager.getProfile(uuid).map(profile -> profile.hasLearnedProfession(profession)).orElse(false); }
+    public Profession getMainProfession(UUID uuid) { return profileManager.getProfile(uuid).map(PlayerProfile::getMainProfession).orElse(null); }
+    public boolean isMainProfession(UUID uuid, Profession profession) { return profession != null && profession == getMainProfession(uuid); }
     public boolean hasRecipe(UUID uuid, String recipeId) { return profileManager.getProfile(uuid).map(profile -> profile.hasUnlockedRecipe(recipeId)).orElse(false); }
 
     public boolean learn(Player player, Profession profession) {
         Optional<PlayerProfile> optional = profileManager.getProfile(player.getUniqueId());
-        if (optional.isEmpty() || !optional.get().isRegistered()) return false;
+        if (optional.isEmpty() || !optional.get().isRegistered() || profession == null) return false;
         PlayerProfile profile = optional.get();
-        if (profile.hasLearnedProfession(profession)) return false;
+        if (profession.isGathering()) {
+            profile.learnProfession(profession);
+            profileManager.saveProfileAsync(player.getUniqueId());
+            player.sendMessage(Component.text("Sammlerberuf aktiv: ", NamedTextColor.GREEN).append(profession.displayComponent()));
+            return true;
+        }
+        if (profession == profile.getMainProfession()) return false;
+        profile.setMainProfession(profession);
+        profile.setProfessionLevel(profession, Profession.MIN_LEVEL);
+        profile.setProfessionExperience(profession, 0L);
         profile.learnProfession(profession);
         profileManager.saveProfileAsync(player.getUniqueId());
-        player.sendMessage(Component.text("Beruf erlernt: ", NamedTextColor.GREEN).append(profession.displayComponent()));
+        player.sendMessage(Component.text("Hauptberuf gewählt: ", NamedTextColor.GREEN).append(profession.displayComponent())
+                .append(Component.text(" (Level 1)", NamedTextColor.GRAY)));
         return true;
     }
 
@@ -35,6 +47,7 @@ public final class ProfessionService {
         Optional<PlayerProfile> optional = profileManager.getProfile(player.getUniqueId());
         if (optional.isEmpty() || !optional.get().isRegistered()) return UnlockResult.failure("Du bist noch nicht registriert.");
         PlayerProfile profile = optional.get();
+        if (recipe.profession().isMain() && recipe.profession() != profile.getMainProfession()) return UnlockResult.failure("Dieser Hauptberuf ist aktuell nicht aktiv.");
         if (!profile.hasLearnedProfession(recipe.profession())) return UnlockResult.failure("Du musst diesen Beruf zuerst erlernen.");
         if (profile.getProfessionLevel(recipe.profession()) < recipe.requiredProfessionLevel()) return UnlockResult.failure("Dein Berufslevel ist noch nicht hoch genug.");
         if (recipe.unlockedByDefault() || profile.hasUnlockedRecipe(recipe.id())) return UnlockResult.success(0L);
@@ -67,7 +80,8 @@ public final class ProfessionService {
         Optional<PlayerProfile> optional = profileManager.getProfile(player.getUniqueId());
         if (optional.isEmpty()) return;
         PlayerProfile profile = optional.get();
-        if (!profile.isRegistered() || !profile.hasLearnedProfession(profession)) return;
+        if (!profile.isRegistered() || profession == null || !profile.hasLearnedProfession(profession)) return;
+        if (profession.isMain() && profession != profile.getMainProfession()) return;
 
         int before = profile.getProfessionLevel(profession);
         long oldExperience = profile.getProfessionExperience(profession);

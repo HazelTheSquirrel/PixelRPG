@@ -23,6 +23,7 @@ public final class PlayerProfile {
     private final Map<Profession, Integer> professionLevels = new EnumMap<>(Profession.class);
     private final Map<Profession, Long> professionExperience = new EnumMap<>(Profession.class);
     private final Set<Profession> learnedProfessions = new HashSet<>();
+    private Profession mainProfession;
     private final Set<String> unlockedRecipes = new HashSet<>();
     private final Set<String> unlockedWaypoints = new HashSet<>();
     private int storyChapterIndex;
@@ -55,6 +56,8 @@ public final class PlayerProfile {
             professionLevels.put(profession, Profession.MIN_LEVEL);
             professionExperience.put(profession, 0L);
         }
+        learnedProfessions.addAll(java.util.Arrays.stream(Profession.values()).filter(Profession::isGathering).toList());
+        mainProfession = null;
     }
 
     public UUID getUuid() { return uuid; }
@@ -92,7 +95,10 @@ public final class PlayerProfile {
     public void setProfessionExperience(Profession profession, long value) { if (profession == null) return; mutate(() -> professionExperience.put(profession, Math.clamp(value, 0L, Profession.MAX_EXPERIENCE))); }
     public void addProfessionExperience(Profession profession, long amount) { if (profession == null || amount <= 0L) return; mutate(() -> { long current = professionExperience.getOrDefault(profession, 0L); long next = amount > Long.MAX_VALUE - current ? Long.MAX_VALUE : current + amount; professionExperience.put(profession, Math.min(Profession.MAX_EXPERIENCE, next)); }); }
     public synchronized Map<Profession, Long> getProfessionExperiences() { return Collections.unmodifiableMap(new EnumMap<>(professionExperience)); }
-    public synchronized boolean hasLearnedProfession(Profession profession) { return profession != null && learnedProfessions.contains(profession); }
+    public synchronized boolean hasLearnedProfession(Profession profession) { return profession != null && (profession.isGathering() || learnedProfessions.contains(profession)); }
+    public synchronized Profession getMainProfession() { return mainProfession; }
+    public void setMainProfession(Profession profession) { if (profession != null && !profession.isMain()) throw new IllegalArgumentException("Only main professions can be selected"); mutate(() -> mainProfession = profession); }
+    public void clearMainProfession() { mutateIfChanged(() -> { boolean changed = mainProfession != null; mainProfession = null; return changed; }); }
     public void learnProfession(Profession profession) { if (profession != null) mutateIfChanged(() -> learnedProfessions.add(profession)); }
     public synchronized Set<Profession> getLearnedProfessions() { return Collections.unmodifiableSet(new HashSet<>(learnedProfessions)); }
     public synchronized boolean hasUnlockedRecipe(String recipeId) { return recipeId != null && unlockedRecipes.contains(recipeId.toLowerCase()); }
@@ -139,6 +145,7 @@ public final class PlayerProfile {
         snapshot.professionExperience.clear();
         snapshot.professionExperience.putAll(professionExperience);
         snapshot.learnedProfessions.addAll(learnedProfessions);
+        snapshot.mainProfession = mainProfession;
         snapshot.unlockedRecipes.addAll(unlockedRecipes);
         snapshot.unlockedWaypoints.addAll(unlockedWaypoints);
         snapshot.storyChapterIndex = storyChapterIndex;
@@ -169,6 +176,7 @@ public final class PlayerProfile {
             scoreboardEnabled = true;
             partyHudEnabled = false;
             learnedProfessions.clear();
+            mainProfession = null;
             unlockedRecipes.clear();
             unlockedWaypoints.clear();
             activeQuests.clear();
@@ -179,6 +187,7 @@ public final class PlayerProfile {
                 professionLevels.put(profession, Profession.MIN_LEVEL);
                 professionExperience.put(profession, 0L);
             }
+            learnedProfessions.addAll(java.util.Arrays.stream(Profession.values()).filter(Profession::isGathering).toList());
         }
         notifyDirty();
     }

@@ -14,7 +14,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": true,
       "category": "TOOLS",
-      "professionXp": 31
+      "professionXp": 31,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:copper_axe",
@@ -30,7 +31,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": true,
       "category": "TOOLS",
-      "professionXp": 31
+      "professionXp": 31,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:copper_shovel",
@@ -46,7 +48,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": true,
       "category": "TOOLS",
-      "professionXp": 21
+      "professionXp": 21,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:copper_hoe",
@@ -62,7 +65,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": true,
       "category": "TOOLS",
-      "professionXp": 26
+      "professionXp": 26,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:iron_pickaxe",
@@ -78,7 +82,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "TOOLS",
-      "professionXp": 67
+      "professionXp": 67,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:iron_axe",
@@ -94,7 +99,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "TOOLS",
-      "professionXp": 67
+      "professionXp": 67,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:iron_shovel",
@@ -110,7 +116,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "TOOLS",
-      "professionXp": 57
+      "professionXp": 57,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:iron_hoe",
@@ -126,71 +133,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "TOOLS",
-      "professionXp": 62
-    },
-    {
-      "id": "blacksmith:gold_pickaxe",
-      "label": "Goldspitzhacke",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_PICKAXE",
-      "costs": {
-        "GOLD_INGOT": 3,
-        "STICK": 2
-      },
-      "requiredProfessionLevel": 16,
-      "unlockPrice": 2400,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "TOOLS",
-      "professionXp": 121
-    },
-    {
-      "id": "blacksmith:gold_axe",
-      "label": "Goldaxt",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_AXE",
-      "costs": {
-        "GOLD_INGOT": 3,
-        "STICK": 2
-      },
-      "requiredProfessionLevel": 16,
-      "unlockPrice": 2400,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "TOOLS",
-      "professionXp": 121
-    },
-    {
-      "id": "blacksmith:gold_shovel",
-      "label": "Goldschaufel",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_SHOVEL",
-      "costs": {
-        "GOLD_INGOT": 1,
-        "STICK": 2
-      },
-      "requiredProfessionLevel": 16,
-      "unlockPrice": 2400,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "TOOLS",
-      "professionXp": 111
-    },
-    {
-      "id": "blacksmith:gold_hoe",
-      "label": "Goldhacke",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_HOE",
-      "costs": {
-        "GOLD_INGOT": 2,
-        "STICK": 2
-      },
-      "requiredProfessionLevel": 16,
-      "unlockPrice": 2400,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "TOOLS",
-      "professionXp": 116
+      "professionXp": 62,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:diamond_pickaxe",
@@ -206,7 +150,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "TOOLS",
-      "professionXp": 199
+      "professionXp": 199,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:diamond_axe",
@@ -222,7 +167,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "TOOLS",
-      "professionXp": 199
+      "professionXp": 199,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:diamond_shovel",
@@ -238,7 +184,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "TOOLS",
-      "professionXp": 189
+      "professionXp": 189,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:diamond_hoe",
@@ -254,7 +201,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "TOOLS",
-      "professionXp": 194
+      "professionXp": 194,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:copper_sword",
@@ -270,7 +218,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "WEAPONS",
-      "professionXp": 39
+      "professionXp": 39,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:iron_sword",
@@ -286,23 +235,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "WEAPONS",
-      "professionXp": 75
-    },
-    {
-      "id": "blacksmith:gold_sword",
-      "label": "Goldschwert",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_SWORD",
-      "costs": {
-        "GOLD_INGOT": 2,
-        "STICK": 1
-      },
-      "requiredProfessionLevel": 19,
-      "unlockPrice": 2900,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "WEAPONS",
-      "professionXp": 129
+      "professionXp": 75,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:diamond_sword",
@@ -318,23 +252,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "WEAPONS",
-      "professionXp": 207
-    },
-    {
-      "id": "blacksmith:netherite_sword",
-      "label": "Netheritschwert",
-      "profession": "BLACKSMITH",
-      "result": "NETHERITE_SWORD",
-      "costs": {
-        "NETHERITE_INGOT": 2,
-        "STICK": 1
-      },
-      "requiredProfessionLevel": 54,
-      "unlockPrice": 8400,
-      "rarity": "EPIC",
-      "unlockedByDefault": false,
-      "category": "WEAPONS",
-      "professionXp": 339
+      "professionXp": 207,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:copper_spear",
@@ -350,7 +269,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "WEAPONS",
-      "professionXp": 39
+      "professionXp": 39,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:iron_spear",
@@ -366,23 +286,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "WEAPONS",
-      "professionXp": 75
-    },
-    {
-      "id": "blacksmith:gold_spear",
-      "label": "Goldspeer",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_SPEAR",
-      "costs": {
-        "GOLD_INGOT": 2,
-        "STICK": 1
-      },
-      "requiredProfessionLevel": 19,
-      "unlockPrice": 2900,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "WEAPONS",
-      "professionXp": 129
+      "professionXp": 75,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:diamond_spear",
@@ -398,23 +303,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "WEAPONS",
-      "professionXp": 207
-    },
-    {
-      "id": "blacksmith:netherite_spear",
-      "label": "Netheritspeer",
-      "profession": "BLACKSMITH",
-      "result": "NETHERITE_SPEAR",
-      "costs": {
-        "NETHERITE_INGOT": 2,
-        "STICK": 1
-      },
-      "requiredProfessionLevel": 54,
-      "unlockPrice": 8400,
-      "rarity": "EPIC",
-      "unlockedByDefault": false,
-      "category": "WEAPONS",
-      "professionXp": 339
+      "professionXp": 207,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:trident",
@@ -431,7 +321,8 @@
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "WEAPONS",
-      "professionXp": 405
+      "professionXp": 405,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "blacksmith:copper_helmet",
@@ -446,7 +337,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 103
+      "professionXp": 103,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:copper_chestplate",
@@ -461,7 +353,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 118
+      "professionXp": 118,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:copper_leggings",
@@ -476,7 +369,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 113
+      "professionXp": 113,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:copper_boots",
@@ -491,7 +385,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 98
+      "professionXp": 98,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:iron_helmet",
@@ -506,7 +401,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 139
+      "professionXp": 139,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:iron_chestplate",
@@ -521,7 +417,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:iron_leggings",
@@ -536,7 +433,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 149
+      "professionXp": 149,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:iron_boots",
@@ -551,67 +449,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 134
-    },
-    {
-      "id": "blacksmith:gold_helmet",
-      "label": "Goldhelm",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_HELMET",
-      "costs": {
-        "GOLD_INGOT": 5
-      },
-      "requiredProfessionLevel": 25,
-      "unlockPrice": 3900,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "ARMOR",
-      "professionXp": 175
-    },
-    {
-      "id": "blacksmith:gold_chestplate",
-      "label": "Goldharnisch",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_CHESTPLATE",
-      "costs": {
-        "GOLD_INGOT": 8
-      },
-      "requiredProfessionLevel": 25,
-      "unlockPrice": 3900,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "ARMOR",
-      "professionXp": 190
-    },
-    {
-      "id": "blacksmith:gold_leggings",
-      "label": "Goldbeinschutz",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_LEGGINGS",
-      "costs": {
-        "GOLD_INGOT": 7
-      },
-      "requiredProfessionLevel": 25,
-      "unlockPrice": 3900,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "ARMOR",
-      "professionXp": 185
-    },
-    {
-      "id": "blacksmith:gold_boots",
-      "label": "Goldstiefel",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_BOOTS",
-      "costs": {
-        "GOLD_INGOT": 4
-      },
-      "requiredProfessionLevel": 25,
-      "unlockPrice": 3900,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "ARMOR",
-      "professionXp": 170
+      "professionXp": 134,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:diamond_helmet",
@@ -626,7 +465,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 253
+      "professionXp": 253,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:diamond_chestplate",
@@ -641,7 +481,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 268
+      "professionXp": 268,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:diamond_leggings",
@@ -656,7 +497,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 263
+      "professionXp": 263,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:diamond_boots",
@@ -671,7 +513,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 248
+      "professionXp": 248,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:shield",
@@ -687,7 +530,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 111
+      "professionXp": 111,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:bucket",
@@ -702,7 +546,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 93
+      "professionXp": 93,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:shears",
@@ -717,7 +562,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "TOOLS",
-      "professionXp": 88
+      "professionXp": 88,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:flint_and_steel",
@@ -733,7 +579,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 106
+      "professionXp": 106,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:cauldron",
@@ -748,7 +595,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 167
+      "professionXp": 167,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:iron_bars",
@@ -763,7 +611,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "MATERIALS",
-      "professionXp": 144
+      "professionXp": 144,
+      "accessTier": "BASIC"
     },
     {
       "id": "blacksmith:iron_chain",
@@ -778,7 +627,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "MATERIALS",
-      "professionXp": 142
+      "professionXp": 142,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:lantern",
@@ -794,7 +644,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 195
+      "professionXp": 195,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:anvil",
@@ -810,7 +661,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 341
+      "professionXp": 341,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "blacksmith:hopper",
@@ -826,7 +678,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 294
+      "professionXp": 294,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "blacksmith:smithing_table",
@@ -842,7 +695,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "CRAFTING",
-      "professionXp": 222
+      "professionXp": 222,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:grindstone",
@@ -859,7 +713,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "CRAFTING",
-      "professionXp": 199
+      "professionXp": 199,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "blacksmith:crafter",
@@ -876,7 +731,8 @@
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "CRAFTING",
-      "professionXp": 382
+      "professionXp": 382,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "blacksmith:copper_horse_armor",
@@ -891,7 +747,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 281
+      "professionXp": 281,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "blacksmith:copper_nautilus_armor",
@@ -907,7 +764,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 327
+      "professionXp": 327,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "blacksmith:diamond_horse_armor",
@@ -922,22 +780,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 341
-    },
-    {
-      "id": "blacksmith:golden_horse_armor",
-      "label": "Goldener Rossharnisch",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_HORSE_ARMOR",
-      "costs": {
-        "GOLD_INGOT": 7
-      },
-      "requiredProfessionLevel": 35,
-      "unlockPrice": 5400,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "ARMOR",
-      "professionXp": 245
+      "professionXp": 341,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "blacksmith:iron_horse_armor",
@@ -952,7 +796,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "ARMOR",
-      "professionXp": 185
+      "professionXp": 185,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "farmer:wheat_seeds",
@@ -967,7 +812,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": true,
       "category": "CROPS",
-      "professionXp": 20
+      "professionXp": 20,
+      "accessTier": "BASIC"
     },
     {
       "id": "farmer:beetroot_seeds",
@@ -982,7 +828,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "CROPS",
-      "professionXp": 35
+      "professionXp": 35,
+      "accessTier": "BASIC"
     },
     {
       "id": "farmer:pumpkin_seeds",
@@ -997,7 +844,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "CROPS",
-      "professionXp": 35
+      "professionXp": 35,
+      "accessTier": "BASIC"
     },
     {
       "id": "farmer:melon_seeds",
@@ -1012,7 +860,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "CROPS",
-      "professionXp": 71
+      "professionXp": 71,
+      "accessTier": "BASIC"
     },
     {
       "id": "farmer:torchflower_seeds",
@@ -1027,7 +876,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "CROPS",
-      "professionXp": 269
+      "professionXp": 269,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "farmer:pitcher_pod",
@@ -1042,7 +892,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "CROPS",
-      "professionXp": 299
+      "professionXp": 299,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "farmer:sugar",
@@ -1057,7 +908,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "PROCESSING",
-      "professionXp": 71
+      "professionXp": 71,
+      "accessTier": "BASIC"
     },
     {
       "id": "farmer:paper",
@@ -1072,7 +924,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "PROCESSING",
-      "professionXp": 111
+      "professionXp": 111,
+      "accessTier": "BASIC"
     },
     {
       "id": "farmer:hay_block",
@@ -1087,7 +940,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "PRODUCE",
-      "professionXp": 177
+      "professionXp": 177,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "farmer:bone_meal",
@@ -1102,7 +956,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "PROCESSING",
-      "professionXp": 71
+      "professionXp": 71,
+      "accessTier": "BASIC"
     },
     {
       "id": "farmer:dried_kelp",
@@ -1117,7 +972,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "PROCESSING",
-      "professionXp": 101
+      "professionXp": 101,
+      "accessTier": "BASIC"
     },
     {
       "id": "farmer:dried_kelp_block",
@@ -1132,7 +988,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "PRODUCE",
-      "professionXp": 243
+      "professionXp": 243,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "farmer:pumpkin",
@@ -1147,7 +1004,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "PRODUCE",
-      "professionXp": 182
+      "professionXp": 182,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "farmer:melon",
@@ -1162,7 +1020,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "PRODUCE",
-      "professionXp": 243
+      "professionXp": 243,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "farmer:sugar_block",
@@ -1178,7 +1037,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "SPECIALTIES",
-      "professionXp": 385
+      "professionXp": 385,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "farmer:composter",
@@ -1193,7 +1053,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 167
+      "professionXp": 167,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "farmer:moss_block",
@@ -1209,7 +1070,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "PRODUCE",
-      "professionXp": 243
+      "professionXp": 243,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "farmer:white_dye",
@@ -1224,7 +1086,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": true,
       "category": "PROCESSING",
-      "professionXp": 20
+      "professionXp": 20,
+      "accessTier": "BASIC"
     },
     {
       "id": "farmer:yellow_dye",
@@ -1239,7 +1102,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "PROCESSING",
-      "professionXp": 35
+      "professionXp": 35,
+      "accessTier": "BASIC"
     },
     {
       "id": "farmer:red_dye",
@@ -1254,7 +1118,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "PROCESSING",
-      "professionXp": 35
+      "professionXp": 35,
+      "accessTier": "BASIC"
     },
     {
       "id": "farmer:blue_dye",
@@ -1269,7 +1134,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "PROCESSING",
-      "professionXp": 101
+      "professionXp": 101,
+      "accessTier": "BASIC"
     },
     {
       "id": "farmer:green_dye",
@@ -1284,7 +1150,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "PROCESSING",
-      "professionXp": 101
+      "professionXp": 101,
+      "accessTier": "BASIC"
     },
     {
       "id": "farmer:lime_dye",
@@ -1300,7 +1167,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "PROCESSING",
-      "professionXp": 142
+      "professionXp": 142,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "farmer:orange_dye",
@@ -1316,7 +1184,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "PROCESSING",
-      "professionXp": 142
+      "professionXp": 142,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "farmer:purple_dye",
@@ -1332,7 +1201,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "PROCESSING",
-      "professionXp": 142
+      "professionXp": 142,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "cook:bread",
@@ -1347,7 +1217,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": true,
       "category": "BASIC_FOOD",
-      "professionXp": 21
+      "professionXp": 21,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:cookie",
@@ -1363,7 +1234,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "BASIC_FOOD",
-      "professionXp": 51
+      "professionXp": 51,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:pumpkin_pie",
@@ -1380,7 +1252,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "MEALS",
-      "professionXp": 87
+      "professionXp": 87,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:cake",
@@ -1398,7 +1271,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "MEALS",
-      "professionXp": 207
+      "professionXp": 207,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "cook:cooked_beef",
@@ -1413,7 +1287,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "COOKED_FOOD",
-      "professionXp": 23
+      "professionXp": 23,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:cooked_chicken",
@@ -1428,7 +1303,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "COOKED_FOOD",
-      "professionXp": 23
+      "professionXp": 23,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:cooked_porkchop",
@@ -1443,7 +1319,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "COOKED_FOOD",
-      "professionXp": 23
+      "professionXp": 23,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:cooked_mutton",
@@ -1458,7 +1335,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "COOKED_FOOD",
-      "professionXp": 41
+      "professionXp": 41,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:cooked_rabbit",
@@ -1473,7 +1351,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "COOKED_FOOD",
-      "professionXp": 59
+      "professionXp": 59,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:cooked_cod",
@@ -1488,7 +1367,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "COOKED_FOOD",
-      "professionXp": 41
+      "professionXp": 41,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:cooked_salmon",
@@ -1503,7 +1383,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "COOKED_FOOD",
-      "professionXp": 59
+      "professionXp": 59,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:rabbit_stew",
@@ -1521,7 +1402,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "MEALS",
-      "professionXp": 146
+      "professionXp": 146,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "cook:mushroom_stew",
@@ -1538,7 +1420,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "MEALS",
-      "professionXp": 51
+      "professionXp": 51,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:beetroot_soup",
@@ -1554,7 +1437,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "MEALS",
-      "professionXp": 107
+      "professionXp": 107,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:suspicious_stew",
@@ -1572,7 +1456,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "SPECIALTIES",
-      "professionXp": 218
+      "professionXp": 218,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "cook:golden_carrot",
@@ -1588,7 +1473,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "SPECIALTIES",
-      "professionXp": 171
+      "professionXp": 171,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "cook:golden_apple",
@@ -1604,7 +1490,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "SPECIALTIES",
-      "professionXp": 297
+      "professionXp": 297,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "cook:enchanted_golden_apple",
@@ -1620,7 +1507,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "SPECIALTIES",
-      "professionXp": 405
+      "professionXp": 405,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "cook:glistering_melon",
@@ -1636,7 +1524,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "SPECIALTIES",
-      "professionXp": 153
+      "professionXp": 153,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:honey_bottle",
@@ -1652,7 +1541,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "SPECIALTIES",
-      "professionXp": 100
+      "professionXp": 100,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:baked_potato",
@@ -1667,7 +1557,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "COOKED_FOOD",
-      "professionXp": 23
+      "professionXp": 23,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:dried_kelp",
@@ -1682,7 +1573,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "BASIC_FOOD",
-      "professionXp": 59
+      "professionXp": 59,
+      "accessTier": "BASIC"
     },
     {
       "id": "cook:sweet_berries",
@@ -1698,7 +1590,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "BASIC_FOOD",
-      "professionXp": 87
+      "professionXp": 87,
+      "accessTier": "BASIC"
     },
     {
       "id": "tailor:white_wool",
@@ -1713,7 +1606,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": true,
       "category": "TEXTILES",
-      "professionXp": 26
+      "professionXp": 26,
+      "accessTier": "BASIC"
     },
     {
       "id": "tailor:black_wool",
@@ -1729,7 +1623,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "TEXTILES",
-      "professionXp": 64
+      "professionXp": 64,
+      "accessTier": "BASIC"
     },
     {
       "id": "tailor:red_wool",
@@ -1745,7 +1640,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "TEXTILES",
-      "professionXp": 94
+      "professionXp": 94,
+      "accessTier": "BASIC"
     },
     {
       "id": "tailor:blue_wool",
@@ -1761,7 +1657,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "TEXTILES",
-      "professionXp": 124
+      "professionXp": 124,
+      "accessTier": "BASIC"
     },
     {
       "id": "tailor:white_carpet",
@@ -1777,7 +1674,8 @@
       "unlockedByDefault": false,
       "category": "TEXTILES",
       "resultAmount": 3,
-      "professionXp": 64
+      "professionXp": 64,
+      "accessTier": "BASIC"
     },
     {
       "id": "tailor:black_carpet",
@@ -1793,7 +1691,8 @@
       "unlockedByDefault": false,
       "category": "TEXTILES",
       "resultAmount": 3,
-      "professionXp": 124
+      "professionXp": 124,
+      "accessTier": "BASIC"
     },
     {
       "id": "tailor:red_carpet",
@@ -1809,7 +1708,8 @@
       "unlockedByDefault": false,
       "category": "TEXTILES",
       "resultAmount": 3,
-      "professionXp": 148
+      "professionXp": 148,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "tailor:blue_carpet",
@@ -1825,7 +1725,8 @@
       "unlockedByDefault": false,
       "category": "TEXTILES",
       "resultAmount": 3,
-      "professionXp": 178
+      "professionXp": 178,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "tailor:white_bed",
@@ -1841,7 +1742,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "DECORATION",
-      "professionXp": 168
+      "professionXp": 168,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "tailor:red_bed",
@@ -1857,7 +1759,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "DECORATION",
-      "professionXp": 198
+      "professionXp": 198,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "tailor:blue_bed",
@@ -1873,7 +1776,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "DECORATION",
-      "professionXp": 222
+      "professionXp": 222,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "tailor:white_banner",
@@ -1889,7 +1793,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "DECORATION",
-      "professionXp": 227
+      "professionXp": 227,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "tailor:black_banner",
@@ -1905,7 +1810,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "DECORATION",
-      "professionXp": 257
+      "professionXp": 257,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "tailor:red_banner",
@@ -1921,7 +1827,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "DECORATION",
-      "professionXp": 287
+      "professionXp": 287,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "tailor:blue_banner",
@@ -1937,7 +1844,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "DECORATION",
-      "professionXp": 311
+      "professionXp": 311,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "tailor:leather",
@@ -1952,7 +1860,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "LEATHER",
-      "professionXp": 74
+      "professionXp": 74,
+      "accessTier": "BASIC"
     },
     {
       "id": "tailor:leather_helmet",
@@ -1967,7 +1876,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "LEATHER",
-      "professionXp": 139
+      "professionXp": 139,
+      "accessTier": "BASIC"
     },
     {
       "id": "tailor:leather_chestplate",
@@ -1982,7 +1892,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "LEATHER",
-      "professionXp": 208
+      "professionXp": 208,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "tailor:leather_leggings",
@@ -1997,7 +1908,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "LEATHER",
-      "professionXp": 227
+      "professionXp": 227,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "tailor:leather_boots",
@@ -2012,7 +1924,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "LEATHER",
-      "professionXp": 158
+      "professionXp": 158,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "tailor:bundle",
@@ -2028,7 +1941,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "LEATHER",
-      "professionXp": 287
+      "professionXp": 287,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "tailor:leather_horse_armor",
@@ -2043,7 +1957,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "LEATHER",
-      "professionXp": 341
+      "professionXp": 341,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "tailor:painting",
@@ -2059,7 +1974,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "DECORATION",
-      "professionXp": 267
+      "professionXp": 267,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "tailor:loom",
@@ -2075,7 +1991,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "CRAFTING",
-      "professionXp": 296
+      "professionXp": 296,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "tailor:name_tag",
@@ -2091,7 +2008,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "CRAFTING",
-      "professionXp": 375
+      "professionXp": 375,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "alchemist:water",
@@ -2107,7 +2025,8 @@
       "unlockedByDefault": true,
       "category": "POTIONS",
       "potionType": "WATER",
-      "professionXp": 20
+      "professionXp": 20,
+      "accessTier": "BASIC"
     },
     {
       "id": "alchemist:awkward",
@@ -2124,7 +2043,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "AWKWARD",
-      "professionXp": 28
+      "professionXp": 28,
+      "accessTier": "BASIC"
     },
     {
       "id": "alchemist:healing",
@@ -2142,7 +2062,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "STRONG_HEALING",
-      "professionXp": 87
+      "professionXp": 87,
+      "accessTier": "BASIC"
     },
     {
       "id": "alchemist:strength",
@@ -2160,7 +2081,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "STRONG_STRENGTH",
-      "professionXp": 105
+      "professionXp": 105,
+      "accessTier": "BASIC"
     },
     {
       "id": "alchemist:swiftness",
@@ -2178,7 +2100,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "STRONG_SWIFTNESS",
-      "professionXp": 105
+      "professionXp": 105,
+      "accessTier": "BASIC"
     },
     {
       "id": "alchemist:fire_resistance",
@@ -2196,7 +2119,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "FIRE_RESISTANCE",
-      "professionXp": 123
+      "professionXp": 123,
+      "accessTier": "BASIC"
     },
     {
       "id": "alchemist:water_breathing",
@@ -2214,7 +2138,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "WATER_BREATHING",
-      "professionXp": 141
+      "professionXp": 141,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "alchemist:night_vision",
@@ -2232,7 +2157,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "NIGHT_VISION",
-      "professionXp": 159
+      "professionXp": 159,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "alchemist:leaping",
@@ -2250,7 +2176,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "STRONG_LEAPING",
-      "professionXp": 177
+      "professionXp": 177,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "alchemist:slow_falling",
@@ -2268,7 +2195,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "SLOW_FALLING",
-      "professionXp": 195
+      "professionXp": 195,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "alchemist:poison",
@@ -2286,7 +2214,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "STRONG_POISON",
-      "professionXp": 105
+      "professionXp": 105,
+      "accessTier": "BASIC"
     },
     {
       "id": "alchemist:weakness",
@@ -2303,7 +2232,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "WEAKNESS",
-      "professionXp": 82
+      "professionXp": 82,
+      "accessTier": "BASIC"
     },
     {
       "id": "alchemist:regeneration",
@@ -2321,7 +2251,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "STRONG_REGENERATION",
-      "professionXp": 231
+      "professionXp": 231,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "alchemist:turtle_master",
@@ -2339,7 +2270,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "STRONG_TURTLE_MASTER",
-      "professionXp": 323
+      "professionXp": 323,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "alchemist:luck",
@@ -2356,7 +2288,8 @@
       "unlockedByDefault": false,
       "category": "POTIONS",
       "potionType": "LUCK",
-      "professionXp": 262
+      "professionXp": 262,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "alchemist:fermented_spider_eye",
@@ -2373,7 +2306,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "professionXp": 51
+      "professionXp": 51,
+      "accessTier": "BASIC"
     },
     {
       "id": "alchemist:blaze_powder",
@@ -2388,7 +2322,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "professionXp": 59
+      "professionXp": 59,
+      "accessTier": "BASIC"
     },
     {
       "id": "alchemist:magma_cream",
@@ -2404,7 +2339,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "professionXp": 100
+      "professionXp": 100,
+      "accessTier": "BASIC"
     },
     {
       "id": "alchemist:glistering_melon",
@@ -2420,7 +2356,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "professionXp": 117
+      "professionXp": 117,
+      "accessTier": "BASIC"
     },
     {
       "id": "alchemist:ender_eye",
@@ -2436,7 +2373,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "professionXp": 244
+      "professionXp": 244,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "alchemist:splash_potion",
@@ -2452,7 +2390,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "professionXp": 208
+      "professionXp": 208,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "alchemist:lingering_potion",
@@ -2468,7 +2407,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "professionXp": 280
+      "professionXp": 280,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "alchemist:dragon_breath",
@@ -2484,7 +2424,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "POTIONS",
-      "professionXp": 316
+      "professionXp": 316,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "alchemist:zombie_spawn_egg",
@@ -2500,7 +2441,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 153
+      "professionXp": 153,
+      "accessTier": "BASIC"
     },
     {
       "id": "alchemist:skeleton_spawn_egg",
@@ -2516,7 +2458,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 171
+      "professionXp": 171,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "alchemist:creeper_spawn_egg",
@@ -2532,7 +2475,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 189
+      "professionXp": 189,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "alchemist:spider_spawn_egg",
@@ -2548,7 +2492,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 171
+      "professionXp": 171,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "alchemist:cave_spider_spawn_egg",
@@ -2564,7 +2509,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 240
+      "professionXp": 240,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "alchemist:slime_spawn_egg",
@@ -2580,7 +2526,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 207
+      "professionXp": 207,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "alchemist:enderman_spawn_egg",
@@ -2596,7 +2543,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 264
+      "professionXp": 264,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "alchemist:blaze_spawn_egg",
@@ -2612,7 +2560,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 292
+      "professionXp": 292,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "alchemist:ghast_spawn_egg",
@@ -2628,7 +2577,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 348
+      "professionXp": 348,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "alchemist:magma_cube_spawn_egg",
@@ -2644,7 +2594,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 320
+      "professionXp": 320,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "alchemist:witch_spawn_egg",
@@ -2661,7 +2612,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 348
+      "professionXp": 348,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "alchemist:guardian_spawn_egg",
@@ -2677,7 +2629,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 356
+      "professionXp": 356,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "alchemist:shulker_spawn_egg",
@@ -2693,7 +2646,8 @@
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 354
+      "professionXp": 354,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "alchemist:wither_skeleton_spawn_egg",
@@ -2709,7 +2663,8 @@
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 392
+      "professionXp": 392,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "alchemist:warden_spawn_egg",
@@ -2725,7 +2680,8 @@
       "rarity": "LEGENDARY",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 410
+      "professionXp": 410,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "alchemist:copper_golem_spawn_egg",
@@ -2741,7 +2697,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "SPECIAL_MATERIALS",
-      "professionXp": 246
+      "professionXp": 246,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:stone",
@@ -2756,7 +2713,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": true,
       "category": "STONE_BLOCKS",
-      "professionXp": 26
+      "professionXp": 26,
+      "accessTier": "BASIC"
     },
     {
       "id": "mason:stone_bricks",
@@ -2771,7 +2729,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 44
+      "professionXp": 44,
+      "accessTier": "BASIC"
     },
     {
       "id": "mason:deepslate",
@@ -2786,7 +2745,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 62
+      "professionXp": 62,
+      "accessTier": "BASIC"
     },
     {
       "id": "mason:deepslate_bricks",
@@ -2801,7 +2761,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 80
+      "professionXp": 80,
+      "accessTier": "BASIC"
     },
     {
       "id": "mason:deepslate_tiles",
@@ -2816,7 +2777,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 104
+      "professionXp": 104,
+      "accessTier": "BASIC"
     },
     {
       "id": "mason:blackstone",
@@ -2831,7 +2793,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 122
+      "professionXp": 122,
+      "accessTier": "BASIC"
     },
     {
       "id": "mason:blackstone_bricks",
@@ -2846,7 +2809,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 140
+      "professionXp": 140,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:nether_bricks",
@@ -2861,7 +2825,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 158
+      "professionXp": 158,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:end_stone_bricks",
@@ -2876,7 +2841,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 176
+      "professionXp": 176,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:prismarine_bricks",
@@ -2891,7 +2857,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 194
+      "professionXp": 194,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:quartz_block",
@@ -2906,7 +2873,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 212
+      "professionXp": 212,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:quartz_bricks",
@@ -2921,7 +2889,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 236
+      "professionXp": 236,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:smooth_quartz",
@@ -2936,7 +2905,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 254
+      "professionXp": 254,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:bricks",
@@ -2951,7 +2921,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 272
+      "professionXp": 272,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:mud_bricks",
@@ -2966,7 +2937,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 290
+      "professionXp": 290,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:polished_granite",
@@ -2981,7 +2953,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 308
+      "professionXp": 308,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:polished_diorite",
@@ -2996,7 +2969,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 326
+      "professionXp": 326,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:polished_andesite",
@@ -3011,7 +2985,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 344
+      "professionXp": 344,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:polished_tuff",
@@ -3026,7 +3001,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 362
+      "professionXp": 362,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:tuff_bricks",
@@ -3041,7 +3017,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STONE_BLOCKS",
-      "professionXp": 380
+      "professionXp": 380,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:stone_slab",
@@ -3056,7 +3033,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 238
+      "professionXp": 238,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:stone_stairs",
@@ -3071,7 +3049,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 261
+      "professionXp": 261,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:stone_wall",
@@ -3086,7 +3065,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 279
+      "professionXp": 279,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:stone_bricks_slab",
@@ -3101,7 +3081,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 238
+      "professionXp": 238,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:stone_bricks_stairs",
@@ -3116,7 +3097,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 261
+      "professionXp": 261,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:stone_bricks_wall",
@@ -3131,7 +3113,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 279
+      "professionXp": 279,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:deepslate_slab",
@@ -3146,7 +3129,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 238
+      "professionXp": 238,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:deepslate_stairs",
@@ -3161,7 +3145,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 261
+      "professionXp": 261,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:deepslate_wall",
@@ -3176,7 +3161,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 279
+      "professionXp": 279,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:polished_blackstone_slab",
@@ -3191,7 +3177,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 238
+      "professionXp": 238,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:polished_blackstone_stairs",
@@ -3206,7 +3193,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 261
+      "professionXp": 261,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:polished_blackstone_wall",
@@ -3221,7 +3209,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 279
+      "professionXp": 279,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:end_stone_bricks_slab",
@@ -3236,7 +3225,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 238
+      "professionXp": 238,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:end_stone_bricks_stairs",
@@ -3251,7 +3241,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 261
+      "professionXp": 261,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:end_stone_bricks_wall",
@@ -3266,7 +3257,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 279
+      "professionXp": 279,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:prismarine_slab",
@@ -3281,7 +3273,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 238
+      "professionXp": 238,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:prismarine_stairs",
@@ -3296,7 +3289,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 261
+      "professionXp": 261,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:prismarine_wall",
@@ -3311,7 +3305,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 279
+      "professionXp": 279,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:quartz_block_slab",
@@ -3326,7 +3321,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 238
+      "professionXp": 238,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:quartz_block_stairs",
@@ -3341,7 +3337,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "STAIRS_SLABS",
-      "professionXp": 261
+      "professionXp": 261,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:chiseled_stone_bricks",
@@ -3356,7 +3353,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 184
+      "professionXp": 184,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:chiseled_deepslate",
@@ -3371,7 +3369,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 220
+      "professionXp": 220,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:chiseled_tuff",
@@ -3386,7 +3385,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 256
+      "professionXp": 256,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:chiseled_quartz",
@@ -3401,7 +3401,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 274
+      "professionXp": 274,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:quartz_pillar",
@@ -3416,7 +3417,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 238
+      "professionXp": 238,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:smooth_stone",
@@ -3431,7 +3433,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 261
+      "professionXp": 261,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:smooth_sandstone",
@@ -3446,7 +3449,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 152
+      "professionXp": 152,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:smooth_red_sandstone",
@@ -3461,7 +3465,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 170
+      "professionXp": 170,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:cut_sandstone",
@@ -3476,7 +3481,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 134
+      "professionXp": 134,
+      "accessTier": "BASIC"
     },
     {
       "id": "mason:cut_red_sandstone",
@@ -3491,7 +3497,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 152
+      "professionXp": 152,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:glass",
@@ -3506,7 +3513,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 98
+      "professionXp": 98,
+      "accessTier": "BASIC"
     },
     {
       "id": "mason:glass_pane",
@@ -3521,7 +3529,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 126
+      "professionXp": 126,
+      "accessTier": "BASIC"
     },
     {
       "id": "mason:terracotta",
@@ -3536,7 +3545,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 116
+      "professionXp": 116,
+      "accessTier": "BASIC"
     },
     {
       "id": "mason:brick",
@@ -3551,7 +3561,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 80
+      "professionXp": 80,
+      "accessTier": "BASIC"
     },
     {
       "id": "mason:concrete",
@@ -3567,7 +3578,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 307
+      "professionXp": 307,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:prismarine",
@@ -3583,7 +3595,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 217
+      "professionXp": 217,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "mason:sea_lantern",
@@ -3599,7 +3612,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 351
+      "professionXp": 351,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "mason:obsidian",
@@ -3615,7 +3629,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "CHISELED",
-      "professionXp": 367
+      "professionXp": 367,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "tailor:rotten_flesh_to_leather",
@@ -3630,7 +3645,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "LEATHER",
-      "professionXp": 74
+      "professionXp": 74,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:paper",
@@ -3645,7 +3661,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": true,
       "category": "BOOKS",
-      "professionXp": 21
+      "professionXp": 21,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:book",
@@ -3661,7 +3678,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "BOOKS",
-      "professionXp": 44
+      "professionXp": 44,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:bookshelf",
@@ -3677,7 +3695,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "BOOKS",
-      "professionXp": 90
+      "professionXp": 90,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:lectern",
@@ -3693,7 +3712,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "KNOWLEDGE",
-      "professionXp": 157
+      "professionXp": 157,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:compass",
@@ -3709,7 +3729,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "KNOWLEDGE",
-      "professionXp": 103
+      "professionXp": 103,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:clock",
@@ -3725,7 +3746,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "KNOWLEDGE",
-      "professionXp": 121
+      "professionXp": 121,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:map",
@@ -3741,7 +3763,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "KNOWLEDGE",
-      "professionXp": 159
+      "professionXp": 159,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:spyglass",
@@ -3757,7 +3780,8 @@
       "rarity": "UNCOMMON",
       "unlockedByDefault": false,
       "category": "KNOWLEDGE",
-      "professionXp": 189
+      "professionXp": 189,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:recovery_compass",
@@ -3773,7 +3797,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "ARCANE",
-      "professionXp": 351
+      "professionXp": 351,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "scholar:ender_eye",
@@ -3789,7 +3814,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "ARCANE",
-      "professionXp": 274
+      "professionXp": 274,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "scholar:ender_chest",
@@ -3805,7 +3831,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "ARCANE",
-      "professionXp": 369
+      "professionXp": 369,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "scholar:enchanting_table",
@@ -3822,7 +3849,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "ARCANE",
-      "professionXp": 317
+      "professionXp": 317,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "scholar:beacon",
@@ -3839,7 +3867,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "ARCANE",
-      "professionXp": 405
+      "professionXp": 405,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "scholar:end_crystal",
@@ -3856,7 +3885,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "ARCANE",
-      "professionXp": 387
+      "professionXp": 387,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "scholar:respawn_anchor",
@@ -3872,7 +3902,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "ARCANE",
-      "professionXp": 369
+      "professionXp": 369,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "scholar:lodestone",
@@ -3888,7 +3919,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "KNOWLEDGE",
-      "professionXp": 291
+      "professionXp": 291,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "scholar:experience_bottle",
@@ -3905,7 +3937,8 @@
       "rarity": "EPIC",
       "unlockedByDefault": false,
       "category": "ARCANE",
-      "professionXp": 367
+      "professionXp": 367,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "scholar:firework_rocket",
@@ -3921,7 +3954,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 207
+      "professionXp": 207,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:firework_star",
@@ -3937,7 +3971,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 220
+      "professionXp": 220,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:redstone_torch",
@@ -3953,7 +3988,8 @@
       "rarity": "COMMON",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 70
+      "professionXp": 70,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:observer",
@@ -3970,7 +4006,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 309
+      "professionXp": 309,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "scholar:comparator",
@@ -3987,7 +4024,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 281
+      "professionXp": 281,
+      "accessTier": "KINGDOM_ELITE"
     },
     {
       "id": "scholar:dispenser",
@@ -4004,7 +4042,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 273
+      "professionXp": 273,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:dropper",
@@ -4020,7 +4059,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 250
+      "professionXp": 250,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:target",
@@ -4036,7 +4076,8 @@
       "rarity": "RARE",
       "unlockedByDefault": false,
       "category": "UTILITY",
-      "professionXp": 217
+      "professionXp": 217,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:aqua_affinity_book",
@@ -4055,7 +4096,8 @@
       "category": "BOOKS",
       "enchantment": "AQUA_AFFINITY",
       "enchantmentLevel": 1,
-      "professionXp": 113
+      "professionXp": 113,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:bane_of_arthropods_book",
@@ -4074,7 +4116,8 @@
       "category": "BOOKS",
       "enchantment": "BANE_OF_ARTHROPODS",
       "enchantmentLevel": 5,
-      "professionXp": 146
+      "professionXp": 146,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:binding_curse_book",
@@ -4093,7 +4136,8 @@
       "category": "BOOKS",
       "enchantment": "BINDING_CURSE",
       "enchantmentLevel": 1,
-      "professionXp": 149
+      "professionXp": 149,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:blast_protection_book",
@@ -4112,7 +4156,8 @@
       "category": "BOOKS",
       "enchantment": "BLAST_PROTECTION",
       "enchantmentLevel": 4,
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:breach_book",
@@ -4131,7 +4176,8 @@
       "category": "BOOKS",
       "enchantment": "BREACH",
       "enchantmentLevel": 4,
-      "professionXp": 237
+      "professionXp": 237,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:channeling_book",
@@ -4150,7 +4196,8 @@
       "category": "BOOKS",
       "enchantment": "CHANNELING",
       "enchantmentLevel": 1,
-      "professionXp": 185
+      "professionXp": 185,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:density_book",
@@ -4169,7 +4216,8 @@
       "category": "BOOKS",
       "enchantment": "DENSITY",
       "enchantmentLevel": 5,
-      "professionXp": 247
+      "professionXp": 247,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:depth_strider_book",
@@ -4188,7 +4236,8 @@
       "category": "BOOKS",
       "enchantment": "DEPTH_STRIDER",
       "enchantmentLevel": 3,
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:efficiency_book",
@@ -4207,7 +4256,8 @@
       "category": "BOOKS",
       "enchantment": "EFFICIENCY",
       "enchantmentLevel": 5,
-      "professionXp": 146
+      "professionXp": 146,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:feather_falling_book",
@@ -4226,7 +4276,8 @@
       "category": "BOOKS",
       "enchantment": "FEATHER_FALLING",
       "enchantmentLevel": 4,
-      "professionXp": 136
+      "professionXp": 136,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:fire_aspect_book",
@@ -4245,7 +4296,8 @@
       "category": "BOOKS",
       "enchantment": "FIRE_ASPECT",
       "enchantmentLevel": 2,
-      "professionXp": 131
+      "professionXp": 131,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:fire_protection_book",
@@ -4264,7 +4316,8 @@
       "category": "BOOKS",
       "enchantment": "FIRE_PROTECTION",
       "enchantmentLevel": 4,
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:flame_book",
@@ -4283,7 +4336,8 @@
       "category": "BOOKS",
       "enchantment": "FLAME",
       "enchantmentLevel": 1,
-      "professionXp": 149
+      "professionXp": 149,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:fortune_book",
@@ -4302,7 +4356,8 @@
       "category": "BOOKS",
       "enchantment": "FORTUNE",
       "enchantmentLevel": 3,
-      "professionXp": 172
+      "professionXp": 172,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:frost_walker_book",
@@ -4321,7 +4376,8 @@
       "category": "BOOKS",
       "enchantment": "FROST_WALKER",
       "enchantmentLevel": 2,
-      "professionXp": 167
+      "professionXp": 167,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:impaling_book",
@@ -4340,7 +4396,8 @@
       "category": "BOOKS",
       "enchantment": "IMPALING",
       "enchantmentLevel": 5,
-      "professionXp": 182
+      "professionXp": 182,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:infinity_book",
@@ -4359,7 +4416,8 @@
       "category": "BOOKS",
       "enchantment": "INFINITY",
       "enchantmentLevel": 1,
-      "professionXp": 185
+      "professionXp": 185,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:knockback_book",
@@ -4378,7 +4436,8 @@
       "category": "BOOKS",
       "enchantment": "KNOCKBACK",
       "enchantmentLevel": 2,
-      "professionXp": 131
+      "professionXp": 131,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:looting_book",
@@ -4397,7 +4456,8 @@
       "category": "BOOKS",
       "enchantment": "LOOTING",
       "enchantmentLevel": 3,
-      "professionXp": 190
+      "professionXp": 190,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:loyalty_book",
@@ -4416,7 +4476,8 @@
       "category": "BOOKS",
       "enchantment": "LOYALTY",
       "enchantmentLevel": 3,
-      "professionXp": 172
+      "professionXp": 172,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:luck_of_the_sea_book",
@@ -4435,7 +4496,8 @@
       "category": "BOOKS",
       "enchantment": "LUCK_OF_THE_SEA",
       "enchantmentLevel": 3,
-      "professionXp": 172
+      "professionXp": 172,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:lunge_book",
@@ -4454,7 +4516,8 @@
       "category": "BOOKS",
       "enchantment": "LUNGE",
       "enchantmentLevel": 3,
-      "professionXp": 219
+      "professionXp": 219,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:lure_book",
@@ -4473,7 +4536,8 @@
       "category": "BOOKS",
       "enchantment": "LURE",
       "enchantmentLevel": 3,
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:mending_book",
@@ -4492,7 +4556,8 @@
       "category": "BOOKS",
       "enchantment": "MENDING",
       "enchantmentLevel": 1,
-      "professionXp": 232
+      "professionXp": 232,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:multishot_book",
@@ -4511,7 +4576,8 @@
       "category": "BOOKS",
       "enchantment": "MULTISHOT",
       "enchantmentLevel": 1,
-      "professionXp": 167
+      "professionXp": 167,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:piercing_book",
@@ -4530,7 +4596,8 @@
       "category": "BOOKS",
       "enchantment": "PIERCING",
       "enchantmentLevel": 4,
-      "professionXp": 172
+      "professionXp": 172,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:power_book",
@@ -4549,7 +4616,8 @@
       "category": "BOOKS",
       "enchantment": "POWER",
       "enchantmentLevel": 5,
-      "professionXp": 182
+      "professionXp": 182,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:projectile_protection_book",
@@ -4568,7 +4636,8 @@
       "category": "BOOKS",
       "enchantment": "PROJECTILE_PROTECTION",
       "enchantmentLevel": 4,
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:protection_book",
@@ -4587,7 +4656,8 @@
       "category": "BOOKS",
       "enchantment": "PROTECTION",
       "enchantmentLevel": 4,
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:punch_book",
@@ -4606,7 +4676,8 @@
       "category": "BOOKS",
       "enchantment": "PUNCH",
       "enchantmentLevel": 2,
-      "professionXp": 149
+      "professionXp": 149,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:quick_charge_book",
@@ -4625,7 +4696,8 @@
       "category": "BOOKS",
       "enchantment": "QUICK_CHARGE",
       "enchantmentLevel": 3,
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:respiration_book",
@@ -4644,7 +4716,8 @@
       "category": "BOOKS",
       "enchantment": "RESPIRATION",
       "enchantmentLevel": 3,
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:riptide_book",
@@ -4663,7 +4736,8 @@
       "category": "BOOKS",
       "enchantment": "RIPTIDE",
       "enchantmentLevel": 3,
-      "professionXp": 190
+      "professionXp": 190,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:sharpness_book",
@@ -4682,7 +4756,8 @@
       "category": "BOOKS",
       "enchantment": "SHARPNESS",
       "enchantmentLevel": 5,
-      "professionXp": 182
+      "professionXp": 182,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:silk_touch_book",
@@ -4701,7 +4776,8 @@
       "category": "BOOKS",
       "enchantment": "SILK_TOUCH",
       "enchantmentLevel": 1,
-      "professionXp": 185
+      "professionXp": 185,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:smite_book",
@@ -4720,7 +4796,8 @@
       "category": "BOOKS",
       "enchantment": "SMITE",
       "enchantmentLevel": 5,
-      "professionXp": 164
+      "professionXp": 164,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:soul_speed_book",
@@ -4739,7 +4816,8 @@
       "category": "BOOKS",
       "enchantment": "SOUL_SPEED",
       "enchantmentLevel": 3,
-      "professionXp": 219
+      "professionXp": 219,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:sweeping_edge_book",
@@ -4758,7 +4836,8 @@
       "category": "BOOKS",
       "enchantment": "SWEEPING_EDGE",
       "enchantmentLevel": 3,
-      "professionXp": 172
+      "professionXp": 172,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:swift_sneak_book",
@@ -4777,7 +4856,8 @@
       "category": "BOOKS",
       "enchantment": "SWIFT_SNEAK",
       "enchantmentLevel": 3,
-      "professionXp": 219
+      "professionXp": 219,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:thorns_book",
@@ -4796,7 +4876,8 @@
       "category": "BOOKS",
       "enchantment": "THORNS",
       "enchantmentLevel": 3,
-      "professionXp": 172
+      "professionXp": 172,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "scholar:unbreaking_book",
@@ -4815,7 +4896,8 @@
       "category": "BOOKS",
       "enchantment": "UNBREAKING",
       "enchantmentLevel": 3,
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:vanishing_curse_book",
@@ -4834,7 +4916,8 @@
       "category": "BOOKS",
       "enchantment": "VANISHING_CURSE",
       "enchantmentLevel": 1,
-      "professionXp": 149
+      "professionXp": 149,
+      "accessTier": "BASIC"
     },
     {
       "id": "scholar:wind_burst_book",
@@ -4853,7 +4936,8 @@
       "category": "BOOKS",
       "enchantment": "WIND_BURST",
       "enchantmentLevel": 3,
-      "professionXp": 237
+      "professionXp": 237,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "progression:weapons_iron_sword_common_3",
@@ -4872,7 +4956,8 @@
       "unlockedByDefault": true,
       "category": "WEAPONS",
       "resultItemId": "pixelrpg:weapons/iron_sword/common_3",
-      "professionXp": 27
+      "professionXp": 27,
+      "accessTier": "BASIC"
     },
     {
       "id": "progression:armor_copper_helmet_donnerwacht_10",
@@ -4890,7 +4975,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/copper_helmet/donnerwacht_10",
-      "professionXp": 82
+      "professionXp": 82,
+      "accessTier": "BASIC"
     },
     {
       "id": "progression:armor_copper_chestplate_donnerwacht_10",
@@ -4908,7 +4994,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/copper_chestplate/donnerwacht_10",
-      "professionXp": 82
+      "professionXp": 82,
+      "accessTier": "BASIC"
     },
     {
       "id": "progression:armor_copper_leggings_donnerwacht_10",
@@ -4926,7 +5013,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/copper_leggings/donnerwacht_10",
-      "professionXp": 82
+      "professionXp": 82,
+      "accessTier": "BASIC"
     },
     {
       "id": "progression:armor_copper_boots_donnerwacht_10",
@@ -4944,7 +5032,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/copper_boots/donnerwacht_10",
-      "professionXp": 72
+      "professionXp": 72,
+      "accessTier": "BASIC"
     },
     {
       "id": "progression:armor_chainmail_helmet_schattengeflecht_20",
@@ -4963,7 +5052,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/chainmail_helmet/schattengeflecht_20",
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "progression:armor_chainmail_chestplate_schattengeflecht_20",
@@ -4982,7 +5072,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/chainmail_chestplate/schattengeflecht_20",
-      "professionXp": 164
+      "professionXp": 164,
+      "accessTier": "BASIC"
     },
     {
       "id": "progression:armor_chainmail_leggings_schattengeflecht_20",
@@ -5001,7 +5092,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/chainmail_leggings/schattengeflecht_20",
-      "professionXp": 159
+      "professionXp": 159,
+      "accessTier": "BASIC"
     },
     {
       "id": "progression:armor_chainmail_boots_schattengeflecht_20",
@@ -5020,26 +5112,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/chainmail_boots/schattengeflecht_20",
-      "professionXp": 149
-    },
-    {
-      "id": "progression:weapons_gold_sword_uncommon_25",
-      "label": "Goldklinge",
-      "profession": "BLACKSMITH",
-      "result": "GOLDEN_SWORD",
-      "resultAmount": 1,
-      "costs": {
-        "GOLD_INGOT": 4,
-        "STICK": 1
-      },
-      "itemCosts": {},
-      "requiredProfessionLevel": 16,
-      "unlockPrice": 1600,
-      "rarity": "UNCOMMON",
-      "unlockedByDefault": false,
-      "category": "WEAPONS",
-      "resultItemId": "pixelrpg:weapons/gold_sword/uncommon_25",
-      "professionXp": 121
+      "professionXp": 149,
+      "accessTier": "BASIC"
     },
     {
       "id": "progression:armor_iron_helmet_stahlwall_30",
@@ -5057,7 +5131,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/iron_helmet/stahlwall_30",
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "progression:armor_iron_chestplate_stahlwall_30",
@@ -5075,7 +5150,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/iron_chestplate/stahlwall_30",
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "progression:armor_iron_leggings_stahlwall_30",
@@ -5093,7 +5169,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/iron_leggings/stahlwall_30",
-      "professionXp": 154
+      "professionXp": 154,
+      "accessTier": "BASIC"
     },
     {
       "id": "progression:armor_iron_boots_stahlwall_30",
@@ -5111,91 +5188,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/iron_boots/stahlwall_30",
-      "professionXp": 144
-    },
-    {
-      "id": "progression:armor_gold_helmet_sonnengewand_45",
-      "label": "Sonnengewand-Helm",
-      "profession": "TAILOR",
-      "result": "GOLDEN_HELMET",
-      "resultAmount": 1,
-      "costs": {
-        "GOLD_INGOT": 7,
-        "STRING": 2
-      },
-      "itemCosts": {
-        "pixelrpg:boss/goldenes_fossil": 1
-      },
-      "requiredProfessionLevel": 42,
-      "unlockPrice": 5000,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/gold_helmet/sonnengewand_45",
-      "professionXp": 307
-    },
-    {
-      "id": "progression:armor_gold_chestplate_sonnengewand_45",
-      "label": "Sonnengewand-Brustplatte",
-      "profession": "TAILOR",
-      "result": "GOLDEN_CHESTPLATE",
-      "resultAmount": 1,
-      "costs": {
-        "GOLD_INGOT": 8,
-        "STRING": 2
-      },
-      "itemCosts": {
-        "pixelrpg:boss/goldenes_fossil": 1
-      },
-      "requiredProfessionLevel": 42,
-      "unlockPrice": 5000,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/gold_chestplate/sonnengewand_45",
-      "professionXp": 312
-    },
-    {
-      "id": "progression:armor_gold_leggings_sonnengewand_45",
-      "label": "Sonnengewand-Beinschutz",
-      "profession": "TAILOR",
-      "result": "GOLDEN_LEGGINGS",
-      "resultAmount": 1,
-      "costs": {
-        "GOLD_INGOT": 8,
-        "STRING": 2
-      },
-      "itemCosts": {
-        "pixelrpg:boss/goldenes_fossil": 1
-      },
-      "requiredProfessionLevel": 42,
-      "unlockPrice": 5000,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/gold_leggings/sonnengewand_45",
-      "professionXp": 312
-    },
-    {
-      "id": "progression:armor_gold_boots_sonnengewand_45",
-      "label": "Sonnengewand-Stiefel",
-      "profession": "TAILOR",
-      "result": "GOLDEN_BOOTS",
-      "resultAmount": 1,
-      "costs": {
-        "GOLD_INGOT": 6,
-        "STRING": 2
-      },
-      "itemCosts": {
-        "pixelrpg:boss/goldenes_fossil": 1
-      },
-      "requiredProfessionLevel": 42,
-      "unlockPrice": 5000,
-      "rarity": "RARE",
-      "unlockedByDefault": false,
-      "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/gold_boots/sonnengewand_45",
-      "professionXp": 302
+      "professionXp": 144,
+      "accessTier": "BASIC"
     },
     {
       "id": "progression:weapons_diamond_sword_rare_40",
@@ -5214,7 +5208,8 @@
       "unlockedByDefault": false,
       "category": "WEAPONS",
       "resultItemId": "pixelrpg:weapons/diamond_sword/rare_40",
-      "professionXp": 170
+      "professionXp": 170,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "progression:armor_diamond_helmet_kristallwache_60",
@@ -5234,7 +5229,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/diamond_helmet/kristallwache_60",
-      "professionXp": 273
+      "professionXp": 273,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "progression:armor_diamond_chestplate_kristallwache_60",
@@ -5254,7 +5250,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/diamond_chestplate/kristallwache_60",
-      "professionXp": 278
+      "professionXp": 278,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "progression:armor_diamond_leggings_kristallwache_60",
@@ -5274,7 +5271,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/diamond_leggings/kristallwache_60",
-      "professionXp": 278
+      "professionXp": 278,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "progression:armor_diamond_boots_kristallwache_60",
@@ -5294,108 +5292,8 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "resultItemId": "pixelrpg:armor/diamond_boots/kristallwache_60",
-      "professionXp": 268
-    },
-    {
-      "id": "progression:armor_netherite_helmet_hoellenschmiede_80",
-      "label": "Höllenschmiede-Helm",
-      "profession": "BLACKSMITH",
-      "result": "NETHERITE_HELMET",
-      "resultAmount": 1,
-      "costs": {
-        "NETHERITE_INGOT": 7
-      },
-      "itemCosts": {
-        "pixelrpg:boss/netherkern": 1
-      },
-      "requiredProfessionLevel": 51,
-      "unlockPrice": 18000,
-      "rarity": "LEGENDARY",
-      "unlockedByDefault": false,
-      "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/netherite_helmet/hoellenschmiede_80",
-      "professionXp": 351
-    },
-    {
-      "id": "progression:armor_netherite_chestplate_hoellenschmiede_80",
-      "label": "Höllenschmiede-Brustplatte",
-      "profession": "BLACKSMITH",
-      "result": "NETHERITE_CHESTPLATE",
-      "resultAmount": 1,
-      "costs": {
-        "NETHERITE_INGOT": 8
-      },
-      "itemCosts": {
-        "pixelrpg:boss/netherkern": 1
-      },
-      "requiredProfessionLevel": 51,
-      "unlockPrice": 18000,
-      "rarity": "LEGENDARY",
-      "unlockedByDefault": false,
-      "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/netherite_chestplate/hoellenschmiede_80",
-      "professionXp": 356
-    },
-    {
-      "id": "progression:armor_netherite_leggings_hoellenschmiede_80",
-      "label": "Höllenschmiede-Beinschutz",
-      "profession": "BLACKSMITH",
-      "result": "NETHERITE_LEGGINGS",
-      "resultAmount": 1,
-      "costs": {
-        "NETHERITE_INGOT": 8
-      },
-      "itemCosts": {
-        "pixelrpg:boss/netherkern": 1
-      },
-      "requiredProfessionLevel": 51,
-      "unlockPrice": 18000,
-      "rarity": "LEGENDARY",
-      "unlockedByDefault": false,
-      "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/netherite_leggings/hoellenschmiede_80",
-      "professionXp": 356
-    },
-    {
-      "id": "progression:armor_netherite_boots_hoellenschmiede_80",
-      "label": "Höllenschmiede-Stiefel",
-      "profession": "BLACKSMITH",
-      "result": "NETHERITE_BOOTS",
-      "resultAmount": 1,
-      "costs": {
-        "NETHERITE_INGOT": 6
-      },
-      "itemCosts": {
-        "pixelrpg:boss/netherkern": 1
-      },
-      "requiredProfessionLevel": 51,
-      "unlockPrice": 18000,
-      "rarity": "LEGENDARY",
-      "unlockedByDefault": false,
-      "category": "ARMOR",
-      "resultItemId": "pixelrpg:armor/netherite_boots/hoellenschmiede_80",
-      "professionXp": 346
-    },
-    {
-      "id": "progression:weapons_netherite_sword_legendary_90",
-      "label": "Netheritklinge",
-      "profession": "BLACKSMITH",
-      "result": "NETHERITE_SWORD",
-      "resultAmount": 1,
-      "costs": {
-        "NETHERITE_INGOT": 4,
-        "STICK": 1
-      },
-      "itemCosts": {
-        "pixelrpg:boss/endriss": 1
-      },
-      "requiredProfessionLevel": 57,
-      "unlockPrice": 25000,
-      "rarity": "LEGENDARY",
-      "unlockedByDefault": false,
-      "category": "WEAPONS",
-      "resultItemId": "pixelrpg:weapons/netherite_sword/legendary_90",
-      "professionXp": 377
+      "professionXp": 268,
+      "accessTier": "NPC_ADVANCED"
     },
     {
       "id": "progression:weapons_fireball_alchemist_35",
@@ -5417,7 +5315,8 @@
       "unlockedByDefault": false,
       "category": "ARCANE",
       "resultItemId": "pixelrpg:weapons/fireball/alchemist_35",
-      "professionXp": 171
+      "professionXp": 171,
+      "accessTier": "NPC_ADVANCED"
     }
   ]
 }

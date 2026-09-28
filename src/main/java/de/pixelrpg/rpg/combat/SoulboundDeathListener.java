@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.combat;
 
 import de.pixelrpg.rpg.api.GuildAPI;
+import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.item.SoulboundService;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -23,6 +24,7 @@ public final class SoulboundDeathListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
+        if (!PixelRPGPlugin.getInstance().getConfig().getBoolean("items.soulbound.enabled", false)) return;
         if (!guildAPI.isRegistered(player.getUniqueId())) return;
 
         List<ItemStack> drops = event.getDrops();

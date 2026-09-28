@@ -127,13 +127,14 @@ public final class CraftingRecipeRegistry {
             String potionType = json.has("potionType") ? json.get("potionType").getAsString() : "";
             String enchantment = json.has("enchantment") ? json.get("enchantment").getAsString() : "";
             int enchantmentLevel = integerField(json, "enchantmentLevel", id, 0);
+            RecipeAccessTier accessTier = json.has("accessTier") ? enumValue(RecipeAccessTier.class, json, "accessTier", id) : RecipeAccessTier.BASIC;
             validateSpecialFields(id, result, potionType, enchantment, enchantmentLevel);
 
             if (!resultItemId.isBlank() && amount != 1) {
                 throw new IllegalStateException("PixelRPG item recipes must produce exactly one item: " + id);
             }
             recipes.put(id, new CraftRecipe(profession, category, id, label, result, amount, maximumRarity, costs, itemCosts,
-                    level, professionXp, price, quest, defaultUnlocked, resultItemId.isBlank(), resultItemId, potionType, enchantment, enchantmentLevel));
+                    level, professionXp, price, quest, defaultUnlocked, resultItemId.isBlank(), resultItemId, potionType, enchantment, enchantmentLevel, accessTier));
         }
     }
 

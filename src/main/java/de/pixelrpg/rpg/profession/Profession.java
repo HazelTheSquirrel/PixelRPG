@@ -33,4 +33,14 @@ public enum Profession {
     public String displayName() { return displayName; }
     public String description() { return description; }
     public Component displayComponent() { return Component.text(displayName, color); }
+
+    public ProfessionCategory category() {
+        return switch (this) {
+            case FARMER, FISHERMAN, WOODCUTTER, MOUNTAIN_MINER -> ProfessionCategory.GATHERING;
+            case BLACKSMITH, COOK, TAILOR, ALCHEMIST, MASON, SCHOLAR -> ProfessionCategory.MAIN;
+        };
+    }
+
+    public boolean isGathering() { return category() == ProfessionCategory.GATHERING; }
+    public boolean isMain() { return category() == ProfessionCategory.MAIN; }
 }

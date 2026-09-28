@@ -12,22 +12,28 @@ public record Guild(
         UUID deputyId,
         int memberCount,
         long treasuryMinorUnits,
-        UUID cityRegionId
+        UUID cityRegionId,
+        int cityLevel,
+        long cityUpgradeCooldownUntil,
+        KingdomCombatMode combatMode,
+        long combatModeChangeAt,
+        long combatModeCooldownUntil
 ) {
     public static final int MAX_MEMBERS = 50;
     public static final int CREATION_COST_GOLD = 2_500;
     public static final int MIN_CREATION_LEVEL = 20;
+    public static final int MAX_CITY_LEVEL = 10;
 
     public Guild(UUID id, String name, UUID leaderId, int memberCount) {
-        this(id, name, leaderId, null, memberCount, 0L, null);
+        this(id, name, leaderId, null, memberCount, 0L, null, 1, 0L, KingdomCombatMode.PVE, 0L, 0L);
     }
 
     public Guild(UUID id, String name, UUID leaderId, int memberCount, long treasuryMinorUnits) {
-        this(id, name, leaderId, null, memberCount, treasuryMinorUnits, null);
+        this(id, name, leaderId, null, memberCount, treasuryMinorUnits, null, 1, 0L, KingdomCombatMode.PVE, 0L, 0L);
     }
 
     public Guild(UUID id, String name, UUID leaderId, int memberCount, long treasuryMinorUnits, UUID cityRegionId) {
-        this(id, name, leaderId, null, memberCount, treasuryMinorUnits, cityRegionId);
+        this(id, name, leaderId, null, memberCount, treasuryMinorUnits, cityRegionId, 1, 0L, KingdomCombatMode.PVE, 0L, 0L);
     }
 
     public Guild {
@@ -57,5 +63,21 @@ public record Guild(
 
     public boolean canManageTerritory(UUID playerId) {
         return isLeader(playerId) || isDeputy(playerId);
+    }
+
+    public static double maxTerritoryArea(int level) {
+        return switch (Math.clamp(level, 1, MAX_CITY_LEVEL)) {
+            case 1 -> 1024.0D; case 2 -> 4096.0D; case 3 -> 9216.0D; case 4 -> 16384.0D; case 5 -> 25600.0D;
+            case 6 -> 36864.0D; case 7 -> 57600.0D; case 8 -> 82944.0D; case 9 -> 112896.0D; case 10 -> 147456.0D;
+            default -> 1024.0D;
+        };
+    }
+
+    public static String cityName(int level) {
+        return switch (Math.clamp(level, 1, MAX_CITY_LEVEL)) {
+            case 1 -> "Lager"; case 2 -> "Außenposten"; case 3 -> "Weiler"; case 4 -> "Dorf"; case 5 -> "Stadt";
+            case 6 -> "Großstadt"; case 7 -> "Regionalstadt"; case 8 -> "Provinzstadt"; case 9 -> "Residenzstadt"; case 10 -> "Metropole";
+            default -> "Lager";
+        };
     }
 }

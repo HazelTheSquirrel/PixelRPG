@@ -6,6 +6,7 @@ import de.pixelrpg.rpg.dialogue.QuickActionsDialogService;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
+import de.pixelrpg.rpg.npc.ProfessionNpcBuffService;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.profession.Profession;
@@ -28,18 +29,21 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
     private final ProfessionService professionService;
     private final DialogueEngine dialogueEngine;
     private final ProfessionDialog professionDialog;
+    private final ProfessionNpcBuffService buffService;
 
     public ProfessionTrainerBehavior(NpcType type, Profession profession,
                                      PlayerProfileManager profileManager,
                                      ProfessionService professionService,
                                      DialogueEngine dialogueEngine,
-                                     QuickActionsDialogService quickActions) {
+                                     QuickActionsDialogService quickActions,
+                                     ProfessionNpcBuffService buffService) {
         this.type = type;
         this.profession = profession;
         this.profileManager = profileManager;
         this.professionService = professionService;
         this.dialogueEngine = dialogueEngine;
         this.professionDialog = new ProfessionDialog(profileManager, dialogueEngine, quickActions, quickActions.questManager());
+        this.buffService = buffService;
     }
 
     @Override
@@ -53,6 +57,7 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
     @Override
     public void onInteract(Player player, RPGNpc npc, Consumer<Player> backAction) {
 
+        buffService.grant(player, npc);
         if (!profileManager.isRegistered(player.getUniqueId())) {
             dialogueEngine.openUnavailable(player, profession.displayName(), "Du musst zuerst Rathausmitglied sein.");
             return;
@@ -60,6 +65,18 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
         PlayerProfile profile = profileManager.getProfile(player.getUniqueId()).orElse(null);
         if (profile == null) return;
         if (profile.hasLearnedProfession(profession)) {
+            if (profession.isMain() && profession != profile.getMainProfession()) {
+                List<DialogBody> body = new ArrayList<>();
+                body.add(DialogBody.plainMessage(Component.text("Dein aktueller Hauptberuf: " + (profile.getMainProfession() == null ? "keiner" : profile.getMainProfession().displayName()), NamedTextColor.GRAY)));
+                body.add(DialogBody.plainMessage(Component.text("Ein Wechsel setzt diesen Hauptberuf auf Level 1 zurück.", NamedTextColor.YELLOW)));
+                List<ActionButton> actions = new ArrayList<>();
+                actions.add(dialogueEngine.actionButton(Component.text("Hauptberuf wechseln"), NamedTextColor.GREEN, target -> {
+                    if (professionService.learn(target, profession)) professionDialog.openProfession(target, profession, backAction);
+                }));
+                actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, backAction));
+                dialogueEngine.openMultiAction(player, Component.text(profession.displayName(), NamedTextColor.GOLD), body, actions, 1);
+                return;
+            }
             professionDialog.openProfession(player, profession, backAction);
             return;
         }

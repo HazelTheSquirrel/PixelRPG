@@ -24,7 +24,8 @@ public record CraftRecipe(
         String resultItemId,
         String potionType,
         String enchantment,
-        int enchantmentLevel
+        int enchantmentLevel,
+        RecipeAccessTier accessTier
 ) {
     public CraftRecipe {
         if (profession == null) throw new IllegalArgumentException("Profession must not be null");
@@ -51,6 +52,7 @@ public record CraftRecipe(
         if (potionType == null) potionType = "";
         if (enchantment == null) enchantment = "";
         if (enchantmentLevel < 0) throw new IllegalArgumentException("Enchantment level must not be negative");
+        if (accessTier == null) throw new IllegalArgumentException("Recipe access tier must not be null");
         costs = Map.copyOf(costs);
         itemCosts = Map.copyOf(itemCosts);
     }

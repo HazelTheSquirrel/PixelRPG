@@ -14,6 +14,7 @@ storage:
 
 items:
   soulbound:
+    enabled: false
     cost: 200.0
     min-level: 30
   loot:
@@ -21,6 +22,17 @@ items:
     currency-drop-chance: 0.20
     currency-drop-min-amount: 1
     currency-drop-max-amount: 8
+
+profession-xp:
+  gathering:
+    farmer: 8
+    fisherman: 12
+    woodcutter: 8
+    mountain-miner:
+      default: 8
+      common: 12
+      valuable: 20
+      rare: 35
 
 economy:
   guild-territory:
@@ -43,11 +55,7 @@ mob-scaling:
   xp-per-max-health: 4.0
   damage-per-level: 0.15
   hp-per-level: 2.5
-  player-parity-multiplier: 1.05
-  dimension:
-    overworld: { hp-multiplier: 1.0, damage-multiplier: 1.0, level-offset: 0, base-level: 1 }
-    nether: { hp-multiplier: 1.15, damage-multiplier: 1.10, level-offset: 0, base-level: 50 }
-    the-end: { hp-multiplier: 1.30, damage-multiplier: 1.20, level-offset: 0, base-level: 75 }
+  player-parity-multiplier: 1.00
 
 npc:
   look-radius: 5.0
@@ -72,3 +80,126 @@ statistics:
 
 scoreboard:
   update-interval-ticks: 20
+
+kingdom:
+  city-levels:
+    1:
+      gold: 0
+      cooldown-hours: 24
+      materials: {}
+    2:
+      gold: 5000
+      cooldown-hours: 24
+      materials: { STONE: 256, OAK_LOG: 128 }
+    3:
+      gold: 10000
+      cooldown-hours: 48
+      materials: { STONE: 512, OAK_LOG: 256, WHEAT: 128 }
+    4:
+      gold: 20000
+      cooldown-hours: 72
+      materials: { COBBLESTONE: 1024, OAK_LOG: 512, IRON_INGOT: 128, WHEAT: 256 }
+    5:
+      gold: 35000
+      cooldown-hours: 96
+      materials: { STONE_BRICKS: 1024, IRON_INGOT: 256, GLASS: 256, BREAD: 128 }
+      objectives: { members: 3 }
+    6:
+      gold: 50000
+      cooldown-hours: 120
+      materials: { STONE_BRICKS: 2048, IRON_INGOT: 512, OAK_LOG: 1024 }
+    7:
+      gold: 70000
+      cooldown-hours: 144
+      materials: { STONE_BRICKS: 3072, IRON_INGOT: 768, DIAMOND: 32 }
+    8:
+      gold: 90000
+      cooldown-hours: 168
+      materials: { STONE_BRICKS: 4096, IRON_INGOT: 1024, DIAMOND: 64 }
+    9:
+      gold: 120000
+      cooldown-hours: 168
+      materials: { STONE_BRICKS: 6144, IRON_INGOT: 1536, DIAMOND: 96 }
+    10:
+      gold: 160000
+      cooldown-hours: 168
+      materials: { STONE_BRICKS: 8192, IRON_INGOT: 2048, DIAMOND: 128 }
+      objectives: { members: 10 }
+  maintenance:
+    amount: 16
+    materials: { WHEAT: 16 }
+  combat-mode:
+    switch-delay-seconds: 300
+    cooldown-seconds: 1800
+  profession-npc:
+    ranks:
+      JOURNEYMAN: { gold: 1000, materials: { IRON_INGOT: 32 } }
+      EXPERT: { gold: 3000, materials: { IRON_INGOT: 64, GOLD_INGOT: 16 } }
+      MASTER: { gold: 7500, materials: { DIAMOND: 8, IRON_INGOT: 128 } }
+      GRANDMASTER: { gold: 20000, materials: { DIAMOND: 32, EMERALD: 32 } }
+    requirements:
+      FARMER:
+        JOURNEYMAN: { gold: 800, materials: { WHEAT: 128 } }
+        EXPERT: { gold: 2500, materials: { CARROT: 256, POTATO: 256 } }
+        MASTER: { gold: 6000, materials: { HAY_BLOCK: 256, WHEAT: 512 } }
+        GRANDMASTER: { gold: 15000, materials: { GOLDEN_CARROT: 64, HAY_BLOCK: 512 } }
+      FISHERMAN:
+        JOURNEYMAN: { gold: 800, materials: { COD: 128 } }
+        EXPERT: { gold: 2500, materials: { SALMON: 128, TROPICAL_FISH: 32 } }
+        MASTER: { gold: 6000, materials: { PUFFERFISH: 64, COD: 512 } }
+        GRANDMASTER: { gold: 15000, materials: { TROPICAL_FISH: 128, PUFFERFISH: 128 } }
+      WOODCUTTER:
+        JOURNEYMAN: { gold: 800, materials: { OAK_LOG: 256 } }
+        EXPERT: { gold: 2500, materials: { SPRUCE_LOG: 256, BIRCH_LOG: 256 } }
+        MASTER: { gold: 6000, materials: { DARK_OAK_LOG: 512, OAK_LOG: 512 } }
+        GRANDMASTER: { gold: 15000, materials: { CHERRY_LOG: 512, DARK_OAK_LOG: 512 } }
+      MOUNTAIN_MINER:
+        JOURNEYMAN: { gold: 1000, materials: { COPPER_INGOT: 128 } }
+        EXPERT: { gold: 3000, materials: { IRON_INGOT: 256, COAL: 512 } }
+        MASTER: { gold: 7500, materials: { GOLD_INGOT: 128, IRON_INGOT: 512 } }
+        GRANDMASTER: { gold: 20000, materials: { DIAMOND: 32, EMERALD: 32, GOLD_INGOT: 256 } }
+      BLACKSMITH:
+        JOURNEYMAN: { gold: 1000, materials: { COPPER_INGOT: 128, IRON_INGOT: 64 } }
+        EXPERT: { gold: 3000, materials: { IRON_INGOT: 256, ANVIL: 1 } }
+        MASTER: { gold: 7500, materials: { DIAMOND: 16, IRON_BLOCK: 32 } }
+        GRANDMASTER: { gold: 20000, materials: { DIAMOND: 64, NETHERITE_SCRAP: 32 } }
+      COOK:
+        JOURNEYMAN: { gold: 800, materials: { WHEAT: 128, COOKED_BEEF: 64 } }
+        EXPERT: { gold: 2500, materials: { GOLDEN_CARROT: 64, CAKE: 8 } }
+        MASTER: { gold: 6000, materials: { HONEY_BOTTLE: 32, COOKED_BEEF: 256 } }
+        GRANDMASTER: { gold: 15000, materials: { GOLDEN_CARROT: 128, CAKE: 32 } }
+      TAILOR:
+        JOURNEYMAN: { gold: 1000, materials: { LEATHER: 128, STRING: 128 } }
+        EXPERT: { gold: 3000, materials: { LEATHER: 256, WHITE_WOOL: 256 } }
+        MASTER: { gold: 7500, materials: { LEATHER: 512, GOLD_INGOT: 64 } }
+        GRANDMASTER: { gold: 20000, materials: { LEATHER: 1024, DIAMOND: 16 } }
+      ALCHEMIST:
+        JOURNEYMAN: { gold: 1000, materials: { GLASS_BOTTLE: 128, NETHER_WART: 64 } }
+        EXPERT: { gold: 3000, materials: { BLAZE_POWDER: 64, GLOWSTONE_DUST: 128 } }
+        MASTER: { gold: 7500, materials: { FERMENTED_SPIDER_EYE: 32, GHAST_TEAR: 16 } }
+        GRANDMASTER: { gold: 20000, materials: { DRAGON_BREATH: 8, GHAST_TEAR: 32 } }
+      MASON:
+        JOURNEYMAN: { gold: 800, materials: { STONE: 512, COBBLESTONE: 512 } }
+        EXPERT: { gold: 2500, materials: { STONE_BRICKS: 512, DEEPSLATE: 512 } }
+        MASTER: { gold: 6000, materials: { QUARTZ_BLOCK: 256, PRISMARINE: 256 } }
+        GRANDMASTER: { gold: 15000, materials: { QUARTZ_BLOCK: 512, DIAMOND: 16 } }
+      SCHOLAR:
+        JOURNEYMAN: { gold: 1000, materials: { BOOK: 64, PAPER: 256 } }
+        EXPERT: { gold: 3000, materials: { ENCHANTED_BOOK: 8, LAPIS_LAZULI: 128 } }
+        MASTER: { gold: 7500, materials: { BOOKSHELF: 64, AMETHYST_SHARD: 128 } }
+        GRANDMASTER: { gold: 20000, materials: { ENCHANTED_BOOK: 16, DIAMOND: 16 } }
+  profession-buffs:
+    FARMER: { cooldown-seconds: 300, duration-seconds: 90, amplifier-by-rank: { APPRENTICE: 0, JOURNEYMAN: 0, EXPERT: 1, MASTER: 1, GRANDMASTER: 2 } }
+    FISHERMAN: { cooldown-seconds: 300, duration-seconds: 90, amplifier-by-rank: { APPRENTICE: 0, JOURNEYMAN: 0, EXPERT: 1, MASTER: 1, GRANDMASTER: 2 } }
+    WOODCUTTER: { cooldown-seconds: 300, duration-seconds: 90, amplifier-by-rank: { APPRENTICE: 0, JOURNEYMAN: 0, EXPERT: 1, MASTER: 1, GRANDMASTER: 2 } }
+    MOUNTAIN_MINER: { cooldown-seconds: 300, duration-seconds: 90, amplifier-by-rank: { APPRENTICE: 0, JOURNEYMAN: 0, EXPERT: 1, MASTER: 1, GRANDMASTER: 2 } }
+    BLACKSMITH: { cooldown-seconds: 300, duration-seconds: 60, amplifier-by-rank: { APPRENTICE: 0, JOURNEYMAN: 0, EXPERT: 1, MASTER: 1, GRANDMASTER: 2 } }
+    COOK: { cooldown-seconds: 300, duration-seconds: 60, amplifier-by-rank: { APPRENTICE: 0, JOURNEYMAN: 0, EXPERT: 1, MASTER: 1, GRANDMASTER: 2 } }
+    TAILOR: { cooldown-seconds: 300, duration-seconds: 60, amplifier-by-rank: { APPRENTICE: 0, JOURNEYMAN: 0, EXPERT: 1, MASTER: 1, GRANDMASTER: 2 } }
+    ALCHEMIST: { cooldown-seconds: 300, duration-seconds: 60, amplifier-by-rank: { APPRENTICE: 0, JOURNEYMAN: 0, EXPERT: 1, MASTER: 1, GRANDMASTER: 2 } }
+    MASON: { cooldown-seconds: 300, duration-seconds: 60, amplifier-by-rank: { APPRENTICE: 0, JOURNEYMAN: 0, EXPERT: 1, MASTER: 1, GRANDMASTER: 2 } }
+    SCHOLAR: { cooldown-seconds: 300, duration-seconds: 60, amplifier-by-rank: { APPRENTICE: 0, JOURNEYMAN: 0, EXPERT: 1, MASTER: 1, GRANDMASTER: 2 } }
+  grandmaster:
+    main-profession-global-cap: 2
+  combat-tag:
+    duration-seconds: 5

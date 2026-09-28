@@ -21,7 +21,7 @@ import java.util.UUID;
 
 /** Tracks combat state with indexed deadlines and bounded expiry entries per player. */
 public final class CombatStateService implements Listener {
-    private static final long COMBAT_TIMEOUT_MILLIS = 5_000L;
+    private final long combatTimeoutMillis;
 
     private final Map<UUID, Long> combatUntil = new HashMap<>();
     private final Map<UUID, CombatExpiry> expiriesByPlayer = new HashMap<>();
@@ -29,6 +29,7 @@ public final class CombatStateService implements Listener {
     private final BukkitTask cleanupTask;
 
     public CombatStateService(Plugin plugin) {
+        combatTimeoutMillis = Math.max(1L, plugin.getConfig().getLong("kingdom.combat-tag.duration-seconds", 5L)) * 1000L;
         Bukkit.getPluginManager().registerEvents(this, plugin);
         this.cleanupTask = Bukkit.getScheduler().runTaskTimer(plugin, this::cleanup, 20L, 20L);
     }
@@ -38,14 +39,15 @@ public final class CombatStateService implements Listener {
     public void onCombatDamage(EntityDamageByEntityEvent event) {
         Player attacker = resolvePlayer(event.getDamager());
         Player target = event.getEntity() instanceof Player player ? player : null;
-        if (attacker != null) enter(attacker);
-        if (target != null) enter(target);
+        if (attacker == null || target == null) return;
+        enter(attacker);
+        enter(target);
     }
 
     // Zuständig für die sofortige Bereinigung des Combat State beim Logout.
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
-        exit(event.getPlayer());
+        // Keep the combat deadline across disconnects so logout cannot instantly bypass a kingdom mode transition.
     }
 
     public boolean isInCombat(UUID uuid) {
@@ -57,7 +59,7 @@ public final class CombatStateService implements Listener {
         if (player == null) return;
         UUID uuid = player.getUniqueId();
         boolean wasInCombat = isInCombat(uuid);
-        long expiry = System.currentTimeMillis() + COMBAT_TIMEOUT_MILLIS;
+        long expiry = System.currentTimeMillis() + combatTimeoutMillis;
         combatUntil.put(uuid, expiry);
 
         CombatExpiry previous = expiriesByPlayer.put(uuid, new CombatExpiry(uuid, expiry));

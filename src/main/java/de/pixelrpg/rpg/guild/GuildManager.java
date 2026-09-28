@@ -102,6 +102,7 @@ public final class GuildManager implements GuildAPI {
         if (!profile.removeMoney(CREATION_COST_GOLD)) return Result.INSUFFICIENT_GOLD;
         UUID id = UUID.randomUUID();
         GuildData guild = new GuildData(id, normalized, player.getUniqueId(), new LinkedHashSet<>(Set.of(player.getUniqueId())));
+        guild.cityUpgradeCooldownUntil = System.currentTimeMillis() + 24L * 3_600_000L;
         guilds.put(id, guild);
         memberGuilds.put(player.getUniqueId(), id);
         profiles.saveProfileAsync(player.getUniqueId());
@@ -178,6 +179,61 @@ public final class GuildManager implements GuildAPI {
         invitations.remove(playerId);
     }
 
+    public synchronized void advanceCityLevel(UUID guildId, int newLevel, long cooldownUntil) {
+        GuildData guild = guilds.get(guildId); if (guild == null) return;
+        guild.cityLevel = Math.clamp(newLevel, 1, Guild.MAX_CITY_LEVEL); guild.cityUpgradeCooldownUntil = Math.max(0L, cooldownUntil); save();
+    }
+
+    public synchronized void setCityUpgradeCooldown(UUID guildId, long cooldownUntil) { GuildData g=guilds.get(guildId); if(g!=null){g.cityUpgradeCooldownUntil=Math.max(0L,cooldownUntil);save();} }
+
+    public synchronized Result requestCombatMode(Player requester, KingdomCombatMode targetMode) {
+        if (requester == null || targetMode == null) return Result.NOT_IN_GUILD;
+        GuildData guild = guilds.get(memberGuilds.get(requester.getUniqueId()));
+        if (guild == null) return Result.NOT_IN_GUILD;
+        if (!guild.canManageTerritory(requester.getUniqueId())) return Result.NOT_LEADER;
+        if (guild.combatMode == targetMode) return Result.COMBAT_MODE_ALREADY_ACTIVE;
+        long now = System.currentTimeMillis();
+        if (guild.combatModeChangeAt > now) return Result.COMBAT_MODE_PENDING;
+        if (guild.combatModeCooldownUntil > now) return Result.COMBAT_MODE_COOLDOWN;
+        long delay = Math.max(1L, plugin.getConfig().getLong("kingdom.combat-mode.switch-delay-seconds", 300L));
+        long cooldown = Math.max(1L, plugin.getConfig().getLong("kingdom.combat-mode.cooldown-seconds", 1800L));
+        guild.combatModeChangeAt = now + delay * 1000L;
+        save();
+        notifyGuild(guild, Component.text("Königreich „" + guild.name + "“ wechselt in " + delay + " Sekunden auf " + targetMode.name() + ".", NamedTextColor.YELLOW));
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            synchronized (GuildManager.this) {
+                GuildData current = guilds.get(guild.id);
+                if (current == null) return;
+                long currentNow = System.currentTimeMillis();
+                if (currentNow < current.combatModeChangeAt) return;
+                var combat = plugin.getCombatStateService();
+                boolean blocked = combat != null && current.members().stream().anyMatch(combat::isInCombat);
+                if (blocked) {
+                    current.combatModeChangeAt = 0L;
+                    save();
+                    notifyGuild(current, Component.text("Der PvP/PvE-Wechsel wurde abgebrochen, weil sich ein Mitglied noch im aktiven Kampf befindet.", NamedTextColor.RED));
+                    return;
+                }
+                current.combatMode = targetMode;
+                current.combatModeChangeAt = 0L;
+                current.combatModeCooldownUntil = currentNow + cooldown * 1000L;
+                save();
+                notifyGuild(current, Component.text("Königreich „" + current.name + "“ ist jetzt " + targetMode.name() + ".", NamedTextColor.GREEN));
+            }
+        }, delay * 20L);
+        return Result.SUCCESS;
+    }
+
+    public synchronized KingdomCombatMode effectiveCombatMode(UUID guildId) {
+        GuildData guild = guilds.get(guildId);
+        return guild == null ? KingdomCombatMode.PVE : guild.combatMode;
+    }
+
+    private void notifyGuild(GuildData guild, Component message) {
+        guild.members().stream().map(Bukkit::getPlayer).filter(Objects::nonNull).forEach(player -> player.sendMessage(message));
+    }
+
+    public synchronized void setCombatMode(UUID guildId, KingdomCombatMode mode, long changeAt, long cooldownUntil) { GuildData g=guilds.get(guildId); if(g!=null){g.combatMode=Objects.requireNonNull(mode);g.combatModeChangeAt=Math.max(0L,changeAt);g.combatModeCooldownUntil=Math.max(0L,cooldownUntil);save();} }
     public synchronized Optional<Guild> getGuildById(UUID guildId) {
         GuildData guild = guilds.get(guildId);
         return guild == null ? Optional.empty() : Optional.of(guild.snapshot());
@@ -341,6 +397,8 @@ public final class GuildManager implements GuildAPI {
         guild.cityRegionId = null;
     }
 
+    public synchronized java.util.Collection<Guild> allGuilds() { return guilds.values().stream().map(GuildData::snapshot).toList(); }
+
     public synchronized Set<UUID> getMembers(UUID guildId) {
         GuildData guild = guilds.get(guildId);
         return guild == null ? Set.of() : Set.copyOf(guild.members());
@@ -414,6 +472,11 @@ public final class GuildManager implements GuildAPI {
                 }
                 if (guild.deputyId != null && (!members.contains(guild.deputyId) || guild.deputyId.equals(leader))) guild.deputyId = null;
                 guild.treasuryMinorUnits = Money.fromMajor(section.getDouble(idText + ".treasury", 0.0D));
+                guild.cityLevel = Math.clamp(section.getInt(idText + ".city-level", 1), 1, Guild.MAX_CITY_LEVEL);
+                guild.cityUpgradeCooldownUntil = Math.max(0L, section.getLong(idText + ".city-upgrade-cooldown-until", 0L));
+                try { guild.combatMode = KingdomCombatMode.valueOf(section.getString(idText + ".combat-mode", "PVE").toUpperCase(Locale.ROOT)); } catch (IllegalArgumentException ignored) { guild.combatMode = KingdomCombatMode.PVE; }
+                guild.combatModeChangeAt = Math.max(0L, section.getLong(idText + ".combat-mode-change-at", 0L));
+                guild.combatModeCooldownUntil = Math.max(0L, section.getLong(idText + ".combat-mode-cooldown-until", 0L));
                 String cityRegion = section.getString(idText + ".city-region");
                 if (cityRegion != null) { try { guild.cityRegionId = UUID.fromString(cityRegion); } catch (IllegalArgumentException ignored) { guild.cityRegionId = null; } }
                 guilds.put(id, guild);
@@ -460,6 +523,11 @@ public final class GuildManager implements GuildAPI {
             snapshot.set(path + ".members", guild.members().stream().map(UUID::toString).toList());
             snapshot.set(path + ".treasury", Money.toMajor(guild.treasuryMinorUnits()));
             if (guild.cityRegionId != null) snapshot.set(path + ".city-region", guild.cityRegionId.toString());
+            snapshot.set(path + ".city-level", guild.cityLevel);
+            snapshot.set(path + ".city-upgrade-cooldown-until", guild.cityUpgradeCooldownUntil);
+            snapshot.set(path + ".combat-mode", guild.combatMode.name());
+            snapshot.set(path + ".combat-mode-change-at", guild.combatModeChangeAt);
+            snapshot.set(path + ".combat-mode-cooldown-until", guild.combatModeCooldownUntil);
         }
         return snapshot;
     }
@@ -505,7 +573,7 @@ public final class GuildManager implements GuildAPI {
     public enum Result {
         SUCCESS, NOT_REGISTERED, ALREADY_IN_GUILD, LEVEL_TOO_LOW, INVALID_NAME, NAME_TAKEN, INSUFFICIENT_GOLD,
         NOT_IN_GUILD, NOT_LEADER, GUILD_FULL, TARGET_ALREADY_IN_GUILD, TARGET_NOT_MEMBER, INVALID_DEPUTY, NO_DEPUTY, NO_INVITATION, GUILD_NOT_FOUND,
-        LEADER_CANNOT_LEAVE, TREASURY_NOT_EMPTY, CITY_ALREADY_CLAIMED, CITY_REGION_NOT_FOUND, NOT_GUILD_CITY, CITY_OWNED, NO_CITY
+        LEADER_CANNOT_LEAVE, TREASURY_NOT_EMPTY, CITY_ALREADY_CLAIMED, CITY_REGION_NOT_FOUND, NOT_GUILD_CITY, CITY_OWNED, NO_CITY, COMBAT_MODE_ALREADY_ACTIVE, COMBAT_MODE_PENDING, COMBAT_MODE_COOLDOWN
     }
 
     private record Invitation(UUID guildId, long createdAt) { }
@@ -518,6 +586,11 @@ public final class GuildManager implements GuildAPI {
         private final LinkedHashSet<UUID> members;
         private long treasuryMinorUnits;
         private UUID cityRegionId;
+        private int cityLevel;
+        private long cityUpgradeCooldownUntil;
+        private KingdomCombatMode combatMode;
+        private long combatModeChangeAt;
+        private long combatModeCooldownUntil;
 
         private GuildData(UUID id, String name, UUID leaderId, LinkedHashSet<UUID> members) {
             this.id = id;
@@ -527,13 +600,18 @@ public final class GuildManager implements GuildAPI {
             this.members = members;
             this.treasuryMinorUnits = 0L;
             this.cityRegionId = null;
+            this.cityLevel = 1;
+            this.cityUpgradeCooldownUntil = 0L;
+            this.combatMode = KingdomCombatMode.PVE;
+            this.combatModeChangeAt = 0L;
+            this.combatModeCooldownUntil = 0L;
         }
 
         private UUID id() { return id; }
         private String name() { return name; }
         private UUID leaderId() { return leaderId; }
         private LinkedHashSet<UUID> members() { return members; }
-        private Guild snapshot() { return new Guild(id, name, leaderId, deputyId, members.size(), treasuryMinorUnits, cityRegionId); }
+        private Guild snapshot() { return new Guild(id, name, leaderId, deputyId, members.size(), treasuryMinorUnits, cityRegionId, cityLevel, cityUpgradeCooldownUntil, combatMode, combatModeChangeAt, combatModeCooldownUntil); }
         private long treasuryMinorUnits() { return treasuryMinorUnits; }
         private void addTreasury(long amount) { treasuryMinorUnits = amount > Long.MAX_VALUE - treasuryMinorUnits ? Long.MAX_VALUE : treasuryMinorUnits + amount; }
         private void removeTreasury(long amount) { treasuryMinorUnits -= amount; }

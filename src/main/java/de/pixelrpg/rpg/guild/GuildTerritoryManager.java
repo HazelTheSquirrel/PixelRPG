@@ -377,6 +377,10 @@ public final class GuildTerritoryManager {
                 .map(marker -> new RegionPoint(marker.x() + 0.5D, marker.z() + 0.5D))
                 .toList());
         if (!validation.valid()) return OperationResult.failure(validation.error());
+        Guild guild = guilds.getGuildById(guildId).orElse(null);
+        if (guild == null) return OperationResult.failure("Das Königreich existiert nicht mehr.");
+        double maxArea = Guild.maxTerritoryArea(guild.cityLevel());
+        if (validation.geometry().area() > maxArea + EPSILON) return OperationResult.failure("Das Gebiet überschreitet die für Stadtlevel " + guild.cityLevel() + " erlaubte Fläche von " + (long) maxArea + " Blöcken².");
 
         for (PixelRegion region : regions.all()) {
             if (currentRegionId != null && region.id().equals(currentRegionId)) continue;

@@ -38,6 +38,8 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.weather.LightningStrikeEvent;
 
 import java.util.Objects;
+import de.pixelrpg.rpg.guild.GuildManager;
+import de.pixelrpg.rpg.combat.CombatStateService;
 
 /** Thin Paper adapter for region editor input, policy decisions and transitions. */
 public final class RegionListener implements Listener {
@@ -46,11 +48,11 @@ public final class RegionListener implements Listener {
     private final RegionPolicyService policy;
     private final RegionTransitionService transitions;
 
-    public RegionListener(RegionManager regions, RegionEditor editor, RegionSpawnService spawnService) {
+    public RegionListener(RegionManager regions, RegionEditor editor, RegionSpawnService spawnService, GuildManager guilds, CombatStateService combatStateService) {
         this.regions = Objects.requireNonNull(regions);
         this.editor = Objects.requireNonNull(editor);
-        this.policy = new RegionPolicyService(regions, spawnService);
-        this.transitions = new RegionTransitionService(regions);
+        this.policy = new RegionPolicyService(regions, spawnService, guilds);
+        this.transitions = new RegionTransitionService(regions, guilds);
     }
 
     /** Handles admin clicks with the temporary polygon creation tool. */

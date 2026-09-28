@@ -12,7 +12,7 @@ import java.util.Locale;
 import javax.sql.DataSource;
 
 public final class DatabaseManager {
-    private static final int CURRENT_SCHEMA_VERSION = 3;
+    private static final int CURRENT_SCHEMA_VERSION = 4;
     private HikariDataSource dataSource;
 
     public void connect(FileConfiguration config) {
@@ -66,7 +66,8 @@ public final class DatabaseManager {
                     scoreboard_enabled BOOLEAN NOT NULL DEFAULT FALSE,
                     party_hud_enabled BOOLEAN NOT NULL DEFAULT FALSE,
                     playtime_millis BIGINT NOT NULL DEFAULT 0,
-                    persistence_revision BIGINT NOT NULL DEFAULT 0
+                    persistence_revision BIGINT NOT NULL DEFAULT 0,
+                    main_profession VARCHAR(32) NULL
                 )
                 """;
         String activeQuestsSql = "CREATE TABLE IF NOT EXISTS pixelrpg_active_quests (uuid CHAR(36) NOT NULL, quest_id VARCHAR(64) NOT NULL, amount INT NOT NULL DEFAULT 0, expiry BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (uuid, quest_id))";
@@ -99,6 +100,13 @@ public final class DatabaseManager {
         if (version < 3) {
             writeSchemaVersion(connection, 3);
             version = 3;
+        }
+        if (version < 4) {
+            if (!hasColumn(connection, "pixelrpg_players", "main_profession")) try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate("ALTER TABLE pixelrpg_players ADD COLUMN main_profession VARCHAR(32) NULL");
+            }
+            writeSchemaVersion(connection, 4);
+            version = 4;
         }
         if (version != CURRENT_SCHEMA_VERSION) {
             throw new SQLException("Unsupported PixelRPG schema version: " + version + ", expected " + CURRENT_SCHEMA_VERSION);

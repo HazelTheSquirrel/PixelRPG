@@ -6,6 +6,7 @@ import de.pixelrpg.rpg.command.impl.CompanionSubCommand;
 import de.pixelrpg.rpg.command.impl.DebugSubCommand;
 import de.pixelrpg.rpg.command.impl.GuildSubCommand;
 import de.pixelrpg.rpg.command.impl.ItemSubCommand;
+import de.pixelrpg.rpg.command.impl.KingdomAdminSubCommand;
 import de.pixelrpg.rpg.command.impl.NpcSubCommand;
 import de.pixelrpg.rpg.command.impl.PartySubCommand;
 import de.pixelrpg.rpg.command.impl.PlayerAdminSubCommand;
@@ -40,7 +41,8 @@ public final class RootCommand implements CommandExecutor, TabCompleter {
         register(new PartySubCommand(plugin.getPartyManager(), plugin.getPlayerProfileManager(), plugin.getInviteDialogService()));
         register(new QuestLogCommand(plugin.getQuestManager(), plugin.getPlayerProfileManager()));
         register(new DialogueSubCommandAdapter(plugin.getPlayerProfileManager()));
-        register(new GuildSubCommand(GuildManager.getInstance(plugin, plugin.getPlayerProfileManager())));
+        register(new GuildSubCommand(GuildManager.getInstance(plugin, plugin.getPlayerProfileManager()), plugin.getCityProgressionService()));
+        register(new KingdomAdminSubCommand(GuildManager.getInstance(plugin, plugin.getPlayerProfileManager()), plugin.getKingdomMaintenanceService(), plugin.getProfessionNpcProgressionService()));
         register(new TradeSubCommand(plugin.getPlayerTradeManager()));
     }
 

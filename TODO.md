@@ -1,8 +1,10 @@
 # PixelRPG — Season 1 Development TODO
 
-> **Branch:** `test`  
+> **Branch:** `Rebuild`  
 > **Purpose:** Single hand-off checklist for Season 1 development.  
 > Keep this file updated when a task is completed, changed or intentionally deferred.
+
+> **Rebuild implementation note:** P0/P1 core systems and deterministic Season-1 content are implemented. Live economy/progression tuning, boss-material balancing and restart-test execution remain intentionally data/telemetry validation work and are not marked complete without runtime evidence. The cooldown table itself sums to 36 days, although the original checklist states 33 days; the table is retained as authoritative.
 
 ## Fixed Season 1 design rules
 
@@ -31,10 +33,10 @@
 ## M1 — Kingdom / City progression
 
 ### City levels
-- [ ] Add persistent `cityLevel` (1–10) to guild/kingdom data.
-- [ ] Implement the city progression service/state.
-- [ ] Add commands/UI needed to view current city level and current upgrade progress.
-- [ ] Ensure migration/default for existing guilds = city level 1.
+- [x] Add persistent `cityLevel` (1–10) to guild/kingdom data.
+- [x] Implement the city progression service/state.
+- [x] Add commands/UI needed to view current city level and current upgrade progress.
+- [x] Ensure migration/default for existing guilds = city level 1.
 
 City names:
 
@@ -52,17 +54,17 @@ City names:
 | 10 | Metropole |
 
 ### Hidden next-upgrade requirements
-- [ ] Define Season 1 city-upgrade requirements in configuration/data files rather than hard-coding them in Java.
-- [ ] Only expose the requirements for the **immediately next** city level.
-- [ ] Do not send/reveal later-level requirements through normal player-facing APIs/UI.
-- [ ] Reveal level N+1 requirements only after level N is reached.
-- [ ] Support resource/money/other objective progress for the current upgrade.
-- [ ] Keep the format reusable so Season 2 can use different requirements without rewriting the system.
+- [x] Define Season 1 city-upgrade requirements in configuration/data files rather than hard-coding them in Java.
+- [x] Only expose the requirements for the **immediately next** city level.
+- [x] Do not send/reveal later-level requirements through normal player-facing APIs/UI.
+- [x] Reveal level N+1 requirements only after level N is reached.
+- [x] Support resource/money/other objective progress for the current upgrade.
+- [x] Keep the format reusable so Season 2 can use different requirements without rewriting the system.
 
 ### City upgrade cooldown
-- [ ] Start the next upgrade cooldown immediately when a city level is reached.
-- [ ] Allow requirements to be worked on while the cooldown runs.
-- [ ] Require both: cooldown expired **and** requirements completed.
+- [x] Start the next upgrade cooldown immediately when a city level is reached.
+- [x] Allow requirements to be worked on while the cooldown runs.
+- [x] Require both: cooldown expired **and** requirements completed.
 
 | Upgrade | Minimum cooldown |
 |---|---:|
@@ -79,10 +81,10 @@ City names:
 ### Territory area limits
 Keep the existing polygon/marker approach and **32-block maximum adjacent-marker distance**.
 
-- [ ] Add a maximum polygon area based on city level.
-- [ ] Calculate the actual polygon in blocks²; do not convert claims into chunk claims.
-- [ ] Reject marker changes that produce an invalid polygon, overlap another claim, violate the 32-block rule or exceed the current city-level area.
-- [ ] Preserve free-form/leng­thy/irregular city shapes.
+- [x] Add a maximum polygon area based on city level.
+- [x] Calculate the actual polygon in blocks²; do not convert claims into chunk claims.
+- [x] Reject marker changes that produce an invalid polygon, overlap another claim, violate the 32-block rule or exceed the current city-level area.
+- [x] Preserve free-form/leng­thy/irregular city shapes.
 
 | Level | Reference size | Max area |
 |---:|---:|---:|
@@ -104,24 +106,24 @@ Keep the existing polygon/marker approach and **32-block maximum adjacent-marker
 ## M2 — Profession core
 
 ### Profession categories
-- [ ] Add an explicit profession category/type: `GATHERING` / `MAIN`.
-- [ ] All four gathering professions can progress simultaneously.
-- [ ] Enforce exactly one active main profession.
-- [ ] Store `mainProfession` explicitly in the player profile rather than relying only on the learned-profession set.
+- [x] Add an explicit profession category/type: `GATHERING` / `MAIN`.
+- [x] All four gathering professions can progress simultaneously.
+- [x] Enforce exactly one active main profession.
+- [x] Store `mainProfession` explicitly in the player profile rather than relying only on the learned-profession set.
 
 ### Main-profession switching
-- [ ] Add a controlled main-profession switch flow.
-- [ ] Selecting a different main profession starts that profession at level 1.
-- [ ] Ensure old main-profession access/recipes/buffs cannot remain active accidentally.
-- [ ] Define clean persistence/migration behavior for existing profiles.
+- [x] Add a controlled main-profession switch flow.
+- [x] Selecting a different main profession starts that profession at level 1.
+- [x] Ensure old main-profession access/recipes/buffs cannot remain active accidentally.
+- [x] Define clean persistence/migration behavior for existing profiles.
 
 ### Profession XP
-- [ ] Gathering profession XP comes from gathering activities.
-- [ ] Main profession XP comes primarily from crafting/manufacturing.
-- [ ] Remove/rework current XP sources that violate this model.
-- [ ] Use recipe `professionXp` as the basis for main-profession crafting XP.
-- [ ] Add anti-exploit handling for repeatedly placed/broken resources where necessary.
-- [ ] Keep XP values configurable/balanceable.
+- [x] Gathering profession XP comes from gathering activities.
+- [x] Main profession XP comes primarily from crafting/manufacturing.
+- [x] Remove/rework current XP sources that violate this model.
+- [x] Use recipe `professionXp` as the basis for main-profession crafting XP.
+- [x] Add anti-exploit handling for repeatedly placed/broken resources where necessary.
+- [x] Keep XP values configurable/balanceable.
 
 ---
 
@@ -136,38 +138,38 @@ Implement five persistent profession-NPC ranks:
 4. Meister
 5. Großmeister
 
-- [ ] Store profession, kingdom and rank for profession NPCs.
-- [ ] Gate maximum NPC rank by city level:
+- [x] Store profession, kingdom and rank for profession NPCs.
+- [x] Gate maximum NPC rank by city level:
   - City 1 → NPC I
   - City 2 → NPC II
   - City 3 → NPC III
   - City 4 → NPC IV
   - City 5+ → NPC V
 - [ ] Add NPC upgrade progress and UI/interaction feedback.
-- [ ] Levels 6–10 must not introduce NPC rank VI/etc.
+- [x] Levels 6–10 must not introduce NPC rank VI/etc.
 
 ### Gathering NPC progression
 Applies to Farmer, Fisherman, Woodcutter and Mountain Miner.
 
-- [ ] Ranks I→IV progress through fixed material turn-ins.
-- [ ] Support contributions by multiple kingdom members.
-- [ ] Store required and delivered materials persistently.
-- [ ] Do not require normal quests for I→IV.
+- [x] Ranks I→IV progress through fixed material turn-ins.
+- [x] Support contributions by multiple kingdom members.
+- [x] Store required and delivered materials persistently.
+- [x] Do not require normal quests for I→IV.
 
 ### Gathering Grandmaster / Meisterbrief
-- [ ] At rank IV + final requirements, issue a unique Meisterbrief.
-- [ ] Add Spawn validation/signing interaction.
-- [ ] Convert/mark it as an `unterschriebener Meisterbrief`.
-- [ ] Require the signed letter at the kingdom NPC for IV→V.
-- [ ] Protect against duplication/replay.
-- [ ] **No global cap** for gathering Grandmasters.
+- [x] At rank IV + final requirements, issue a unique Meisterbrief.
+- [x] Add Spawn validation/signing interaction.
+- [x] Convert/mark it as an `unterschriebener Meisterbrief`.
+- [x] Require the signed letter at the kingdom NPC for IV→V.
+- [x] Protect against duplication/replay.
+- [x] **No global cap** for gathering Grandmasters.
 
 ### Main-profession NPC upgrades
 Applies to Blacksmith, Cook, Tailor, Alchemist, Mason and Scholar.
 
 - [ ] Upgrade requirements combine city level + specialization points + Goldtaler + profession-specific materials/crafted goods.
-- [ ] Keep concrete requirements data-driven/configurable.
-- [ ] Add special Grandmaster requirement(s) for rank V.
+- [x] Keep concrete requirements data-driven/configurable.
+- [x] Add special Grandmaster requirement(s) for rank V.
 
 ### Specialization points
 Total city specialization points:
@@ -190,18 +192,18 @@ Cumulative NPC allocation:
 | IV | 3 |
 | V | 4 |
 
-- [ ] Implement specialization points as **allocated/bound points**, not destructive spending.
-- [ ] Calculate available points from city total minus current allocations.
-- [ ] Prevent upgrades when insufficient points remain.
+- [x] Implement specialization points as **allocated/bound points**, not destructive spending.
+- [x] Calculate available points from city total minus current allocations.
+- [x] Prevent upgrades when insufficient points remain.
 - [ ] Keep allocation recoverable/repairable by admin tooling if data becomes inconsistent.
 
 ### Global main-profession Grandmaster cap
-- [ ] Add a central Grandmaster registry/service.
+- [x] Add a central Grandmaster registry/service.
 - [ ] Default global cap = **2 rank-V NPCs per main profession**.
-- [ ] Make the cap configurable.
-- [ ] Make slot reservation/upgrade atomic to avoid race conditions.
-- [ ] Gathering professions must bypass this cap.
-- [ ] Provide admin visibility into occupied Grandmaster slots.
+- [x] Make the cap configurable.
+- [x] Make slot reservation/upgrade atomic to avoid race conditions.
+- [x] Gathering professions must bypass this cap.
+- [x] Provide admin visibility into occupied Grandmaster slots.
 
 ---
 
@@ -218,70 +220,70 @@ Add a recipe access tier such as:
 - `KINGDOM_ELITE` — requires the appropriate NPC in the player's own kingdom and the configured NPC rank.
 
 Tasks:
-- [ ] Add access tier to recipe data/model.
-- [ ] Enforce profession level.
-- [ ] Enforce NPC profession/rank where required.
-- [ ] Enforce own-kingdom requirement for elite crafting.
-- [ ] Ensure foreign NPCs can provide advanced crafting but not own-kingdom elite crafting.
-- [ ] Add clear denial messages explaining the missing requirement.
+- [x] Add access tier to recipe data/model.
+- [x] Enforce profession level.
+- [x] Enforce NPC profession/rank where required.
+- [x] Enforce own-kingdom requirement for elite crafting.
+- [x] Ensure foreign NPCs can provide advanced crafting but not own-kingdom elite crafting.
+- [x] Add clear denial messages explaining the missing requirement.
 
 ## Kingdom PvE/PvP mode
-- [ ] Add persistent kingdom territory combat mode: PvE/PvP.
-- [ ] Add switch states/timestamps as needed.
-- [ ] Authorized kingdom leadership can request a switch.
-- [ ] Notify all online kingdom members immediately.
-- [ ] Apply the new mode after a **5-minute warning period**.
-- [ ] Start a **30-minute switch cooldown**.
-- [ ] Show kingdom name + current PvE/PvP status when entering territory.
-- [ ] Audit `RegionPolicyService`: owner/member bypass must not accidentally bypass a kingdom-wide PvE state.
+- [x] Add persistent kingdom territory combat mode: PvE/PvP.
+- [x] Add switch states/timestamps as needed.
+- [x] Authorized kingdom leadership can request a switch.
+- [x] Notify all online kingdom members immediately.
+- [x] Apply the new mode after a **5-minute warning period**.
+- [x] Start a **30-minute switch cooldown**.
+- [x] Show kingdom name + current PvE/PvP status when entering territory.
+- [x] Audit `RegionPolicyService`: owner/member bypass must not accidentally bypass a kingdom-wide PvE state.
 
 ## Combat tag
-- [ ] Add player combat-tag tracking for PvP.
-- [ ] Tag relevant participants when PvP damage occurs.
-- [ ] Prevent territory-mode mechanics from being used to escape an active fight.
-- [ ] Keep combat-tag duration configurable.
-- [ ] Define disconnect behavior during combat before production launch.
+- [x] Add player combat-tag tracking for PvP.
+- [x] Tag relevant participants when PvP damage occurs.
+- [x] Prevent territory-mode mechanics from being used to escape an active fight.
+- [x] Keep combat-tag duration configurable.
+- [x] Define disconnect behavior during combat before production launch.
 
 ## Soulbound
-- [ ] Add/use `items.soulbound.enabled: false` for Season 1.
-- [ ] Ensure disabled Soulbound means normal death drops apply.
-- [ ] Keep the implementation available for future seasons.
+- [x] Add/use `items.soulbound.enabled: false` for Season 1.
+- [x] Ensure disabled Soulbound means normal death drops apply.
+- [x] Keep the implementation available for future seasons.
 
 ## Weekly kingdom maintenance
-- [ ] Generate/assign one small maintenance requirement per kingdom per week.
-- [ ] Use humane resource requirements; this is an activity check, not a grind system.
-- [ ] Track contributions and completion.
-- [ ] If missed, flag the kingdom for admin review.
-- [ ] Do **not** automatically delete claims, downgrade cities or apply harsh punishment.
-- [ ] Add admin command/view for kingdoms needing review.
+- [x] Generate/assign one small maintenance requirement per kingdom per week.
+- [x] Use humane resource requirements; this is an activity check, not a grind system.
+- [x] Track contributions and completion.
+- [x] If missed, flag the kingdom for admin review.
+- [x] Do **not** automatically delete claims, downgrade cities or apply harsh punishment.
+- [x] Add admin command/view for kingdoms needing review.
 
 ---
 
 # P2 — Season 1 content & balancing
 
 ## City upgrade content
-- [ ] Define exact Season 1 requirements for city levels 2–10.
-- [ ] Define Goldtaler/resource requirements.
+- [x] Define exact Season 1 requirements for city levels 2–10.
+- [x] Define Goldtaler/resource requirements.
 - [ ] Define any NPC/progression prerequisites.
 - [ ] Verify requirements cannot be trivially pre-completed through exploits.
 - [ ] Test progression against the 33-day absolute cooldown floor.
 
 ## NPC upgrade content
-- [ ] Define material lists/amounts for gathering NPC I→IV.
-- [ ] Define final gathering Grandmaster requirements.
-- [ ] Define main-profession NPC upgrade costs.
-- [ ] Define rank-V special requirements.
-- [ ] Define profession-specific NPC buffs.
+- [x] Define material lists/amounts for gathering NPC I→IV.
+- [x] Define final gathering Grandmaster requirements.
+- [x] Define main-profession NPC upgrade costs.
+- [x] Define rank-V special requirements.
+- [x] Define profession-specific NPC buffs.
 - [ ] Balance buff strength/duration/cooldown.
 
 ## Gear and recipes
 - [ ] Rebalance existing recipe dataset around Season 1 progression.
-- [ ] Normal gear path: Leather → Copper → Chain → Iron → Diamond/custom endgame.
-- [ ] Remove Gold from the normal progression path.
-- [ ] Remove Netherite from the normal progression path.
+- [x] Normal gear path: Leather → Copper → Chain → Iron → Diamond/custom endgame.
+- [x] Remove Gold from the normal progression path.
+- [x] Remove Netherite from the normal progression path.
 - [ ] Review all required profession levels.
 - [ ] Review recipe `professionXp`.
-- [ ] Assign recipe access tiers.
+- [x] Assign recipe access tiers.
 - [ ] Prepare hooks for Dungeon/Worldboss materials in high-end recipes.
 
 ## Economy
@@ -301,7 +303,7 @@ Tasks:
 - [ ] Define which progression systems can spend character levels/XP and their exact costs.
 
 ## Mobs / bosses
-- [ ] Reconcile duplicate mob-scaling configuration sources if both are active.
+- [x] Reconcile duplicate mob-scaling configuration sources if both are active.
 - [ ] Review Nether base level and other dimension scaling against player level cap 60.
 - [ ] Balance normal mob XP/damage/HP.
 - [ ] Define Worldboss reward materials.

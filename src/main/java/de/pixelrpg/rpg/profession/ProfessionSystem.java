@@ -23,7 +23,7 @@ public final class ProfessionSystem {
     }
 
     public void register() {
-        plugin.getServer().getPluginManager().registerEvents(new ProfessionActivityListener(professionService), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new ProfessionActivityListener(plugin, professionService), plugin);
     }
 
     public ProfessionService professionService() { return professionService; }
@@ -32,7 +32,7 @@ public final class ProfessionSystem {
         if (craftingService == null) {
             ItemService itemService = plugin.getItemService();
             if (itemService == null) throw new IllegalStateException("ItemService must be initialized before the crafting service is requested.");
-            craftingService = new CraftingService(professionService, profileManager, itemService, craftingRecipeRegistry);
+            craftingService = new CraftingService(plugin, professionService, profileManager, itemService, craftingRecipeRegistry);
         }
         return craftingService;
     }

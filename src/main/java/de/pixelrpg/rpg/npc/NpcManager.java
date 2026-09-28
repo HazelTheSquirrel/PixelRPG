@@ -105,8 +105,9 @@ public final class NpcManager implements AutoCloseable {
             }
             Profession profession = parseProfession(section.getString("profession"));
             if (profession == null) profession = professionFor(type);
-
-            RPGNpc npc = new RPGNpc(id, type, name, location, skinSource, profession);
+            UUID kingdomId = null; String kingdomText = section.getString("kingdom-id"); if (kingdomText != null) try { kingdomId = UUID.fromString(kingdomText); } catch (IllegalArgumentException ignored) { }
+            ProfessionNpcRank rank; try { rank = ProfessionNpcRank.valueOf(section.getString("profession-rank", "APPRENTICE")); } catch (IllegalArgumentException ignored) { rank = ProfessionNpcRank.APPRENTICE; }
+            RPGNpc npc = new RPGNpc(id, type, name, location, skinSource, profession, kingdomId, rank);
             npcsById.put(id, npc);
             addToChunkIndex(npc);
             if (world.isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) spawnEntityFor(npc);
@@ -242,7 +243,7 @@ public final class NpcManager implements AutoCloseable {
     public synchronized boolean updateSkin(String npcId, String newSkinSource) {
         RPGNpc existing = npcsById.get(npcId);
         if (existing == null) return false;
-        RPGNpc updated = new RPGNpc(existing.id(), existing.type(), existing.name(), existing.location(), newSkinSource, existing.profession());
+        RPGNpc updated = new RPGNpc(existing.id(), existing.type(), existing.name(), existing.location(), newSkinSource, existing.profession(), existing.kingdomId(), existing.professionNpcRank());
         npcsById.put(npcId, updated);
         resolvedSkinsByNpcId.remove(npcId);
         saveAll();
@@ -286,7 +287,7 @@ public final class NpcManager implements AutoCloseable {
         if (newName == null || newName.isBlank()) return false;
         RPGNpc existing = npcsById.get(id);
         if (existing == null) return false;
-        RPGNpc updated = new RPGNpc(existing.id(), existing.type(), newName.trim(), existing.location(), existing.skinSource(), existing.profession());
+        RPGNpc updated = new RPGNpc(existing.id(), existing.type(), newName.trim(), existing.location(), existing.skinSource(), existing.profession(), existing.kingdomId(), existing.professionNpcRank());
         npcsById.put(id, updated);
         saveAll();
         UUID entityUuid = spawnedEntityByNpcId.get(id);
@@ -317,6 +318,15 @@ public final class NpcManager implements AutoCloseable {
     public Optional<Entity> getSpawnedEntity(String npcId) {
         UUID uuid = spawnedEntityByNpcId.get(npcId);
         return uuid == null ? Optional.empty() : Optional.ofNullable(Bukkit.getEntity(uuid));
+    }
+
+    public synchronized boolean assignKingdom(String npcId, UUID kingdomId) {
+        RPGNpc existing=npcsById.get(npcId); if(existing==null)return false;
+        npcsById.put(npcId,new RPGNpc(existing.id(),existing.type(),existing.name(),existing.location(),existing.skinSource(),existing.profession(),kingdomId,existing.professionNpcRank())); saveAll(); return true;
+    }
+    public synchronized boolean setProfessionNpcRank(String npcId, ProfessionNpcRank rank) {
+        RPGNpc existing=npcsById.get(npcId); if(existing==null||rank==null)return false;
+        npcsById.put(npcId,new RPGNpc(existing.id(),existing.type(),existing.name(),existing.location(),existing.skinSource(),existing.profession(),existing.kingdomId(),rank)); saveAll(); return true;
     }
 
     public Collection<UUID> getSpawnedEntityUuids() { return List.copyOf(spawnedEntityByNpcId.values()); }
@@ -354,6 +364,7 @@ public final class NpcManager implements AutoCloseable {
                     npc.id(), npc.type().name(), npc.name(), location.getWorld().getName(),
                     location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch(),
                     npc.skinSource(), npc.profession() == null ? null : npc.profession().name(),
+                    npc.kingdomId() == null ? null : npc.kingdomId().toString(), npc.professionNpcRank().name(),
                     Optional.ofNullable(resolvedSkinsByNpcId.get(npc.id())).map(StoredSkin::value).orElse(null),
                     Optional.ofNullable(resolvedSkinsByNpcId.get(npc.id())).map(StoredSkin::signature).orElse(null)));
         }
@@ -379,6 +390,8 @@ public final class NpcManager implements AutoCloseable {
             if (npc.skinValue() != null && !npc.skinValue().isBlank()) yaml.set(path + ".skin-value", npc.skinValue());
             if (npc.skinSignature() != null && !npc.skinSignature().isBlank()) yaml.set(path + ".skin-signature", npc.skinSignature());
             if (npc.profession() != null) yaml.set(path + ".profession", npc.profession());
+            if (npc.kingdomId() != null) yaml.set(path + ".kingdom-id", npc.kingdomId().toString());
+            yaml.set(path + ".profession-rank", npc.professionNpcRank().name());
         }
 
         Path target = file.toPath();
@@ -397,7 +410,7 @@ public final class NpcManager implements AutoCloseable {
     }
 
     private record NpcSnapshot(String id, String type, String name, String world, double x, double y, double z,
-                               float yaw, float pitch, String skinSource, String profession, String skinValue,
+                               float yaw, float pitch, String skinSource, String profession, String kingdomId, String professionRank, String skinValue,
                                String skinSignature) { }
 
     private void rememberResolvedSkin(String npcId, String value, String signature) {

@@ -1,6 +1,9 @@
 package de.pixelrpg.rpg.profession;
 
 import de.pixelrpg.rpg.item.ItemService;
+import de.pixelrpg.rpg.PixelRPGPlugin;
+import de.pixelrpg.rpg.guild.Guild;
+import de.pixelrpg.rpg.npc.RPGNpc;
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import io.papermc.paper.registry.RegistryAccess;
@@ -25,8 +28,10 @@ public final class CraftingService {
     private final PlayerProfileManager profileManager;
     private final ItemService itemService;
     private final CraftingRecipeRegistry registry;
+    private final PixelRPGPlugin plugin;
 
-    public CraftingService(ProfessionService professionService, PlayerProfileManager profileManager, ItemService itemService, CraftingRecipeRegistry registry) {
+    public CraftingService(PixelRPGPlugin plugin, ProfessionService professionService, PlayerProfileManager profileManager, ItemService itemService, CraftingRecipeRegistry registry) {
+        this.plugin = Objects.requireNonNull(plugin);
         this.professionService = Objects.requireNonNull(professionService);
         this.profileManager = Objects.requireNonNull(profileManager);
         this.itemService = Objects.requireNonNull(itemService);
@@ -48,8 +53,11 @@ public final class CraftingService {
         CraftRecipe recipe = find(recipeId).orElse(null);
         if (recipe == null) return CraftResult.failure("Dieses Rezept existiert nicht.");
         if (!profile.hasLearnedProfession(recipe.profession())) return CraftResult.failure("Du hast diesen Beruf noch nicht erlernt.");
+        if (recipe.profession().isMain() && recipe.profession() != profile.getMainProfession()) return CraftResult.failure("Dieser Beruf ist nicht dein aktiver Hauptberuf.");
         int professionLevel = professionService.getLevel(player.getUniqueId(), recipe.profession());
         if (professionLevel < recipe.requiredProfessionLevel()) return CraftResult.failure("Dein Berufslevel ist für dieses Rezept zu niedrig.");
+        String accessError = accessError(player, recipe);
+        if (accessError != null) return CraftResult.failure(accessError);
         if (!isUnlocked(player, recipe)) return CraftResult.failure("Dieses Rezept wurde noch nicht freigeschaltet.");
         if (!hasMaterialCosts(player, recipe.costs())) return CraftResult.failure("Dir fehlen die benötigten Materialien.");
         if (!hasItemCosts(player, recipe.itemCosts())) return CraftResult.failure("Dir fehlen die benötigten PixelRPG-Gegenstände.");
@@ -63,6 +71,22 @@ public final class CraftingService {
         long experience = recipe.professionXp();
         professionService.addExperience(player, recipe.profession(), experience);
         return CraftResult.success(result, experience, "Herstellung erfolgreich.");
+    }
+
+
+    private String accessError(Player player, CraftRecipe recipe) {
+        if (recipe.accessTier() == RecipeAccessTier.BASIC) return null;
+        boolean matchingNpc = plugin.getNpcManager() != null && plugin.getNpcManager().getAll().stream()
+                .filter(npc -> npc.profession() == recipe.profession())
+                .anyMatch(npc -> recipe.accessTier() == RecipeAccessTier.NPC_ADVANCED || npcBelongsToPlayerKingdom(player, npc));
+        if (matchingNpc) return null;
+        return recipe.accessTier() == RecipeAccessTier.KINGDOM_ELITE ? "Dieses Rezept benötigt den passenden Berufs-NPC in deinem eigenen Königreich." : "Dieses Rezept benötigt den passenden Berufs-NPC.";
+    }
+
+    private boolean npcBelongsToPlayerKingdom(Player player, RPGNpc npc) {
+        Guild guild = plugin.getGuildManager() == null ? null : plugin.getGuildManager().getGuild(player.getUniqueId()).orElse(null);
+        if (guild == null || plugin.getRegionManager() == null || npc.location().getWorld() == null) return false;
+        return plugin.getRegionManager().find(npc.location()).map(region -> guild.id().toString().equals(region.properties().get("guild-id"))).orElse(false);
     }
 
     private boolean hasMaterialCosts(Player player, Map<Material, Integer> costs) {

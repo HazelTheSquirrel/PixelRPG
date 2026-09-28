@@ -59,6 +59,10 @@ import de.pixelrpg.rpg.npc.NpcChunkListener;
 import de.pixelrpg.rpg.npc.NpcInteractListener;
 import de.pixelrpg.rpg.npc.NpcLookTask;
 import de.pixelrpg.rpg.npc.NpcManager;
+import de.pixelrpg.rpg.npc.ProfessionNpcProgressionService;
+import de.pixelrpg.rpg.npc.ProfessionNpcBuffService;
+import de.pixelrpg.rpg.npc.MeisterbriefService;
+import de.pixelrpg.rpg.npc.MeisterbriefSpawnListener;
 import de.pixelrpg.rpg.npc.NpcDialogueService;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.behavior.BankerBehavior;
@@ -97,6 +101,8 @@ import de.pixelrpg.rpg.travel.GuildCompassListener;
 import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.guild.GuildTerritoryListener;
 import de.pixelrpg.rpg.guild.GuildTerritoryManager;
+import de.pixelrpg.rpg.guild.CityProgressionService;
+import de.pixelrpg.rpg.guild.KingdomMaintenanceService;
 import de.pixelrpg.rpg.trade.PlayerTradeManager;
 import de.pixelrpg.rpg.region.RegionEditor;
 import de.pixelrpg.rpg.region.RegionListener;
@@ -150,6 +156,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private RegionSpawnService regionSpawnService;
     private GuildManager guildManager;
     private GuildTerritoryManager guildTerritoryManager;
+    private CityProgressionService cityProgressionService;
+    private KingdomMaintenanceService kingdomMaintenanceService;
+    private ProfessionNpcProgressionService professionNpcProgressionService;
+    private ProfessionNpcBuffService professionNpcBuffService;
     private PlayerTradeManager playerTradeManager;
 
     @Override
@@ -191,6 +201,8 @@ public final class PixelRPGPlugin extends JavaPlugin {
         globalEventState.load();
         questManager = new QuestManager(this, questRepository, playerProfileManager, playerProfileManager, globalEventState, storyManager, partyManager.getShareRange());
         guildManager = GuildManager.getInstance(this, playerProfileManager);
+        cityProgressionService = new CityProgressionService(this, guildManager);
+        kingdomMaintenanceService = new KingdomMaintenanceService(this, guildManager);
         playerTradeManager = new PlayerTradeManager(this, playerProfileManager, itemService);
         getServer().getPluginManager().registerEvents(playerTradeManager, this);
         combatStateService = new CombatStateService(this);
@@ -204,7 +216,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         regionSpawnService.start();
         guildTerritoryManager = new GuildTerritoryManager(this, guildManager, regionManager);
         getServer().getPluginManager().registerEvents(new GuildTerritoryListener(guildTerritoryManager), this);
-        getServer().getPluginManager().registerEvents(new RegionListener(regionManager, regionEditor, regionSpawnService), this);
+        getServer().getPluginManager().registerEvents(new RegionListener(regionManager, regionEditor, regionSpawnService, guildManager, combatStateService), this);
         BossAttackPatternRegistry patternRegistry = new BossAttackPatternRegistry();
         patternRegistry.register(new SlamAttackPattern());
         patternRegistry.register(new SummonAddsPattern());
@@ -227,6 +239,9 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(characterProgressionTelemetry, this);
         npcManager = lifecycle.register(new NpcManager(this));
         npcManager.loadAll();
+        professionNpcProgressionService = new ProfessionNpcProgressionService(this, guildManager, npcManager);
+        professionNpcBuffService = new ProfessionNpcBuffService(this);
+        getServer().getPluginManager().registerEvents(new MeisterbriefSpawnListener(new MeisterbriefService(this)), this);
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0), getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
@@ -243,15 +258,15 @@ public final class PixelRPGPlugin extends JavaPlugin {
         bankerBehavior = new BankerBehavior(playerProfileManager, dialogueEngine);
         npcBehaviorRegistry.register(bankerBehavior);
         npcBehaviorRegistry.register(new FillerBehavior(questManager, playerProfileManager, dialogueEngine));
-        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_BLACKSMITH, Profession.BLACKSMITH, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
-        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_SCHOLAR, Profession.SCHOLAR, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
-        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FARMER, Profession.FARMER, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
-        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_COOK, Profession.COOK, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
-        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_TAILOR, Profession.TAILOR, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
-        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_ALCHEMIST, Profession.ALCHEMIST, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
-        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_MASON, Profession.MASON, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
-        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FISHERMAN, Profession.FISHERMAN, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
-        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_WOODCUTTER, Profession.WOODCUTTER, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_BLACKSMITH, Profession.BLACKSMITH, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_SCHOLAR, Profession.SCHOLAR, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FARMER, Profession.FARMER, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_COOK, Profession.COOK, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_TAILOR, Profession.TAILOR, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_ALCHEMIST, Profession.ALCHEMIST, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_MASON, Profession.MASON, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FISHERMAN, Profession.FISHERMAN, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
+        npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_WOODCUTTER, Profession.WOODCUTTER, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
         getServer().getPluginManager().registerEvents(equipmentService, this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(craftingGUI, this);
@@ -290,6 +305,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         lifecycle.register(() -> partyManager.shutdown());
         lifecycle.register(() -> combatStateService.shutdown());
         lifecycle.register(() -> guildTerritoryManager.shutdown());
+        lifecycle.register(() -> kingdomMaintenanceService.shutdown());
         lifecycle.register(() -> guildManager.shutdown());
         lifecycle.register(playerTradeManager::close);
         lifecycle.register(() -> regionManager.shutdown());
@@ -367,5 +383,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
     public CompanionService getCompanionService() { return companionService; }
     public RegionManager getRegionManager() { return regionManager; }
     public GuildTerritoryManager getGuildTerritoryManager() { return guildTerritoryManager; }
+    public GuildManager getGuildManager() { return guildManager; }
+    public CombatStateService getCombatStateService() { return combatStateService; }
+    public CityProgressionService getCityProgressionService() { return cityProgressionService; }
+    public KingdomMaintenanceService getKingdomMaintenanceService() { return kingdomMaintenanceService; }
+    public ProfessionNpcProgressionService getProfessionNpcProgressionService() { return professionNpcProgressionService; }
     public RegionEditor getRegionEditor() { return regionEditor; }
 }

@@ -37,6 +37,9 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         else profile.setMoney(yaml.getDouble("money", 0.0D));
         ConfigurationSection professionSection = yaml.getConfigurationSection("professions");
         if (professionSection != null) loadProfessions(profile, professionSection);
+        String mainProfession = yaml.getString("main-profession", "");
+        if (!mainProfession.isBlank()) try { profile.setMainProfession(Profession.valueOf(mainProfession.toUpperCase(java.util.Locale.ROOT))); } catch (IllegalArgumentException ignored) { }
+        if (profile.getMainProfession() == null) profile.getLearnedProfessions().stream().filter(Profession::isMain).max(java.util.Comparator.comparingInt(profile::getProfessionLevel)).ifPresent(profile::setMainProfession);
         profile.setUnlockedRecipes(new HashSet<>(yaml.getStringList("unlocked-recipes")));
         profile.setUnlockedWaypoints(new HashSet<>(yaml.getStringList("unlocked-waypoints")));
         profile.setStoryChapterIndex(yaml.getInt("story-chapter-index", -1));
@@ -92,6 +95,7 @@ public final class YamlPlayerProfileRepository implements PlayerProfileRepositor
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("registered", profile.isRegistered()); yaml.set("experience", profile.getExperience()); yaml.set("money-minor-units", profile.getMoneyMinorUnits());
         for (Profession profession : Profession.values()) { String key = profession.name().toLowerCase(); yaml.set("professions." + key + ".level", profile.getProfessionLevel(profession)); yaml.set("professions." + key + ".experience", profile.getProfessionExperience(profession)); yaml.set("professions." + key + ".learned", profile.hasLearnedProfession(profession)); }
+        if (profile.getMainProfession() != null) yaml.set("main-profession", profile.getMainProfession().name());
         yaml.set("unlocked-recipes", new ArrayList<>(profile.getUnlockedRecipes())); yaml.set("unlocked-waypoints", new ArrayList<>(profile.getUnlockedWaypoints())); yaml.set("story-chapter-index", profile.getStoryChapterIndex()); yaml.set("completed-quests", new ArrayList<>(profile.getCompletedQuests()));
         for (QuestProgress progress : profile.getActiveQuests().values()) {
             String path = "active-quests." + progress.getQuestId();
