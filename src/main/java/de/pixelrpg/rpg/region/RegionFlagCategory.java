@@ -2,7 +2,6 @@ package de.pixelrpg.rpg.region;
 
 /** Groups region flags by the gameplay area they control. */
 public enum RegionFlagCategory {
-    REGION("Region"),
     BLOCKS("Blöcke"),
     INTERACTION("Interaktion"),
     CONTAINERS("Container"),
