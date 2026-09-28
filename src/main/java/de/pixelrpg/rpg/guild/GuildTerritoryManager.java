@@ -492,7 +492,8 @@ public final class GuildTerritoryManager {
         }
 
         double y = state.markers.stream().mapToDouble(GuildTerritory.Marker::y).average().orElse(state.markers.getFirst().y()) + 1.0D;
-        npcManager.createOrUpdateGuildCityNpc(guild.id(), "Stadtverwaltung", new Location(world, x, y, z));
+        npcManager.createOrUpdateGuildCityNpc(guild.id(), guild.name(), new Location(world, x, y, z));
+        npcManager.rename("guild-city-" + guild.id(), "Stadtverwaltung");
     }
 
     /** Reconciles all persisted physical guild cities with their dedicated city mannequins after startup. */
