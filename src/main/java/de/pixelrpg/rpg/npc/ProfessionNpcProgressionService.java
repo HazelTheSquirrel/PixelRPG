@@ -73,6 +73,60 @@ public final class ProfessionNpcProgressionService {
         return generic;
     }
 
+    public synchronized ProgressView progress(String npcId) {
+        RPGNpc npc = npcs.getById(npcId).orElse(null);
+        if (npc == null || npc.profession() == null) return null;
+        ProfessionNpcRank next = npc.professionNpcRank().next();
+        if (next == null) return new ProgressView(npc.professionNpcRank(), null, 0.0D, Map.of(), 0, 0, true);
+        ConfigurationSection rank = rankConfig(next, npc.profession());
+        Map<Material, Integer> required = new java.util.LinkedHashMap<>();
+        ConfigurationSection materials = rank.getConfigurationSection("materials");
+        if (materials != null) {
+            for (String key : materials.getKeys(false)) {
+                Material material = Material.matchMaterial(key);
+                if (material != null) required.put(material, Math.max(0, materials.getInt(key)));
+            }
+        }
+        Map<Material, Integer> current = delivered.getOrDefault(npc.id(), Map.of());
+        Map<Material, Integer> deliveredCopy = new java.util.LinkedHashMap<>();
+        required.forEach((material, amount) -> deliveredCopy.put(material, Math.min(amount, current.getOrDefault(material, 0))));
+        int available = npc.kingdomId() == null ? 0 : availableSpecializationPoints(npc.kingdomId());
+        int cap = plugin.getConfig().getInt("kingdom.grandmaster.main-profession-global-cap", 2);
+        int global = npc.profession().isMain() ? globalGrandmasters(npc.profession()) : 0;
+        double gold = Math.max(0.0D, rank.getDouble("gold", 0.0D));
+        boolean capReached = next.isGrandmaster() && npc.profession().isMain() && global >= cap;
+        return new ProgressView(npc.professionNpcRank(), next, gold, Map.copyOf(required), deliveredCopy, available, capReached);
+    }
+
+    public synchronized int repairSpecializationAllocations(UUID guildId) {
+        Guild guild = guilds.getGuildById(guildId).orElse(null);
+        if (guild == null) return 0;
+        int total = specializationTotal(guild.cityLevel());
+        java.util.List<RPGNpc> ranked = npcs.getAll().stream()
+                .filter(npc -> guildId.equals(npc.kingdomId()) && npc.profession() != null && npc.profession().isMain())
+                .sorted(java.util.Comparator.comparingInt((RPGNpc npc) -> npc.professionNpcRank().specializationCost()).reversed()
+                        .thenComparing(RPGNpc::id))
+                .collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
+        int used = ranked.stream().mapToInt(npc -> npc.professionNpcRank().specializationCost()).sum();
+        int repaired = 0;
+        for (RPGNpc npc : ranked) {
+            if (used <= total) break;
+            ProfessionNpcRank rank = npc.professionNpcRank();
+            if (rank == ProfessionNpcRank.APPRENTICE) continue;
+            int before = rank.specializationCost();
+            ProfessionNpcRank downgraded = ProfessionNpcRank.values()[rank.ordinal() - 1];
+            npcs.setProfessionNpcRank(npc.id(), downgraded);
+            used -= before - downgraded.specializationCost();
+            repaired++;
+        }
+        if (repaired > 0) save();
+        return repaired;
+    }
+
+    public record ProgressView(ProfessionNpcRank currentRank, ProfessionNpcRank nextRank, double gold,
+                               Map<Material, Integer> requiredMaterials, Map<Material, Integer> deliveredMaterials,
+                               int availableSpecializationPoints, boolean globalGrandmasterCapReached) { }
+
     public int globalGrandmasters(Profession profession){int count=0;for(RPGNpc npc:npcs.getAll())if(npc.profession()==profession&&npc.professionNpcRank().isGrandmaster())count++;return count;}
     private int specializationTotal(int city){return switch(Math.clamp(city,1,10)){case 1->0;case 2->1;case 3->3;case 4->5;default->8;};}
     private void load(){if(!file.exists())return;YamlConfiguration y=YamlConfiguration.loadConfiguration(file);ConfigurationSection r=y.getConfigurationSection("npcs");if(r==null)return;for(String id:r.getKeys(false)){ConfigurationSection s=r.getConfigurationSection(id+".materials");if(s==null)continue;Map<Material,Integer> m=new HashMap<>();for(String k:s.getKeys(false)){Material mat=Material.matchMaterial(k);if(mat!=null)m.put(mat,s.getInt(k));}delivered.put(id,m);}}
