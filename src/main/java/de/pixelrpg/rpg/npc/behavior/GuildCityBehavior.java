@@ -267,7 +267,7 @@ public final class GuildCityBehavior implements NpcBehavior {
     private void openRegionFlags(Player player, Guild guild, Consumer<Player> backAction) {
         if (guild.cityRegionId() == null) {
             player.sendMessage(Component.text("Für diese Gildenstadt ist keine Region hinterlegt.", NamedTextColor.RED));
-            open(player, findNpcForGuild(guild), backAction);
+            player.sendMessage(Component.text("Die Stadtverwaltung ist derzeit nicht verfügbar.", NamedTextColor.RED));
             return;
         }
         var region = PixelRPGPlugin.getInstance().getRegionManager().get(guild.cityRegionId()).orElse(null);
