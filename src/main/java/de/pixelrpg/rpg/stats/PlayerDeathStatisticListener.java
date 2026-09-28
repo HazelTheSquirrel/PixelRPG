@@ -7,7 +7,6 @@ import de.pixelrpg.rpg.core.StatisticType;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.damage.DamageType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -36,17 +35,5 @@ public final class PlayerDeathStatisticListener implements Listener {
         }
         statisticsAPI.recordStatistic(uuid, StatisticType.DEATHS, 1L);
 
-        if (event.getDamageSource().getDamageType() != DamageType.FALLING_ANVIL) {
-            return;
-        }
-
-        profileManager.getProfile(uuid).ifPresent(profile -> {
-            if (profile.getLevel() <= 1) {
-                return;
-            }
-            profile.setExperience(0L);
-            profileManager.saveProfileAsync(uuid);
-            player.sendMessage(Component.text("Der Amboss war wohl zu schwer. Dein Level wurde auf 1 zurückgesetzt.", NamedTextColor.GOLD));
-        });
     }
 }
