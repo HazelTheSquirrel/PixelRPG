@@ -2,6 +2,7 @@ season:
   id: "season-1"
   data-version: 1
 
+# Player profiles use YAML in Season 1 by default. Set type to MYSQL only when the MySQL settings below are configured.
 storage:
   type: "YAML"
   save-executor-threads: 4
@@ -54,6 +55,7 @@ story:
   chars-per-line: 18
   lines-per-page: 13
 
+# mob-scaling.json is the primary tuning source. These YAML values are retained as the safe fallback if that JSON cannot be loaded.
 mob-scaling:
   nameplate-duration-ticks: 120
   xp-per-max-health: 4.0
