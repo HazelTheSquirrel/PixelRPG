@@ -277,7 +277,7 @@ Tasks:
 - [ ] Balance buff strength/duration/cooldown.
 
 ## Gear and recipes
-- [ ] Rebalance existing recipe dataset around Season 1 progression.
+- [x] Rebalance existing recipe dataset around Season 1 progression (static tier/level audit: BASIC <20, NPC_ADVANCED 20–39, KINGDOM_ELITE ≥40; live price/economy tuning remains server validation).
 - [x] Normal gear path: Leather → Copper → Chain → Iron → Diamond/custom endgame.
 - [x] Remove Gold from the normal progression path.
 - [x] Remove Netherite from the normal progression path.
