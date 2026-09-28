@@ -292,6 +292,217 @@
         "money": 5000,
         "experience": 4500
       }
+    },
+    {
+      "id": "profession_intro_farmer",
+      "title": "Erste Ernte",
+      "description": "Bringe 32 Weizen aus deiner ersten eigenen Ernte ein.",
+      "type": "COLLECT",
+      "targetKey": "WHEAT",
+      "requiredAmount": 32,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "profession": "FARMER",
+      "requiredProfessionLevel": 1,
+      "reward": {
+        "money": 40,
+        "experience": 100
+      }
+    },
+    {
+      "id": "profession_intro_fisherman",
+      "title": "Erster Fang",
+      "description": "Liefere 12 Kabeljaue aus deinem ersten Fang ein.",
+      "type": "COLLECT",
+      "targetKey": "COD",
+      "requiredAmount": 12,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "profession": "FISHERMAN",
+      "requiredProfessionLevel": 1,
+      "reward": {
+        "money": 45,
+        "experience": 110
+      }
+    },
+    {
+      "id": "profession_intro_woodcutter",
+      "title": "Holz für die Werkstatt",
+      "description": "Bringe 32 Holzstämme für die erste Werkstattlieferung.",
+      "type": "COLLECT",
+      "targetKey": "OAK_LOG",
+      "requiredAmount": 32,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "profession": "WOODCUTTER",
+      "requiredProfessionLevel": 1,
+      "reward": {
+        "money": 40,
+        "experience": 100
+      }
+    },
+    {
+      "id": "profession_intro_miner",
+      "title": "Erz aus dem Berg",
+      "description": "Liefere 16 Eisenbarren aus eigener Bergbauarbeit.",
+      "type": "COLLECT",
+      "targetKey": "IRON_INGOT",
+      "requiredAmount": 16,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "profession": "MOUNTAIN_MINER",
+      "requiredProfessionLevel": 1,
+      "reward": {
+        "money": 50,
+        "experience": 120
+      }
+    },
+    {
+      "id": "profession_intro_blacksmith",
+      "title": "Die erste Schmiedearbeit",
+      "description": "Liefere 16 Kupferbarren für deinen ersten Schmiedeauftrag.",
+      "type": "COLLECT",
+      "targetKey": "COPPER_INGOT",
+      "requiredAmount": 16,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "profession": "BLACKSMITH",
+      "requiredProfessionLevel": 1,
+      "reward": {
+        "money": 55,
+        "experience": 130
+      }
+    },
+    {
+      "id": "profession_intro_cook",
+      "title": "Die erste Küche",
+      "description": "Bereite 16 Brote für den ersten Küchenauftrag vor.",
+      "type": "COLLECT",
+      "targetKey": "BREAD",
+      "requiredAmount": 16,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "profession": "COOK",
+      "requiredProfessionLevel": 1,
+      "reward": {
+        "money": 55,
+        "experience": 130
+      }
+    },
+    {
+      "id": "profession_intro_tailor",
+      "title": "Der erste Zuschnitt",
+      "description": "Liefere 16 Lederstücke für deinen ersten Zuschnitt.",
+      "type": "COLLECT",
+      "targetKey": "LEATHER",
+      "requiredAmount": 16,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "profession": "TAILOR",
+      "requiredProfessionLevel": 1,
+      "reward": {
+        "money": 55,
+        "experience": 130
+      }
+    },
+    {
+      "id": "profession_intro_alchemist",
+      "title": "Das erste Gebräu",
+      "description": "Liefere 16 Glasflaschen für deinen ersten alchemistischen Auftrag.",
+      "type": "COLLECT",
+      "targetKey": "GLASS_BOTTLE",
+      "requiredAmount": 16,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "profession": "ALCHEMIST",
+      "requiredProfessionLevel": 1,
+      "reward": {
+        "money": 55,
+        "experience": 130
+      }
+    },
+    {
+      "id": "profession_intro_mason",
+      "title": "Grundstein",
+      "description": "Liefere 32 Steinblöcke für deinen ersten Bauauftrag.",
+      "type": "COLLECT",
+      "targetKey": "STONE",
+      "requiredAmount": 32,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "profession": "MASON",
+      "requiredProfessionLevel": 1,
+      "reward": {
+        "money": 50,
+        "experience": 120
+      }
+    },
+    {
+      "id": "profession_intro_scholar",
+      "title": "Erste Abschrift",
+      "description": "Liefere 8 Bücher für deinen ersten Archivauftrag.",
+      "type": "COLLECT",
+      "targetKey": "BOOK",
+      "requiredAmount": 8,
+      "recommendedLevel": 1,
+      "categoryLevel": 1,
+      "profession": "SCHOLAR",
+      "requiredProfessionLevel": 1,
+      "reward": {
+        "money": 60,
+        "experience": 140
+      }
+    },
+    {
+      "id": "npc_character_archivist",
+      "title": "Die Stimme des Archivs",
+      "description": "Sprich mit dem Archivar und höre, welche Spuren in den alten Aufzeichnungen fehlen.",
+      "type": "TALK_TO_NPC",
+      "targetKey": "the_archivist",
+      "requiredAmount": 1,
+      "recommendedLevel": 3,
+      "categoryLevel": 3,
+      "questGiverNpcId": "the_archivist",
+      "reward": {
+        "money": 60,
+        "experience": 120
+      }
+    },
+    {
+      "id": "npc_character_founder",
+      "title": "Erinnerungen des Gründers",
+      "description": "Sprich mit dem Gründer des Dorfes über die ältesten Straßen der Region.",
+      "type": "TALK_TO_NPC",
+      "targetKey": "village_founder",
+      "requiredAmount": 1,
+      "recommendedLevel": 5,
+      "categoryLevel": 5,
+      "questGiverNpcId": "village_founder",
+      "prerequisites": [
+        "npc_character_archivist"
+      ],
+      "reward": {
+        "money": 80,
+        "experience": 150
+      }
+    },
+    {
+      "id": "npc_character_shipwright",
+      "title": "Die verlorene Route",
+      "description": "Sprich mit dem Schiffbauer über die letzte bekannte Handelsroute.",
+      "type": "TALK_TO_NPC",
+      "targetKey": "shipwright",
+      "requiredAmount": 1,
+      "recommendedLevel": 7,
+      "categoryLevel": 7,
+      "questGiverNpcId": "shipwright",
+      "prerequisites": [
+        "npc_character_founder"
+      ],
+      "reward": {
+        "money": 100,
+        "experience": 180
+      }
     }
   ]
 }
