@@ -450,6 +450,24 @@ public final class QuestManager {
 
     public int getGlobalEventProgress(String questId) { return globalEventState.getProgress(questId); }
 
+    public void progressWorldBossQuest(UUID playerId, String bossId) {
+        if (playerId == null || bossId == null || bossId.isBlank()) return;
+        PlayerProfile profile = profileManager.getProfile(playerId).orElse(null);
+        if (profile == null || !profile.isRegistered()) return;
+        String target = "boss:" + bossId.toLowerCase(Locale.ROOT);
+        for (var entry : profile.getActiveQuests().entrySet()) {
+            Quest quest = questRepository.getQuest(entry.getKey());
+            if (quest == null || quest.type() != QuestType.GLOBAL_EVENT
+                    || !quest.targetKey().equalsIgnoreCase(target)) continue;
+            entry.getValue().setCurrentAmount(quest.requiredAmount());
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null && player.isOnline()) {
+                player.sendMessage(Component.text("Weltboss-Ziel erreicht: " + QuestText.titlePlain(player, quest), NamedTextColor.GREEN));
+            }
+        }
+    }
+
+
     private void incrementProgress(PlayerProfile profile, QuestProgress progress, Quest quest) {
         if (progress.getCurrentAmount() >= quest.requiredAmount()) return;
         int next = Math.min(quest.requiredAmount(), progress.getCurrentAmount() + 1);
