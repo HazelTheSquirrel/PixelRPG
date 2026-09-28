@@ -10,7 +10,7 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/mehl",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 1,
       "saturation": 0.2
     },
@@ -24,7 +24,7 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/speck_roh",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 2,
       "saturation": 1.2
     },
@@ -38,9 +38,9 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/speck_gebraten",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 3,
-      "saturation": 3.0
+      "saturation": 3
     },
     {
       "id": "pixelrpg:food/karottensuppe",
@@ -52,9 +52,9 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/karottensuppe",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 5,
-      "saturation": 6.0
+      "saturation": 6
     },
     {
       "id": "pixelrpg:food/kartoffel_mit_speck",
@@ -66,7 +66,7 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/kartoffel_mit_speck",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 6,
       "saturation": 7.2
     },
@@ -80,9 +80,9 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/huehnersuppe",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 5,
-      "saturation": 7.0
+      "saturation": 7
     },
     {
       "id": "pixelrpg:food/pilzfanne",
@@ -94,7 +94,7 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/pilzfanne",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 6,
       "saturation": 7.5
     },
@@ -108,7 +108,7 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/apfelmus",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 3,
       "saturation": 3.6
     },
@@ -122,9 +122,9 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/kuerbisbrot",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 5,
-      "saturation": 6.0
+      "saturation": 6
     },
     {
       "id": "pixelrpg:food/beeren_muffin",
@@ -136,7 +136,7 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/beeren_muffin",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 4,
       "saturation": 4.8
     },
@@ -150,23 +150,9 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/keks_mit_speck",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 5,
       "saturation": 5.5
-    },
-    {
-      "id": "pixelrpg:food/suessbeeren_marmelade",
-      "name": "Süßbeeren-Marmelade",
-      "material": "CLOCK",
-      "rarity": "COMMON",
-      "category": "FOOD",
-      "itemLevel": 1,
-      "requiredLevel": 1,
-      "adminOnly": false,
-      "resourcepackId": "pixelrpg:food/suessbeeren_marmelade",
-      "gearscoreModifier": 1.0,
-      "nutrition": 2,
-      "saturation": 2.4
     },
     {
       "id": "pixelrpg:food/getrocknete_melone",
@@ -178,9 +164,9 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/getrocknete_melone",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 3,
-      "saturation": 4.0
+      "saturation": 4
     },
     {
       "id": "pixelrpg:food/heisser_kakao",
@@ -192,9 +178,9 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/heisser_kakao",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 4,
-      "saturation": 5.0
+      "saturation": 5
     },
     {
       "id": "pixelrpg:food/melonensaft",
@@ -206,7 +192,7 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/melonensaft",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 3,
       "saturation": 3.5
     },
@@ -220,9 +206,9 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/leuchtbeerentee",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 3,
-      "saturation": 4.0,
+      "saturation": 4,
       "effectType": "REGENERATION",
       "effectDurationSeconds": 5,
       "effectAmplifier": 0
@@ -237,9 +223,9 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/kuerbis_latte",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 5,
-      "saturation": 6.0,
+      "saturation": 6,
       "effectType": "SPEED",
       "effectDurationSeconds": 8,
       "effectAmplifier": 0
@@ -254,7 +240,7 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/spiegelei_mit_speck",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 7,
       "saturation": 8.5
     },
@@ -268,9 +254,9 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/honig_mit_milch",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 5,
-      "saturation": 7.0,
+      "saturation": 7,
       "effectType": "REGENERATION",
       "effectDurationSeconds": 4,
       "effectAmplifier": 0
@@ -285,7 +271,7 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/kaktus_saft",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 3,
       "saturation": 3.5
     },
@@ -299,7 +285,7 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/apfelkuchen",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 7,
       "saturation": 8.5
     },
@@ -313,9 +299,9 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/spiegelei",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 4,
-      "saturation": 5.0
+      "saturation": 5
     },
     {
       "id": "pixelrpg:food/kaese",
@@ -327,9 +313,9 @@
       "requiredLevel": 1,
       "adminOnly": false,
       "resourcepackId": "pixelrpg:food/kaese",
-      "gearscoreModifier": 1.0,
+      "gearscoreModifier": 1,
       "nutrition": 4,
-      "saturation": 5.0
+      "saturation": 5
     }
   ]
 }
