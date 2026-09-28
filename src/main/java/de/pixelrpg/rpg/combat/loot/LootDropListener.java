@@ -43,6 +43,8 @@ public final class LootDropListener implements Listener {
         long min = economyConfig.getCurrencyDropMinAmount();
         long max = Math.max(min, economyConfig.getCurrencyDropMaxAmount());
         long amount = min == max ? min : ThreadLocalRandom.current().nextLong(min, max + 1);
+        de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getPlayerProfileManager().getProfile(killer.getUniqueId())
+                .ifPresent(profile -> profile.incrementStatistic("economy.gold.generated.mob.minor", amount * 100L));
         event.getDrops().addAll(GuildCurrencyItemFactory.createStacks(amount));
     }
 }
