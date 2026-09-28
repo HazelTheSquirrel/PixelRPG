@@ -5,7 +5,6 @@ public enum RegionType {
     VILLAGE,
     CITY,
     GUILD_CITY,
-    GUILD_TERRITORY,
     RUINS,
     FORTRESS,
     DUNGEON,
@@ -15,8 +14,10 @@ public enum RegionType {
 
     public static RegionType parse(String value) {
         if (value == null) return OTHER;
+        String normalized = value.trim().toUpperCase(java.util.Locale.ROOT);
+        if (normalized.equals("GUILD_TERRITORY")) return GUILD_CITY;
         try {
-            return valueOf(value.trim().toUpperCase(java.util.Locale.ROOT));
+            return valueOf(normalized);
         } catch (IllegalArgumentException ignored) {
             return OTHER;
         }
