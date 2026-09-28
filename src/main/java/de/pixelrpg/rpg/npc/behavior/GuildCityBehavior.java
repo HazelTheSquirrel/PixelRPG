@@ -103,10 +103,12 @@ public final class GuildCityBehavior implements NpcBehavior {
                             + " • fehlend: " + formatGold(view.remainingGoldMinorUnits() / 100.0D),
                     NamedTextColor.GOLD)));
             for (var entry : view.requiredMaterials().entrySet()) {
+                int delivered = view.deliveredMaterials().getOrDefault(entry.getKey(), 0);
+                int remaining = Math.max(0, entry.getValue() - delivered);
                 body.add(DialogBody.plainMessage(Component.text(
-                        entry.getKey().name() + ": " + view.deliveredMaterials().getOrDefault(entry.getKey(), 0) + "/" + entry.getValue(),
-                        view.deliveredMaterials().getOrDefault(entry.getKey(), 0) >= entry.getValue()
-                                ? NamedTextColor.GREEN : NamedTextColor.GRAY)));
+                        entry.getKey().name() + ": " + delivered + "/" + entry.getValue()
+                                + (remaining > 0 ? " • noch " + remaining : " • vollständig"),
+                        remaining == 0 ? NamedTextColor.GREEN : NamedTextColor.GRAY)));
             }
             for (var entry : view.requiredObjectives().entrySet()) {
                 body.add(DialogBody.plainMessage(Component.text(
@@ -126,7 +128,20 @@ public final class GuildCityBehavior implements NpcBehavior {
 
         List<ActionButton> actions = new ArrayList<>();
         if (guild.cityLevel() < Guild.MAX_CITY_LEVEL) {
-            actions.add(action("Stadtressourcen beitragen", NamedTextColor.GREEN, target -> openCityContribution(target, npc, backAction)));
+            for (var entry : view.requiredMaterials().entrySet()) {
+                int delivered = view.deliveredMaterials().getOrDefault(entry.getKey(), 0);
+                int remaining = Math.max(0, entry.getValue() - delivered);
+                if (remaining > 0) {
+                    actions.add(action(
+                            entry.getKey().name() + " einzahlen (" + remaining + ")",
+                            NamedTextColor.GREEN,
+                            target -> contributeCityMaterial(target, npc, backAction, entry.getKey(), remaining)));
+                }
+            }
+            if (view.requiredMaterials().entrySet().stream().allMatch(entry ->
+                    view.deliveredMaterials().getOrDefault(entry.getKey(), 0) >= entry.getValue())) {
+                actions.add(action("Stadtressourcen vollständig", NamedTextColor.GRAY, target -> open(target, npc, backAction)));
+            }
             if (guild.canManageTerritory(player.getUniqueId())) {
                 actions.add(action("Stadt aufwerten", NamedTextColor.GOLD, target -> {
                     CityProgressionService.Result result = cityProgression.upgrade(target);
@@ -156,6 +171,32 @@ public final class GuildCityBehavior implements NpcBehavior {
         actions.add(action("Schließen", NamedTextColor.GRAY, Player::closeDialog));
 
         dialogue.openMultiAction(player, Component.text("Gildenstadt – " + guild.name(), NamedTextColor.GOLD), body, actions, 1);
+    }
+
+    private void contributeCityMaterial(Player player, RPGNpc npc, Consumer<Player> backAction, Material material, int remaining) {
+        Guild guild = guilds.getGuild(player.getUniqueId()).orElse(null);
+        if (guild == null || !guild.id().equals(npc.kingdomId())) return;
+
+        int available = player.getInventory().all(material).values().stream().mapToInt(item -> item.getAmount()).sum();
+        int amount = Math.min(remaining, available);
+        if (amount <= 0) {
+            player.sendMessage(Component.text(
+                    "Du hast keine " + material.name() + " im Inventar.",
+                    NamedTextColor.RED));
+            open(player, npc, backAction);
+            return;
+        }
+
+        if (!cityProgression.contribute(player, material, amount)) {
+            player.sendMessage(Component.text(
+                    "Die " + material.name() + "-Einzahlung konnte nicht durchgeführt werden.",
+                    NamedTextColor.RED));
+        } else {
+            player.sendMessage(Component.text(
+                    amount + "x " + material.name() + " wurde für die Gildenstadt eingezahlt und aus deinem Inventar entfernt.",
+                    NamedTextColor.GREEN));
+        }
+        open(player, npc, backAction);
     }
 
     private void openCityContribution(Player player, RPGNpc npc, Consumer<Player> backAction) {
