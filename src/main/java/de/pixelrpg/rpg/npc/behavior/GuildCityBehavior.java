@@ -8,11 +8,11 @@ import de.pixelrpg.rpg.guild.CityProgressionService;
 import de.pixelrpg.rpg.guild.Guild;
 import de.pixelrpg.rpg.guild.GuildManager;
 import de.pixelrpg.rpg.guild.GuildTerritoryManager;
-import de.pixelrpg.rpg.guild.KingdomCombatMode;
 import de.pixelrpg.rpg.guild.KingdomMaintenanceService;
 import de.pixelrpg.rpg.npc.NpcBehavior;
 import de.pixelrpg.rpg.npc.NpcType;
 import de.pixelrpg.rpg.npc.RPGNpc;
+import de.pixelrpg.rpg.region.RegionFlagDialogService;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.body.DialogBody;
@@ -35,10 +35,11 @@ public final class GuildCityBehavior implements NpcBehavior {
     private final PlayerProfileManager profiles;
     private final DialogueEngine dialogue;
     private final InviteDialogService invites;
+    private final RegionFlagDialogService regionFlags;
 
     public GuildCityBehavior(GuildManager guilds, CityProgressionService cityProgression,
                              GuildTerritoryManager territories, KingdomMaintenanceService maintenance,
-                             PlayerProfileManager profiles, DialogueEngine dialogue, InviteDialogService invites) {
+                             PlayerProfileManager profiles, DialogueEngine dialogue, InviteDialogService invites, RegionFlagDialogService regionFlags) {
         this.guilds = guilds;
         this.cityProgression = cityProgression;
         this.territories = territories;
@@ -46,6 +47,7 @@ public final class GuildCityBehavior implements NpcBehavior {
         this.profiles = profiles;
         this.dialogue = dialogue;
         this.invites = invites;
+        this.regionFlags = regionFlags;
     }
 
     @Override
@@ -122,10 +124,6 @@ public final class GuildCityBehavior implements NpcBehavior {
                     remaining == 0L ? NamedTextColor.GREEN : NamedTextColor.YELLOW)));
         }
 
-        body.add(DialogBody.plainMessage(Component.text(
-                "Gebietsmodus: " + guild.combatMode().name(),
-                guild.combatMode() == KingdomCombatMode.PVP ? NamedTextColor.RED : NamedTextColor.GREEN)));
-
         List<ActionButton> actions = new ArrayList<>();
         if (guild.cityLevel() < Guild.MAX_CITY_LEVEL) {
             for (var entry : view.requiredMaterials().entrySet()) {
@@ -158,8 +156,7 @@ public final class GuildCityBehavior implements NpcBehavior {
                 target.sendMessage(Component.text(result.message(), result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
                 open(target, npc, backAction);
             }));
-            actions.add(action("Gebietsmodus: PvE", NamedTextColor.GREEN, target -> requestCombatMode(target, npc, KingdomCombatMode.PVE, backAction)));
-            actions.add(action("Gebietsmodus: PvP", NamedTextColor.RED, target -> requestCombatMode(target, npc, KingdomCombatMode.PVP, backAction)));
+            actions.add(action("Gebietsmodus", NamedTextColor.AQUA, target -> openRegionFlags(target, guild, backAction)));
         }
 
         actions.add(action("Wöchentliche Wartung", NamedTextColor.AQUA, target -> openMaintenance(target, npc, backAction)));
@@ -267,12 +264,24 @@ public final class GuildCityBehavior implements NpcBehavior {
                 });
     }
 
-    private void requestCombatMode(Player player, RPGNpc npc, KingdomCombatMode mode, Consumer<Player> backAction) {
-        GuildManager.Result result = guilds.requestCombatMode(player, mode);
-        if (result != GuildManager.Result.SUCCESS) {
-            player.sendMessage(Component.text(combatModeMessage(result), NamedTextColor.RED));
+    private void openRegionFlags(Player player, Guild guild, Consumer<Player> backAction) {
+        if (guild.cityRegionId() == null) {
+            player.sendMessage(Component.text("Für diese Gildenstadt ist keine Region hinterlegt.", NamedTextColor.RED));
+            open(player, findNpcForGuild(guild), backAction);
+            return;
         }
-        open(player, npc, backAction);
+        var region = PixelRPGPlugin.getInstance().getRegionManager().get(guild.cityRegionId()).orElse(null);
+        if (region == null) {
+            player.sendMessage(Component.text("Die Gildenstadt-Region konnte nicht gefunden werden.", NamedTextColor.RED));
+            return;
+        }
+        regionFlags.open(player, region);
+    }
+
+    private RPGNpc findNpcForGuild(Guild guild) {
+        return PixelRPGPlugin.getInstance().getNpcManager().getAll().stream()
+                .filter(npc -> npc.type() == NpcType.GUILD_CITY && guild.id().equals(npc.kingdomId()))
+                .findFirst().orElse(null);
     }
 
     private Material firstMaintenanceMaterial() {
