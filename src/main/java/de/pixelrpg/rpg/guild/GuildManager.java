@@ -342,15 +342,6 @@ public final class GuildManager implements GuildAPI {
         return guild == null ? Optional.empty() : Optional.ofNullable(guild.cityRegionId);
     }
 
-    private PixelRegion resolveRegion(de.pixelrpg.rpg.region.RegionManager regions, String selector) {
-        try {
-            UUID id = UUID.fromString(selector);
-            return regions.get(id).orElse(null);
-        } catch (IllegalArgumentException ignored) {
-            return regions.all().stream().filter(region -> region.name().equalsIgnoreCase(selector)).findFirst().orElse(null);
-        }
-    }
-
     private void syncCityMember(GuildData guild, UUID playerId) {
         if (guild.cityRegionId == null) return;
         var regions = plugin.getRegionManager();
@@ -360,20 +351,6 @@ public final class GuildManager implements GuildAPI {
         if (guild.members().contains(playerId)) region.addMember(playerId);
         else region.removeMember(playerId);
         regions.save();
-    }
-
-    private void releaseCityInternal(GuildData guild) {
-        if (guild.cityRegionId == null) return;
-        var regions = plugin.getRegionManager();
-        if (regions != null) {
-            PixelRegion region = regions.get(guild.cityRegionId).orElse(null);
-            if (region != null) {
-                region.clearOwner();
-                for (UUID member : guild.members()) region.removeMember(member);
-                regions.save();
-            }
-        }
-        guild.cityRegionId = null;
     }
 
     public synchronized java.util.Collection<Guild> allGuilds() { return guilds.values().stream().map(GuildData::snapshot).toList(); }
