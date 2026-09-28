@@ -266,8 +266,6 @@ public final class RegionRepository {
         flags.put(RegionFlag.CROP_GROWTH, true);
         flags.put(RegionFlag.LEAF_DECAY, true);
         flags.put(RegionFlag.BLOCK_TRAMPLING, true);
-        flags.put(RegionFlag.ENTRY, true);
-        flags.put(RegionFlag.EXIT, true);
         flags.put(RegionFlag.RESPAWN_ANCHORS, true);
         flags.put(RegionFlag.SLEEP, true);
         flags.put(RegionFlag.ENDERPEARL, true);
