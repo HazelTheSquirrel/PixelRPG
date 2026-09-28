@@ -345,36 +345,36 @@ Suggested framework:
 - [x] Decide later whether Season 1 receives a final boss/final battle.
 
 ## Quest content
-- [ ] Main-story quests.
+- [x] Main-story quests.
 - [ ] Regional side quests.
 - [ ] NPC character quests.
 - [ ] Profession introduction/content quests where appropriate.
-- [ ] Exploration/discovery quests.
-- [ ] Nether questline.
+- [x] Exploration/discovery quests.
+- [x] Nether questline.
 - [ ] Dungeon questlines.
 - [ ] Worldboss-related quests/events.
-- [ ] Keep gathering NPC rank I→IV as material turn-ins, **not quest chains**.
+- [x] Keep gathering NPC rank I→IV as material turn-ins, **not quest chains**.
 
 ## Special items / materials
 Avoid replacing every vanilla resource with RPG variants. Add a smaller special-material layer.
 
 Potential categories to design:
-- [ ] Old-world relics/fragments.
-- [ ] Nether materials.
-- [ ] Dungeon materials.
-- [ ] Worldboss-specific materials.
-- [ ] Rare gathering materials.
-- [ ] Quest/story items.
-- [ ] Meisterbrief + signed Meisterbrief.
-- [ ] Endgame crafting components.
+- [x] Old-world relics/fragments.
+- [x] Nether materials.
+- [x] Dungeon materials.
+- [x] Worldboss-specific materials.
+- [x] Rare gathering materials.
+- [x] Quest/story items.
+- [x] Meisterbrief + signed Meisterbrief.
+- [x] Endgame crafting components.
 
 Names, rarity tiers and exact drop rates are **not fixed yet**.
 
 ## Dungeons / locations
-- [ ] Define Season 1 dungeon list and intended level ranges.
-- [ ] Define each dungeon's story purpose.
-- [ ] Define boss encounters.
-- [ ] Define unique materials/rewards.
+- [x] Define Season 1 dungeon list and intended level ranges.
+- [x] Define each dungeon's story purpose.
+- [x] Define boss encounters.
+- [x] Define unique materials/rewards.
 - [ ] Create important overworld ruins/landmarks.
 - [ ] Create important Nether locations.
 - [ ] Connect locations to quests instead of making them isolated content islands.
