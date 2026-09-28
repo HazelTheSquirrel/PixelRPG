@@ -90,7 +90,7 @@ public final class GuildSubCommand implements SubCommand {
                     .toList();
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("city")) {
-            return List.of("claim", "release", "info", "contribute", "upgrade", "pvp").stream()
+            return List.of("info", "contribute", "upgrade", "pvp").stream()
                     .filter(value -> value.startsWith(args[1].toLowerCase(Locale.ROOT)))
                     .toList();
         }
@@ -185,67 +185,79 @@ public final class GuildSubCommand implements SubCommand {
 
     private boolean city(Player player, String[] args) {
         if (args.length < 2) {
-            player.sendMessage(Component.text("Verwendung: /pixelrpg guild city <claim|release|info|contribute|upgrade|pvp>", NamedTextColor.YELLOW));
+            player.sendMessage(Component.text("Verwendung: /pixelrpg guild city <info|contribute|upgrade|pvp>", NamedTextColor.YELLOW));
             return true;
         }
         switch (args[1].toLowerCase(Locale.ROOT)) {
-            case "claim" -> {
-                if (args.length != 3) {
-                    player.sendMessage(Component.text("Verwendung: /pixelrpg guild city claim <Region>", NamedTextColor.YELLOW));
-                    return true;
-                }
-                switch (guildManager.claimCity(player, args[2])) {
-                    case SUCCESS -> player.sendMessage(Component.text("Die Gilde besitzt jetzt diese Gildenstadt.", NamedTextColor.GREEN));
-                    case NOT_IN_GUILD -> player.sendMessage(Component.text("Du bist in keiner Gilde.", NamedTextColor.RED));
-                    case NOT_LEADER -> player.sendMessage(Component.text("Nur der Gildenmeister kann eine Gildenstadt beanspruchen.", NamedTextColor.RED));
-                    case CITY_ALREADY_CLAIMED -> player.sendMessage(Component.text("Deine Gilde besitzt bereits eine Gildenstadt.", NamedTextColor.RED));
-                    case CITY_REGION_NOT_FOUND -> player.sendMessage(Component.text("Gildenstadt-Region nicht gefunden.", NamedTextColor.RED));
-                    case NOT_GUILD_CITY -> player.sendMessage(Component.text("Die Region ist nicht vom Typ GUILD_CITY.", NamedTextColor.RED));
-                    case CITY_OWNED -> player.sendMessage(Component.text("Diese Gildenstadt ist bereits vergeben.", NamedTextColor.RED));
-                    default -> player.sendMessage(Component.text("Die Gildenstadt konnte nicht beansprucht werden.", NamedTextColor.RED));
-                }
-            }
             case "info" -> {
                 var view = cityProgression.view(guildManager.getGuild(player.getUniqueId()).map(Guild::id).orElse(null));
-                if (view == null) { player.sendMessage(Component.text("Du bist in keiner Gilde.", NamedTextColor.RED)); return true; }
+                if (view == null) {
+                    player.sendMessage(Component.text("Du bist in keiner Gilde.", NamedTextColor.RED));
+                    return true;
+                }
                 player.sendMessage(Component.text("Stadtlevel " + view.level() + " – " + view.levelName(), NamedTextColor.GOLD));
-                if (view.level() >= Guild.MAX_CITY_LEVEL) { player.sendMessage(Component.text("Maximales Stadtlevel erreicht.", NamedTextColor.GREEN)); return true; }
+                if (view.level() >= Guild.MAX_CITY_LEVEL) {
+                    player.sendMessage(Component.text("Maximales Stadtlevel erreicht.", NamedTextColor.GREEN));
+                    return true;
+                }
                 player.sendMessage(Component.text("Nächstes Level: " + view.nextLevelName(), NamedTextColor.YELLOW));
-                player.sendMessage(Component.text("Benötigtes Gold in der Stadtkasse: " + view.requiredGoldMinorUnits()/100.0D + " (fehlend " + view.remainingGoldMinorUnits()/100.0D + ")", NamedTextColor.GRAY));
-                view.requiredMaterials().forEach((m,a) -> player.sendMessage(Component.text(m + ": " + view.deliveredMaterials().getOrDefault(m,0) + "/" + a, NamedTextColor.GRAY)));
-                view.requiredObjectives().forEach((key,a) -> player.sendMessage(Component.text(key + ": " + view.objectiveProgress().getOrDefault(key,0) + "/" + a, NamedTextColor.GRAY)));
-                long remaining=Math.max(0L, view.cooldownUntil()-System.currentTimeMillis());
-                player.sendMessage(Component.text("Cooldown: " + (remaining/3_600_000L) + "h", NamedTextColor.GRAY));
-                
+                player.sendMessage(Component.text("Benötigtes Gold in der Stadtkasse: " + view.requiredGoldMinorUnits() / 100.0D
+                        + " (fehlend " + view.remainingGoldMinorUnits() / 100.0D + ")", NamedTextColor.GRAY));
+                view.requiredMaterials().forEach((material, amount) ->
+                        player.sendMessage(Component.text(material + ": " + view.deliveredMaterials().getOrDefault(material, 0) + "/" + amount, NamedTextColor.GRAY)));
+                view.requiredObjectives().forEach((key, amount) ->
+                        player.sendMessage(Component.text(key + ": " + view.objectiveProgress().getOrDefault(key, 0) + "/" + amount, NamedTextColor.GRAY)));
+                long remaining = Math.max(0L, view.cooldownUntil() - System.currentTimeMillis());
+                player.sendMessage(Component.text("Cooldown: " + (remaining / 3_600_000L) + "h", NamedTextColor.GRAY));
             }
             case "contribute" -> {
-                if (args.length != 4) { player.sendMessage(Component.text("Verwendung: /pixelrpg guild city contribute <Material> <Menge>", NamedTextColor.YELLOW)); return true; }
-                Material material=Material.matchMaterial(args[2]);
-                int amount; try { amount=Integer.parseInt(args[3]); } catch(NumberFormatException e){ amount=0; }
-                if(material==null||amount<=0||!cityProgression.contribute(player,material,amount)) player.sendMessage(Component.text("Diese Ressource wird für den nächsten Stadtaufstieg nicht benötigt oder fehlt im Inventar.", NamedTextColor.RED));
-                else player.sendMessage(Component.text("Ressourcen für den nächsten Stadtaufstieg eingelagert.", NamedTextColor.GREEN));
-                
-            }
-            case "upgrade" -> {
-                switch(cityProgression.upgrade(player)) { case SUCCESS -> {} case NOT_AUTHORIZED -> player.sendMessage(Component.text("Nur Gildenmeister oder Stellvertreter dürfen den Stadtaufstieg auslösen.",NamedTextColor.RED)); case MAX_LEVEL -> player.sendMessage(Component.text("Maximales Stadtlevel erreicht.",NamedTextColor.RED)); default -> player.sendMessage(Component.text("Cooldown, Gold oder Ressourcen verhindern den Aufstieg.",NamedTextColor.RED)); }
-                
-            }
-            case "pvp" -> {
-                if(args.length!=3){player.sendMessage(Component.text("Verwendung: /pixelrpg guild city pvp <pve|pvp>",NamedTextColor.YELLOW));return true;}
-                KingdomCombatMode mode; try{mode=KingdomCombatMode.valueOf(args[2].toUpperCase(Locale.ROOT));}catch(IllegalArgumentException e){player.sendMessage(Component.text("Modus muss pve oder pvp sein.",NamedTextColor.RED));return true;}
-                switch(guildManager.requestCombatMode(player,mode)){case SUCCESS->{} case NOT_LEADER->player.sendMessage(Component.text("Nur Gildenmeister oder Stellvertreter dürfen den Gebietsmodus ändern.",NamedTextColor.RED)); case COMBAT_MODE_COOLDOWN->player.sendMessage(Component.text("Der Gebietsmodus befindet sich noch im Cooldown.",NamedTextColor.RED)); case COMBAT_MODE_PENDING->player.sendMessage(Component.text("Ein Gebietsmoduswechsel ist bereits geplant.",NamedTextColor.RED)); case COMBAT_MODE_ALREADY_ACTIVE->player.sendMessage(Component.text("Dieser Modus ist bereits aktiv.",NamedTextColor.RED)); default->player.sendMessage(Component.text("Der Gebietsmodus konnte nicht geändert werden.",NamedTextColor.RED));}
-                
-            }
-            case "release" -> {
-                switch (guildManager.releaseCity(player)) {
-                    case SUCCESS -> player.sendMessage(Component.text("Die Gilde hat ihre Gildenstadt freigegeben.", NamedTextColor.YELLOW));
-                    case NOT_IN_GUILD -> player.sendMessage(Component.text("Du bist in keiner Gilde.", NamedTextColor.RED));
-                    case NOT_LEADER -> player.sendMessage(Component.text("Nur der Gildenmeister kann die Gildenstadt freigeben.", NamedTextColor.RED));
-                    case NO_CITY -> player.sendMessage(Component.text("Deine Gilde besitzt keine Gildenstadt.", NamedTextColor.RED));
-                    default -> player.sendMessage(Component.text("Die Gildenstadt konnte nicht freigegeben werden.", NamedTextColor.RED));
+                if (args.length != 4) {
+                    player.sendMessage(Component.text("Verwendung: /pixelrpg guild city contribute <Material> <Menge>", NamedTextColor.YELLOW));
+                    return true;
+                }
+                Material material = Material.matchMaterial(args[2]);
+                int amount;
+                try {
+                    amount = Integer.parseInt(args[3]);
+                } catch (NumberFormatException exception) {
+                    amount = 0;
+                }
+                if (material == null || amount <= 0 || !cityProgression.contribute(player, material, amount)) {
+                    player.sendMessage(Component.text("Diese Ressource wird für den nächsten Stadtaufstieg nicht benötigt oder fehlt im Inventar.", NamedTextColor.RED));
+                } else {
+                    player.sendMessage(Component.text("Ressourcen für den nächsten Stadtaufstieg eingelagert.", NamedTextColor.GREEN));
                 }
             }
-            default -> player.sendMessage(Component.text("Verwendung: /pixelrpg guild city <claim|release|info|contribute|upgrade|pvp>", NamedTextColor.YELLOW));
+            case "upgrade" -> {
+                switch (cityProgression.upgrade(player)) {
+                    case SUCCESS -> { }
+                    case NOT_AUTHORIZED -> player.sendMessage(Component.text("Nur Gildenmeister oder Stellvertreter dürfen den Stadtaufstieg auslösen.", NamedTextColor.RED));
+                    case MAX_LEVEL -> player.sendMessage(Component.text("Maximales Stadtlevel erreicht.", NamedTextColor.RED));
+                    default -> player.sendMessage(Component.text("Cooldown, Gold oder Ressourcen verhindern den Aufstieg.", NamedTextColor.RED));
+                }
+            }
+            case "pvp" -> {
+                if (args.length != 3) {
+                    player.sendMessage(Component.text("Verwendung: /pixelrpg guild city pvp <pve|pvp>", NamedTextColor.YELLOW));
+                    return true;
+                }
+                KingdomCombatMode mode;
+                try {
+                    mode = KingdomCombatMode.valueOf(args[2].toUpperCase(Locale.ROOT));
+                } catch (IllegalArgumentException exception) {
+                    player.sendMessage(Component.text("Modus muss pve oder pvp sein.", NamedTextColor.RED));
+                    return true;
+                }
+                switch (guildManager.requestCombatMode(player, mode)) {
+                    case SUCCESS -> { }
+                    case NOT_LEADER -> player.sendMessage(Component.text("Nur Gildenmeister oder Stellvertreter dürfen den Gebietsmodus ändern.", NamedTextColor.RED));
+                    case COMBAT_MODE_COOLDOWN -> player.sendMessage(Component.text("Der Gebietsmodus befindet sich noch im Cooldown.", NamedTextColor.RED));
+                    case COMBAT_MODE_PENDING -> player.sendMessage(Component.text("Ein Gebietsmoduswechsel ist bereits geplant.", NamedTextColor.RED));
+                    case COMBAT_MODE_ALREADY_ACTIVE -> player.sendMessage(Component.text("Dieser Modus ist bereits aktiv.", NamedTextColor.RED));
+                    default -> player.sendMessage(Component.text("Der Gebietsmodus konnte nicht geändert werden.", NamedTextColor.RED));
+                }
+            }
+            default -> player.sendMessage(Component.text("Verwendung: /pixelrpg guild city <info|contribute|upgrade|pvp>", NamedTextColor.YELLOW));
         }
         return true;
     }
@@ -278,8 +290,8 @@ public final class GuildSubCommand implements SubCommand {
         player.sendMessage(Component.text("/pixelrpg guild accept", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild leave", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild info", NamedTextColor.YELLOW));
-        player.sendMessage(Component.text("/pixelrpg guild city claim <Region>", NamedTextColor.YELLOW));
-        player.sendMessage(Component.text("/pixelrpg guild city release", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/pixelrpg guild city info", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/pixelrpg guild city info", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild city info", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild city contribute <Material> <Menge>", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild city upgrade", NamedTextColor.YELLOW));
