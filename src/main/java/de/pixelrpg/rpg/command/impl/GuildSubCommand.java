@@ -290,7 +290,7 @@ public final class GuildSubCommand implements SubCommand {
                     default -> player.sendMessage(Component.text("Der Gebietsmodus konnte nicht geändert werden.", NamedTextColor.RED));
                 }
             }
-            default -> player.sendMessage(Component.text("Verwendung: /pixelrpg guild city <info|contribute|upgrade|pvp>", NamedTextColor.YELLOW));
+            default -> player.sendMessage(Component.text("Verwendung: /pixelrpg guild city <info|claim|markers|contribute|upgrade|pvp>", NamedTextColor.YELLOW));
         }
         return true;
     }
