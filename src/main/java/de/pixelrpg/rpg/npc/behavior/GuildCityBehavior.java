@@ -225,7 +225,7 @@ public final class GuildCityBehavior implements NpcBehavior {
                 open(target, npc, backAction);
             }));
         }
-        actions.add(action("Zurück", target -> open(target, npc, backAction)));
+        actions.add(action("Zurück", NamedTextColor.WHITE, target -> open(target, npc, backAction)));
         dialogue.openMultiAction(player, Component.text("Wöchentliche Wartung", NamedTextColor.GOLD), body, actions, 1);
     }
 
