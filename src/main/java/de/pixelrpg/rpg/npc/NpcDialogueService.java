@@ -129,7 +129,7 @@ public final class NpcDialogueService implements AutoCloseable {
                     target -> continueToBehavior(target, npc)));
             case BANKER -> actions.add(dialogue.actionButton(Component.text("Bank öffnen"), NamedTextColor.DARK_GREEN,
                     target -> continueToBehavior(target, npc)));
-            case RECEPTION -> actions.add(dialogue.actionButton(Component.text("Verwaltung öffnen"), NamedTextColor.AQUA,
+            case RECEPTION, GUILD_CITY -> actions.add(dialogue.actionButton(Component.text("Verwaltung öffnen"), NamedTextColor.AQUA,
                     target -> continueToBehavior(target, npc)));
             case PROFESSION_BLACKSMITH, PROFESSION_SCHOLAR, PROFESSION_FARMER,
                  PROFESSION_COOK, PROFESSION_TAILOR, PROFESSION_ALCHEMIST,
@@ -156,6 +156,7 @@ public final class NpcDialogueService implements AutoCloseable {
         if (firstVisit) {
             return switch (type) {
                 case RECEPTION -> "Die Nacht war unruhig. Die Rezeption ist trotzdem besetzt. Wenn du neu bist, zeige ich dir, wo du anfangen kannst.";
+                case GUILD_CITY -> "Die Gildenstadt wächst mit ihrer Gemeinschaft. Hier werden Aufstieg, Gebiet und die wöchentliche Verwaltung gemeinsam organisiert.";
                 case SHOP -> "Die Nacht war schrecklich. Die Waren sind noch da, aber einige Regale sind leer. Ich kann dir erzählen, was heute Nacht passiert ist.";
                 case TRAVEL -> "Die Nacht war schrecklich. Reisende berichten von seltsamen Geräuschen auf den Wegen. Bevor du aufbrichst, solltest du wissen, was sich verändert hat.";
                 case QUEST -> "Die Nacht war schrecklich. Seit Sonnenaufgang kommen neue Hilferufe aus der Umgebung. Manche davon sind dringender, als sie zunächst klingen.";
@@ -174,6 +175,7 @@ public final class NpcDialogueService implements AutoCloseable {
         }
         return switch (type) {
             case RECEPTION -> "Wieder da? Gut. An der Rezeption sammeln sich jeden Tag neue Geschichten, Beschwerden und kleine Probleme.";
+            case GUILD_CITY -> "Die Gildenstadt steht. Von hier aus verwaltet ihr Stadtaufstieg, Grenzmarker, Gebietsmodus und Wartung.";
             case SHOP -> "Du bist wieder da. Einige Waren sind ersetzt worden, andere fehlen noch. Der Handel verändert sich schneller als man denkt.";
             case TRAVEL -> "Die Wege sind heute ruhiger. Trotzdem würde ich nicht jede Spur am Straßenrand für harmlos halten.";
             case QUEST -> "Es gibt neue Meldungen. Nicht jede davon ist ein Auftrag – manche sind Warnungen, die erst später wichtig werden.";
@@ -291,6 +293,7 @@ public final class NpcDialogueService implements AutoCloseable {
                 case 3 -> new String[]{"Der Wald verändert sich langsam.", "Neue Spuren, beschädigte Rinde oder ungewöhnliche Stille können Hinweise sein. Wer täglich dort arbeitet, bemerkt Veränderungen, die anderen entgehen."};
                 default -> new String[]{"Gutes Holz braucht Zeit.", "Schnelles Wachstum und hohe Qualität sind nicht immer dasselbe. Geduld bei Auswahl und Lagerung entscheidet später darüber, wie zuverlässig das Material arbeitet."};
             };
+            case GUILD_CITY -> new String[]{"Eine Stadt wächst nicht nur durch Gebäude.", "Materialien, Gold, Berufe und gemeinsame Entscheidungen bestimmen, wie weit eure Gildenstadt vorankommt."};
             case STORY, FILLER -> new String[]{"Dieser Dialog gehört nicht zum allgemeinen NPC-System.", "Story- und FILLER-NPCs werden ausschließlich von ihren eigenen Systemen gesteuert."};
         };
     }
