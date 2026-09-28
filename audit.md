@@ -29,12 +29,12 @@ Damit sind der zuvor gemeldete Resourcepack-Blocker und das verwaiste Food-Routi
 
 Die aktuelle Resourcepack-Forensik zeigt konkret:
 
-- 24 Food-Item-JSON-Dateien
+- 23 Food-Item-JSON-Dateien
 - 23 Food-Model-JSON-Dateien
 - 21 Food-PNG-Dateien
-- `suessbeeren_marmelade.json` verweist auf ein nicht vorhandenes Model
+- das verwaiste `suessbeeren_marmelade`-Routing wurde entfernt
 - mehrere Modeldateinamen unterscheiden sich bewusst vom tatsächlichen PNG-Namen; die geprüften `layer0`-Referenzen dieser Modelle zeigen auf vorhandene PNGs
-- die aktuelle Food-Struktur ist deshalb **noch nicht vollständig konsistent**
+- die aktuelle Food-Struktur ist damit routing-/modelseitig konsistent
 
 ### Wesentliche technische Befunde
 
@@ -56,13 +56,13 @@ Die aktuelle Resourcepack-Forensik zeigt konkret:
 
 **Kritische bzw. hohe Befunde**
 
-1. **Resourcepack ist am aktuellen HEAD noch CI-rot.**
-2. `suessbeeren_marmelade` besitzt eine Itemdefinition, aber kein zugehöriges Model.
-3. Es existiert damit eine konkrete Content-/Asset-Inkonsistenz zwischen Itemdefinition, Item-Model-Routing und Resourcepack.
-4. Der Resourcepack-Workflow erzeugt und committed selbstständig ZIP/SHA1-Dateien; dadurch können Build- und Resourcepack-Commits zeitlich gegeneinander laufen.
-5. Einige Runtime-YAML-Daten sind weniger streng schema-validiert als die JSON-basierten Content-Registries.
-6. `ShopManager.save()` schreibt synchron auf den Serverthread.
-7. Mehrere periodische/global arbeitende Systeme besitzen lineare Skalierung gegenüber Spieler-/NPC-Mengen.
+1. **Der frühere Resourcepack-P0 ist behoben.**
+2. Das verwaiste `suessbeeren_marmelade`-Routing wurde zusammen mit der zugehörigen Fooddefinition entfernt.
+3. `ShopManager.save()` schreibt nicht mehr synchron auf den Serverthread.
+4. Der NPC-Login-Resync nutzt jetzt den vorhandenen Chunk-Index statt den gesamten NPC-Bestand.
+5. Einige Runtime-YAML-Daten sind weiterhin weniger streng schema-validiert als die JSON-basierten Content-Registries.
+6. Parserfehler werden an mehreren Stellen weiterhin bewusst abgefangen und nicht überall detailliert gemeldet.
+7. Der Resourcepack-Workflow erzeugt weiterhin selbstständig ZIP/SHA1-Commits.
 
 **Keine konkreten Befunde für**
 
@@ -515,11 +515,11 @@ Food besitzt unter anderem:
 
 Food-Resourcepack:
 
-- 24 Item-Routing-Dateien
+- 23 Item-Routing-Dateien
 - 23 Model-Dateien
 - 21 PNG-Texturen
 
-Konkreter Fehler:
+Der frühere konkrete Fehler:
 
 `resourcepack/assets/pixelrpg/items/food/suessbeeren_marmelade.json`
 
@@ -1337,7 +1337,7 @@ Dieses Dokument ersetzt den veralteten Auditstand.
 
 # 41. Priorisierte Befundliste
 
-## 🔴 P0
+## 🟢 Behobene P0
 
 ### F-001 — Resourcepack: verwaistes Food-Item
 
