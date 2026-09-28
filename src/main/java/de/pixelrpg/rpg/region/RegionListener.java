@@ -51,7 +51,7 @@ public final class RegionListener implements Listener {
     public RegionListener(RegionManager regions, RegionEditor editor, RegionSpawnService spawnService, GuildManager guilds, CombatStateService combatStateService) {
         this.regions = Objects.requireNonNull(regions);
         this.editor = Objects.requireNonNull(editor);
-        this.policy = new RegionPolicyService(regions, spawnService, guilds);
+        this.policy = new RegionPolicyService(regions, spawnService);
         this.transitions = new RegionTransitionService(regions, guilds);
     }
 
