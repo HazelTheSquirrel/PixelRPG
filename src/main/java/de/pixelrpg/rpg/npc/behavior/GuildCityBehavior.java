@@ -3,6 +3,7 @@ package de.pixelrpg.rpg.npc.behavior;
 import de.pixelrpg.rpg.PixelRPGPlugin;
 import de.pixelrpg.rpg.dialogue.DialogueEngine;
 import de.pixelrpg.rpg.dialogue.GuildDialog;
+import de.pixelrpg.rpg.dialogue.InviteDialogService;
 import de.pixelrpg.rpg.guild.CityProgressionService;
 import de.pixelrpg.rpg.guild.Guild;
 import de.pixelrpg.rpg.guild.GuildManager;
@@ -33,16 +34,18 @@ public final class GuildCityBehavior implements NpcBehavior {
     private final KingdomMaintenanceService maintenance;
     private final PlayerProfileManager profiles;
     private final DialogueEngine dialogue;
+    private final InviteDialogService invites;
 
     public GuildCityBehavior(GuildManager guilds, CityProgressionService cityProgression,
                              GuildTerritoryManager territories, KingdomMaintenanceService maintenance,
-                             PlayerProfileManager profiles, DialogueEngine dialogue) {
+                             PlayerProfileManager profiles, DialogueEngine dialogue, InviteDialogService invites) {
         this.guilds = guilds;
         this.cityProgression = cityProgression;
         this.territories = territories;
         this.maintenance = maintenance;
         this.profiles = profiles;
         this.dialogue = dialogue;
+        this.invites = invites;
     }
 
     @Override
@@ -146,7 +149,7 @@ public final class GuildCityBehavior implements NpcBehavior {
 
         actions.add(action("Wöchentliche Wartung", NamedTextColor.AQUA, target -> openMaintenance(target, npc, backAction)));
         actions.add(action("Gilde verwalten", NamedTextColor.GOLD, target -> {
-            GuildDialog guildDialog = new GuildDialog(guilds, profiles, dialogue, null, null,
+            GuildDialog guildDialog = new GuildDialog(guilds, profiles, dialogue, null, invites,
                     next -> open(next, npc, backAction));
             guildDialog.open(target);
         }));
