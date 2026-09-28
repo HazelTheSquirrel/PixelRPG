@@ -1,6 +1,7 @@
 package de.pixelrpg.rpg.profession;
 
 import de.pixelrpg.rpg.item.ItemRarity;
+import de.pixelrpg.rpg.npc.ProfessionNpcRank;
 import org.bukkit.Material;
 
 import java.util.Map;
@@ -25,7 +26,8 @@ public record CraftRecipe(
         String potionType,
         String enchantment,
         int enchantmentLevel,
-        RecipeAccessTier accessTier
+        RecipeAccessTier accessTier,
+        ProfessionNpcRank requiredNpcRank
 ) {
     public CraftRecipe {
         if (profession == null) throw new IllegalArgumentException("Profession must not be null");
@@ -53,6 +55,7 @@ public record CraftRecipe(
         if (enchantment == null) enchantment = "";
         if (enchantmentLevel < 0) throw new IllegalArgumentException("Enchantment level must not be negative");
         if (accessTier == null) throw new IllegalArgumentException("Recipe access tier must not be null");
+        if (requiredNpcRank == null) throw new IllegalArgumentException("Recipe NPC rank requirement must not be null");
         costs = Map.copyOf(costs);
         itemCosts = Map.copyOf(itemCosts);
     }
