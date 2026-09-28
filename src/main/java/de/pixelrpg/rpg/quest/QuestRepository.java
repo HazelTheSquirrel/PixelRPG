@@ -37,7 +37,6 @@ public final class QuestRepository {
         followUpsByQuest.clear();
         craftingRecipes.load(plugin);
         loadDefinitionsFrom("quests_v2.json");
-        loadDefinitionsFrom("quests_additional.json");
         loadDefinitionsFrom("quests_world_expansion.json");
         loadDefinitionsFrom("quests_expansion_02.json");
         loadDefinitionsFrom("quests_story.json");
