@@ -291,8 +291,6 @@ public final class GuildSubCommand implements SubCommand {
         player.sendMessage(Component.text("/pixelrpg guild leave", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild info", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild city info", NamedTextColor.YELLOW));
-        player.sendMessage(Component.text("/pixelrpg guild city info", NamedTextColor.YELLOW));
-        player.sendMessage(Component.text("/pixelrpg guild city info", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild city contribute <Material> <Menge>", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild city upgrade", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild city pvp <pve|pvp>", NamedTextColor.YELLOW));
