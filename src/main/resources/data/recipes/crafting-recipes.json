@@ -781,7 +781,10 @@
       "unlockedByDefault": false,
       "category": "ARMOR",
       "professionXp": 341,
-      "accessTier": "KINGDOM_ELITE"
+      "accessTier": "KINGDOM_ELITE",
+      "itemCosts": {
+        "pixelrpg:boss/horn_des_berges": 1
+      }
     },
     {
       "id": "blacksmith:iron_horse_armor",
@@ -3832,7 +3835,10 @@
       "unlockedByDefault": false,
       "category": "ARCANE",
       "professionXp": 369,
-      "accessTier": "KINGDOM_ELITE"
+      "accessTier": "KINGDOM_ELITE",
+      "itemCosts": {
+        "pixelrpg:boss/gebundene_enderperle": 1
+      }
     },
     {
       "id": "scholar:enchanting_table",
@@ -3868,7 +3874,10 @@
       "unlockedByDefault": false,
       "category": "ARCANE",
       "professionXp": 405,
-      "accessTier": "KINGDOM_ELITE"
+      "accessTier": "KINGDOM_ELITE",
+      "itemCosts": {
+        "pixelrpg:boss/weltenherz": 1
+      }
     },
     {
       "id": "scholar:end_crystal",
@@ -3886,7 +3895,10 @@
       "unlockedByDefault": false,
       "category": "ARCANE",
       "professionXp": 387,
-      "accessTier": "KINGDOM_ELITE"
+      "accessTier": "KINGDOM_ELITE",
+      "itemCosts": {
+        "pixelrpg:boss/endriss": 1
+      }
     },
     {
       "id": "scholar:respawn_anchor",
@@ -3903,7 +3915,10 @@
       "unlockedByDefault": false,
       "category": "ARCANE",
       "professionXp": 369,
-      "accessTier": "KINGDOM_ELITE"
+      "accessTier": "KINGDOM_ELITE",
+      "itemCosts": {
+        "pixelrpg:boss/netherkern": 1
+      }
     },
     {
       "id": "scholar:lodestone",
@@ -3938,7 +3953,10 @@
       "unlockedByDefault": false,
       "category": "ARCANE",
       "professionXp": 367,
-      "accessTier": "KINGDOM_ELITE"
+      "accessTier": "KINGDOM_ELITE",
+      "itemCosts": {
+        "pixelrpg:boss/echoherz": 1
+      }
     },
     {
       "id": "scholar:firework_rocket",
