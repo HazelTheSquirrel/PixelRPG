@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "pixelrpg:item/food/süßbeeren_marmelade"
+    "layer0": "pixelrpg:item/food/suessbeeren_marmelade"
   }
 }
