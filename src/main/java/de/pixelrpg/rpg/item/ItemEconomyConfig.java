@@ -12,7 +12,7 @@ public final class ItemEconomyConfig {
 
     public void load(FileConfiguration config) {
         soulboundCost = config.getDouble("items.soulbound.cost", soulboundCost);
-        soulboundMinLevel = Math.max(1, Math.min(99,
+        soulboundMinLevel = Math.max(1, Math.min(60,
                 config.getInt("items.soulbound.min-level", soulboundMinLevel)));
         itemDropChance = Math.max(0.0, Math.min(1.0,
                 config.getDouble("items.loot.item-drop-chance", itemDropChance)));
