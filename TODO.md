@@ -266,7 +266,7 @@ Tasks:
 - [x] Define Goldtaler/resource requirements.
 - [x] Define any NPC/progression prerequisites.
 - [x] Verify requirements cannot be trivially pre-completed through exploits (static contribution/state audit; runtime exploit test remains server validation).
-- [x] Test progression against the 33-day absolute cooldown floor (configured transition table totals 36 days; initial city creation adds its own configured gate).
+- [x] Test progression against the 36-day absolute transition cooldown floor (the configured 1→2 through 9→10 table totals 36 days; legacy kingdoms receive the configured initial city gate on migration).
 
 ## NPC upgrade content
 - [x] Define material lists/amounts for gathering NPC I→IV.
