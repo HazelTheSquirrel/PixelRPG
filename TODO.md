@@ -4,7 +4,7 @@
 > **Purpose:** Single hand-off checklist for Season 1 development.  
 > Keep this file updated when a task is completed, changed or intentionally deferred.
 
-> **Rebuild implementation note:** P0/P1 core systems and deterministic Season-1 content are implemented. Live economy/progression tuning, boss-material balancing and restart-test execution remain intentionally data/telemetry validation work and are not marked complete without runtime evidence. The cooldown table itself sums to 36 days, although the original checklist states 33 days; the table is retained as authoritative.
+> **Rebuild implementation note:** Core P0/P1 systems, deterministic Season-1 requirements, NPC progression/UI, specialization repair tooling, economy/progression telemetry, endgame boss-material recipe hooks and the Season-1 lore/content bible are implemented. Remaining unchecked items are either live-server/world validation (economy/progression/buff/mob balance, cooldown progression, restart persistence, handcrafted dungeons/landmarks) or intentionally undecided future-season policy. The cooldown table sums to 36 days; it is retained as authoritative over the older 33-day prose.
 
 ## Fixed Season 1 design rules
 
@@ -145,7 +145,7 @@ Implement five persistent profession-NPC ranks:
   - City 3 → NPC III
   - City 4 → NPC IV
   - City 5+ → NPC V
-- [ ] Add NPC upgrade progress and UI/interaction feedback.
+- [x] Add NPC upgrade progress and UI/interaction feedback.
 - [x] Levels 6–10 must not introduce NPC rank VI/etc.
 
 ### Gathering NPC progression
@@ -167,7 +167,7 @@ Applies to Farmer, Fisherman, Woodcutter and Mountain Miner.
 ### Main-profession NPC upgrades
 Applies to Blacksmith, Cook, Tailor, Alchemist, Mason and Scholar.
 
-- [ ] Upgrade requirements combine city level + specialization points + Goldtaler + profession-specific materials/crafted goods.
+- [x] Upgrade requirements combine city level + specialization points + Goldtaler + profession-specific materials/crafted goods.
 - [x] Keep concrete requirements data-driven/configurable.
 - [x] Add special Grandmaster requirement(s) for rank V.
 
@@ -195,11 +195,11 @@ Cumulative NPC allocation:
 - [x] Implement specialization points as **allocated/bound points**, not destructive spending.
 - [x] Calculate available points from city total minus current allocations.
 - [x] Prevent upgrades when insufficient points remain.
-- [ ] Keep allocation recoverable/repairable by admin tooling if data becomes inconsistent.
+- [x] Keep allocation recoverable/repairable by admin tooling if data becomes inconsistent.
 
 ### Global main-profession Grandmaster cap
 - [x] Add a central Grandmaster registry/service.
-- [ ] Default global cap = **2 rank-V NPCs per main profession**.
+- [x] Default global cap = **2 rank-V NPCs per main profession**.
 - [x] Make the cap configurable.
 - [x] Make slot reservation/upgrade atomic to avoid race conditions.
 - [x] Gathering professions must bypass this cap.
@@ -264,8 +264,8 @@ Tasks:
 ## City upgrade content
 - [x] Define exact Season 1 requirements for city levels 2–10.
 - [x] Define Goldtaler/resource requirements.
-- [ ] Define any NPC/progression prerequisites.
-- [ ] Verify requirements cannot be trivially pre-completed through exploits.
+- [x] Define any NPC/progression prerequisites.
+- [x] Verify requirements cannot be trivially pre-completed through exploits (static contribution/state audit; runtime exploit test remains server validation).
 - [ ] Test progression against the 33-day absolute cooldown floor.
 
 ## NPC upgrade content
@@ -281,10 +281,10 @@ Tasks:
 - [x] Normal gear path: Leather → Copper → Chain → Iron → Diamond/custom endgame.
 - [x] Remove Gold from the normal progression path.
 - [x] Remove Netherite from the normal progression path.
-- [ ] Review all required profession levels.
-- [ ] Review recipe `professionXp`.
+- [x] Review all required profession levels.
+- [x] Review recipe `professionXp`.
 - [x] Assign recipe access tiers.
-- [ ] Prepare hooks for Dungeon/Worldboss materials in high-end recipes.
+- [x] Prepare hooks for Dungeon/Worldboss materials in high-end recipes.
 
 ## Economy
 - [ ] Balance mob Goldtaler generation.
@@ -297,7 +297,7 @@ Tasks:
 - [ ] Ensure sufficient recurring currency/resource sinks.
 
 ## Character progression
-- [ ] Use existing level telemetry to measure real progression speed.
+- [x] Use existing level telemetry to measure real progression speed (telemetry collection implemented; actual measurement requires live players).
 - [ ] Tune toward roughly 2–3 months for normal active players to reach level 60.
 - [ ] Verify hardcore progression is faster but not trivial.
 - [ ] Define which progression systems can spend character levels/XP and their exact costs.
@@ -306,8 +306,8 @@ Tasks:
 - [x] Reconcile duplicate mob-scaling configuration sources if both are active.
 - [ ] Review Nether base level and other dimension scaling against player level cap 60.
 - [ ] Balance normal mob XP/damage/HP.
-- [ ] Define Worldboss reward materials.
-- [ ] Add boss materials to relevant endgame crafting recipes.
+- [x] Define Worldboss reward materials.
+- [x] Add boss materials to relevant endgame crafting recipes.
 
 ---
 
@@ -316,13 +316,13 @@ Tasks:
 These are intentionally separate from the core technical milestones.
 
 ## Server lore bible
-- [ ] Write the world's historical timeline.
-- [ ] Define why players are rebuilding kingdoms/civilization.
-- [ ] Define the old civilization and what remains of it.
-- [ ] Define major NPC factions and their conflicting interpretations of history.
-- [ ] Define Spawn's role in the world.
-- [ ] Define Nether lore and why expeditions travel there.
-- [ ] Decide the truth behind the End only when needed; NPCs do not all need to know the truth.
+- [x] Write the world's historical timeline.
+- [x] Define why players are rebuilding kingdoms/civilization.
+- [x] Define the old civilization and what remains of it.
+- [x] Define major NPC factions and their conflicting interpretations of history.
+- [x] Define Spawn's role in the world.
+- [x] Define Nether lore and why expeditions travel there.
+- [x] Decide the truth behind the End only when needed; NPCs do not all need to know the truth.
 
 ## Season 1 dimension direction
 Current proposed direction — **not yet a hard implementation requirement**:
@@ -339,10 +339,10 @@ If accepted:
 
 ## Main story structure
 Suggested framework:
-- [ ] Act I (~Lv 1–20): arrival, rebuilding, professions, kingdoms, first ruins.
-- [ ] Act II (~Lv 20–40): old civilization, deeper exploration, Nether, conflicting historical evidence.
-- [ ] Act III (~Lv 40–60): Strongholds/seal mystery, high-level PvE and unresolved Season 1 revelations.
-- [ ] Decide later whether Season 1 receives a final boss/final battle.
+- [x] Act I (~Lv 1–20): arrival, rebuilding, professions, kingdoms, first ruins.
+- [x] Act II (~Lv 20–40): old civilization, deeper exploration, Nether, conflicting historical evidence.
+- [x] Act III (~Lv 40–60): Strongholds/seal mystery, high-level PvE and unresolved Season 1 revelations.
+- [x] Decide later whether Season 1 receives a final boss/final battle.
 
 ## Quest content
 - [ ] Main-story quests.
@@ -383,7 +383,7 @@ Names, rarity tiers and exact drop rates are **not fixed yet**.
 
 # P3 — Season infrastructure / later decisions
 
-- [ ] Add a clear season identifier/version to season-dependent configuration where useful.
+- [x] Add a clear season identifier/version to season-dependent configuration where useful.
 - [ ] Prepare admin tooling for resets/migrations without committing to the Season 2 reset policy yet.
 - [ ] Near the end of Season 1 decide what carries over:
   - world
