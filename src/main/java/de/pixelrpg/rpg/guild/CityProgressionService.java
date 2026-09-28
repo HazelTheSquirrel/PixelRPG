@@ -129,7 +129,7 @@ public final class CityProgressionService {
 
     private synchronized void save() {
         YamlConfiguration yaml = new YamlConfiguration();
-        for (var entry : delivered.entrySet()) for (var material : entry.getValue().entrySet()) yaml.set("guilds." + entry.getKey() + ".materials." + material.name(), material.getValue());
+        for (var entry : delivered.entrySet()) for (var material : entry.getValue().entrySet()) yaml.set("guilds." + entry.getKey() + ".materials." + material.getKey().value(), material.getValue());
         try {
             Path target=file.toPath(), temp=target.resolveSibling(file.getName()+".tmp");
             yaml.save(temp.toFile());

@@ -611,7 +611,6 @@ public final class GuildManager implements GuildAPI {
         private String name() { return name; }
         private UUID leaderId() { return leaderId; }
         private LinkedHashSet<UUID> members() { return members; }
-        private boolean canManageTerritory(UUID playerId) { return leaderId.equals(playerId) || (deputyId != null && deputyId.equals(playerId)); }
         private Guild snapshot() { return new Guild(id, name, leaderId, deputyId, members.size(), treasuryMinorUnits, cityRegionId, cityLevel, cityUpgradeCooldownUntil, combatMode, combatModeChangeAt, combatModeCooldownUntil); }
         private long treasuryMinorUnits() { return treasuryMinorUnits; }
         private void addTreasury(long amount) { treasuryMinorUnits = amount > Long.MAX_VALUE - treasuryMinorUnits ? Long.MAX_VALUE : treasuryMinorUnits + amount; }
