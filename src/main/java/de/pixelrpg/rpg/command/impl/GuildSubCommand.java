@@ -90,9 +90,15 @@ public final class GuildSubCommand implements SubCommand {
                     .toList();
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("city")) {
-            return List.of("info", "contribute", "upgrade", "pvp").stream()
+            return List.of("info", "claim", "markers", "contribute", "upgrade", "pvp").stream()
                     .filter(value -> value.startsWith(args[1].toLowerCase(Locale.ROOT)))
                     .toList();
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("city") && args[1].equalsIgnoreCase("claim")) {
+            return List.of("deine-gilde");
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("city") && args[1].equalsIgnoreCase("markers")) {
+            return List.of("info", "buy");
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("city") && args[1].equalsIgnoreCase("pvp")) {
             return List.of("pve", "pvp").stream()
@@ -185,10 +191,37 @@ public final class GuildSubCommand implements SubCommand {
 
     private boolean city(Player player, String[] args) {
         if (args.length < 2) {
-            player.sendMessage(Component.text("Verwendung: /pixelrpg guild city <info|contribute|upgrade|pvp>", NamedTextColor.YELLOW));
+            player.sendMessage(Component.text("Verwendung: /pixelrpg guild city <info|claim|markers|contribute|upgrade|pvp>", NamedTextColor.YELLOW));
             return true;
         }
         switch (args[1].toLowerCase(Locale.ROOT)) {
+            case "claim" -> {
+                var territoryManager = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getGuildTerritoryManager();
+                String selector = args.length >= 3 ? args[2] : null;
+                if (territoryManager == null) {
+                    player.sendMessage(Component.text("Das Gildengebietssystem ist derzeit nicht verfügbar.", NamedTextColor.RED));
+                    return true;
+                }
+                var result = territoryManager.synchronizeGuildCity(player, selector);
+                player.sendMessage(Component.text(result.message(), result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
+            }
+            case "markers" -> {
+                var territoryManager = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getGuildTerritoryManager();
+                Guild guild = guildManager.getGuild(player.getUniqueId()).orElse(null);
+                if (territoryManager == null || guild == null) {
+                    player.sendMessage(Component.text("Du bist in keiner Gilde oder das Gildengebietssystem ist nicht verfügbar.", NamedTextColor.RED));
+                    return true;
+                }
+                if (args.length >= 3 && args[2].equalsIgnoreCase("buy")) {
+                    var result = territoryManager.purchaseMarker(player);
+                    player.sendMessage(Component.text(result.message(), result.success() ? NamedTextColor.GREEN : NamedTextColor.RED));
+                    return true;
+                }
+                int count = territoryManager.markerCount(guild.id());
+                player.sendMessage(Component.text("Grenzmarker: " + count, NamedTextColor.GOLD));
+                player.sendMessage(Component.text("Nächster Grenzmarker: " + String.format(Locale.ROOT, "%.2f", territoryManager.nextMarkerPrice(guild.id())) + " Goldtaler", NamedTextColor.GRAY));
+                player.sendMessage(Component.text("Verwendung: /pixelrpg guild city markers buy", NamedTextColor.YELLOW));
+            }
             case "info" -> {
                 var view = cityProgression.view(guildManager.getGuild(player.getUniqueId()).map(Guild::id).orElse(null));
                 if (view == null) {
@@ -291,6 +324,8 @@ public final class GuildSubCommand implements SubCommand {
         player.sendMessage(Component.text("/pixelrpg guild leave", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild info", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild city info", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/pixelrpg guild city claim [Gildenname]", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/pixelrpg guild city markers [buy]", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild city contribute <Material> <Menge>", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild city upgrade", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/pixelrpg guild city pvp <pve|pvp>", NamedTextColor.YELLOW));
