@@ -87,8 +87,6 @@ public final class RegionPolicyService {
         boolean managed = spawnService.isManagedSpawn(entity)
                 || regions.isExplicitSpawnPoint(location, event.getEntityType().name());
         if (managed) return true;
-        if (!regions.hasFlag(location, RegionFlag.MOB_SPAWNING)) return false;
-        if (regions.hasFlag(location, RegionFlag.DENY_SPAWN)) return false;
         RegionFlag mobFlag = monsterSpawnFlag(event.getEntityType().name());
         if (mobFlag != null) return regions.hasFlag(location, mobFlag);
         return true;
