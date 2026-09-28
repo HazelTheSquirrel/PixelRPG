@@ -92,3 +92,44 @@ jobs:
           fi
 
           echo 'PixelRPG artifact validation passed.'
+
+      - name: Verify resource pack item models
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("resourcepack/assets/pixelrpg")
+          items = root / "items"
+          models = root / "models"
+          textures = root / "textures"
+
+          failures = []
+          for item_file in sorted(items.rglob("*.json")):
+              data = json.loads(item_file.read_text(encoding="utf-8"))
+              model = data.get("model", {})
+              model_path = model.get("model")
+              if not model_path or not model_path.startswith("pixelrpg:"):
+                  continue
+
+              model_file = models / (model_path.removeprefix("pixelrpg:") + ".json")
+              if not model_file.is_file():
+                  failures.append(f"missing model: {item_file} -> {model_path}")
+                  continue
+
+              model_data = json.loads(model_file.read_text(encoding="utf-8"))
+              for texture in model_data.get("textures", {}).values():
+                  if not texture.startswith("pixelrpg:"):
+                      continue
+                  texture_file = textures / (texture.removeprefix("pixelrpg:") + ".png")
+                  if not texture_file.is_file():
+                      failures.append(f"missing texture: {model_file} -> {texture}")
+
+          if failures:
+              print("\n".join(failures))
+              raise SystemExit(1)
+
+          print("Resource pack item-model references are internally consistent.")
+          PY
