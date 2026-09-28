@@ -2,7 +2,6 @@ package de.pixelrpg.rpg.npc;
 
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
-import de.pixelrpg.rpg.profession.Profession;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import de.pixelrpg.rpg.quest.QuestManager;
