@@ -26,6 +26,7 @@ public final class ProfessionNpcProgressionService {
         RPGNpc npc=npcs.getById(npcId).orElse(null); if(npc==null||npc.profession()==null)return Result.INVALID_NPC;
         Guild guild=guilds.getGuild(player.getUniqueId()).orElse(null); if(guild==null||!guild.canManageTerritory(player.getUniqueId()))return Result.NOT_AUTHORIZED;
         if(!guild.id().equals(npc.kingdomId()))return Result.WRONG_KINGDOM;
+        if(!isNearNpc(player,npc))return Result.NOT_AUTHORIZED;
         ProfessionNpcRank next=npc.professionNpcRank().next(); if(next==null)return Result.MAX_RANK;
         if(next.ordinal()+1>guild.cityLevel())return Result.CITY_LEVEL;
         if(!hasInfrastructure(npc))return Result.INFRASTRUCTURE;
@@ -53,7 +54,7 @@ public final class ProfessionNpcProgressionService {
         delivered.remove(npc.id()); save(); return Result.SUCCESS;
     }
     public synchronized boolean contribute(Player player,String npcId,Material material,int amount){
-        RPGNpc npc=npcs.getById(npcId).orElse(null); Guild g=guilds.getGuild(player.getUniqueId()).orElse(null); if(npc==null||g==null||!g.id().equals(npc.kingdomId())||material==null||amount<=0)return false;
+        RPGNpc npc=npcs.getById(npcId).orElse(null); Guild g=guilds.getGuild(player.getUniqueId()).orElse(null); if(npc==null||g==null||!g.id().equals(npc.kingdomId())||material==null||amount<=0||!isNearNpc(player,npc))return false;
         ConfigurationSection rank=rankConfig(npc.professionNpcRank().next(),npc.profession()); int required=rank.getInt("materials."+material.name(),0); if(required<=0)return false;
         Map<Material,Integer> map=delivered.computeIfAbsent(npcId,k->new HashMap<>());
         int already=map.getOrDefault(material,0);
@@ -63,6 +64,11 @@ public final class ProfessionNpcProgressionService {
         player.getInventory().removeItem(new org.bukkit.inventory.ItemStack(material,accepted));
         save(); return true;
     }
+    private boolean isNearNpc(Player player, RPGNpc npc) {
+        return player != null && npc.location() != null && npc.location().getWorld() == player.getWorld()
+                && npc.location().distanceSquared(player.getLocation()) <= 64.0D;
+    }
+
     private boolean hasInfrastructure(RPGNpc npc) {
         if(npc.location()==null||npc.location().getWorld()==null)return false;
         int radius=6; var world=npc.location().getWorld(); int bx=npc.location().getBlockX(), by=npc.location().getBlockY(), bz=npc.location().getBlockZ();
