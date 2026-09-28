@@ -46,7 +46,7 @@ public final class RegionTransitionService {
     private static void showTransition(Player player, PixelRegion oldRegion, PixelRegion newRegion, GuildManager guilds) {
         String leave = oldRegion == null ? "" : oldRegion.leaveMessage();
         String enter = newRegion == null ? "" : newRegion.enterMessage();
-        if (newRegion != null && newRegion.type() == RegionType.GUILD_TERRITORY) {
+        if (newRegion != null && newRegion.type() == RegionType.GUILD_CITY) {
             try {
                 java.util.UUID guildId = java.util.UUID.fromString(newRegion.properties().getOrDefault("guild-id", ""));
                 var guild = guilds.getGuildById(guildId).orElse(null);
