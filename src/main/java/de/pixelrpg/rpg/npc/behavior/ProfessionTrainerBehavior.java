@@ -162,17 +162,21 @@ public final class ProfessionTrainerBehavior implements NpcBehavior {
     }
 
     private void openNpcContribution(Player player, RPGNpc npc) {
-        DialogInput materialInput = DialogInput.text("material", 260, Component.text("Material", NamedTextColor.WHITE), true, "", 32, null);
-        DialogInput amountInput = DialogInput.text("amount", 160, Component.text("Menge", NamedTextColor.WHITE), true, "1", 8, null);
+        DialogInput contributionInput = DialogInput.text("contribution", 360,
+                Component.text("Material Menge", NamedTextColor.WHITE), true, "", 64, null);
         dialogueEngine.openTextInputAction(player, Component.text("Material beitragen", NamedTextColor.GOLD),
-                List.of(DialogBody.plainMessage(Component.text("Gib Materialnamen und Menge für den nächsten Rang ein.", NamedTextColor.WHITE))),
-                materialInput, Component.text("Weiter"), NamedTextColor.GREEN, (target, response) -> {
-                    String materialName = response.getText("material");
-                    String amountText = response.getText("amount");
-                    Material material = materialName == null ? null : Material.matchMaterial(materialName.trim().toUpperCase(java.util.Locale.ROOT));
-                    int amount;
-                    try { amount = Integer.parseInt(amountText == null ? "0" : amountText.trim()); }
-                    catch (NumberFormatException ignored) { amount = 0; }
+                List.of(DialogBody.plainMessage(Component.text("Beispiel: WHEAT 16", NamedTextColor.WHITE))),
+                contributionInput, Component.text("Einlagern"), NamedTextColor.GREEN, (target, response) -> {
+                    String raw = response.getText("contribution");
+                    String[] parts = raw == null ? new String[0] : raw.trim().split("\\s+");
+                    Material material = parts.length > 0
+                            ? Material.matchMaterial(parts[0].toUpperCase(java.util.Locale.ROOT))
+                            : null;
+                    int amount = 0;
+                    if (parts.length == 2) {
+                        try { amount = Integer.parseInt(parts[1]); }
+                        catch (NumberFormatException ignored) { amount = 0; }
+                    }
                     if (material == null || amount <= 0 || !npcProgression.contribute(target, npc.id(), material, amount)) {
                         target.sendMessage(Component.text("Material, Menge oder Berechtigung sind ungültig.", NamedTextColor.RED));
                     } else {
