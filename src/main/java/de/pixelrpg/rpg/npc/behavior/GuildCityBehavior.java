@@ -267,7 +267,6 @@ public final class GuildCityBehavior implements NpcBehavior {
     private void openRegionFlags(Player player, Guild guild, Consumer<Player> backAction) {
         if (guild.cityRegionId() == null) {
             player.sendMessage(Component.text("Für diese Gildenstadt ist keine Region hinterlegt.", NamedTextColor.RED));
-            player.sendMessage(Component.text("Die Stadtverwaltung ist derzeit nicht verfügbar.", NamedTextColor.RED));
             return;
         }
         var region = PixelRPGPlugin.getInstance().getRegionManager().get(guild.cityRegionId()).orElse(null);
@@ -276,12 +275,6 @@ public final class GuildCityBehavior implements NpcBehavior {
             return;
         }
         regionFlags.open(player, region);
-    }
-
-    private RPGNpc findNpcForGuild(Guild guild) {
-        return PixelRPGPlugin.getInstance().getNpcManager().getAll().stream()
-                .filter(npc -> npc.type() == NpcType.GUILD_CITY && guild.id().equals(npc.kingdomId()))
-                .findFirst().orElse(null);
     }
 
     private Material firstMaintenanceMaterial() {
