@@ -358,6 +358,20 @@ public final class GuildManager implements GuildAPI {
         return Result.SUCCESS;
     }
 
+    /**
+     * Binds the guild's generated boundary region as its actual city.
+     * Guild city identity and boundary identity are therefore the same system.
+     */
+    public synchronized boolean bindCityRegion(UUID guildId, UUID regionId) {
+        if (guildId == null || regionId == null) return false;
+        GuildData guild = guilds.get(guildId);
+        if (guild == null) return false;
+        if (guild.cityRegionId != null && !guild.cityRegionId.equals(regionId)) return false;
+        guild.cityRegionId = regionId;
+        save();
+        return true;
+    }
+
     public synchronized Optional<UUID> getCityRegionId(UUID playerId) {
         GuildData guild = guilds.get(memberGuilds.get(playerId));
         return guild == null ? Optional.empty() : Optional.ofNullable(guild.cityRegionId);
