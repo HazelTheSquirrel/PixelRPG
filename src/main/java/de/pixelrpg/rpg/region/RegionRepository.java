@@ -247,8 +247,6 @@ public final class RegionRepository {
     private static EnumMap<RegionFlag, Boolean> defaultGlobalFlags() {
         EnumMap<RegionFlag, Boolean> flags = new EnumMap<>(RegionFlag.class);
         flags.put(RegionFlag.PVP, true);
-        flags.put(RegionFlag.MOB_SPAWNING, true);
-        flags.put(RegionFlag.DENY_SPAWN, false);
         flags.put(RegionFlag.BLOCK_BREAK, true);
         flags.put(RegionFlag.BLOCK_PLACE, true);
         flags.put(RegionFlag.ENTITY_INTERACTION, true);
