@@ -53,11 +53,16 @@ public final class ProfessionDialog {
                 "Wähle einen Beruf, um Rezepte und Herstellungsdetails zu sehen.", NamedTextColor.WHITE)));
         List<ActionButton> actions = new ArrayList<>();
         for (Profession profession : Profession.values()) {
+            if (!professionService.hasLearned(player.getUniqueId(), profession)) continue;
             int level = professionService.getLevel(player.getUniqueId(), profession);
-            boolean learned = professionService.hasLearned(player.getUniqueId(), profession);
-            String label = profession.displayName() + (learned ? " • Level " + level : " • nicht erlernt");
-            actions.add(dialogueEngine.actionButton(Component.text(label), learned ? NamedTextColor.GREEN : NamedTextColor.DARK_GRAY,
+            actions.add(dialogueEngine.actionButton(
+                    Component.text(profession.displayName() + " • Level " + level, NamedTextColor.GREEN),
                     target -> openProfession(target, profession)));
+        }
+        if (actions.isEmpty()) {
+            body = List.of(DialogBody.plainMessage(Component.text(
+                    "Du hast noch keinen Beruf erlernt. Sprich mit einem passenden Berufslehrer.",
+                    NamedTextColor.WHITE)));
         }
         actions.add(dialogueEngine.actionButton(Component.text("Zurück"), NamedTextColor.WHITE, quickActions::openQuickActions));
         dialogueEngine.openMultiAction(player, Component.text("PixelRPG – Berufe", NamedTextColor.GOLD), body, actions, 1);
