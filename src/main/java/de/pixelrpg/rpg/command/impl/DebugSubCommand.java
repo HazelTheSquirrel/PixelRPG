@@ -26,7 +26,7 @@ public final class DebugSubCommand implements SubCommand {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (args.length < 1) {
-            sender.sendMessage(Component.text("Usage: /rpgadmin debug <player|npc|quest|boss|stats>", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Usage: /pixelrpg debug <player|npc|quest|boss|stats>", NamedTextColor.RED));
             return true;
         }
         switch (args[0].toLowerCase()) {
@@ -41,7 +41,7 @@ public final class DebugSubCommand implements SubCommand {
     }
 
     private void player(CommandSender sender, String[] args) {
-        if (args.length < 2) { sender.sendMessage(Component.text("Usage: /rpgadmin debug player <name>", NamedTextColor.RED)); return; }
+        if (args.length < 2) { sender.sendMessage(Component.text("Usage: /pixelrpg debug player <name>", NamedTextColor.RED)); return; }
         Player player = Bukkit.getPlayerExact(args[1]);
         if (player == null) { sender.sendMessage(Component.text("Spieler nicht online.", NamedTextColor.RED)); return; }
         sender.sendMessage(Component.text("DEBUG PLAYER " + player.getName(), NamedTextColor.GOLD));
@@ -63,7 +63,7 @@ public final class DebugSubCommand implements SubCommand {
     }
 
     private void stats(CommandSender sender, String[] args) {
-        if (args.length < 2) { sender.sendMessage(Component.text("Usage: /rpgadmin debug stats <name>", NamedTextColor.RED)); return; }
+        if (args.length < 2) { sender.sendMessage(Component.text("Usage: /pixelrpg debug stats <name>", NamedTextColor.RED)); return; }
         Player player = Bukkit.getPlayerExact(args[1]);
         if (player == null) { sender.sendMessage(Component.text("Spieler nicht online.", NamedTextColor.RED)); return; }
         plugin.getStatEngine().recalculate(player);
