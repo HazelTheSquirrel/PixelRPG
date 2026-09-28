@@ -175,7 +175,7 @@ public final class GuildTerritoryManager {
         if (locationRegion != null && !locationRegion.isGlobal()) {
             boolean sameGuildCity = locationRegion.type() == RegionType.GUILD_CITY
                     && guildId.equals(parseGuildId(locationRegion.properties().get("guild-id")));
-            if (!sameGuildTerritory) {
+            if (!sameGuildCity) {
                 return OperationResult.failure("Grenzmarker dürfen keine bestehende Region überlappen.");
             }
         }
@@ -419,7 +419,7 @@ public final class GuildTerritoryManager {
                     world.getMinHeight(),
                     world.getMaxHeight() - 1,
                     guild.name(),
-                    RegionType.GUILD_TERRITORY
+                    RegionType.GUILD_CITY
             );
             if (!result.valid()) return false;
             region = regions.get(state.regionId).orElse(null);
@@ -429,7 +429,7 @@ public final class GuildTerritoryManager {
         }
 
         region.setName(guild.name());
-        region.setType(RegionType.GUILD_TERRITORY);
+        region.setType(RegionType.GUILD_CITY);
         region.setDescription("Dynamisch durch die Gilde gesetztes Gebiet.");
         region.setPriority(100);
         region.setProperty("guild-id", guild.id().toString());
