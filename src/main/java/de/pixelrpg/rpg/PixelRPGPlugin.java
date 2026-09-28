@@ -159,6 +159,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
     private CityProgressionService cityProgressionService;
     private KingdomMaintenanceService kingdomMaintenanceService;
     private ProfessionNpcProgressionService professionNpcProgressionService;
+    private MeisterbriefService meisterbriefService;
     private ProfessionNpcBuffService professionNpcBuffService;
     private PlayerTradeManager playerTradeManager;
 
@@ -239,9 +240,10 @@ public final class PixelRPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(characterProgressionTelemetry, this);
         npcManager = lifecycle.register(new NpcManager(this));
         npcManager.loadAll();
-        professionNpcProgressionService = new ProfessionNpcProgressionService(this, guildManager, npcManager);
+        meisterbriefService = new MeisterbriefService(this);
+        professionNpcProgressionService = new ProfessionNpcProgressionService(this, guildManager, npcManager, meisterbriefService);
         professionNpcBuffService = new ProfessionNpcBuffService(this);
-        getServer().getPluginManager().registerEvents(new MeisterbriefSpawnListener(new MeisterbriefService(this)), this);
+        getServer().getPluginManager().registerEvents(new MeisterbriefSpawnListener(meisterbriefService), this);
         getServer().getPluginManager().registerEvents(new NpcChunkListener(npcManager), this);
         npcLookTask = new NpcLookTask(this, npcManager, getConfig().getDouble("npc.look-radius", 3.0), getConfig().getDouble("npc.nameplate-radius", 5.0), getConfig().getInt("npc.look-interval-ticks", 5));
         npcLookTask.start();
