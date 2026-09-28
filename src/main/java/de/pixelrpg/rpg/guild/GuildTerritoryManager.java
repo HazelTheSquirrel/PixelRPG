@@ -290,6 +290,7 @@ public final class GuildTerritoryManager {
 
             regions.delete(state.regionId);
             guilds.unbindCityRegion(state.guildId, state.regionId);
+            if (plugin.getNpcManager() != null) plugin.getNpcManager().removeGuildCityNpc(state.guildId);
 
             block.setType(Material.AIR, false);
             giveItems(player, createMarkerItem(state.guildId, 1));
@@ -464,7 +465,44 @@ public final class GuildTerritoryManager {
         if (!guilds.bindCityRegion(guild.id(), state.regionId)) {
             return false;
         }
+        ensureCityNpc(guild, state);
         return true;
+    }
+
+    /** Ensures the physical guild-city mannequin follows the current territory geometry. */
+    private void ensureCityNpc(Guild guild, TerritoryState state) {
+        var npcManager = plugin.getNpcManager();
+        if (npcManager == null || state.markers.size() < GuildTerritory.INITIAL_MARKERS) return;
+        World world = Bukkit.getWorld(state.markers.getFirst().worldName());
+        if (world == null) return;
+
+        RegionGeometry geometry = geometry(state.markers);
+        if (geometry == null) return;
+
+        double x = (geometry.minX() + geometry.maxX()) * 0.5D;
+        double z = (geometry.minZ() + geometry.maxZ()) * 0.5D;
+        if (!geometry.contains(x, z)) {
+            x = state.markers.stream().mapToDouble(GuildTerritory.Marker::x).average().orElse(state.markers.getFirst().x()) + 0.5D;
+            z = state.markers.stream().mapToDouble(GuildTerritory.Marker::z).average().orElse(state.markers.getFirst().z()) + 0.5D;
+        }
+        if (!geometry.contains(x, z)) {
+            GuildTerritory.Marker marker = state.markers.getFirst();
+            x = marker.x() + 0.5D;
+            z = marker.z() + 0.5D;
+        }
+
+        double y = state.markers.stream().mapToDouble(GuildTerritory.Marker::y).average().orElse(state.markers.getFirst().y()) + 1.0D;
+        npcManager.createOrUpdateGuildCityNpc(guild.id(), guild.name(), new Location(world, x, y, z));
+    }
+
+    /** Reconciles all persisted physical guild cities with their dedicated city mannequins after startup. */
+    public synchronized void ensureCityNpcs() {
+        if (shuttingDown || plugin.getNpcManager() == null) return;
+        for (TerritoryState state : territories.values()) {
+            Guild guild = guilds.getGuildById(state.guildId).orElse(null);
+            if (guild == null || state.markers.size() < GuildTerritory.INITIAL_MARKERS) continue;
+            ensureCityNpc(guild, state);
+        }
     }
 
     private void restoreRegion(UUID guildId, TerritoryState state) {
@@ -671,6 +709,7 @@ public final class GuildTerritoryManager {
         if (state == null) return;
         regions.delete(state.regionId);
         guilds.unbindCityRegion(guildId, state.regionId);
+        if (plugin.getNpcManager() != null) plugin.getNpcManager().removeGuildCityNpc(guildId);
         save();
     }
 
