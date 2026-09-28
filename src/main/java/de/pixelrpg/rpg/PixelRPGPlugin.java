@@ -108,6 +108,7 @@ import de.pixelrpg.rpg.trade.PlayerTradeManager;
 import de.pixelrpg.rpg.region.RegionEditor;
 import de.pixelrpg.rpg.region.RegionListener;
 import de.pixelrpg.rpg.region.RegionManager;
+import de.pixelrpg.rpg.region.RegionFlagDialogService;
 import de.pixelrpg.rpg.region.RegionRepository;
 import de.pixelrpg.rpg.region.RegionSpawnService;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -262,7 +263,7 @@ public final class PixelRPGPlugin extends JavaPlugin {
         bankerBehavior = new BankerBehavior(playerProfileManager, dialogueEngine);
         npcBehaviorRegistry.register(bankerBehavior);
         npcBehaviorRegistry.register(new FillerBehavior(questManager, playerProfileManager, dialogueEngine));
-        npcBehaviorRegistry.register(new GuildCityBehavior(guildManager, cityProgressionService, guildTerritoryManager, kingdomMaintenanceService, playerProfileManager, dialogueEngine, inviteDialogService));
+        npcBehaviorRegistry.register(new GuildCityBehavior(guildManager, cityProgressionService, guildTerritoryManager, kingdomMaintenanceService, playerProfileManager, dialogueEngine, inviteDialogService, new RegionFlagDialogService(regionManager)));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_BLACKSMITH, Profession.BLACKSMITH, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_SCHOLAR, Profession.SCHOLAR, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
         npcBehaviorRegistry.register(new ProfessionTrainerBehavior(NpcType.PROFESSION_FARMER, Profession.FARMER, playerProfileManager, professionSystem.professionService(), dialogueEngine, quickActions, professionNpcBuffService));
