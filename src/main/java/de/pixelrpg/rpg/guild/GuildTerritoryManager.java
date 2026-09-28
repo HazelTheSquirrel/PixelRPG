@@ -289,6 +289,7 @@ public final class GuildTerritoryManager {
             state.markers.addAll(candidate);
 
             regions.delete(state.regionId);
+            guilds.unbindCityRegion(state.guildId, state.regionId);
 
             block.setType(Material.AIR, false);
             giveItems(player, createMarkerItem(state.guildId, 1));
