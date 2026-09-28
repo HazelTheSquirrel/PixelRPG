@@ -101,6 +101,13 @@ Keep the existing polygon/marker approach and **32-block maximum adjacent-marker
 
 **Do not replace the existing territory system. Extend it.**
 
+### Command-free guild-city interaction
+- [x] Spawn one persistent guild-city Mannequin for every valid physical GUILD_CITY territory.
+- [x] Restrict the city Mannequin to members of its owning guild.
+- [x] Provide city level, next upgrade requirements, cooldown, material contribution and upgrade actions through the native Paper dialog.
+- [x] Provide marker purchase, PvE/PvP switching, weekly maintenance and guild administration through the city Mannequin.
+- [x] Remove command dependency from normal city progression; commands remain only as compatibility/admin fallback.
+
 ---
 
 ## M2 — Profession core
@@ -110,6 +117,10 @@ Keep the existing polygon/marker approach and **32-block maximum adjacent-marker
 - [x] All four gathering professions can progress simultaneously.
 - [x] Enforce exactly one active main profession.
 - [x] Store `mainProfession` explicitly in the player profile rather than relying only on the learned-profession set.
+
+### Quick-actions profession visibility
+- [x] The profession menu opened from the existing minecraft:quick_actions flow only shows professions actually learned by the player.
+- [x] Keep the existing quick-actions entry structure; do not add placeholder/unlearned profession entries.
 
 ### Main-profession switching
 - [x] Add a controlled main-profession switch flow.
