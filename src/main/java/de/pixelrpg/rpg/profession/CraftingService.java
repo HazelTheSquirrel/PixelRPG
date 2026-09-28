@@ -76,17 +76,38 @@ public final class CraftingService {
 
     private String accessError(Player player, CraftRecipe recipe) {
         if (recipe.accessTier() == RecipeAccessTier.BASIC) return null;
-        boolean matchingNpc = plugin.getNpcManager() != null && plugin.getNpcManager().getAll().stream()
-                .filter(npc -> npc.profession() == recipe.profession())
-                .anyMatch(npc -> recipe.accessTier() == RecipeAccessTier.NPC_ADVANCED || npcBelongsToPlayerKingdom(player, npc));
-        if (matchingNpc) return null;
-        return recipe.accessTier() == RecipeAccessTier.KINGDOM_ELITE ? "Dieses Rezept benötigt den passenden Berufs-NPC in deinem eigenen Königreich." : "Dieses Rezept benötigt den passenden Berufs-NPC.";
-    }
 
-    private boolean npcBelongsToPlayerKingdom(Player player, RPGNpc npc) {
-        Guild guild = plugin.getGuildManager() == null ? null : plugin.getGuildManager().getGuild(player.getUniqueId()).orElse(null);
-        if (guild == null || plugin.getRegionManager() == null || npc.location().getWorld() == null) return false;
-        return plugin.getRegionManager().find(npc.location()).map(region -> guild.id().toString().equals(region.properties().get("guild-id"))).orElse(false);
+        Guild guild = plugin.getGuildManager() == null
+                ? null
+                : plugin.getGuildManager().getGuild(player.getUniqueId()).orElse(null);
+
+        List<RPGNpc> nearby = plugin.getNpcManager() == null
+                ? List.of()
+                : plugin.getNpcManager().getAll().stream()
+                .filter(npc -> npc.profession() == recipe.profession())
+                .filter(npc -> npc.location() != null && npc.location().getWorld() == player.getWorld())
+                .filter(npc -> npc.location().distanceSquared(player.getLocation()) <= 64.0D)
+                .toList();
+
+        if (nearby.isEmpty()) {
+            return "Du musst in der Nähe des passenden Berufs-NPCs stehen.";
+        }
+
+        RPGNpc ranked = nearby.stream()
+                .filter(npc -> npc.professionNpcRank().ordinal() >= recipe.requiredNpcRank().ordinal())
+                .findFirst()
+                .orElse(null);
+        if (ranked == null) {
+            return "Der Berufs-NPC benötigt mindestens Rang " + recipe.requiredNpcRank().displayName() + ".";
+        }
+
+        if (recipe.accessTier() == RecipeAccessTier.KINGDOM_ELITE) {
+            if (guild == null || ranked.kingdomId() == null || !guild.id().equals(ranked.kingdomId())) {
+                return "Dieses Rezept benötigt den passenden Berufs-NPC in deinem eigenen Königreich.";
+            }
+        }
+
+        return null;
     }
 
     private boolean hasMaterialCosts(Player player, Map<Material, Integer> costs) {
