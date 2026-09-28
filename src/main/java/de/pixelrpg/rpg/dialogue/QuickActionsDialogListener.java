@@ -21,6 +21,7 @@ public final class QuickActionsDialogListener implements Listener {
     private static final Key PROFESSIONS_ACTION = Key.key("pixelrpg:character_card/professions");
     private static final Key GUILD_ACTION = Key.key("pixelrpg:character_card/guild");
     private static final Key CLOSE_ACTION = Key.key("pixelrpg:character_card/close");
+
     private final PixelRPGPlugin plugin;
     private final QuickActionsDialogService service;
     private final CompanionService companionService;
@@ -91,12 +92,11 @@ public final class QuickActionsDialogListener implements Listener {
     @EventHandler
     public void onCloseAction(PlayerCustomClickEvent event) { handlePlayerAction(event, CLOSE_ACTION, Player::closeDialog); }
 
-    /** Stops character-card and companion services when PixelRPG is disabled. */
+    /** Stops the character-card presentation when PixelRPG is disabled. */
     @EventHandler
     public void onPluginDisable(PluginDisableEvent event) {
         if (event.getPlugin() != plugin) return;
         characterCardScoreboard.stop();
-        companionService.shutdown();
     }
 
     private de.pixelrpg.rpg.party.PartyManager servicePartyManager() {
