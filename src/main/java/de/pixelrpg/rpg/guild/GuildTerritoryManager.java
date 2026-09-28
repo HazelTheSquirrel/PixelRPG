@@ -173,7 +173,7 @@ public final class GuildTerritoryManager {
 
         PixelRegion locationRegion = regions.find(world, block.getX() + 0.5D, block.getY(), block.getZ() + 0.5D).orElse(null);
         if (locationRegion != null && !locationRegion.isGlobal()) {
-            boolean sameGuildTerritory = locationRegion.type() == RegionType.GUILD_CITY
+            boolean sameGuildCity = locationRegion.type() == RegionType.GUILD_CITY
                     && guildId.equals(parseGuildId(locationRegion.properties().get("guild-id")));
             if (!sameGuildTerritory) {
                 return OperationResult.failure("Grenzmarker dürfen keine bestehende Region überlappen.");
