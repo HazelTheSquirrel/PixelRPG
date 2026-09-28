@@ -54,7 +54,7 @@ public final class RegionPolicyService {
 
     private de.pixelrpg.rpg.guild.KingdomCombatMode kingdomCombatMode(Player player) {
         return regions.find(player.getLocation()).flatMap(region -> {
-            if (region.type() != RegionType.GUILD_TERRITORY) return java.util.Optional.empty();
+            if (region.type() != RegionType.GUILD_CITY) return java.util.Optional.empty();
             String guildId = region.properties().get("guild-id");
             if (guildId == null) return java.util.Optional.empty();
             try { return java.util.Optional.of(guilds.effectiveCombatMode(java.util.UUID.fromString(guildId))); }
