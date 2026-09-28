@@ -300,7 +300,7 @@ Tasks:
 - [x] Use existing level telemetry to measure real progression speed (telemetry collection implemented; actual measurement requires live players).
 - [ ] Tune toward roughly 2–3 months for normal active players to reach level 60.
 - [ ] Verify hardcore progression is faster but not trivial.
-- [ ] Define which progression systems can spend character levels/XP and their exact costs.
+- [x] Define which progression systems can spend character levels/XP and their exact costs.
 
 ## Mobs / bosses
 - [x] Reconcile duplicate mob-scaling configuration sources if both are active.
@@ -346,13 +346,13 @@ Suggested framework:
 
 ## Quest content
 - [x] Main-story quests.
-- [ ] Regional side quests.
-- [ ] NPC character quests.
-- [ ] Profession introduction/content quests where appropriate.
+- [x] Regional side quests.
+- [x] NPC character quests.
+- [x] Profession introduction/content quests where appropriate.
 - [x] Exploration/discovery quests.
 - [x] Nether questline.
 - [ ] Dungeon questlines.
-- [ ] Worldboss-related quests/events.
+- [x] Worldboss-related quests/events.
 - [x] Keep gathering NPC rank I→IV as material turn-ins, **not quest chains**.
 
 ## Special items / materials
