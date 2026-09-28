@@ -252,7 +252,10 @@ public final class QuestManager {
         profile.clearQuestCoordinate(quest.id());
         profile.markQuestCompleted(quest.id());
         removeTimer(player.getUniqueId(), quest.id());
-        if (quest.rewardMoney() > 0.0D) profile.addMoney(quest.rewardMoney());
+        if (quest.rewardMoney() > 0.0D) {
+            profile.addMoney(quest.rewardMoney());
+            profile.incrementStatistic("economy.gold.generated.quest.minor", de.pixelrpg.rpg.economy.Money.fromMajor(quest.rewardMoney()));
+        }
         if (quest.rewardExp() > 0L) profileManager.addExperience(player.getUniqueId(), quest.rewardExp());
         for (String rewardDefinition : quest.rewardItemMaterials()) giveRewardItem(player, rewardDefinition, quest.requiredLevel());
         if (quest.rewardsCompanion()) {
