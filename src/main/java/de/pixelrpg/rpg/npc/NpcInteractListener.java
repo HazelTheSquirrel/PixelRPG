@@ -2,6 +2,9 @@ package de.pixelrpg.rpg.npc;
 
 import de.pixelrpg.rpg.player.PlayerProfile;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
+import de.pixelrpg.rpg.profession.Profession;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import de.pixelrpg.rpg.quest.QuestManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -41,6 +44,11 @@ public final class NpcInteractListener implements Listener {
             }
 
             questManager.progressTalkToNpc(event.getPlayer(), npc.id());
+
+            // Zuständig für die sichtbare Anzeige des aktuellen professionellen NPC-Fortschritts.
+            if (npc.profession() != null && npc.type() != NpcType.STORY) {
+                sendProfessionProgress(event.getPlayer(), npc);
+            }
             if (npc.type() == NpcType.FILLER) return;
 
             // Story-NPCs behalten ausschließlich ihre questgesteuerte Story-Dialoglogik.
@@ -52,6 +60,33 @@ public final class NpcInteractListener implements Listener {
             if (npcDialogueService.open(event.getPlayer(), npc)) return;
             behaviorRegistry.get(npc.type()).ifPresent(behavior -> behavior.onInteract(event.getPlayer(), npc));
         });
+    }
+
+    private void sendProfessionProgress(org.bukkit.entity.Player player, RPGNpc npc) {
+        var service = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getProfessionNpcProgressionService();
+        if (service == null) return;
+        var progress = service.progress(npc.id());
+        if (progress == null) return;
+        player.sendMessage(Component.text(npc.name() + " — " + npc.profession().displayName(), NamedTextColor.GOLD));
+        player.sendMessage(Component.text("Rang: " + progress.currentRank().displayName(), NamedTextColor.GRAY));
+        if (progress.nextRank() == null) {
+            player.sendMessage(Component.text("Maximalrang erreicht.", NamedTextColor.GREEN));
+            return;
+        }
+        player.sendMessage(Component.text("Nächster Rang: " + progress.nextRank().displayName(), NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("Goldtaler: " + String.format(java.util.Locale.ROOT, "%.2f", progress.gold()), NamedTextColor.GRAY));
+        if (npc.profession().isMain()) {
+            player.sendMessage(Component.text("Freie Spezialisierungspunkte: " + progress.availableSpecializationPoints(), NamedTextColor.GRAY));
+            if (progress.globalGrandmasterCapReached()) {
+                player.sendMessage(Component.text("Der globale Großmeister-Platz für diesen Beruf ist belegt.", NamedTextColor.RED));
+            }
+        }
+        if (!progress.requiredMaterials().isEmpty()) {
+            String materials = progress.requiredMaterials().entrySet().stream()
+                    .map(entry -> entry.getKey().name() + " " + progress.deliveredMaterials().getOrDefault(entry.getKey(), 0) + "/" + entry.getValue())
+                    .collect(java.util.stream.Collectors.joining(", "));
+            player.sendMessage(Component.text("Materialien: " + materials, NamedTextColor.GRAY));
+        }
     }
 
     // Zuständig dafür, dass PixelRPG-NPC-Mannequins keinen normalen Entity-Schaden erhalten.
