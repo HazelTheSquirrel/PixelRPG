@@ -121,7 +121,7 @@ public final class GuildManager implements GuildAPI {
         if (guild.members().size() >= MAX_MEMBERS) return Result.GUILD_FULL;
         if (getGuild(target.getUniqueId()).isPresent()) return Result.TARGET_ALREADY_IN_GUILD;
         invitations.put(target.getUniqueId(), new Invitation(guild.id(), System.currentTimeMillis()));
-        target.sendMessage(Component.text("Du wurdest in die Gilde „" + guild.name() + "“ eingeladen. Nutze /gildeannehmen, um beizutreten.", NamedTextColor.GOLD));
+        target.sendMessage(Component.text("Du wurdest in die Gilde „" + guild.name() + "“ eingeladen. Nutze /pixelrpg guild accept, um beizutreten.", NamedTextColor.GOLD));
         leader.sendMessage(Component.text("Einladung an " + target.getName() + " gesendet.", NamedTextColor.GREEN));
         return Result.SUCCESS;
     }
