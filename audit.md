@@ -1349,7 +1349,7 @@ Dieses Dokument ersetzt den veralteten Auditstand.
 
 **Nachweis:** aktueller Repository-Baum + aktueller GitHub-Actions-Lauf.
 
-**Status:** offen.
+**Status:** 🟢 behoben.
 
 ---
 
@@ -1363,7 +1363,7 @@ Dieses Dokument ersetzt den veralteten Auditstand.
 
 **Auswirkung:** mögliche Main-Thread-Spikes bei größeren Dateien oder häufigen Änderungen.
 
-**Status:** offen.
+**Status:** 🟢 behoben. Snapshot + YAML-Serialisierung werden an den bestehenden AsyncFileWriter übergeben.
 
 ### F-003 — Restart-/Crash-Persistenz nicht vollständig verifiziert
 
@@ -1441,7 +1441,7 @@ Insbesondere:
 | Boss system | 🟢 |
 | Companion system | 🟢 |
 | External skin hardening | 🟢/🟠 |
-| Resourcepack | 🔴 |
+| Resourcepack | 🟢 |
 
 ---
 
@@ -1449,20 +1449,16 @@ Insbesondere:
 
 Der aktuelle `Rebuild`-Branch ist technisch bereits ein umfangreiches, modularisiertes Paper-26.2-RPG-System.
 
-Der wichtigste aktuelle Blocker ist **nicht der Java-Build**, sondern die Resourcepack-Konsistenz.
+Der vorherige Resourcepack-Blocker und das verwaiste Süßbeeren-Marmelade-Routing sind behoben. Der Shop-I/O-Punkt und der globale NPC-Resync-Punkt sind ebenfalls behoben.
 
-Die CI-Evidenz zeigt:
+Für den aktuellen Stand bleiben vor allem Verifikations-/Betriebsrisiken:
 
-> Java kompiliert. Source-Grenzen bestehen. Shadow-Artefakt besteht. Resourcepack-Prüfung besteht noch nicht.
-
-Die Architektur besitzt außerdem einige mittlere technische Restpunkte:
-
-- synchrones Shop-I/O
 - fehlende vollständige Crash-/Restart-Verifikation
-- globale NPC-Resync-Kosten
 - teilweise schwache Runtime-YAML-Schemata
+- teilweise still behandelte Parserfehler
 - externe Skinprovider
 - fehlende parallele Race-/Dupe-Tests
+- automatischer Resourcepack-Selbstcommit als CI-Komplexität
 
 Es wurde **kein konkreter Backdoor-, Legacy-NMS-, CraftBukkit-, ChatColor- oder SQL-Injection-Befund** in den geprüften Bereichen festgestellt.
 
