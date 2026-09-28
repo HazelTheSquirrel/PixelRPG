@@ -391,7 +391,7 @@ public final class NpcManager implements AutoCloseable {
             if (npc.skinSignature() != null && !npc.skinSignature().isBlank()) yaml.set(path + ".skin-signature", npc.skinSignature());
             if (npc.profession() != null) yaml.set(path + ".profession", npc.profession());
             if (npc.kingdomId() != null) yaml.set(path + ".kingdom-id", npc.kingdomId().toString());
-            yaml.set(path + ".profession-rank", npc.professionNpcRank().name());
+            yaml.set(path + ".profession-rank", npc.professionRank());
         }
 
         Path target = file.toPath();
