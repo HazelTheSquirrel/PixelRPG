@@ -1,3 +1,7 @@
+season:
+  id: "season-1"
+  data-version: 1
+
 storage:
   type: "YAML"
   save-executor-threads: 4
