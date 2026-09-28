@@ -95,36 +95,42 @@ kingdom:
       gold: 10000
       cooldown-hours: 48
       materials: { STONE: 512, OAK_LOG: 256, WHEAT: 128 }
+      objectives: { "profession-npc:FARMER:JOURNEYMAN": 1 }
     4:
       gold: 20000
       cooldown-hours: 72
       materials: { COBBLESTONE: 1024, OAK_LOG: 512, IRON_INGOT: 128, WHEAT: 256 }
+      objectives: { "profession-npc:BLACKSMITH:EXPERT": 1 }
     5:
       gold: 35000
       cooldown-hours: 96
       materials: { STONE_BRICKS: 1024, IRON_INGOT: 256, GLASS: 256, BREAD: 128 }
-      objectives: { members: 3 }
+      objectives: { members: 3, "profession-npc:COOK:MASTER": 1 }
     6:
       gold: 50000
       cooldown-hours: 120
       materials: { STONE_BRICKS: 2048, IRON_INGOT: 512, OAK_LOG: 1024 }
+      objectives: { "profession-npc:TAILOR:MASTER": 1 }
     7:
       gold: 70000
       cooldown-hours: 144
       materials: { STONE_BRICKS: 3072, IRON_INGOT: 768, DIAMOND: 32 }
+      objectives: { "profession-npc:ALCHEMIST:MASTER": 1 }
     8:
       gold: 90000
       cooldown-hours: 168
       materials: { STONE_BRICKS: 4096, IRON_INGOT: 1024, DIAMOND: 64 }
+      objectives: { "profession-npc:MASON:MASTER": 1 }
     9:
       gold: 120000
       cooldown-hours: 168
       materials: { STONE_BRICKS: 6144, IRON_INGOT: 1536, DIAMOND: 96 }
+      objectives: { "profession-npc:SCHOLAR:MASTER": 1 }
     10:
       gold: 160000
       cooldown-hours: 168
       materials: { STONE_BRICKS: 8192, IRON_INGOT: 2048, DIAMOND: 128 }
-      objectives: { members: 10 }
+      objectives: { members: 10, "profession-npc:MOUNTAIN_MINER:GRANDMASTER": 1 }
   maintenance:
     amount: 16
     materials: { WHEAT: 16 }
