@@ -10,8 +10,6 @@ import de.pixelrpg.rpg.command.PaperBasicCommandAdapter;
 import de.pixelrpg.rpg.player.PlayerProfileManager;
 import de.pixelrpg.rpg.economy.Money;
 import de.pixelrpg.rpg.scoreboard.ScoreboardService;
-import de.pixelrpg.rpg.region.PixelRegion;
-import de.pixelrpg.rpg.region.RegionType;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -326,48 +324,15 @@ public final class GuildManager implements GuildAPI {
         return true;
     }
 
-    public synchronized Result claimCity(Player leader, String selector) {
-        if (shuttingDown || leader == null || selector == null || selector.isBlank()) return Result.NOT_IN_GUILD;
-        GuildData guild = guilds.get(memberGuilds.get(leader.getUniqueId()));
-        if (guild == null) return Result.NOT_IN_GUILD;
-        if (!guild.leaderId().equals(leader.getUniqueId())) return Result.NOT_LEADER;
-        if (guild.cityRegionId != null) return Result.CITY_ALREADY_CLAIMED;
-        var regionManager = plugin.getRegionManager();
-        if (regionManager == null) return Result.CITY_REGION_NOT_FOUND;
-        PixelRegion region = resolveRegion(regionManager, selector);
-        if (region == null || region.isGlobal()) return Result.CITY_REGION_NOT_FOUND;
-        if (region.type() != RegionType.GUILD_CITY) return Result.NOT_GUILD_CITY;
-        if (region.ownerId() != null && !region.ownerId().equals(leader.getUniqueId())) return Result.CITY_OWNED;
-        if (guilds.values().stream().anyMatch(other -> region.id().equals(other.cityRegionId))) return Result.CITY_OWNED;
-        region.setOwner(leader.getUniqueId());
-        guild.members().forEach(region::addMember);
-        guild.cityRegionId = region.id();
-        regionManager.save();
-        save();
-        return Result.SUCCESS;
-    }
-
-    public synchronized Result releaseCity(Player leader) {
-        if (shuttingDown || leader == null) return Result.NOT_IN_GUILD;
-        GuildData guild = guilds.get(memberGuilds.get(leader.getUniqueId()));
-        if (guild == null) return Result.NOT_IN_GUILD;
-        if (!guild.leaderId().equals(leader.getUniqueId())) return Result.NOT_LEADER;
-        if (guild.cityRegionId == null) return Result.NO_CITY;
-        releaseCityInternal(guild);
-        save();
-        return Result.SUCCESS;
-    }
-
     /**
-     * Binds the guild's generated boundary region as its actual city.
-     * Guild city identity and boundary identity are therefore the same system.
+     * Clears the guild's city binding when its physical marker polygon is dismantled.
+     * The territory manager remains the sole owner of the physical city region.
      */
-    public synchronized boolean bindCityRegion(UUID guildId, UUID regionId) {
+    public synchronized boolean unbindCityRegion(UUID guildId, UUID regionId) {
         if (guildId == null || regionId == null) return false;
         GuildData guild = guilds.get(guildId);
-        if (guild == null) return false;
-        if (guild.cityRegionId != null && !guild.cityRegionId.equals(regionId)) return false;
-        guild.cityRegionId = regionId;
+        if (guild == null || !regionId.equals(guild.cityRegionId)) return false;
+        guild.cityRegionId = null;
         save();
         return true;
     }
@@ -429,7 +394,6 @@ public final class GuildManager implements GuildAPI {
         if (guild == null) return Result.NOT_IN_GUILD;
         if (!guild.leaderId().equals(player.getUniqueId())) return Result.NOT_LEADER;
         if (guild.treasuryMinorUnits() > 0L) return Result.TREASURY_NOT_EMPTY;
-        releaseCityInternal(guild);
         GuildTerritoryManager territoryManager = plugin.getGuildTerritoryManager();
         if (territoryManager != null) territoryManager.removeGuildTerritory(guild.id());
         Set<UUID> changedMembers = Set.copyOf(guild.members());
@@ -593,7 +557,7 @@ public final class GuildManager implements GuildAPI {
     public enum Result {
         SUCCESS, NOT_REGISTERED, ALREADY_IN_GUILD, LEVEL_TOO_LOW, INVALID_NAME, NAME_TAKEN, INSUFFICIENT_GOLD,
         NOT_IN_GUILD, NOT_LEADER, GUILD_FULL, TARGET_ALREADY_IN_GUILD, TARGET_NOT_MEMBER, INVALID_DEPUTY, NO_DEPUTY, NO_INVITATION, GUILD_NOT_FOUND,
-        LEADER_CANNOT_LEAVE, TREASURY_NOT_EMPTY, CITY_ALREADY_CLAIMED, CITY_REGION_NOT_FOUND, NOT_GUILD_CITY, CITY_OWNED, NO_CITY, COMBAT_MODE_ALREADY_ACTIVE, COMBAT_MODE_PENDING, COMBAT_MODE_COOLDOWN
+        LEADER_CANNOT_LEAVE, TREASURY_NOT_EMPTY, COMBAT_MODE_ALREADY_ACTIVE, COMBAT_MODE_PENDING, COMBAT_MODE_COOLDOWN
     }
 
     private record Invitation(UUID guildId, long createdAt) { }
