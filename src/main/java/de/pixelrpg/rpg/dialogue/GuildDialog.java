@@ -123,7 +123,12 @@ public final class GuildDialog {
         List<ActionButton> actions = new ArrayList<>();
         actions.add(action(Component.text("Mitglieder anzeigen", NamedTextColor.AQUA), p -> showMembers(p, guild)));
         actions.add(action(Component.text("Gildengold", NamedTextColor.GOLD), p -> openGuildGold(p, guild)));
-        if (leader || guild.isDeputy(player.getUniqueId())) actions.add(action(Component.text("Grenzmarker kaufen", NamedTextColor.GOLD), this::purchaseMarker));
+        if (leader || guild.isDeputy(player.getUniqueId())) {
+            actions.add(action(Component.text("Grenzmarker kaufen", NamedTextColor.GOLD), this::purchaseMarker));
+            if (guild.cityRegionId() != null) {
+                actions.add(action(Component.text("Stadtverwaltung umsetzen", NamedTextColor.GOLD), this::moveCityAdministration));
+            }
+        }
         if (leader && invites != null) actions.add(action(Component.text("Spieler einladen", NamedTextColor.GREEN), invites::openGuildInviteInput));
         if (leader) actions.add(action(Component.text(guild.deputyId() == null ? "Stellvertreter ernennen" : "Stellvertreter verwalten", NamedTextColor.AQUA), this::openDeputyManagement));
         actions.add(action(Component.text("Zurück", NamedTextColor.WHITE), backAction));
@@ -142,6 +147,33 @@ public final class GuildDialog {
                 : markers + " Grenzmarker";
         return DialogBody.plainMessage(Component.text("Gildengebiet: " + markerText + " • nächster Marker: "
                 + String.format(java.util.Locale.ROOT, "%.2f", price) + " Goldtaler", NamedTextColor.AQUA));
+    }
+
+    private void moveCityAdministration(Player player) {
+        Guild guild = guilds.getGuild(player.getUniqueId()).orElse(null);
+        if (guild == null || (!guild.isLeader(player.getUniqueId()) && !guild.isDeputy(player.getUniqueId()))) {
+            open(player);
+            return;
+        }
+
+        if (guild.cityRegionId() == null || de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getNpcManager() == null) {
+            player.sendMessage(Component.text("Die Stadtverwaltung kann derzeit nicht umgesetzt werden.", NamedTextColor.RED));
+            open(player);
+            return;
+        }
+
+        String npcId = "guild-city-" + guild.id();
+        boolean moved = de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getNpcManager()
+                .updateLocation(npcId, player.getLocation());
+        boolean renamed = moved && de.pixelrpg.rpg.PixelRPGPlugin.getInstance().getNpcManager()
+                .rename(npcId, "Stadtverwaltung");
+
+        player.sendMessage(Component.text(
+                moved && renamed
+                        ? "Die Stadtverwaltung wurde an deinen aktuellen Standort umgesetzt."
+                        : "Die Stadtverwaltung konnte nicht umgesetzt werden.",
+                moved && renamed ? NamedTextColor.GREEN : NamedTextColor.RED));
+        open(player);
     }
 
     private void purchaseMarker(Player player) {
