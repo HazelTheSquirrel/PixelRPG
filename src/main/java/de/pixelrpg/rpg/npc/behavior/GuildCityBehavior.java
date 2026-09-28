@@ -199,39 +199,6 @@ public final class GuildCityBehavior implements NpcBehavior {
         open(player, npc, backAction);
     }
 
-    private void openCityContribution(Player player, RPGNpc npc, Consumer<Player> backAction) {
-        dialogue.openTextInputAction(player, Component.text("Stadtressourcen beitragen", NamedTextColor.GOLD),
-                List.of(DialogBody.plainMessage(Component.text(
-                        "Eingabe: MATERIAL MENGE • z. B. STONE 128", NamedTextColor.WHITE))),
-                io.papermc.paper.registry.data.dialog.input.DialogInput.text(
-                        "contribution", 360, Component.text("Material und Menge", NamedTextColor.WHITE), true, "", 64, null),
-                Component.text("Einlagern", NamedTextColor.GREEN), NamedTextColor.GREEN,
-                (target, response) -> {
-                    String raw = response.getText("contribution");
-                    String[] parts = raw == null ? new String[0] : raw.trim().split("\s+");
-                    Material material = parts.length == 2
-                            ? Material.matchMaterial(parts[0].toUpperCase(Locale.ROOT)) : null;
-                    int amount = 0;
-                    if (parts.length == 2) {
-                        try {
-                            amount = Integer.parseInt(parts[1]);
-                        } catch (NumberFormatException ignored) {
-                            amount = 0;
-                        }
-                    }
-                    if (material == null || amount <= 0 || !cityProgression.contribute(target, material, amount)) {
-                        target.sendMessage(Component.text(
-                                "Material, Menge oder Stadtvoraussetzung sind ungültig.",
-                                NamedTextColor.RED));
-                    } else {
-                        target.sendMessage(Component.text(
-                                "Material wurde für den nächsten Stadtaufstieg eingelagert.",
-                                NamedTextColor.GREEN));
-                    }
-                    open(target, npc, backAction);
-                });
-    }
-
     private void openMaintenance(Player player, RPGNpc npc, Consumer<Player> backAction) {
         Guild guild = guilds.getGuild(player.getUniqueId()).orElse(null);
         if (guild == null || !guild.id().equals(npc.kingdomId())) return;
