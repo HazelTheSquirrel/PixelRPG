@@ -212,8 +212,8 @@ public final class GuildTerritoryManager {
 
             save();
             return OperationResult.success(state.markers.size() == GuildTerritory.INITIAL_MARKERS
-                    ? "Die ersten vier Grenzmarker bilden jetzt ein gültiges Gildengebiet."
-                    : "Grenzmarker gesetzt. Noch " + (GuildTerritory.INITIAL_MARKERS - state.markers.size()) + " Marker bis zum ersten Gildengebiet.");
+                    ? "Die ersten vier Grenzmarker bilden jetzt die Gildenstadt."
+                    : "Grenzmarker gesetzt. Noch " + (GuildTerritory.INITIAL_MARKERS - state.markers.size()) + " Marker bis zur Gildenstadt.");
         }
 
         InsertionCandidate insertion = findInsertionCandidate(guildId, state.markers, marker, state.regionId);
@@ -233,7 +233,7 @@ public final class GuildTerritoryManager {
         }
 
         save();
-        return OperationResult.success("Gildengebiet erweitert. Neuer Grenzmarker wurde sicher in die bestehende Grenze eingefügt.");
+        return OperationResult.success("Gildenstadt erweitert. Neuer Grenzmarker wurde sicher in die bestehende Stadtgrenze eingefügt.");
     }
 
     /**
